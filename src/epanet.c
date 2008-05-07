@@ -1381,7 +1381,7 @@ int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
          else if (code == EN_SOURCEMASS) v = source->Smass*60.0;
          else if (code == EN_SOURCEPAT)  v = source->Pat;
          else                            v = source->Type;
-         return(0);
+         break;
 
       case EN_TANKLEVEL:
          if (index <= Njuncs) return(251);
