@@ -110,7 +110,7 @@ execute function x and set the error code equal to its return value.
 /*** New compile directives ***/                                               //(2.00.11 - LR)
 //#define CLE     /* Compile as a command line executable */
 //#define SOL     /* Compile as a shared object library */
-#define DLL       /* Compile as a Windows DLL */
+//#define DLL       /* Compile as a Windows DLL */
 
 /*** Following lines are deprecated ***/                                       //(2.00.11 - LR)
 //#ifdef DLL

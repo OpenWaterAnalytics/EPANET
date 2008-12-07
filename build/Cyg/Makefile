@@ -123,9 +123,9 @@ $(dllname): $(epanet_objs)
 	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@ epanet.o $^ -Wl,--kill-at
 	$(dlltool) -d $(defname) --dllname $@ --output-lib $(implibname) --kill-at
 
-$(exename): $(dllname) $(epanet_main_heads)
+$(exename): $(epanet_objs)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -D CLE -c $(epanetsrcdir)/$(epanet_main).c
-	$(CC) $(CFLAGS) -o $@ $(epanet_main).o -l$(exename) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $(epanet_main).o $^ $(LDFLAGS)
 
 $(epanet_objs): $(epanet_heads)
 
