@@ -71,7 +71,7 @@ docdir = $(datarootdir)/doc/epanet
 # Compiler and flags
 CC = /bin/gcc
 dlltool = /bin/dlltool
-CFLAGS = -g -O
+CFLAGS = -g -O3
 CPPFLAGS = -I $(srcdir) -I $(epanetincludedir)
 LDFLAGS = -L . -W1,-rpath,$(libdir) -lm
 

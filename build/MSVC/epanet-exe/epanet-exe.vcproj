@@ -167,6 +167,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Installing Executable file..."
+				CommandLine="copy .\Release\epanet2.exe &quot;%HOME%&quot;\bin&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>

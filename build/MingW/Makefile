@@ -93,7 +93,7 @@ docdir = $(datarootdir)/doc/epanet
 # MinGW gcc
 CC = $(MinGWdir)/bin/gcc
 dlltool = $(MinGWdir)/bin/dlltool
-CFLAGS = -g -O
+CFLAGS = -g -O3
 CPPFLAGS = -I $(srcdir) -I $(epanetincludedir)
 LDFLAGS = -L . -W1,-rpath,$(libdir) -lm
 

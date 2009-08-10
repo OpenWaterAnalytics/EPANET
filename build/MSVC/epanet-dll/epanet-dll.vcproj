@@ -165,6 +165,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Installing Library Files..."
+				CommandLine="copy .\Release\epanet2.dll &quot;%HOME%&quot;\bin&#x0D;&#x0A;copy .\Release\epanet2.lib &quot;%HOME%&quot;\lib"
 			/>
 		</Configuration>
 	</Configurations>
