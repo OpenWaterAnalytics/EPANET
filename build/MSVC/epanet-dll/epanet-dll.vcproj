@@ -88,6 +88,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy .\Release\epanet2.dll &quot;%HOME%&quot;\bin&#x0D;&#x0A;copy .\Release\epanet2.lib &quot;%HOME%&quot;\lib&#x0D;&#x0A;copy ..\..\..\include\epanet2.h &quot;%HOME%&quot;\include"
 			/>
 		</Configuration>
 		<Configuration
@@ -166,7 +167,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Installing Library Files..."
-				CommandLine="copy .\Release\epanet2.dll &quot;%HOME%&quot;\bin&#x0D;&#x0A;copy .\Release\epanet2.lib &quot;%HOME%&quot;\lib"
+				CommandLine="copy .\Release\epanet2.dll &quot;%HOME%&quot;\bin&#x0D;&#x0A;copy .\Release\epanet2.lib &quot;%HOME%&quot;\lib&#x0D;&#x0A;copy ..\..\..\include\epanet2.h &quot;%HOME%&quot;\include"
 			/>
 		</Configuration>
 	</Configurations>

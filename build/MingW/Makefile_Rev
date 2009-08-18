@@ -1,48 +1,45 @@
-# MinGW Makefile for EPANET
-
-# Note: This makefile usese MinGW to produce native windows
-# libraries and executables.  The dll/import library, and
-# executable files will have the same names as those produced
-# using other Windows compilers, e.g. MSVC++.  So be aware that
-# there is no way to reliably distinguish between these two compiler
-# sources based on output filenames.
+# Cygwin/MinGW Makefile for EPANET
 
 # This will build EPANET as a native windows DLL and import
-# library (epanet2.dll/libepanet2.dll.a) using MinGW/gcc,
-# and a standalone executable (epanet2.exe).
+# library (epanet_gcc_<Rev>.dll/libepanet_gcc_<Rev>.dll.a) under Cygwin/MinGW,
+# and a standalone executable (epanet_gcc_<Rev>.exe).
+# <Rev> is the atomic revision number of the EPANET SVN repo,
+# so the results of each build can be unambiguously tracked to a repo Rev.
 # This makefile also creates a windows batch file
-# (see MScmdname below) that can be run to produce an import
+# (see MScmdname below) that will produce an import
 # library for linking the DLL using MSVC.
-# This makefile assumes a minimum
+# This makefile assumes a Cygwin environment with minimal
 # MinGW installation, and uses the MinGW gcc compiler from
 # the MinGW install directory.
 # The current release of MinGW can be obtained from
 # http://www.mingw.org/wiki/Getting_Started -- the easiest
 # approach is to download the latest MingW installer and
 # accept all of the defaults.
+# The current release of the Cygwin environment can be
+# obtained from http://www.cygwin.com
 
 # The following targets are defined (for execution in
-# the build directory):
+# the build directory under the Cygwin environment):
 # make
-#     -Builds epanet2.dll, epanet2.def, libepanet2.dll.a,
-#      epanet2.exe
+#     -Builds epanet_gcc_<Rev>.dll, epanet_gcc_<Rev>.def, libepanet_gcc_<Rev>.dll.a,
+#      epanet_gcc_<Rev>.exe
 # make install
-#     -Creates scripts runepanet2.sh and CreateEpanet2Lib.bat that
-#      execute epanet2.exe, and MSVC 'lib' (to create an MSVC
-#      import library).  The runepanet2.sh wrapper simply exports
+#     -Creates shell wrappers runepanet_<Rev>.sh and CreateMSLib_<Rev>.bat that
+#      execute epanet_gcc_<Rev>.exe, and MSVC 'lib' (to create an MSVC
+#      import library).  The runepanet_<Rev>.sh wrapper simply exports
 #      environment variables so that the DLL is found at runtime,
 #      allowing you to specify your own locations for installing
 #      the DLL.
-#     -Installs epanet2.dll, epanet2.exe, and runepanet2.sh
+#     -Installs epanet_gcc_<Rev>.dll, epanet_gcc_<Rev>.exe, and runepanet_<Rev>.sh
 #      in <prefix>/bin, where <prefix> defaults to ~ (and can be set
 #      below to something different - see "Install directories")
-#     -Installs libepanet2.dll.a (import library), epanet2.def,
-#      and CreateEpanet2Lib.bat in <prefix>/lib
+#     -Installs libepanet_gcc_<Rev>.dll.a (import library), epanet_gcc_<Rev>.def,
+#      and CreateMSLib-<Rev>.bat in <prefix>/lib
 #     -Installs epanet2.h in <prefix>/include.  This is the required
 #      header file for the EPANET programmer's toolkit, and thus
 #      <prefix>/include should be on your CPP include search path
 #      for subsequent use of the toolkit and linking with the import
-#      library libepanet2.dll.a or epanet2.lib.
+#      library libepanet_gcc_<Rev>.dll.a.
 # make clean
 #     -Removes object and library files, returning the build directory
 #      to its pristine state.
@@ -63,17 +60,18 @@ MSVClibexe = c:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\bin\\lib
 # Target filenames
 # svnname.sh constructs a name: <prefix><root><Rev><postfix>
 # where <Rev> is the atomic revision number of the svn repo.
-epanetrootname := epanet2
+epanetsvnpath = ../../..
+epanetrootname := $(shell ../svnname.sh $(epanetsvnpath) "" epanet_gcc_ "")
 dllname := $(epanetrootname).dll
 defname := $(epanetrootname).def
 implibname = lib$(dllname).a
 exename := $(epanetrootname)
 # Shell wrapper
 runcmdtemplate = runepanet.sh.template
-runcmdname = runepanet2.sh
+runcmdname = $(shell ../svnname.sh $(epanetsvnpath) "" runepanet_ .sh)
 # MSVC import lib batch file
 MScmdtemplate = CreateMSLib.bat.template
-MScmdname = CreateEpanet2Lib.bat
+MScmdname = $(shell ../svnname.sh $(epanetsvnpath) "" CreateEpanetLib_ .bat)
 # Location of EPANET toolkit includes
 epanetincludedir = ../../include
 # Search path for sources

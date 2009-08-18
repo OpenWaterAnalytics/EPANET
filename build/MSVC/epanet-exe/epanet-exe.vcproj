@@ -90,6 +90,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy .\Debug\epanet2.exe &quot;%HOME%&quot;\bin&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration

@@ -1,35 +1,33 @@
 # Cygwin Makefile for EPANET
 
 # This will build EPANET as a cygwin DLL and import
-# library (cygepanet_gcc_<Rev>.dll/libcygepanet_gcc_<Rev>.dll.a) under Cygwin/gcc,
-# and a standalone executable (cygepanet_gcc_<Rev>.exe).
-# <Rev> is the atomic revision number of the EPANET SVN repo,
-# so the results of each build can be unambiguously tracked to a repo Rev.
+# library (cygepanet.dll/libcygepanet.dll.a) under Cygwin/gcc,
+# and a standalone executable (cygepanet.exe).
 # The current release of the Cygwin environment can be
 # obtained from http://www.cygwin.com
 
 # The following targets are defined (for execution in
 # the build directory under the Cygwin environment):
 # make
-#     -Builds cygepanet_gcc_<Rev>.dll, cygepanet_gcc_<Rev>.def, libcygepanet_gcc_<Rev>.dll.a,
-#      cygepanet_gcc_<Rev>.exe
+#     -Builds cygepanet2.dll, cygepanet2.def, libcygepanet2.dll.a,
+#      cygepanet2.exe
 # make install
-#     -Creates shell wrapper runcygepanet_<Rev>.sh that
-#      executes cygepanet_gcc_<Rev>.exe.
-#      The runcygepanet_<Rev>.sh wrapper simply exports
+#     -Creates shell wrapper runcygepanet2.sh that
+#      executes cygepanet2.exe.
+#      The runcygepanet2.sh wrapper simply exports
 #      environment variables so that the DLL is found at runtime,
 #      allowing you to specify your own locations for installing
 #      the DLL.
-#     -Installs cygepanet_gcc_<Rev>.dll, cygepanet_gcc_<Rev>.exe, and runcygepanet_<Rev>.sh
+#     -Installs cygepanet2.dll, cygepanet2.exe, and runcygepanet2.sh
 #      in <prefix>/bin, where <prefix> defaults to ~ (and can be set
 #      below to something different - see "Install directories")
-#     -Installs libcygepanet_gcc_<Rev>.dll.a (import library), and cygepanet_gcc_<Rev>.def,
+#     -Installs libcygepanet2.dll.a (import library), and cygepanet2.def,
 #      in <prefix>/lib
 #     -Installs epanet2.h in <prefix>/include.  This is the required
 #      header file for the EPANET programmer's toolkit, and thus
 #      <prefix>/include should be on your CPP include search path
 #      for subsequent use of the toolkit and linking with the import
-#      library libcygepanet_gcc_<Rev>.dll.a.
+#      library libcygepanet2.dll.a.
 # make clean
 #     -Removes object and library files, returning the build directory
 #      to its pristine state.
@@ -41,17 +39,14 @@ SHELL = /bin/sh
 # or the compiler flags, but these defaults should be fine.
 
 # Target filenames
-# svnname.sh constructs a name: <prefix><root><Rev><postfix>
-# where <Rev> is the atomic revision number of the svn repo.
-epanetsvnpath = ../../..
-epanetrootname := $(shell ../svnname.sh $(epanetsvnpath) "" cygepanet_gcc_ "")
+epanetrootname := cygepanet2
 dllname := $(epanetrootname).dll
 defname := $(epanetrootname).def
 implibname = lib$(dllname).a
 exename := $(epanetrootname)
 # Shell wrapper
 runcmdtemplate = runepanet.sh.template
-runcmdname = $(shell ../svnname.sh $(epanetsvnpath) "" runcygepanet_ .sh)
+runcmdname = runcygepanet2.sh
 # Location of EPANET toolkit includes
 epanetincludedir = ../../include
 # Search path for sources
