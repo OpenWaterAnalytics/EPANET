@@ -21,7 +21,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			CharacterSet="1"
+			CharacterSet="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -88,7 +88,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy .\Release\epanet2.dll &quot;%HOME%&quot;\bin&#x0D;&#x0A;copy .\Release\epanet2.lib &quot;%HOME%&quot;\lib&#x0D;&#x0A;copy ..\..\..\include\epanet2.h &quot;%HOME%&quot;\include"
+				CommandLine="copy .\Debug\epanet2.dll &quot;%HOME%&quot;\bin&#x0D;&#x0A;copy .\Debug\epanet2.lib &quot;%HOME%&quot;\lib&#x0D;&#x0A;copy ..\..\..\include\epanet2.h &quot;%HOME%&quot;\include&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -96,7 +96,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			CharacterSet="1"
+			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -167,7 +167,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Installing Library Files..."
-				CommandLine="copy .\Release\epanet2.dll &quot;%HOME%&quot;\bin&#x0D;&#x0A;copy .\Release\epanet2.lib &quot;%HOME%&quot;\lib&#x0D;&#x0A;copy ..\..\..\include\epanet2.h &quot;%HOME%&quot;\include"
+				CommandLine="copy .\Release\epanet2.dll &quot;%HOME%&quot;\bin&#x0D;&#x0A;copy .\Release\epanet2.lib &quot;%HOME%&quot;\lib&#x0D;&#x0A;copy ..\..\..\include\epanet2.h &quot;%HOME%&quot;\include&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
