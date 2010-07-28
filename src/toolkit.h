@@ -59,6 +59,8 @@ AUTHOR:     L. Rossman
 #define EN_MIXFRACTION  22
 #define EN_TANK_KBULK   23
 
+#define EN_TANKVOLUME	24			/* SH added 4.2010 */
+
 #define EN_DIAMETER     0    /* Link parameters */
 #define EN_LENGTH       1
 #define EN_ROUGHNESS    2
@@ -84,6 +86,8 @@ AUTHOR:     L. Rossman
 #define EN_RULESTEP     7
 #define EN_STATISTIC    8
 #define EN_PERIODS      9
+#define EN_HTIME		10
+#define EN_HALTFLAG		11	/* sh 4.2010 */
 
 #define EN_NODECOUNT    0   /* Component counts */
 #define EN_TANKCOUNT    1
@@ -194,31 +198,31 @@ AUTHOR:     L. Rossman
  int  DLLEXPORT ENgetpatternindex(char *, int *);
  int  DLLEXPORT ENgetpatternid(int, char *);
  int  DLLEXPORT ENgetpatternlen(int, int *);
- int  DLLEXPORT ENgetpatternvalue(int, int, float *);
+ int  DLLEXPORT ENgetpatternvalue(int, int, double *);
  int  DLLEXPORT ENgetqualtype(int *, int *);
  int  DLLEXPORT ENgeterror(int, char *, int);
 
  int  DLLEXPORT ENgetnodeindex(char *, int *);
  int  DLLEXPORT ENgetnodeid(int, char *);
  int  DLLEXPORT ENgetnodetype(int, int *);
- int  DLLEXPORT ENgetnodevalue(int, int, float *);
+ int  DLLEXPORT ENgetnodevalue(int, int, double *);
 
  int  DLLEXPORT ENgetlinkindex(char *, int *);
  int  DLLEXPORT ENgetlinkid(int, char *);
  int  DLLEXPORT ENgetlinktype(int, int *);
  int  DLLEXPORT ENgetlinknodes(int, int *, int *);
- int  DLLEXPORT ENgetlinkvalue(int, int, float *);
+ int  DLLEXPORT ENgetlinkvalue(int, int, double *);
 
  int  DLLEXPORT ENgetversion(int *);
 
  int  DLLEXPORT ENsetcontrol(int, int, int, float, int, float);
- int  DLLEXPORT ENsetnodevalue(int, int, float);
- int  DLLEXPORT ENsetlinkvalue(int, int, float);
+ int  DLLEXPORT ENsetnodevalue(int, int, double);
+ int  DLLEXPORT ENsetlinkvalue(int, int, double);
  int  DLLEXPORT ENaddpattern(char *);
  int  DLLEXPORT ENsetpattern(int, float *, int);
  int  DLLEXPORT ENsetpatternvalue(int, int, float);
  int  DLLEXPORT ENsettimeparam(int, long);
- int  DLLEXPORT ENsetoption(int, float);
+ int  DLLEXPORT ENsetoption(int, double);
  int  DLLEXPORT ENsetstatusreport(int);
  int  DLLEXPORT ENsetqualtype(int, char *, char *, char *);
 

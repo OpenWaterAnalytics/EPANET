@@ -1074,6 +1074,8 @@ int  DLLEXPORT ENgetoption(int code, float *value)
                           break;
       case EN_DEMANDMULT: v = Dmult;
                           break;
+	  case EN_HALTFLAG:   v = checkHaltFlag();			/* sh - 4.2010 */
+						  break;				/* sh - 4.2010 */
       default:            return(251);
    }
    *value = (float)v;
@@ -1186,7 +1188,7 @@ int DLLEXPORT ENgetpatternlen(int index, int *len)
 }
 
 
-int DLLEXPORT ENgetpatternvalue(int index, int period, float *value)
+int DLLEXPORT ENgetpatternvalue(int index, int period, double *value)
 /*----------------------------------------------------------------
 **  Input:   index  = index of time pattern
 **           period = pattern time period
@@ -1200,7 +1202,7 @@ int DLLEXPORT ENgetpatternvalue(int index, int period, float *value)
    if (!Openflag) return(102);
    if (index < 1 || index > Npats) return(205);
    if (period < 1 || period > Pattern[index].Length) return(251);
-   *value = (float)Pattern[index].F[period-1];
+   *value = Pattern[index].F[period-1];
    return(0);
 }
 
@@ -1314,7 +1316,7 @@ int  DLLEXPORT ENgetnodetype(int index, int *code)
 }
 
 
-int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
+int DLLEXPORT ENgetnodevalue(int index, int code, double *value)
 /*----------------------------------------------------------------
 **  Input:   index = node index
 **           code  = node parameter code (see TOOLKIT.H)
@@ -1330,6 +1332,15 @@ int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
 
 /* Check for valid arguments */
    *value = 0.0f;
+	
+	// added ability to get system-wide demand							// SH added 4.2010
+	if (index == 0) {
+		v = Dsystem;
+		v *= Ucf[FLOW];
+		*value = v;
+		return(0);
+	}
+	
    if (!Openflag) return(102);
    if (index <= 0 || index > Nnodes) return(203);
 
@@ -1475,9 +1486,17 @@ int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
 
 /***  New parameter additions ends here. ***/                                  //(2.00.12 - LR)
 
+		   /***  SH addition: retreive tank volume ***/
+	   case EN_TANKVOLUME:
+		   if (index <= Njuncs) return(251);
+		   v = Tank[index-Njuncs].V0;
+		   break;
+		   
+		   
+		   
       default: return(251);
    }
-   *value = (float)v;
+   *value = v;
    return(0);
 }
 
@@ -1562,7 +1581,7 @@ int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2)
 }
 
 
-int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
+int DLLEXPORT ENgetlinkvalue(int index, int code, double *value)
 /*------------------------------------------------------------------
 **  Input:   index = link index
 **           code  = link parameter code (see TOOLKIT.H)                   
@@ -1696,7 +1715,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
          
       default: return(251);
    }
-   *value = (float)v;
+   *value = v;
    return(0);
 }
 
@@ -1797,7 +1816,7 @@ int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
 }         
 
     
-int DLLEXPORT ENsetnodevalue(int index, int code, float v)
+int DLLEXPORT ENsetnodevalue(int index, int code, double v)
 /*----------------------------------------------------------------
 **  Input:   index = node index
 **           code  = node parameter code (see TOOLKIT.H)
@@ -1847,11 +1866,22 @@ int DLLEXPORT ENsetnodevalue(int index, int code, float v)
          j = ROUND(value);
          if (j < 0 || j > Npats) return(205);
          if (index <= Njuncs)
-         {
-            for (demand = Node[index].D; demand != NULL; demand = demand ->next)
-            {
-               if (demand->next == NULL) demand->Pat = j;
-            }
+         {	
+			 if (j == 0) {																			// SH 3.2010
+				 // we are re-setting the pattern assignment if we set pattern index to 0.			// SH 3.2010
+				 demand = Node[index].D;															// SH 3.2010
+				 demand->next = NULL;																// SH 3.2010
+				 demand->Pat = 0;																	// SH 3.2010
+			 }																						// SH 3.2010
+			 else {																					// SH 3.2010
+				 for (demand = Node[index].D; demand != NULL; demand = demand ->next)
+				 {
+					 if (demand->next == NULL) demand->Pat = j;
+				 }
+			 }																						// SH 3.2010
+
+			 
+            
          }
          else Tank[index-Njuncs].Pat = j;
          break;
@@ -2006,7 +2036,7 @@ int DLLEXPORT ENsetnodevalue(int index, int code, float v)
 }
 
 
-int DLLEXPORT ENsetlinkvalue(int index, int code, float v)
+int DLLEXPORT ENsetlinkvalue(int index, int code, double v)
 /*----------------------------------------------------------------
 **  Input:   index = link index
 **           code  = link parameter code (see TOOLKIT.H)
@@ -2252,7 +2282,7 @@ int  DLLEXPORT  ENsettimeparam(int code, long value)
 */
 {
    if (!Openflag) return(102);
-   if (OpenHflag || OpenQflag) return(109);
+   //if (OpenHflag || OpenQflag) return(109);
    if (value < 0) return(202);
    switch(code)
    {
@@ -2289,13 +2319,15 @@ int  DLLEXPORT  ENsettimeparam(int code, long value)
       case EN_STATISTIC:     if (value > RANGE) return(202);
                              Tstatflag = (char)value;
                              break;
+	  case EN_HTIME:		 Htime = value;
+							 break;
       default:               return(251);
    }
    return(0);
 }
 
 
-int  DLLEXPORT ENsetoption(int code, float v)
+int  DLLEXPORT ENsetoption(int code, double v)
 /*----------------------------------------------------------------
 **  Input:   code  = option code (see TOOLKIT.H)
 **           v = option value
@@ -2332,6 +2364,9 @@ int  DLLEXPORT ENsetoption(int code, float v)
                           break;
       case EN_DEMANDMULT: if (value <= 0.0) return(202);
                           Dmult = value;
+							break;
+	   case EN_HALTFLAG: if (value < 0.0) return(202);
+						  setHaltFlag((int)value);
                           break;
       default:            return(251);
    }

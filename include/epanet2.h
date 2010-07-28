@@ -1,10 +1,10 @@
 /*
-**   EPANET2.H
-**
-** C/C++ header file for EPANET Programmers Toolkit
-**
-** Last updated on 2/14/08 (2.00.12)
-*/
+ **   EPANET2.H
+ **
+ ** C/C++ header file for EPANET Programmers Toolkit
+ **
+ ** Last updated on 2/14/08 (2.00.12)
+ */
 
 #ifndef EPANET2_H
 #define EPANET2_H
@@ -37,6 +37,8 @@
 #define EN_MIXFRACTION  22
 #define EN_TANK_KBULK   23
 
+#define EN_TANKVOLUME	24			/* SH added 4.2010 */
+
 #define EN_DIAMETER     0    /* Link parameters */
 #define EN_LENGTH       1
 #define EN_ROUGHNESS    2
@@ -62,6 +64,8 @@
 #define EN_RULESTEP     7
 #define EN_STATISTIC    8
 #define EN_PERIODS      9
+#define EN_HTIME		10
+#define EN_HALTFLAG		11	/* sh 4.2010 */
 
 #define EN_NODECOUNT    0    /* Component counts */
 #define EN_TANKCOUNT    1
@@ -136,94 +140,94 @@
 
 #undef WINDOWS
 #ifdef _WIN32
-  #define WINDOWS
+#define WINDOWS
 #endif
 #ifdef __WIN32__
-  #define WINDOWS
+#define WINDOWS
 #endif
 
 // --- define DLLEXPORT
 
 #ifdef WINDOWS
-  #ifdef __cplusplus
-  #define DLLEXPORT extern "C" __declspec(dllexport) __stdcall
-  #else
-  #define DLLEXPORT __declspec(dllexport) __stdcall
-  #endif
+#ifdef __cplusplus
+#define DLLEXPORT extern "C" __declspec(dllexport) __stdcall
 #else
-  #ifdef __cplusplus
-  #define DLLEXPORT extern "C"
-  #else
-  #define DLLEXPORT
-  #endif
+#define DLLEXPORT __declspec(dllexport) __stdcall
+#endif
+#else
+#ifdef __cplusplus
+#define DLLEXPORT extern "C"
+#else
+#define DLLEXPORT
+#endif
 #endif
 
 
 // --- declare the EPANET toolkit functions
 
- int   DLLEXPORT ENepanet(char *, char *, char *, void (*) (char *));
- int   DLLEXPORT ENopen(char *, char *, char *);
- int   DLLEXPORT ENsaveinpfile(char *);
- int   DLLEXPORT ENclose(void);
+int   DLLEXPORT ENepanet(char *, char *, char *, void (*) (char *));
+int   DLLEXPORT ENopen(char *, char *, char *);
+int   DLLEXPORT ENsaveinpfile(char *);
+int   DLLEXPORT ENclose(void);
 
- int   DLLEXPORT ENsolveH(void);
- int   DLLEXPORT ENsaveH(void);
- int   DLLEXPORT ENopenH(void);
- int   DLLEXPORT ENinitH(int);
- int   DLLEXPORT ENrunH(long *);
- int   DLLEXPORT ENnextH(long *);
- int   DLLEXPORT ENcloseH(void);
- int   DLLEXPORT ENsavehydfile(char *);
- int   DLLEXPORT ENusehydfile(char *);
+int   DLLEXPORT ENsolveH(void);
+int   DLLEXPORT ENsaveH(void);
+int   DLLEXPORT ENopenH(void);
+int   DLLEXPORT ENinitH(int);
+int   DLLEXPORT ENrunH(long *);
+int   DLLEXPORT ENnextH(long *);
+int   DLLEXPORT ENcloseH(void);
+int   DLLEXPORT ENsavehydfile(char *);
+int   DLLEXPORT ENusehydfile(char *);
 
- int   DLLEXPORT ENsolveQ(void);
- int   DLLEXPORT ENopenQ(void);
- int   DLLEXPORT ENinitQ(int);
- int   DLLEXPORT ENrunQ(long *);
- int   DLLEXPORT ENnextQ(long *);
- int   DLLEXPORT ENstepQ(long *);
- int   DLLEXPORT ENcloseQ(void);
+int   DLLEXPORT ENsolveQ(void);
+int   DLLEXPORT ENopenQ(void);
+int   DLLEXPORT ENinitQ(int);
+int   DLLEXPORT ENrunQ(long *);
+int   DLLEXPORT ENnextQ(long *);
+int   DLLEXPORT ENstepQ(long *);
+int   DLLEXPORT ENcloseQ(void);
 
- int   DLLEXPORT ENwriteline(char *);
- int   DLLEXPORT ENreport(void);
- int   DLLEXPORT ENresetreport(void);
- int   DLLEXPORT ENsetreport(char *);
+int   DLLEXPORT ENwriteline(char *);
+int   DLLEXPORT ENreport(void);
+int   DLLEXPORT ENresetreport(void);
+int   DLLEXPORT ENsetreport(char *);
 
- int   DLLEXPORT ENgetcontrol(int, int *, int *, float *,
-                      int *, float *);
- int   DLLEXPORT ENgetcount(int, int *);
- int   DLLEXPORT ENgetoption(int, float *);
- int   DLLEXPORT ENgettimeparam(int, long *);
- int   DLLEXPORT ENgetflowunits(int *);
- int   DLLEXPORT ENgetpatternindex(char *, int *);
- int   DLLEXPORT ENgetpatternid(int, char *);
- int   DLLEXPORT ENgetpatternlen(int, int *);
- int   DLLEXPORT ENgetpatternvalue(int, int, float *);
- int   DLLEXPORT ENgetqualtype(int *, int *);
- int   DLLEXPORT ENgeterror(int, char *, int);
+int   DLLEXPORT ENgetcontrol(int, int *, int *, float *,
+							 int *, float *);
+int   DLLEXPORT ENgetcount(int, int *);
+int   DLLEXPORT ENgetoption(int, float *);
+int   DLLEXPORT ENgettimeparam(int, long *);
+int   DLLEXPORT ENgetflowunits(int *);
+int   DLLEXPORT ENgetpatternindex(char *, int *);
+int   DLLEXPORT ENgetpatternid(int, char *);
+int   DLLEXPORT ENgetpatternlen(int, int *);
+int   DLLEXPORT ENgetpatternvalue(int, int, double *);
+int   DLLEXPORT ENgetqualtype(int *, int *);
+int   DLLEXPORT ENgeterror(int, char *, int);
 
- int   DLLEXPORT ENgetnodeindex(char *, int *);
- int   DLLEXPORT ENgetnodeid(int, char *);
- int   DLLEXPORT ENgetnodetype(int, int *);
- int   DLLEXPORT ENgetnodevalue(int, int, float *);
+int   DLLEXPORT ENgetnodeindex(char *, int *);
+int   DLLEXPORT ENgetnodeid(int, char *);
+int   DLLEXPORT ENgetnodetype(int, int *);
+int   DLLEXPORT ENgetnodevalue(int, int, double *);
 
- int   DLLEXPORT ENgetlinkindex(char *, int *);
- int   DLLEXPORT ENgetlinkid(int, char *);
- int   DLLEXPORT ENgetlinktype(int, int *);
- int   DLLEXPORT ENgetlinknodes(int, int *, int *);
- int   DLLEXPORT ENgetlinkvalue(int, int, float *);
+int   DLLEXPORT ENgetlinkindex(char *, int *);
+int   DLLEXPORT ENgetlinkid(int, char *);
+int   DLLEXPORT ENgetlinktype(int, int *);
+int   DLLEXPORT ENgetlinknodes(int, int *, int *);
+int   DLLEXPORT ENgetlinkvalue(int, int, double *);
 
- int   DLLEXPORT ENgetversion(int *);
+int   DLLEXPORT ENgetversion(int *);
 
- int   DLLEXPORT ENsetcontrol(int, int, int, float, int, float);
- int   DLLEXPORT ENsetnodevalue(int, int, float);
- int   DLLEXPORT ENsetlinkvalue(int, int, float);
- int   DLLEXPORT ENaddpattern(char *);
- int   DLLEXPORT ENsetpattern(int, float *, int);
- int   DLLEXPORT ENsetpatternvalue(int, int, float);
- int   DLLEXPORT ENsettimeparam(int, long);
- int   DLLEXPORT ENsetoption(int, float);
- int   DLLEXPORT ENsetstatusreport(int);
- int   DLLEXPORT ENsetqualtype(int, char *, char *, char *);
+int   DLLEXPORT ENsetcontrol(int, int, int, float, int, float);
+int   DLLEXPORT ENsetnodevalue(int, int, double);
+int   DLLEXPORT ENsetlinkvalue(int, int, double);
+int   DLLEXPORT ENaddpattern(char *);
+int   DLLEXPORT ENsetpattern(int, float *, int);
+int   DLLEXPORT ENsetpatternvalue(int, int, float);
+int   DLLEXPORT ENsettimeparam(int, long);
+int   DLLEXPORT ENsetoption(int, float);
+int   DLLEXPORT ENsetstatusreport(int);
+int   DLLEXPORT ENsetqualtype(int, char *, char *, char *);
 
 #endif
