@@ -82,13 +82,6 @@ double RelaxFactor;                                                            /
 /* Function to find flow coeffs. through open/closed valves */                 //(2.00.11 - LR)
 void valvecoeff(int k);                                                        //(2.00.11 - LR)
 
-int checkHaltFlag() {
-	return Haltflag;
-}
-int setHaltFlag(int value) {
-	Haltflag = value;
-	return 0;
-}
 
 int  openhyd()
 /*
@@ -793,8 +786,7 @@ void  controltimestep(long *tstep)
    long  t,t1,t2;
 
    for (i=1; i<=Ncontrols; i++)
-   {	
-	  if (Control[i].Link == 0) continue;
+   {
       t = 0;
       if ( (n = Control[i].Node) > 0)           /* Node control:       */
       {
