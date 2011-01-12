@@ -231,6 +231,8 @@
 			<key>Layout</key>
 			<array>
 				<dict>
+					<key>BecomeActive</key>
+					<true/>
 					<key>ContentConfiguration</key>
 					<dict>
 						<key>PBXBottomSmartGroupGIDs</key>
@@ -268,6 +270,7 @@
 								<string>08FB7794FE84155DC02AAC07</string>
 								<string>22322FA8106836A000641384</string>
 								<string>08FB7795FE84155DC02AAC07</string>
+								<string>1AB674ADFE9D54B511CA2CBB</string>
 								<string>1C37FBAC04509CD000000102</string>
 								<string>1C37FAAC04509CD000000102</string>
 								<string>1C37FABC05509CD000000102</string>
@@ -275,8 +278,8 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>25</integer>
-									<integer>4</integer>
+									<integer>28</integer>
+									<integer>26</integer>
 									<integer>0</integer>
 								</array>
 							</array>
@@ -311,14 +314,12 @@
 					<key>Dock</key>
 					<array>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>vars.h</string>
+								<string>epanet2.h</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -326,11 +327,11 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>vars.h</string>
+										<string>epanet2.h</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>22F948F711D1071600B08E7D</string>
+										<string>22663BCE12D60F65002E4167</string>
 										<key>history</key>
 										<array>
 											<string>22D84C7E106845A4006D3DEE</string>
@@ -339,7 +340,6 @@
 											<string>222BA1391180BE890071A4C7</string>
 											<string>222BA13B1180BE890071A4C7</string>
 											<string>22B1773E1199DED400A8EEC2</string>
-											<string>2270671A119B4A0C00BA4EF4</string>
 											<string>2270671C119B4A0C00BA4EF4</string>
 											<string>2211345511C189B0006B6918</string>
 											<string>223C3E2511C42F5800F60805</string>
@@ -354,12 +354,13 @@
 											<string>222BA21311C81765009CF8E3</string>
 											<string>222BA21411C81765009CF8E3</string>
 											<string>222BA21611C81765009CF8E3</string>
-											<string>22E3206311CA77B3008E8CBD</string>
 											<string>2299285511CFCEB10055BF95</string>
 											<string>2299285611CFCEB10055BF95</string>
-											<string>2299285711CFCEB10055BF95</string>
 											<string>2299285811CFCEB10055BF95</string>
-											<string>2299285911CFCEB10055BF95</string>
+											<string>22663BBD12D60AF7002E4167</string>
+											<string>22663BBE12D60AF7002E4167</string>
+											<string>22663BBF12D60AF7002E4167</string>
+											<string>22663BC012D60AF7002E4167</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -371,14 +372,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {1033, 730}}</string>
+								<string>{{0, 0}, {1033, 728}}</string>
 								<key>RubberWindowFrame</key>
 								<string>10 102 1241 868 0 0 1280 1002 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>730pt</string>
+							<string>728pt</string>
 						</dict>
 						<dict>
 							<key>ContentConfiguration</key>
@@ -391,14 +392,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 735}, {1033, 92}}</string>
+								<string>{{0, 733}, {1033, 94}}</string>
 								<key>RubberWindowFrame</key>
 								<string>10 102 1241 868 0 0 1280 1002 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
 							<key>Proportion</key>
-							<string>92pt</string>
+							<string>94pt</string>
 						</dict>
 					</array>
 					<key>Proportion</key>
@@ -417,9 +418,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>22F948F811D1071600B08E7D</string>
+				<string>22663BBA12D60AD1002E4167</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>22F948F911D1071600B08E7D</string>
+				<string>22663BBB12D60AD1002E4167</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -558,7 +559,7 @@
 	<key>WindowOrderList</key>
 	<array>
 		<string>22322F6E1068349B00641384</string>
-		<string>/Users/sam/Documents/School/ENGCVS/EPANET/BASE/trunk/build/Xcode/epanet/epanet.xcodeproj</string>
+		<string>/Users/sam/Desktop/epanet/build/Xcode/epanet/epanet.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
 	<string>10 102 1241 868 0 0 1280 1002 </string>
@@ -638,7 +639,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>22322F6E1068349B00641384</string>
-				<string>22F948FA11D1071600B08E7D</string>
+				<string>22663BBC12D60AD1002E4167</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>
