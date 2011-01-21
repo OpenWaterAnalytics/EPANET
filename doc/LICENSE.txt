@@ -1,0 +1,9 @@
+The EPANET software was developed by Lewis Rossman (US-EPA).
+
+This public-domain software developed by the U.S. EPA,
+National Risk Management Research Laboratory in Cincinnati, Ohio.
+Although these programs have been used by the U.S. EPA, no warranty,
+expressed or implied, is made by the U.S. EPA as to the accuracy and
+functioning of the programs and related program material, nor shall the
+fact of distribution constitute any such warranty, and no responsibility
+is assumed by the U.S. EPA in connection therewith.
