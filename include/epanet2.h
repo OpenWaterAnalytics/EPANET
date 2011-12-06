@@ -37,6 +37,8 @@
 #define EN_MIXFRACTION  22
 #define EN_TANK_KBULK   23
 
+#define EN_TANKVOLUME   24     /* TNT */
+
 #define EN_DIAMETER     0    /* Link parameters */
 #define EN_LENGTH       1
 #define EN_ROUGHNESS    2
@@ -51,6 +53,7 @@
 #define EN_STATUS       11
 #define EN_SETTING      12
 #define EN_ENERGY       13
+#define EN_LINKQUAL     14     /* TNT */
 
 #define EN_DURATION     0    /* Time parameters */
 #define EN_HYDSTEP      1
@@ -62,6 +65,7 @@
 #define EN_RULESTEP     7
 #define EN_STATISTIC    8
 #define EN_PERIODS      9
+#define EN_STARTTIME    10   /* Added TNT 10/2/2009 */
 
 #define EN_NODECOUNT    0    /* Component counts */
 #define EN_TANKCOUNT    1
@@ -144,23 +148,32 @@
 
 // --- define DLLEXPORT
 
-#ifdef WINDOWS
-  #ifdef __cplusplus
-  #define DLLEXPORT extern "C" __declspec(dllexport) __stdcall
-  #else
-  #define DLLEXPORT __declspec(dllexport) __stdcall
-  #endif
-#else
-  #ifdef __cplusplus
-  #define DLLEXPORT extern "C"
+#ifndef DLLEXPORT
+  #ifdef DLL
+    #if defined(CYGWIN)
+      #define DLLEXPORT __stdcall
+    #elif defined(WINDOWS)
+      #ifdef __cplusplus
+      #define DLLEXPORT extern "C" __declspec(dllexport) 
+      #else
+      #define DLLEXPORT __declspec(dllexport) 
+      #endif
+    #else
+      #ifdef __cplusplus
+      #define DLLEXPORT extern "C"
+      #else
+      #define DLLEXPORT
+      #endif
+    #endif
   #else
   #define DLLEXPORT
   #endif
 #endif
 
-
 // --- declare the EPANET toolkit functions
-
+#ifdef __cplusplus
+extern "C" {
+#endif
  int   DLLEXPORT ENepanet(char *, char *, char *, void (*) (char *));
  int   DLLEXPORT ENopen(char *, char *, char *);
  int   DLLEXPORT ENsaveinpfile(char *);
@@ -207,6 +220,10 @@
  int   DLLEXPORT ENgetnodetype(int, int *);
  int   DLLEXPORT ENgetnodevalue(int, int, float *);
 
+ int   DLLEXPORT ENgetnumdemands(int, int *);
+ int   DLLEXPORT ENgetbasedemand(int, int, float *);
+ int   DLLEXPORT ENgetdemandpattern(int, int, int *);
+
  int   DLLEXPORT ENgetlinkindex(char *, int *);
  int   DLLEXPORT ENgetlinkid(int, char *);
  int   DLLEXPORT ENgetlinktype(int, int *);
@@ -225,5 +242,8 @@
  int   DLLEXPORT ENsetoption(int, float);
  int   DLLEXPORT ENsetstatusreport(int);
  int   DLLEXPORT ENsetqualtype(int, char *, char *, char *);
+#ifdef __cplusplus
+};
+#endif
 
 #endif

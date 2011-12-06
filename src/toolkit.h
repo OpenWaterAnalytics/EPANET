@@ -15,19 +15,22 @@ AUTHOR:     L. Rossman
 *******************************************************************
 */
 
-// --- Define DLLEXPORT
 
-#ifdef DLL
-  #ifdef __cplusplus
-  #define DLLEXPORT extern "C" __declspec(dllexport) __stdcall
+#ifndef DLLEXPORT
+  #ifdef DLL
+    #ifdef __cplusplus
+    #define DLLEXPORT extern "C" __declspec(dllexport) 
+    #else
+    #define DLLEXPORT __declspec(dllexport) 
+    #endif
+  #elif defined(CYGWIN)
+    #define DLLEXPORT __stdcall
   #else
-  #define DLLEXPORT __declspec(dllexport) __stdcall
-  #endif
-#else
-  #ifdef __cplusplus
-  #define DLLEXPORT extern "C"
-  #else
-  #define DLLEXPORT
+    #ifdef __cplusplus
+    #define DLLEXPORT
+    #else
+    #define DLLEXPORT
+    #endif
   #endif
 #endif
 
@@ -59,6 +62,8 @@ AUTHOR:     L. Rossman
 #define EN_MIXFRACTION  22
 #define EN_TANK_KBULK   23
 
+#define EN_TANKVOLUME   24     /* TNT */
+
 #define EN_DIAMETER     0    /* Link parameters */
 #define EN_LENGTH       1
 #define EN_ROUGHNESS    2
@@ -73,6 +78,7 @@ AUTHOR:     L. Rossman
 #define EN_STATUS       11
 #define EN_SETTING      12
 #define EN_ENERGY       13
+#define EN_LINKQUAL     14     /* TNT */
 
 #define EN_DURATION     0    /* Time parameters */
 #define EN_HYDSTEP      1
@@ -84,6 +90,7 @@ AUTHOR:     L. Rossman
 #define EN_RULESTEP     7
 #define EN_STATISTIC    8
 #define EN_PERIODS      9
+#define EN_STARTTIME    10  /* Added TNT 10/2/2009 */
 
 #define EN_NODECOUNT    0   /* Component counts */
 #define EN_TANKCOUNT    1
@@ -155,7 +162,9 @@ AUTHOR:     L. Rossman
 
 
 // --- Declare the EPANET toolkit functions
-
+#if defined(__LINUX__) && defined(__cplusplus)
+extern "C" {
+#endif
  int  DLLEXPORT ENepanet(char *, char *, char *, void (*) (char *));
 
  int  DLLEXPORT ENopen(char *, char *, char *);
@@ -203,6 +212,10 @@ AUTHOR:     L. Rossman
  int  DLLEXPORT ENgetnodetype(int, int *);
  int  DLLEXPORT ENgetnodevalue(int, int, float *);
 
+ int  DLLEXPORT ENgetnumdemands(int, int *);
+ int  DLLEXPORT ENgetbasedemand(int, int, float *);
+ int  DLLEXPORT ENgetdemandpattern(int, int, int *);
+
  int  DLLEXPORT ENgetlinkindex(char *, int *);
  int  DLLEXPORT ENgetlinkid(int, char *);
  int  DLLEXPORT ENgetlinktype(int, int *);
@@ -222,3 +235,6 @@ AUTHOR:     L. Rossman
  int  DLLEXPORT ENsetstatusreport(int);
  int  DLLEXPORT ENsetqualtype(int, char *, char *, char *);
 
+#if defined(__LINUX__) && defined(__cplusplus)
+}
+#endif

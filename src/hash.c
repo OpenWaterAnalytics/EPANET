@@ -18,7 +18,11 @@
 *********************************************************************
 */
 
+#ifndef __APPLE__
 #include <malloc.h>
+#else
+#include <stdlib.h>
+#endif
 #include <string.h>
 #include "hash.h"
 

@@ -132,7 +132,9 @@ execute function x and set the error code equal to its return value.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef __APPLE__
 #include <malloc.h>
+#endif
 #include <math.h>
 #include <float.h>                                                             //(2.00.12 - LR)
 #include "hash.h"    
@@ -361,13 +363,14 @@ int DLLEXPORT ENclose()
    if (TmpOutFile != OutFile)                                                  //(2.00.12 - LR)
    {                                                                           //(2.00.12 - LR)
       if (TmpOutFile != NULL) fclose(TmpOutFile);                              //(2.00.12 - LR)
+      TmpOutFile=NULL;
       remove(TmpFname);                                                        //(2.00.12 - LR)
    }                                                                           //(2.00.12 - LR)
 
-   if (InFile  != NULL) fclose(InFile);
-   if (RptFile != NULL) fclose(RptFile);
-   if (HydFile != NULL) fclose(HydFile);
-   if (OutFile != NULL) fclose(OutFile);
+   if (InFile  != NULL) { fclose(InFile);  InFile=NULL;  }
+   if (RptFile != NULL) { fclose(RptFile); RptFile=NULL; }
+   if (HydFile != NULL) { fclose(HydFile); HydFile=NULL; }
+   if (OutFile != NULL) { fclose(OutFile); OutFile=NULL; }
   
    if (Hydflag == SCRATCH) remove(HydFname);                                   //(2.00.12 - LR)
    if (Outflag == SCRATCH) remove(OutFname);                                   //(2.00.12 - LR)
@@ -1092,7 +1095,7 @@ int DLLEXPORT ENgettimeparam(int code, long *value)
 {
    *value = 0;
    if (!Openflag) return(102);
-   if (code < EN_DURATION || code > EN_PERIODS) return(251);
+   if (code < EN_DURATION || code > EN_STARTTIME) return(251);
    switch (code)
    {
       case EN_DURATION:     *value = Dur;       break;
@@ -1104,6 +1107,7 @@ int DLLEXPORT ENgettimeparam(int code, long *value)
       case EN_REPORTSTART:  *value = Rstart;    break;
       case EN_STATISTIC:    *value = Tstatflag; break;
       case EN_PERIODS:      *value = Nperiods;  break;
+      case EN_STARTTIME:    *value = Tstart;    break;  /* Added TNT 10/2/2009 */
    }
    return(0);
 }
@@ -1475,6 +1479,11 @@ int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
 
 /***  New parameter additions ends here. ***/                                  //(2.00.12 - LR)
 
+      case EN_TANKVOLUME:
+         if (index <= Njuncs) return(251);
+         v = tankvolume(index-Njuncs, H[index])*Ucf[VOLUME];
+         break;
+
       default: return(251);
    }
    *value = (float)v;
@@ -1692,6 +1701,10 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
 
       case EN_ENERGY:
          getenergy(index, &v, &a);
+         break;
+         
+      case EN_LINKQUAL:
+         v = avgqual(index) * Ucf[LINKQUAL];
          break;
          
       default: return(251);
@@ -2450,7 +2463,7 @@ int   openfiles(char *f1, char *f2, char *f3)
    else Outflag = SCRATCH;                                                     //(2.00.12 - LR)
 
 /* Check that file names are not identical */
-   if (strcomp(f1,f2) || strcomp(f1,f3) || strcomp(f2,f3))
+ and outfile   if (strcomp(f1,f2) || strcomp(f1,f3) || (strcomp(f2,f3) && (strlen(f2) > 0 || strlen(f3) > 0)))
    {
       writecon(FMT04);
       return(301);
@@ -2898,7 +2911,7 @@ char* getTmpName(char* fname)
 
       // --- if user supplied the name of a temporary directory,
       //     then make it be the prefix of the full file name
-      n = strlen(TmpDir);
+      n = (int)strlen(TmpDir);
       if ( n > 0 )
       {
           strcpy(fname, TmpDir);
@@ -3117,6 +3130,41 @@ void writewin(char *s)
       viewprog(progmsg);
    }
 #endif
+}
+int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
+{
+	Pdemand d;
+	int n=0;
+	/* Check for valid arguments */
+	if (!Openflag) return(102);
+	if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
+	for(d=Node[nodeIndex].D; d != NULL; d=d->next) n++;
+	*numDemands=n;
+	return 0;
+}
+int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, float *baseDemand)
+{
+	Pdemand d;
+	int n=0;
+	/* Check for valid arguments */
+	if (!Openflag) return(102);
+	if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
+	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
+	if(n!=demandIdx) return(253);
+	*baseDemand=d->Base*Ucf[FLOW];
+	return 0;
+}
+int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
+{
+	Pdemand d;
+	int n=0;
+	/* Check for valid arguments */
+	if (!Openflag) return(102);
+	if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
+	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
+	if(n!=demandIdx) return(253);
+	*pattIdx=d->Pat;
+	return 0;
 }
 
 /*************************** END OF EPANET.C ***************************/

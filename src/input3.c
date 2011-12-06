@@ -23,7 +23,9 @@ All functions in this module are called from newline() in INPUT2.C.
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifndef __APPLE__
 #include <malloc.h>
+#endif
 #include <math.h>
 #include "hash.h"
 #include "text.h"

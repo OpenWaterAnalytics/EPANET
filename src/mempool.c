@@ -16,7 +16,9 @@
 */
 
 #include <stdlib.h>
+#ifndef __APPLE__
 #include <malloc.h>
+#endif
 #include "mempool.h"
 
 /*
@@ -91,7 +93,6 @@ static alloc_hdr_t * AllocHdr()
 DLLEXPORT alloc_handle_t * AllocInit()
 {
     alloc_handle_t *newpool;
-
     root = (alloc_root_t *) malloc(sizeof(alloc_root_t));
     if (root == NULL) return(NULL);
     if ( (root->first = AllocHdr()) == NULL) return(NULL);

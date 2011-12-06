@@ -24,7 +24,9 @@ AUTHOR:     L. Rossman
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef __APPLE__
 #include <malloc.h>
+#endif
 #include <math.h>
 #include "hash.h"
 #include "text.h"

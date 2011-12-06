@@ -28,7 +28,9 @@ The following utility functions are all called from INPUT3.C
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifndef __APPLE__
 #include <malloc.h>
+#endif
 #include <math.h>
 #include "hash.h"
 #include "text.h"
@@ -261,7 +263,7 @@ int  newline(int sect, char *line)
    {
        case _TITLE:       if (Ntitle < 3)
                           {
-                             n = strlen(line);
+                             n = (int)strlen(line);
                              if (line[n-1] == 10) line[n-1] = ' ';
                              strncpy(Title[Ntitle],line,MAXMSG);
                              Ntitle++;
@@ -783,12 +785,12 @@ int  gettokens(char *s)
 /* Truncate s at start of comment */
    c = strchr(s,';');
    if (c) *c = '\0';
-   len = strlen(s);
+   len = (int)strlen(s);
 
 /* Scan s for tokens until nothing left */
    while (len > 0 && n < MAXTOKS)
    {
-       m = strcspn(s,SEPSTR);          /* Find token length */
+       m = (int)strcspn(s,SEPSTR);          /* Find token length */
        len -= m+1;                     /* Update length of s */
        if (m == 0) s++;                /* No token found */
        else
@@ -796,7 +798,7 @@ int  gettokens(char *s)
           if (*s == '"')               /* Token begins with quote */
           {
              s++;                      /* Start token after quote */
-             m = strcspn(s,"\"\n\r");  /* Find end quote (or EOL) */
+             m = (int)strcspn(s,"\"\n\r");  /* Find end quote (or EOL) */
           }                            
           s[m] = '\0';                 /* Null-terminate the token */
           Tok[n] = s;                  /* Save pointer to token */
