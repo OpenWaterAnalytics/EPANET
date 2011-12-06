@@ -88,7 +88,7 @@ static alloc_hdr_t * AllocHdr()
 **  Returns pointer to the new pool.
 */
 
-alloc_handle_t * AllocInit()
+DLLEXPORT alloc_handle_t * AllocInit()
 {
     alloc_handle_t *newpool;
 
@@ -108,7 +108,7 @@ alloc_handle_t * AllocInit()
 **  memory from the current pool.
 */
 
-char * Alloc(long size)
+DLLEXPORT char *Alloc(long size)
 {
     alloc_hdr_t  *hdr = root->current;
     char         *ptr;
@@ -158,7 +158,7 @@ char * Alloc(long size)
 **  Change the current pool.  Return the old pool.
 */
 
-alloc_handle_t * AllocSetPool(alloc_handle_t *newpool)
+DLLEXPORT alloc_handle_t * AllocSetPool(alloc_handle_t *newpool)
 {
     alloc_handle_t *old = (alloc_handle_t *) root;
     root = (alloc_root_t *) newpool;
@@ -173,7 +173,7 @@ alloc_handle_t * AllocSetPool(alloc_handle_t *newpool)
 **  so this is very fast.
 */
 
-void  AllocReset()
+DLLEXPORT void AllocReset()
 {
     root->current = root->first;
     root->current->free = root->current->block;
@@ -187,7 +187,7 @@ void  AllocReset()
 **  Don't use where AllocReset() could be used.
 */
 
-void  AllocFreePool()
+DLLEXPORT void AllocFreePool()
 {
     alloc_hdr_t  *tmp,
                  *hdr = root->first;
