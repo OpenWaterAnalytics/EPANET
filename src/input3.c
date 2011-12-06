@@ -1412,8 +1412,7 @@ int  timedata()
          if ( (y = hour(Tok[n-1],Tok[n])) < 0.0) return(213);
       }
    }
-   t = (long)(3600.0*y);
-
+   t = (long)(3600.0*y+0.5);
 /* Process the value assigned to the matched parameter */
    if      (match(Tok[0],w_DURATION))  Dur = t;      /* Simulation duration */
    else if (match(Tok[0],w_HYDRAULIC)) Hstep = t;    /* Hydraulic time step */
