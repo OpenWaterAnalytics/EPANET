@@ -162,7 +162,7 @@ AUTHOR:     L. Rossman
 
 
 // --- Declare the EPANET toolkit functions
-#if defined(__LINUX__) && defined(__cplusplus)
+#if defined(__cplusplus)
 extern "C" {
 #endif
  int  DLLEXPORT ENepanet(char *, char *, char *, void (*) (char *));
@@ -235,6 +235,6 @@ extern "C" {
  int  DLLEXPORT ENsetstatusreport(int);
  int  DLLEXPORT ENsetqualtype(int, char *, char *, char *);
 
-#if defined(__LINUX__) && defined(__cplusplus)
+#if defined(__cplusplus)
 }
 #endif
