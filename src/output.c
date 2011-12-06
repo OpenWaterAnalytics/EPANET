@@ -174,6 +174,7 @@ int  savehyd(long *htime)
    if (fwrite(x+1,sizeof(REAL4),Nlinks,HydFile) < (unsigned)Nlinks)
       errcode = 308;
    free(x);
+   fflush(HydFile); /* added TNT */
    return(errcode);
 }                        /* End of savehyd */
 
@@ -193,6 +194,7 @@ int  savehydstep(long *hydstep)
    t = *hydstep;
    if (fwrite(&t,sizeof(INT4),1,HydFile) < 1) errcode = 308;
    if (t == 0) fputc(EOFMARK, HydFile);
+   fflush(HydFile); /* added TNT */
    return(errcode);
 }
 
