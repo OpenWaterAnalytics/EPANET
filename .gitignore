@@ -1,0 +1,29 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# Doxygen output
+doxygen_out/
+
+# Mac Stuff
+.DS_Store
+*.swp
+*~.nib
+*.build/
+DerivedData/
+Debug/
+
+*.xcodeproj/
+!*.xcodeproj/project.pbxproj
+
+*.mode1v3
+*.mode2v3
