@@ -1,721 +1,0 @@
-Tepanetmsx
-v7
-r0
-t322618132.693242
-cCheck dependencies
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/hash.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/hash.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/mathexpr.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mathexpr.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/mempool.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mempool.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxchem.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxchem.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxcompiler.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxfile.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfile.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxfuncs.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfuncs.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxinp.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxinp.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxmain.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxout.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxout.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxproj.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxproj.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxqual.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxqual.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxrpt.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxtank.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtank.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxtoolkit.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtoolkit.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxutils.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxutils.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/newton.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/newton.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/rk5.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/rk5.c normal x86_64 c com.apple.compilers.gcc.4_2
-cCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/ros2.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/ros2.c normal x86_64 c com.apple.compilers.gcc.4_2
-cLd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/libepanetmsx.dylib normal x86_64
-
-N/Developer/SDKs/MacOSX10.6.sdk
-c000000004CAA740B00000000000000EE
-t1286239243
-s238
-
-N/Developer/SDKs/MacOSX10.6.sdk/usr/include/ctype.h
-c000000004BBD2CE90000000000002C18
-t1270689001
-s11288
-
-N/Developer/SDKs/MacOSX10.6.sdk/usr/include/dlfcn.h
-c000000004C74B5950000000000000B1C
-t1282717077
-s2844
-
-N/Developer/SDKs/MacOSX10.6.sdk/usr/include/math.h
-c000000004A5C14A000000000000004F1
-t1247548576
-s1265
-
-N/Developer/SDKs/MacOSX10.6.sdk/usr/include/stdio.h
-c000000004BBD2CE90000000000004174
-t1270689001
-s16756
-
-N/Developer/SDKs/MacOSX10.6.sdk/usr/include/stdlib.h
-c000000004BBD2CE90000000000002DF5
-t1270689001
-s11765
-
-N/Developer/SDKs/MacOSX10.6.sdk/usr/include/string.h
-c000000004BBD2CE90000000000001731
-t1270689001
-s5937
-
-N/Developer/SDKs/MacOSX10.6.sdk/usr/include/time.h
-c000000004BBD2CE9000000000000178E
-t1270689001
-s6030
-
-N/Developer/SDKs/MacOSX10.6.sdk/usr/lib/gcc/i686-apple-darwin10/4.2.1/include/float.h
-c000000004A11EB240000000000001538
-t1242688292
-s5432
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../../../BASE/trunk/build/Xcode/epanet/build/Debug/libepanet.dylib
-c000000004D827AA30000000000049E88
-t1300396707
-s302728
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../../../BASE/trunk/include/epanet2.h
-c000000004D827A410000000000001927
-t1300396609
-s6439
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../include/epanetmsx.h
-c000000004D827A380000000000000DAC
-t1300396600
-s3500
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/hash.c
-c000000004D827A380000000000000B87
-t1300396600
-s2951
-i<malloc.h>
-i<string.h>
-i"hash.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mathexpr.c
-c000000004D827A380000000000005748
-t1300396600
-s22344
-i<ctype.h>
-i<malloc.h>
-i<string.h>
-i<stdlib.h>
-i<stdio.h>
-i<math.h>
-i"mathexpr.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mempool.c
-c000000004D827A38000000000000119A
-t1300396600
-s4506
-i<stdlib.h>
-i<malloc.h>
-i"mempool.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxchem.c
-c000000004D827A380000000000008AD5
-t1300396600
-s35541
-i<stdio.h>
-i<string.h>
-i<malloc.h>
-i<math.h>
-i"msxtypes.h"
-i"rk5.h"
-i"ros2.h"
-i"newton.h"
-i"msxfuncs.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c
-c000000004D827A380000000000002A54
-t1300396600
-s10836
-i<stdlib.h>
-i<stdio.h>
-i<string.h>
-i"msxtypes.h"
-i"msxfuncs.h"
-i"msxutils.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfile.c
-c000000004D827A380000000000001EBF
-t1300396600
-s7871
-i<stdio.h>
-i<string.h>
-i"msxtypes.h"
-i"msxutils.h"
-i"msxdict.h"
-i"epanet2.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfuncs.c
-c000000004D827A3800000000000010BD
-t1300396600
-s4285
-i<stdio.h>
-i<windows.h>
-i<dlfcn.h>
-i"msxfuncs.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxinp.c
-c000000004D827A380000000000009939
-t1300396600
-s39225
-i<stdio.h>
-i<stdlib.h>
-i<string.h>
-i<malloc.h>
-i<math.h>
-i"msxtypes.h"
-i"msxutils.h"
-i"msxdict.h"
-i"epanet2.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c
-c000000004D827A380000000000001645
-t1300396600
-s5701
-i<stdlib.h>
-i<stdio.h>
-i<float.h>
-i"epanet2.h"
-i"epanetmsx.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxout.c
-c000000004D827A380000000000002E94
-t1300396600
-s11924
-i<stdio.h>
-i<string.h>
-i<malloc.h>
-i<math.h>
-i"msxtypes.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxproj.c
-c000000004D827A380000000000004A94
-t1300396600
-s19092
-i<stdio.h>
-i<string.h>
-i<malloc.h>
-i<math.h>
-i"msxtypes.h"
-i"msxutils.h"
-i"mempool.h"
-i"hash.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxqual.c
-c000000004D827A38000000000000A2AD
-t1300396600
-s41645
-i<stdio.h>
-i<string.h>
-i<malloc.h>
-i<math.h>
-i"msxtypes.h"
-i"mempool.h"
-i"msxutils.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c
-c000000004D827A38000000000000286F
-t1300396600
-s10351
-i<stdio.h>
-i<string.h>
-i<time.h>
-i<math.h>
-i"msxtypes.h"
-i"epanet2.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtank.c
-c000000004D827A380000000000003350
-t1300396600
-s13136
-i<stdio.h>
-i<math.h>
-i"msxtypes.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtoolkit.c
-c000000004D827A3800000000000086F6
-t1300396600
-s34550
-i<stdio.h>
-i<string.h>
-i<malloc.h>
-i<float.h>
-i"msxtypes.h"
-i"msxutils.h"
-i"epanet2.h"
-i"epanetmsx.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxutils.c
-c000000004D827A380000000000003131
-t1300396600
-s12593
-i<stdlib.h>
-i<stdio.h>
-i<string.h>
-i<malloc.h>
-i<math.h>
-i<float.h>
-i"msxutils.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/newton.c
-c000000004D827A38000000000000109E
-t1300396600
-s4254
-i<stdio.h>
-i<stdlib.h>
-i<string.h>
-i<math.h>
-i"msxutils.h"
-i"newton.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/rk5.c
-c000000004D827A38000000000000210F
-t1300396600
-s8463
-i<stdlib.h>
-i<math.h>
-i"rk5.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/ros2.c
-c000000004D827A380000000000001E58
-t1300396600
-s7768
-i<stdlib.h>
-i<math.h>
-i"msxutils.h"
-i"ros2.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/libepanetmsx.dylib
-t1300925332
-s182656
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/epanetmsx.LinkFileList
-c000000004D8A8B930000000000000B57
-t1300925331
-s2903
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/hash.o
-t1300925331
-s5920
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/mathexpr.o
-t1300925331
-s30168
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/mempool.o
-t1300925331
-s6212
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxchem.o
-t1300925331
-s37600
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxcompiler.o
-t1300925331
-s17152
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxfile.o
-t1300925331
-s21336
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxfuncs.o
-t1300925331
-s5448
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxinp.o
-t1300925331
-s47300
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxmain.o
-t1300925331
-s5640
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxout.o
-t1300925331
-s16196
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxproj.o
-t1300925331
-s28368
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxqual.o
-t1300925332
-s44108
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxrpt.o
-t1300925332
-s19836
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxtank.o
-t1300925332
-s16004
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxtoolkit.o
-t1300925332
-s33752
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxutils.o
-t1300925332
-s13224
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/newton.o
-t1300925332
-s5788
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/rk5.o
-t1300925332
-s12408
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/ros2.o
-t1300925332
-s9220
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/macinclude/malloc.h
-c000000004D827A41000000000000009C
-t1300396609
-s156
-i<stdlib.h>
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/src/hash.h
-c000000004D827A38000000000000018F
-t1300396600
-s399
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/src/mathexpr.h
-c000000004D827A380000000000000619
-t1300396600
-s1561
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/src/mempool.h
-c000000004D827A3800000000000001AE
-t1300396600
-s430
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/src/msxdict.h
-c000000004D827A3800000000000009C0
-t1300396600
-s2496
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/src/msxfuncs.h
-c000000004D827A38000000000000053F
-t1300396600
-s1343
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/src/msxtypes.h
-c000000004D827A38000000000000510E
-t1300396600
-s20750
-i"mathexpr.h"
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/src/msxutils.h
-c000000004D827A3800000000000007FF
-t1300396600
-s2047
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/src/newton.h
-c000000004D827A3800000000000003E0
-t1300396600
-s992
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/src/rk5.h
-c000000004D827A380000000000000334
-t1300396600
-s820
-
-N/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/src/ros2.h
-c000000004D827A380000000000000329
-t1300396600
-s809
-
-CCheck dependencies
-r0
-lSLF07#2@18"Check dependencies322618131#322618131#0(0"0(0#1#0"8598306208#0"0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/hash.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/hash.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.139156
-e322618131.208594
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/hash.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/hash.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@104"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/hash.c322618131#322618131#0(0"0(0#0#96"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/hash.c8615610464#1737"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/hash.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/hash.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/mathexpr.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mathexpr.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.141772
-e322618131.360713
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/mathexpr.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mathexpr.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mathexpr.c:115: warning: 'getVariableValue' defined but not used
-lSLF07#2@108"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mathexpr.c322618131#322618131#0(155"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mathexpr.c:115: warning: 'getVariableValue' defined but not used1(22@39"'getVariableValue' defined but not used322618131#0#155#0(6@100"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mathexpr.c322089400#115#0#115#0#24"'*' defined but not used0(0#0#100"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mathexpr.c8615245600#1745"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mathexpr.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/mathexpr.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/mempool.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mempool.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.208728
-e322618131.270989
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/mempool.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mempool.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@107"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mempool.c322618131#322618131#0(0"0(0#0#99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mempool.c8613975968#1743"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/mempool.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/mempool.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxchem.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxchem.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.271118
-e322618131.523030
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxchem.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxchem.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@107"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxchem.c322618131#322618131#0(0"0(0#0#99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxchem.c8613675168#1743"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxchem.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxchem.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxcompiler.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.360847
-e322618131.457652
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxcompiler.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c: In function 'MSXcompiler_close':
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c:167: warning: unused variable 'cmd'
-lSLF07#2@111"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c322618131#322618131#0(278"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c: In function 'MSXcompiler_close':/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c:167: warning: unused variable 'cmd'1(22@21"Unused variable 'cmd'322618131#138#140#0(6@103"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c322089400#167#0#167#0#19"unused variable '*'0(0#0#103"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c8612519616#1751"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxcompiler.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxcompiler.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxfile.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfile.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.457796
-e322618131.563284
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxfile.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfile.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:23: warning: 'ReportWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:24: warning: 'OptionTypeWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:26: warning: 'CompilerWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:28: warning: 'MixingTypeWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:29: warning: 'MassUnitsWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:30: warning: 'AreaUnitsWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:31: warning: 'TimeUnitsWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:32: warning: 'SolverTypeWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:33: warning: 'CouplingWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:34: warning: 'ExprTypeWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:35: warning: 'HydVarWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:37: warning: 'YES' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:38: warning: 'NO' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:39: warning: 'ALL' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:40: warning: 'NONE' defined but not used
-lSLF07#2@107"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfile.c322618131#322618131#0(2215"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:23: warning: 'ReportWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:24: warning: 'OptionTypeWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:26: warning: 'CompilerWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:28: warning: 'MixingTypeWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:29: warning: 'MassUnitsWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:30: warning: 'AreaUnitsWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:31: warning: 'TimeUnitsWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:32: warning: 'SolverTypeWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:33: warning: 'CouplingWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:34: warning: 'ExprTypeWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:35: warning: 'HydVarWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:37: warning: 'YES' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:38: warning: 'NO' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:39: warning: 'ALL' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:40: warning: 'NONE' defined but not used15(22@34"'ReportWords' defined but not used322618131#0#148#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#23#0#23#0#24"'*' defined but not used0(22@38"'OptionTypeWords' defined but not used322618131#148#152#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#24#0#24#0#24"'*' defined but not used0(22@36"'CompilerWords' defined but not used322618131#300#150#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#26#0#26#0#24"'*' defined but not used0(22@38"'MixingTypeWords' defined but not used322618131#450#152#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#28#0#28#0#24"'*' defined but not used0(22@37"'MassUnitsWords' defined but not used322618131#602#151#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#29#0#29#0#24"'*' defined but not used0(22@37"'AreaUnitsWords' defined but not used322618131#753#151#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#30#0#30#0#24"'*' defined but not used0(22@37"'TimeUnitsWords' defined but not used322618131#904#151#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#31#0#31#0#24"'*' defined but not used0(22@38"'SolverTypeWords' defined but not used322618131#1055#152#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#32#0#32#0#24"'*' defined but not used0(22@36"'CouplingWords' defined but not used322618131#1207#150#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#33#0#33#0#24"'*' defined but not used0(22@36"'ExprTypeWords' defined but not used322618131#1357#150#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#34#0#34#0#24"'*' defined but not used0(22@34"'HydVarWords' defined but not used322618131#1507#148#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#35#0#35#0#24"'*' defined but not used0(22@26"'YES' defined but not used322618131#1655#140#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#37#0#37#0#24"'*' defined but not used0(22@25"'NO' defined but not used322618131#1795#139#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#38#0#38#0#24"'*' defined but not used0(22@26"'ALL' defined but not used322618131#1934#140#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#39#0#39#0#24"'*' defined but not used0(22@27"'NONE' defined but not used322618131#2074#141#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#40#0#40#0#24"'*' defined but not used0(0#0#99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfile.c8616663936#1743"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfile.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxfile.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxfuncs.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfuncs.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.523165
-e322618131.574671
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxfuncs.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfuncs.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@108"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfuncs.c322618131#322618131#0(0"0(0#0#100"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfuncs.c8616369152#1745"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxfuncs.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxfuncs.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxinp.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxinp.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.563573
-e322618131.816161
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxinp.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxinp.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:28: warning: 'MixingTypeWords' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:29: warning: 'MassUnitsWords' defined but not used
-lSLF07#2@106"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxinp.c322618131#322618131#0(303"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:28: warning: 'MixingTypeWords' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h:29: warning: 'MassUnitsWords' defined but not used2(22@38"'MixingTypeWords' defined but not used322618131#0#152#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#28#0#28#0#24"'*' defined but not used0(22@37"'MassUnitsWords' defined but not used322618131#152#151#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxdict.h322089400#29#0#29#0#24"'*' defined but not used0(0#0#98"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxinp.c8615900288#1741"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxinp.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxinp.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxmain.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.574810
-e322618131.638333
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxmain.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c: In function 'main':
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c:132: warning: format '%-4d' expects type 'int', but argument 2 has type 'long int'
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c:145: warning: format '%-4d' expects type 'int', but argument 2 has type 'long int'
-lSLF07#2@107"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c322618131#322618131#0(487"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c: In function 'main':/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c:132: warning: format '%-4d' expects type 'int', but argument 2 has type 'long int'/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c:145: warning: format '%-4d' expects type 'int', but argument 2 has type 'long int'2(22@68"Format '%-4d' expects type 'int', but argument 2 has type 'long int'322618131#121#183#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c322089400#132#0#132#0#56"format '*' expects type '*', but argument * has type '*'0(22@68"Format '%-4d' expects type 'int', but argument 2 has type 'long int'322618131#304#183#0(6@99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c322089400#145#0#145#0#56"format '*' expects type '*', but argument * has type '*'0(0#0#99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c8615494720#1743"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxmain.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxmain.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxout.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxout.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.638472
-e322618131.767923
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxout.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxout.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@106"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxout.c322618131#322618131#0(0"0(0#0#98"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxout.c8613995008#1741"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxout.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxout.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxproj.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxproj.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.768057
-e322618131.925854
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxproj.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxproj.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@107"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxproj.c322618131#322618131#0(0"0(0#0#99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxproj.c8616628704#1743"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxproj.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxproj.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxqual.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxqual.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.816297
-e322618132.149316
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxqual.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxqual.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@107"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxqual.c322618131#322618132#0(0"0(0#0#99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxqual.c8616332320#1743"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxqual.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxqual.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxrpt.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618131.925985
-e322618132.022766
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxrpt.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c: In function 'newPage':
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c:327: warning: format '%-3d' expects type 'int', but argument 5 has type 'long int'
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c: At top level:
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c:43: warning: 'PageHdr' defined but not used
-o/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c:50: warning: 'RptdSpecies' defined but not used
-lSLF07#2@106"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c322618131#322618132#0(709"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c: In function 'newPage':/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c:327: warning: format '%-3d' expects type 'int', but argument 5 has type 'long int'/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c: At top level:/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c:43: warning: 'PageHdr' defined but not used/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c:50: warning: 'RptdSpecies' defined but not used4(22@68"Format '%-3d' expects type 'int', but argument 5 has type 'long int'322618132#123#182#0(6@98"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c322089400#327#0#327#0#56"format '*' expects type '*', but argument * has type '*'0(23@13"At top level:322618132#305#114#0(6@98"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c322089400#0#0#0#0#0"0(22@30"'PageHdr' defined but not used322618132#419#143#0(6@98"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c322089400#43#0#43#0#24"'*' defined but not used0(22@34"'RptdSpecies' defined but not used322618132#562#147#0(6@98"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c322089400#50#0#50#0#24"'*' defined but not used0(0#0#98"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c8615700896#1741"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxrpt.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxrpt.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxtank.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtank.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618132.022905
-e322618132.332869
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxtank.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtank.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@107"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtank.c322618132#322618132#0(0"0(0#0#99"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtank.c8613560704#1743"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtank.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxtank.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxtoolkit.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtoolkit.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618132.149448
-e322618132.432152
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxtoolkit.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtoolkit.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@110"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtoolkit.c322618132#322618132#0(0"0(0#0#102"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtoolkit.c8616425888#1749"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxtoolkit.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxtoolkit.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxutils.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxutils.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618132.333010
-e322618132.440967
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxutils.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxutils.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@108"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxutils.c322618132#322618132#0(0"0(0#0#100"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxutils.c8610863488#1745"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/msxutils.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/msxutils.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/newton.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/newton.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618132.432295
-e322618132.519227
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/newton.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/newton.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@106"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/newton.c322618132#322618132#0(0"0(0#0#98"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/newton.c8617117984#1741"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/newton.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/newton.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/rk5.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/rk5.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618132.441115
-e322618132.643597
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/rk5.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/rk5.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@103"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/rk5.c322618132#322618132#0(0"0(0#0#95"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/rk5.c8616758880#1735"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/rk5.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/rk5.o0#
-
-CCompileC build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/ros2.o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/ros2.c normal x86_64 c com.apple.compilers.gcc.4_2
-s322618132.519361
-e322618132.618233
-r1
-xCompileC
-xbuild/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/ros2.o
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/ros2.c
-xnormal
-xx86_64
-xc
-xcom.apple.compilers.gcc.4_2
-lSLF07#2@104"Compile /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/ros2.c322618132#322618132#0(0"0(0#0#96"/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/ros2.c8615988864#1737"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv LANG en_US.US-ASCII    /Developer/usr/bin/gcc-4.2 -x c -arch x86_64 -fmessage-length=0 -pipe -std=gnu99 -Wno-trigraphs -fpascal-strings -fasm-blocks -O0 -Wreturn-type -Wunused-variable -isysroot /Developer/SDKs/MacOSX10.6.sdk -mfix-and-continue -mmacosx-version-min=10.6 -gdwarf-2 -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-generated-files.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-own-target-headers.hmap -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-all-target-headers.hmap -iquote /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/epanetmsx-project-headers.hmap -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/include -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources/x86_64 -I/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/DerivedSources -c /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../src/ros2.c -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/ros2.o0#
-
-CLd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/libepanetmsx.dylib normal x86_64
-s322618132.643864
-e322618132.693172
-r1
-xLd
-x/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/libepanetmsx.dylib
-xnormal
-xx86_64
-lSLF07#2@112"Link /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/libepanetmsx.dylib322618132#322618132#0(0"0(0#0#0"8618366112#969"    cd /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx    setenv MACOSX_DEPLOYMENT_TARGET 10.6    /Developer/usr/bin/gcc-4.2 -arch x86_64 -dynamiclib -isysroot /Developer/SDKs/MacOSX10.6.sdk -L/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -L/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/../../../../../BASE/trunk/build/Xcode/epanet/build/Debug -F/Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug -filelist /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/epanetmsx.build/Debug/epanetmsx.build/Objects-normal/x86_64/epanetmsx.LinkFileList -install_name /usr/local/lib/libepanetmsx.dylib -mmacosx-version-min=10.6 -lepanet -single_module -compatibility_version 1 -current_version 1 -o /Users/woohn/Dev/epanet.sourceforge.net/MSX/trunk/build/MacOSXcode/epanetmsx/build/Debug/libepanetmsx.dylib0#
-
