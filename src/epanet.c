@@ -1714,6 +1714,39 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
 }
 
 
+int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float **yValues) // !sph
+/*----------------------------------------------------------------
+ **  Input:   curveIndex = curve index
+ **  Output:  *nValues = number of points on curve
+ **           *xValues = values for x
+ **           *yValues = values for y
+ **  Returns: error code
+ **  Purpose: retrieves end nodes of a specific link
+ **----------------------------------------------------------------
+ */
+{
+  int err = 0;
+  
+  Scurve curve = Curve[curveIndex];
+  int nPoints = curve.Npts;
+  
+  float *pointX = calloc(nPoints, sizeof(float));
+  float *pointY = calloc(nPoints, sizeof(float));
+  
+  for (int iPoint = 0; iPoint < nPoints; iPoint++) {
+    double x = curve.X[iPoint] * Ucf[LENGTH];
+    double y = curve.Y[iPoint] * Ucf[VOLUME];
+    pointX[iPoint] = (float)x;
+    pointY[iPoint] = (float)y;
+  }
+  
+  *nValues = nPoints;
+  *xValues = pointX;
+  *yValues = pointY;
+  
+  return err;
+}
+
 /*
 ----------------------------------------------------------------
    Functions for changing network data 

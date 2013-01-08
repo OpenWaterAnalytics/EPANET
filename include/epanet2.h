@@ -229,7 +229,9 @@ extern "C" {
  int   DLLEXPORT ENgetlinktype(int, int *);
  int   DLLEXPORT ENgetlinknodes(int, int *, int *);
  int   DLLEXPORT ENgetlinkvalue(int, int, float *);
-
+  
+ int   DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float **yValues);
+  
  int   DLLEXPORT ENgetversion(int *);
 
  int   DLLEXPORT ENsetcontrol(int, int, int, float, int, float);
