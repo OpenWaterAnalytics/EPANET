@@ -304,6 +304,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = epanet;
+				SDKROOT = "";
 			};
 			name = Debug;
 		};
@@ -317,6 +318,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = epanet;
+				SDKROOT = "";
 			};
 			name = Release;
 		};
