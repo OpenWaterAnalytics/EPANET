@@ -1095,7 +1095,7 @@ int DLLEXPORT ENgettimeparam(int code, long *value)
 {
    *value = 0;
    if (!Openflag) return(102);
-   if (code < EN_DURATION || code > EN_STARTTIME) return(251);
+   if (code < EN_DURATION || code > EN_NEXTEVENT) return(251);
    switch (code)
    {
       case EN_DURATION:     *value = Dur;       break;
@@ -1108,6 +1108,11 @@ int DLLEXPORT ENgettimeparam(int code, long *value)
       case EN_STATISTIC:    *value = Tstatflag; break;
       case EN_PERIODS:      *value = Nperiods;  break;
       case EN_STARTTIME:    *value = Tstart;    break;  /* Added TNT 10/2/2009 */
+      case EN_HTIME:        *value = Htime;     break;
+      case EN_NEXTEVENT:
+       *value = Hstep;     // find the lesser of the hydraulic time step length, or the time to next fill/empty
+       tanktimestep(value);
+       break;
    }
    return(0);
 }
@@ -1252,6 +1257,27 @@ int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int n)
    else return(0);
 }
 
+int  DLLEXPORT ENgetstatistic(int code, int* value)
+/*----------------------------------------------------------------
+ **  Input:   code    = type of simulation statistic to retrieve
+ **  Output:  value   = value of requested statistic
+ **  Returns: error code
+ **  Purpose: retrieves hydraulic simulation statistic
+ **----------------------------------------------------------------
+ */
+{
+  switch (code) {
+    case EN_ITERATIONS:
+      *value = _iterations;
+      break;
+    case EN_RELATIVEERROR:
+      *value = _relativeError;
+      break;
+    default:
+      break;
+  }
+  return 0;
+}
 
 /*
 ----------------------------------------------------------------
@@ -1442,7 +1468,12 @@ int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
          v = 0.0;
          if ( index > Njuncs ) v = Tank[index-Njuncs].Vmin * Ucf[VOLUME];
          break;
-         
+       
+     case EN_MAXVOLUME: // !sph
+       v = 0.0;
+       if ( index > Njuncs ) v = Tank[index-Njuncs].Vmax * Ucf[VOLUME];
+       break;
+       
       case EN_VOLCURVE:
          v = 0.0;
          if ( index > Njuncs ) v = Tank[index-Njuncs].Vcurve;
@@ -2298,7 +2329,12 @@ int  DLLEXPORT  ENsettimeparam(int code, long value)
 */
 {
    if (!Openflag) return(102);
-   if (OpenHflag || OpenQflag) return(109);
+  if (OpenHflag || OpenQflag) { 
+    // --> there's nothing wrong with changing certain time parameters during a simulation run
+    if (code != EN_DURATION) {
+      return(109);
+    }
+  }
    if (value < 0) return(202);
    switch(code)
    {
@@ -2334,6 +2370,8 @@ int  DLLEXPORT  ENsettimeparam(int code, long value)
                              break;
       case EN_STATISTIC:     if (value > RANGE) return(202);
                              Tstatflag = (char)value;
+                             break;
+      case EN_HTIME:         Htime = value;
                              break;
       default:               return(251);
    }
@@ -2567,7 +2605,7 @@ int  openhydfile()
       nsize[2] = Ntanks;
       nsize[3] = Npumps;
       nsize[4] = Nvalves;
-      nsize[5] = Dur;
+      nsize[5] = (int)Dur;
       fwrite(&magic,sizeof(INT4),1,HydFile);
       fwrite(&version,sizeof(INT4),1,HydFile);
       fwrite(nsize,sizeof(INT4),6,HydFile);

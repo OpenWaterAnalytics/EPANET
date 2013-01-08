@@ -61,8 +61,8 @@ AUTHOR:     L. Rossman
 #define EN_MAXLEVEL     21
 #define EN_MIXFRACTION  22
 #define EN_TANK_KBULK   23
-
-#define EN_TANKVOLUME   24     /* TNT */
+#define EN_TANKVOLUME   24
+#define EN_MAXVOLUME    25
 
 #define EN_DIAMETER     0    /* Link parameters */
 #define EN_LENGTH       1
@@ -91,6 +91,12 @@ AUTHOR:     L. Rossman
 #define EN_STATISTIC    8
 #define EN_PERIODS      9
 #define EN_STARTTIME    10  /* Added TNT 10/2/2009 */
+#define EN_HTIME        11
+#define EN_HALTFLAG     12
+#define EN_NEXTEVENT    13
+
+#define EN_ITERATIONS     0
+#define EN_RELATIVEERROR  1
 
 #define EN_NODECOUNT    0   /* Component counts */
 #define EN_TANKCOUNT    1
@@ -206,6 +212,7 @@ extern "C" {
  int  DLLEXPORT ENgetpatternvalue(int, int, float *);
  int  DLLEXPORT ENgetqualtype(int *, int *);
  int  DLLEXPORT ENgeterror(int, char *, int);
+ int  DLLEXPORT ENgetstatistic(int code, int* value);
 
  int  DLLEXPORT ENgetnodeindex(char *, int *);
  int  DLLEXPORT ENgetnodeid(int, char *);

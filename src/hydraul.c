@@ -204,6 +204,10 @@ int   runhyd(long *t)
       /* Report new status & save results */
       if (Statflag) writehydstat(iter,relerr);
 
+     /* solution info */
+     _relativeError = relerr;
+     _iterations = iter;
+     
 /*** Updated 3/1/01 ***/
       /* If system unbalanced and no extra trials */
       /* allowed, then activate the Haltflag.     */
