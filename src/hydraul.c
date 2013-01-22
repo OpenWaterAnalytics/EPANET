@@ -205,7 +205,7 @@ int   runhyd(long *t)
       if (Statflag) writehydstat(iter,relerr);
 
      /* solution info */
-     _relativeError = relerr;
+     _relativeError = (int)relerr;
      _iterations = iter;
      
 /*** Updated 3/1/01 ***/

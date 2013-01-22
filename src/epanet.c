@@ -108,15 +108,9 @@ execute function x and set the error code equal to its return value.
 */
 
 /*** New compile directives ***/                                               //(2.00.11 - LR)
-//#define CLE     /* Compile as a command line executable */
+#define CLE     /* Compile as a command line executable */
 //#define SOL     /* Compile as a shared object library */
 //#define DLL       /* Compile as a Windows DLL */
-
-/*** Following lines are deprecated ***/                                       //(2.00.11 - LR)
-//#ifdef DLL
-//#include <windows.h>
-//#include <float.h>
-//#endif
 
 /*** Need to define WINDOWS to use the getTmpName function ***/                //(2.00.12 - LR)
 // --- define WINDOWS
@@ -1745,7 +1739,9 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
 }
 
 
+/*
 int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float **yValues) // !sph
+*/
 /*----------------------------------------------------------------
  **  Input:   curveIndex = curve index
  **  Output:  *nValues = number of points on curve
@@ -1754,7 +1750,7 @@ int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float *
  **  Returns: error code
  **  Purpose: retrieves end nodes of a specific link
  **----------------------------------------------------------------
- */
+ */ /*
 {
   int err = 0;
   
@@ -1777,6 +1773,7 @@ int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float *
   
   return err;
 }
+*/
 
 /*
 ----------------------------------------------------------------
