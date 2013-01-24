@@ -61,7 +61,7 @@ Debug/
 *.metagen
 *.bi
 *.opensdf
-test/
+test/*
 
 
 

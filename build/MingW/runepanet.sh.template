@@ -1,4 +1,0 @@
-#!/bin/sh
-export PATH=libdir:$PATH
-export LD_LIBRARY_PATH=libdir:$LD_LIBRARY_PATH
-exec exename "$@"
