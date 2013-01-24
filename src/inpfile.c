@@ -31,7 +31,6 @@ data describing a piping network to a file in EPANET's text format.
 #include "text.h"
 #include "types.h"
 #include "funcs.h"
-#define  EXTERN  extern
 #include "vars.h"
 
 /* Defined in enumstxt.h in EPANET.C */

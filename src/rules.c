@@ -33,7 +33,6 @@ AUTHOR:     L. Rossman
 #include "text.h"
 #include "types.h"
 #include "funcs.h"
-#define  EXTERN  extern
 #include "vars.h"
 
 struct      Premise         /* Rule Premise Clause */

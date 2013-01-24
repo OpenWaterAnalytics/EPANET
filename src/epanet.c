@@ -107,11 +107,6 @@ execute function x and set the error code equal to its return value.
 *******************************************************************************
 */
 
-/*** New compile directives ***/                                               //(2.00.11 - LR)
-#define CLE     /* Compile as a command line executable */
-//#define SOL     /* Compile as a shared object library */
-//#define DLL       /* Compile as a Windows DLL */
-
 /*** Need to define WINDOWS to use the getTmpName function ***/                //(2.00.12 - LR)
 // --- define WINDOWS
 #undef WINDOWS
@@ -131,12 +126,11 @@ execute function x and set the error code equal to its return value.
 #endif
 #include <math.h>
 #include <float.h>                                                             //(2.00.12 - LR)
-#include "hash.h"    
+ 
 #include "text.h"
 #include "types.h"
 #include "enumstxt.h"
 #include "funcs.h"
-#define  EXTERN
 #include "vars.h"
 #include "toolkit.h"
 
@@ -3140,6 +3134,8 @@ char *geterrmsg(int errcode)
       case 307:  strcpy(Msg,ERR307);   break;
       case 308:  strcpy(Msg,ERR308);   break;
       case 309:  strcpy(Msg,ERR309);   break;
+
+	  case 401:  strcpy(Msg,ERR401); break;
       default:   strcpy(Msg,"");
    }
    return(Msg);
@@ -3219,7 +3215,7 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, float *baseDemand)
 	if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
 	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
 	if(n!=demandIdx) return(253);
-	*baseDemand=d->Base*Ucf[FLOW];
+	*baseDemand=(float)(d->Base*Ucf[FLOW]);
 	return 0;
 }
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)

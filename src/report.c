@@ -38,7 +38,6 @@ formatted string S to the report file.
 #include "text.h"
 #include "types.h"
 #include "funcs.h"
-#define  EXTERN  extern
 #include "vars.h"
 
 #define   MAXCOUNT 10     /* Max. # of disconnected nodes listed */

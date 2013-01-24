@@ -59,7 +59,6 @@ AUTHOR:     L. Rossman
 #include "text.h"
 #include "types.h"
 #include "funcs.h"
-#define  EXTERN  extern
 #include "vars.h"
 #include "mempool.h"
 
@@ -106,9 +105,9 @@ int  openqual()
    if (SegPool == NULL) errcode = 101;                                         //(2.00.11 - LR)
 
    /* Allocate scratch array & reaction rate array*/
-   X  = (double *) calloc(MAX((Nnodes+1),(Nlinks+1)),sizeof(double));
+   XC  = (double *) calloc(MAX((Nnodes+1),(Nlinks+1)),sizeof(double));
    R  = (double *) calloc((Nlinks+1), sizeof(double));
-   ERRCODE(MEMCHECK(X));
+   ERRCODE(MEMCHECK(XC));
    ERRCODE(MEMCHECK(R));
 
    /* Allocate memory for WQ solver */
@@ -321,7 +320,7 @@ int closequal()
    free(VolIn);
    free(MassIn);
    free(R);
-   free(X);
+   free(XC);
    return(errcode);
 }
 
@@ -666,7 +665,7 @@ void accumulate(long dt)
    /* Re-set memory used to accumulate mass & volume */
    memset(VolIn,0,(Nnodes+1)*sizeof(double));
    memset(MassIn,0,(Nnodes+1)*sizeof(double));
-   memset(X,0,(Nnodes+1)*sizeof(double));
+   memset(XC,0,(Nnodes+1)*sizeof(double));
 
    /* Compute average conc. of segments adjacent to each node */
    /* (For use if there is no transport through the node) */
@@ -686,7 +685,7 @@ void accumulate(long dt)
       }
    }
    for (k=1; k<=Nnodes; k++)
-     if (VolIn[k] > 0.0) X[k] = MassIn[k]/VolIn[k];
+     if (VolIn[k] > 0.0) XC[k] = MassIn[k]/VolIn[k];
 
    /* Move mass from first segment of each pipe into downstream node */
    memset(VolIn,0,(Nnodes+1)*sizeof(double));
@@ -767,7 +766,7 @@ void updatenodes(long dt)
 **   Purpose: updates concentration at all nodes to mixture of accumulated
 **            inflow from connecting pipes.
 **
-**  Note:     Does not account for source flow effects. X[i] contains
+**  Note:     Does not account for source flow effects. XC[i] contains
 **            average concen. of segments adjacent to node i, used in case
 **            there was no inflow into i.
 **---------------------------------------------------------------------------
@@ -780,7 +779,7 @@ void updatenodes(long dt)
    {
       if (D[i] < 0.0) VolIn[i] -= D[i]*dt;
       if (VolIn[i] > 0.0) C[i] = MassIn[i]/VolIn[i];
-      else                C[i] = X[i];
+      else                C[i] = XC[i];
    }
 
    /* Update tank quality */
@@ -809,8 +808,8 @@ void sourceinput(long dt)
    /* Establish a flow cutoff which indicates no outflow from a node */
    qcutoff = 10.0*TINY;
 
-   /* Zero-out the work array X */
-   memset(X,0,(Nnodes+1)*sizeof(double));
+   /* Zero-out the work array XC */
+   memset(XC,0,(Nnodes+1)*sizeof(double));
    if (Qualflag != CHEM) return;
 
    /* Consider each node */
@@ -872,7 +871,7 @@ void sourceinput(long dt)
          }
 
          /* Source concen. contribution = (mass added / outflow volume) */
-         X[n] = massadded/volout;
+         XC[n] = massadded/volout;
 
          /* Update total mass added for time period & simulation */
          source->Smass += massadded;
@@ -923,7 +922,7 @@ void release(long dt)
       v = q*dt;
 
       /* Include source contribution in quality released from node. */
-      c = C[n] + X[n];
+      c = C[n] + XC[n];
 
       /* If link has a last seg, check if its quality     */
       /* differs from that of the flow released from node.*/
@@ -952,7 +951,7 @@ void  updatesourcenodes(long dt)
 **   Input:   dt = current WQ time step     
 **   Output:  none
 **   Purpose: updates quality at source nodes.
-**            (X[n] = concen. added by source at node n)
+**            (XC[n] = concen. added by source at node n)
 **---------------------------------------------------
 */
 {
@@ -968,7 +967,7 @@ void  updatesourcenodes(long dt)
       if (source == NULL) continue;
 
       /* Add source to current node concen. */
-      C[n] += X[n];
+      C[n] += XC[n];
 
       /* For tanks, node concen. = internal concen. */
       if (n > Njuncs)

@@ -11,6 +11,9 @@ AUTHOR:     L. Rossman
 **********************************************************************
 */
 
+#ifndef ENUMSTXT_H
+#define ENUMSTXT_H
+
 char *NodeTxt[]         = {t_JUNCTION,
                            t_RESERVOIR,
                            t_TANK}; 
@@ -133,3 +136,4 @@ char *Fldname[]         = {t_ELEV,      t_DEMAND,    t_HEAD,
 char *LogoTxt[]         = {LOGO1,LOGO2,LOGO3,LOGO4,LOGO5,LOGO6,NULL};
 
 
+#endif

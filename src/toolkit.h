@@ -15,6 +15,15 @@ AUTHOR:     L. Rossman
 *******************************************************************
 */
 
+#ifndef TOOLKIT_H
+#define TOOLKIT_H
+
+/*** New compile directives ***/                                               //(2.00.11 - LR)
+//#define CLE     /* Compile as a command line executable */
+#define CLE_LT    /* LemonTiger test */
+//#define SOL     /* Compile as a shared object library */
+//#define DLL       /* Compile as a Windows DLL */
+
 
 #ifndef DLLEXPORT
   #ifdef DLL
@@ -246,4 +255,6 @@ extern "C" {
 
 #if defined(__cplusplus)
 }
+#endif
+
 #endif

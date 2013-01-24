@@ -36,7 +36,6 @@ The following utility functions are all called from INPUT3.C
 #include "text.h"
 #include "types.h"
 #include "funcs.h"
-#define  EXTERN  extern
 #include "vars.h"
 
 #define   MAXERRS     10  /* Max. input errors reported        */

@@ -31,7 +31,6 @@ All functions in this module are called from newline() in INPUT2.C.
 #include "text.h"
 #include "types.h"
 #include "funcs.h"
-#define  EXTERN  extern
 #include "vars.h"
 
 /* Defined in enumstxt.h in EPANET.C */
