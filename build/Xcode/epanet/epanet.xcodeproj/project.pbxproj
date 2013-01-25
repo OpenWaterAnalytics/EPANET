@@ -42,7 +42,10 @@
 		22322FA51068369500641384 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
 		22322FA61068369500641384 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
 		22322FAA106836BC00641384 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; };
-		22322FAE106836D900641384 /* malloc.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FAD106836D900641384 /* malloc.h */; };
+		2298EBDA16B17B8E0088A6DC /* libepanet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC0630554660B00DB518D /* libepanet.dylib */; };
+		2298EBDE16B17DE50088A6DC /* testLT.c in Sources */ = {isa = PBXBuildFile; fileRef = 2298EBDC16B17DCE0088A6DC /* testLT.c */; };
+		2298EBE116B17E440088A6DC /* lemontiger.c in Sources */ = {isa = PBXBuildFile; fileRef = 2298EBDF16B17E440088A6DC /* lemontiger.c */; };
+		2298EBE216B17E440088A6DC /* lemontiger.h in Headers */ = {isa = PBXBuildFile; fileRef = 2298EBE016B17E440088A6DC /* lemontiger.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,7 +56,26 @@
 			remoteGlobalIDString = D2AAC0620554660B00DB518D;
 			remoteInfo = epanet;
 		};
+		2298EBD816B17B830088A6DC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC0620554660B00DB518D;
+			remoteInfo = epanet;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		2298EBC816B178E70088A6DC /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		22322F66106833BB00641384 /* runepanet */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = runepanet; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,7 +101,10 @@
 		22322F831068369500641384 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = types.h; path = ../../../src/types.h; sourceTree = SOURCE_ROOT; };
 		22322F841068369500641384 /* vars.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vars.h; path = ../../../src/vars.h; sourceTree = SOURCE_ROOT; };
 		22322FA9106836B000641384 /* epanet2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = epanet2.h; path = ../../../include/epanet2.h; sourceTree = SOURCE_ROOT; };
-		22322FAD106836D900641384 /* malloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = malloc.h; path = macinclude/malloc.h; sourceTree = "<group>"; };
+		2298EBCA16B178E70088A6DC /* testLemonTiger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testLemonTiger; sourceTree = BUILT_PRODUCTS_DIR; };
+		2298EBDC16B17DCE0088A6DC /* testLT.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testLT.c; path = ../../../src/testLT.c; sourceTree = "<group>"; };
+		2298EBDF16B17E440088A6DC /* lemontiger.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lemontiger.c; path = ../../../src/lemontiger.c; sourceTree = "<group>"; };
+		2298EBE016B17E440088A6DC /* lemontiger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lemontiger.h; path = ../../../src/lemontiger.h; sourceTree = "<group>"; };
 		D2AAC0630554660B00DB518D /* libepanet.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libepanet.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -88,6 +113,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2298EBC716B178E70088A6DC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2298EBDA16B17B8E0088A6DC /* libepanet.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -104,6 +137,7 @@
 		08FB7794FE84155DC02AAC07 /* epanet */ = {
 			isa = PBXGroup;
 			children = (
+				2298EBDB16B17DBD0088A6DC /* LemonTiger */,
 				22322FA8106836A000641384 /* Include */,
 				08FB7795FE84155DC02AAC07 /* Source */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
@@ -144,6 +178,7 @@
 			children = (
 				D2AAC0630554660B00DB518D /* libepanet.dylib */,
 				22322F66106833BB00641384 /* runepanet */,
+				2298EBCA16B178E70088A6DC /* testLemonTiger */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -151,10 +186,19 @@
 		22322FA8106836A000641384 /* Include */ = {
 			isa = PBXGroup;
 			children = (
-				22322FAD106836D900641384 /* malloc.h */,
 				22322FA9106836B000641384 /* epanet2.h */,
 			);
 			name = Include;
+			sourceTree = "<group>";
+		};
+		2298EBDB16B17DBD0088A6DC /* LemonTiger */ = {
+			isa = PBXGroup;
+			children = (
+				2298EBDF16B17E440088A6DC /* lemontiger.c */,
+				2298EBE016B17E440088A6DC /* lemontiger.h */,
+				2298EBDC16B17DCE0088A6DC /* testLT.c */,
+			);
+			name = LemonTiger;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -173,7 +217,7 @@
 				22322F971068369500641384 /* toolkit.h in Headers */,
 				22322F981068369500641384 /* types.h in Headers */,
 				22322F991068369500641384 /* vars.h in Headers */,
-				22322FAE106836D900641384 /* malloc.h in Headers */,
+				2298EBE216B17E440088A6DC /* lemontiger.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,6 +239,24 @@
 			name = runepanet;
 			productName = runepanet;
 			productReference = 22322F66106833BB00641384 /* runepanet */;
+			productType = "com.apple.product-type.tool";
+		};
+		2298EBC916B178E70088A6DC /* testLemonTiger */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2298EBD116B178E70088A6DC /* Build configuration list for PBXNativeTarget "testLemonTiger" */;
+			buildPhases = (
+				2298EBC616B178E70088A6DC /* Sources */,
+				2298EBC716B178E70088A6DC /* Frameworks */,
+				2298EBC816B178E70088A6DC /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2298EBD916B17B830088A6DC /* PBXTargetDependency */,
+			);
+			name = testLemonTiger;
+			productName = testLemonTiger;
+			productReference = 2298EBCA16B178E70088A6DC /* testLemonTiger */;
 			productType = "com.apple.product-type.tool";
 		};
 		D2AAC0620554660B00DB518D /* epanet */ = {
@@ -235,6 +297,7 @@
 			targets = (
 				D2AAC0620554660B00DB518D /* epanet */,
 				22322F65106833BB00641384 /* runepanet */,
+				2298EBC916B178E70088A6DC /* testLemonTiger */,
 			);
 		};
 /* End PBXProject section */
@@ -260,6 +323,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2298EBC616B178E70088A6DC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2298EBDE16B17DE50088A6DC /* testLT.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D2AAC0610554660B00DB518D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -277,6 +348,7 @@
 				22322F931068369500641384 /* report.c in Sources */,
 				22322F941068369500641384 /* rules.c in Sources */,
 				22322F951068369500641384 /* smatrix.c in Sources */,
+				2298EBE116B17E440088A6DC /* lemontiger.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,6 +359,11 @@
 			isa = PBXTargetDependency;
 			target = D2AAC0620554660B00DB518D /* epanet */;
 			targetProxy = 22322FAF1068370B00641384 /* PBXContainerItemProxy */;
+		};
+		2298EBD916B17B830088A6DC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC0620554660B00DB518D /* epanet */;
+			targetProxy = 2298EBD816B17B830088A6DC /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -388,6 +465,51 @@
 			};
 			name = Release;
 		};
+		2298EBD216B178E70088A6DC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		2298EBD316B178E70088A6DC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -417,6 +539,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		2298EBD116B178E70088A6DC /* Build configuration list for PBXNativeTarget "testLemonTiger" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2298EBD216B178E70088A6DC /* Debug */,
+				2298EBD316B178E70088A6DC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
