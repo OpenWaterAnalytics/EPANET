@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include "types.h"
 #include "vars.h"
-#include "toolkit.h"
 #include "lemontiger.h"
 
 
@@ -54,6 +53,7 @@ int main(int argc, char* argv[]) {
 	printf("\nReset time pointer and run WQ.\n");
 	for (step=1, ENopenQ(), ENinitQ(0); // this operation resets the internal time pointer (back to 0)
 		 step>0; ENnextQ(&step)) { 
+
 		ENrunQ(&stime);
 		
 
@@ -77,10 +77,10 @@ int main(int argc, char* argv[]) {
 	if (err=ENopen(argv[1], argv[2], "")) return err;
 
 	for (ENopeninitHQ(), tleft=Dur; tleft>0; ) {
-		ENrunstepHQ(&stime, &tleft);
-		
-		
 
+		//ENrunstepHQ(&stime, &tleft);
+		ENrunnextHQ(&stime, &tleft); //well I know it should be tstep
+		
 		if (stime == TIME_A || stime == TIME_B || stime == TIME_C) {
 		//if (! (stime%1800)){
 			printf("Simulation = %d sec, time left = %d sec.\n", stime, tleft);

@@ -20,28 +20,13 @@ AUTHOR:     L. Rossman
 
 /*** New compile directives ***/                                               //(2.00.11 - LR)
 //#define CLE     /* Compile as a command line executable */
-#define CLE_LT    /* LemonTiger test */
 //#define SOL     /* Compile as a shared object library */
 //#define DLL       /* Compile as a Windows DLL */
 
+//#define CLE_LT    /* LemonTiger test */       //Jinduan Chen
+#define DLL_LT    /* Compile as a Windows DLL of LemonTiger */
 
-#ifndef DLLEXPORT
-  #ifdef DLL
-    #ifdef __cplusplus
-    #define DLLEXPORT extern "C" __declspec(dllexport) 
-    #else
-    #define DLLEXPORT __declspec(dllexport) 
-    #endif
-  #elif defined(CYGWIN)
-    #define DLLEXPORT __stdcall
-  #else
-    #ifdef __cplusplus
-    #define DLLEXPORT
-    #else
-    #define DLLEXPORT
-    #endif
-  #endif
-#endif
+#define DLLEXPORT __declspec(dllexport) 
 
 // --- Define the EPANET toolkit constants
 
@@ -253,8 +238,23 @@ extern "C" {
  int  DLLEXPORT ENsetstatusreport(int);
  int  DLLEXPORT ENsetqualtype(int, char *, char *, char *);
 
+  //LemonTiger functions
+ /* See testLT.c for a LemonTiger test */
+
+	//LT equivalent to ENopenH() + ENopenQ() + ENinitH() + ENinitQ()
+	int DLLEXPORT ENopeninitHQ();
+
+	//LT equivalent to ENrunQ() + ENnextQ();
+	int DLLEXPORT ENrunnextHQ(long*, long*);
+
+	//LT equivalent to ENrunQ() + ENstepQ();
+	int DLLEXPORT ENrunstepHQ(long*, long*);
+
+	//LT equivalent to ENcloseH() + ENcloseQ();
+	int DLLEXPORT ENcloseHQ();
+
 #if defined(__cplusplus)
 }
 #endif
 
-#endif
+#endif //TOOLKIT_H

@@ -84,6 +84,7 @@ xcuserdata
 !xcschemes
 
 # Visual Studio 2012
+*.suo
 *.sdf
 *.filters
 *.user
