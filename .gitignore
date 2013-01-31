@@ -118,6 +118,6 @@ xcuserdata
 *.bi
 *.opensdf
 test/*
-
+Debug/
 
 
