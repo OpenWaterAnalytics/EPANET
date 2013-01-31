@@ -49,7 +49,7 @@ void updateTanklevels();
 
 
 /*!
- \fn int ENrunnexHQ( long* simTimePtr, long* timeStepPtr )
+ \fn int ENrunnextHQ( long* simTimePtr, long* timeStepPtr )
  \brief equivalent of ENnextQ, hydraulic solver is called on-demand
  \param simTimePtr Simulation time (output variable).
  \param timeStepPtr Time to next time step boundary (output variable).
