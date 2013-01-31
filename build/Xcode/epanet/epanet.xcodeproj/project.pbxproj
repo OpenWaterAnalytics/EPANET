@@ -42,7 +42,20 @@
 		22322FA51068369500641384 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
 		22322FA61068369500641384 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
 		22322FAA106836BC00641384 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; };
-		2298EBDA16B17B8E0088A6DC /* libepanet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC0630554660B00DB518D /* libepanet.dylib */; };
+		227CECA016BB0D5E00E8E7C8 /* lemontiger.c in Sources */ = {isa = PBXBuildFile; fileRef = 2298EBDF16B17E440088A6DC /* lemontiger.c */; };
+		227CECA116BB0D5E00E8E7C8 /* epanet.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F711068369500641384 /* epanet.c */; };
+		227CECA216BB0D5E00E8E7C8 /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F731068369500641384 /* hash.c */; };
+		227CECA316BB0D5E00E8E7C8 /* hydraul.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F751068369500641384 /* hydraul.c */; };
+		227CECA416BB0D5E00E8E7C8 /* inpfile.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F761068369500641384 /* inpfile.c */; };
+		227CECA516BB0D5E00E8E7C8 /* input1.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F771068369500641384 /* input1.c */; };
+		227CECA616BB0D5E00E8E7C8 /* input2.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F781068369500641384 /* input2.c */; };
+		227CECA716BB0D5E00E8E7C8 /* input3.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F791068369500641384 /* input3.c */; };
+		227CECA816BB0D5E00E8E7C8 /* mempool.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7A1068369500641384 /* mempool.c */; };
+		227CECA916BB0D5E00E8E7C8 /* output.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7C1068369500641384 /* output.c */; };
+		227CECAA16BB0D5E00E8E7C8 /* quality.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7D1068369500641384 /* quality.c */; };
+		227CECAB16BB0D5E00E8E7C8 /* report.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7E1068369500641384 /* report.c */; };
+		227CECAC16BB0D5E00E8E7C8 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
+		227CECAD16BB0D5E00E8E7C8 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
 		2298EBDE16B17DE50088A6DC /* testLT.c in Sources */ = {isa = PBXBuildFile; fileRef = 2298EBDC16B17DCE0088A6DC /* testLT.c */; };
 		2298EBE116B17E440088A6DC /* lemontiger.c in Sources */ = {isa = PBXBuildFile; fileRef = 2298EBDF16B17E440088A6DC /* lemontiger.c */; };
 		2298EBE216B17E440088A6DC /* lemontiger.h in Headers */ = {isa = PBXBuildFile; fileRef = 2298EBE016B17E440088A6DC /* lemontiger.h */; };
@@ -120,7 +133,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2298EBDA16B17B8E0088A6DC /* libepanet.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,6 +339,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				227CECA016BB0D5E00E8E7C8 /* lemontiger.c in Sources */,
+				227CECA116BB0D5E00E8E7C8 /* epanet.c in Sources */,
+				227CECA216BB0D5E00E8E7C8 /* hash.c in Sources */,
+				227CECA316BB0D5E00E8E7C8 /* hydraul.c in Sources */,
+				227CECA416BB0D5E00E8E7C8 /* inpfile.c in Sources */,
+				227CECA516BB0D5E00E8E7C8 /* input1.c in Sources */,
+				227CECA616BB0D5E00E8E7C8 /* input2.c in Sources */,
+				227CECA716BB0D5E00E8E7C8 /* input3.c in Sources */,
+				227CECA816BB0D5E00E8E7C8 /* mempool.c in Sources */,
+				227CECA916BB0D5E00E8E7C8 /* output.c in Sources */,
+				227CECAA16BB0D5E00E8E7C8 /* quality.c in Sources */,
+				227CECAB16BB0D5E00E8E7C8 /* report.c in Sources */,
+				227CECAC16BB0D5E00E8E7C8 /* rules.c in Sources */,
+				227CECAD16BB0D5E00E8E7C8 /* smatrix.c in Sources */,
 				2298EBDE16B17DE50088A6DC /* testLT.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -547,6 +573,7 @@
 				2298EBD316B178E70088A6DC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

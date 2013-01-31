@@ -8,7 +8,7 @@
 #include "lemontiger.h"
 
 
-#ifdef CLE_LT
+
 
 int main(int argc, char* argv[]) {
 	int err = 0;   //error code
@@ -110,4 +110,3 @@ int main(int argc, char* argv[]) {
 }
 
 
-#endif
