@@ -6,9 +6,11 @@ all original Epanet functions remain intact, and the new LT_functions are added.
 
 /*Note that this file is not used by the functions in the toolkit itself.
 Refer to toolkit.h for the internally used function declarations. */
-
-#define DLLIMPORT __declspec(dllimport) 
-
+#ifdef __APPLE__
+  #define DLLIMPORT 
+#else
+  #define DLLIMPORT __declspec(dllimport) 
+#endif
 // --- Define the EPANET toolkit constants
 
 #define EN_ELEVATION    0    /* Node parameters */

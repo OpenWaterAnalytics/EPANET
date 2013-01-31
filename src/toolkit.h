@@ -25,9 +25,11 @@ AUTHOR:     L. Rossman
 
 //#define CLE_LT    /* LemonTiger test */       //Jinduan Chen
 #define DLL_LT    /* Compile as a Windows DLL of LemonTiger */
-
-#define DLLEXPORT __declspec(dllexport) 
-
+#ifdef __APPLE__
+  #define DLLEXPORT 
+#else
+  #define DLLEXPORT __declspec(dllexport) 
+#endif
 // --- Define the EPANET toolkit constants
 
 #define EN_ELEVATION    0    /* Node parameters */

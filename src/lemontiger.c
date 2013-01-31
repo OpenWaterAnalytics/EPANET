@@ -47,48 +47,55 @@ int  nexthydLT(long *tstep);
 void updateTanklevels();  
 //Prior to running hydraulic simulation, update the tank levels.
 
-int DLLEXPORT ENrunnextHQ(long* pstime,  /*Simulation time pointer*/
-				long* ptstep    /*next time step*/ ) {
-/* The lemonTiger equivalent of ENnextQ, hydraulic solver is called on-demand*/
-   long    hydtime;       /* Hydraulic solution time */
-   long    hydstep;       /* Hydraulic time step     */
-   int     errcode = 0;
 
-   /* if needed, push forward hydraulic simulation, similar to runqual() */
-   if (Qtime == Htime)
-   {
-	   if ( (errcode = runhyd(&hydtime))  ||
-			(errcode = nexthydLT(&hydstep))
-			) return errcode;
-	      /* If simulating WQ: */
-	   if (Qualflag != NONE && Qtime < Dur) {
-
+/*!
+ \fn int ENrunnexHQ( long* simTimePtr, long* timeStepPtr )
+ \brief equivalent of ENnextQ, hydraulic solver is called on-demand
+ \param simTimePtr Simulation time (output variable).
+ \param timeStepPtr Time to next time step boundary (output variable).
+ \return on error, an error code 
+ */
+int DLLEXPORT ENrunnextHQ(long* simTimePtr, long* timeStepPtr) {
+  /* The lemonTiger equivalent of ENnextQ, hydraulic solver is called on-demand*/
+  long    hydtime;       /* Hydraulic solution time */
+  long    hydstep;       /* Hydraulic time step     */
+  int     errcode = 0;
+  
+  /* if needed, push forward hydraulic simulation, similar to runqual() */
+  if (Qtime == Htime)
+  {
+    if ( (errcode = runhyd(&hydtime)) || (errcode = nexthydLT(&hydstep)) ) {
+      return errcode;
+    }
+    /* If simulating WQ: */
+    if (Qualflag != NONE && Qtime < Dur) {
+      
 			/* Compute reaction rate coeffs. */
 			if (Reactflag && Qualflag != AGE) ratecoeffs();
-
+      
 			/* Initialize pipe segments (at time 0) or  */
 			/* else re-orient segments if flow reverses.*/
 			if (Qtime == 0) initsegs();
 			else            reorientsegs();
 		}
-        Htime = hydtime + hydstep;
-   }
-   *pstime = Htime;
-   hydstep = Htime - Qtime;
-
-   /* Perform water quality routing over this time step */
-   if (Qualflag != NONE && hydstep > 0) transport(hydstep);
-
-   updateTanklevels();
-   /* Update current time */
-   if (OutOfMemory) errcode = 101;
-   if (!errcode) *ptstep = hydstep;
-   Qtime += hydstep;
-
-   /* Save final output if no more time steps */
-   if (!errcode && Saveflag && *ptstep == 0) errcode = savefinaloutput();
-   return(errcode);
-
+    Htime = hydtime + hydstep;
+  }
+  *simTimePtr = Htime;
+  hydstep = Htime - Qtime;
+  
+  /* Perform water quality routing over this time step */
+  if (Qualflag != NONE && hydstep > 0) transport(hydstep);
+  
+  updateTanklevels();
+  /* Update current time */
+  if (OutOfMemory) errcode = 101;
+  if (!errcode) *timeStepPtr = hydstep;
+  Qtime += hydstep;
+  
+  /* Save final output if no more time steps */
+  if (!errcode && Saveflag && *timeStepPtr == 0) errcode = savefinaloutput();
+  return(errcode);
+  
 }
 
 int DLLEXPORT ENrunstepHQ(long* pstime /* Simulation time pointer */
