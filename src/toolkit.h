@@ -178,7 +178,7 @@ extern "C" {
  int  DLLEXPORT ENopenH(void);
  int  DLLEXPORT ENinitH(int);
  int  DLLEXPORT ENrunH(long *);
- int  DLLEXPORT ENnextH(long *);
+ int  DLLEXPORT ENnextH(long *tstep);
  int  DLLEXPORT ENcloseH(void);
  int  DLLEXPORT ENsavehydfile(char *);
  int  DLLEXPORT ENusehydfile(char *);

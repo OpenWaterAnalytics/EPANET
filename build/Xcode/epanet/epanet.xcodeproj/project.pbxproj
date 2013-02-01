@@ -45,10 +45,18 @@
 		2298EBE116B17E440088A6DC /* lemontiger.c in Sources */ = {isa = PBXBuildFile; fileRef = 2298EBDF16B17E440088A6DC /* lemontiger.c */; };
 		2298EBE216B17E440088A6DC /* lemontiger.h in Headers */ = {isa = PBXBuildFile; fileRef = 2298EBE016B17E440088A6DC /* lemontiger.h */; };
 		22EF555716BC744C00F3988A /* testLemonTiger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22EF555516BC744C00F3988A /* testLemonTiger.cpp */; };
+		22EF555A16BC7FF500F3988A /* libepanet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC0630554660B00DB518D /* libepanet.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		22322FAF1068370B00641384 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC0620554660B00DB518D;
+			remoteInfo = epanet;
+		};
+		22EF555816BC7FCC00F3988A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
@@ -114,6 +122,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				22EF555A16BC7FF500F3988A /* libepanet.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -247,6 +256,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				22EF555916BC7FCC00F3988A /* PBXTargetDependency */,
 			);
 			name = TestLemonTiger;
 			productName = TestLemonTiger;
@@ -353,6 +363,11 @@
 			isa = PBXTargetDependency;
 			target = D2AAC0620554660B00DB518D /* epanet */;
 			targetProxy = 22322FAF1068370B00641384 /* PBXContainerItemProxy */;
+		};
+		22EF555916BC7FCC00F3988A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC0620554660B00DB518D /* epanet */;
+			targetProxy = 22EF555816BC7FCC00F3988A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -542,6 +557,7 @@
 				22EF555316BC740400F3988A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

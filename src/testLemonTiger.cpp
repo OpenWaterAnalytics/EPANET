@@ -1,104 +1,111 @@
-//
-//  testLemonTiger.cpp
-//  epanet
-//
-//  Created by Sam Hatchett on 2/1/13.
-//
-//
 
 #include "testLemonTiger.h"
 #include "epanet2.h"
 
+
 using namespace std;
+
+void checkErr(int err, std::string function);
 
 int main(int argc, char * argv[]) {
   
-  cout << "Lemon Tiger TEST" << endl;
-  
-  int err = 0;   //error code
-	long stime = 0;  //simulation time point, = t = Htime
-	long step = 1;  //time to next time point, = tstep = hydstep
-	long tleft = 0;  //time left in the simulation
-	int id, id2, id3;   // some node id
-	float value;   // some node/link value
-	int TIME_A = 3600*3;
-	int TIME_B = 3600*6;  //two time points for testing
-	int TIME_C = 3600*10;
+  cout << "Lemon Tiger TEST" << endl
+       << "________________" << endl;
   
   
-	/*  Asychronous solver (old epanet) */
-	printf("*****Original EPANET results******\n");
-	
-	if (err=ENopen(argv[1], argv[2], "")) return err;
+  long tstep = 0;
+  long simulationTime = 0;
+  long nextEventH = 0;
+  long simTimeRemaining = 0;
   
-	
-	for (ENopenH(), ENinitH(1), step=1;
-       // must save intermediate results to disk (initH(1)), otherwise WQ solver won't execute
-       step>0; ENnextH(&step)) {
-		ENrunH(&stime);
-	}
-	ENcloseH();
-  
-	printf("\nReset time pointer and run WQ.\n");
-	for (step=1, ENopenQ(), ENinitQ(0); // this operation resets the internal time pointer (back to 0)
-       step>0; ENnextQ(&step)) {
+  try {
     
-		ENrunQ(&stime);
-		
+    /*  Batch solver (old epanet) */
+    cout << "*****Original EPANET results******" << endl;
+    checkErr( ENopen(argv[1], argv[2], ""), "ENopen" );
     
-		// grab some results
-		if (stime == TIME_A || stime == TIME_B || stime == TIME_C) {
-			printf("WQ simulation time = %d sec, step = %d sec.\n", stime, step);
-      
-			ENgetnodevalue(id, EN_QUALITY, &value);
-			printf("Node 184's quality = \t%f.\n", value);
-			ENgetnodevalue(id3, EN_QUALITY, &value);
-			printf("Node 199's quality = \t%f.\n", value);
-		}
-	}
-	ENcloseQ();
-	ENclose();
-	
-  
-	/* Sychronous solver (LemonTiger) */
-	printf("\n\n*****LemonTiger results******\n\n");
-  
-	if (err=ENopen(argv[1], argv[2], "")) return err;
-  
-	for (ENopeninitHQ(), tleft=Dur; tleft>0; ) {
+    checkErr( ENopenH(), "ENopenH" );
+    checkErr( ENinitH(EN_SAVE), "ENinitH" );
     
-		//ENrunstepHQ(&stime, &tleft);
-		ENrunnextHQ(&stime, &tleft); //well I know it should be tstep
-		
-		if (stime == TIME_A || stime == TIME_B || stime == TIME_C) {
-      //if (! (stime%1800)){
-			printf("Simulation = %d sec, time left = %d sec.\n", stime, tleft);
-			ENgetnodevalue(id, EN_HEAD, &value);
-			printf("Node 184's head = \t%f.\n", value);
-			
-			ENgetnodevalue(id, EN_QUALITY, &value);
-			printf("Node 184's quality = \t%f.\n", value);
+    do {
+      /* Solve for hydraulics & advance to next time period */
+      tstep = 0;
+      checkErr( ENrunH(&simulationTime), "ENrunH" );
+      checkErr( ENnextH(&nextEventH), "ENnextH" );
       
-			ENgetnodevalue(id3, EN_HEAD, &value);
-			printf("Node 199's head = \t%f.\n", value);
+      // gather hydraulic results
       
-			ENgetnodevalue(id3, EN_QUALITY, &value);
-			printf("Node 199's quality = \t%f.\n", value);
+    } while (nextEventH > 0);
+    // hydraulics are done
+    checkErr( ENcloseH(), "ENcloseH" );
+    
+    cout << "Running WQ..." << endl;
+    
+    checkErr( ENopenQ(), "ENopenQ" );
+    checkErr( ENinitQ(EN_SAVE), "ENinitQ" );
+    
+    do {
+      checkErr( ENrunQ(&simulationTime), "ENrunQ" );
+      checkErr( ENstepQ(&simTimeRemaining), "ENstepQ" );
       
-			ENgetlinkvalue(id2, EN_FLOW, &value);
-			printf("Link 101's flowrate = \t%f. \n", value);
+      // wq results
       
+    } while (simTimeRemaining > 0);
+    // water quality is done
+    checkErr( ENcloseQ(), "ENcloseQ" );
+    
+    // everything is done
+    checkErr( ENclose(), "ENclose" );
+    
+    
+    nextEventH = 0;
+    simTimeRemaining = 0;
+    simulationTime = 0;
+    
+    /* stepwise solver (LemonTiger) */
+    cout << "*****LemonTiger results******" << endl;
+    
+    checkErr( ENopen(argv[1], argv[2], NULL), "ENopen" );
+    
+    checkErr( ENopenH(), "ENopenH" );
+    checkErr( ENinitH(EN_SAVE), "ENinitH" );
+    checkErr( ENopenQ(), "ENopenQ" );
+    checkErr( ENinitQ(EN_SAVE), "ENinitQ" );
+    
+    do {
+      /* Solve for hydraulics & advance to next time period */
+      tstep = 0;
+      checkErr( ENrunH(&simulationTime), "ENrunH" );
+      checkErr( ENnextH(&nextEventH), "ENnextH" );
       
-			printf("\n");
-		}
-	}
-	ENcloseHQ();
-	ENclose();
-	
-  
+      // hydraulic results
+      
+      checkErr( ENrunQ(&simulationTime), "ENrunQ" );
+      checkErr( ENstepQ(&simTimeRemaining), "ENstepQ" );
+      
+      // wq results
+      
+    } while (simTimeRemaining > 0);
+    // all done
+    checkErr( ENcloseH(), "ENcloseH" );
+    checkErr( ENcloseQ(), "ENcloseQ" );
+    checkErr( ENclose(), "ENclose" );
+    
+    
+  } catch (int err) {
+    cerr << "exiting with error " << err << endl;
+  }
 }
   
   
   
   
+void checkErr(int err, std::string function) {
+  if (err > 0) {
+    cerr << "Error in " << function << ": " << err << endl;
+    char errmsg[1024];
+    ENgeterror(err, errmsg, 1024);
+    cerr << errmsg << endl;
+    throw err;
+  }
 }

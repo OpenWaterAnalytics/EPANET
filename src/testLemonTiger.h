@@ -10,5 +10,6 @@
 #define __epanet__testLemonTiger__
 
 #include <iostream>
+#include <vector>
 
 #endif /* defined(__epanet__testLemonTiger__) */
