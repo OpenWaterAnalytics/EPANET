@@ -42,23 +42,9 @@
 		22322FA51068369500641384 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
 		22322FA61068369500641384 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
 		22322FAA106836BC00641384 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; };
-		227CECA016BB0D5E00E8E7C8 /* lemontiger.c in Sources */ = {isa = PBXBuildFile; fileRef = 2298EBDF16B17E440088A6DC /* lemontiger.c */; };
-		227CECA116BB0D5E00E8E7C8 /* epanet.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F711068369500641384 /* epanet.c */; };
-		227CECA216BB0D5E00E8E7C8 /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F731068369500641384 /* hash.c */; };
-		227CECA316BB0D5E00E8E7C8 /* hydraul.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F751068369500641384 /* hydraul.c */; };
-		227CECA416BB0D5E00E8E7C8 /* inpfile.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F761068369500641384 /* inpfile.c */; };
-		227CECA516BB0D5E00E8E7C8 /* input1.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F771068369500641384 /* input1.c */; };
-		227CECA616BB0D5E00E8E7C8 /* input2.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F781068369500641384 /* input2.c */; };
-		227CECA716BB0D5E00E8E7C8 /* input3.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F791068369500641384 /* input3.c */; };
-		227CECA816BB0D5E00E8E7C8 /* mempool.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7A1068369500641384 /* mempool.c */; };
-		227CECA916BB0D5E00E8E7C8 /* output.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7C1068369500641384 /* output.c */; };
-		227CECAA16BB0D5E00E8E7C8 /* quality.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7D1068369500641384 /* quality.c */; };
-		227CECAB16BB0D5E00E8E7C8 /* report.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7E1068369500641384 /* report.c */; };
-		227CECAC16BB0D5E00E8E7C8 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
-		227CECAD16BB0D5E00E8E7C8 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
-		2298EBDE16B17DE50088A6DC /* testLT.c in Sources */ = {isa = PBXBuildFile; fileRef = 2298EBDC16B17DCE0088A6DC /* testLT.c */; };
 		2298EBE116B17E440088A6DC /* lemontiger.c in Sources */ = {isa = PBXBuildFile; fileRef = 2298EBDF16B17E440088A6DC /* lemontiger.c */; };
 		2298EBE216B17E440088A6DC /* lemontiger.h in Headers */ = {isa = PBXBuildFile; fileRef = 2298EBE016B17E440088A6DC /* lemontiger.h */; };
+		22EF555716BC744C00F3988A /* testLemonTiger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22EF555516BC744C00F3988A /* testLemonTiger.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,17 +55,10 @@
 			remoteGlobalIDString = D2AAC0620554660B00DB518D;
 			remoteInfo = epanet;
 		};
-		2298EBD816B17B830088A6DC /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC0620554660B00DB518D;
-			remoteInfo = epanet;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		2298EBC816B178E70088A6DC /* CopyFiles */ = {
+		22EF554A16BC740400F3988A /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -114,10 +93,12 @@
 		22322F831068369500641384 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = types.h; path = ../../../src/types.h; sourceTree = SOURCE_ROOT; };
 		22322F841068369500641384 /* vars.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vars.h; path = ../../../src/vars.h; sourceTree = SOURCE_ROOT; };
 		22322FA9106836B000641384 /* epanet2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = epanet2.h; path = ../../../include/epanet2.h; sourceTree = SOURCE_ROOT; };
-		2298EBCA16B178E70088A6DC /* testLemonTiger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testLemonTiger; sourceTree = BUILT_PRODUCTS_DIR; };
 		2298EBDC16B17DCE0088A6DC /* testLT.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testLT.c; path = ../../../src/testLT.c; sourceTree = "<group>"; };
 		2298EBDF16B17E440088A6DC /* lemontiger.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lemontiger.c; path = ../../../src/lemontiger.c; sourceTree = "<group>"; };
 		2298EBE016B17E440088A6DC /* lemontiger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lemontiger.h; path = ../../../src/lemontiger.h; sourceTree = "<group>"; };
+		22EF554C16BC740400F3988A /* TestLemonTiger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TestLemonTiger; sourceTree = BUILT_PRODUCTS_DIR; };
+		22EF555516BC744C00F3988A /* testLemonTiger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = testLemonTiger.cpp; path = ../../../src/testLemonTiger.cpp; sourceTree = "<group>"; };
+		22EF555616BC744C00F3988A /* testLemonTiger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = testLemonTiger.h; path = ../../../src/testLemonTiger.h; sourceTree = "<group>"; };
 		D2AAC0630554660B00DB518D /* libepanet.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libepanet.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -129,7 +110,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		2298EBC716B178E70088A6DC /* Frameworks */ = {
+		22EF554916BC740400F3988A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -190,7 +171,7 @@
 			children = (
 				D2AAC0630554660B00DB518D /* libepanet.dylib */,
 				22322F66106833BB00641384 /* runepanet */,
-				2298EBCA16B178E70088A6DC /* testLemonTiger */,
+				22EF554C16BC740400F3988A /* TestLemonTiger */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -209,6 +190,8 @@
 				2298EBDF16B17E440088A6DC /* lemontiger.c */,
 				2298EBE016B17E440088A6DC /* lemontiger.h */,
 				2298EBDC16B17DCE0088A6DC /* testLT.c */,
+				22EF555516BC744C00F3988A /* testLemonTiger.cpp */,
+				22EF555616BC744C00F3988A /* testLemonTiger.h */,
 			);
 			name = LemonTiger;
 			sourceTree = "<group>";
@@ -253,22 +236,21 @@
 			productReference = 22322F66106833BB00641384 /* runepanet */;
 			productType = "com.apple.product-type.tool";
 		};
-		2298EBC916B178E70088A6DC /* testLemonTiger */ = {
+		22EF554B16BC740400F3988A /* TestLemonTiger */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2298EBD116B178E70088A6DC /* Build configuration list for PBXNativeTarget "testLemonTiger" */;
+			buildConfigurationList = 22EF555416BC740400F3988A /* Build configuration list for PBXNativeTarget "TestLemonTiger" */;
 			buildPhases = (
-				2298EBC616B178E70088A6DC /* Sources */,
-				2298EBC716B178E70088A6DC /* Frameworks */,
-				2298EBC816B178E70088A6DC /* CopyFiles */,
+				22EF554816BC740400F3988A /* Sources */,
+				22EF554916BC740400F3988A /* Frameworks */,
+				22EF554A16BC740400F3988A /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				2298EBD916B17B830088A6DC /* PBXTargetDependency */,
 			);
-			name = testLemonTiger;
-			productName = testLemonTiger;
-			productReference = 2298EBCA16B178E70088A6DC /* testLemonTiger */;
+			name = TestLemonTiger;
+			productName = TestLemonTiger;
+			productReference = 22EF554C16BC740400F3988A /* TestLemonTiger */;
 			productType = "com.apple.product-type.tool";
 		};
 		D2AAC0620554660B00DB518D /* epanet */ = {
@@ -309,7 +291,7 @@
 			targets = (
 				D2AAC0620554660B00DB518D /* epanet */,
 				22322F65106833BB00641384 /* runepanet */,
-				2298EBC916B178E70088A6DC /* testLemonTiger */,
+				22EF554B16BC740400F3988A /* TestLemonTiger */,
 			);
 		};
 /* End PBXProject section */
@@ -335,25 +317,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		2298EBC616B178E70088A6DC /* Sources */ = {
+		22EF554816BC740400F3988A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				227CECA016BB0D5E00E8E7C8 /* lemontiger.c in Sources */,
-				227CECA116BB0D5E00E8E7C8 /* epanet.c in Sources */,
-				227CECA216BB0D5E00E8E7C8 /* hash.c in Sources */,
-				227CECA316BB0D5E00E8E7C8 /* hydraul.c in Sources */,
-				227CECA416BB0D5E00E8E7C8 /* inpfile.c in Sources */,
-				227CECA516BB0D5E00E8E7C8 /* input1.c in Sources */,
-				227CECA616BB0D5E00E8E7C8 /* input2.c in Sources */,
-				227CECA716BB0D5E00E8E7C8 /* input3.c in Sources */,
-				227CECA816BB0D5E00E8E7C8 /* mempool.c in Sources */,
-				227CECA916BB0D5E00E8E7C8 /* output.c in Sources */,
-				227CECAA16BB0D5E00E8E7C8 /* quality.c in Sources */,
-				227CECAB16BB0D5E00E8E7C8 /* report.c in Sources */,
-				227CECAC16BB0D5E00E8E7C8 /* rules.c in Sources */,
-				227CECAD16BB0D5E00E8E7C8 /* smatrix.c in Sources */,
-				2298EBDE16B17DE50088A6DC /* testLT.c in Sources */,
+				22EF555716BC744C00F3988A /* testLemonTiger.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,11 +353,6 @@
 			isa = PBXTargetDependency;
 			target = D2AAC0620554660B00DB518D /* epanet */;
 			targetProxy = 22322FAF1068370B00641384 /* PBXContainerItemProxy */;
-		};
-		2298EBD916B17B830088A6DC /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D2AAC0620554660B00DB518D /* epanet */;
-			targetProxy = 2298EBD816B17B830088A6DC /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -491,14 +454,17 @@
 			};
 			name = Release;
 		};
-		2298EBD216B178E70088A6DC /* Debug */ = {
+		22EF555216BC740400F3988A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -512,18 +478,21 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
+				SDKROOT = "";
 			};
 			name = Debug;
 		};
-		2298EBD316B178E70088A6DC /* Release */ = {
+		22EF555316BC740400F3988A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -532,7 +501,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
+				SDKROOT = "";
 			};
 			name = Release;
 		};
@@ -566,14 +535,13 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2298EBD116B178E70088A6DC /* Build configuration list for PBXNativeTarget "testLemonTiger" */ = {
+		22EF555416BC740400F3988A /* Build configuration list for PBXNativeTarget "TestLemonTiger" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				2298EBD216B178E70088A6DC /* Debug */,
-				2298EBD316B178E70088A6DC /* Release */,
+				22EF555216BC740400F3988A /* Debug */,
+				22EF555316BC740400F3988A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
