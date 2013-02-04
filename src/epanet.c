@@ -742,7 +742,8 @@ int DLLEXPORT ENopenQ()
    OpenQflag = FALSE;
    SaveQflag = FALSE;
    if (!Openflag) return(102);
-   if (!SaveHflag) return(104);
+  // !LT! todo - check for SaveHflag / set sequential/step mode
+  //if (!SaveHflag) return(104);
 
 /* Open WQ solver */
    ERRCODE(openqual());

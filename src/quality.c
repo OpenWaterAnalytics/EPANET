@@ -188,7 +188,10 @@ void  initqual()
    Wsource = 0.0;
 
    /* Re-position hydraulics file */
-   fseek(HydFile,HydOffset,SEEK_SET);
+  if (!OpenHflag) {
+    fseek(HydFile,HydOffset,SEEK_SET);
+  }
+   
 
    /* Set elapsed times to zero */
    Htime = 0;
@@ -220,7 +223,9 @@ int runqual(long *t)
    if (Qtime == Htime)
    {
       errcode = gethyd(&hydtime, &hydstep);
-      Htime = hydtime + hydstep;
+      if (!OpenHflag) { // test for sequential vs stepwise
+        Htime = hydtime + hydstep;
+      }
    }
    return(errcode);
 }
@@ -343,10 +348,14 @@ int  gethyd(long *hydtime, long *hydstep)
 {
    int errcode = 0;
 
-   /* Read hydraulic results from file */
-   if (!readhyd(hydtime)) return(307);
-   if (!readhydstep(hydstep)) return(307);
-   Htime = *hydtime;
+  // if hydraulics are not open, then we're operating in sequential mode.
+  // else hydraulics are open, so use the hydraulic results in memory rather than reading from the temp file.
+  if (!OpenHflag) {
+    /* Read hydraulic results from file */
+    if (!readhyd(hydtime)) return(307);
+    if (!readhydstep(hydstep)) return(307);
+    Htime = *hydtime;
+  }
 
    /* Save current results to output file */
    if (Htime >= Rtime)
@@ -1067,7 +1076,10 @@ void  tankmix1(int i, long dt)
    /* Determine tank & volumes */
    vold = Tank[i].V;
    n = Tank[i].Node;
-   Tank[i].V += D[n]*dt;
+  if (!OpenHflag) {
+    Tank[i].V += D[n]*dt;
+  }
+   
    vin  = VolIn[n];
 
    /* Compute inflow concen. */

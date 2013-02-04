@@ -1,11 +1,12 @@
 
 #include "testLemonTiger.h"
-#include "epanet2.h"
+#include "toolkit.h"
 
 
 using namespace std;
 
 void checkErr(int err, std::string function);
+void stats();
 
 int main(int argc, char * argv[]) {
   
@@ -15,45 +16,64 @@ int main(int argc, char * argv[]) {
   
   long tstep = 0;
   long simulationTime = 0;
-  long nextEventH = 0;
+  long nextEventH = 0, nextEventQ = 0;
   long simTimeRemaining = 0;
   
   try {
     
     /*  Batch solver (old epanet) */
     cout << "*****Original EPANET results******" << endl;
-    checkErr( ENopen(argv[1], argv[2], ""), "ENopen" );
+    checkErr( ENopen(argv[1], argv[2], "out.bin"), "ENopen" );
     
     checkErr( ENopenH(), "ENopenH" );
     checkErr( ENinitH(EN_SAVE), "ENinitH" );
     
+    cout << "Running hydraulics..." << endl;
     do {
+      
       /* Solve for hydraulics & advance to next time period */
       tstep = 0;
+      
       checkErr( ENrunH(&simulationTime), "ENrunH" );
       checkErr( ENnextH(&nextEventH), "ENnextH" );
+      
+      stats();
       
       // gather hydraulic results
       
     } while (nextEventH > 0);
     // hydraulics are done
     checkErr( ENcloseH(), "ENcloseH" );
-    
+    cout << "\t\t\tdone." << endl;
     cout << "Running WQ..." << endl;
     
     checkErr( ENopenQ(), "ENopenQ" );
     checkErr( ENinitQ(EN_SAVE), "ENinitQ" );
     
     do {
+      //long htime;
+      
+      //ENgettimeparam(EN_HTIME, &htime);
+      //cout << "Htime = " << htime << endl;
+      
       checkErr( ENrunQ(&simulationTime), "ENrunQ" );
-      checkErr( ENstepQ(&simTimeRemaining), "ENstepQ" );
+      
+      //ENgettimeparam(EN_HTIME, &htime);
+      //cout << "Htime = " << htime << endl;
+      
+      checkErr( ENnextQ(&nextEventH), "ENstepQ" );
+      
+      //ENgettimeparam(EN_HTIME, &htime);
+      //cout << "Htime = " << htime << endl;
       
       // wq results
+      //cout << simulationTime << "\t\t" << nextEventH << endl;
       
-    } while (simTimeRemaining > 0);
+    } while (nextEventH > 0);
     // water quality is done
     checkErr( ENcloseQ(), "ENcloseQ" );
-    
+    cout << "\t\t\tdone." << endl;
+
     // everything is done
     checkErr( ENclose(), "ENclose" );
     
@@ -65,27 +85,34 @@ int main(int argc, char * argv[]) {
     /* stepwise solver (LemonTiger) */
     cout << "*****LemonTiger results******" << endl;
     
-    checkErr( ENopen(argv[1], argv[2], NULL), "ENopen" );
+    checkErr( ENopen(argv[1], argv[2], "out2.bin"), "ENopen" );
     
     checkErr( ENopenH(), "ENopenH" );
-    checkErr( ENinitH(EN_SAVE), "ENinitH" );
+    checkErr( ENinitH(EN_NOSAVE), "ENinitH" );
     checkErr( ENopenQ(), "ENopenQ" );
-    checkErr( ENinitQ(EN_SAVE), "ENinitQ" );
+    checkErr( ENinitQ(EN_NOSAVE), "ENinitQ" );
     
+    cout << "Running stepwise hydraulics and water quality..." << endl;
     do {
       /* Solve for hydraulics & advance to next time period */
       tstep = 0;
+      
       checkErr( ENrunH(&simulationTime), "ENrunH" );
-      checkErr( ENnextH(&nextEventH), "ENnextH" );
-      
-      // hydraulic results
-      
       checkErr( ENrunQ(&simulationTime), "ENrunQ" );
-      checkErr( ENstepQ(&simTimeRemaining), "ENstepQ" );
+      
+      //stats();
+      
+      checkErr( ENnextH(&nextEventH), "ENnextH" );
+      checkErr( ENnextQ(&nextEventQ), "ENstepQ" );
+      
+      stats();
       
       // wq results
+      //cout << simulationTime << "\t\t" << nextEventH << endl;
       
-    } while (simTimeRemaining > 0);
+    } while (nextEventH > 0);
+    cout << "\t\t\tdone." << endl;
+    
     // all done
     checkErr( ENcloseH(), "ENcloseH" );
     checkErr( ENcloseQ(), "ENcloseQ" );
@@ -96,10 +123,21 @@ int main(int argc, char * argv[]) {
     cerr << "exiting with error " << err << endl;
   }
 }
-  
-  
-  
-  
+
+
+
+void stats() {
+  long htime;
+  int nodeIndex;
+  float head, volume;
+  ENgettimeparam(EN_HTIME, &htime);
+  ENgetnodeindex((char*)"1", &nodeIndex);
+  ENgetnodevalue(nodeIndex, EN_HEAD, &head);
+  cout << htime << "\t\t" << head << endl;
+}
+
+
+
 void checkErr(int err, std::string function) {
   if (err > 0) {
     cerr << "Error in " << function << ": " << err << endl;
