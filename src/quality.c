@@ -1005,21 +1005,28 @@ void  updatetanks(long dt)
    /* Examine each reservoir & tank */
    for (i=1; i<=Ntanks; i++)
    {
-
+      n = Tank[i].Node;
+     
       /* Use initial quality for reservoirs */
       if (Tank[i].A == 0.0)
       {
-         n = Tank[i].Node;
          C[n] = Node[n].C0;
       }
 
       /* Update tank WQ based on mixing model */
-      else switch(Tank[i].MixModel)
-      {
-         case MIX2: tankmix2(i,dt); break;
-         case FIFO: tankmix3(i,dt); break;
-         case LIFO: tankmix4(i,dt); break;
-         default:   tankmix1(i,dt); break;
+      else {
+        switch(Tank[i].MixModel)
+        {
+          case MIX2: tankmix2(i,dt); break;
+          case FIFO: tankmix3(i,dt); break;
+          case LIFO: tankmix4(i,dt); break;
+          default:   tankmix1(i,dt); break;
+        }
+        
+        // if we're operating in stepwise mode, we'll need to update tank head conditions
+        if (OpenHflag) {
+          H[n] = tankgrade(i,Tank[i].V);
+        }
       }
    }
 }
@@ -1076,10 +1083,7 @@ void  tankmix1(int i, long dt)
    /* Determine tank & volumes */
    vold = Tank[i].V;
    n = Tank[i].Node;
-  if (!OpenHflag) {
-    Tank[i].V += D[n]*dt;
-  }
-   
+   Tank[i].V += D[n]*dt;
    vin  = VolIn[n];
 
    /* Compute inflow concen. */

@@ -6,7 +6,8 @@
 using namespace std;
 
 void checkErr(int err, std::string function);
-void stats();
+void hydStats();
+void qualStats();
 
 int main(int argc, char * argv[]) {
   
@@ -37,7 +38,7 @@ int main(int argc, char * argv[]) {
       checkErr( ENrunH(&simulationTime), "ENrunH" );
       checkErr( ENnextH(&nextEventH), "ENnextH" );
       
-      stats();
+      hydStats();
       
       // gather hydraulic results
       
@@ -51,23 +52,11 @@ int main(int argc, char * argv[]) {
     checkErr( ENinitQ(EN_SAVE), "ENinitQ" );
     
     do {
-      //long htime;
-      
-      //ENgettimeparam(EN_HTIME, &htime);
-      //cout << "Htime = " << htime << endl;
       
       checkErr( ENrunQ(&simulationTime), "ENrunQ" );
-      
-      //ENgettimeparam(EN_HTIME, &htime);
-      //cout << "Htime = " << htime << endl;
-      
       checkErr( ENnextQ(&nextEventH), "ENstepQ" );
       
-      //ENgettimeparam(EN_HTIME, &htime);
-      //cout << "Htime = " << htime << endl;
-      
-      // wq results
-      //cout << simulationTime << "\t\t" << nextEventH << endl;
+      qualStats();
       
     } while (nextEventH > 0);
     // water quality is done
@@ -85,7 +74,7 @@ int main(int argc, char * argv[]) {
     /* stepwise solver (LemonTiger) */
     cout << "*****LemonTiger results******" << endl;
     
-    checkErr( ENopen(argv[1], argv[2], "out2.bin"), "ENopen" );
+    checkErr( ENopen(argv[1], argv[2], (char*)"out2.bin"), "ENopen" );
     
     checkErr( ENopenH(), "ENopenH" );
     checkErr( ENinitH(EN_NOSAVE), "ENinitH" );
@@ -105,7 +94,8 @@ int main(int argc, char * argv[]) {
       checkErr( ENnextH(&nextEventH), "ENnextH" );
       checkErr( ENnextQ(&nextEventQ), "ENstepQ" );
       
-      stats();
+      //hydStats();
+      qualStats();
       
       // wq results
       //cout << simulationTime << "\t\t" << nextEventH << endl;
@@ -126,14 +116,24 @@ int main(int argc, char * argv[]) {
 
 
 
-void stats() {
+void hydStats() {
   long htime;
   int nodeIndex;
-  float head, volume;
+  float head;
   ENgettimeparam(EN_HTIME, &htime);
   ENgetnodeindex((char*)"1", &nodeIndex);
   ENgetnodevalue(nodeIndex, EN_HEAD, &head);
-  cout << htime << "\t\t" << head << endl;
+  cout << htime << "\t\th = " << head << endl;
+}
+
+void qualStats() {
+  long htime;
+  int nodeIndex;
+  float quality;
+  ENgettimeparam(EN_HTIME, &htime);
+  ENgetnodeindex((char*)"1", &nodeIndex);
+  ENgetnodevalue(nodeIndex, EN_QUALITY, &quality);
+  cout << htime << "\t\tc = " << quality << endl;
 }
 
 

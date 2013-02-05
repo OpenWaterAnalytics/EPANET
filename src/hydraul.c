@@ -1049,14 +1049,23 @@ void  tanklevels(long tstep)
 
       /* Update the tank's volume & water elevation */
       n = Tank[i].Node;
-      dv = D[n]*tstep;
-      Tank[i].V += dv;
+
+      // only adjust tank volume if we're in sequential mode.
+      // otherwise, the tankmixing function will do it for us.
+      if (!OpenQflag) {
+        dv = D[n]*tstep;
+        Tank[i].V += dv;
+      }
 
       /*** Updated 6/24/02 ***/
       /* Check if tank full/empty within next second */
-      if (Tank[i].V + D[n] >= Tank[i].Vmax) Tank[i].V = Tank[i].Vmax;
-      if (Tank[i].V - D[n] <= Tank[i].Vmin) Tank[i].V = Tank[i].Vmin;
-
+      if (Tank[i].V + D[n] >= Tank[i].Vmax) {
+        Tank[i].V = Tank[i].Vmax;
+      }
+      else if (Tank[i].V - D[n] <= Tank[i].Vmin) {
+        Tank[i].V = Tank[i].Vmin;
+      }
+      
       H[n] = tankgrade(i,Tank[i].V);
    }
 }                       /* End of tanklevels */

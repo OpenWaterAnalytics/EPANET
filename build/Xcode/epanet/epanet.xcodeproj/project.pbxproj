@@ -56,13 +56,6 @@
 			remoteGlobalIDString = D2AAC0620554660B00DB518D;
 			remoteInfo = epanet;
 		};
-		22EF555816BC7FCC00F3988A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC0620554660B00DB518D;
-			remoteInfo = epanet;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -256,7 +249,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				22EF555916BC7FCC00F3988A /* PBXTargetDependency */,
 			);
 			name = TestLemonTiger;
 			productName = TestLemonTiger;
@@ -363,11 +355,6 @@
 			isa = PBXTargetDependency;
 			target = D2AAC0620554660B00DB518D /* epanet */;
 			targetProxy = 22322FAF1068370B00641384 /* PBXContainerItemProxy */;
-		};
-		22EF555916BC7FCC00F3988A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D2AAC0620554660B00DB518D /* epanet */;
-			targetProxy = 22EF555816BC7FCC00F3988A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
