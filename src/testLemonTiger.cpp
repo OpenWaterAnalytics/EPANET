@@ -24,7 +24,7 @@ int main(int argc, char * argv[]) {
     
     /*  Batch solver (old epanet) */
     cout << "*****Original EPANET results******" << endl;
-    checkErr( ENopen(argv[1], argv[2], "out.bin"), "ENopen" );
+    checkErr( ENopen(argv[1], argv[2], (char*)""), "ENopen" );
     
     checkErr( ENopenH(), "ENopenH" );
     checkErr( ENinitH(EN_SAVE), "ENinitH" );
@@ -74,7 +74,7 @@ int main(int argc, char * argv[]) {
     /* stepwise solver (LemonTiger) */
     cout << "*****LemonTiger results******" << endl;
     
-    checkErr( ENopen(argv[1], argv[2], (char*)"out2.bin"), "ENopen" );
+    checkErr( ENopen(argv[1], argv[2], (char*)""), "ENopen" );
     
     checkErr( ENopenH(), "ENopenH" );
     checkErr( ENinitH(EN_NOSAVE), "ENinitH" );
@@ -121,7 +121,7 @@ void hydStats() {
   int nodeIndex;
   float head;
   ENgettimeparam(EN_HTIME, &htime);
-  ENgetnodeindex((char*)"1", &nodeIndex);
+  ENgetnodeindex((char*)"NewportTank", &nodeIndex);
   ENgetnodevalue(nodeIndex, EN_HEAD, &head);
   cout << htime << "\t\th = " << head << endl;
 }
@@ -131,7 +131,7 @@ void qualStats() {
   int nodeIndex;
   float quality;
   ENgettimeparam(EN_HTIME, &htime);
-  ENgetnodeindex((char*)"1", &nodeIndex);
+  ENgetnodeindex((char*)"NewportTank", &nodeIndex);
   ENgetnodevalue(nodeIndex, EN_QUALITY, &quality);
   cout << htime << "\t\tc = " << quality << endl;
 }

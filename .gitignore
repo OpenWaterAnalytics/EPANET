@@ -117,7 +117,7 @@ xcuserdata
 *.metagen
 *.bi
 *.opensdf
-test/*
+
 Debug/
 
 
