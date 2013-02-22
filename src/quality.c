@@ -1458,7 +1458,7 @@ void  ratecoeffs()
    {
       kw = Link[k].Kw;
       if (kw != 0.0) kw = piperate(k);
-      Link[k].R = kw;
+      Link[k].Rc = kw;
       R[k] = 0.0;
    }
 }                         /* End of ratecoeffs */
@@ -1541,7 +1541,7 @@ double  pipereact(int k, double c, double v, long dt)
 
    /* Otherwise find bulk & wall reaction rates */
    rbulk = bulkrate(c,Link[k].Kb,BulkOrder)*Bucf;
-   rwall = wallrate(c,Link[k].Diam,Link[k].Kw,Link[k].R);
+   rwall = wallrate(c,Link[k].Diam,Link[k].Kw,Link[k].Rc);
 
    /* Find change in concentration over timestep */
    dcbulk = rbulk*(double)dt;
