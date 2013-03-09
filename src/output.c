@@ -161,8 +161,8 @@ int  savehyd(long *htime)
    /* Force flow in closed links to be zero then save flows */
    for (i=1; i<=Nlinks; i++)
    {
-      if (S[i] <= CLOSED) x[i] = 0.0f;
-      else x[i] = (REAL4)Q[i];
+     //if (S[i] <= CLOSED) x[i] = 0.0f;
+      /*else*/ x[i] = (REAL4)Q[i];
    }
    fwrite(x+1,sizeof(REAL4),Nlinks,HydFile);
 
@@ -377,7 +377,7 @@ int  nodeoutput(int j, REAL4 *x, double ucf)
 }                        /* End of nodeoutput */
 
 
-int  linkoutput(int j, float *x, double ucf)
+int  linkoutput(int j, REAL4 *x, double ucf)
 /*
 **----------------------------------------------------------------
 **   Input:   j   = type of link variable                         

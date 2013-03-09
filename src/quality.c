@@ -152,7 +152,9 @@ void  initqual()
    for (i=1; i<=Ntanks; i++) Tank[i].V = Tank[i].V0;
    for (i=1; i<=Nnodes; i++)
       if (Node[i].S != NULL) Node[i].S->Smass = 0.0;
-
+  
+   QTankVolumes = calloc(Ntanks, sizeof(double)); // keep track of previous step's tank volumes.
+  
    /* Set WQ parameters */
    Bucf = 1.0;
    Tucf = 1.0;
@@ -224,7 +226,14 @@ int runqual(long *t)
    {
       errcode = gethyd(&hydtime, &hydstep);
       if (!OpenHflag) { // test for sequential vs stepwise
+        // sequential
         Htime = hydtime + hydstep;
+      }
+      else {
+        // stepwise
+        for (int i=1; i<= Ntanks; ++i) {
+          QTankVolumes[i-1] = Tank[i].V;
+        }
       }
    }
    return(errcode);
@@ -249,6 +258,26 @@ int nextqual(long *tstep)
    *tstep = 0;
    hydstep = Htime - Qtime;
 
+  double *tankVolumes;
+  // if we're operating in stepwise mode, capture the tank levels so we can restore them later.
+  if (OpenHflag) {
+    tankVolumes = calloc(Ntanks, sizeof(double));
+    for (int i=1; i<=Ntanks; ++i) {
+      if (Tank[i].A != 0) { // skip reservoirs
+        tankVolumes[i-1] = Tank[i].V;
+      }
+    }
+    // restore the previous step's tank volumes
+    for (int i=1; i<=Ntanks; i++) {
+      if (Tank[i].A != 0) { // skip reservoirs again
+        int n = Tank[i].Node;
+        Tank[i].V = QTankVolumes[i-1];
+        H[n] = tankgrade(i,Tank[i].V);
+      }
+    }
+  }
+  
+  
    /* Perform water quality routing over this time step */
    if (Qualflag != NONE && hydstep > 0) transport(hydstep);
 
@@ -259,6 +288,19 @@ int nextqual(long *tstep)
 
    /* Save final output if no more time steps */
    if (!errcode && Saveflag && *tstep == 0) errcode = savefinaloutput();
+  
+  // restore tank levels to post-runH state, if needed.
+  if (OpenHflag) {
+    for (int i=1; i<=Ntanks; i++) {
+      if (Tank[i].A != 0) { // skip reservoirs again
+        int n = Tank[i].Node;
+        Tank[i].V = tankVolumes[i-1];
+        H[n] = tankgrade(i,Tank[i].V);
+      }
+    }
+    free(tankVolumes);
+  }
+  
    return(errcode);
 }
 
@@ -326,6 +368,7 @@ int closequal()
    free(MassIn);
    free(R);
    free(XC);
+   free(QTankVolumes);
    return(errcode);
 }
 
@@ -423,6 +466,8 @@ void  transport(long tstep)
 */
 {
    long   qtime, dt;
+  
+  
 
    /* Repeat until elapsed time equals hydraulic time step */
 
@@ -439,6 +484,8 @@ void  transport(long tstep)
       release(dt);                    /* Release new nodal flows */
    }
    updatesourcenodes(tstep);          /* Update quality at source nodes */
+  
+  
 }
 
 
@@ -1023,10 +1070,6 @@ void  updatetanks(long dt)
           default:   tankmix1(i,dt); break;
         }
         
-        // if we're operating in stepwise mode, we'll need to update tank head conditions
-        if (OpenHflag) {
-          H[n] = tankgrade(i,Tank[i].V);
-        }
       }
    }
 }

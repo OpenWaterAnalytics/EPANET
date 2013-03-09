@@ -28,7 +28,7 @@ AUTHOR:     L. Rossman
    Definition of 4-byte integers & reals
 -------------------------------------------
 */
-typedef  float        REAL4;                                                   //(2.00.11 - LR)
+typedef  double        REAL4;                                                   //(2.00.11 - LR)
 typedef  int          INT4;                                                    //(2.00.12 - LR)
 
 /*

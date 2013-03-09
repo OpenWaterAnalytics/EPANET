@@ -333,7 +333,7 @@ Link 330 OPEN IF Node 1 ABOVE 19.1
 
 [TIMES]
  Duration           	24:00 
- Hydraulic Timestep 	1:00 
+ Hydraulic Timestep 	1:00
  Quality Timestep   	0:05 
  Pattern Timestep   	1:00 
  Pattern Start      	0:00 

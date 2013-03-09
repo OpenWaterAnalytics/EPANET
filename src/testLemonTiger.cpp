@@ -1,6 +1,6 @@
 #include <map>
 #include <iomanip>
-
+#include <math.h>
 #include "testLemonTiger.h"
 #include "toolkit.h"
 
@@ -13,9 +13,19 @@ typedef struct {
   double head;
   double demand;
   double quality;
-} singleState_t;
+} nodeState_t;
 
-typedef map<int, singleState_t> networkState_t; // nodeIndex, state
+typedef struct {
+  double flow;
+} linkState_t;
+
+typedef map<int, nodeState_t> networkNodeState_t; // nodeIndex, state
+typedef map<int, linkState_t> networkLinkState_t; // linkIndex, state
+
+typedef struct {
+  networkNodeState_t nodeState;
+  networkLinkState_t linkState;
+} networkState_t;
 typedef map<long, networkState_t> result_t;     // time, networkState
 // access results by, for instance, resultsContainer[time][nodeIndex].head
 
@@ -25,6 +35,7 @@ void checkErr(int err, std::string function);
 void saveHydResults(networkState_t* networkState);
 void saveQualResults(networkState_t* networkState);
 void printResults(result_t* state1, result_t* state2, std::ostream& out);
+void compare(result_t* results1, result_t* results2, std::ostream &out);
 
 int main(int argc, char * argv[]) {
   
@@ -67,7 +78,7 @@ int main(int argc, char * argv[]) {
     cout << "Running WQ..." << endl;
     
     checkErr( ENopenQ(), "ENopenQ" );
-    checkErr( ENinitQ(EN_SAVE), "ENinitQ" );
+    checkErr( ENinitQ(EN_NOSAVE), "ENinitQ" );
     
     do {
       
@@ -105,12 +116,14 @@ int main(int argc, char * argv[]) {
       /* Solve for hydraulics & advance to next time period */      
       checkErr( ENrunH(&simulationTime), "ENrunH" );
       checkErr( ENrunQ(&simulationTime), "ENrunQ" );
-            
+      
       checkErr( ENnextH(&nextEventH), "ENnextH" );
       checkErr( ENnextQ(&nextEventQ), "ENstepQ" );
       
+      
       saveHydResults(&lemonTigerResults[simulationTime]);
       saveQualResults(&lemonTigerResults[simulationTime]);
+
       
     } while (nextEventH > 0);
     cout << "\t\t\tdone." << endl;
@@ -122,8 +135,8 @@ int main(int argc, char * argv[]) {
     
     
     // summarize the results
-    printResults(&epanetResults, &lemonTigerResults, cout);
-    
+    //printResults(&epanetResults, &lemonTigerResults, cout);
+    compare(&epanetResults, &lemonTigerResults, cout);
     
   } catch (int err) {
     cerr << "exiting with error " << err << endl;
@@ -132,15 +145,19 @@ int main(int argc, char * argv[]) {
 
 
 void saveHydResults(networkState_t* networkState) {
-  int nNodes;
-  float head, demand;
+  int nNodes, nLinks;
+  float head, demand, flow;
   ENgetcount(EN_NODECOUNT, &nNodes);
-  
-  for (int iNode = 1; iNode <= nNodes; iNode++) {
+  ENgetcount(EN_LINKCOUNT, &nLinks);
+  for (int iNode = 1; iNode <= nNodes; ++iNode) {
     ENgetnodevalue(iNode, EN_HEAD, &head);
     ENgetnodevalue(iNode, EN_DEMAND, &demand);
-    (*networkState)[iNode].head = head;
-    (*networkState)[iNode].demand = demand;
+    (*networkState).nodeState[iNode].head = head;
+    (*networkState).nodeState[iNode].demand = demand;
+  }
+  for (int iLink = 1; iLink <= nLinks; ++iLink) {
+    ENgetlinkvalue(iLink, EN_FLOW, &flow);
+    (*networkState).linkState[iLink].flow = flow;
   }
 }
 
@@ -152,7 +169,7 @@ void saveQualResults(networkState_t* networkState) {
   
   for (int iNode = 1; iNode <= nNodes; iNode++) {
     ENgetnodevalue(iNode, EN_QUALITY, &quality);
-    (*networkState)[iNode].quality = quality;
+    (*networkState).nodeState[iNode].quality = quality;
   }
 }
 
@@ -164,7 +181,8 @@ void printResults(result_t* results1, result_t* results2, std::ostream &out) {
   for (resultIterator = (*results1).begin(); resultIterator != (*results1).end(); ++resultIterator) {
     // get the current frame
     const long time = resultIterator->first;
-    const networkState_t state1 = resultIterator->second;
+    const networkNodeState_t nodeState1 = resultIterator->second.nodeState;
+    const networkLinkState_t linkState1 = resultIterator->second.linkState;
     
     // see if this time is indexed in the second state container
     if ((*results2).find(time) == (*results2).end()) {
@@ -173,8 +191,8 @@ void printResults(result_t* results1, result_t* results2, std::ostream &out) {
     }
     else {
       // get the second result set's state
-      const networkState_t state2 = (*results2)[time];
-      
+      const networkNodeState_t networkNodeState2 = (*results2)[time].nodeState;
+      const networkLinkState_t networkLinkState2 = (*results2)[time].linkState;
       // print the current simulation time
       out << left;
       out << setfill('*') << setw(100) << "*" << endl;
@@ -188,30 +206,113 @@ void printResults(result_t* results1, result_t* results2, std::ostream &out) {
       out << setprecision(OUTPRECISION);
       
       // loop through the nodes in the networkState objs, and print out the results for this time period
-      networkState_t::const_iterator networkIterator;
-      for (networkIterator = state1.begin(); networkIterator != state1.end(); ++networkIterator) {
-        int nodeIndex = networkIterator->first;
+      networkNodeState_t::const_iterator networkNodeIterator;
+      for (networkNodeIterator = nodeState1.begin(); networkNodeIterator != nodeState1.end(); ++networkNodeIterator) {
+        int nodeIndex = networkNodeIterator->first;
         // trusting that all nodes are present...
-        const singleState_t nodeState1 = networkIterator->second;
-        const singleState_t nodeState2 = state2.at(nodeIndex);
+        const nodeState_t nodeState1 = networkNodeIterator->second;
+        const nodeState_t nodeState2 = networkNodeState2.at(nodeIndex);
         
-        // epanet
-        out << setw(10) << nodeIndex << "|";
-        out << setw(COLW) << nodeState1.demand;
-        out << setw(COLW) << nodeState1.head;
-        out << setw(COLW) << nodeState1.quality;
-        
-        // lemontiger
-        out << "|";
-        out << setw(COLW) << nodeState2.demand;
-        out << setw(COLW) << nodeState2.head;
-        out << setw(COLW) << nodeState2.quality;
-        out << endl;
-        
+        if (nodeState1.quality != nodeState2.quality ) {
+          // epanet
+          out << setw(10) << nodeIndex << "|";
+          out << setw(COLW) << nodeState1.demand;
+          out << setw(COLW) << nodeState1.head;
+          out << setw(COLW) << nodeState1.quality;
+          
+          // lemontiger
+          out << "|";
+          out << setw(COLW) << nodeState2.demand;
+          out << setw(COLW) << nodeState2.head;
+          out << setw(COLW) << nodeState2.quality;
+          out << endl;
+        }
       }
+      
+      networkLinkState_t::const_iterator networkLinkIterator;
+      for (networkLinkIterator = linkState1.begin(); networkLinkIterator != linkState1.end(); ++networkLinkIterator) {
+        int linkIndex = networkLinkIterator->first;
+        // trusting that all nodes are present...
+        const linkState_t linkState1 = networkLinkIterator->second;
+        const linkState_t linkState2 = networkLinkState2.at(linkIndex);
+        
+        if ( linkState1.flow != linkState2.flow ) {
+                 // epanet
+          out << setw(10) << linkIndex << "|";
+          out << setw(COLW) << linkState1.flow;
+          
+          // lemontiger
+          out << "|";
+          out << setw(COLW) << linkState2.flow;
+          out << endl;
+        }
+      }
+
       
     }
   }
+  
+}
+
+
+
+void compare(result_t* results1, result_t* results2, std::ostream &out) {
+  
+  double sumHeadDiff=0, sumDemandDiff=0, sumQualDiff=0, sumFlowDiff=0;
+  
+  result_t::const_iterator resultIterator;
+  
+  for (resultIterator = (*results1).begin(); resultIterator != (*results1).end(); ++resultIterator) {
+    // get the current frame
+    const long time = resultIterator->first;
+    const networkNodeState_t nodeState1 = resultIterator->second.nodeState;
+    const networkLinkState_t linkState1 = resultIterator->second.linkState;
+    
+    // see if this time is indexed in the second state container
+    if ((*results2).find(time) == (*results2).end()) {
+      // nope.
+      out << "time " << time << " not found in second result set" << endl;
+    }
+    else {
+      // get the second result set's state
+      const networkNodeState_t networkNodeState2 = (*results2)[time].nodeState;
+      const networkLinkState_t networkLinkState2 = (*results2)[time].linkState;
+      double qualD=0;
+      
+      networkNodeState_t::const_iterator networkNodeIterator;
+      for (networkNodeIterator = nodeState1.begin(); networkNodeIterator != nodeState1.end(); ++networkNodeIterator) {
+        int nodeIndex = networkNodeIterator->first;
+        // trusting that all nodes are present...
+        const nodeState_t nodeState1 = networkNodeIterator->second;
+        const nodeState_t nodeState2 = networkNodeState2.at(nodeIndex);
+        
+        sumHeadDiff += fabs(nodeState1.head - nodeState2.head);
+        sumDemandDiff += fabs(nodeState1.demand - nodeState2.demand);
+        
+        qualD += fabs(nodeState1.quality - nodeState2.quality);
+      }
+      //out << "T: " << time << " dq: " << setprecision(20) << qualD << endl;
+      sumQualDiff += qualD;
+      
+      networkLinkState_t::const_iterator networkLinkIterator;
+      for (networkLinkIterator = linkState1.begin(); networkLinkIterator != linkState1.end(); ++networkLinkIterator) {
+        int linkIndex = networkLinkIterator->first;
+        // trusting that all nodes are present...
+        const linkState_t linkState1 = networkLinkIterator->second;
+        const linkState_t linkState2 = networkLinkState2.at(linkIndex);
+        
+        sumFlowDiff += fabs(linkState1.flow - linkState2.flow);
+      }
+    }
+  }
+  
+  int c1 = 18;
+  int p = 20;
+  out << setw(c1) << "Head Diff:" << setprecision(p) << sumHeadDiff << endl;
+  out << setw(c1) << "Demand Diff:" << setprecision(p) << sumDemandDiff << endl;
+  out << setw(c1) << "Quality Diff:" << setprecision(p) << sumQualDiff << endl;
+  out << setw(c1) << "Flow Diff:" << setprecision(p) << sumFlowDiff << endl;
+  
   
 }
 

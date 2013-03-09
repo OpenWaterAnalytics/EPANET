@@ -258,6 +258,9 @@ int  nexthyd(long *tstep)
    else
    {
       Htime++;          /* Force completion of analysis */
+     if (OpenQflag) {
+       Qtime++; // force completion of wq analysis too
+     }
    }
    *tstep = hydstep;
    return(errcode);
@@ -1049,13 +1052,8 @@ void  tanklevels(long tstep)
 
       /* Update the tank's volume & water elevation */
       n = Tank[i].Node;
-
-      // only adjust tank volume if we're in sequential mode.
-      // otherwise, the tankmixing function will do it for us.
-      if (!OpenQflag) {
-        dv = D[n]*tstep;
-        Tank[i].V += dv;
-      }
+      dv = D[n]*tstep;
+      Tank[i].V += dv;
 
       /*** Updated 6/24/02 ***/
       /* Check if tank full/empty within next second */
