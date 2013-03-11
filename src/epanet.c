@@ -1668,9 +1668,8 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
       case EN_FLOW:
 
 /*** Updated 10/25/00 ***/
-       //if (S[index] <= CLOSED) v = 0.0;
-
-         /*else*/ v = Q[index]*Ucf[FLOW];
+         if (S[index] <= CLOSED) v = 0.0;
+         else v = Q[index]*Ucf[FLOW];
          break;
 
       case EN_VELOCITY:

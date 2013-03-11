@@ -1,6 +1,8 @@
 #include <map>
 #include <iomanip>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "testLemonTiger.h"
 #include "toolkit.h"
 
@@ -135,7 +137,7 @@ int main(int argc, char * argv[]) {
     
     
     // summarize the results
-    //printResults(&epanetResults, &lemonTigerResults, cout);
+    printResults(&epanetResults, &lemonTigerResults, cout);
     compare(&epanetResults, &lemonTigerResults, cout);
     
   } catch (int err) {
@@ -181,8 +183,10 @@ void printResults(result_t* results1, result_t* results2, std::ostream &out) {
   for (resultIterator = (*results1).begin(); resultIterator != (*results1).end(); ++resultIterator) {
     // get the current frame
     const long time = resultIterator->first;
-    const networkNodeState_t nodeState1 = resultIterator->second.nodeState;
-    const networkLinkState_t linkState1 = resultIterator->second.linkState;
+    const networkNodeState_t networkNodeState1= resultIterator->second.nodeState;
+    //nodeState1 = resultIterator->second.nodeState;
+    const networkLinkState_t networkLinkState1 = resultIterator->second.linkState;
+    //linkState1 = resultIterator->second.linkState;
     
     // see if this time is indexed in the second state container
     if ((*results2).find(time) == (*results2).end()) {
@@ -207,7 +211,7 @@ void printResults(result_t* results1, result_t* results2, std::ostream &out) {
       
       // loop through the nodes in the networkState objs, and print out the results for this time period
       networkNodeState_t::const_iterator networkNodeIterator;
-      for (networkNodeIterator = nodeState1.begin(); networkNodeIterator != nodeState1.end(); ++networkNodeIterator) {
+      for (networkNodeIterator = networkNodeState1.begin(); networkNodeIterator != networkNodeState1.end(); ++networkNodeIterator) {
         int nodeIndex = networkNodeIterator->first;
         // trusting that all nodes are present...
         const nodeState_t nodeState1 = networkNodeIterator->second;
@@ -230,7 +234,7 @@ void printResults(result_t* results1, result_t* results2, std::ostream &out) {
       }
       
       networkLinkState_t::const_iterator networkLinkIterator;
-      for (networkLinkIterator = linkState1.begin(); networkLinkIterator != linkState1.end(); ++networkLinkIterator) {
+      for (networkLinkIterator = networkLinkState1.begin(); networkLinkIterator != networkLinkState1.end(); ++networkLinkIterator) {
         int linkIndex = networkLinkIterator->first;
         // trusting that all nodes are present...
         const linkState_t linkState1 = networkLinkIterator->second;

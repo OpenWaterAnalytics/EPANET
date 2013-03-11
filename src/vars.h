@@ -154,6 +154,7 @@ AUTHOR:     L. Rossman
 				*XC;				   /* General Purpose array - WQ   */
  double   *H;                    /* Node heads                   */
  double *QTankVolumes;
+ double *QLinkFlow; //woohn 03112013
  STmplist *Patlist;              /* Temporary time pattern list  */ 
  STmplist *Curvelist;            /* Temporary list of curves     */
  Spattern *Pattern;              /* Time patterns                */

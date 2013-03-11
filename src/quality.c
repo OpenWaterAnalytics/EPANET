@@ -154,6 +154,7 @@ void  initqual()
       if (Node[i].S != NULL) Node[i].S->Smass = 0.0;
   
    QTankVolumes = calloc(Ntanks, sizeof(double)); // keep track of previous step's tank volumes.
+   QLinkFlow    = calloc(Nlinks, sizeof(double)); // keep track of previous step's link flows.
   
    /* Set WQ parameters */
    Bucf = 1.0;
@@ -230,10 +231,18 @@ int runqual(long *t)
         Htime = hydtime + hydstep;
       }
       else {
-        // stepwise
+        // stepwise calculation
         for (int i=1; i<= Ntanks; ++i) {
           QTankVolumes[i-1] = Tank[i].V;
         }
+        
+        for (int i=1; i<= Nlinks; ++i)
+        {
+          if (S[i] <= CLOSED) {
+            QLinkFlow[i-1] = Q[i];
+          }
+        }
+
       }
    }
    return(errcode);
@@ -256,9 +265,14 @@ int nextqual(long *tstep)
 
    /* Determine time step */
    *tstep = 0;
-   hydstep = Htime - Qtime;
-
+  
+  // hydstep = Htime - Qtime;
+  
+  if (Htime <= Dur) hydstep = Htime - Qtime;
+  else hydstep = 0;
+  
   double *tankVolumes;
+  
   // if we're operating in stepwise mode, capture the tank levels so we can restore them later.
   if (OpenHflag) {
     tankVolumes = calloc(Ntanks, sizeof(double));
@@ -267,6 +281,7 @@ int nextqual(long *tstep)
         tankVolumes[i-1] = Tank[i].V;
       }
     }
+    
     // restore the previous step's tank volumes
     for (int i=1; i<=Ntanks; i++) {
       if (Tank[i].A != 0) { // skip reservoirs again
@@ -275,8 +290,15 @@ int nextqual(long *tstep)
         H[n] = tankgrade(i,Tank[i].V);
       }
     }
+    
+    // restore the previous step's pipe link flows
+    for (int i=1; i<=Nlinks; i++) {
+      if (S[i] <= CLOSED) {
+        Q[i] = 0.0;
+      }
+    }
+
   }
-  
   
    /* Perform water quality routing over this time step */
    if (Qualflag != NONE && hydstep > 0) transport(hydstep);
@@ -298,6 +320,13 @@ int nextqual(long *tstep)
         H[n] = tankgrade(i,Tank[i].V);
       }
     }
+    
+    for (int i=1; i<=Nlinks; ++i) {
+      if (S[i] <= CLOSED) {
+        Q[i] = QLinkFlow[i-1];
+      }
+    }
+    
     free(tankVolumes);
   }
   
@@ -369,6 +398,7 @@ int closequal()
    free(R);
    free(XC);
    free(QTankVolumes);
+   free(QLinkFlow);
    return(errcode);
 }
 
@@ -467,8 +497,6 @@ void  transport(long tstep)
 {
    long   qtime, dt;
   
-  
-
    /* Repeat until elapsed time equals hydraulic time step */
 
    AllocSetPool(SegPool);                                                      //(2.00.11 - LR)
@@ -484,7 +512,6 @@ void  transport(long tstep)
       release(dt);                    /* Release new nodal flows */
    }
    updatesourcenodes(tstep);          /* Update quality at source nodes */
-  
   
 }
 
