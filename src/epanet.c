@@ -1460,7 +1460,7 @@ int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
          v = 0.0;
          if ( index > Njuncs )
          {
-            v = 4.0/PI*sqrt(Tank[index-Njuncs].A)*Ucf[ELEV];
+            v = sqrt(4.0/PI*Tank[index-Njuncs].A)*Ucf[ELEV];
          }
          break;
 
