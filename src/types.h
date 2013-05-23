@@ -17,6 +17,8 @@ AUTHOR:     L. Rossman
                                                                      
 **********************************************************************
 */
+#ifndef TYPES_H
+#define TYPES_H
 
 /*********************************************************/
 /* All floats have been re-declared as doubles (7/3/07). */
@@ -206,6 +208,7 @@ typedef struct            /* LINK OBJECT */
    double  Kb;             /* Bulk react. coeff */
    double  Kw;             /* Wall react. coeff */
    double  R;              /* Flow resistance   */
+   double  Rc;             /* Reaction cal      */
    char    Type;           /* Link type         */
    char    Stat;           /* Initial status    */
    char    Rpt;            /* Reporting flag    */
@@ -451,3 +454,4 @@ enum HdrType                    /* Type of table heading   */
                   NODEHDR,      /*  Node Results           */
                   LINKHDR};     /*  Link Results           */
 
+#endif

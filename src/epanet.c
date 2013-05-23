@@ -754,7 +754,8 @@ int DLLEXPORT ENopenQ()
    OpenQflag = FALSE;
    SaveQflag = FALSE;
    if (!Openflag) return(102);
-   if (!SaveHflag) return(104);
+  // !LT! todo - check for SaveHflag / set sequential/step mode
+  //if (!SaveHflag) return(104);
 
 /* Open WQ solver */
    ERRCODE(openqual());
@@ -1680,7 +1681,6 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
 
 /*** Updated 10/25/00 ***/
          if (S[index] <= CLOSED) v = 0.0;
-
          else v = Q[index]*Ucf[FLOW];
          break;
 
@@ -3143,6 +3143,8 @@ char *geterrmsg(int errcode)
       case 307:  strcpy(Msg,ERR307);   break;
       case 308:  strcpy(Msg,ERR308);   break;
       case 309:  strcpy(Msg,ERR309);   break;
+
+	  case 401:  strcpy(Msg,ERR401); break;
       default:   strcpy(Msg,"");
    }
    return(Msg);
@@ -3222,7 +3224,7 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, float *baseDemand)
 	if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
 	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
 	if(n!=demandIdx) return(253);
-	*baseDemand=d->Base*Ucf[FLOW];
+	*baseDemand=(float)(d->Base*Ucf[FLOW]);
 	return 0;
 }
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)

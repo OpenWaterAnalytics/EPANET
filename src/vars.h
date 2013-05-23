@@ -11,7 +11,13 @@ AUTHOR:     L. Rossman
                                                                      
 ************************************************************************
 */
-EXTERN FILE     *InFile,               /* Input file pointer           */
+#ifndef VARS_H
+#define VARS_H
+
+#include <stdio.h>
+#include "hash.h"
+
+ FILE			*InFile,               /* Input file pointer           */
                 *OutFile,              /* Output file pointer          */
                 *RptFile,              /* Report file pointer          */
                 *HydFile,              /* Hydraulics file pointer      */
@@ -144,8 +150,10 @@ EXTERN double   *D,                    /* Node actual demand           */
                 *K,                    /* Link settings                */
                 *Q,                    /* Link flows                   */
                 *R,                    /* Pipe reaction rate           */
-                *X;                    /* General purpose array        */
+                *XC;                    /* General purpose array        */
 EXTERN double   *H;                    /* Node heads                   */
+EXTERN double *QTankVolumes;
+EXTERN double *QLinkFlow;
 EXTERN STmplist *Patlist;              /* Temporary time pattern list  */ 
 EXTERN STmplist *Curvelist;            /* Temporary list of curves     */
 EXTERN Spattern *Pattern;              /* Time patterns                */
@@ -195,3 +203,5 @@ EXTERN int      *Order,      /* Node-to-row of A                    */
 EXTERN int      *XLNZ,       /* Start position of each column in NZSUB  */
                 *NZSUB,      /* Row index of each coeff. in each column */
                 *LNZ;        /* Position of each coeff. in Aij array    */
+
+#endif

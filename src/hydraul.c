@@ -259,6 +259,9 @@ int  nexthyd(long *tstep)
    else
    {
       Htime++;          /* Force completion of analysis */
+     if (OpenQflag) {
+       Qtime++; // force completion of wq analysis too
+     }
    }
    *tstep = hydstep;
    return(errcode);
@@ -1055,8 +1058,12 @@ void  tanklevels(long tstep)
 
       /*** Updated 6/24/02 ***/
       /* Check if tank full/empty within next second */
-      if (Tank[i].V + D[n] >= Tank[i].Vmax) Tank[i].V = Tank[i].Vmax;
-      if (Tank[i].V - D[n] <= Tank[i].Vmin) Tank[i].V = Tank[i].Vmin;
+      if (Tank[i].V + D[n] >= Tank[i].Vmax) {
+        Tank[i].V = Tank[i].Vmax;
+      }
+      else if (Tank[i].V - D[n] <= Tank[i].Vmin) {
+        Tank[i].V = Tank[i].Vmin;
+      }
 
       H[n] = tankgrade(i,Tank[i].V);
    }

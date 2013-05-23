@@ -106,7 +106,7 @@ int  openqual()
    if (SegPool == NULL) errcode = 101;                                         //(2.00.11 - LR)
 
    /* Allocate scratch array & reaction rate array*/
-   X  = (double *) calloc(MAX((Nnodes+1),(Nlinks+1)),sizeof(double));
+   XC  = (double *) calloc(MAX((Nnodes+1),(Nlinks+1)),sizeof(double));
    R  = (double *) calloc((Nlinks+1), sizeof(double));
    ERRCODE(MEMCHECK(X));
    ERRCODE(MEMCHECK(R));
@@ -154,6 +154,9 @@ void  initqual()
    for (i=1; i<=Nnodes; i++)
       if (Node[i].S != NULL) Node[i].S->Smass = 0.0;
 
+   QTankVolumes = calloc(Ntanks, sizeof(double)); // keep track of previous step's tank volumes.
+   QLinkFlow    = calloc(Nlinks, sizeof(double)); // keep track of previous step's link flows.
+  
    /* Set WQ parameters */
    Bucf = 1.0;
    Tucf = 1.0;
@@ -189,7 +192,10 @@ void  initqual()
    Wsource = 0.0;
 
    /* Re-position hydraulics file */
+  if (!OpenHflag) {
    fseek(HydFile,HydOffset,SEEK_SET);
+  }
+   
 
    /* Set elapsed times to zero */
    Htime = 0;
@@ -221,7 +227,24 @@ int runqual(long *t)
    if (Qtime == Htime)
    {
       errcode = gethyd(&hydtime, &hydstep);
+      if (!OpenHflag) { // test for sequential vs stepwise
+        // sequential
       Htime = hydtime + hydstep;
+   }
+      else {
+        // stepwise calculation
+        for (int i=1; i<= Ntanks; ++i) {
+          QTankVolumes[i-1] = Tank[i].V;
+        }
+        
+        for (int i=1; i<= Nlinks; ++i)
+        {
+          if (S[i] <= CLOSED) {
+            QLinkFlow[i-1] = Q[i];
+          }
+        }
+
+      }
    }
    return(errcode);
 }
@@ -243,7 +266,40 @@ int nextqual(long *tstep)
 
    /* Determine time step */
    *tstep = 0;
-   hydstep = Htime - Qtime;
+  
+  // hydstep = Htime - Qtime;
+  
+  if (Htime <= Dur) hydstep = Htime - Qtime;
+  else hydstep = 0;
+  
+  double *tankVolumes;
+  
+  // if we're operating in stepwise mode, capture the tank levels so we can restore them later.
+  if (OpenHflag) {
+    tankVolumes = calloc(Ntanks, sizeof(double));
+    for (int i=1; i<=Ntanks; ++i) {
+      if (Tank[i].A != 0) { // skip reservoirs
+        tankVolumes[i-1] = Tank[i].V;
+      }
+    }
+    
+    // restore the previous step's tank volumes
+    for (int i=1; i<=Ntanks; i++) {
+      if (Tank[i].A != 0) { // skip reservoirs again
+        int n = Tank[i].Node;
+        Tank[i].V = QTankVolumes[i-1];
+        H[n] = tankgrade(i,Tank[i].V);
+      }
+    }
+    
+    // restore the previous step's pipe link flows
+    for (int i=1; i<=Nlinks; i++) {
+      if (S[i] <= CLOSED) {
+        Q[i] = 0.0;
+      }
+    }
+
+  }
 
    /* Perform water quality routing over this time step */
    if (Qualflag != NONE && hydstep > 0) transport(hydstep);
@@ -255,6 +311,26 @@ int nextqual(long *tstep)
 
    /* Save final output if no more time steps */
    if (!errcode && Saveflag && *tstep == 0) errcode = savefinaloutput();
+  
+  // restore tank levels to post-runH state, if needed.
+  if (OpenHflag) {
+    for (int i=1; i<=Ntanks; i++) {
+      if (Tank[i].A != 0) { // skip reservoirs again
+        int n = Tank[i].Node;
+        Tank[i].V = tankVolumes[i-1];
+        H[n] = tankgrade(i,Tank[i].V);
+      }
+    }
+    
+    for (int i=1; i<=Nlinks; ++i) {
+      if (S[i] <= CLOSED) {
+        Q[i] = QLinkFlow[i-1];
+      }
+    }
+    
+    free(tankVolumes);
+  }
+  
    return(errcode);
 }
 
@@ -321,7 +397,9 @@ int closequal()
    free(VolIn);
    free(MassIn);
    free(R);
-   free(X);
+   free(XC);
+   free(QTankVolumes);
+   free(QLinkFlow);
    return(errcode);
 }
 
@@ -344,10 +422,14 @@ int  gethyd(long *hydtime, long *hydstep)
 {
    int errcode = 0;
 
+  // if hydraulics are not open, then we're operating in sequential mode.
+  // else hydraulics are open, so use the hydraulic results in memory rather than reading from the temp file.
+  if (!OpenHflag) {
    /* Read hydraulic results from file */
    if (!readhyd(hydtime)) return(307);
    if (!readhydstep(hydstep)) return(307);
    Htime = *hydtime;
+  }
 
    /* Save current results to output file */
    if (Htime >= Rtime)
@@ -666,7 +748,7 @@ void accumulate(long dt)
    /* Re-set memory used to accumulate mass & volume */
    memset(VolIn,0,(Nnodes+1)*sizeof(double));
    memset(MassIn,0,(Nnodes+1)*sizeof(double));
-   memset(X,0,(Nnodes+1)*sizeof(double));
+   memset(XC,0,(Nnodes+1)*sizeof(double));
 
    /* Compute average conc. of segments adjacent to each node */
    /* (For use if there is no transport through the node) */
@@ -686,7 +768,7 @@ void accumulate(long dt)
       }
    }
    for (k=1; k<=Nnodes; k++)
-     if (VolIn[k] > 0.0) X[k] = MassIn[k]/VolIn[k];
+     if (VolIn[k] > 0.0) XC[k] = MassIn[k]/VolIn[k];
 
    /* Move mass from first segment of each pipe into downstream node */
    memset(VolIn,0,(Nnodes+1)*sizeof(double));
@@ -767,7 +849,7 @@ void updatenodes(long dt)
 **   Purpose: updates concentration at all nodes to mixture of accumulated
 **            inflow from connecting pipes.
 **
-**  Note:     Does not account for source flow effects. X[i] contains
+**  Note:     Does not account for source flow effects. XC[i] contains
 **            average concen. of segments adjacent to node i, used in case
 **            there was no inflow into i.
 **---------------------------------------------------------------------------
@@ -780,7 +862,7 @@ void updatenodes(long dt)
    {
       if (D[i] < 0.0) VolIn[i] -= D[i]*dt;
       if (VolIn[i] > 0.0) C[i] = MassIn[i]/VolIn[i];
-      else                C[i] = X[i];
+      else                C[i] = XC[i];
    }
 
    /* Update tank quality */
@@ -809,8 +891,8 @@ void sourceinput(long dt)
    /* Establish a flow cutoff which indicates no outflow from a node */
    qcutoff = 10.0*TINY;
 
-   /* Zero-out the work array X */
-   memset(X,0,(Nnodes+1)*sizeof(double));
+   /* Zero-out the work array XC */
+   memset(XC,0,(Nnodes+1)*sizeof(double));
    if (Qualflag != CHEM) return;
 
    /* Consider each node */
@@ -872,7 +954,7 @@ void sourceinput(long dt)
          }
 
          /* Source concen. contribution = (mass added / outflow volume) */
-         X[n] = massadded/volout;
+         XC[n] = massadded/volout;
 
          /* Update total mass added for time period & simulation */
          source->Smass += massadded;
@@ -923,7 +1005,7 @@ void release(long dt)
       v = q*dt;
 
       /* Include source contribution in quality released from node. */
-      c = C[n] + X[n];
+      c = C[n] + XC[n];
 
       /* If link has a last seg, check if its quality     */
       /* differs from that of the flow released from node.*/
@@ -952,7 +1034,7 @@ void  updatesourcenodes(long dt)
 **   Input:   dt = current WQ time step     
 **   Output:  none
 **   Purpose: updates quality at source nodes.
-**            (X[n] = concen. added by source at node n)
+**            (XC[n] = concen. added by source at node n)
 **---------------------------------------------------
 */
 {
@@ -968,7 +1050,7 @@ void  updatesourcenodes(long dt)
       if (source == NULL) continue;
 
       /* Add source to current node concen. */
-      C[n] += X[n];
+      C[n] += XC[n];
 
       /* For tanks, node concen. = internal concen. */
       if (n > Njuncs)
@@ -997,21 +1079,24 @@ void  updatetanks(long dt)
    /* Examine each reservoir & tank */
    for (i=1; i<=Ntanks; i++)
    {
+      n = Tank[i].Node;
 
       /* Use initial quality for reservoirs */
       if (Tank[i].A == 0.0)
       {
-         n = Tank[i].Node;
          C[n] = Node[n].C0;
       }
 
       /* Update tank WQ based on mixing model */
-      else switch(Tank[i].MixModel)
-      {
-         case MIX2: tankmix2(i,dt); break;
-         case FIFO: tankmix3(i,dt); break;
-         case LIFO: tankmix4(i,dt); break;
-         default:   tankmix1(i,dt); break;
+      else {
+        switch(Tank[i].MixModel)
+        {
+           case MIX2: tankmix2(i,dt); break;
+           case FIFO: tankmix3(i,dt); break;
+           case LIFO: tankmix4(i,dt); break;
+           default:   tankmix1(i,dt); break;
+        }
+        
       }
    }
 }
@@ -1443,7 +1528,7 @@ void  ratecoeffs()
    {
       kw = Link[k].Kw;
       if (kw != 0.0) kw = piperate(k);
-      Link[k].R = kw;
+      Link[k].Rc = kw;
       R[k] = 0.0;
    }
 }                         /* End of ratecoeffs */
@@ -1526,7 +1611,7 @@ double  pipereact(int k, double c, double v, long dt)
 
    /* Otherwise find bulk & wall reaction rates */
    rbulk = bulkrate(c,Link[k].Kb,BulkOrder)*Bucf;
-   rwall = wallrate(c,Link[k].Diam,Link[k].Kw,Link[k].R);
+   rwall = wallrate(c,Link[k].Diam,Link[k].Kw,Link[k].Rc);
 
    /* Find change in concentration over timestep */
    dcbulk = rbulk*(double)dt;

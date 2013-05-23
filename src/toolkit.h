@@ -15,6 +15,8 @@ AUTHOR:     L. Rossman
 *******************************************************************
 */
 
+#ifndef TOOLKIT_H
+#define TOOLKIT_H
 
 #ifndef DLLEXPORT
   #ifdef DLL
@@ -247,3 +249,5 @@ extern "C" {
 #if defined(__cplusplus)
 }
 #endif
+
+#endif //TOOLKIT_H
