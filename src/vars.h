@@ -150,6 +150,7 @@ EXTERN double   *D,                    /* Node actual demand           */
                 *K,                    /* Link settings                */
                 *Q,                    /* Link flows                   */
                 *R,                    /* Pipe reaction rate           */
+                *X,                    /* General purpose array        */
                 *XC;                    /* General purpose array        */
 EXTERN double   *H;                    /* Node heads                   */
 EXTERN double *QTankVolumes;

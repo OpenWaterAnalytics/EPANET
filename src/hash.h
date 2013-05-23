@@ -4,6 +4,9 @@
 **
 */
 
+#ifndef HASH_H
+#define HASH_H
+
 #define HTMAXSIZE 1999
 #define NOTFOUND  0
 
@@ -22,3 +25,4 @@ int 	HTfind(HTtable *, char *);
 char    *HTfindKey(HTtable *, char *);
 void	HTfree(HTtable *);
 	
+#endif
