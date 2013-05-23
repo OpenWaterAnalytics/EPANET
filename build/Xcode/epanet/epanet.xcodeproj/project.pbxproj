@@ -42,7 +42,6 @@
 		22322FA51068369500641384 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
 		22322FA61068369500641384 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
 		22322FAA106836BC00641384 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; };
-		22322FAE106836D900641384 /* malloc.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FAD106836D900641384 /* malloc.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,7 +78,6 @@
 		22322F831068369500641384 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = types.h; path = ../../../src/types.h; sourceTree = SOURCE_ROOT; };
 		22322F841068369500641384 /* vars.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vars.h; path = ../../../src/vars.h; sourceTree = SOURCE_ROOT; };
 		22322FA9106836B000641384 /* epanet2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = epanet2.h; path = ../../../include/epanet2.h; sourceTree = SOURCE_ROOT; };
-		22322FAD106836D900641384 /* malloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = malloc.h; path = macinclude/malloc.h; sourceTree = "<group>"; };
 		D2AAC0630554660B00DB518D /* libepanet.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libepanet.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -151,7 +149,6 @@
 		22322FA8106836A000641384 /* Include */ = {
 			isa = PBXGroup;
 			children = (
-				22322FAD106836D900641384 /* malloc.h */,
 				22322FA9106836B000641384 /* epanet2.h */,
 			);
 			name = Include;
@@ -173,7 +170,6 @@
 				22322F971068369500641384 /* toolkit.h in Headers */,
 				22322F981068369500641384 /* types.h in Headers */,
 				22322F991068369500641384 /* vars.h in Headers */,
-				22322FAE106836D900641384 /* malloc.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
