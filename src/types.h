@@ -167,6 +167,13 @@ typedef struct        /* CURVE OBJECT */
    double *Y;          /* Y-values         */
 }  Scurve;
 
+typedef struct        /* Coord OBJECT */
+{
+	char   ID[MAXID+1]; /* Coord ID         */
+	double *X;          /* X-values         */
+	double *Y;          /* Y-values         */
+}  Scoord;
+
 struct Sdemand            /* DEMAND CATEGORY OBJECT */
 {
    double Base;            /* Baseline demand  */

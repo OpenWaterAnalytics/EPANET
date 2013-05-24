@@ -318,6 +318,7 @@ int DLLEXPORT ENopen(char *f1, char *f2, char *f3)
 /* Free temporary linked lists used for Patterns & Curves */
    freeTmplist(Patlist);
    freeTmplist(Curvelist);
+   freeTmplist(Coordlist);
 
 /* If using previously saved hydraulics then open its file */
    if (Hydflag == USE) ERRCODE(openhydfile());          
@@ -1345,6 +1346,21 @@ int  DLLEXPORT ENgetnodetype(int index, int *code)
 }
 
 
+int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+/*----------------------------------------------------------------
+ **  Input:   index = node index
+ **  Output:  *x = value of node's coordinate
+ **           *x = value of node's coordinate
+ **  Returns: error code
+ **  Purpose: retrieves coordinate x, y for a node
+ **----------------------------------------------------------------
+ */
+{
+  *x = Coord[index].X[0];
+  *y = Coord[index].Y[0];
+  return 0;
+}
+
 int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
 /*----------------------------------------------------------------
 **  Input:   index = node index
@@ -2330,10 +2346,16 @@ int  DLLEXPORT  ENsettimeparam(int code, long value)
 {
    if (!Openflag) return(102);
   if (OpenHflag || OpenQflag) { 
-    // --> there's nothing wrong with changing certain time parameters during a simulation run
-    if (code != EN_DURATION) {
+    // --> there's nothing wrong with changing certain time parameters during a simulation run, or before the run has started.
+    // todo -- how to tell?
+    /*
+    if (code == EN_DURATION || code == EN_HTIME || code == EN_REPORTSTEP || code == EN_DURATION || Htime == 0) {
+      // it's ok
+    }
+    else {
       return(109);
     }
+     */
   }
    if (value < 0) return(202);
    switch(code)
@@ -2730,10 +2752,12 @@ void initpointers()
    Pattern  = NULL;
    Curve    = NULL;
    Control  = NULL;
+  Coord    = NULL;
 
    X        = NULL;
    Patlist  = NULL;
    Curvelist = NULL;
+  Coordlist = NULL;
    Adjlist  = NULL;
    Aii      = NULL;
    Aij      = NULL;
@@ -2813,12 +2837,14 @@ int  allocdata()
       Control = (Scontrol *) calloc(MaxControls+1,sizeof(Scontrol));
       Pattern = (Spattern *) calloc(MaxPats+1,    sizeof(Spattern));
       Curve   = (Scurve *)   calloc(MaxCurves+1,  sizeof(Scurve));
+      Coord   = (Scoord *)   calloc(MaxNodes+1,  sizeof(Scoord));
       ERRCODE(MEMCHECK(Tank));
       ERRCODE(MEMCHECK(Pump));
       ERRCODE(MEMCHECK(Valve));
       ERRCODE(MEMCHECK(Control));
       ERRCODE(MEMCHECK(Pattern));
       ERRCODE(MEMCHECK(Curve));
+      ERRCODE(MEMCHECK(Coord));
    }
 
 /* Initialize pointers used in patterns, curves, and demand category lists */
@@ -2836,7 +2862,19 @@ int  allocdata()
          Curve[n].X = NULL;
          Curve[n].Y = NULL;
       }
-      for (n=0; n<=MaxNodes; n++) Node[n].D = NULL;
+     
+     for (n=0; n<=MaxNodes; n++)
+     {
+       // node demand
+       Node[n].D = NULL;
+       /* Allocate memory for coord data */
+       Coord[n].X = (double *) calloc(1, sizeof(double));
+       Coord[n].Y = (double *) calloc(1, sizeof(double));
+       if (Coord[n].X == NULL || Coord[n].Y == NULL) return(101);
+       Coord[n].X[0] = 0;
+       Coord[n].Y[0] = 0;
+     }
+     
    }
 
 /* Allocate memory for rule base (see RULES.C) */

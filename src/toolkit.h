@@ -224,6 +224,7 @@ extern "C" {
  int  DLLEXPORT ENgetnodeid(int, char *);
  int  DLLEXPORT ENgetnodetype(int, int *);
  int  DLLEXPORT ENgetnodevalue(int, int, EN_API_FLOAT_TYPE *);
+ int  DLLEXPORT ENgetcoord(int , EN_API_FLOAT_TYPE *, EN_API_FLOAT_TYPE *);
 
  int  DLLEXPORT ENgetnumdemands(int, int *);
  int  DLLEXPORT ENgetbasedemand(int, int, EN_API_FLOAT_TYPE *);

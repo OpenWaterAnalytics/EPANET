@@ -48,6 +48,7 @@ char   *Tok[MAXTOKS];     /* Array of token strings            */
                           /* Used in INPUT3.C: */
 STmplist  *PrevPat;       /* Pointer to pattern list element   */
 STmplist  *PrevCurve;     /* Pointer to curve list element     */
+STmplist  *PrevCoord;     /* Pointer to coordinate list element     */
 
                           /* Defined in enumstxt.h in EPANET.C */
 extern char *SectTxt[];   /* Input section keywords            */
@@ -78,7 +79,8 @@ int  netsize()
    MaxRules    = 0;
    MaxCurves   = 0;
    sect        = -1;
-
+   MaxCoords   = 0;
+  
 /* Add a default pattern 0 */
    MaxPats = -1;
    addpattern("");
@@ -106,20 +108,22 @@ int  netsize()
 
    /* Add to count of current component */
       switch(sect)
-      {
-            case _JUNCTIONS:  MaxJuncs++;    break;
-            case _RESERVOIRS:
-            case _TANKS:      MaxTanks++;    break;
-            case _PIPES:      MaxPipes++;    break;
-            case _PUMPS:      MaxPumps++;    break;
-            case _VALVES:     MaxValves++;   break;
-            case _CONTROLS:   MaxControls++; break;
-            case _RULES:      addrule(tok);  break; /* See RULES.C */ 
-            case _PATTERNS:   errcode = addpattern(tok);
-                              break;
-            case _CURVES:     errcode = addcurve(tok);
-                              break;
-      }
+     {
+       case _JUNCTIONS:  MaxJuncs++;    break;
+       case _RESERVOIRS:
+       case _TANKS:      MaxTanks++;    break;
+       case _PIPES:      MaxPipes++;    break;
+       case _PUMPS:      MaxPumps++;    break;
+       case _VALVES:     MaxValves++;   break;
+       case _CONTROLS:   MaxControls++; break;
+       case _RULES:      addrule(tok);  break; /* See RULES.C */
+       case _PATTERNS:   errcode = addpattern(tok);
+         break;
+       case _CURVES:     errcode = addcurve(tok);
+         break;
+       case _COORDS:     errcode = addcoord(tok); //06.02.2010-woohn
+         break;
+     }
       if (errcode) break;
    }
 
@@ -172,6 +176,8 @@ int  readdata()
       Npats     = MaxPats;
       PrevPat   = NULL;
       PrevCurve = NULL;
+      PrevCoord = NULL;
+
       sect      = -1;
       errsum    = 0;
 
@@ -239,6 +245,7 @@ int  readdata()
 /* Get pattern & curve data from temp. lists */
    if (!errcode) errcode = getpatterns();
    if (!errcode) errcode = getcurves();
+   if (!errcode) errcode = getcoords();
    if (!errcode) errcode = getpumpparams();
 
 /* Free input buffer */
@@ -293,7 +300,7 @@ int  newline(int sect, char *line)
        case _OPTIONS:     return(optiondata());
 
    /* Data in these sections are not used for any computations */
-       case _COORDS:      return(0);
+       case _COORDS:      return(coordata());
        case _LABELS:      return(0);
        case _TAGS:        return(0);
        case _VERTICES:    return(0);
@@ -513,6 +520,42 @@ int  addcurve(char *id)
    return(0);
 }
 
+int  addcoord(char *id)
+/*
+ **-------------------------------------------------------------
+ **  Input:   id = curve ID label
+ **  Output:  returns error code
+ **  Purpose: adds a new curve to the database
+ **--------------------------------------------------------------
+ */
+{
+	STmplist *c;
+  
+	/* Check if ID is same as last one processed */
+	if (Coordlist != NULL && strcmp(id,Coordlist->ID) == 0) return(0);
+  
+	/* Check that coordinate was not already created */
+	if (findID(id,Coordlist) == NULL)
+	{
+    
+		/* Update coordinate count & create new list element */
+		(MaxCoords)++;
+		c = (STmplist *) malloc(sizeof(STmplist));
+		if (c == NULL) {
+      return(101);
+    }
+		else {
+      /* Initialize list element properties */
+			c->i = MaxCoords;
+			strncpy(c->ID,id,MAXID);
+			c->x = NULL;
+			c->y = NULL;
+			c->next = Coordlist;
+			Coordlist = c;
+		}
+	}
+	return(0);
+}
 
 STmplist *findID(char *id, STmplist *list)
 /*
@@ -703,6 +746,64 @@ int     getcurves(void)
       c = c->next;
    }
    return(0);
+}
+
+int getcoords(void)
+/*
+ **-----------------------------------------------------------
+ **  Input:   none
+ **  Output:  returns error code
+ **  Purpose: retrieves curve data from temporary linked list
+ **-----------------------------------------------------------
+ */
+{
+	int i,j,n;
+	double x;
+	SFloatlist *xFloatList, *yFloatList;
+	STmplist *coordinateList;
+  
+	/* Start at head of coordinate list */
+	coordinateList = Coordlist;
+  
+	/* Traverse list of coordinates */
+	while (coordinateList != NULL)
+	{
+		i = coordinateList->i;
+		if (i >= 1 && i <= MaxNodes)
+		{
+			/* Save coordinate ID */
+			strcpy(Coord[i].ID, coordinateList->ID);
+			
+			n = 1; //Coord[i].Npts
+      
+			/* Traverse list of x,y data */
+			x = BIG;
+			xFloatList = coordinateList->x;
+			yFloatList = coordinateList->y;
+			j = n - 1;
+			while (xFloatList != NULL && yFloatList != NULL && j >= 0)
+			{
+        
+				/* Check that x data is in ascending order */
+				if (xFloatList->value >= x)
+				{
+					sprintf(Msg,ERR230,coordinateList->ID);
+					writeline(Msg);
+					return(200);
+				}
+				x = xFloatList->value;
+        
+				/* Save x,y data in Curve structure */
+				Coord[i].X[j] = xFloatList->value;
+				xFloatList = xFloatList->next;
+				Coord[i].Y[j] = yFloatList->value;
+				yFloatList = yFloatList->next;
+				j--;
+			}
+		}
+		coordinateList = coordinateList->next;
+	}
+	return(0);
 }
 
 
