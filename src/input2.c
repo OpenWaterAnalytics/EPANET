@@ -546,7 +546,8 @@ int  addcoord(char *id)
     }
 		else {
       /* Initialize list element properties */
-			c->i = MaxCoords;
+			// c->i = MaxCoords; // bug! if coordinates are not in the same order as junctions, then this is a BAD assumption
+      // do this later: c->i = findnode(id);
 			strncpy(c->ID,id,MAXID);
 			c->x = NULL;
 			c->y = NULL;
@@ -768,7 +769,8 @@ int getcoords(void)
 	/* Traverse list of coordinates */
 	while (coordinateList != NULL)
 	{
-		i = coordinateList->i;
+		// BAD! ---> i = coordinateList->i;
+    i = findnode(coordinateList->ID);
 		if (i >= 1 && i <= MaxNodes)
 		{
 			/* Save coordinate ID */

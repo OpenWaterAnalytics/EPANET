@@ -42,6 +42,19 @@
 		22322FA51068369500641384 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
 		22322FA61068369500641384 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
 		22322FAA106836BC00641384 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; };
+		2255753F17551234009946B1 /* epanet.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F711068369500641384 /* epanet.c */; };
+		2255754017551234009946B1 /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F731068369500641384 /* hash.c */; };
+		2255754117551234009946B1 /* hydraul.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F751068369500641384 /* hydraul.c */; };
+		2255754217551234009946B1 /* inpfile.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F761068369500641384 /* inpfile.c */; };
+		2255754317551234009946B1 /* input1.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F771068369500641384 /* input1.c */; };
+		2255754417551234009946B1 /* input2.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F781068369500641384 /* input2.c */; };
+		2255754517551234009946B1 /* input3.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F791068369500641384 /* input3.c */; };
+		2255754617551234009946B1 /* mempool.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7A1068369500641384 /* mempool.c */; };
+		2255754717551234009946B1 /* output.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7C1068369500641384 /* output.c */; };
+		2255754817551234009946B1 /* quality.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7D1068369500641384 /* quality.c */; };
+		2255754917551234009946B1 /* report.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7E1068369500641384 /* report.c */; };
+		2255754A17551234009946B1 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
+		2255754B17551234009946B1 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,11 +91,19 @@
 		22322F831068369500641384 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = types.h; path = ../../../src/types.h; sourceTree = SOURCE_ROOT; };
 		22322F841068369500641384 /* vars.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vars.h; path = ../../../src/vars.h; sourceTree = SOURCE_ROOT; };
 		22322FA9106836B000641384 /* epanet2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = epanet2.h; path = ../../../include/epanet2.h; sourceTree = SOURCE_ROOT; };
+		2255753B17551217009946B1 /* libepanet-static.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libepanet-static.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2AAC0630554660B00DB518D /* libepanet.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libepanet.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		22322F64106833BB00641384 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2255753817551217009946B1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -142,6 +163,7 @@
 			children = (
 				D2AAC0630554660B00DB518D /* libepanet.dylib */,
 				22322F66106833BB00641384 /* runepanet */,
+				2255753B17551217009946B1 /* libepanet-static.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -157,6 +179,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		2255753917551217009946B1 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D2AAC0600554660B00DB518D /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -192,6 +221,23 @@
 			productName = runepanet;
 			productReference = 22322F66106833BB00641384 /* runepanet */;
 			productType = "com.apple.product-type.tool";
+		};
+		2255753A17551217009946B1 /* epanet-static */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2255753E17551217009946B1 /* Build configuration list for PBXNativeTarget "epanet-static" */;
+			buildPhases = (
+				2255753717551217009946B1 /* Sources */,
+				2255753817551217009946B1 /* Frameworks */,
+				2255753917551217009946B1 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "epanet-static";
+			productName = "epanet-static";
+			productReference = 2255753B17551217009946B1 /* libepanet-static.a */;
+			productType = "com.apple.product-type.library.static";
 		};
 		D2AAC0620554660B00DB518D /* epanet */ = {
 			isa = PBXNativeTarget;
@@ -234,6 +280,7 @@
 			targets = (
 				D2AAC0620554660B00DB518D /* epanet */,
 				22322F65106833BB00641384 /* runepanet */,
+				2255753A17551217009946B1 /* epanet-static */,
 			);
 		};
 /* End PBXProject section */
@@ -256,6 +303,26 @@
 				22322FA41068369500641384 /* report.c in Sources */,
 				22322FA51068369500641384 /* rules.c in Sources */,
 				22322FA61068369500641384 /* smatrix.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2255753717551217009946B1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2255753F17551234009946B1 /* epanet.c in Sources */,
+				2255754017551234009946B1 /* hash.c in Sources */,
+				2255754117551234009946B1 /* hydraul.c in Sources */,
+				2255754217551234009946B1 /* inpfile.c in Sources */,
+				2255754317551234009946B1 /* input1.c in Sources */,
+				2255754417551234009946B1 /* input2.c in Sources */,
+				2255754517551234009946B1 /* input3.c in Sources */,
+				2255754617551234009946B1 /* mempool.c in Sources */,
+				2255754717551234009946B1 /* output.c in Sources */,
+				2255754817551234009946B1 /* quality.c in Sources */,
+				2255754917551234009946B1 /* report.c in Sources */,
+				2255754A17551234009946B1 /* rules.c in Sources */,
+				2255754B17551234009946B1 /* smatrix.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -394,6 +461,49 @@
 			};
 			name = Release;
 		};
+		2255753C17551217009946B1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				COPY_PHASE_STRIP = NO;
+				EXECUTABLE_PREFIX = lib;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		2255753D17551217009946B1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -423,6 +533,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		2255753E17551217009946B1 /* Build configuration list for PBXNativeTarget "epanet-static" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2255753C17551217009946B1 /* Debug */,
+				2255753D17551217009946B1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
