@@ -121,8 +121,8 @@ int  netsize()
          break;
        case _CURVES:     errcode = addcurve(tok);
          break;
-       case _COORDS:     errcode = addcoord(tok); //06.02.2010-woohn
-         break;
+//       case _COORDS:     errcode = addcoord(tok); //06.02.2010-woohn
+//         break;
      }
       if (errcode) break;
    }
@@ -245,7 +245,7 @@ int  readdata()
 /* Get pattern & curve data from temp. lists */
    if (!errcode) errcode = getpatterns();
    if (!errcode) errcode = getcurves();
-   if (!errcode) errcode = getcoords();
+   //if (!errcode) errcode = getcoords();
    if (!errcode) errcode = getpumpparams();
 
 /* Free input buffer */
@@ -300,7 +300,7 @@ int  newline(int sect, char *line)
        case _OPTIONS:     return(optiondata());
 
    /* Data in these sections are not used for any computations */
-       case _COORDS:      return(coordata());
+       case _COORDS:      return (0); //return(coordata());
        case _LABELS:      return(0);
        case _TAGS:        return(0);
        case _VERTICES:    return(0);
