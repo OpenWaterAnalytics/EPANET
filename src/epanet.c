@@ -3255,20 +3255,25 @@ int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
 }
 int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand)
 {
-	Pdemand d;
-	int n=0;
-	/* Check for valid arguments */
-	if (!Openflag) return(102);
-	if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
+  Pdemand d;
+  int n=1;
+  /* Check for valid arguments */
+  if (!Openflag) return(102);
+  if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
+  if (nodeIndex <= Njuncs) {
 	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
 	if(n!=demandIdx) return(253);
 	*baseDemand=(EN_API_FLOAT_TYPE)(d->Base*Ucf[FLOW]);
-	return 0;
+  }
+  else {
+    *baseDemand=(EN_API_FLOAT_TYPE)(0.0);
+  }
+  return 0;
 }
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 {
 	Pdemand d;
-	int n=0;
+	int n=1;
 	/* Check for valid arguments */
 	if (!Openflag) return(102);
 	if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
@@ -3277,6 +3282,28 @@ int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 	*pattIdx=d->Pat;
 	return 0;
 }
+
+int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
+/*----------------------------------------------------------------
+ **  Input:   index  = index of time pattern
+ **           period = pattern time period
+ **  Output:  *value = pattern multiplier
+ **  Returns: error code
+ **  Purpose: retrieves multiplier for a specific time period
+ **           and pattern
+ **----------------------------------------------------------------
+ */
+{  *value = 0.0;
+  if (!Openflag) return(102);
+  if (index < 1 || index > Npats) return(205);
+  //if (period < 1 || period > Pattern[index].Length) return(251);
+  for (int i=0; i<Pattern[index].Length; i++) {
+    *value+=Pattern[index].F[i];
+  }
+  *value/=(EN_API_FLOAT_TYPE)Pattern[index].Length;
+  return(0);
+}
+
 
 /*************************** END OF EPANET.C ***************************/
 

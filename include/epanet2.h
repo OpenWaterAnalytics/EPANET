@@ -212,6 +212,7 @@ extern "C" {
  int   DLLEXPORT ENgetpatternid(int, char *);
  int   DLLEXPORT ENgetpatternlen(int, int *);
  int   DLLEXPORT ENgetpatternvalue(int, int, float *);
+ int   DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value);
  int   DLLEXPORT ENgetqualtype(int *, int *);
  int   DLLEXPORT ENgeterror(int, char *, int);
 
