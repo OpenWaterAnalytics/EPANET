@@ -338,6 +338,8 @@ int  saveoutput()
    /* Write out node results, then link results */
    for (j=DEMAND; j<=QUALITY; j++)  ERRCODE(nodeoutput(j,x,Ucf[j]));
    for (j=FLOW; j<=FRICTION; j++) ERRCODE(linkoutput(j,x,Ucf[j]));
+   
+   free(x);
    return(errcode);
 }                        /* End of saveoutput */
 
