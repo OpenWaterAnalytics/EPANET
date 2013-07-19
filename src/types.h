@@ -167,6 +167,13 @@ typedef struct        /* CURVE OBJECT */
    double *Y;          /* Y-values         */
 }  Scurve;
 
+typedef struct        /* Coord OBJECT */
+{
+	char   ID[MAXID+1]; /* Coord ID         */
+	double *X;          /* X-values         */
+	double *Y;          /* Y-values         */
+}  Scoord;
+
 struct Sdemand            /* DEMAND CATEGORY OBJECT */
 {
    double Base;            /* Baseline demand  */
@@ -208,7 +215,7 @@ typedef struct            /* LINK OBJECT */
    double  Kb;             /* Bulk react. coeff */
    double  Kw;             /* Wall react. coeff */
    double  R;              /* Flow resistance   */
-   double  Rc;             /* Reaction cal      */ //woohn 2/11/13
+   double  Rc;             /* Reaction cal      */
    char    Type;           /* Link type         */
    char    Stat;           /* Initial status    */
    char    Rpt;            /* Reporting flag    */

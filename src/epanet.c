@@ -131,8 +131,9 @@ execute function x and set the error code equal to its return value.
 #include "types.h"
 #include "enumstxt.h"
 #include "funcs.h"
+#define  EXTERN
 #include "vars.h"
-#include "toolkit.h"
+#include "epanet2.h"
 
 void (* viewprog) (char *);     /* Pointer to progress viewing function */   
 
@@ -306,6 +307,7 @@ int DLLEXPORT ENopen(char *f1, char *f2, char *f3)
 /* Free temporary linked lists used for Patterns & Curves */
    freeTmplist(Patlist);
    freeTmplist(Curvelist);
+   freeTmplist(Coordlist);
 
 /* If using previously saved hydraulics then open its file */
    if (Hydflag == USE) ERRCODE(openhydfile());          
@@ -963,7 +965,7 @@ int DLLEXPORT ENgetversion(int *v)
 
 
 int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex,
-              float *setting, int *nindex, float *level)
+              EN_API_FLOAT_TYPE *setting, int *nindex, EN_API_FLOAT_TYPE *level)
 /*----------------------------------------------------------------
 **  Input:   cindex   = control index (position of control statement
 **                      in the input file, starting from 1) 
@@ -1009,9 +1011,9 @@ int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex,
    else if (*nindex > 0)
       lvl = (Control[cindex].Grade - Node[*nindex].El)*Ucf[PRESSURE];
    else
-      lvl = (float)Control[cindex].Time;
-   *setting = (float)s;
-   *level = (float)lvl;
+      lvl = (EN_API_FLOAT_TYPE)Control[cindex].Time;
+   *setting = (EN_API_FLOAT_TYPE)s;
+   *level = (EN_API_FLOAT_TYPE)lvl;
    return(0);
 }         
 
@@ -1042,7 +1044,7 @@ int DLLEXPORT ENgetcount(int code, int *count)
 }
 
 
-int  DLLEXPORT ENgetoption(int code, float *value)
+int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value)
 /*----------------------------------------------------------------
 **  Input:   code = option code (see TOOLKIT.H)
 **  Output:  *value = option value
@@ -1052,7 +1054,7 @@ int  DLLEXPORT ENgetoption(int code, float *value)
 */
 {
    double v = 0.0;
-   *value = 0.0f;
+   *value = 0.0;
    if (!Openflag) return(102);
    switch (code)
    {
@@ -1068,7 +1070,7 @@ int  DLLEXPORT ENgetoption(int code, float *value)
                           break;
       default:            return(251);
    }
-   *value = (float)v;
+   *value = (EN_API_FLOAT_TYPE)v;
    return(0);
 }
 
@@ -1184,7 +1186,7 @@ int DLLEXPORT ENgetpatternlen(int index, int *len)
 }
 
 
-int DLLEXPORT ENgetpatternvalue(int index, int period, float *value)
+int DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value)
 /*----------------------------------------------------------------
 **  Input:   index  = index of time pattern
 **           period = pattern time period
@@ -1194,11 +1196,11 @@ int DLLEXPORT ENgetpatternvalue(int index, int period, float *value)
 **           and pattern
 **----------------------------------------------------------------
 */
-{  *value = 0.0f;
+{  *value = 0.0;
    if (!Openflag) return(102);
    if (index < 1 || index > Npats) return(205);
    if (period < 1 || period > Pattern[index].Length) return(251);
-   *value = (float)Pattern[index].F[period-1];
+   *value = (EN_API_FLOAT_TYPE)Pattern[index].F[period-1];
    return(0);
 }
 
@@ -1333,7 +1335,22 @@ int  DLLEXPORT ENgetnodetype(int index, int *code)
 }
 
 
-int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
+int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+/*----------------------------------------------------------------
+ **  Input:   index = node index
+ **  Output:  *x = value of node's coordinate
+ **           *x = value of node's coordinate
+ **  Returns: error code
+ **  Purpose: retrieves coordinate x, y for a node
+ **----------------------------------------------------------------
+ */
+{
+  *x = Coord[index].X[0];
+  *y = Coord[index].Y[0];
+  return 0;
+}
+
+int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
 /*----------------------------------------------------------------
 **  Input:   index = node index
 **           code  = node parameter code (see TOOLKIT.H)
@@ -1348,7 +1365,7 @@ int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
    Psource source;
 
 /* Check for valid arguments */
-   *value = 0.0f;
+   *value = 0.0;
    if (!Openflag) return(102);
    if (index <= 0 || index > Nnodes) return(203);
 
@@ -1449,7 +1466,7 @@ int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
          v = 0.0;
          if ( index > Njuncs )
          {
-            v = 4.0/PI*sqrt(Tank[index-Njuncs].A)*Ucf[ELEV];
+            v = sqrt(4.0/PI*Tank[index-Njuncs].A)*Ucf[ELEV];
          }
          break;
 
@@ -1506,7 +1523,7 @@ int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
 
       default: return(251);
    }
-   *value = (float)v;
+   *value = (EN_API_FLOAT_TYPE)v;
    return(0);
 }
 
@@ -1591,7 +1608,7 @@ int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2)
 }
 
 
-int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
+int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
 /*------------------------------------------------------------------
 **  Input:   index = link index
 **           code  = link parameter code (see TOOLKIT.H)                   
@@ -1604,7 +1621,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
    double a,h,q, v = 0.0;
 
 /* Check for valid arguments */
-   *value = 0.0f;
+   *value = 0.0;
    if (!Openflag) return(102);
    if (index <= 0 || index > Nlinks) return(204);
 
@@ -1728,14 +1745,12 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
          
       default: return(251);
    }
-   *value = (float)v;
+   *value = (EN_API_FLOAT_TYPE)v;
    return(0);
 }
 
 
-/*
-int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float **yValues) // !sph
-*/
+int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
 /*----------------------------------------------------------------
  **  Input:   curveIndex = curve index
  **  Output:  *nValues = number of points on curve
@@ -1744,21 +1759,21 @@ int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float *
  **  Returns: error code
  **  Purpose: retrieves end nodes of a specific link
  **----------------------------------------------------------------
- */ /*
+ */
 {
   int err = 0;
   
   Scurve curve = Curve[curveIndex];
   int nPoints = curve.Npts;
   
-  float *pointX = calloc(nPoints, sizeof(float));
-  float *pointY = calloc(nPoints, sizeof(float));
+  EN_API_FLOAT_TYPE *pointX = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
+  EN_API_FLOAT_TYPE *pointY = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
   
   for (int iPoint = 0; iPoint < nPoints; iPoint++) {
     double x = curve.X[iPoint] * Ucf[LENGTH];
     double y = curve.Y[iPoint] * Ucf[VOLUME];
-    pointX[iPoint] = (float)x;
-    pointY[iPoint] = (float)y;
+    pointX[iPoint] = (EN_API_FLOAT_TYPE)x;
+    pointY[iPoint] = (EN_API_FLOAT_TYPE)y;
   }
   
   *nValues = nPoints;
@@ -1767,7 +1782,7 @@ int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float *
   
   return err;
 }
-*/
+
 
 /*
 ----------------------------------------------------------------
@@ -1777,7 +1792,7 @@ int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float *
 
 
 int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
-              float setting, int nindex, float level)
+              EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level)
 /*----------------------------------------------------------------
 **  Input:   cindex  = control index (position of control statement
 **                     in the input file, starting from 1)
@@ -1865,7 +1880,7 @@ int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
 }         
 
     
-int DLLEXPORT ENsetnodevalue(int index, int code, float v)
+int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
 /*----------------------------------------------------------------
 **  Input:   index = node index
 **           code  = node parameter code (see TOOLKIT.H)
@@ -2074,7 +2089,7 @@ int DLLEXPORT ENsetnodevalue(int index, int code, float v)
 }
 
 
-int DLLEXPORT ENsetlinkvalue(int index, int code, float v)
+int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
 /*----------------------------------------------------------------
 **  Input:   index = link index
 **           code  = link parameter code (see TOOLKIT.H)
@@ -2261,7 +2276,7 @@ int  DLLEXPORT  ENaddpattern(char *id)
 }
 
    
-int  DLLEXPORT  ENsetpattern(int index, float *f, int n)
+int  DLLEXPORT  ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n)
 /*----------------------------------------------------------------
 **   Input:   index = time pattern index
 **            *f    = array of pattern multipliers
@@ -2290,7 +2305,7 @@ int  DLLEXPORT  ENsetpattern(int index, float *f, int n)
 }
 
    
-int  DLLEXPORT  ENsetpatternvalue(int index, int period, float value)
+int  DLLEXPORT  ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value)
 /*----------------------------------------------------------------
 **  Input:   index  = time pattern index
 **           period = time pattern period
@@ -2321,10 +2336,16 @@ int  DLLEXPORT  ENsettimeparam(int code, long value)
 {
    if (!Openflag) return(102);
   if (OpenHflag || OpenQflag) { 
-    // --> there's nothing wrong with changing certain time parameters during a simulation run
-    if (code != EN_DURATION) {
+    // --> there's nothing wrong with changing certain time parameters during a simulation run, or before the run has started.
+    // todo -- how to tell?
+    /*
+    if (code == EN_DURATION || code == EN_HTIME || code == EN_REPORTSTEP || code == EN_DURATION || Htime == 0) {
+      // it's ok
+    }
+    else {
       return(109);
     }
+     */
   }
    if (value < 0) return(202);
    switch(code)
@@ -2370,7 +2391,7 @@ int  DLLEXPORT  ENsettimeparam(int code, long value)
 }
 
 
-int  DLLEXPORT ENsetoption(int code, float v)
+int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v)
 /*----------------------------------------------------------------
 **  Input:   code  = option code (see TOOLKIT.H)
 **           v = option value
@@ -2721,10 +2742,12 @@ void initpointers()
    Pattern  = NULL;
    Curve    = NULL;
    Control  = NULL;
+  Coord    = NULL;
 
    X        = NULL;
    Patlist  = NULL;
    Curvelist = NULL;
+  Coordlist = NULL;
    Adjlist  = NULL;
    Aii      = NULL;
    Aij      = NULL;
@@ -2804,12 +2827,14 @@ int  allocdata()
       Control = (Scontrol *) calloc(MaxControls+1,sizeof(Scontrol));
       Pattern = (Spattern *) calloc(MaxPats+1,    sizeof(Spattern));
       Curve   = (Scurve *)   calloc(MaxCurves+1,  sizeof(Scurve));
+      Coord   = (Scoord *)   calloc(MaxNodes+1,  sizeof(Scoord));
       ERRCODE(MEMCHECK(Tank));
       ERRCODE(MEMCHECK(Pump));
       ERRCODE(MEMCHECK(Valve));
       ERRCODE(MEMCHECK(Control));
       ERRCODE(MEMCHECK(Pattern));
       ERRCODE(MEMCHECK(Curve));
+      ERRCODE(MEMCHECK(Coord));
    }
 
 /* Initialize pointers used in patterns, curves, and demand category lists */
@@ -2827,7 +2852,19 @@ int  allocdata()
          Curve[n].X = NULL;
          Curve[n].Y = NULL;
       }
-      for (n=0; n<=MaxNodes; n++) Node[n].D = NULL;
+     
+     for (n=0; n<=MaxNodes; n++)
+     {
+       // node demand
+       Node[n].D = NULL;
+       /* Allocate memory for coord data */
+       Coord[n].X = (double *) calloc(1, sizeof(double));
+       Coord[n].Y = (double *) calloc(1, sizeof(double));
+       if (Coord[n].X == NULL || Coord[n].Y == NULL) return(101);
+       Coord[n].X[0] = 0;
+       Coord[n].Y[0] = 0;
+     }
+     
    }
 
 /* Allocate memory for rule base (see RULES.C) */
@@ -3206,22 +3243,27 @@ int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
 	*numDemands=n;
 	return 0;
 }
-int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, float *baseDemand)
+int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand)
 {
-	Pdemand d;
-	int n=0;
-	/* Check for valid arguments */
-	if (!Openflag) return(102);
-	if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
+  Pdemand d;
+  int n=1;
+  /* Check for valid arguments */
+  if (!Openflag) return(102);
+  if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
+  if (nodeIndex <= Njuncs) {
 	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
 	if(n!=demandIdx) return(253);
-	*baseDemand=(float)(d->Base*Ucf[FLOW]);
-	return 0;
+	*baseDemand=(EN_API_FLOAT_TYPE)(d->Base*Ucf[FLOW]);
+  }
+  else {
+    *baseDemand=(EN_API_FLOAT_TYPE)(0.0);
+  }
+  return 0;
 }
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 {
 	Pdemand d;
-	int n=0;
+	int n=1;
 	/* Check for valid arguments */
 	if (!Openflag) return(102);
 	if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
@@ -3230,6 +3272,28 @@ int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 	*pattIdx=d->Pat;
 	return 0;
 }
+
+int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
+/*----------------------------------------------------------------
+ **  Input:   index  = index of time pattern
+ **           period = pattern time period
+ **  Output:  *value = pattern multiplier
+ **  Returns: error code
+ **  Purpose: retrieves multiplier for a specific time period
+ **           and pattern
+ **----------------------------------------------------------------
+ */
+{  *value = 0.0;
+  if (!Openflag) return(102);
+  if (index < 1 || index > Npats) return(205);
+  //if (period < 1 || period > Pattern[index].Length) return(251);
+  for (int i=0; i<Pattern[index].Length; i++) {
+    *value+=Pattern[index].F[i];
+  }
+  *value/=(EN_API_FLOAT_TYPE)Pattern[index].Length;
+  return(0);
+}
+
 
 /*************************** END OF EPANET.C ***************************/
 

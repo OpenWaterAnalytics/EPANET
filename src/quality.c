@@ -59,6 +59,7 @@ AUTHOR:     L. Rossman
 #include "text.h"
 #include "types.h"
 #include "funcs.h"
+#define  EXTERN  extern
 #include "vars.h"
 #include "mempool.h"
 
@@ -150,8 +151,9 @@ void  initqual()
    for (i=1; i<=Nnodes; i++) C[i] = Node[i].C0;
    for (i=1; i<=Ntanks; i++) Tank[i].C = Node[Tank[i].Node].C0;
    for (i=1; i<=Ntanks; i++) Tank[i].V = Tank[i].V0;
-   for (i=1; i<=Nnodes; i++)
-      if (Node[i].S != NULL) Node[i].S->Smass = 0.0;
+   for (i=1; i<=Nnodes; i++) {
+     if (Node[i].S != NULL) Node[i].S->Smass = 0.0;
+   }
   
    QTankVolumes = calloc(Ntanks, sizeof(double)); // keep track of previous step's tank volumes.
    QLinkFlow    = calloc(Nlinks, sizeof(double)); // keep track of previous step's link flows.
@@ -192,7 +194,7 @@ void  initqual()
 
    /* Re-position hydraulics file */
   if (!OpenHflag) {
-    fseek(HydFile,HydOffset,SEEK_SET);
+   fseek(HydFile,HydOffset,SEEK_SET);
   }
    
 
@@ -245,6 +247,21 @@ int runqual(long *t)
 
       }
    }
+   else {
+        // stepwise calculation
+        for (int i=1; i<= Ntanks; ++i) {
+          QTankVolumes[i-1] = Tank[i].V;
+        }
+        
+        for (int i=1; i<= Nlinks; ++i)
+        {
+          if (S[i] <= CLOSED) {
+            QLinkFlow[i-1] = Q[i];
+          }
+        }
+
+  }
+   
    return(errcode);
 }
 
@@ -1080,13 +1097,11 @@ void  updatetanks(long dt)
    for (i=1; i<=Ntanks; i++)
    {
       n = Tank[i].Node;
-     
       /* Use initial quality for reservoirs */
       if (Tank[i].A == 0.0)
       {
          C[n] = Node[n].C0;
       }
-
       /* Update tank WQ based on mixing model */
       else {
         switch(Tank[i].MixModel)

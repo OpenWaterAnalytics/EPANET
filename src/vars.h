@@ -76,6 +76,7 @@ AUTHOR:     L. Rossman
                 MaxRules,              /* Rule count                   */
                 MaxPats,               /* Pattern count                */
                 MaxCurves,             /* Curve count                  */
+                MaxCoords,             /* Coords count                 */
                 Nnodes,                /* Number of network nodes      */
                 Ntanks,                /* Number of tanks              */
                 Njuncs,                /* Number of junction nodes     */
@@ -87,6 +88,7 @@ AUTHOR:     L. Rossman
                 Nrules,                /* Number of control rules      */
                 Npats,                 /* Number of time patterns      */
                 Ncurves,               /* Number of data curves        */
+                Ncoords,               /* Number of Coords             */
                 Nperiods,              /* Number of reporting periods  */
                 Ncoeffs,               /* Number of non-0 matrix coeffs*/
                 DefPat,                /* Default demand pattern       */
@@ -151,23 +153,25 @@ AUTHOR:     L. Rossman
                 *Q,                    /* Link flows                   */
                 *R,                    /* Pipe reaction rate           */
                 *X,                    /* General purpose array        */
-				*XC;				   /* General Purpose array - WQ   */
- double   *H;                    /* Node heads                   */
- double *QTankVolumes;
- double *QLinkFlow; //woohn 03112013
- STmplist *Patlist;              /* Temporary time pattern list  */ 
- STmplist *Curvelist;            /* Temporary list of curves     */
- Spattern *Pattern;              /* Time patterns                */
- Scurve   *Curve;                /* Curve data                   */
- Snode    *Node;                 /* Node data                    */
- Slink    *Link;                 /* Link data                    */
- Stank    *Tank;                 /* Tank data                    */
- Spump    *Pump;                 /* Pump data                    */
- Svalve   *Valve;                /* Valve data                   */
- Scontrol *Control;              /* Control data                 */
- HTtable  *Nht, *Lht;            /* Hash tables for ID labels    */
- Padjlist *Adjlist;              /* Node adjacency lists         */
- int _relativeError, _iterations; /* Info about hydraulic solution */
+                *XC;                    /* General purpose array        */
+EXTERN double   *H;                    /* Node heads                   */
+EXTERN double *QTankVolumes;
+EXTERN double *QLinkFlow;
+EXTERN STmplist *Patlist;              /* Temporary time pattern list  */ 
+EXTERN STmplist *Curvelist;            /* Temporary list of curves     */
+EXTERN STmplist *Coordlist;            /* Temporary list of coordinates*/
+EXTERN Spattern *Pattern;              /* Time patterns                */
+EXTERN Scurve   *Curve;                /* Curve data                   */
+EXTERN Scoord   *Coord;                /* Coordinate data              */
+EXTERN Snode    *Node;                 /* Node data                    */
+EXTERN Slink    *Link;                 /* Link data                    */
+EXTERN Stank    *Tank;                 /* Tank data                    */
+EXTERN Spump    *Pump;                 /* Pump data                    */
+EXTERN Svalve   *Valve;                /* Valve data                   */
+EXTERN Scontrol *Control;              /* Control data                 */
+EXTERN HTtable  *Nht, *Lht;            /* Hash tables for ID labels    */
+EXTERN Padjlist *Adjlist;              /* Node adjacency lists         */
+EXTERN int _relativeError, _iterations; /* Info about hydraulic solution */
 
 /*
 ** NOTE: Hydraulic analysis of the pipe network at a given point in time

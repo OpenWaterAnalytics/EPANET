@@ -31,6 +31,7 @@ All functions in this module are called from newline() in INPUT2.C.
 #include "text.h"
 #include "types.h"
 #include "funcs.h"
+#define  EXTERN  extern
 #include "vars.h"
 
 /* Defined in enumstxt.h in EPANET.C */
@@ -41,6 +42,8 @@ extern char *Fldname[];
 extern char      *Tok[MAXTOKS];
 extern STmplist  *PrevPat;
 extern STmplist  *PrevCurve;
+
+extern STmplist  *PrevCoord;
 extern int       Ntokens;
 
 
@@ -576,6 +579,59 @@ int  curvedata()
    return(0);
 }
 
+int  coordata()
+/*
+ **--------------------------------------------------------------
+ **  Input:   none
+ **  Output:  returns error code
+ **  Purpose: processes coordinate data
+ **  Format:
+ **    [COORD]
+ **      id  x  y
+ **--------------------------------------------------------------
+ */
+{
+	double      x,y;
+	SFloatlist *fx, *fy;
+	STmplist   *c;
+  
+	/* Check for valid curve ID */
+	if (Ntokens < 3) return(201);
+  
+	if (
+      PrevCoord != NULL &&
+      strcmp(Tok[0],PrevCoord->ID) == 0
+      ) c = PrevCoord;
+	else c = findID(Tok[0],Coordlist);
+  
+  //	c = findID(Tok[0],Coordlist);
+	if (c == NULL) return(205);
+  
+	/* Check for valid data */
+	if (!getfloat(Tok[1],&x)) return(202);
+	if (!getfloat(Tok[2],&y)) return(202);
+  
+	/* Add new data point to curve's linked list */
+	fx = (SFloatlist *) malloc(sizeof(SFloatlist));
+	fy = (SFloatlist *) malloc(sizeof(SFloatlist));
+	if (fx == NULL || fy == NULL) return(101);
+	fx->value = x;
+	fx->next = c->x;
+	c->x = fx;
+	fy->value = y;
+	fy->next = c->y;
+	c->y = fy;
+	//Curve[c->i].Npts++;
+  
+	/* Save the pointer to this curve */
+	PrevCoord = c;
+	return(0);
+  
+	/* Save coordn data */
+	//Coord[Njuncs].X  = x;
+	//Coord[Njuncs].Y  = y;
+  
+}                        /* end of coordata */
 
 int  demanddata()
 /*

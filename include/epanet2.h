@@ -1,34 +1,43 @@
 /*
-*******************************************************************
+ *******************************************************************
+ 
+ TOOLKIT.H - Prototypes for EPANET Functions Exported to DLL Toolkit
+ 
+ VERSION:    2.00
+ DATE:       5/8/00
+ 10/25/00
+ 3/1/01
+ 8/15/07    (2.00.11)
+ 2/14/08    (2.00.12)
+ AUTHOR:     L. Rossman
+ US EPA - NRMRL
+ 
+ *******************************************************************
+ */
 
-TOOLKIT.H - Prototypes for EPANET Functions Exported to DLL Toolkit
+#ifndef EPANET2_H
+#define EPANET2_H
 
-VERSION:    2.00
-DATE:       5/8/00
-            10/25/00
-            3/1/01
-            8/15/07    (2.00.11)
-            2/14/08    (2.00.12)
-AUTHOR:     L. Rossman
-            US EPA - NRMRL
+#ifndef EN_API_FLOAT_TYPE
+#define EN_API_FLOAT_TYPE float
+#endif
 
-*******************************************************************
-*/
-
-#ifndef TOOLKIT_H
-#define TOOLKIT_H
-
-/*** New compile directives ***/                                               //(2.00.11 - LR)
-//#define CLE     /* Compile as a command line executable */
-//#define SOL     /* Compile as a shared object library */
-//#define DLL       /* Compile as a Windows DLL */
-
-//#define CLE_LT    /* LemonTiger test */       //Jinduan Chen
-#define DLL_LT    /* Compile as a Windows DLL of LemonTiger */
-#ifdef __APPLE__
-  #define DLLEXPORT 
+#ifndef DLLEXPORT
+#ifdef DLL
+#ifdef __cplusplus
+#define DLLEXPORT extern "C" __declspec(dllexport)
 #else
-  #define DLLEXPORT __declspec(dllexport) 
+#define DLLEXPORT __declspec(dllexport)
+#endif
+#elif defined(CYGWIN)
+#define DLLEXPORT __stdcall
+#else
+#ifdef __cplusplus
+#define DLLEXPORT
+#else
+#define DLLEXPORT
+#endif
+#endif
 #endif
 // --- Define the EPANET toolkit constants
 
@@ -167,94 +176,97 @@ AUTHOR:     L. Rossman
 #if defined(__cplusplus)
 extern "C" {
 #endif
- int  DLLEXPORT ENepanet(char *, char *, char *, void (*) (char *));
+  int  DLLEXPORT ENepanet(char *, char *, char *, void (*) (char *));
+  
+  int  DLLEXPORT ENopen(char *, char *, char *);
+  int  DLLEXPORT ENsaveinpfile(char *);
+  int  DLLEXPORT ENclose(void);
+  
+  int  DLLEXPORT ENsolveH(void);
+  int  DLLEXPORT ENsaveH(void);
+  int  DLLEXPORT ENopenH(void);
+  int  DLLEXPORT ENinitH(int);
+  int  DLLEXPORT ENrunH(long *);
+  int  DLLEXPORT ENnextH(long *tstep);
+  int  DLLEXPORT ENcloseH(void);
+  int  DLLEXPORT ENsavehydfile(char *);
+  int  DLLEXPORT ENusehydfile(char *);
+  
+  int  DLLEXPORT ENsolveQ(void);
+  int  DLLEXPORT ENopenQ(void);
+  int  DLLEXPORT ENinitQ(int);
+  int  DLLEXPORT ENrunQ(long *);
+  int  DLLEXPORT ENnextQ(long *);
+  int  DLLEXPORT ENstepQ(long *);
+  int  DLLEXPORT ENcloseQ(void);
+  
+  int  DLLEXPORT ENwriteline(char *);
+  int  DLLEXPORT ENreport(void);
+  int  DLLEXPORT ENresetreport(void);
+  int  DLLEXPORT ENsetreport(char *);
+  
+  int  DLLEXPORT ENgetcontrol(int, int *, int *, EN_API_FLOAT_TYPE *,
+                              int *, EN_API_FLOAT_TYPE *);
+  int  DLLEXPORT ENgetcount(int, int *);
+  int  DLLEXPORT ENgetoption(int, EN_API_FLOAT_TYPE *);
+  int  DLLEXPORT ENgettimeparam(int, long *);
+  int  DLLEXPORT ENgetflowunits(int *);
+  int  DLLEXPORT ENgetpatternindex(char *, int *);
+  int  DLLEXPORT ENgetpatternid(int, char *);
+  int  DLLEXPORT ENgetpatternlen(int, int *);
+  int  DLLEXPORT ENgetpatternvalue(int, int, EN_API_FLOAT_TYPE *);
+  int  DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value);
+  int  DLLEXPORT ENgetqualtype(int *, int *);
+  int  DLLEXPORT ENgeterror(int, char *, int);
+  int  DLLEXPORT ENgetstatistic(int code, int* value);
+  
+  int  DLLEXPORT ENgetnodeindex(char *, int *);
+  int  DLLEXPORT ENgetnodeid(int, char *);
+  int  DLLEXPORT ENgetnodetype(int, int *);
+  int  DLLEXPORT ENgetnodevalue(int, int, EN_API_FLOAT_TYPE *);
+  int  DLLEXPORT ENgetcoord(int , EN_API_FLOAT_TYPE *, EN_API_FLOAT_TYPE *);
+  
+  int  DLLEXPORT ENgetnumdemands(int, int *);
+  int  DLLEXPORT ENgetbasedemand(int, int, EN_API_FLOAT_TYPE *);
+  int  DLLEXPORT ENgetdemandpattern(int, int, int *);
+  
+  int  DLLEXPORT ENgetlinkindex(char *, int *);
+  int  DLLEXPORT ENgetlinkid(int, char *);
+  int  DLLEXPORT ENgetlinktype(int, int *);
+  int  DLLEXPORT ENgetlinknodes(int, int *, int *);
+  int  DLLEXPORT ENgetlinkvalue(int, int, EN_API_FLOAT_TYPE *);
+  
+  int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
 
- int  DLLEXPORT ENopen(char *, char *, char *);
- int  DLLEXPORT ENsaveinpfile(char *);
- int  DLLEXPORT ENclose(void);
-
- int  DLLEXPORT ENsolveH(void);
- int  DLLEXPORT ENsaveH(void);
- int  DLLEXPORT ENopenH(void);
- int  DLLEXPORT ENinitH(int);
- int  DLLEXPORT ENrunH(long *);
- int  DLLEXPORT ENnextH(long *tstep);
- int  DLLEXPORT ENcloseH(void);
- int  DLLEXPORT ENsavehydfile(char *);
- int  DLLEXPORT ENusehydfile(char *);
-
- int  DLLEXPORT ENsolveQ(void);
- int  DLLEXPORT ENopenQ(void);
- int  DLLEXPORT ENinitQ(int);
- int  DLLEXPORT ENrunQ(long *);
- int  DLLEXPORT ENnextQ(long *);
- int  DLLEXPORT ENstepQ(long *);
- int  DLLEXPORT ENcloseQ(void);
-
- int  DLLEXPORT ENwriteline(char *);
- int  DLLEXPORT ENreport(void);
- int  DLLEXPORT ENresetreport(void);
- int  DLLEXPORT ENsetreport(char *);
-
- int  DLLEXPORT ENgetcontrol(int, int *, int *, float *,
-                int *, float *);
- int  DLLEXPORT ENgetcount(int, int *);
- int  DLLEXPORT ENgetoption(int, float *);
- int  DLLEXPORT ENgettimeparam(int, long *);
- int  DLLEXPORT ENgetflowunits(int *);
- int  DLLEXPORT ENgetpatternindex(char *, int *);
- int  DLLEXPORT ENgetpatternid(int, char *);
- int  DLLEXPORT ENgetpatternlen(int, int *);
- int  DLLEXPORT ENgetpatternvalue(int, int, float *);
- int  DLLEXPORT ENgetqualtype(int *, int *);
- int  DLLEXPORT ENgeterror(int, char *, int);
- int  DLLEXPORT ENgetstatistic(int code, int* value);
-
- int  DLLEXPORT ENgetnodeindex(char *, int *);
- int  DLLEXPORT ENgetnodeid(int, char *);
- int  DLLEXPORT ENgetnodetype(int, int *);
- int  DLLEXPORT ENgetnodevalue(int, int, float *);
-
- int  DLLEXPORT ENgetnumdemands(int, int *);
- int  DLLEXPORT ENgetbasedemand(int, int, float *);
- int  DLLEXPORT ENgetdemandpattern(int, int, int *);
-
- int  DLLEXPORT ENgetlinkindex(char *, int *);
- int  DLLEXPORT ENgetlinkid(int, char *);
- int  DLLEXPORT ENgetlinktype(int, int *);
- int  DLLEXPORT ENgetlinknodes(int, int *, int *);
- int  DLLEXPORT ENgetlinkvalue(int, int, float *);
- 
- int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float **yValues);
-
- int  DLLEXPORT ENgetversion(int *);
-
- int  DLLEXPORT ENsetcontrol(int, int, int, float, int, float);
- int  DLLEXPORT ENsetnodevalue(int, int, float);
- int  DLLEXPORT ENsetlinkvalue(int, int, float);
- int  DLLEXPORT ENaddpattern(char *);
- int  DLLEXPORT ENsetpattern(int, float *, int);
- int  DLLEXPORT ENsetpatternvalue(int, int, float);
- int  DLLEXPORT ENsettimeparam(int, long);
- int  DLLEXPORT ENsetoption(int, float);
- int  DLLEXPORT ENsetstatusreport(int);
- int  DLLEXPORT ENsetqualtype(int, char *, char *, char *);
-
+  
+  int  DLLEXPORT ENgetversion(int *);
+  
+  int  DLLEXPORT ENsetcontrol(int, int, int, EN_API_FLOAT_TYPE, int, EN_API_FLOAT_TYPE);
+  int  DLLEXPORT ENsetnodevalue(int, int, EN_API_FLOAT_TYPE);
+  int  DLLEXPORT ENsetlinkvalue(int, int, EN_API_FLOAT_TYPE);
+  int  DLLEXPORT ENaddpattern(char *);
+  int  DLLEXPORT ENsetpattern(int, EN_API_FLOAT_TYPE *, int);
+  int  DLLEXPORT ENsetpatternvalue(int, int, EN_API_FLOAT_TYPE);
+  int  DLLEXPORT ENsettimeparam(int, long);
+  int  DLLEXPORT ENsetoption(int, EN_API_FLOAT_TYPE);
+  int  DLLEXPORT ENsetstatusreport(int);
+  int  DLLEXPORT ENsetqualtype(int, char *, char *, char *);
+  
   //LemonTiger functions
- /* See testLT.c for a LemonTiger test */
-
+  /* See testLT.c for a LemonTiger test */
+  
 	//LT equivalent to ENopenH() + ENopenQ() + ENinitH() + ENinitQ()
 	int DLLEXPORT ENopeninitHQ();
-
+  
 	//LT equivalent to ENrunQ() + ENnextQ();
 	int DLLEXPORT ENrunnextHQ(long*, long*);
-
+  
 	//LT equivalent to ENrunQ() + ENstepQ();
 	int DLLEXPORT ENrunstepHQ(long*, long*);
-
+  
 	//LT equivalent to ENcloseH() + ENcloseQ();
 	int DLLEXPORT ENcloseHQ();
-
+  
 #if defined(__cplusplus)
 }
 #endif
