@@ -121,7 +121,6 @@
 		08FB7794FE84155DC02AAC07 /* epanet */ = {
 			isa = PBXGroup;
 			children = (
-				2298EBDB16B17DBD0088A6DC /* LemonTiger */,
 				22322FA8106836A000641384 /* Include */,
 				08FB7795FE84155DC02AAC07 /* Source */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
@@ -132,12 +131,12 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				22322F701068369500641384 /* enumstxt.h */,
 				22322F711068369500641384 /* epanet.c */,
+				22322F751068369500641384 /* hydraul.c */,
+				22322F701068369500641384 /* enumstxt.h */,
 				22322F721068369500641384 /* funcs.h */,
 				22322F731068369500641384 /* hash.c */,
 				22322F741068369500641384 /* hash.h */,
-				22322F751068369500641384 /* hydraul.c */,
 				22322F761068369500641384 /* inpfile.c */,
 				22322F771068369500641384 /* input1.c */,
 				22322F781068369500641384 /* input2.c */,
@@ -172,13 +171,6 @@
 				22322FA9106836B000641384 /* epanet2.h */,
 			);
 			name = Include;
-			sourceTree = "<group>";
-		};
-		2298EBDB16B17DBD0088A6DC /* LemonTiger */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = LemonTiger;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

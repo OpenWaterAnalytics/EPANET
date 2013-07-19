@@ -233,7 +233,7 @@ int runqual(long *t)
         Htime = hydtime + hydstep;
       }
       else {
-        // stepwise calculation
+        // stepwise calculation - hydraulic results are already in memory
         for (int i=1; i<= Ntanks; ++i) {
           QTankVolumes[i-1] = Tank[i].V;
         }

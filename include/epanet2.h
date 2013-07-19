@@ -97,8 +97,9 @@
 #define EN_PERIODS      9
 #define EN_STARTTIME    10  /* Added TNT 10/2/2009 */
 #define EN_HTIME        11
-#define EN_HALTFLAG     12
-#define EN_NEXTEVENT    13
+#define EN_QTIME        12
+#define EN_HALTFLAG     13
+#define EN_NEXTEVENT    14
 
 #define EN_ITERATIONS     0
 #define EN_RELATIVEERROR  1
@@ -250,7 +251,7 @@ extern "C" {
   int  DLLEXPORT ENsettimeparam(int, long);
   int  DLLEXPORT ENsetoption(int, EN_API_FLOAT_TYPE);
   int  DLLEXPORT ENsetstatusreport(int);
-  int  DLLEXPORT ENsetqualtype(int, char *, char *, char *);
+  int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
   
   //LemonTiger functions
   /* See testLT.c for a LemonTiger test */
