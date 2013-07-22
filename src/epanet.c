@@ -1779,8 +1779,8 @@ int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xVal
   
   EN_API_FLOAT_TYPE *pointX = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
   EN_API_FLOAT_TYPE *pointY = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
-  
-  for (int iPoint = 0; iPoint < nPoints; iPoint++) {
+  int iPoint;
+  for (iPoint = 0; iPoint < nPoints; iPoint++) {
     double x = curve.X[iPoint] * Ucf[LENGTH];
     double y = curve.Y[iPoint] * Ucf[VOLUME];
     pointX[iPoint] = (EN_API_FLOAT_TYPE)x;
@@ -3297,7 +3297,8 @@ int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
   if (!Openflag) return(102);
   if (index < 1 || index > Npats) return(205);
   //if (period < 1 || period > Pattern[index].Length) return(251);
-  for (int i=0; i<Pattern[index].Length; i++) {
+  int i;
+  for (i=0; i<Pattern[index].Length; i++) {
     *value+=Pattern[index].F[i];
   }
   *value/=(EN_API_FLOAT_TYPE)Pattern[index].Length;
