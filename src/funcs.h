@@ -25,6 +25,10 @@ AUTHOR:     L. Rossman
 **  NOTE: The exportable functions that can be called
 **        via the DLL are prototyped in TOOLKIT.H.
 */
+
+#ifndef FUNCS_H
+#define FUNCS_H
+
 void    initpointers(void);               /* Initializes pointers       */
 int     allocdata(void);                  /* Allocates memory           */
 void    freeTmplist(STmplist *);          /* Frees items in linked list */
@@ -282,3 +286,5 @@ int     saveepilog(void);                 /* Saves output file epilog   */
 
 /* ------------ INPFILE.C --------------*/
 int     saveinpfile(char *);              /* Saves network to text file  */
+
+#endif

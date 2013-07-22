@@ -107,17 +107,6 @@ execute function x and set the error code equal to its return value.
 *******************************************************************************
 */
 
-/*** New compile directives ***/                                               //(2.00.11 - LR)
-//#define CLE     /* Compile as a command line executable */
-//#define SOL     /* Compile as a shared object library */
-//#define DLL       /* Compile as a Windows DLL */
-
-/*** Following lines are deprecated ***/                                       //(2.00.11 - LR)
-//#ifdef DLL
-//#include <windows.h>
-//#include <float.h>
-//#endif
-
 /*** Need to define WINDOWS to use the getTmpName function ***/                //(2.00.12 - LR)
 // --- define WINDOWS
 #undef WINDOWS
@@ -137,14 +126,14 @@ execute function x and set the error code equal to its return value.
 #endif
 #include <math.h>
 #include <float.h>                                                             //(2.00.12 - LR)
-#include "hash.h"    
+ 
 #include "text.h"
 #include "types.h"
 #include "enumstxt.h"
 #include "funcs.h"
 #define  EXTERN
 #include "vars.h"
-#include "toolkit.h"
+#include "epanet2.h"
 
 void (* viewprog) (char *);     /* Pointer to progress viewing function */   
 
@@ -1761,7 +1750,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
 }
 
 
-int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues) // !sph
+int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
 /*----------------------------------------------------------------
  **  Input:   curveIndex = curve index
  **  Output:  *nValues = number of points on curve
@@ -1793,6 +1782,7 @@ int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xVal
   
   return err;
 }
+
 
 /*
 ----------------------------------------------------------------
@@ -1984,7 +1974,7 @@ int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
             if (j < 0 || j > Npats) return(205);
             source->Pat = j;
          }
-         else
+         else // code == EN_SOURCETYPE
          {
             j = ROUND(value);
             if ( j < CONCEN || j > FLOWPACED) return(251);
@@ -2358,44 +2348,69 @@ int  DLLEXPORT  ENsettimeparam(int code, long value)
      */
   }
    if (value < 0) return(202);
-   switch(code)
-   {
-      case EN_DURATION:      Dur = value;
-                             if (Rstart > Dur) Rstart = 0;
-                             break;
-      case EN_HYDSTEP:       if (value == 0) return(202);
-                             Hstep = value;
-                             Hstep = MIN(Pstep, Hstep);
-                             Hstep = MIN(Rstep, Hstep);
-                             Qstep = MIN(Qstep, Hstep);
-                             break;
-      case EN_QUALSTEP:      if (value == 0) return(202);
-                             Qstep = value;
-                             Qstep = MIN(Qstep, Hstep);
-                             break;
-      case EN_PATTERNSTEP:   if (value == 0) return(202);
-                             Pstep = value;
-                             if (Hstep > Pstep) Hstep = Pstep;
-                             break;
-      case EN_PATTERNSTART:  Pstart = value;
-                             break;
-      case EN_REPORTSTEP:    if (value == 0) return(202);
-                             Rstep = value;
-                             if (Hstep > Rstep) Hstep = Rstep;
-                             break;
-      case EN_REPORTSTART:   if (Rstart > Dur) return(202);
-                             Rstart = value;
-                             break;
-      case EN_RULESTEP:      if (value == 0) return(202);
-                             Rulestep = value;
-                             Rulestep = MIN(Rulestep, Hstep);
-                             break;
-      case EN_STATISTIC:     if (value > RANGE) return(202);
-                             Tstatflag = (char)value;
-                             break;
-      case EN_HTIME:         Htime = value;
-                             break;
-      default:               return(251);
+  switch(code)
+  {
+    case EN_DURATION:
+      Dur = value;
+      if (Rstart > Dur) Rstart = 0;
+      break;
+      
+    case EN_HYDSTEP:
+      if (value == 0) return(202);
+      Hstep = value;
+      Hstep = MIN(Pstep, Hstep);
+      Hstep = MIN(Rstep, Hstep);
+      Qstep = MIN(Qstep, Hstep);
+      break;
+      
+    case EN_QUALSTEP:
+      if (value == 0) return(202);
+      Qstep = value;
+      Qstep = MIN(Qstep, Hstep);
+      break;
+      
+    case EN_PATTERNSTEP:
+      if (value == 0) return(202);
+      Pstep = value;
+      if (Hstep > Pstep) Hstep = Pstep;
+      break;
+      
+    case EN_PATTERNSTART:
+      Pstart = value;
+      break;
+      
+    case EN_REPORTSTEP:
+      if (value == 0) return(202);
+      Rstep = value;
+      if (Hstep > Rstep) Hstep = Rstep;
+      break;
+      
+    case EN_REPORTSTART:
+      if (Rstart > Dur) return(202);
+      Rstart = value;
+      break;
+      
+    case EN_RULESTEP:
+      if (value == 0) return(202);
+      Rulestep = value;
+      Rulestep = MIN(Rulestep, Hstep);
+      break;
+      
+    case EN_STATISTIC:
+      if (value > RANGE) return(202);
+      Tstatflag = (char)value;
+      break;
+      
+    case EN_HTIME:
+      Htime = value;
+      break;
+      
+    case EN_QTIME:
+      Qtime = value;
+      break;
+      
+    default:
+      return(251);
    }
    return(0);
 }
@@ -2406,8 +2421,8 @@ int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v)
 **  Input:   code  = option code (see TOOLKIT.H)
 **           v = option value
 **  Output:  none
-**  Returns: error code                              
-**  Purpose: sets value for an analysis option 
+**  Returns: error code
+**  Purpose: sets value for an analysis option
 **----------------------------------------------------------------
 */
 {

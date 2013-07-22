@@ -1,0 +1,150 @@
+[TITLE]
+
+
+[JUNCTIONS]
+;ID              	Elev        	Demand      	Pattern         
+ TreatmentPlant  	0           	0           	                	;
+ Montgomery      	0           	80          	                	;
+ Tennessee       	0           	250         	                	;
+ Reading         	0           	100         	                	;
+ Mills           	0           	1000        	stepdemand      	;
+ Vine            	0           	50          	                	;
+
+[RESERVOIRS]
+;ID              	Head        	Pattern         
+ Resr            	100         	                	;
+
+[TANKS]
+;ID              	Elevation   	InitLevel   	MinLevel    	MaxLevel    	Diameter    	MinVol      	VolCurve
+ NewportTank     	50          	40          	0           	80          	20          	0           	                	;
+
+[PIPES]
+;ID              	Node1           	Node2           	Length      	Diameter    	Roughness   	MinorLoss   	Status
+ ReservoirCheckValve	Resr            	TreatmentPlant  	10          	4           	100         	0           	CV    	;
+ 2               	TreatmentPlant  	Montgomery      	3           	6           	100         	0           	Open  	;
+ 3               	Montgomery      	Tennessee       	6           	6           	100         	0           	Open  	;
+ 4               	Tennessee       	Reading         	12          	6           	100         	0           	Open  	;
+ 5               	Reading         	Mills           	24          	6           	100         	0           	Open  	;
+ NewportTankPipe 	Tennessee       	NewportTank     	50          	3           	100         	0           	Open  	;
+ 1               	Reading         	Vine            	50          	6           	100         	0           	Open  	;
+
+[PUMPS]
+;ID              	Node1           	Node2           	Parameters
+
+[VALVES]
+;ID              	Node1           	Node2           	Diameter    	Type	Setting     	MinorLoss   
+
+[TAGS]
+
+[DEMANDS]
+;Junction        	Demand      	Pattern         	Category
+
+[STATUS]
+;ID              	Status/Setting
+
+[PATTERNS]
+;ID              	Multipliers
+;
+ stepdemand      	1           	1           	1           	1           	1           	1           
+ stepdemand      	0           	0           	0           	0           	0           	0           
+
+[CURVES]
+;ID              	X-Value     	Y-Value
+
+[CONTROLS]
+
+
+
+
+[RULES]
+
+
+
+[ENERGY]
+ Global Efficiency  	75
+ Global Price       	0
+ Demand Charge      	0
+
+[EMITTERS]
+;Junction        	Coefficient
+
+[QUALITY]
+;Node            	InitQual
+
+[SOURCES]
+;Node            	Type        	Quality     	Pattern
+
+[REACTIONS]
+;Type     	Pipe/Tank       	Coefficient
+
+
+[REACTIONS]
+ Order Bulk            	1
+ Order Tank            	1
+ Order Wall            	1
+ Global Bulk           	0
+ Global Wall           	0
+ Limiting Potential    	0
+ Roughness Correlation 	0
+
+[MIXING]
+;Tank            	Model
+
+[TIMES]
+ Duration           	24:00 
+ Hydraulic Timestep 	0:10 
+ Quality Timestep   	0:01 
+ Pattern Timestep   	1:00 
+ Pattern Start      	0:00 
+ Report Timestep    	1:00 
+ Report Start       	0:00 
+ Start ClockTime    	12 am
+ Statistic          	NONE
+
+[REPORT]
+ Status             	No
+ Summary            	No
+ Page               	0
+
+[OPTIONS]
+ Units              	GPM
+ Headloss           	H-W
+ Specific Gravity   	1
+ Viscosity          	1
+ Trials             	40
+ Accuracy           	0.001
+ CHECKFREQ          	2
+ MAXCHECK           	10
+ DAMPLIMIT          	0
+ Unbalanced         	Continue 10
+ Pattern            	1
+ Demand Multiplier  	1.0
+ Emitter Exponent   	0.5
+ Quality            	Trace Resr
+ Diffusivity        	1
+ Tolerance          	0.01
+
+[COORDINATES]
+;Node            	X-Coord         	Y-Coord
+ TreatmentPlant  	-1075.95        	6943.94         
+ Montgomery      	1273.73         	6946.20         
+ Tennessee       	3204.11         	6946.20         
+ Reading         	6352.85         	6946.20         
+ Mills           	10226.04        	6943.94         
+ Vine            	6356.24         	5063.29         
+ Resr            	-2414.20        	6923.08         
+ NewportTank     	3209.76         	8318.26         
+
+[VERTICES]
+;Link            	X-Coord         	Y-Coord
+
+[LABELS]
+;X-Coord           Y-Coord          Label & Anchor Node
+
+[BACKDROP]
+ DIMENSIONS     	0.00            	0.00            	10000.00        	10000.00        
+ UNITS          	Meters
+ FILE           	
+ OFFSET         	0.00            	0.00            
+
+[END]

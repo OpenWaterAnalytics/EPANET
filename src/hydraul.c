@@ -205,7 +205,7 @@ int   runhyd(long *t)
       if (Statflag) writehydstat(iter,relerr);
 
      /* solution info */
-     _relativeError = relerr;
+     _relativeError = (int)relerr;
      _iterations = iter;
      
 /*** Updated 3/1/01 ***/
@@ -1064,7 +1064,6 @@ void  tanklevels(long tstep)
       else if (Tank[i].V - D[n] <= Tank[i].Vmin) {
         Tank[i].V = Tank[i].Vmin;
       }
-
       H[n] = tankgrade(i,Tank[i].V);
    }
 }                       /* End of tanklevels */

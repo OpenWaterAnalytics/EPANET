@@ -108,7 +108,7 @@ int  openqual()
    /* Allocate scratch array & reaction rate array*/
    XC  = (double *) calloc(MAX((Nnodes+1),(Nlinks+1)),sizeof(double));
    R  = (double *) calloc((Nlinks+1), sizeof(double));
-   ERRCODE(MEMCHECK(X));
+   ERRCODE(MEMCHECK(XC));
    ERRCODE(MEMCHECK(R));
 
    /* Allocate memory for WQ solver */
@@ -151,9 +151,10 @@ void  initqual()
    for (i=1; i<=Nnodes; i++) C[i] = Node[i].C0;
    for (i=1; i<=Ntanks; i++) Tank[i].C = Node[Tank[i].Node].C0;
    for (i=1; i<=Ntanks; i++) Tank[i].V = Tank[i].V0;
-   for (i=1; i<=Nnodes; i++)
-      if (Node[i].S != NULL) Node[i].S->Smass = 0.0;
-
+   for (i=1; i<=Nnodes; i++) {
+     if (Node[i].S != NULL) Node[i].S->Smass = 0.0;
+   }
+  
    QTankVolumes = calloc(Ntanks, sizeof(double)); // keep track of previous step's tank volumes.
    QLinkFlow    = calloc(Nlinks, sizeof(double)); // keep track of previous step's link flows.
   
@@ -229,10 +230,10 @@ int runqual(long *t)
       errcode = gethyd(&hydtime, &hydstep);
       if (!OpenHflag) { // test for sequential vs stepwise
         // sequential
-      Htime = hydtime + hydstep;
-   }
+        Htime = hydtime + hydstep;
+      }
       else {
-        // stepwise calculation
+        // stepwise calculation - hydraulic results are already in memory
         for (int i=1; i<= Ntanks; ++i) {
           QTankVolumes[i-1] = Tank[i].V;
         }
@@ -246,6 +247,21 @@ int runqual(long *t)
 
       }
    }
+   else {
+        // stepwise calculation
+        for (int i=1; i<= Ntanks; ++i) {
+          QTankVolumes[i-1] = Tank[i].V;
+        }
+        
+        for (int i=1; i<= Nlinks; ++i)
+        {
+          if (S[i] <= CLOSED) {
+            QLinkFlow[i-1] = Q[i];
+          }
+        }
+
+  }
+   
    return(errcode);
 }
 
@@ -300,7 +316,7 @@ int nextqual(long *tstep)
     }
 
   }
-
+  
    /* Perform water quality routing over this time step */
    if (Qualflag != NONE && hydstep > 0) transport(hydstep);
 
@@ -425,10 +441,10 @@ int  gethyd(long *hydtime, long *hydstep)
   // if hydraulics are not open, then we're operating in sequential mode.
   // else hydraulics are open, so use the hydraulic results in memory rather than reading from the temp file.
   if (!OpenHflag) {
-   /* Read hydraulic results from file */
-   if (!readhyd(hydtime)) return(307);
-   if (!readhydstep(hydstep)) return(307);
-   Htime = *hydtime;
+    /* Read hydraulic results from file */
+    if (!readhyd(hydtime)) return(307);
+    if (!readhydstep(hydstep)) return(307);
+    Htime = *hydtime;
   }
 
    /* Save current results to output file */
@@ -497,7 +513,7 @@ void  transport(long tstep)
 */
 {
    long   qtime, dt;
-
+  
    /* Repeat until elapsed time equals hydraulic time step */
 
    AllocSetPool(SegPool);                                                      //(2.00.11 - LR)
@@ -513,6 +529,7 @@ void  transport(long tstep)
       release(dt);                    /* Release new nodal flows */
    }
    updatesourcenodes(tstep);          /* Update quality at source nodes */
+  
 }
 
 
@@ -1080,21 +1097,19 @@ void  updatetanks(long dt)
    for (i=1; i<=Ntanks; i++)
    {
       n = Tank[i].Node;
-
       /* Use initial quality for reservoirs */
       if (Tank[i].A == 0.0)
       {
          C[n] = Node[n].C0;
       }
-
       /* Update tank WQ based on mixing model */
       else {
         switch(Tank[i].MixModel)
         {
-           case MIX2: tankmix2(i,dt); break;
-           case FIFO: tankmix3(i,dt); break;
-           case LIFO: tankmix4(i,dt); break;
-           default:   tankmix1(i,dt); break;
+          case MIX2: tankmix2(i,dt); break;
+          case FIFO: tankmix3(i,dt); break;
+          case LIFO: tankmix4(i,dt); break;
+          default:   tankmix1(i,dt); break;
         }
         
       }

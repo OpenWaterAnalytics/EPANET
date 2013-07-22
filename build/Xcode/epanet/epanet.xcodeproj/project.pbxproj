@@ -25,7 +25,6 @@
 		22322F941068369500641384 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
 		22322F951068369500641384 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
 		22322F961068369500641384 /* text.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322F811068369500641384 /* text.h */; };
-		22322F971068369500641384 /* toolkit.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322F821068369500641384 /* toolkit.h */; };
 		22322F981068369500641384 /* types.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322F831068369500641384 /* types.h */; };
 		22322F991068369500641384 /* vars.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322F841068369500641384 /* vars.h */; };
 		22322F9A1068369500641384 /* epanet.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F711068369500641384 /* epanet.c */; };
@@ -70,7 +69,7 @@
 /* Begin PBXFileReference section */
 		22322F66106833BB00641384 /* runepanet */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = runepanet; sourceTree = BUILT_PRODUCTS_DIR; };
 		22322F701068369500641384 /* enumstxt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = enumstxt.h; path = ../../../src/enumstxt.h; sourceTree = SOURCE_ROOT; };
-		22322F711068369500641384 /* epanet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = epanet.c; path = ../../../src/epanet.c; sourceTree = SOURCE_ROOT; };
+		22322F711068369500641384 /* epanet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 2; name = epanet.c; path = ../../../src/epanet.c; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		22322F721068369500641384 /* funcs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = funcs.h; path = ../../../src/funcs.h; sourceTree = SOURCE_ROOT; };
 		22322F731068369500641384 /* hash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = hash.c; path = ../../../src/hash.c; sourceTree = SOURCE_ROOT; };
 		22322F741068369500641384 /* hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hash.h; path = ../../../src/hash.h; sourceTree = SOURCE_ROOT; };
@@ -82,15 +81,14 @@
 		22322F7A1068369500641384 /* mempool.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mempool.c; path = ../../../src/mempool.c; sourceTree = SOURCE_ROOT; };
 		22322F7B1068369500641384 /* mempool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mempool.h; path = ../../../src/mempool.h; sourceTree = SOURCE_ROOT; };
 		22322F7C1068369500641384 /* output.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = output.c; path = ../../../src/output.c; sourceTree = SOURCE_ROOT; };
-		22322F7D1068369500641384 /* quality.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = quality.c; path = ../../../src/quality.c; sourceTree = SOURCE_ROOT; };
+		22322F7D1068369500641384 /* quality.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 2; name = quality.c; path = ../../../src/quality.c; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		22322F7E1068369500641384 /* report.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = report.c; path = ../../../src/report.c; sourceTree = SOURCE_ROOT; };
 		22322F7F1068369500641384 /* rules.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = rules.c; path = ../../../src/rules.c; sourceTree = SOURCE_ROOT; };
 		22322F801068369500641384 /* smatrix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = smatrix.c; path = ../../../src/smatrix.c; sourceTree = SOURCE_ROOT; };
 		22322F811068369500641384 /* text.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = text.h; path = ../../../src/text.h; sourceTree = SOURCE_ROOT; };
-		22322F821068369500641384 /* toolkit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = toolkit.h; path = ../../../src/toolkit.h; sourceTree = SOURCE_ROOT; };
 		22322F831068369500641384 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = types.h; path = ../../../src/types.h; sourceTree = SOURCE_ROOT; };
 		22322F841068369500641384 /* vars.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vars.h; path = ../../../src/vars.h; sourceTree = SOURCE_ROOT; };
-		22322FA9106836B000641384 /* epanet2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = epanet2.h; path = ../../../include/epanet2.h; sourceTree = SOURCE_ROOT; };
+		22322FA9106836B000641384 /* epanet2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 2; name = epanet2.h; path = ../../../include/epanet2.h; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		2255753B17551217009946B1 /* libepanet-static.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libepanet-static.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2AAC0630554660B00DB518D /* libepanet.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libepanet.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -133,12 +131,12 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				22322F701068369500641384 /* enumstxt.h */,
 				22322F711068369500641384 /* epanet.c */,
+				22322F751068369500641384 /* hydraul.c */,
+				22322F701068369500641384 /* enumstxt.h */,
 				22322F721068369500641384 /* funcs.h */,
 				22322F731068369500641384 /* hash.c */,
 				22322F741068369500641384 /* hash.h */,
-				22322F751068369500641384 /* hydraul.c */,
 				22322F761068369500641384 /* inpfile.c */,
 				22322F771068369500641384 /* input1.c */,
 				22322F781068369500641384 /* input2.c */,
@@ -151,7 +149,6 @@
 				22322F7F1068369500641384 /* rules.c */,
 				22322F801068369500641384 /* smatrix.c */,
 				22322F811068369500641384 /* text.h */,
-				22322F821068369500641384 /* toolkit.h */,
 				22322F831068369500641384 /* types.h */,
 				22322F841068369500641384 /* vars.h */,
 			);
@@ -196,7 +193,6 @@
 				22322F891068369500641384 /* hash.h in Headers */,
 				22322F901068369500641384 /* mempool.h in Headers */,
 				22322F961068369500641384 /* text.h in Headers */,
-				22322F971068369500641384 /* toolkit.h in Headers */,
 				22322F981068369500641384 /* types.h in Headers */,
 				22322F991068369500641384 /* vars.h in Headers */,
 			);
@@ -473,10 +469,7 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "EN_API_FLOAT_TYPE=double";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
@@ -497,6 +490,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				EXECUTABLE_PREFIX = lib;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "EN_API_FLOAT_TYPE=double";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -541,6 +535,7 @@
 				2255753D17551217009946B1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
