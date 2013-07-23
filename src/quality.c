@@ -203,6 +203,8 @@ void  initqual()
    Qtime = 0;
    Rtime = Rstart;
    Nperiods = 0;
+  
+  initsegs();
 }
 
 
@@ -463,12 +465,19 @@ int  gethyd(long *hydtime, long *hydstep)
    {
 
       /* Compute reaction rate coeffs. */
-      if (Reactflag && Qualflag != AGE) ratecoeffs();
-
+     if (Reactflag && Qualflag != AGE) {
+       ratecoeffs();
+     }
+     
       /* Initialize pipe segments (at time 0) or  */
       /* else re-orient segments if flow reverses.*/
-      if (Qtime == 0) initsegs();
-      else            reorientsegs();
+      //if (Qtime == 0)
+      //  initsegs();
+      //else
+     if (Qtime != 0) {
+       reorientsegs();
+     }
+
    }
    return(errcode);
 }
@@ -784,9 +793,13 @@ void accumulate(long dt)
          VolIn[j]++;
       }
    }
-   for (k=1; k<=Nnodes; k++)
-     if (VolIn[k] > 0.0) XC[k] = MassIn[k]/VolIn[k];
-
+  
+  for (k=1; k<=Nnodes; k++) {
+    if (VolIn[k] > 0.0) {
+      XC[k] = MassIn[k]/VolIn[k];
+    }
+  }
+  
    /* Move mass from first segment of each pipe into downstream node */
    memset(VolIn,0,(Nnodes+1)*sizeof(double));
    memset(MassIn,0,(Nnodes+1)*sizeof(double));

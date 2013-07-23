@@ -1248,7 +1248,7 @@ int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int n)
    else return(0);
 }
 
-int  DLLEXPORT ENgetstatistic(int code, int* value)
+int  DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value)
 /*----------------------------------------------------------------
  **  Input:   code    = type of simulation statistic to retrieve
  **  Output:  value   = value of requested statistic
@@ -1259,10 +1259,10 @@ int  DLLEXPORT ENgetstatistic(int code, int* value)
 {
   switch (code) {
     case EN_ITERATIONS:
-      *value = _iterations;
+      *value = (EN_API_FLOAT_TYPE)_iterations;
       break;
     case EN_RELATIVEERROR:
-      *value = _relativeError;
+      *value = (EN_API_FLOAT_TYPE)_relativeError;
       break;
     default:
       break;
@@ -1492,7 +1492,7 @@ int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
             v = (Tank[index-Njuncs].Hmin - Node[index].El) * Ucf[ELEV];
          }
          break;
-
+ 
       case EN_MAXLEVEL:
          v = 0.0;
          if ( index > Njuncs )

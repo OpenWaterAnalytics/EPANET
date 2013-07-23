@@ -219,7 +219,7 @@ extern "C" {
   int  DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value);
   int  DLLEXPORT ENgetqualtype(int *, int *);
   int  DLLEXPORT ENgeterror(int, char *, int);
-  int  DLLEXPORT ENgetstatistic(int code, int* value);
+  int  DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value);
   
   int  DLLEXPORT ENgetnodeindex(char *, int *);
   int  DLLEXPORT ENgetnodeid(int, char *);

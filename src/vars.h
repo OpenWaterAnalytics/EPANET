@@ -171,7 +171,8 @@ EXTERN Svalve   *Valve;                /* Valve data                   */
 EXTERN Scontrol *Control;              /* Control data                 */
 EXTERN HTtable  *Nht, *Lht;            /* Hash tables for ID labels    */
 EXTERN Padjlist *Adjlist;              /* Node adjacency lists         */
-EXTERN int _relativeError, _iterations; /* Info about hydraulic solution */
+EXTERN double _relativeError;
+EXTERN int _iterations; /* Info about hydraulic solution */
 
 /*
 ** NOTE: Hydraulic analysis of the pipe network at a given point in time

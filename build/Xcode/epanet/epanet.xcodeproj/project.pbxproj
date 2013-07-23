@@ -40,7 +40,7 @@
 		22322FA41068369500641384 /* report.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7E1068369500641384 /* report.c */; };
 		22322FA51068369500641384 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
 		22322FA61068369500641384 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
-		22322FAA106836BC00641384 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; };
+		22322FAA106836BC00641384 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		2255753F17551234009946B1 /* epanet.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F711068369500641384 /* epanet.c */; };
 		2255754017551234009946B1 /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F731068369500641384 /* hash.c */; };
 		2255754117551234009946B1 /* hydraul.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F751068369500641384 /* hydraul.c */; };
@@ -54,6 +54,7 @@
 		2255754917551234009946B1 /* report.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7E1068369500641384 /* report.c */; };
 		2255754A17551234009946B1 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
 		2255754B17551234009946B1 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
+		226537E0179EDEEB00258C60 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -180,6 +181,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				226537E0179EDEEB00258C60 /* epanet2.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
