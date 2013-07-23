@@ -1,7 +1,7 @@
 /*
  *******************************************************************
  
- TOOLKIT.H - Prototypes for EPANET Functions Exported to DLL Toolkit
+ EPANET2.H - Prototypes for EPANET Functions Exported to DLL Toolkit
  
  VERSION:    2.00
  DATE:       5/8/00
@@ -252,21 +252,6 @@ extern "C" {
   int  DLLEXPORT ENsetoption(int, EN_API_FLOAT_TYPE);
   int  DLLEXPORT ENsetstatusreport(int);
   int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
-  
-  //LemonTiger functions
-  /* See testLT.c for a LemonTiger test */
-  
-	//LT equivalent to ENopenH() + ENopenQ() + ENinitH() + ENinitQ()
-	int DLLEXPORT ENopeninitHQ();
-  
-	//LT equivalent to ENrunQ() + ENnextQ();
-	int DLLEXPORT ENrunnextHQ(long*, long*);
-  
-	//LT equivalent to ENrunQ() + ENstepQ();
-	int DLLEXPORT ENrunstepHQ(long*, long*);
-  
-	//LT equivalent to ENcloseH() + ENcloseQ();
-	int DLLEXPORT ENcloseHQ();
   
 #if defined(__cplusplus)
 }
