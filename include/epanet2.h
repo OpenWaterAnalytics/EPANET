@@ -237,7 +237,7 @@ extern "C" {
   int  DLLEXPORT ENgetlinknodes(int, int *, int *);
   int  DLLEXPORT ENgetlinkvalue(int, int, EN_API_FLOAT_TYPE *);
   
-  int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
+  int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
 
   
   int  DLLEXPORT ENgetversion(int *);

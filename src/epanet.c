@@ -1750,7 +1750,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
 }
 
 
-int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
+int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
 /*----------------------------------------------------------------
  **  Input:   curveIndex = curve index
  **  Output:  *nValues = number of points on curve
@@ -1776,6 +1776,7 @@ int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xVal
     pointY[iPoint] = (EN_API_FLOAT_TYPE)y;
   }
   
+  strncpy(id, curve.ID, MAXID);
   *nValues = nPoints;
   *xValues = pointX;
   *yValues = pointY;
