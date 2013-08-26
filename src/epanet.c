@@ -2000,6 +2000,8 @@ int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
             ||  value < Tank[j].Hmin) return(202);
             Tank[j].H0 = value;
             Tank[j].V0 = tankvolume(j, Tank[j].H0);
+           // Resetting Volume in addition to initial volume
+            Tank[j].V = Tank[j].V0;
             H[index] = Tank[j].H0;
          }
          break;
@@ -3285,6 +3287,22 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *
   }
   return 0;
 }
+
+int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand)
+{
+  Pdemand d;
+  int n=1;
+  /* Check for valid arguments */
+  if (!Openflag) return(102);
+  if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
+  if (nodeIndex <= Njuncs) {
+	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
+	if(n!=demandIdx) return(253);
+    d->Base = baseDemand/Ucf[FLOW];
+  }
+  return 0;
+}
+
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 {
 	Pdemand d;

@@ -252,6 +252,7 @@ extern "C" {
   int  DLLEXPORT ENsetoption(int, EN_API_FLOAT_TYPE);
   int  DLLEXPORT ENsetstatusreport(int);
   int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
+  int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
   
 #if defined(__cplusplus)
 }
