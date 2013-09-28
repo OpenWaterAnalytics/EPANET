@@ -151,9 +151,9 @@ AUTHOR:     L. Rossman
                 *E,                    /* Emitter flows                */
                 *K,                    /* Link settings                */
                 *Q,                    /* Link flows                   */
-                *R,                    /* Pipe reaction rate           */
+                *PipeRateCoeff,                    /* Pipe reaction rate           */
                 *X,                    /* General purpose array        */
-                *XC;                    /* General purpose array        */
+                *XC;                    /* General purpose array for water quality        */
 EXTERN double   *H;                    /* Node heads                   */
 EXTERN double *QTankVolumes;
 EXTERN double *QLinkFlow;

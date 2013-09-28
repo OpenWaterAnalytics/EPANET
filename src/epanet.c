@@ -1968,7 +1968,9 @@ int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
             source->Pat = 0;
             Node[index].S = source;
          }
-         if (code == EN_SOURCEQUAL) source->C0 = value;
+         if (code == EN_SOURCEQUAL) {
+           source->C0 = value;
+         }
          else if (code == EN_SOURCEPAT)
          {
             j = ROUND(value);
@@ -2757,7 +2759,7 @@ void initpointers()
    C        = NULL;
    H        = NULL;
    Q        = NULL;
-   R        = NULL;
+   PipeRateCoeff        = NULL;
    S        = NULL;
    K        = NULL;
    OldStat  = NULL;

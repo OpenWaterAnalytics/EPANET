@@ -455,7 +455,7 @@ int  linkoutput(int j, REAL4 *x, double ucf)
                       break;
       case REACTRATE: /* Overall reaction rate in mass/L/day */
                       if (Qualflag == NONE) memset(x,0,(Nlinks+1 )*sizeof(REAL4));
-                      else for (i=1; i<=Nlinks; i++) x[i] = (REAL4)(R[i]*ucf);
+                      else for (i=1; i<=Nlinks; i++) x[i] = (REAL4)(PipeRateCoeff[i]*ucf);
                       break;
       case FRICTION:   /* f = 2ghd/(Lu^2) where f = friction factor */
                        /* u = velocity, g = grav. accel., h = head  */

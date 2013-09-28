@@ -107,9 +107,9 @@ int  openqual()
 
    /* Allocate scratch array & reaction rate array*/
    XC  = (double *) calloc(MAX((Nnodes+1),(Nlinks+1)),sizeof(double));
-   R  = (double *) calloc((Nlinks+1), sizeof(double));
+   PipeRateCoeff  = (double *) calloc((Nlinks+1), sizeof(double));
    ERRCODE(MEMCHECK(XC));
-   ERRCODE(MEMCHECK(R));
+   ERRCODE(MEMCHECK(PipeRateCoeff));
 
    /* Allocate memory for WQ solver */
    n        = Nlinks+Ntanks+1;
@@ -414,7 +414,7 @@ int closequal()
    free(FlowDir);
    free(VolIn);
    free(MassIn);
-   free(R);
+   free(PipeRateCoeff);
    free(XC);
    free(QTankVolumes);
    free(QLinkFlow);
@@ -474,7 +474,8 @@ int  gethyd(long *hydtime, long *hydstep)
       //if (Qtime == 0)
       //  initsegs();
       //else
-     if (Qtime != 0) {
+     // if hydraulics are open, or if we're in sequential mode (where qtime can increase)
+     if (OpenHflag || Qtime != 0) {
        reorientsegs();
      }
 
@@ -559,8 +560,10 @@ void  initsegs()
    {
 
       /* Establish flow direction */
-      FlowDir[k] = '+';
-      if (Q[k] < 0.) FlowDir[k] = '-';
+     FlowDir[k] = '+';
+     if (Q[k] < 0.) {
+       FlowDir[k] = '-';
+     }
 
       /* Set segs to zero */
       LastSeg[k] = NULL;
@@ -626,9 +629,13 @@ void  reorientsegs()
    {
 
       /* Find new flow direction */
-      newdir = '+';
-      if (Q[k] == 0.0)     newdir = FlowDir[k];
-      else if (Q[k] < 0.0) newdir = '-';
+     newdir = '+';
+     if (Q[k] == 0.0) {
+       newdir = FlowDir[k];
+     }
+     else if (Q[k] < 0.0) {
+       newdir = '-';
+     }
 
       /* If direction changes, then reverse order of segments */
       /* (first to last) and save new direction */
@@ -692,8 +699,8 @@ void  updatesegs(long dt)
       }
 
       /* Normalize volume-weighted reaction rate */
-      if (vsum > 0.0) R[k] = rsum/vsum/dt*SECperDAY;
-      else R[k] = 0.0;
+      if (vsum > 0.0) PipeRateCoeff[k] = rsum/vsum/dt*SECperDAY;
+      else PipeRateCoeff[k] = 0.0;
    }
 }
 
@@ -885,21 +892,27 @@ void updatenodes(long dt)
 **---------------------------------------------------------------------------
 */
 {
-   int i;
-
-   /* Update junction quality */
-   for (i=1; i<=Njuncs; i++)
-   {
-      if (D[i] < 0.0) VolIn[i] -= D[i]*dt;
-      if (VolIn[i] > 0.0) C[i] = MassIn[i]/VolIn[i];
-      else                C[i] = XC[i];
-   }
-
-   /* Update tank quality */
-   updatetanks(dt);
-
-   /* For flow tracing, set source node concen. to 100. */
-   if (Qualflag == TRACE) C[TraceNode] = 100.0;
+  int i;
+  
+  /* Update junction quality */
+  for (i=1; i<=Njuncs; i++)
+  {
+    if (D[i] < 0.0) {
+      VolIn[i] -= D[i]*dt;
+    }
+    if (VolIn[i] > 0.0) {
+      C[i] = MassIn[i]/VolIn[i];
+    }
+    else {
+      C[i] = XC[i];
+    }
+  }
+  
+  /* Update tank quality */
+  updatetanks(dt);
+  
+  /* For flow tracing, set source node concen. to 100. */
+  if (Qualflag == TRACE) C[TraceNode] = 100.0;
 }
 
 
@@ -972,9 +985,13 @@ void sourceinput(long dt)
             /* Mass added is difference between source */
             /* & node concen. times outflow volume  */
             case SETPOINT:
-               if (s > C[n]) massadded = (s-C[n])*volout;
-               else massadded = 0.0;
-               break;
+             if (s > C[n]) {
+               massadded = (s-C[n])*volout;
+             }
+             else {
+               massadded = 0.0;
+             }
+             break;
 
             /* Flow-Paced Booster Source: */
             /* Mass added = source concen. times outflow volume */
@@ -1557,7 +1574,7 @@ void  ratecoeffs()
       kw = Link[k].Kw;
       if (kw != 0.0) kw = piperate(k);
       Link[k].Rc = kw;
-      R[k] = 0.0;
+      PipeRateCoeff[k] = 0.0;
    }
 }                         /* End of ratecoeffs */
 
