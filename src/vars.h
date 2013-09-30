@@ -144,17 +144,17 @@ AUTHOR:     L. Rossman
  SField   Field[MAXVAR];         /* Output reporting fields      */
 
 /* Array pointers not allocated and freed in same routine */
- char     *S,                    /* Link status                  */
+ char           *LinkStatus,           /* Link status                  */
                 *OldStat;              /* Previous link/tank status    */
- double   *D,                    /* Node actual demand           */
-                *C,                    /* Node actual quality          */
+ double         *NodeDemand,           /* Node actual demand           */
+                *NodeQual,             /* Node actual quality          */
                 *E,                    /* Emitter flows                */
-                *K,                    /* Link settings                */
+                *LinkSetting,          /* Link settings                */
                 *Q,                    /* Link flows                   */
-                *R,                    /* Pipe reaction rate           */
+                *PipeRateCoeff,        /* Pipe reaction rate           */
                 *X,                    /* General purpose array        */
-                *XC;                    /* General purpose array        */
-EXTERN double   *H;                    /* Node heads                   */
+                *TempQual;             /* General purpose array for water quality        */
+EXTERN double   *NodeHead;             /* Node heads                   */
 EXTERN double *QTankVolumes;
 EXTERN double *QLinkFlow;
 EXTERN STmplist *Patlist;              /* Temporary time pattern list  */ 
@@ -171,7 +171,8 @@ EXTERN Svalve   *Valve;                /* Valve data                   */
 EXTERN Scontrol *Control;              /* Control data                 */
 EXTERN HTtable  *Nht, *Lht;            /* Hash tables for ID labels    */
 EXTERN Padjlist *Adjlist;              /* Node adjacency lists         */
-EXTERN int _relativeError, _iterations; /* Info about hydraulic solution */
+EXTERN double _relativeError;
+EXTERN int _iterations; /* Info about hydraulic solution */
 
 /*
 ** NOTE: Hydraulic analysis of the pipe network at a given point in time

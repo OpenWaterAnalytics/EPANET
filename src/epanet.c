@@ -1248,7 +1248,7 @@ int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int n)
    else return(0);
 }
 
-int  DLLEXPORT ENgetstatistic(int code, int* value)
+int  DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value)
 /*----------------------------------------------------------------
  **  Input:   code    = type of simulation statistic to retrieve
  **  Output:  value   = value of requested statistic
@@ -1259,10 +1259,10 @@ int  DLLEXPORT ENgetstatistic(int code, int* value)
 {
   switch (code) {
     case EN_ITERATIONS:
-      *value = _iterations;
+      *value = (EN_API_FLOAT_TYPE)_iterations;
       break;
     case EN_RELATIVEERROR:
-      *value = _relativeError;
+      *value = (EN_API_FLOAT_TYPE)_relativeError;
       break;
     default:
       break;
@@ -1443,19 +1443,19 @@ int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
          break;                                                                //(2.00.11 - LR)
          
       case EN_DEMAND:
-         v = D[index]*Ucf[FLOW];
+         v = NodeDemand[index]*Ucf[FLOW];
          break;
 
       case EN_HEAD:
-         v = H[index]*Ucf[HEAD];
+         v = NodeHead[index]*Ucf[HEAD];
          break;
 
       case EN_PRESSURE:
-         v = (H[index] - Node[index].El)*Ucf[PRESSURE];
+         v = (NodeHead[index] - Node[index].El)*Ucf[PRESSURE];
          break;
 
       case EN_QUALITY:
-         v = C[index]*Ucf[QUALITY];
+         v = NodeQual[index]*Ucf[QUALITY];
          break;
 
 /*** New parameters added for retrieval begins here   ***/                     //(2.00.12 - LR)
@@ -1492,7 +1492,7 @@ int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
             v = (Tank[index-Njuncs].Hmin - Node[index].El) * Ucf[ELEV];
          }
          break;
-
+ 
       case EN_MAXLEVEL:
          v = 0.0;
          if ( index > Njuncs )
@@ -1518,7 +1518,7 @@ int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
 
       case EN_TANKVOLUME:
          if (index <= Njuncs) return(251);
-         v = tankvolume(index-Njuncs, H[index])*Ucf[VOLUME];
+         v = tankvolume(index-Njuncs, NodeHead[index])*Ucf[VOLUME];
          break;
 
       default: return(251);
@@ -1685,7 +1685,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
       case EN_FLOW:
 
 /*** Updated 10/25/00 ***/
-         if (S[index] <= CLOSED) v = 0.0;
+         if (LinkStatus[index] <= CLOSED) v = 0.0;
          else v = Q[index]*Ucf[FLOW];
          break;
 
@@ -1693,7 +1693,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
          if (Link[index].Type == PUMP) v = 0.0;
 
 /*** Updated 11/19/01 ***/
-         else if (S[index] <= CLOSED) v = 0.0;
+         else if (LinkStatus[index] <= CLOSED) v = 0.0;
 
          else
          {
@@ -1706,26 +1706,31 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
       case EN_HEADLOSS:
 
 /*** Updated 11/19/01 ***/
-         if (S[index] <= CLOSED) v = 0.0;
+         if (LinkStatus[index] <= CLOSED) v = 0.0;
 
          else
          {
-            h = H[Link[index].N1] - H[Link[index].N2];
+            h = NodeHead[Link[index].N1] - NodeHead[Link[index].N2];
             if (Link[index].Type != PUMP) h = ABS(h);
             v = h*Ucf[HEADLOSS];
          }
          break;
 
       case EN_STATUS:
-         if (S[index] <= CLOSED) v = 0.0;
+         if (LinkStatus[index] <= CLOSED) v = 0.0;
          else v = 1.0;
          break;
 
       case EN_SETTING:
-         if (Link[index].Type == PIPE || Link[index].Type == CV) 
+         if (Link[index].Type == PIPE || Link[index].Type == CV) {
             return(ENgetlinkvalue(index, EN_ROUGHNESS, value));
-         if (K[index] == MISSING) v = 0.0;
-         else                     v = K[index];
+         }
+         if (LinkSetting[index] == MISSING) {
+           v = 0.0;
+         }
+         else {
+           v = LinkSetting[index];
+         }
          switch (Link[index].Type)
          {
             case PRV:
@@ -1750,7 +1755,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
 }
 
 
-int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
+int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
 /*----------------------------------------------------------------
  **  Input:   curveIndex = curve index
  **  Output:  *nValues = number of points on curve
@@ -1776,6 +1781,7 @@ int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, EN_API_FLOAT_TYPE **xVal
     pointY[iPoint] = (EN_API_FLOAT_TYPE)y;
   }
   
+  strncpy(id, curve.ID, MAXID);
   *nValues = nPoints;
   *xValues = pointX;
   *yValues = pointY;
@@ -1910,7 +1916,7 @@ int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
             Tank[j].Hmin += value;
             Tank[j].Hmax += value;
             Node[index].El += value;
-            H[index] += value;
+            NodeHead[index] += value;
          }
          break;
 
@@ -1967,7 +1973,9 @@ int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
             source->Pat = 0;
             Node[index].S = source;
          }
-         if (code == EN_SOURCEQUAL) source->C0 = value;
+         if (code == EN_SOURCEQUAL) {
+           source->C0 = value;
+         }
          else if (code == EN_SOURCEPAT)
          {
             j = ROUND(value);
@@ -1991,7 +1999,7 @@ int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
             Tank[j].Hmin = Tank[j].H0;
             Tank[j].Hmax = Tank[j].H0;
             Node[index].El = Tank[j].H0;
-            H[index] = Tank[j].H0;
+            NodeHead[index] = Tank[j].H0;
          }
          else
          {
@@ -2000,7 +2008,9 @@ int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
             ||  value < Tank[j].Hmin) return(202);
             Tank[j].H0 = value;
             Tank[j].V0 = tankvolume(j, Tank[j].H0);
-            H[index] = Tank[j].H0;
+           // Resetting Volume in addition to initial volume
+            Tank[j].V = Tank[j].V0;
+            NodeHead[index] = Tank[j].H0;
          }
          break;
 
@@ -2155,7 +2165,7 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
          if (code == EN_INITSTATUS)
            setlinkstatus(index, s, &Link[index].Stat, &Link[index].Kc);
          else
-           setlinkstatus(index, s, &S[index], &K[index]);
+           setlinkstatus(index, s, &LinkStatus[index], &LinkSetting[index]);
          break;
 
       case EN_INITSETTING:
@@ -2182,7 +2192,7 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
             if (code == EN_INITSETTING)
               setlinksetting(index, value, &Link[index].Stat, &Link[index].Kc);
             else
-              setlinksetting(index, value, &S[index], &K[index]);
+              setlinksetting(index, value, &LinkStatus[index], &LinkSetting[index]);
          }
          break;
 
@@ -2750,13 +2760,13 @@ void initpointers()
 **----------------------------------------------------------------
 */
 {
-   D        = NULL;
-   C        = NULL;
-   H        = NULL;
+   NodeDemand        = NULL;
+   NodeQual = NULL;
+   NodeHead        = NULL;
    Q        = NULL;
-   R        = NULL;
-   S        = NULL;
-   K        = NULL;
+   PipeRateCoeff        = NULL;
+   LinkStatus        = NULL;
+   LinkSetting        = NULL;
    OldStat  = NULL;
 
    Node     = NULL;
@@ -2819,13 +2829,13 @@ int  allocdata()
    {
       n = MaxNodes + 1;
       Node = (Snode *)  calloc(n, sizeof(Snode));
-      D    = (double *) calloc(n, sizeof(double));
-      C    = (double *) calloc(n, sizeof(double));
-      H    = (double *) calloc(n, sizeof(double));
+      NodeDemand   = (double *) calloc(n, sizeof(double));
+      NodeQual = (double *) calloc(n, sizeof(double));
+      NodeHead    = (double *) calloc(n, sizeof(double));
       ERRCODE(MEMCHECK(Node));
-      ERRCODE(MEMCHECK(D));
-      ERRCODE(MEMCHECK(C));
-      ERRCODE(MEMCHECK(H));
+      ERRCODE(MEMCHECK(NodeDemand));
+      ERRCODE(MEMCHECK(NodeQual));
+      ERRCODE(MEMCHECK(NodeHead));
    }
 
 /* Allocate memory for network links */
@@ -2834,12 +2844,12 @@ int  allocdata()
       n = MaxLinks + 1;
       Link = (Slink *) calloc(n, sizeof(Slink));
       Q    = (double *) calloc(n, sizeof(double));
-      K    = (double *) calloc(n, sizeof(double));
-      S    = (char  *) calloc(n, sizeof(char));
+      LinkSetting    = (double *) calloc(n, sizeof(double));
+      LinkStatus    = (char  *) calloc(n, sizeof(char));
       ERRCODE(MEMCHECK(Link));
       ERRCODE(MEMCHECK(Q));
-      ERRCODE(MEMCHECK(K));
-      ERRCODE(MEMCHECK(S));
+      ERRCODE(MEMCHECK(LinkSetting));
+      ERRCODE(MEMCHECK(LinkStatus));
    } 
 
 /* Allocate memory for tanks, sources, pumps, valves,   */
@@ -2950,12 +2960,12 @@ void  freedata()
     Psource source;
 
 /* Free memory for computed results */
-    free(D);
-    free(C);
-    free(H);
+    free(NodeDemand);
+    free(NodeQual);
+    free(NodeHead);
     free(Q);
-    free(K);
-    free(S);
+    free(LinkSetting);
+    free(LinkStatus);
 
 /* Free memory for node data */
     if (Node != NULL)
@@ -3285,6 +3295,22 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *
   }
   return 0;
 }
+
+int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand)
+{
+  Pdemand d;
+  int n=1;
+  /* Check for valid arguments */
+  if (!Openflag) return(102);
+  if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
+  if (nodeIndex <= Njuncs) {
+	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
+	if(n!=demandIdx) return(253);
+    d->Base = baseDemand/Ucf[FLOW];
+  }
+  return 0;
+}
+
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 {
 	Pdemand d;
