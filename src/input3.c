@@ -99,9 +99,9 @@ int  juncdata()
       demand->Pat = p;
       demand->next = Node[Njuncs].D;
       Node[Njuncs].D = demand;
-      D[Njuncs] = y;
+      NodeDemand[Njuncs] = y;
    }
-   else D[Njuncs] = MISSING;
+   else NodeDemand[Njuncs] = MISSING;
 /*** end of update ***/
    return(0);
 }                        /* end of juncdata */
@@ -682,11 +682,11 @@ int  demanddata()
 
 /*** Updated 6/24/02 ***/
    demand = Node[j].D;
-   if (demand && D[j] != MISSING)
+   if (demand && NodeDemand[j] != MISSING)
    {
       demand->Base = y;
       demand->Pat  = p;
-      D[j] = MISSING;
+      NodeDemand[j] = MISSING;
    }
 /*** End of update ***/
 

@@ -144,17 +144,17 @@ AUTHOR:     L. Rossman
  SField   Field[MAXVAR];         /* Output reporting fields      */
 
 /* Array pointers not allocated and freed in same routine */
- char     *S,                    /* Link status                  */
+ char           *LinkStatus,           /* Link status                  */
                 *OldStat;              /* Previous link/tank status    */
- double   *D,                    /* Node actual demand           */
-                *C,                    /* Node actual quality          */
+ double         *NodeDemand,           /* Node actual demand           */
+                *NodeQual,             /* Node actual quality          */
                 *E,                    /* Emitter flows                */
-                *K,                    /* Link settings                */
+                *LinkSetting,          /* Link settings                */
                 *Q,                    /* Link flows                   */
-                *PipeRateCoeff,                    /* Pipe reaction rate           */
+                *PipeRateCoeff,        /* Pipe reaction rate           */
                 *X,                    /* General purpose array        */
-                *XC;                    /* General purpose array for water quality        */
-EXTERN double   *H;                    /* Node heads                   */
+                *TempQual;             /* General purpose array for water quality        */
+EXTERN double   *NodeHead;             /* Node heads                   */
 EXTERN double *QTankVolumes;
 EXTERN double *QLinkFlow;
 EXTERN STmplist *Patlist;              /* Temporary time pattern list  */ 

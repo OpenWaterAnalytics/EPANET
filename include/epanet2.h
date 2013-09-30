@@ -9,8 +9,8 @@
  3/1/01
  8/15/07    (2.00.11)
  2/14/08    (2.00.12)
- AUTHOR:     L. Rossman
- US EPA - NRMRL
+ AUTHORS:     L. Rossman - US EPA - NRMRL
+              OpenWaterAnalytics members: see git stats for contributors
  
  *******************************************************************
  */
@@ -248,7 +248,7 @@ extern "C" {
   int  DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int len);
   int  DLLEXPORT ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value);
   int  DLLEXPORT ENsettimeparam(int code, long value);
-  int  DLLEXPORT ENsetoption(int, EN_API_FLOAT_TYPE);
+  int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v);
   int  DLLEXPORT ENsetstatusreport(int code);
   int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
   int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);

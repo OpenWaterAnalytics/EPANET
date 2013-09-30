@@ -106,9 +106,9 @@ int  openqual()
    if (SegPool == NULL) errcode = 101;                                         //(2.00.11 - LR)
 
    /* Allocate scratch array & reaction rate array*/
-   XC  = (double *) calloc(MAX((Nnodes+1),(Nlinks+1)),sizeof(double));
+   TempQual  = (double *) calloc(MAX((Nnodes+1),(Nlinks+1)),sizeof(double));
    PipeRateCoeff  = (double *) calloc((Nlinks+1), sizeof(double));
-   ERRCODE(MEMCHECK(XC));
+   ERRCODE(MEMCHECK(TempQual));
    ERRCODE(MEMCHECK(PipeRateCoeff));
 
    /* Allocate memory for WQ solver */
@@ -148,7 +148,7 @@ void  initqual()
    int i;
 
    /* Initialize quality, tank volumes, & source mass flows */
-   for (i=1; i<=Nnodes; i++) C[i] = Node[i].C0;
+   for (i=1; i<=Nnodes; i++) NodeQual[i] = Node[i].C0;
    for (i=1; i<=Ntanks; i++) Tank[i].C = Node[Tank[i].Node].C0;
    for (i=1; i<=Ntanks; i++) Tank[i].V = Tank[i].V0;
    for (i=1; i<=Nnodes; i++) {
@@ -165,7 +165,7 @@ void  initqual()
    if (Qualflag != NONE)
    {
       /* Initialize WQ at trace node (if applicable) */
-      if (Qualflag == TRACE) C[TraceNode] = 100.0;
+      if (Qualflag == TRACE) NodeQual[TraceNode] = 100.0;
 
       /* Compute Schmidt number */
       if (Diffus > 0.0)
@@ -242,7 +242,7 @@ int runqual(long *t)
         
         for (int i=1; i<= Nlinks; ++i)
         {
-          if (S[i] <= CLOSED) {
+          if (LinkStatus[i] <= CLOSED) {
             QLinkFlow[i-1] = Q[i];
           }
         }
@@ -257,7 +257,7 @@ int runqual(long *t)
         
         for (int i=1; i<= Nlinks; ++i)
         {
-          if (S[i] <= CLOSED) {
+          if (LinkStatus[i] <= CLOSED) {
             QLinkFlow[i-1] = Q[i];
           }
         }
@@ -306,13 +306,13 @@ int nextqual(long *tstep)
       if (Tank[i].A != 0) { // skip reservoirs again
         int n = Tank[i].Node;
         Tank[i].V = QTankVolumes[i-1];
-        H[n] = tankgrade(i,Tank[i].V);
+        NodeHead[n] = tankgrade(i,Tank[i].V);
       }
     }
     
     // restore the previous step's pipe link flows
     for (int i=1; i<=Nlinks; i++) {
-      if (S[i] <= CLOSED) {
+      if (LinkStatus[i] <= CLOSED) {
         Q[i] = 0.0;
       }
     }
@@ -336,12 +336,12 @@ int nextqual(long *tstep)
       if (Tank[i].A != 0) { // skip reservoirs again
         int n = Tank[i].Node;
         Tank[i].V = tankVolumes[i-1];
-        H[n] = tankgrade(i,Tank[i].V);
+        NodeHead[n] = tankgrade(i,Tank[i].V);
       }
     }
     
     for (int i=1; i<=Nlinks; ++i) {
-      if (S[i] <= CLOSED) {
+      if (LinkStatus[i] <= CLOSED) {
         Q[i] = QLinkFlow[i-1];
       }
     }
@@ -415,7 +415,7 @@ int closequal()
    free(VolIn);
    free(MassIn);
    free(PipeRateCoeff);
-   free(XC);
+   free(TempQual);
    free(QTankVolumes);
    free(QLinkFlow);
    return(errcode);
@@ -571,7 +571,7 @@ void  initsegs()
 
       /* Find quality of downstream node */
       j = DOWN_NODE(k);
-      if (j <= Njuncs) c = C[j];
+      if (j <= Njuncs) c = NodeQual[j];
       else             c = Tank[j-Njuncs].C;
 
       /* Fill link with single segment with this quality */
@@ -781,7 +781,7 @@ void accumulate(long dt)
    /* Re-set memory used to accumulate mass & volume */
    memset(VolIn,0,(Nnodes+1)*sizeof(double));
    memset(MassIn,0,(Nnodes+1)*sizeof(double));
-   memset(XC,0,(Nnodes+1)*sizeof(double));
+   memset(TempQual,0,(Nnodes+1)*sizeof(double));
 
    /* Compute average conc. of segments adjacent to each node */
    /* (For use if there is no transport through the node) */
@@ -803,7 +803,7 @@ void accumulate(long dt)
   
   for (k=1; k<=Nnodes; k++) {
     if (VolIn[k] > 0.0) {
-      XC[k] = MassIn[k]/VolIn[k];
+      TempQual[k] = MassIn[k]/VolIn[k];
     }
   }
   
@@ -824,7 +824,7 @@ void accumulate(long dt)
       {
          VolIn[j] += v;
          seg = FirstSeg[k];
-         cseg = C[i];
+         cseg = NodeQuali];
          if (seg != NULL) cseg = seg->c;
          MassIn[j] += v*cseg;
          removesegs(k);
@@ -886,7 +886,7 @@ void updatenodes(long dt)
 **   Purpose: updates concentration at all nodes to mixture of accumulated
 **            inflow from connecting pipes.
 **
-**  Note:     Does not account for source flow effects. XC[i] contains
+**  Note:     Does not account for source flow effects. TempQual[i] contains
 **            average concen. of segments adjacent to node i, used in case
 **            there was no inflow into i.
 **---------------------------------------------------------------------------
@@ -897,14 +897,14 @@ void updatenodes(long dt)
   /* Update junction quality */
   for (i=1; i<=Njuncs; i++)
   {
-    if (D[i] < 0.0) {
-      VolIn[i] -= D[i]*dt;
+    if (NodeDemand[i] < 0.0) {
+      VolIn[i] -= NodeDemand[i]*dt;
     }
     if (VolIn[i] > 0.0) {
-      C[i] = MassIn[i]/VolIn[i];
+      NodeQual[i] = MassIn[i]/VolIn[i];
     }
     else {
-      C[i] = XC[i];
+      NodeQual[i] = TempQual[i];
     }
   }
   
@@ -912,7 +912,7 @@ void updatenodes(long dt)
   updatetanks(dt);
   
   /* For flow tracing, set source node concen. to 100. */
-  if (Qualflag == TRACE) C[TraceNode] = 100.0;
+  if (Qualflag == TRACE) NodeQual[TraceNode] = 100.0;
 }
 
 
@@ -934,14 +934,14 @@ void sourceinput(long dt)
    /* Establish a flow cutoff which indicates no outflow from a node */
    qcutoff = 10.0*TINY;
 
-   /* Zero-out the work array XC */
-   memset(XC,0,(Nnodes+1)*sizeof(double));
+   /* Zero-out the work array TempQual */
+   memset(TempQual,0,(Nnodes+1)*sizeof(double));
    if (Qualflag != CHEM) return;
 
    /* Consider each node */
    for (n=1; n<=Nnodes; n++)
    {
-
+      double thisDemand = NodeDemand[n];
       /* Skip node if no WQ source */
       source = Node[n].S;
       if (source == NULL) continue;
@@ -949,7 +949,7 @@ void sourceinput(long dt)
     
       /* Find total flow volume leaving node */
       if (n <= Njuncs) volout = VolIn[n];  /* Junctions */
-      else volout = VolIn[n] - D[n]*dt;    /* Tanks */
+      else volout = VolIn[n] - (thisDemand * dt);    /* Tanks */
       qout = volout / (double) dt;
 
       /* Evaluate source input only if node outflow > cutoff flow */
@@ -965,13 +965,13 @@ void sourceinput(long dt)
             case CONCEN:
 
                /* Only add source mass if demand is negative */
-               if (D[n] < 0.0)
+               if (thisDemand < 0.0)
                {
-                  massadded = -s*D[n]*dt;
+                  massadded = -s*thisDemand*dt;
 
                   /* If node is a tank then set concen. to 0. */
                   /* (It will be re-set to true value in updatesourcenodes()) */
-                  if (n > Njuncs) C[n] = 0.0;
+                  if (n > Njuncs) NodeQual[n] = 0.0;
                }
                else massadded = 0.0;
                break;
@@ -985,8 +985,8 @@ void sourceinput(long dt)
             /* Mass added is difference between source */
             /* & node concen. times outflow volume  */
             case SETPOINT:
-             if (s > C[n]) {
-               massadded = (s-C[n])*volout;
+             if (s > NodeQual[n]) {
+               massadded = (s-NodeQual[n])*volout;
              }
              else {
                massadded = 0.0;
@@ -1001,7 +1001,7 @@ void sourceinput(long dt)
          }
 
          /* Source concen. contribution = (mass added / outflow volume) */
-         XC[n] = massadded/volout;
+         TempQual[n] = massadded/volout;
 
          /* Update total mass added for time period & simulation */
          source->Smass += massadded;
@@ -1017,8 +1017,8 @@ void sourceinput(long dt)
          if (Tank[j].A == 0.0)
          {
             n = Njuncs + j;
-            volout = VolIn[n] - D[n]*dt;
-            if (volout > 0.0) Wsource += volout*C[n];
+            volout = VolIn[n] - NodeDemand[n]*dt;
+            if (volout > 0.0) Wsource += volout*NodeQual[n];
          }
       }
    }
@@ -1052,7 +1052,7 @@ void release(long dt)
       v = q*dt;
 
       /* Include source contribution in quality released from node. */
-      c = C[n] + XC[n];
+      c = NodeQual[n] + TempQual[n];
 
       /* If link has a last seg, check if its quality     */
       /* differs from that of the flow released from node.*/
@@ -1081,7 +1081,7 @@ void  updatesourcenodes(long dt)
 **   Input:   dt = current WQ time step     
 **   Output:  none
 **   Purpose: updates quality at source nodes.
-**            (XC[n] = concen. added by source at node n)
+**            (TempQual[n] = concen. added by source at node n)
 **---------------------------------------------------
 */
 {
@@ -1097,13 +1097,13 @@ void  updatesourcenodes(long dt)
       if (source == NULL) continue;
 
       /* Add source to current node concen. */
-      C[n] += XC[n];
+      NodeQual[n] += TempQual[n];
 
       /* For tanks, node concen. = internal concen. */
       if (n > Njuncs)
       {
          i = n - Njuncs;
-         if (Tank[i].A > 0.0) C[n] = Tank[i].C;
+         if (Tank[i].A > 0.0) NodeQual[n] = Tank[i].C;
       }
 
       /* Normalize mass added at source to time step */
@@ -1130,7 +1130,7 @@ void  updatetanks(long dt)
       /* Use initial quality for reservoirs */
       if (Tank[i].A == 0.0)
       {
-         C[n] = Node[n].C0;
+         NodeQual[n] = Node[n].C0;
       }
       /* Update tank WQ based on mixing model */
       else {
@@ -1173,7 +1173,7 @@ void  updatetanks(long dt)
 
 //   /* Update tank volume & nodal quality */
 //   Tank[i].V += D[n]*dt;
-//   C[n] = Tank[i].C;
+//   NodeQual[n] = Tank[i].C;
 //}
 
 
@@ -1198,7 +1198,7 @@ void  tankmix1(int i, long dt)
    /* Determine tank & volumes */
    vold = Tank[i].V;
    n = Tank[i].Node;
-   Tank[i].V += D[n]*dt;
+   Tank[i].V += NodeDemand[n]*dt;
    vin  = VolIn[n];
 
    /* Compute inflow concen. */
@@ -1211,7 +1211,7 @@ void  tankmix1(int i, long dt)
    c = MIN(c, cmax);
    c = MAX(c, 0.0);
    Tank[i].C = c;
-   C[n] = Tank[i].C;
+   NodeQual[n] = Tank[i].C;
 }
 
 /*** Updated 10/25/00 ***/
@@ -1248,7 +1248,7 @@ void  tankmix2(int i, long dt)
 
    /* Find inflows & outflows */
    n = Tank[i].Node;
-   vnet = D[n]*dt;
+   vnet = NodeDemand[n]*dt;
    vin = VolIn[n];
    if (vin > 0.0) cin = MassIn[n]/vin;
    else           cin = 0.0;
@@ -1304,7 +1304,7 @@ void  tankmix2(int i, long dt)
    /* represent quality of tank since this is where */
    /* outflow begins to flow from */
    Tank[i].C = seg1->c;
-   C[n] = Tank[i].C;
+   NodeQual[n] = Tank[i].C;
 }
 
 
@@ -1339,7 +1339,7 @@ void  tankmix3(int i, long dt)
 
    /* Find inflows & outflows */
    n = Tank[i].Node;
-   vnet = D[n]*dt;
+   vnet = NodeDemand[n]*dt;
    vin = VolIn[n];
    vout = vin - vnet;
    if (vin > 0.0) cin = MassIn[n]/VolIn[n];
@@ -1380,7 +1380,7 @@ void  tankmix3(int i, long dt)
    /* to represent overall quality of tank */
    if (vsum > 0.0) Tank[i].C = csum/vsum;
    else            Tank[i].C = FirstSeg[k]->c;
-   C[n] = Tank[i].C;
+   NodeQual[n] = Tank[i].C;
 
    /* Add new last segment for new flow entering tank */
    if (vin > 0.0)
@@ -1430,7 +1430,7 @@ void  tankmix4(int i, long dt)
 
    /* Find inflows & outflows */
    n = Tank[i].Node;
-   vnet = D[n]*dt;
+   vnet = NodeDemand[n]*dt;
    vin = VolIn[n];
    if (vin > 0.0) cin = MassIn[n]/VolIn[n];
    else           cin = 0.0;
@@ -1498,7 +1498,7 @@ void  tankmix4(int i, long dt)
       /* Reported tank quality is mixture of flow released and any inflow */
       Tank[i].C = (csum + MassIn[n])/(vsum + vin);
    }
-   C[n] = Tank[i].C;
+   NodeQual[n] = Tank[i].C;
 }         
 
 
@@ -1553,7 +1553,7 @@ double  avgqual(int k)
        seg = seg->prev;
    }
    if (vsum > 0.0) return(msum/vsum);
-   else return( (C[Link[k].N1] + C[Link[k].N2])/2. );
+   else return( (NodeQual[Link[k].N1] + NodeQual[Link[k].N2])/2. );
 }
 
 
