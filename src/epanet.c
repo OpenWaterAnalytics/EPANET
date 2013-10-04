@@ -1223,6 +1223,13 @@ int  DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode)
    return(0);
 }
 
+int DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode)
+{
+  ENgetqualtype(qualcode, tracenode);
+  strncpy(chemname,ChemName,MAXID);
+  strncpy(chemunits,ChemUnits,MAXID);
+  return 0;
+}
 
 int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int n)
 /*----------------------------------------------------------------
