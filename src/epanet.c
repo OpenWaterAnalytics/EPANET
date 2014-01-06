@@ -1642,12 +1642,9 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
          break;
 
       case EN_MINORLOSS:
+         v = Link[index].Km;
          if (Link[index].Type != PUMP)
-         {
-            v = Link[index].Km;
             v *= (SQR(Link[index].Diam)*SQR(Link[index].Diam)/0.02517);
-         }
-         else v = 0.0;
          break;
 
       case EN_INITSTATUS:
