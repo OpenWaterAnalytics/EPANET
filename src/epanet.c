@@ -2502,6 +2502,54 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname,
    return(0);
 }
 
+int DLLEXPORT ENgetheadcurve(int index, char *id)
+/*----------------------------------------------------------------
+**  Input:   index = index of pump in list of links
+**  Output:  id = head curve ID
+**  Returns: error code                              
+**  Purpose: retrieves ID of a head curve for specific link index
+**
+**  NOTE: 'id' must be able to hold MAXID characters
+**----------------------------------------------------------------
+*/
+{
+   int i;
+   strcpy(id,"");
+   if (!Openflag) return(102);
+   for (i=1; i<=Npumps; i++)
+   {
+      if(Pump[i].Link = index) 
+      {
+         strcpy(id,Curve[Pump[i].Hcurve].ID);                   
+         return(0);
+      }
+   }
+   return(204);
+}
+
+int DLLEXPORT ENgetpumptype(int index, int *type)
+/*----------------------------------------------------------------
+**  Input:   index = index of pump in list of links
+**  Output:  type = PumpType
+**  Returns: error code                              
+**  Purpose: retrieves type of a pump for specific link index
+**
+**----------------------------------------------------------------
+*/
+{
+   int i;
+   *type=-1;
+   if (!Openflag) return(102);
+   for (i=1; i<=Npumps; i++)
+   {
+      if(Pump[i].Link = index) 
+      {
+         *type = Pump[i].Ptype;                   
+         return(0);
+      }
+   }
+   return(204);
+}
 
 /*
 ----------------------------------------------------------------

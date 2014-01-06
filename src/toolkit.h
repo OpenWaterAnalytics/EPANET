@@ -166,6 +166,9 @@ AUTHOR:     L. Rossman
 
 #define EN_INITFLOW    10   /* Re-initialize flows flag  */
 
+#define EN_CONST_HP     0   /* constant horsepower       */
+#define EN_POWER_FUNC   1   /* power function            */
+#define EN_CUSTOM       2   /* user-defined custom curve */
 
 // --- Declare the EPANET toolkit functions
 #if defined(__cplusplus)
@@ -230,6 +233,8 @@ extern "C" {
  int  DLLEXPORT ENgetlinkvalue(int, int, float *);
  
  int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float **yValues);
+ int  DLLEXPORT ENgetheadcurve(int, char *);
+ int  DLLEXPORT ENgetpumptype(int, int *);
 
  int  DLLEXPORT ENgetversion(int *);
 
