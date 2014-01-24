@@ -1737,6 +1737,11 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, float *value)
       case EN_LINKQUAL:
          v = avgqual(index) * Ucf[LINKQUAL];
          break;
+
+      case EN_LINKPATTERN:
+         if (Link[index].Type == PUMP)
+            v = (double)Pump[PUMPINDEX(index)].Upat;
+         break;
          
       default: return(251);
    }
