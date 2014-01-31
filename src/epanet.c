@@ -96,9 +96,9 @@ This module calls the following functions that reside in other modules:
      writelogo()
      writereport()
    HASH.C
-     HTcreate()
-     HTfind()
-     HTfree()
+     ENHashTablecreate()
+     ENHashTableFind()
+     ENHashTableFree()
 
 The macro ERRCODE(x) is defined in TYPES.H. It says if the current
 value of the error code variable (errcode) is not fatal (< 100) then
@@ -2802,8 +2802,8 @@ void initpointers()
    XLNZ     = NULL;
    NZSUB    = NULL;
    LNZ      = NULL;
-   Nht      = NULL;
-   Lht      = NULL;
+   NodeHashTable      = NULL;
+   LinkHashTable      = NULL;
    initrules();
 }
 
@@ -2821,10 +2821,10 @@ int  allocdata()
    int errcode = 0;
 
 /* Allocate node & link ID hash tables */
-   Nht = HTcreate();
-   Lht = HTcreate();
-   ERRCODE(MEMCHECK(Nht));
-   ERRCODE(MEMCHECK(Lht));
+   NodeHashTable = ENHashTableCreate();
+   LinkHashTable = ENHashTableCreate();
+   ERRCODE(MEMCHECK(NodeHashTable));
+   ERRCODE(MEMCHECK(LinkHashTable));
 
 /* Allocate memory for network nodes */
 /*************************************************************
@@ -3023,8 +3023,8 @@ void  freedata()
     freerules();
 
 /* Free hash table memory */
-    if (Nht != NULL) HTfree(Nht);
-    if (Lht != NULL) HTfree(Lht);
+    if (NodeHashTable != NULL) ENHashTableFree(NodeHashTable);
+    if (LinkHashTable != NULL) ENHashTableFree(LinkHashTable);
 }
 
 
@@ -3138,7 +3138,7 @@ int   findnode(char *id)
 **----------------------------------------------------------------
 */
 {
-   return(HTfind(Nht,id));
+   return(ENHashTableFind(NodeHashTable,id));
 }
 
 
@@ -3151,7 +3151,7 @@ int  findlink(char *id)
 **----------------------------------------------------------------
 */
 {
-   return(HTfind(Lht,id));
+   return(ENHashTableFind(LinkHashTable,id));
 }
 
 

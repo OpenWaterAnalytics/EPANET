@@ -423,7 +423,7 @@ int   addnodeID(int n, char *id)
 {
     if (findnode(id)) return(0);         /* see EPANET.C */
     strncpy(Node[n].ID, id, MAXID);
-    HTinsert(Nht, Node[n].ID, n);        /* see HASH.C */
+    ENHashTableInsert(NodeHashTable, Node[n].ID, n);        /* see HASH.C */
     return(1);
 }
 
@@ -440,7 +440,7 @@ int   addlinkID(int n, char *id)
 {
     if (findlink(id)) return(0);         /* see EPANET.C */
     strncpy(Link[n].ID, id, MAXID);
-    HTinsert(Lht, Link[n].ID, n);        /* see HASH.C */
+    ENHashTableInsert(LinkHashTable, Link[n].ID, n);        /* see HASH.C */
     return(1);
 }
 

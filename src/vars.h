@@ -169,7 +169,7 @@ EXTERN Stank    *Tank;                 /* Tank data                    */
 EXTERN Spump    *Pump;                 /* Pump data                    */
 EXTERN Svalve   *Valve;                /* Valve data                   */
 EXTERN Scontrol *Control;              /* Control data                 */
-EXTERN HTtable  *Nht, *Lht;            /* Hash tables for ID labels    */
+EXTERN ENHashTable  *NodeHashTable, *LinkHashTable;            /* Hash tables for ID labels    */
 EXTERN Padjlist *Adjlist;              /* Node adjacency lists         */
 EXTERN double _relativeError;
 EXTERN int _iterations; /* Info about hydraulic solution */

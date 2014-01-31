@@ -54,7 +54,7 @@
 		2255754917551234009946B1 /* report.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7E1068369500641384 /* report.c */; };
 		2255754A17551234009946B1 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
 		2255754B17551234009946B1 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
-		226537E0179EDEEB00258C60 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		226537E0179EDEEB00258C60 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -484,6 +484,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
@@ -503,6 +504,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
