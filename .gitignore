@@ -120,4 +120,11 @@ xcuserdata
 
 Debug/
 
+####
+# Xcode 5 -  Source Control files
+#
+# Xcode 5 introduced a new file type .xccheckout. This files contains VCS metadata
+# and should therefore not be checked into the VCS.
+
+*.xccheckout
 
