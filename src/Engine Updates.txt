@@ -1,0 +1,76 @@
+-----------------------
+Build 2.00.11 (8/15/07)
+-----------------------
+
+Computational Engine Changes (epanet2.dll and epanet2d.exe):
+===============================================================================
+CODE MODULES  CHANGES
+===============================================================================
+All           All variables previously declared as floats were re-defined as
+              doubles except for those used to write results to binary output
+              files and those used as arguments in the toolkit functions.
+-------------------------------------------------------------------------------
+EPANET.C      The symbols CLE (for command line executable) and SOL (for shared
+              object library) were introduced in addition to the existing
+              symbol DLL (for dynamic linked library) to support conditional
+              compliation for shared object libraries on Unix/Linux.
+-------------------------------------------------------------------------------
+EPANET.C      EN_INITVOLUME, EN_MIXMODEL and EN_MIXZONEVOL were added to the
+EPANET2.H     list of tank parameters that can be retrieved with
+TOOLKIT.H     ENgetnodevalue.
+-------------------------------------------------------------------------------
+EPANET.C      Missing code was added to the ENgetnodevalue function to return
+              a value for EN_SOURCEPAT when requested.
+-------------------------------------------------------------------------------
+EPANET.H      The function declarations in these "include" files were modified
+TOOLKIT.H     to support conditional compliation for shared object libraries
+              on Unix/Linux.
+-------------------------------------------------------------------------------
+INPUT3.C      The keyword "HEADLOSS" is no longer confused with "HEAD" when
+              parsing reporting variable names in the [REPORT] section of the
+              input file.
+-------------------------------------------------------------------------------
+RULES.C       The input values for a tank's FILLTIME or DRAINTIME in a rule
+              premise are now correctly converted to seconds in the
+              newpremise() function.
+-------------------------------------------------------------------------------
+HYDRAUL.C     During hydraulic balancing, status checks on control valves are
+              now made only when the convergence error drops to less than a
+              factor of 10 of the accuracy limit and a damping factor of 0.6
+              is applied to flow changes computed at each iteration beyond
+              this point.
+-------------------------------------------------------------------------------
+HYDRAUL.C     The logic for determining the status of PRVs and PSVs was changed
+              to produce more robust solutions, particularly for the case of
+              multi-stage regulator stations where there are two or more PRVs
+              connected in parallel.
+-------------------------------------------------------------------------------
+HYDRAUL.C     The matrix coefficients for fully open control valves are now set
+              directly rather than by assuming the valve has a certain length
+              and friction factor.
+-------------------------------------------------------------------------------
+HYDRAUL.C     Changes were made to how the P-coefficient for FCVs and the Y-
+              coefficient for GPVs are calculated.
+-------------------------------------------------------------------------------
+HYDRAUL.C     An extraneous "if" statement was removed from the resistance()
+              function; the Y-coefficient value in gpvcoeff() was corrected;
+              the P-coefficient value in fcvcoeff() was corrected.
+-------------------------------------------------------------------------------
+QUALITY.C     The memory pool used for water quality routing segments was given
+              the name SegPool and declared as a static global variable.
+-------------------------------------------------------------------------------
+QUALITY.C     In the release() function, the upstream node quality is now mixed
+              together with that of the upstream pipe segment when the quality
+              difference between the two is less than the CTOL tolerance.
+-------------------------------------------------------------------------------
+INPFILE.C     The ENsaveinpfile toolkit function now writes disabled reporting
+              variables to the [REPORT] section of the generated input file.
+-------------------------------------------------------------------------------
+INPFILE.C     The appearance of an extraneous character at the end of the .INP
+              file produced by the toolkit function ENsaveinpfile was fixed.
+-------------------------------------------------------------------------------
+TYPES.H       MAXID was increased to allow ID names to contain up to 31
+HASH.C        characters.
+-------------------------------------------------------------------------------
+TYPES.H       The code version was changed to 20011.
+===============================================================================
