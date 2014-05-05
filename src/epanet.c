@@ -11,6 +11,7 @@ DATE:       5/30/00
             11/19/01
             6/24/02
             8/15/07    (2.00.11)
+            2/14/08    (2.00.12)
 AUTHOR:     L. Rossman
             US EPA - NRMRL
 
@@ -114,18 +115,26 @@ execute function x and set the error code equal to its return value.
 /*** Following lines are deprecated ***/                                       //(2.00.11 - LR)
 //#ifdef DLL
 //#include <windows.h>
-
-/*** Updated 9/7/00 ***/
-#include <float.h>
-
+//#include <float.h>
 //#endif
 
+/*** Need to define WINDOWS to use the getTmpName function ***/                //(2.00.12 - LR)
+// --- define WINDOWS
+#undef WINDOWS
+#ifdef _WIN32
+  #define WINDOWS
+#endif
+#ifdef __WIN32__
+  #define WINDOWS
+#endif
+/************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
 #include <math.h>
+#include <float.h>                                                             //(2.00.12 - LR)
 #include "hash.h"    
 #include "text.h"
 #include "types.h"
@@ -134,7 +143,6 @@ execute function x and set the error code equal to its return value.
 #define  EXTERN
 #include "vars.h"
 #include "toolkit.h"
-
 
 void (* viewprog) (char *);     /* Pointer to progress viewing function */   
 
@@ -349,10 +357,21 @@ int DLLEXPORT ENclose()
 {
    if (Openflag) writetime(FMT105);
    freedata();
+
+   if (TmpOutFile != OutFile)                                                  //(2.00.12 - LR)
+   {                                                                           //(2.00.12 - LR)
+      if (TmpOutFile != NULL) fclose(TmpOutFile);                              //(2.00.12 - LR)
+      remove(TmpFname);                                                        //(2.00.12 - LR)
+   }                                                                           //(2.00.12 - LR)
+
    if (InFile  != NULL) fclose(InFile);
    if (RptFile != NULL) fclose(RptFile);
    if (HydFile != NULL) fclose(HydFile);
    if (OutFile != NULL) fclose(OutFile);
+  
+   if (Hydflag == SCRATCH) remove(HydFname);                                   //(2.00.12 - LR)
+   if (Outflag == SCRATCH) remove(OutFname);                                   //(2.00.12 - LR)
+
    Openflag  = FALSE;
    OpenHflag = FALSE;
    SaveHflag = FALSE;
@@ -1403,6 +1422,59 @@ int DLLEXPORT ENgetnodevalue(int index, int code, float *value)
          v = C[index]*Ucf[QUALITY];
          break;
 
+/*** New parameters added for retrieval begins here   ***/                     //(2.00.12 - LR)
+/*** (Thanks to Nicolas Basile of Ecole Polytechnique ***/
+/***  de Montreal for suggesting some of these.)      ***/
+
+      case EN_TANKDIAM:
+         v = 0.0;
+         if ( index > Njuncs )
+         {
+            v = 4.0/PI*sqrt(Tank[index-Njuncs].A)*Ucf[ELEV];
+         }
+         break;
+
+      case EN_MINVOLUME:
+         v = 0.0;
+         if ( index > Njuncs ) v = Tank[index-Njuncs].Vmin * Ucf[VOLUME];
+         break;
+         
+      case EN_VOLCURVE:
+         v = 0.0;
+         if ( index > Njuncs ) v = Tank[index-Njuncs].Vcurve;
+         break;
+        
+      case EN_MINLEVEL:
+         v = 0.0;
+         if ( index > Njuncs )
+         {
+            v = (Tank[index-Njuncs].Hmin - Node[index].El) * Ucf[ELEV];
+         }
+         break;
+
+      case EN_MAXLEVEL:
+         v = 0.0;
+         if ( index > Njuncs )
+         {
+            v = (Tank[index-Njuncs].Hmax - Node[index].El) * Ucf[ELEV];
+         }
+         break;
+
+      case EN_MIXFRACTION:
+         v = 1.0;
+         if ( index > Njuncs && Tank[index-Njuncs].Vmax > 0.0)
+         {
+            v = Tank[index-Njuncs].V1max / Tank[index-Njuncs].Vmax;
+         }
+         break;
+
+      case EN_TANK_KBULK:
+         v = 0.0;
+         if (index > Njuncs) v = Tank[index-Njuncs].Kb * SECperDAY;
+         break;
+
+/***  New parameter additions ends here. ***/                                  //(2.00.12 - LR)
+
       default: return(251);
    }
    *value = (float)v;
@@ -1849,6 +1921,85 @@ int DLLEXPORT ENsetnodevalue(int index, int code, float v)
          }
          break;
 
+/*** New parameters added for retrieval begins here   ***/                     //(2.00.12 - LR)
+/*** (Thanks to Nicolas Basile of Ecole Polytechnique ***/
+/***  de Montreal for suggesting some of these.)      ***/
+
+      case EN_TANKDIAM:
+         if (value <= 0.0) return(202);
+         j = index - Njuncs;
+         if (j > 0 && Tank[j].A > 0.0)
+         {
+            value /= Ucf[ELEV];
+            Tank[j].A = PI*SQR(value)/4.0;
+            Tank[j].Vmin = tankvolume(j, Tank[j].Hmin);
+            Tank[j].V0 = tankvolume(j, Tank[j].H0);
+            Tank[j].Vmax = tankvolume(j, Tank[j].Hmax);
+         }
+         break;
+
+      case EN_MINVOLUME:
+         if (value < 0.0) return(202);
+         j = index - Njuncs;
+         if (j > 0 && Tank[j].A > 0.0)
+         {
+            Tank[j].Vmin = value/Ucf[VOLUME];
+            Tank[j].V0 = tankvolume(j, Tank[j].H0);
+            Tank[j].Vmax = tankvolume(j, Tank[j].Hmax);
+         }
+         break;
+        
+      case EN_MINLEVEL:
+         if (value < 0.0) return(202);
+         j = index - Njuncs;
+         if (j > 0 && Tank[j].A > 0.0)
+         {
+            if (Tank[j].Vcurve > 0) return(202);
+            Tank[j].Hmin = value/Ucf[ELEV] + Node[index].El;
+            Tank[j].Vmin = tankvolume(j, Tank[j].Hmin);
+         }
+         break;
+
+      case EN_MAXLEVEL:
+         if (value < 0.0) return(202);
+         j = index - Njuncs;
+         if (j > 0 && Tank[j].A > 0.0)
+         {
+            if (Tank[j].Vcurve > 0) return(202);
+            Tank[j].Hmax = value/Ucf[ELEV] + Node[index].El;
+            Tank[j].Vmax = tankvolume(j, Tank[j].Hmax);
+         }
+         break;
+
+      case EN_MIXMODEL:
+         j = ROUND(value);
+         if (j < MIX1 || j > LIFO) return(202);
+         if (index > Njuncs && Tank[index-Njuncs].A > 0.0)
+         {
+            Tank[index-Njuncs].MixModel = (char)j;
+         }
+         break;
+
+      case EN_MIXFRACTION:
+         if (value < 0.0 || value > 1.0) return(202);
+         j = index - Njuncs;
+         if (j > 0 && Tank[j].A > 0.0)
+         {
+            Tank[j].V1max = value*Tank[j].Vmax;
+         }
+         break;
+
+      case EN_TANK_KBULK:
+         j = index - Njuncs;
+         if (j > 0 && Tank[j].A > 0.0)
+         {
+            Tank[j].Kb = value/SECperDAY;
+            Reactflag = 1;
+         }
+         break;
+
+/***  New parameter additions ends here. ***/                                  //(2.00.12 - LR)
+
       default: return(251);
    }
    return(0);
@@ -1953,16 +2104,92 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, float v)
          break;
 
       case EN_KBULK:
-         if (Link[index].Type <= PIPE) Link[index].Kb = value/SECperDAY;
+         if (Link[index].Type <= PIPE)
+         {
+            Link[index].Kb = value/SECperDAY;
+            Reactflag = 1;                                                     //(2.00.12 - LR)
+         }
          break;
 
       case EN_KWALL:
-         if (Link[index].Type <= PIPE) Link[index].Kw = value/SECperDAY;
+         if (Link[index].Type <= PIPE)
+         {
+            Link[index].Kw = value/SECperDAY;
+            Reactflag = 1;                                                     //(2.00.12 - LR)
+         }
          break;
 
       default: return(251);
    }
    return(0);
+}
+
+
+int  DLLEXPORT  ENaddpattern(char *id)
+/*----------------------------------------------------------------
+**   Input:   id = ID name of the new pattern
+**   Output:  none
+**   Returns: error code                              
+**   Purpose: adds a new time pattern appended to the end of the
+**            existing patterns.
+**----------------------------------------------------------------
+*/
+{
+    int i, j, n, err = 0;
+    Spattern *tmpPat;
+
+/* Check if a pattern with same id already exists */
+
+    if ( !Openflag ) return(102);
+    if ( ENgetpatternindex(id, &i) == 0 ) return(215);
+
+/* Check that id name is not too long */
+
+    if (strlen(id) > MAXID) return(250);
+
+/* Allocate memory for a new array of patterns */
+
+    n = Npats + 1;
+    tmpPat = (Spattern *) calloc(n+1, sizeof(Spattern));
+    if ( tmpPat == NULL ) return(101);
+
+/* Copy contents of old pattern array to new one */
+
+    for (i=0; i<=Npats; i++)
+    {
+        strcpy(tmpPat[i].ID, Pattern[i].ID);
+        tmpPat[i].Length  = Pattern[i].Length;
+        tmpPat[i].F = (double *) calloc(Pattern[i].Length, sizeof(double));
+        if (tmpPat[i].F == NULL) err = 1;
+        else for (j=0; j<Pattern[i].Length; j++)
+           tmpPat[i].F[j] = Pattern[i].F[j];
+    }
+
+/* Add the new pattern to the new array of patterns */
+
+    strcpy(tmpPat[n].ID, id); 
+    tmpPat[n].Length = 1;
+    tmpPat[n].F = (double *) calloc(tmpPat[n].Length, sizeof(double));
+    if (tmpPat[n].F == NULL) err = 1;
+    else tmpPat[n].F[0] = 1.0;
+
+/* Abort if memory allocation error */
+
+    if (err)
+    {
+        for (i=0; i<=n; i++) if (tmpPat[i].F) free(tmpPat[i].F);
+        free(tmpPat);
+        return(101);
+    }
+
+// Replace old pattern array with new one
+
+    for (i=0; i<=Npats; i++) free(Pattern[i].F);
+    free(Pattern);
+    Pattern = tmpPat;
+    Npats = n;
+    MaxPats = n;
+    return 0;
 }
 
    
@@ -2219,6 +2446,8 @@ int   openfiles(char *f1, char *f2, char *f3)
    strncpy(InpFname,f1,MAXFNAME);
    strncpy(Rpt1Fname,f2,MAXFNAME);
    strncpy(OutFname,f3,MAXFNAME);
+   if (strlen(f3) > 0) Outflag = SAVE;                                         //(2.00.12 - LR)
+   else Outflag = SCRATCH;                                                     //(2.00.12 - LR)
 
 /* Check that file names are not identical */
    if (strcomp(f1,f2) || strcomp(f1,f3) || strcomp(f2,f3))
@@ -2271,7 +2500,8 @@ int  openhydfile()
    HydFile = NULL;
    switch(Hydflag)
    {
-      case SCRATCH:  HydFile = tmpfile();
+      case SCRATCH:  getTmpName(HydFname);                                     //(2.00.12 - LR)
+                     HydFile = fopen(HydFname, "w+b");                         //(2.00.12 - LR)
                      break;
       case SAVE:     HydFile = fopen(HydFname,"w+b");
                      break;
@@ -2337,9 +2567,13 @@ int  openoutfile()
    if (TmpOutFile != NULL) fclose(TmpOutFile);
    TmpOutFile = NULL;
 
+   if (Outflag == SCRATCH) remove(OutFname);                                   //(2.00.12 - LR)
+   remove(TmpFname);                                                           //(2.00.12 - LR)
+
 /* If output file name was supplied, then attempt to */
 /* open it. Otherwise open a temporary output file.  */
-   if (strlen(OutFname) != 0)
+   //if (strlen(OutFname) != 0)                                                //(2.00.12 - LR)
+   if (Outflag == SAVE)                                                        //(2.00.12 - LR)
    {
       if ( (OutFile = fopen(OutFname,"w+b")) == NULL)
       {
@@ -2347,10 +2581,15 @@ int  openoutfile()
          errcode = 304;
       }
    }
-   else if ( (OutFile = tmpfile()) == NULL)
+   //else if ( (OutFile = tmpfile()) == NULL)                                  //(2.00.12 - LR)
+   else                                                                        //(2.00.12 - LR)
    {
-      writecon(FMT08);
-      errcode = 304;
+      getTmpName(OutFname);                                                    //(2.00.12 - LR)
+      if ( (OutFile = fopen(OutFname,"w+b")) == NULL)                          //(2.00.12 - LR)
+	  {
+         writecon(FMT08);
+         errcode = 304;
+	  }
    }
 
 /* Save basic network data & energy usage results */
@@ -2364,7 +2603,10 @@ int  openoutfile()
    {
       if (Tstatflag != SERIES)
       {
-         if ( (TmpOutFile = tmpfile()) == NULL) errcode = 304;
+         //if ( (TmpOutFile = tmpfile()) == NULL) errcode = 304;               //(2.00.12 - LR)
+         getTmpName(TmpFname);                                                 //(2.00.12 - LR)
+         TmpOutFile = fopen(TmpFname, "w+b");                                  //(2.00.12 - LR)
+         if (TmpOutFile == NULL) errcode = 304;                                //(2.00.12 - LR)
       }
       else TmpOutFile = OutFile;
    }
@@ -2637,6 +2879,50 @@ void  freedata()
    General purpose functions 
 ----------------------------------------------------------------
 */
+
+/*** New function for 2.00.12 ***/                                             //(2.00.12 - LR)
+char* getTmpName(char* fname)
+//
+//  Input:   fname = file name string
+//  Output:  returns pointer to file name
+//  Purpose: creates a temporary file name with path prepended to it.
+//
+{
+    char name[MAXFNAME+1];
+    int  n;
+
+    // --- for Windows systems:
+    #ifdef WINDOWS
+      // --- use system function tmpnam() to create a temporary file name
+      tmpnam(name);
+
+      // --- if user supplied the name of a temporary directory,
+      //     then make it be the prefix of the full file name
+      n = strlen(TmpDir);
+      if ( n > 0 )
+      {
+          strcpy(fname, TmpDir);
+          if ( fname[n-1] != '\\' ) strcat(fname, "\\");
+      }
+
+      // --- otherwise, use the relative path notation as the file name
+      //     prefix so that the file will be placed in the current directory
+      else
+      {
+          strcpy(fname, ".\\");
+      }
+
+      // --- now add the prefix to the file name
+      strcat(fname, name);
+
+    // --- for non-Windows systems:
+    #else
+      // --- use system function mkstemp() to create a temporary file name
+      strcpy(fname, "enXXXXXX");
+      mkstemp(fname);
+    #endif
+    return fname;
+}
 
 
 int  strcomp(char *s1, char *s2)

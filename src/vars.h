@@ -5,6 +5,7 @@
 VERSION:    2.00                                               
 DATE:       5/8/00
             6/24/02
+            2/14/08    (2.00.12)
 AUTHOR:     L. Rossman                                         
             US EPA - NRMRL
                                                                      
@@ -25,6 +26,8 @@ EXTERN char     Msg[MAXMSG+1],         /* Text of output message       */
                 HydFname[MAXFNAME+1],  /* Hydraulics file name         */
                 OutFname[MAXFNAME+1],  /* Binary output file name      */
                 MapFname[MAXFNAME+1],  /* Map file name                */
+                TmpFname[MAXFNAME+1],  /* Temporary file name          */      //(2.00.12 - LR)
+                TmpDir[MAXFNAME+1],    /* Temporary directory name     */      //(2.00.12 - LR)
                 Title[MAXTITLE][MAXMSG+1], /* Problem title            */
                 ChemName[MAXID+1],     /* Name of chemical             */
                 ChemUnits[MAXID+1],    /* Units of chemical            */
@@ -33,8 +36,10 @@ EXTERN char     Msg[MAXMSG+1],         /* Text of output message       */
 /*** Updated 6/24/02 ***/
                 Atime[13],             /* Clock time (hrs:min:sec)     */
 
+                Outflag,               /* Output file flag             */      //(2.00.12 - LR)
                 Hydflag,               /* Hydraulics flag              */
                 Qualflag,              /* Water quality flag           */
+                Reactflag,             /* Reaction indicator           */      //(2.00.12 - LR)
                 Unitsflag,             /* Unit system flag             */
                 Flowflag,              /* Flow units flag              */
                 Pressflag,             /* Pressure units flag          */
@@ -95,6 +100,7 @@ EXTERN double   Ucf[MAXVAR],           /* Unit conversion factors      */
                 Qexp,                  /* Exponent in orifice formula  */
                 Dmult,                 /* Demand multiplier            */
                 Hacc,                  /* Hydraulics solution accuracy */
+                DampLimit,             /* Solution damping threshold   */      //(2.00.12 - LR)
                 BulkOrder,             /* Bulk flow reaction order     */
                 WallOrder,             /* Pipe wall reaction order     */
                 TankOrder,             /* Tank reaction order          */

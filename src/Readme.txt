@@ -48,7 +48,7 @@ Also included are the following header files:
 The comments at the top of each file lists the date when the latest
 update was made, and these updates can be located in the code by
 searching for comments with the phrase "/*** Updated" or with the
-release number (e.g., 2.00.11) in them.
+release number (e.g., 2.00.12) in them.
 
 Other useful documentation that can be consulted includes the EPANET
 Programmers Toolkit Help file and the EPANET Version 2 Users Manual.

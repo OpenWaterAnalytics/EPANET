@@ -7,6 +7,7 @@ VERSION:    2.00
 DATE:       5/30/00
             6/24/02
             8/15/07  (2.00.11)
+            2/14/08  (2.00.12)
 AUTHOR:     L. Rossman
             US EPA - NRMRL
                                                                     
@@ -200,6 +201,14 @@ void  writesummary()
    writeline(s);
    sprintf(s,FMT27,Hacc);
    writeline(s);
+
+   sprintf(s,FMT27a,CheckFreq);                                                //(2.00.12 - LR)
+   writeline(s);                                                               //(2.00.12 - LR)
+   sprintf(s,FMT27b,MaxCheck);                                                 //(2.00.12 - LR)
+   writeline(s);                                                               //(2.00.12 - LR)
+   sprintf(s,FMT27c,DampLimit);                                                //(2.00.12 - LR)
+   writeline(s);                                                               //(2.00.12 - LR)
+
    sprintf(s,FMT28,MaxIter);
    writeline(s);
    if (Qualflag == NONE || Dur == 0.0)
@@ -1209,6 +1218,5 @@ int  getnodetype(int i)
    if (Tank[i-Njuncs].A == 0.0) return(1);
    return(2);
 }
-
 
 /********************* END OF REPORT.C ********************/

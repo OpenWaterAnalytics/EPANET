@@ -8,6 +8,7 @@ DATE:       5/30/00
             9/7/00
             11/19/01
             6/24/02
+            2/14/08     (2.00.12)
 AUTHOR:     L. Rossman
             US EPA - NRMRL
 
@@ -36,7 +37,7 @@ AUTHOR:     L. Rossman
   --------------------- Module Global Variables  ----------------------
 */
 
-#define   MAXITER   40       /* Default max. # hydraulic iterations    */
+#define   MAXITER   200      /* Default max. # hydraulic iterations    */      //(2.00.12 - LR)
 #define   HACC      0.001    /* Default hydraulics convergence ratio   */
 #define   HTOL      0.0005   /* Default hydraulic head tolerance (ft)  */
 
@@ -57,6 +58,7 @@ AUTHOR:     L. Rossman
 #define   RQTOL     1E-7     /* Default low flow resistance tolerance  */
 #define   CHECKFREQ 2        /* Default status check frequency         */
 #define   MAXCHECK  10       /* Default # iterations for status checks */
+#define   DAMPLIMIT 0        /* Default damping threshold              */      //(2.00.12 - LR)
 
 extern char *Fldname[];      /* Defined in enumstxt.h in EPANET.C      */
 extern char *RptFlowUnitsTxt[];
@@ -96,6 +98,8 @@ void  setdefaults()
    strncpy(Title[0],"",MAXMSG);
    strncpy(Title[1],"",MAXMSG);
    strncpy(Title[2],"",MAXMSG);
+   strncpy(TmpDir,"",MAXFNAME);                                                //(2.00.12 - LR)
+   strncpy(TmpFname,"",MAXFNAME);                                              //(2.00.12 - LR)
    strncpy(HydFname,"",MAXFNAME);
    strncpy(MapFname,"",MAXFNAME);
    strncpy(ChemName,t_CHEMICAL,MAXID);
@@ -146,6 +150,7 @@ void  setdefaults()
    RQtol     = RQTOL;           /* Default hydraulics parameters  */
    CheckFreq = CHECKFREQ;
    MaxCheck  = MAXCHECK;
+   DampLimit = DAMPLIMIT;                                                      //(2.00.12 - LR)
 }                       /*  End of setdefaults  */
 
 

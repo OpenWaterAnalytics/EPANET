@@ -10,6 +10,7 @@ DATE:       5/30/00
             3/1/01
             6/24/02
             8/15/07    (2.00.11)
+            2/14/08    (2.00.12)
 AUTHOR:     L. Rossman
             US EPA - NRMRL
 
@@ -1599,7 +1600,8 @@ int  optionvalue(int n)
 **    QTOL                value                                  
 **    RQTOL               value                                  
 **    CHECKFREQ           value                                  
-**    MAXCHECK            value                                  
+**    MAXCHECK            value
+**    DAMPLIMIT           value                                                //(2.00.12 - LR)                                  
 **--------------------------------------------------------------
 */
 {
@@ -1630,6 +1632,13 @@ int  optionvalue(int n)
    {
       if (y < 0.0) return(213);
       Diffus = y;
+      return(0);
+   }
+
+/* Check for Damping Limit option */                                           //(2.00.12 - LR)
+   if (match(Tok[0],w_DAMPLIMIT))
+   {
+      DampLimit = y;
       return(0);
    }
 

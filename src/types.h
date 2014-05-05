@@ -11,6 +11,7 @@ DATE:       5/8/00
             12/6/01
             6/24/02
             8/15/07    (2.00.11)
+            2/14/08    (2.00.12)
 AUTHOR:     L. Rossman                                         
             US EPA - NRMRL
                                                                      
@@ -20,6 +21,13 @@ AUTHOR:     L. Rossman
 /*********************************************************/
 /* All floats have been re-declared as doubles (7/3/07). */
 /*********************************************************/ 
+/*
+-------------------------------------------
+   Definition of 4-byte integers & reals
+-------------------------------------------
+*/
+typedef  float        REAL4;                                                   //(2.00.11 - LR)
+typedef  int          INT4;                                                    //(2.00.12 - LR)
 
 /*
 -----------------------------
@@ -27,7 +35,7 @@ AUTHOR:     L. Rossman
 -----------------------------
 */
 /*** Updated ***/
-#define   CODEVERSION        20011                                             //(2.00.11 - LR)
+#define   CODEVERSION        20012                                             //(2.00.12 - LR)
 #define   MAGICNUMBER        516114521
 #define   VERSION            200
 #define   EOFMARK            0x1A  /* Use 0x04 for UNIX systems */
@@ -118,8 +126,6 @@ AUTHOR:     L. Rossman
    Global Data Structures                             
 ------------------------------------------------------
 */
-typedef  float        REAL4;                                                   //(2.00.11 - LR)
-typedef  long         INT4;                                                    //(2.00.11 - LR)
 
 struct IDstring    /* Holds component ID labels */
 {

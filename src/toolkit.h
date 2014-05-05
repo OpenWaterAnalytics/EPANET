@@ -8,6 +8,7 @@ DATE:       5/8/00
             10/25/00
             3/1/01
             8/15/07    (2.00.11)
+            2/14/08    (2.00.12)
 AUTHOR:     L. Rossman
             US EPA - NRMRL
 
@@ -49,6 +50,14 @@ AUTHOR:     L. Rossman
 #define EN_INITVOLUME   14
 #define EN_MIXMODEL     15
 #define EN_MIXZONEVOL   16
+
+#define EN_TANKDIAM     17
+#define EN_MINVOLUME    18
+#define EN_VOLCURVE     19
+#define EN_MINLEVEL     20
+#define EN_MAXLEVEL     21
+#define EN_MIXFRACTION  22
+#define EN_TANK_KBULK   23
 
 #define EN_DIAMETER     0    /* Link parameters */
 #define EN_LENGTH       1
@@ -134,6 +143,11 @@ AUTHOR:     L. Rossman
 #define EN_MAXIMUM      3
 #define EN_RANGE        4
 
+#define EN_MIX1         0   /* Tank mixing models */
+#define EN_MIX2         1
+#define EN_FIFO         2
+#define EN_LIFO         3
+
 #define EN_NOSAVE       0   /* Save-results-to-file flag */
 #define EN_SAVE         1
 
@@ -200,6 +214,7 @@ AUTHOR:     L. Rossman
  int  DLLEXPORT ENsetcontrol(int, int, int, float, int, float);
  int  DLLEXPORT ENsetnodevalue(int, int, float);
  int  DLLEXPORT ENsetlinkvalue(int, int, float);
+ int  DLLEXPORT ENaddpattern(char *);
  int  DLLEXPORT ENsetpattern(int, float *, int);
  int  DLLEXPORT ENsetpatternvalue(int, int, float);
  int  DLLEXPORT ENsettimeparam(int, long);

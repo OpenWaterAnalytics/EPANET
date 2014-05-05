@@ -1,57 +1,58 @@
 LIBRARY     EPANET2.DLL
 
 EXPORTS
-    ENclose                        @4   ; ENclose
-    ENcloseH                       @11  ; ENcloseH
-    ENcloseQ                       @20  ; ENcloseQ
-    ENepanet                       @1   ; ENepanet
-    ENgetcontrol                   @26  ; ENgetcontrol
-    ENgetcount                     @27  ; ENgetcount
-    ENgeterror                     @36  ; ENgeterror
-    ENgetflowunits                 @30  ; ENgetflowunits
-    ENgetlinkid                    @42  ; ENgetlinkid
-    ENgetlinkindex                 @41  ; ENgetlinkindex
-    ENgetlinknodes                 @44  ; ENgetlinknodes
-    ENgetlinktype                  @43  ; ENgetlinktype
-    ENgetlinkvalue                 @45  ; ENgetlinkvalue
-    ENgetnodeid                    @38  ; ENgetnodeid
-    ENgetnodeindex                 @37  ; ENgetnodeindex
-    ENgetnodetype                  @39  ; ENgetnodetype
-    ENgetnodevalue                 @40  ; ENgetnodevalue
-    ENgetoption                    @28  ; ENgetoption
-    ENgetpatternid                 @32  ; ENgetpatternid
-    ENgetpatternindex              @31  ; ENgetpatternindex
-    ENgetpatternlen                @33  ; ENgetpatternlen
-    ENgetpatternvalue              @34  ; ENgetpatternvalue
-    ENgetqualtype                  @35  ; ENgetqualtype
-    ENgettimeparam                 @29  ; ENgettimeparam
-    ENgetversion                   @25  ; ENgetversion
-    ENinitH                        @8   ; ENinitH
-    ENinitQ                        @16  ; ENinitQ
-    ENnextH                        @10  ; ENnextH
-    ENnextQ                        @18  ; ENnextQ
-    ENopen                         @2   ; ENopen
-    ENopenH                        @7   ; ENopenH
-    ENopenQ                        @15  ; ENopenQ
-    ENreport                       @22  ; ENreport
-    ENresetreport                  @23  ; ENresetreport
-    ENrunH                         @9   ; ENrunH
-    ENrunQ                         @17  ; ENrunQ
-    ENsaveH                        @6   ; ENsaveH
-    ENsavehydfile                  @12  ; ENsavehydfile
-    ENsaveinpfile                  @3   ; ENsaveinpfile
-    ENsetcontrol                   @46  ; ENsetcontrol
-    ENsetlinkvalue                 @48  ; ENsetlinkvalue
-    ENsetnodevalue                 @47  ; ENsetnodevalue
-    ENsetoption                    @52  ; ENsetoption
-    ENsetpattern                   @49  ; ENsetpattern
-    ENsetpatternvalue              @50  ; ENsetpatternvalue
-    ENsetqualtype                  @54  ; ENsetqualtype
-    ENsetreport                    @24  ; ENsetreport
-    ENsetstatusreport              @53  ; ENsetstatusreport
-    ENsettimeparam                 @51  ; ENsettimeparam
-    ENsolveH                       @5   ; ENsolveH
-    ENsolveQ                       @14  ; ENsolveQ
-    ENstepQ                        @19  ; ENstepQ
-    ENusehydfile                   @13  ; ENusehydfile
-    ENwriteline                    @21  ; ENwriteline
+    ENaddpattern                  = _ENaddpattern@4                     
+    ENclose                       = _ENclose@0                          
+    ENcloseH                      = _ENcloseH@0                         
+    ENcloseQ                      = _ENcloseQ@0                         
+    ENepanet                      = _ENepanet@16                        
+    ENgetcontrol                  = _ENgetcontrol@24                    
+    ENgetcount                    = _ENgetcount@8                       
+    ENgeterror                    = _ENgeterror@12                      
+    ENgetflowunits                = _ENgetflowunits@4                   
+    ENgetlinkid                   = _ENgetlinkid@8                      
+    ENgetlinkindex                = _ENgetlinkindex@8                   
+    ENgetlinknodes                = _ENgetlinknodes@12                  
+    ENgetlinktype                 = _ENgetlinktype@8                    
+    ENgetlinkvalue                = _ENgetlinkvalue@12                  
+    ENgetnodeid                   = _ENgetnodeid@8                      
+    ENgetnodeindex                = _ENgetnodeindex@8                   
+    ENgetnodetype                 = _ENgetnodetype@8                    
+    ENgetnodevalue                = _ENgetnodevalue@12                  
+    ENgetoption                   = _ENgetoption@8                      
+    ENgetpatternid                = _ENgetpatternid@8                   
+    ENgetpatternindex             = _ENgetpatternindex@8                
+    ENgetpatternlen               = _ENgetpatternlen@8                  
+    ENgetpatternvalue             = _ENgetpatternvalue@12               
+    ENgetqualtype                 = _ENgetqualtype@8                    
+    ENgettimeparam                = _ENgettimeparam@8                   
+    ENgetversion                  = _ENgetversion@4                     
+    ENinitH                       = _ENinitH@4                          
+    ENinitQ                       = _ENinitQ@4                          
+    ENnextH                       = _ENnextH@4                          
+    ENnextQ                       = _ENnextQ@4                          
+    ENopen                        = _ENopen@12                          
+    ENopenH                       = _ENopenH@0                          
+    ENopenQ                       = _ENopenQ@0                          
+    ENreport                      = _ENreport@0                         
+    ENresetreport                 = _ENresetreport@0                    
+    ENrunH                        = _ENrunH@4                           
+    ENrunQ                        = _ENrunQ@4                           
+    ENsaveH                       = _ENsaveH@0                          
+    ENsavehydfile                 = _ENsavehydfile@4                    
+    ENsaveinpfile                 = _ENsaveinpfile@4                    
+    ENsetcontrol                  = _ENsetcontrol@24                    
+    ENsetlinkvalue                = _ENsetlinkvalue@12                  
+    ENsetnodevalue                = _ENsetnodevalue@12                  
+    ENsetoption                   = _ENsetoption@8                      
+    ENsetpattern                  = _ENsetpattern@12                    
+    ENsetpatternvalue             = _ENsetpatternvalue@12               
+    ENsetqualtype                 = _ENsetqualtype@16                   
+    ENsetreport                   = _ENsetreport@4                      
+    ENsetstatusreport             = _ENsetstatusreport@4                
+    ENsettimeparam                = _ENsettimeparam@8                   
+    ENsolveH                      = _ENsolveH@0                         
+    ENsolveQ                      = _ENsolveQ@0                         
+    ENstepQ                       = _ENstepQ@4                          
+    ENusehydfile                  = _ENusehydfile@4                     
+    ENwriteline                   = _ENwriteline@4                      

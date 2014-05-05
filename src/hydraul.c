@@ -12,6 +12,7 @@ DATE:       6/5/00
             11/19/01
             6/24/02
             8/15/07    (2.00.11)
+            2/14/08    (2.00.12)
 AUTHOR:     L. Rossman
             US EPA - NRMRL
                                                                    
@@ -1114,12 +1115,14 @@ int  netsolve(int *iter, double *relerr)
 **           using Todini's Gradient algorithm                   
 **
 *** Updated 9/7/00 *** 
-*** Updated 2.00.11 ***                                                            
+*** Updated 2.00.11 ***
+*** Updated 2.00.12 ***                                                            
 **  Notes:   Status checks on CVs, pumps and pipes to tanks are made
 **           every CheckFreq iteration, up until MaxCheck iterations
 **           are reached. Status checks on control valves are made
-**           when within a factor of 10 of convergence. Also at this
-**           point, future computed flow changes are only 60% of
+**           every iteration if DampLimit = 0 or only when the
+**           convergence error is at or below DampLimit. If DampLimit
+**           is > 0 then future computed flow changes are only 60% of
 **           their full value. A complete status check on all links
 **           is made when convergence is achieved. If convergence is
 **           not achieved in MaxIter trials and ExtraIter > 0 then
@@ -1135,7 +1138,6 @@ int  netsolve(int *iter, double *relerr)
    int    nextcheck;             /* Next status check trial */
    int    maxtrials;             /* Max. trials for convergence */
    double newerr;                /* New convergence error */
-   double hacc10 = 10.0*Hacc;    /* Relaxed convergence criterion */
    int    valveChange;           /* Valve status change flag */
    int    statChange;
 
@@ -1179,18 +1181,18 @@ int  netsolve(int *iter, double *relerr)
       /* Write convergence error to status report if called for */
       if (Statflag == FULL) writerelerr(*iter,*relerr);
 
-      /* Apply relaxation & check valve status if close to convergence */
-
-      if ( *relerr <= hacc10)
+      /* Apply solution damping & check for change in valve status */
+      RelaxFactor = 1.0;
+      valveChange = FALSE;
+      if ( DampLimit > 0.0 )
       {
-         RelaxFactor = 0.6;
-         valveChange = valvestatus();
+          if( *relerr <= DampLimit )
+          {
+             RelaxFactor = 0.6;
+             valveChange = valvestatus();
+          }
       }
-      else
-      {
-          RelaxFactor = 1.0;
-          valveChange = FALSE;
-      }
+      else valveChange = valvestatus();
 
       /* Check for convergence */
       if (*relerr <= Hacc)
@@ -1283,7 +1285,7 @@ int  valvestatus()
 **  Input:   none                                                
 **  Output:  returns 1 if any pressure or flow control valve                   //(2.00.11 - LR)
 **           changes status, 0 otherwise                                       //(2.00.11 - LR) 
-**  Purpose: updates status for PRVs, PSVs & FCVs whose status                 //(2.00.11 - LR)
+**  Purpose: updates status for PRVs & PSVs whose status                       //(2.00.12 - LR)
 **           is not fixed to OPEN/CLOSED
 **-----------------------------------------------------------------
 */
@@ -1314,8 +1316,9 @@ int  valvestatus()
                     S[k] = psvstatus(k,s,hset,H[n1],H[n2]);
                     break;
 
-         case FCV:  S[k] = fcvstatus(k,s,H[n1],H[n2]);                         //(2.00.11 - LR)
-                    break;                                                     //(2.00.11 - LR)
+////  FCV status checks moved back into the linkstatus() function ////           //(2.00.12 - LR)
+//         case FCV:  S[k] = fcvstatus(k,s,H[n1],H[n2]);                         //(2.00.12 - LR)
+//                    break;                                                     //(2.00.12 - LR)
 
          default:   continue;
       }
@@ -1341,7 +1344,7 @@ int  linkstatus()
 **--------------------------------------------------------------
 **  Input:   none                                                
 **  Output:  returns 1 if any link changes status, 0 otherwise   
-**  Purpose: determines new status for pumps, CVs, & pipes                     //(2.00.11 - LR)
+**  Purpose: determines new status for pumps, CVs, FCVs & pipes                //(2.00.12 - LR)
 **           to tanks.                                              
 **--------------------------------------------------------------
 */
@@ -1370,8 +1373,8 @@ int  linkstatus()
          S[k] = pumpstatus(k,-dh);
 
       /* Check for status changes in non-fixed FCVs */
-      //if (Link[k].Type == FCV && K[k] != MISSING)                            //(2.00.11 - LR)
-      //   S[k] = fcvstatus(k,status,H[n1],H[n2]);                             //(2.00.11 - LR)
+      if (Link[k].Type == FCV && K[k] != MISSING)                              //(2.00.12 - LR)//
+         S[k] = fcvstatus(k,status,H[n1],H[n2]);                               //(2.00.12 - LR)//
 
       /* Check for flow into (out of) full (empty) tanks */
       if (n1 > Njuncs || n2 > Njuncs) tankstatus(k,n1,n2);
@@ -1381,7 +1384,7 @@ int  linkstatus()
       {
          change = TRUE;
          if (Statflag == FULL) writestatchange(k,status,S[k]);
- 
+
          //if (S[k] <= CLOSED) Q[k] = QZERO;                                   //(2.00.11 - LR)
          //else setlinkflow(k, dh);                                            //(2.00.11 - LR)
       }
@@ -1763,8 +1766,11 @@ double newflows()
       dqsum += ABS(dq);
 
       /* Update net flows to tanks */
-      if (n1 > Njuncs) D[n1] -= Q[k];
-      if (n2 > Njuncs) D[n2] += Q[k];
+      if ( S[k] > CLOSED )                                                     //(2.00.12 - LR)
+      {
+         if (n1 > Njuncs) D[n1] -= Q[k];
+         if (n2 > Njuncs) D[n2] += Q[k];
+      }
 
    }
 

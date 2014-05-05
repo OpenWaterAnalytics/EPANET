@@ -8,6 +8,7 @@ DATE:       5/29/00
             9/7/00
             10/25/00
             8/15/07    (2.00.11)
+            2/14/08    (2.00.12)
 AUTHOR:     L. Rossman
             US EPA - NRMRL
                                                                       
@@ -75,7 +76,10 @@ double    *MassIn;              /* Total mass inflow to node               */
 double    Sc;                   /* Schmidt Number                          */
 double    Bucf;                 /* Bulk reaction units conversion factor   */
 double    Tucf;                 /* Tank reaction units conversion factor   */
-char      Reactflag;            /* Reaction indicator                      */
+
+/*** Moved to vars.h ***/                                                      //(2.00.12 - LR)
+//char      Reactflag;            /* Reaction indicator                      */
+
 char      OutOfMemory;          /* Out of memory indicator                 */
 static    alloc_handle_t *SegPool; // Memory pool for water quality segments   //(2.00.11 - LR)
 
@@ -688,10 +692,12 @@ void accumulate(long dt)
       i = UP_NODE(k);               /* Upstream node */
       j = DOWN_NODE(k);             /* Downstream node */
       v = ABS(Q[k])*dt;             /* Flow volume */
+
+////  Start of deprecated code segment  ////                                   //(2.00.12 - LR)
          
       /* If link volume < flow volume, then transport upstream    */
       /* quality to downstream node and remove all link segments. */
-      if (LINKVOL(k) < v)
+/*      if (LINKVOL(k) < v)
       {
          VolIn[j] += v;
          seg = FirstSeg[k];
@@ -700,10 +706,14 @@ void accumulate(long dt)
          MassIn[j] += v*cseg;
          removesegs(k);
       }
-
+*/
       /* Otherwise remove flow volume from leading segments */
       /* and accumulate flow mass at downstream node        */
-      else while (v > 0.0)
+      //else
+
+////  End of deprecated code segment.  ////                                    //(2.00.12 - LR)
+
+      while (v > 0.0)                                                          //(2.00.12 - LR)
       {
          /* Identify leading segment in pipe */
          seg = FirstSeg[k];
@@ -1003,6 +1013,37 @@ void  updatetanks(long dt)
 }
 
 
+////  Deprecated version of tankmix1  ////                                     //(2.00.12 - LR)
+//void  tankmix1(int i, long dt)
+/*
+**---------------------------------------------
+**   Input:   i = tank index
+**            dt = current WQ time step     
+**   Output:  none
+**   Purpose: complete mix tank model                     
+**---------------------------------------------
+*/
+//{
+//    int   n;
+//    double cin;
+
+//   /* Blend inflow with contents */
+//   n = Tank[i].Node;
+//   if (VolIn[n] > 0.0) cin = MassIn[n]/VolIn[n];
+//   else                 cin = 0.0;
+//   if (Tank[i].V > 0.0)
+//      Tank[i].C = tankreact(Tank[i].C,Tank[i].V,Tank[i].Kb,dt) +
+//                  (cin - Tank[i].C)*VolIn[n]/Tank[i].V;
+//   else Tank[i].C = cin;
+//   Tank[i].C = MAX(0.0, Tank[i].C);
+
+//   /* Update tank volume & nodal quality */
+//   Tank[i].V += D[n]*dt;
+//   C[n] = Tank[i].C;
+//}
+
+
+////  New version of tankmix1  ////                                            //(2.00.12 - LR)
 void  tankmix1(int i, long dt)
 /*
 **---------------------------------------------
@@ -1015,23 +1056,32 @@ void  tankmix1(int i, long dt)
 {
     int   n;
     double cin;
+    double c, cmax, vold, vin;
 
-   /* Blend inflow with contents */
+   /* React contents of tank */
+   c = tankreact(Tank[i].C,Tank[i].V,Tank[i].Kb,dt);
+
+   /* Determine tank & volumes */
+   vold = Tank[i].V;
    n = Tank[i].Node;
-   if (VolIn[n] > 0.0) cin = MassIn[n]/VolIn[n];
-   else                 cin = 0.0;
-   if (Tank[i].V > 0.0)
-      Tank[i].C = tankreact(Tank[i].C,Tank[i].V,Tank[i].Kb,dt) +
-                  (cin - Tank[i].C)*VolIn[n]/Tank[i].V;
-   else Tank[i].C = cin;
-   Tank[i].C = MAX(0.0, Tank[i].C);
-
-   /* Update tank volume & nodal quality */
    Tank[i].V += D[n]*dt;
+   vin  = VolIn[n];
+
+   /* Compute inflow concen. */
+   if (vin > 0.0) cin = MassIn[n]/vin;
+   else           cin = 0.0;
+   cmax = MAX(c, cin);
+
+   /* Mix inflow with tank contents */
+   if (vin > 0.0) c = (c*vold + cin*vin)/(vold + vin);
+   c = MIN(c, cmax);
+   c = MAX(c, 0.0);
+   Tank[i].C = c;
    C[n] = Tank[i].C;
 }
 
 /*** Updated 10/25/00 ***/
+////  New version of tankmix2  ////                                            //(2.00.12 - LR) 
 void  tankmix2(int i, long dt)
 /*
 **------------------------------------------------
@@ -1045,11 +1095,11 @@ void  tankmix2(int i, long dt)
 */
 {
     int     k,n;
-    long    tstep, tstar;
-    double   cin,        /* Inflow quality */
-            qin,        /* Inflow rate */
-            qout,       /* Outflow rate */
-            qnet;       /* Net flow rate */
+    double  cin,        /* Inflow quality */
+            vin,        /* Inflow volume */
+            vt,         /* Transferred volume */
+            vnet,       /* Net volume change */
+            v1max;      /* Full mixing zone volume */
    Pseg     seg1,seg2;  /* Compartment segments */
 
    /* Identify segments for each compartment */
@@ -1058,87 +1108,63 @@ void  tankmix2(int i, long dt)
    seg2 = FirstSeg[k];
    if (seg1 == NULL || seg2 == NULL) return;
 
+   /* React contents of each compartment */
+   seg1->c = tankreact(seg1->c,seg1->v,Tank[i].Kb,dt);
+   seg2->c = tankreact(seg2->c,seg2->v,Tank[i].Kb,dt);
+
    /* Find inflows & outflows */
    n = Tank[i].Node;
-   qnet = D[n];
-   qin = VolIn[n]/(double)dt;
-   qout = qin - qnet;
-   if (qin > 0.0) cin = MassIn[n]/VolIn[n];
+   vnet = D[n]*dt;
+   vin = VolIn[n];
+   if (vin > 0.0) cin = MassIn[n]/vin;
    else           cin = 0.0;
-   Tank[i].V += qnet*dt;
+   v1max = Tank[i].V1max;
 
-   /* Case of no net volume change */
-   if (ABS(qnet) < TINY)
+   /* Tank is filling */
+   vt = 0.0;
+   if (vnet > 0.0)
    {
-      seg1->c = tankreact(seg1->c,seg1->v,Tank[i].Kb,dt);
-      seg2->c = tankreact(seg2->c,seg2->v,Tank[i].Kb,dt);
-   }
-
-   /* Case of net filling (qnet > 0) */
-   else if (qnet > 0.0)
-   {
-
-      /* Case where ambient zone empty & mixing zone filling */
-      if (seg2->v <= 0.0)
+      vt = MAX(0.0, (seg1->v + vnet - v1max));
+      if (vin > 0.0)
       {
-         tstar = (long) ((Tank[i].V1max-(seg1->v))/qnet);
-         tstep = MIN(dt, tstar);
-         if (seg1->v > 0.0)
-            seg1->c = tankreact(seg1->c,seg1->v,Tank[i].Kb,tstep) +
-                       qin*tstep*(cin-(seg1->c))/(seg1->v);
-         else seg1->c = cin;
-         seg1->c = MAX(0.0, seg1->c);
-         seg1->v += qnet*tstep;
-         seg2->c = 0.0;
-         dt -= tstep;
+         seg1->c = ((seg1->c)*(seg1->v) + cin*vin) / (seg1->v + vin);
       }
-
-      /* Case where mixing zone full & ambient zone filling */
-      if (dt > 1)
+      if (vt > 0.0)
       {
-         seg1->c = tankreact(seg1->c,seg1->v,Tank[i].Kb,dt) +
-                     qin*dt*(cin-(seg1->c))/(seg1->v);
-         seg1->c = MAX(0.0, seg1->c);
-         if (seg2->v <= 0.0) seg2->c = seg1->c;
-         else
-            seg2->c = tankreact(seg2->c,seg2->v,Tank[i].Kb,dt) +
-                       qnet*dt*((seg1->c)-(seg2->c))/(seg2->v);
-         seg2->c = MAX(0.0, seg2->c);
-         seg2->v += qnet*dt;
-       }
-   }
-
-   /* Case of net emptying (qnet < 0) */
-   else if (qnet < 0.0 && seg1->v > 0.0)
-   {
-
-      /* Case where mixing zone full & ambient zone draining */
-      if ((seg2->v) > 0.0)
-      {
-         tstar = (long)(seg2->v/-qnet);
-         tstep = MIN(dt, tstar);
-         seg1->c = tankreact(seg1->c,seg1->v,Tank[i].Kb,tstep) +
-                    (qin*cin - qnet*(seg2->c) - qout*(seg1->c))*
-                    tstep/(seg1->v);
-         seg2->c = tankreact(seg2->c,seg2->v,Tank[i].Kb,tstep);
-         seg2->v += qnet*tstep;
-         seg1->c = MAX(0.0, seg1->c);
-         seg2->c = MAX(0.0, seg2->c);
-         seg2->v = MAX(0.0, seg2->v);
-         dt -= tstep;
-      }
-
-      /* Case where ambient zone empty & mixing zone draining */
-      if (dt > 1)
-      {
-         seg1->c = tankreact(seg1->c,seg1->v,Tank[i].Kb,dt) +
-                    qin*dt*(cin-(seg1->c))/(seg1->v);
-         seg1->v += qnet*dt;
-         seg1->c = MAX(0.0, seg1->c);
-         seg1->v = MAX(0.0, seg1->v);
-         seg2->c = 0.0;
+         seg2->c = ((seg2->c)*(seg2->v) + (seg1->c)*vt) / (seg2->v + vt);
       }
    }
+
+   /* Tank is emptying */
+   if (vnet < 0.0)
+   {
+      if (seg2->v > 0.0)
+      {
+         vt = MIN(seg2->v, (-vnet));
+      }
+      if (vin + vt > 0.0)
+      {
+         seg1->c = ((seg1->c)*(seg1->v) + cin*vin + (seg2->c)*vt) /
+                   (seg1->v + vin + vt);
+      }
+   }
+
+   /* Update segment volumes */
+   if (vt > 0.0)
+   {
+      seg1->v = v1max;
+      if (vnet > 0.0) seg2->v += vt;
+      else            seg2->v = MAX(0.0, ((seg2->v)-vt));
+   }
+   else
+   {
+      seg1->v += vnet;
+      seg1->v = MIN(seg1->v, v1max);
+      seg1->v = MAX(0.0, seg1->v);
+      seg2->v = 0.0;
+   }
+   Tank[i].V += vnet;
+   Tank[i].V = MAX(0.0, Tank[i].V);
 
    /* Use quality of mixed compartment (seg1) to */
    /* represent quality of tank since this is where */
@@ -1185,6 +1211,7 @@ void  tankmix3(int i, long dt)
    if (vin > 0.0) cin = MassIn[n]/VolIn[n];
    else           cin = 0.0;
    Tank[i].V += vnet;
+   Tank[i].V = MAX(0.0, Tank[i].V);                                            //(2.00.12 - LR)
 
    /* Withdraw flow from first segment */
    vsum = 0.0;
@@ -1201,10 +1228,13 @@ void  tankmix3(int i, long dt)
       vout -= vseg;            /* Remaining flow volume */
       if (vout >= 0.0 && vseg >= seg->v)  /* Seg used up */
       {
-         FirstSeg[k] = seg->prev;
-         if (FirstSeg[k] == NULL) LastSeg[k] = NULL;
-         seg->prev = FreeSeg;
-         FreeSeg = seg;
+         if (seg->prev)                                                        //(2.00.12 - LR)
+         {                                                                     //(2.00.12 - LR)
+            FirstSeg[k] = seg->prev;
+            //if (FirstSeg[k] == NULL) LastSeg[k] = NULL;                      //(2.00.12 - LR)
+            seg->prev = FreeSeg;
+            FreeSeg = seg;
+         }                                                                     //(2.00.12 - LR)
       }
       else                /* Remaining volume in segment */
       {
@@ -1271,6 +1301,7 @@ void  tankmix4(int i, long dt)
    if (vin > 0.0) cin = MassIn[n]/VolIn[n];
    else           cin = 0.0;
    Tank[i].V += vnet;
+   Tank[i].V = MAX(0.0, Tank[i].V);                                            //(2.00.12 - LR)
    Tank[i].C = LastSeg[k]->c;
 
    /* If tank filling, then create new last seg */ 
@@ -1317,10 +1348,13 @@ void  tankmix4(int i, long dt)
          vnet -= vseg;
          if (vnet >= 0.0 && vseg >= seg->v)  /* Seg used up */
          {
-            LastSeg[k] = seg->prev;
-            if (LastSeg[k] == NULL) FirstSeg[k] = NULL;
-            seg->prev = FreeSeg;
-            FreeSeg = seg;
+            if (seg->prev)                                                     //(2.00.12 - LR)
+            {                                                                  //(2.00.12 - LR)
+               LastSeg[k] = seg->prev;
+               //if (LastSeg[k] == NULL) FirstSeg[k] = NULL;                   //(2.00.12 - LR)
+               seg->prev = FreeSeg;
+               FreeSeg = seg;
+            }                                                                  //(2.00.12 - LR)
          }
          else                /* Remaining volume in segment */
          {

@@ -9,6 +9,7 @@ DATE:       5/8/00
             10/25/00
             12/29/00
             3/1/01
+            2/14/08    (2.00.12)
 AUTHOR:     L. Rossman
             US EPA - NRMRL
                                                                                 
@@ -33,7 +34,8 @@ int     openfiles(char *,char *,char *);  /* Opens input & report files */
 int     openhydfile(void);                /* Opens hydraulics file      */
 int     openoutfile(void);                /* Opens binary output file   */
 int     strcomp(char *, char *);          /* Compares two strings       */
-double  interp(int, double *,              /* Interpolates a data curve  */
+char*   getTmpName(char* fname);          /* Gets temporary file name   */     //(2.00.12 - LR)
+double  interp(int, double *,             /* Interpolates a data curve  */
                double *, double);
 int     findnode(char *);                 /* Finds node's index from ID */
 int     findlink(char *);                 /* Finds link's index from ID */

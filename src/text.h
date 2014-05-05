@@ -7,6 +7,7 @@ VERSION:    2.00
 DATE:       5/8/00
             10/25/00
             8/15/07     (2.00.11)
+            2/14/08    (2.00.12)
 AUTHOR:     L. Rossman
             US EPA - NRMRL
                                                                      
@@ -137,6 +138,7 @@ AUTHOR:     L. Rossman
 #define   w_RQTOL       "RQTOL"
 #define   w_CHECKFREQ   "CHECKFREQ"
 #define   w_MAXCHECK    "MAXCHECK"
+#define   w_DAMPLIMIT   "DAMPLIMIT"                                            //(2.00.12 - LR)
 
 #define   w_SECONDS     "SEC"
 #define   w_MINUTES     "MIN"
@@ -328,7 +330,7 @@ AUTHOR:     L. Rossman
 #define LOGO4  \
 "*                   Analysis for Pipe Networks                   *"
 #define LOGO5  \
-"*                         Version 2.00.11                        *"           //(2.00.11 - LR)
+"*                         Version 2.00.12                        *"           //(2.00.12 - LR)
 #define LOGO6  \
 "******************************************************************"
 #define FMT01  "\n... EPANET Version 2.0\n"
@@ -357,6 +359,11 @@ AUTHOR:     L. Rossman
 #define FMT25  "    Headloss Formula .................. %s"
 #define FMT26  "    Hydraulic Timestep ................ %-.2f %s"
 #define FMT27  "    Hydraulic Accuracy ................ %-.6f"
+
+#define FMT27a "    Status Check Frequency ............ %-d"                   //(2.00.12 - LR)
+#define FMT27b "    Maximum Trials Checked ............ %-d"                   //(2.00.12 - LR)
+#define FMT27c "    Damping Limit Threshold ........... %-.6f"                 //(2.00.12 - LR)
+
 #define FMT28  "    Maximum Trials .................... %-d"
 #define FMT29  "    Quality Analysis .................. None"
 #define FMT30  "    Quality Analysis .................. %s"
@@ -393,6 +400,10 @@ AUTHOR:     L. Rossman
 #define FMT57  "            %s %s switched from %s to %s"
 #define FMT58  "%10s: Balanced after %-d trials"
 #define FMT59  "%10s: Unbalanced after %-d trials (flow change = %-.6f)"
+
+#define FMT60a "            Max. flow imbalance is %.4f %s at Node %s"         //(2.00.12 - LR)
+#define FMT60b "            Max. head imbalance is %.4f %s at Link %s"         //(2.00.12 - LR)
+
 #define FMT61  "%10s: Valve %s caused ill-conditioning"
 #define FMT62  "%10s: System ill-conditioned at node %s"
 #define FMT63  "%10s: %s %s changed by rule %s"
