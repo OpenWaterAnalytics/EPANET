@@ -106,6 +106,7 @@ execute function x and set the error code equal to its return value.
 
 *******************************************************************************
 */
+#define _CRT_SECURE_NO_DEPRECATE
 
 /*** New compile directives ***/                                               //(2.00.11 - LR)
 //#define CLE     /* Compile as a command line executable */

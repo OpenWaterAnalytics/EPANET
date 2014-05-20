@@ -24,6 +24,7 @@ The following utility functions are all called from INPUT3.C
 
 **********************************************************************
 */
+#define _CRT_SECURE_NO_DEPRECATE
 
 #include <stdlib.h>
 #include <stdio.h>
