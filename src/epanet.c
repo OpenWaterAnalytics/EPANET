@@ -1226,8 +1226,14 @@ int  DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode)
 int DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode)
 {
   ENgetqualtype(qualcode, tracenode);
-  strncpy(chemname,ChemName,MAXID);
-  strncpy(chemunits,ChemUnits,MAXID);
+  if (Qualflag == TRACE) {
+    strncpy(chemname, "", MAXID);
+    strncpy(chemunits, "dimensionless", MAXID);
+  }
+  else {
+    strncpy(chemname,ChemName,MAXID);
+    strncpy(chemunits,ChemUnits,MAXID);
+  }
   return 0;
 }
 
