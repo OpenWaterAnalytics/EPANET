@@ -22,8 +22,6 @@ AUTHOR:     L. Rossman
 
 **********************************************************************
 */
-#define _CRT_SECURE_NO_DEPRECATE
-
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>

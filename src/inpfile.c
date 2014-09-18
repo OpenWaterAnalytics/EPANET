@@ -18,7 +18,6 @@ data describing a piping network to a file in EPANET's text format.
                                                                     
 ********************************************************************
 */
-#define _CRT_SECURE_NO_DEPRECATE
 
 #include <stdio.h>
 #include <string.h>
