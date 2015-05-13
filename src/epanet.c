@@ -1106,6 +1106,7 @@ int DLLEXPORT ENgettimeparam(int code, long *value)
       case EN_REPORTSTEP:   *value = Rstep;     break;
       case EN_REPORTSTART:  *value = Rstart;    break;
       case EN_STATISTIC:    *value = Tstatflag; break;
+      case EN_RULESTEP:     *value = Rulestep;  break; 
       case EN_PERIODS:      *value = Nperiods;  break;
       case EN_STARTTIME:    *value = Tstart;    break;  /* Added TNT 10/2/2009 */
       case EN_HTIME:        *value = Htime;     break;
