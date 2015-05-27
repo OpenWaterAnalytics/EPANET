@@ -11,7 +11,7 @@
     #ifdef __cplusplus
     #define DLLEXPORT extern "C" __declspec(dllexport)
     #else
-    #define DLLEXPORT __declspec(dllexport)
+    #define DLLEXPORT __declspec(dllexport) __stdcall
     #endif
   #elif defined(CYGWIN)
     #define DLLEXPORT __stdcall

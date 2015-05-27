@@ -2,9 +2,14 @@
 *.slo
 *.lo
 *.o
+*.obj
+*.map
+*.exp
+*.lib
 
 # Compiled Dynamic libraries
 *.so
+*.dll
 
 # Compiled Static libraries
 *.lai
