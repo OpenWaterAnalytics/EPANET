@@ -14,6 +14,8 @@ AUTHOR:     L. Rossman
 ****************************************************
 */
 /* ------------ Keyword Dictionary ---------- */
+#ifndef TEXT_H
+#define TEXT_H
 
 #define   w_USE         "USE"
 #define   w_SAVE        "SAVE"
@@ -501,6 +503,8 @@ AUTHOR:     L. Rossman
 #define ERR308 "File Error 308: cannot save results to file."
 #define ERR309 "File Error 309: cannot save results to report file."
 
+#define ERR401 "Sync Error 401: Qstep is not dividable by Hstep. Can't sync."
+
 #define R_ERR201 "Input Error 201: syntax error in following line of "
 #define R_ERR202 "Input Error 202: illegal numeric value in following line of "
 #define R_ERR203 "Input Error 203: undefined node in following line of "
@@ -528,3 +532,4 @@ AUTHOR:     L. Rossman
 #define WARN5 "WARNING: Valves cannot deliver enough flow."
 #define WARN6 "WARNING: System has negative pressures."
 
+#endif

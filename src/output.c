@@ -152,29 +152,30 @@ int  savehyd(long *htime)
    fwrite(&t,sizeof(INT4),1,HydFile);
 
    /* Save current nodal demands (D) */
-   for (i=1; i<=Nnodes; i++) x[i] = (REAL4)D[i];
+   for (i=1; i<=Nnodes; i++) x[i] = (REAL4)NodeDemand[i];
    fwrite(x+1,sizeof(REAL4),Nnodes,HydFile);
 
    /* Copy heads (H) to buffer of floats (x) and save buffer */
-   for (i=1; i<=Nnodes; i++) x[i] = (REAL4)H[i];
+   for (i=1; i<=Nnodes; i++) x[i] = (REAL4)NodeHead[i];
    fwrite(x+1,sizeof(REAL4),Nnodes,HydFile);
 
    /* Force flow in closed links to be zero then save flows */
    for (i=1; i<=Nlinks; i++)
    {
-      if (S[i] <= CLOSED) x[i] = 0.0f;
-      else x[i] = (REAL4)Q[i];
+     if (LinkStatus[i] <= CLOSED) x[i] = 0.0f;
+     else x[i] = (REAL4)Q[i];
+
    }
    fwrite(x+1,sizeof(REAL4),Nlinks,HydFile);
 
    /* Copy link status to buffer of floats (x) & write buffer */
-   for (i=1; i<=Nlinks; i++) x[i] = (REAL4)S[i];
+   for (i=1; i<=Nlinks; i++) x[i] = (REAL4)LinkStatus[i];
    fwrite(x+1,sizeof(REAL4),Nlinks,HydFile);
 
    /* Save link settings & check for successful write-to-disk */
    /* (We assume that if any of the previous fwrites failed,  */
    /* then this one will also fail.) */
-   for (i=1; i<=Nlinks; i++) x[i] = (REAL4)K[i];
+   for (i=1; i<=Nlinks; i++) x[i] = (REAL4)LinkSetting[i];
    if (fwrite(x+1,sizeof(REAL4),Nlinks,HydFile) < (unsigned)Nlinks)
       errcode = 308;
    free(x);
@@ -285,19 +286,19 @@ int  readhyd(long *hydtime)
    *hydtime = t;
 
    if (fread(x+1,sizeof(REAL4),Nnodes,HydFile) < (unsigned)Nnodes) result = 0;
-   else for (i=1; i<=Nnodes; i++) D[i] = x[i];
+   else for (i=1; i<=Nnodes; i++) NodeDemand[i] = x[i];
 
    if (fread(x+1,sizeof(REAL4),Nnodes,HydFile) < (unsigned)Nnodes) result = 0;
-   else for (i=1; i<=Nnodes; i++) H[i] = x[i];
+   else for (i=1; i<=Nnodes; i++) NodeHead[i] = x[i];
 
    if (fread(x+1,sizeof(REAL4),Nlinks,HydFile) < (unsigned)Nlinks) result = 0;
    else for (i=1; i<=Nlinks; i++) Q[i] = x[i];
 
    if (fread(x+1,sizeof(REAL4),Nlinks,HydFile) < (unsigned)Nlinks) result = 0;
-   else for (i=1; i<=Nlinks; i++) S[i] = (char) x[i];
+   else for (i=1; i<=Nlinks; i++) LinkStatus[i] = (char) x[i];
 
    if (fread(x+1,sizeof(REAL4),Nlinks,HydFile) < (unsigned)Nlinks) result = 0;
-   else for (i=1; i<=Nlinks; i++) K[i] = x[i];
+   else for (i=1; i<=Nlinks; i++) LinkSetting[i] = x[i];
 
    free(x);
    return result;
@@ -338,7 +339,6 @@ int  saveoutput()
    /* Write out node results, then link results */
    for (j=DEMAND; j<=QUALITY; j++)  ERRCODE(nodeoutput(j,x,Ucf[j]));
    for (j=FLOW; j<=FRICTION; j++) ERRCODE(linkoutput(j,x,Ucf[j]));
-   
    free(x);
    return(errcode);
 }                        /* End of saveoutput */
@@ -361,16 +361,16 @@ int  nodeoutput(int j, REAL4 *x, double ucf)
    switch(j)
    {
        case DEMAND:    for (i=1; i<=Nnodes; i++)
-                          x[i] = (REAL4)(D[i]*ucf);
+                          x[i] = (REAL4)(NodeDemand[i]*ucf);
                        break;
        case HEAD:      for (i=1; i<=Nnodes; i++)
-                          x[i] = (REAL4)(H[i]*ucf);
+                          x[i] = (REAL4)(NodeHead[i]*ucf);
                        break;
        case PRESSURE:  for (i=1; i<=Nnodes; i++)
-                          x[i] = (REAL4)((H[i] - Node[i].El)*ucf);
+                          x[i] = (REAL4)((NodeHead[i] - Node[i].El)*ucf);
                        break;
        case QUALITY:   for (i=1; i<=Nnodes; i++)
-                          x[i] = (REAL4)(C[i]*ucf);
+                          x[i] = (REAL4)(NodeQual[i]*ucf);
    }
 
    /* Write x[1] to x[Nnodes] to output file */
@@ -380,7 +380,7 @@ int  nodeoutput(int j, REAL4 *x, double ucf)
 }                        /* End of nodeoutput */
 
 
-int  linkoutput(int j, float *x, double ucf)
+int  linkoutput(int j, REAL4 *x, double ucf)
 /*
 **----------------------------------------------------------------
 **   Input:   j   = type of link variable                         
@@ -413,10 +413,10 @@ int  linkoutput(int j, float *x, double ucf)
                       break;
       case HEADLOSS:  for (i=1; i<=Nlinks; i++)
                       {
-                         if (S[i] <= CLOSED) x[i] = 0.0f;
+                         if (LinkStatus[i] <= CLOSED) x[i] = 0.0f;
                          else
                          {
-                            h = H[Link[i].N1] - H[Link[i].N2];
+                            h = NodeHead[Link[i].N1] - NodeHead[Link[i].N2];
                             if (Link[i].Type != PUMP) h = ABS(h);
                             if (Link[i].Type <= PIPE)
                                x[i] = (REAL4)(1000.0*h/Link[i].Len);
@@ -428,25 +428,26 @@ int  linkoutput(int j, float *x, double ucf)
                          x[i] = (REAL4)(avgqual(i)*ucf);
                       break;
       case STATUS:    for (i=1; i<=Nlinks; i++)
-                         x[i] = (REAL4)S[i];
+                         x[i] = (REAL4)LinkStatus[i];
                       break;
       case SETTING:   for (i=1; i<=Nlinks; i++)
                       {
-                         if (K[i] != MISSING)
+                         double setting = LinkSetting[i];
+                         if (setting != MISSING)
                              switch (Link[i].Type)
                              {
                                case CV:   
-                               case PIPE: x[i] = (REAL4)K[i];
+                               case PIPE: x[i] = (REAL4)setting;
                                           break;
-                               case PUMP: x[i] = (REAL4)K[i];
+                               case PUMP: x[i] = (REAL4)setting;
                                           break;
                                case PRV:
                                case PSV:
-                               case PBV:  x[i] = (REAL4)(K[i]*Ucf[PRESSURE]);
+                               case PBV:  x[i] = (REAL4)(setting*Ucf[PRESSURE]);
                                           break;
-                               case FCV:  x[i] = (REAL4)(K[i]*Ucf[FLOW]);
+                               case FCV:  x[i] = (REAL4)(setting*Ucf[FLOW]);
                                           break;
-                               case TCV:  x[i] = (REAL4)K[i];
+                               case TCV:  x[i] = (REAL4)setting;
                                           break;
                                default:   x[i] = 0.0f;
                              }
@@ -455,7 +456,7 @@ int  linkoutput(int j, float *x, double ucf)
                       break;
       case REACTRATE: /* Overall reaction rate in mass/L/day */
                       if (Qualflag == NONE) memset(x,0,(Nlinks+1 )*sizeof(REAL4));
-                      else for (i=1; i<=Nlinks; i++) x[i] = (REAL4)(R[i]*ucf);
+                      else for (i=1; i<=Nlinks; i++) x[i] = (REAL4)(PipeRateCoeff[i]*ucf);
                       break;
       case FRICTION:   /* f = 2ghd/(Lu^2) where f = friction factor */
                        /* u = velocity, g = grav. accel., h = head  */
@@ -464,7 +465,7 @@ int  linkoutput(int j, float *x, double ucf)
                        {
                           if (Link[i].Type <= PIPE && ABS(Q[i]) > TINY)
                           {
-                             h = ABS(H[Link[i].N1] - H[Link[i].N2]);
+                             h = ABS(NodeHead[Link[i].N1] - NodeHead[Link[i].N2]);
                              f = 39.725*h*pow(Link[i].Diam,5)/Link[i].Len/SQR(Q[i]);
                              x[i] = (REAL4)f;
                           }
@@ -642,11 +643,11 @@ int  savetimestat(REAL4 *x, char objtype)
          /* Update internal output variables where applicable */
          if (objtype == NODEHDR) switch (j)
          {
-            case DEMAND:  for (i=1; i<=n; i++) D[i] = x[i]/Ucf[DEMAND];
+            case DEMAND:  for (i=1; i<=n; i++) NodeDemand[i] = x[i]/Ucf[DEMAND];
                           break;   
-            case HEAD:    for (i=1; i<=n; i++) H[i] = x[i]/Ucf[HEAD];
+            case HEAD:    for (i=1; i<=n; i++) NodeHead[i] = x[i]/Ucf[HEAD];
                           break;   
-            case QUALITY: for (i=1; i<=n; i++) C[i] = x[i]/Ucf[QUALITY];
+            case QUALITY: for (i=1; i<=n; i++) NodeQual[i] = x[i]/Ucf[QUALITY];
                           break;
          }
          else if (j == FLOW) for (i=1; i<=n; i++) Q[i] = x[i]/Ucf[FLOW];

@@ -6,6 +6,10 @@
 **  The type alloc_handle_t provides an opaque reference to the
 **  alloc pool - only the alloc routines know its structure.
 */
+
+#ifndef MEMPOOL_H
+#define MEMPOOL_H
+
 #ifndef DLLEXPORT
   #ifdef DLL
     #ifdef __cplusplus
@@ -24,6 +28,7 @@
   #endif
 #endif
 
+
 typedef struct
 {
    long  dummy;
@@ -34,3 +39,5 @@ DLLEXPORT char           *Alloc(long);
 DLLEXPORT alloc_handle_t *AllocSetPool(alloc_handle_t *);
 DLLEXPORT void            AllocReset(void);
 DLLEXPORT void            AllocFreePool(void);
+
+#endif

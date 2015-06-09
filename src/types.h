@@ -17,6 +17,8 @@ AUTHOR:     L. Rossman
                                                                      
 **********************************************************************
 */
+#ifndef TYPES_H
+#define TYPES_H
 
 /*********************************************************/
 /* All floats have been re-declared as doubles (7/3/07). */
@@ -26,7 +28,7 @@ AUTHOR:     L. Rossman
    Definition of 4-byte integers & reals
 -------------------------------------------
 */
-typedef  float        REAL4;                                                   //(2.00.11 - LR)
+typedef  double        REAL4;                                                   //(2.00.11 - LR)
 typedef  int          INT4;                                                    //(2.00.12 - LR)
 
 /*
@@ -35,7 +37,7 @@ typedef  int          INT4;                                                    /
 -----------------------------
 */
 /*** Updated ***/
-#define   CODEVERSION        20012                                             //(2.00.12 - LR)
+#define   CODEVERSION        20100
 #define   MAGICNUMBER        516114521
 #define   VERSION            200
 #define   EOFMARK            0x1A  /* Use 0x04 for UNIX systems */
@@ -165,6 +167,13 @@ typedef struct        /* CURVE OBJECT */
    double *Y;          /* Y-values         */
 }  Scurve;
 
+typedef struct        /* Coord OBJECT */
+{
+	char   ID[MAXID+1]; /* Coord ID         */
+	double *X;          /* X-values         */
+	double *Y;          /* Y-values         */
+}  Scoord;
+
 struct Sdemand            /* DEMAND CATEGORY OBJECT */
 {
    double Base;            /* Baseline demand  */
@@ -206,6 +215,7 @@ typedef struct            /* LINK OBJECT */
    double  Kb;             /* Bulk react. coeff */
    double  Kw;             /* Wall react. coeff */
    double  R;              /* Flow resistance   */
+   double  Rc;             /* Reaction cal      */
    char    Type;           /* Link type         */
    char    Stat;           /* Initial status    */
    char    Rpt;            /* Reporting flag    */
@@ -451,3 +461,4 @@ enum HdrType                    /* Type of table heading   */
                   NODEHDR,      /*  Node Results           */
                   LINKHDR};     /*  Link Results           */
 
+#endif

@@ -25,6 +25,10 @@ AUTHOR:     L. Rossman
 **  NOTE: The exportable functions that can be called
 **        via the DLL are prototyped in TOOLKIT.H.
 */
+
+#ifndef FUNCS_H
+#define FUNCS_H
+
 void    initpointers(void);               /* Initializes pointers       */
 int     allocdata(void);                  /* Allocates memory           */
 void    freeTmplist(STmplist *);          /* Frees items in linked list */
@@ -61,11 +65,13 @@ int     addnodeID(int, char *);           /* Adds node ID to data base  */
 int     addlinkID(int, char *);           /* Adds link ID to data base  */
 int     addpattern(char *);               /* Adds pattern to data base  */
 int     addcurve(char *);                 /* Adds curve to data base    */
+int     addcoord(char *);                 /* Adds coord to data base    */
 STmplist *findID(char *, STmplist *);     /* Locates ID on linked list  */
 int     unlinked(void);                   /* Checks for unlinked nodes  */
 int     getpumpparams(void);              /* Computes pump curve coeffs.*/
 int     getpatterns(void);                /* Gets pattern data from list*/
 int     getcurves(void);                  /* Gets curve data from list  */
+int     getcoords(void);                  /* Gets coordinate data from list  */
 int     findmatch(char *,char *[]);       /* Finds keyword in line      */
 int     match(char *, char *);            /* Checks for word match      */
 int     gettokens(char *);                /* Tokenizes input line       */
@@ -82,6 +88,7 @@ int     pumpdata(void);                   /* Processes pump data        */
 int     valvedata(void);                  /* Processes valve data       */
 int     patterndata(void);                /* Processes pattern data     */
 int     curvedata(void);                  /* Processes curve data       */
+int     coordata(void);                   /* Processes coordinate data       */
 int     demanddata(void);                 /* Processes demand data      */
 int     controldata(void);                /* Processes simple controls  */
 int     energydata(void);                 /* Processes energy data      */
@@ -279,3 +286,5 @@ int     saveepilog(void);                 /* Saves output file epilog   */
 
 /* ------------ INPFILE.C --------------*/
 int     saveinpfile(char *);              /* Saves network to text file  */
+
+#endif
