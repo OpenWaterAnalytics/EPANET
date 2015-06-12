@@ -22,6 +22,16 @@
   #define EN_API_FLOAT_TYPE float
 #endif
 
+// --- define WINDOWS
+#undef WINDOWS
+#ifdef _WIN32
+  #define WINDOWS
+#endif
+#ifdef __WIN32__
+  #define WINDOWS
+#endif
+
+// --- define DLLEXPORT
 #ifndef DLLEXPORT
   #ifdef WINDOWS
     #ifdef __cplusplus
