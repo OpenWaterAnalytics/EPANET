@@ -199,8 +199,8 @@ Global Const EN_INITFLOW = 10    ' Re-initialize flow flag
  Declare Function ENgetlinknodes Lib "epanet2.dll" (ByVal Index As Long, Node1 As Long, Node2 As Long) As Long
  Declare Function ENgetlinkvalue Lib "epanet2.dll" (ByVal Index As Long, ByVal Code As Long, Value As Single) As Long
 
- Declare Function ENgetcurve Lib "epanet2.dll" (ByVal CurveIndex As Long, CurveID As String, nValues As Long, xValues As Any, yValues As Any) As Long
- Declare Function ENgetheadcurve Lib "epanet2.dll" (ByVal Index As Long, ID As String) As Long
+ Declare Function ENgetcurve Lib "epanet2.dll" (ByVal CurveIndex As Long, ByVal CurveID As String, nValues As Long, xValues As Any, yValues As Any) As Long
+ Declare Function ENgetheadcurve Lib "epanet2.dll" (ByVal Index As Long, ByVal ID As String) As Long
  Declare Function ENgetpumptype Lib "epanet2.dll" (ByVal Index As Long, PumpType As Long) As Long
 
  Declare Function ENgetversion Lib "epanet2.dll" (Value As Long) As Long
