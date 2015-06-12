@@ -23,15 +23,15 @@
 #endif
 
 #ifndef DLLEXPORT
-#ifdef DLL
+#ifdef WINDOWS
 #ifdef __cplusplus
 #define DLLEXPORT extern "C" __declspec(dllexport)
 #else
-#define DLLEXPORT __declspec(dllexport)
-#endif
+#define DLLEXPORT __declspec(dllexport) __stdcall
+#endif // __cplusplus
 #elif defined(CYGWIN)
 #define DLLEXPORT __stdcall
-#else
+#elif defined(__APPLE__)
 #ifdef __cplusplus
 #define DLLEXPORT
 #else
@@ -83,7 +83,8 @@
 #define EN_STATUS       11
 #define EN_SETTING      12
 #define EN_ENERGY       13
-#define EN_LINKQUAL     14     /* TNT */
+#define EN_LINKQUAL     14
+#define EN_LINKPATTERN  15
 
 #define EN_DURATION     0    /* Time parameters */
 #define EN_HYDSTEP      1
