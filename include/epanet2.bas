@@ -33,8 +33,8 @@ Global Const EN_MINLEVEL = 20
 Global Const EN_MAXLEVEL = 21
 Global Const EN_MIXFRACTION = 22
 Global Const EN_TANK_KBULK = 23
-
-Global Const EN_TANKVOLUME = 24 'ES
+Global Const EN_TANKVOLUME = 24
+Global Const EN_MAXVOLUME = 25
 
 Global Const EN_DIAMETER = 0      ' Link parameters
 Global Const EN_LENGTH = 1
@@ -62,7 +62,14 @@ Global Const EN_REPORTSTART = 6
 Global Const EN_RULESTEP = 7
 Global Const EN_STATISTIC = 8
 Global Const EN_PERIODS = 9
-Global Const EN_STARTTIME = 10    'ES
+Global Const EN_STARTTIME = 10
+Global Const EN_HTIME = 11
+Global Const EN_QTIME = 12
+Global Const EN_HALTFLAG = 13
+Global Const EN_NEXTEVENT = 14
+
+Global Const EN_ITERATIONS = 0
+Global Const EN_RELATIVEERROR = 1
 
 Global Const EN_NODECOUNT = 0     'Component counts
 Global Const EN_TANKCOUNT = 1
@@ -132,10 +139,6 @@ Global Const EN_SAVE = 1
 
 Global Const EN_INITFLOW = 10    ' Re-initialize flow flag
 
-Global Const EN_CONST_HP = 0      ' constant horsepower
-Global Const EN_POWER_FUNC = 1    ' power function
-Global Const EN_CUSTOM = 2        ' user-defined custom curve
-
 'These are the external functions that comprise the DLL
 
  Declare Function ENepanet Lib "epanet2.dll" (ByVal F1 As String, ByVal F2 As String, ByVal F3 As String, ByVal F4 As Any) As Long
@@ -175,17 +178,20 @@ Global Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENgetpatternid Lib "epanet2.dll" (ByVal Index As Long, ByVal ID As String) As Long
  Declare Function ENgetpatternlen Lib "epanet2.dll" (ByVal Index As Long, L As Long) As Long
  Declare Function ENgetpatternvalue Lib "epanet2.dll" (ByVal Index As Long, ByVal Period As Long, Value As Single) As Long
+ Declare Function ENgetaveragepatternvalue Lib "epanet2.dll" (ByVal Index As Long, Value As Single) As Long
  Declare Function ENgetqualtype Lib "epanet2.dll" (QualCode As Long, TraceNode As Long) As Long
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal ErrCode As Long, ByVal ErrMsg As String, ByVal N As Long)
+ Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal Code As Long, Value As Single)
 
  Declare Function ENgetnodeindex Lib "epanet2.dll" (ByVal ID As String, Index As Long) As Long
  Declare Function ENgetnodeid Lib "epanet2.dll" (ByVal Index As Long, ByVal ID As String) As Long
  Declare Function ENgetnodetype Lib "epanet2.dll" (ByVal Index As Long, Code As Long) As Long
  Declare Function ENgetnodevalue Lib "epanet2.dll" (ByVal Index As Long, ByVal Code As Long, Value As Single) As Long
+ Declare Function ENgetcoord Lib "epanet2.dll" (ByVal Index As Long, X As Single, Y As Single) As Long
 
- Declare Function ENgetnumdemands Lib "epanet2.dll" (ByVal Index As Long, numDemands As Long) As Long   'ES
- Declare Function ENgetbasedemand Lib "epanet2.dll" (ByVal Index As Long, ByVal DemandIndex As Long, Value As Single) As Long   'ES
- Declare Function ENgetdemandpattern Lib "epanet2.dll" (ByVal Index As Long, ByVal DemandIndex As Long, PatIndex As Long) As Long   'ES
+ Declare Function ENgetnumdemands Lib "epanet2.dll" (ByVal Index As Long, numDemands As Long) As Long
+ Declare Function ENgetbasedemand Lib "epanet2.dll" (ByVal Index As Long, ByVal DemandIndex As Long, Value As Single) As Long
+ Declare Function ENgetdemandpattern Lib "epanet2.dll" (ByVal Index As Long, ByVal DemandIndex As Long, PatIndex As Long) As Long
 
  Declare Function ENgetlinkindex Lib "epanet2.dll" (ByVal ID As String, Index As Long) As Long
  Declare Function ENgetlinkid Lib "epanet2.dll" (ByVal Index As Long, ByVal ID As String) As Long
@@ -193,9 +199,9 @@ Global Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENgetlinknodes Lib "epanet2.dll" (ByVal Index As Long, Node1 As Long, Node2 As Long) As Long
  Declare Function ENgetlinkvalue Lib "epanet2.dll" (ByVal Index As Long, ByVal Code As Long, Value As Single) As Long
 
- Declare Function ENgetcurve Lib "epanet2.dll" (ByVal CurveIndex As Long, nValues As Long, xValues As Any, yValues As Any) As Long 'ES
- Declare Function ENgetheadcurve Lib "epanet2.dll" (ByVal Index As Long, ID As String) As Long  'ES
- Declare Function ENgetpumptype Lib "epanet2.dll" (ByVal Index As Long, PumpType As Long) As Long  'ES
+ Declare Function ENgetcurve Lib "epanet2.dll" (ByVal CurveIndex As Long, CurveID As String, nValues As Long, xValues As Any, yValues As Any) As Long
+ Declare Function ENgetheadcurve Lib "epanet2.dll" (ByVal Index As Long, ID As String) As Long
+ Declare Function ENgetpumptype Lib "epanet2.dll" (ByVal Index As Long, PumpType As Long) As Long
 
  Declare Function ENgetversion Lib "epanet2.dll" (Value As Long) As Long
 
@@ -209,4 +215,5 @@ Global Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENsetoption Lib "epanet2.dll" (ByVal Code As Long, ByVal Value As Single) As Long
  Declare Function ENsetstatusreport Lib "epanet2.dll" (ByVal Code As Long) As Long
  Declare Function ENsetqualtype Lib "epanet2.dll" (ByVal QualCode As Long, ByVal ChemName As String, ByVal ChemUnits As String, ByVal TraceNode As String) As Long
-
+ Declare Function ENgetqualinfo Lib "epanet2.dll" (QualCode As Long, ChemName As String, ChemUnits As String, TraceNode As Long) As Long
+ Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal NodeIndex As Long, ByVal DemandIndex As Long, BaseDemand As Single) As Long

@@ -19,26 +19,27 @@
 #define EPANET2_H
 
 #ifndef EN_API_FLOAT_TYPE
-#define EN_API_FLOAT_TYPE float
+  #define EN_API_FLOAT_TYPE float
 #endif
 
 #ifndef DLLEXPORT
-#ifdef WINDOWS
-#ifdef __cplusplus
-#define DLLEXPORT extern "C" __declspec(dllexport)
-#else
-#define DLLEXPORT __declspec(dllexport) __stdcall
-#endif // __cplusplus
-#elif defined(CYGWIN)
-#define DLLEXPORT __stdcall
-#elif defined(__APPLE__)
-#ifdef __cplusplus
-#define DLLEXPORT
-#else
-#define DLLEXPORT
+  #ifdef WINDOWS
+    #ifdef __cplusplus
+      #define DLLEXPORT extern "C" __declspec(dllexport)
+    #else
+      #define DLLEXPORT __declspec(dllexport) __stdcall
+    #endif // __cplusplus
+  #elif defined(CYGWIN)
+    #define DLLEXPORT __stdcall
+  #elif defined(__APPLE__)
+    #ifdef __cplusplus
+      #define DLLEXPORT
+    #else
+      #define DLLEXPORT
+    #endif
+  #endif
 #endif
-#endif
-#endif
+
 // --- Define the EPANET toolkit constants
 
 #define EN_ELEVATION    0    /* Node parameters */
@@ -238,7 +239,8 @@ extern "C" {
   int  DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value);
   
   int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
-
+  int  DLLEXPORT ENgetheadcurve(int, char *);
+  int  DLLEXPORT ENgetpumptype(int, int *);
   
   int  DLLEXPORT ENgetversion(int *version);
   
@@ -259,4 +261,4 @@ extern "C" {
 }
 #endif
 
-#endif //TOOLKIT_H
+#endif //EPANET2_H
