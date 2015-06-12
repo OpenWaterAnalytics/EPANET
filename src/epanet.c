@@ -12,8 +12,8 @@ DATE:       5/30/00
             6/24/02
             8/15/07    (2.00.11)
             2/14/08    (2.00.12)
-AUTHOR:     L. Rossman
-            US EPA - NRMRL
+ AUTHORS:     L. Rossman - US EPA - NRMRL
+              OpenWaterAnalytics members: see git stats for contributors
 
 EPANET performs extended period hydraulic and water quality analysis of
 looped, pressurized piping networks. The program consists of the
@@ -37,7 +37,7 @@ The program can be compiled as either a stand-alone console application
 or as a dynamic link library (DLL) of function calls depending on whether
 the macro identifier 'DLL' is defined or not.
 
-See TOOLKIT.H for function prototypes of exported DLL functions
+See EPANET2.H for function prototypes of exported DLL functions
 See FUNCS.H for prototypes of all other functions
 See TYPES.H for declaration of global constants and data structures
 See VARS.H for declaration of global variables
@@ -906,12 +906,11 @@ int DLLEXPORT ENgetversion(int *v)
 } 
 
 
-int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex,
-              EN_API_FLOAT_TYPE *setting, int *nindex, EN_API_FLOAT_TYPE *level)
+int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex, EN_API_FLOAT_TYPE *setting, int *nindex, EN_API_FLOAT_TYPE *level)
 /*----------------------------------------------------------------
 **  Input:   cindex   = control index (position of control statement
 **                      in the input file, starting from 1) 
-**  Output:  *ctype   = control type code (see TOOLKIT.H)
+**  Output:  *ctype   = control type code (see EPANET2.H)
 **           *lindex  = index of controlled link
 **           *setting = control setting on link
 **           *nindex  = index of controlling node (0 for TIMER
@@ -962,7 +961,7 @@ int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex,
 
 int DLLEXPORT ENgetcount(int code, int *count)
 /*----------------------------------------------------------------
-**  Input:   code = component code (see TOOLKIT.H)                    
+**  Input:   code = component code (see EPANET2.H)                    
 **  Output:  *count = number of components in network
 **  Returns: error code                              
 **  Purpose: retrieves the number of components of a 
@@ -988,7 +987,7 @@ int DLLEXPORT ENgetcount(int code, int *count)
 
 int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value)
 /*----------------------------------------------------------------
-**  Input:   code = option code (see TOOLKIT.H)
+**  Input:   code = option code (see EPANET2.H)
 **  Output:  *value = option value
 **  Returns: error code                              
 **  Purpose: gets value for an analysis option 
@@ -1019,7 +1018,7 @@ int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value)
 
 int DLLEXPORT ENgettimeparam(int code, long *value)
 /*----------------------------------------------------------------
-**  Input:   code = time parameter code (see TOOLKIT.H)
+**  Input:   code = time parameter code (see EPANET2.H)
 **  Output:  *value = value of time parameter 
 **  Returns: error code                              
 **  Purpose: retrieves value of specific time parameter                 
@@ -1056,7 +1055,7 @@ int DLLEXPORT ENgetflowunits(int *code)
 /*----------------------------------------------------------------
 **  Input:   none                    
 **  Output:  *code = code of flow units in use 
-**                   (see TOOLKIT.H or TYPES.H)
+**                   (see EPANET2.H or TYPES.H)
 **  Returns: error code                              
 **  Purpose: retrieves flow units code 
 **----------------------------------------------------------------
@@ -1148,10 +1147,10 @@ int DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value)
 }
 
 
-int  DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode)
+int DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode)
 /*----------------------------------------------------------------
 **  Input:   none
-**  Output:  *qualcode  = WQ analysis code number (see TOOLKIT.H)
+**  Output:  *qualcode  = WQ analysis code number (see EPANET2.H)
 **           *tracenode = index of node being traced (if
 **                        qualocode = WQ tracing)
 **  Returns: error code                              
@@ -1272,7 +1271,7 @@ int DLLEXPORT ENgetnodeid(int index, char *id)
 int  DLLEXPORT ENgetnodetype(int index, int *code)
 /*----------------------------------------------------------------
 **  Input:   index = node index                    
-**  Output:  *code = node type code number (see TOOLKIT.H)
+**  Output:  *code = node type code number (see EPANET2.H)
 **  Returns: error code                              
 **  Purpose: retrieves node type of specific node 
 **----------------------------------------------------------------
@@ -1309,7 +1308,7 @@ int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
 int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
 /*----------------------------------------------------------------
 **  Input:   index = node index
-**           code  = node parameter code (see TOOLKIT.H)
+**           code  = node parameter code (see EPANET2.H)
 **  Output:  *value = value of node's parameter
 **  Returns: error code                              
 **  Purpose: retrieves parameter value for a node   
@@ -1530,7 +1529,7 @@ int DLLEXPORT ENgetlinkid(int index, char *id)
 int  DLLEXPORT ENgetlinktype(int index, int *code)
 /*------------------------------------------------------------------
 **  Input:   index = link index                    
-**  Output:  *code = link type code number (see TOOLKIT.H)
+**  Output:  *code = link type code number (see EPANET2.H)
 **  Returns: error code                              
 **  Purpose: retrieves link type of specific link 
 **------------------------------------------------------------------
@@ -1567,7 +1566,7 @@ int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2)
 int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
 /*------------------------------------------------------------------
 **  Input:   index = link index
-**           code  = link parameter code (see TOOLKIT.H)                   
+**           code  = link parameter code (see EPANET2.H)                   
 **  Output:  *value = value of link's parameter
 **  Returns: error code                              
 **  Purpose: retrieves parameter value for a link   
@@ -1720,21 +1719,29 @@ int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_T
 /*----------------------------------------------------------------
  **  Input:   curveIndex = curve index
  **  Output:  *nValues = number of points on curve
+ **           id = curve ID
  **           *xValues = values for x
  **           *yValues = values for y
  **  Returns: error code
- **  Purpose: retrieves end nodes of a specific link
+ **  Purpose: retrieves curve id, number of values and (x,y) values
+ **
+ **  NOTE: 'id' must be able to hold MAXID characters
  **----------------------------------------------------------------
  */
 {
-  int err = 0;
+  int iPoint, nPoints;
+  Scurve curve;
+  EN_API_FLOAT_TYPE *pointX, *pointY;
   
-  Scurve curve = Curve[curveIndex];
-  int nPoints = curve.Npts;
+/* Check that input file opened */
+   if (!Openflag) return(102);
   
-  EN_API_FLOAT_TYPE *pointX = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
-  EN_API_FLOAT_TYPE *pointY = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
-  int iPoint;
+  curve = Curve[curveIndex];
+  nPoints = curve.Npts;
+  
+  pointX = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
+  pointY = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
+  
   for (iPoint = 0; iPoint < nPoints; iPoint++) {
     double x = curve.X[iPoint] * Ucf[LENGTH];
     double y = curve.Y[iPoint] * Ucf[VOLUME];
@@ -1742,12 +1749,13 @@ int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_T
     pointY[iPoint] = (EN_API_FLOAT_TYPE)y;
   }
   
+  strncpy(id,"", MAXID);
   strncpy(id, curve.ID, MAXID);
   *nValues = nPoints;
   *xValues = pointX;
   *yValues = pointY;
   
-  return err;
+  return(0);
 }
 
 
@@ -1763,7 +1771,7 @@ int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
 /*----------------------------------------------------------------
 **  Input:   cindex  = control index (position of control statement
 **                     in the input file, starting from 1)
-**           ctype   = control type code (see TOOLKIT.H)
+**           ctype   = control type code (see EPANET2.H)
 **           lindex  = index of controlled link
 **           setting = control setting applied to link
 **           nindex  = index of controlling node (0 for TIMER
@@ -1850,7 +1858,7 @@ int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
 int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
 /*----------------------------------------------------------------
 **  Input:   index = node index
-**           code  = node parameter code (see TOOLKIT.H)
+**           code  = node parameter code (see EPANET2.H)
 **           value = parameter value
 **  Output:  none
 **  Returns: error code                              
@@ -2063,7 +2071,7 @@ int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
 int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
 /*----------------------------------------------------------------
 **  Input:   index = link index
-**           code  = link parameter code (see TOOLKIT.H)
+**           code  = link parameter code (see EPANET2.H)
 **           v = parameter value
 **  Output:  none
 **  Returns: error code                              
@@ -2297,7 +2305,7 @@ int  DLLEXPORT  ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value
 
 int  DLLEXPORT  ENsettimeparam(int code, long value)
 /*----------------------------------------------------------------
-**  Input:   code  = time parameter code (see TOOLKIT.H)
+**  Input:   code  = time parameter code (see EPANET2.H)
 **           value = time parameter value
 **  Output:  none
 **  Returns: error code                              
@@ -2389,7 +2397,7 @@ int  DLLEXPORT  ENsettimeparam(int code, long value)
 
 int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v)
 /*----------------------------------------------------------------
-**  Input:   code  = option code (see TOOLKIT.H)
+**  Input:   code  = option code (see EPANET2.H)
 **           v = option value
 **  Output:  none
 **  Returns: error code
@@ -2450,7 +2458,7 @@ int  DLLEXPORT ENsetstatusreport(int code)
 int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname,
                                char *chemunits, char *tracenode)
 /*----------------------------------------------------------------
-**  Input:   qualcode  = WQ parameter code (see TOOLKIT.H)
+**  Input:   qualcode  = WQ parameter code (see EPANET2.H)
 **           chemname  = name of WQ constituent 
 **           chemunits = concentration units of WQ constituent
 **           tracenode = ID of node being traced
