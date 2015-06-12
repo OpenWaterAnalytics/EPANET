@@ -144,64 +144,6 @@ void (* viewprog) (char *);     /* Pointer to progress viewing function */
 ----------------------------------------------------------------
 */
 
-/*** This code is no longer required *****                                     //(2.00.11 - LR)
-#ifdef DLL
-int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void* reserved)
-{
-        viewprog = NULL;
-        return 1;
-}
-#endif
-*****************************************/
-
-
-/*
-----------------------------------------------------------------
-   Entry point used to compile a stand-alone executable.
-----------------------------------------------------------------
-*/
-
-#ifdef CLE                                                                     //(2.00.11 - LR)
-
-int   main(int argc, char *argv[])
-/*--------------------------------------------------------------
-**  Input:   argc    = number of command line arguments
-**           *argv[] = array of command line arguments
-**  Output:  none
-**  Purpose: main program segment
-**
-**  Command line for stand-alone operation is:
-**    progname f1  f2  f3
-**  where progname = name of executable this code was compiled to,
-**  f1 = name of input file, f2 = name of report file, and
-**  f3 = name of binary output file (optional).
-**--------------------------------------------------------------
-*/
-{
-    char *f1,*f2,*f3;
-    char blank[] = "";
-    int  errcode;
-
-/* Check for proper number of command line arguments */
-    if (argc < 3) writecon(FMT03);
-    else
-    {
-
-    /* Call the main control function */
-       f1 = argv[1];
-       f2 = argv[2];
-       if (argc > 3) f3 = argv[3];
-       else          f3 = blank;
-       writecon(FMT01);
-       errcode = ENepanet(f1,f2,f3,NULL);
-       if (errcode > 0) writecon(FMT11);
-       else if (Warnflag > 0) writecon(FMT10);
-       else writecon(FMT09);
-    }
-    return(0);
-}                                       /* End of main */
-#endif
-
 
 /*
 ----------------------------------------------------------------
@@ -3295,10 +3237,10 @@ void  writecon(char *s)
 **----------------------------------------------------------------
 */
 {
-#ifdef CLE                                                                     //(2.00.11 - LR)
+                                                    //(2.00.11 - LR)
    fprintf(stdout,s);
    fflush(stdout);
-#endif
+
 }
 
 
