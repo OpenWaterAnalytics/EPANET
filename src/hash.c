@@ -30,11 +30,12 @@ unsigned int _enHash(char *str);
 unsigned int _enHash(char *str)
 {
   unsigned int hash = 5381;
+  unsigned int retHash;
   int c;
   while ((c = *str++)) {
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
   }
-  unsigned int retHash = hash % ENHASHTABLEMAXSIZE;
+  retHash = hash % ENHASHTABLEMAXSIZE;
   return retHash;
 }
 

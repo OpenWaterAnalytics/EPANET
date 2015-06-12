@@ -237,7 +237,7 @@ int runqual(long *t)
       }
       else {
         // stepwise calculation - hydraulic results are already in memory
-        for (int i=1; i<= Ntanks; ++i) {
+        for (i=1; i<= Ntanks; ++i) {
           QTankVolumes[i-1] = Tank[i].V;
         }
         
@@ -282,7 +282,9 @@ int nextqual(long *tstep)
 {
    long    hydstep;       /* Hydraulic solution time step */
    int     errcode = 0;
+   double *tankVolumes;
    int i;
+   
    /* Determine time step */
    *tstep = 0;
   
@@ -291,12 +293,10 @@ int nextqual(long *tstep)
   if (Htime <= Dur) hydstep = Htime - Qtime;
   else hydstep = 0;
   
-  double *tankVolumes;
-  
   // if we're operating in stepwise mode, capture the tank levels so we can restore them later.
   if (OpenHflag) {
     tankVolumes = calloc(Ntanks, sizeof(double));
-    for (int i=1; i<=Ntanks; ++i) {
+    for (i=1; i<=Ntanks; ++i) {
       if (Tank[i].A != 0) { // skip reservoirs
         tankVolumes[i-1] = Tank[i].V;
       }

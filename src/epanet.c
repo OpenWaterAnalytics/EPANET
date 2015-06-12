@@ -3329,11 +3329,12 @@ int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
  **           and pattern
  **----------------------------------------------------------------
  */
-{  *value = 0.0;
+{ 
+  int i;
+  *value = 0.0;
   if (!Openflag) return(102);
   if (index < 1 || index > Npats) return(205);
   //if (period < 1 || period > Pattern[index].Length) return(251);
-  int i;
   for (i=0; i<Pattern[index].Length; i++) {
     *value+=Pattern[index].F[i];
   }
