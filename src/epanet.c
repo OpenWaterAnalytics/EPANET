@@ -3270,7 +3270,16 @@ void writewin(char *s)
    }
 #endif
 }
+
+
 int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
+/*----------------------------------------------------------------
+ **  Input:   nodeIndex   = index of node
+ **  Output:  *numDemands = number of demand catagories
+ **  Returns: error code
+ **  Purpose: retrieves the number of a demand catagories for a node
+ **----------------------------------------------------------------
+ */
 {
 	Pdemand d;
 	int n=0;
@@ -3281,7 +3290,17 @@ int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
 	*numDemands=n;
 	return 0;
 }
+
+
 int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand)
+/*----------------------------------------------------------------
+ **  Input:   nodeIndex   = index of node
+ **           demandIdx   = index of demand catagory
+ **  Output:  *baseDemand = base demand for selected catagory
+ **  Returns: error code
+ **  Purpose: retrieves the node's base demand for a catagory
+ **----------------------------------------------------------------
+ */
 {
   Pdemand d;
   int n=1;
@@ -3299,7 +3318,17 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *
   return 0;
 }
 
+
+
 int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand)
+/*----------------------------------------------------------------
+ **  Input:   nodeIndex  = index of node
+ **           demandIdx  = index of demand catagory
+ **           baseDemand = base demand for selected catagory
+ **  Returns: error code
+ **  Purpose: sets the node's base demand for a catagory
+ **----------------------------------------------------------------
+ */
 {
   Pdemand d;
   int n=1;
@@ -3314,7 +3343,17 @@ int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE b
   return 0;
 }
 
+
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
+/*----------------------------------------------------------------
+ **  Input:   nodeIndex  = index of node
+ **           demandIdx  = index of demand catagory
+ **  Output:  *pattIdx   = demand pattern index
+ **  Returns: error code
+ **  Purpose: retrieves the index of a demand pattern for a specific
+ **           demand catagory of a node
+ **----------------------------------------------------------------
+ */
 {
 	Pdemand d;
 	int n=1;
@@ -3327,14 +3366,13 @@ int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 	return 0;
 }
 
+
 int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
 /*----------------------------------------------------------------
  **  Input:   index  = index of time pattern
- **           period = pattern time period
- **  Output:  *value = pattern multiplier
+ **  Output:  *value = pattern average value
  **  Returns: error code
- **  Purpose: retrieves multiplier for a specific time period
- **           and pattern
+ **  Purpose: retrieves the average value of a pattern
  **----------------------------------------------------------------
  */
 { 
