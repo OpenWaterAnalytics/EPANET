@@ -3319,7 +3319,6 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *
 }
 
 
-
 int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand)
 /*----------------------------------------------------------------
  **  Input:   nodeIndex  = index of node

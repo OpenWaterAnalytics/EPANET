@@ -180,8 +180,8 @@ Global Const EN_INITFLOW = 10    ' Re-initialize flow flag
  Declare Function ENgetpatternvalue Lib "epanet2.dll" (ByVal Index As Long, ByVal Period As Long, Value As Single) As Long
  Declare Function ENgetaveragepatternvalue Lib "epanet2.dll" (ByVal Index As Long, Value As Single) As Long
  Declare Function ENgetqualtype Lib "epanet2.dll" (QualCode As Long, TraceNode As Long) As Long
- Declare Function ENgeterror Lib "epanet2.dll" (ByVal ErrCode As Long, ByVal ErrMsg As String, ByVal N As Long)
- Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal Code As Long, Value As Single)
+ Declare Function ENgeterror Lib "epanet2.dll" (ByVal ErrCode As Long, ByVal ErrMsg As String, ByVal N As Long) As Long
+ Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal Code As Long, Value As Single) As Long
 
  Declare Function ENgetnodeindex Lib "epanet2.dll" (ByVal ID As String, Index As Long) As Long
  Declare Function ENgetnodeid Lib "epanet2.dll" (ByVal Index As Long, ByVal ID As String) As Long
@@ -216,4 +216,4 @@ Global Const EN_INITFLOW = 10    ' Re-initialize flow flag
  Declare Function ENsetstatusreport Lib "epanet2.dll" (ByVal Code As Long) As Long
  Declare Function ENsetqualtype Lib "epanet2.dll" (ByVal QualCode As Long, ByVal ChemName As String, ByVal ChemUnits As String, ByVal TraceNode As String) As Long
  Declare Function ENgetqualinfo Lib "epanet2.dll" (QualCode As Long, ChemName As String, ChemUnits As String, TraceNode As Long) As Long
- Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal NodeIndex As Long, ByVal DemandIndex As Long, BaseDemand As Single) As Long
+ Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal NodeIndex As Long, ByVal DemandIndex As Long, ByVal BaseDemand As Single) As Long
