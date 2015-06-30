@@ -3198,7 +3198,8 @@ char *geterrmsg(int errcode)
       case 241:  sprintf(Msg,ERR241,t_FUNCCALL,""); break;
       case 250:  sprintf(Msg,ERR250);  break;
       case 251:  sprintf(Msg,ERR251);  break;
-
+      case 253:  sprintf(Msg,ERR253);  break;
+      
                                        /* File Errors */
       case 301:  strcpy(Msg,ERR301);   break;
       case 302:  strcpy(Msg,ERR302);   break;
@@ -3275,9 +3276,9 @@ void writewin(char *s)
 int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
 /*----------------------------------------------------------------
  **  Input:   nodeIndex   = index of node
- **  Output:  *numDemands = number of demand catagories
+ **  Output:  *numDemands = number of demand categories
  **  Returns: error code
- **  Purpose: retrieves the number of a demand catagories for a node
+ **  Purpose: retrieves the number of a demand categories for a node
  **----------------------------------------------------------------
  */
 {
@@ -3295,10 +3296,10 @@ int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
 int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand)
 /*----------------------------------------------------------------
  **  Input:   nodeIndex   = index of node
- **           demandIdx   = index of demand catagory
- **  Output:  *baseDemand = base demand for selected catagory
+ **           demandIdx   = index of demand category
+ **  Output:  *baseDemand = base demand for selected category
  **  Returns: error code
- **  Purpose: retrieves the node's base demand for a catagory
+ **  Purpose: retrieves the node's base demand for a category
  **----------------------------------------------------------------
  */
 {
@@ -3322,10 +3323,10 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *
 int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand)
 /*----------------------------------------------------------------
  **  Input:   nodeIndex  = index of node
- **           demandIdx  = index of demand catagory
- **           baseDemand = base demand for selected catagory
+ **           demandIdx  = index of demand category
+ **           baseDemand = base demand for selected category
  **  Returns: error code
- **  Purpose: sets the node's base demand for a catagory
+ **  Purpose: sets the node's base demand for a category
  **----------------------------------------------------------------
  */
 {
@@ -3346,11 +3347,11 @@ int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE b
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 /*----------------------------------------------------------------
  **  Input:   nodeIndex  = index of node
- **           demandIdx  = index of demand catagory
+ **           demandIdx  = index of demand category
  **  Output:  *pattIdx   = demand pattern index
  **  Returns: error code
  **  Purpose: retrieves the index of a demand pattern for a specific
- **           demand catagory of a node
+ **           demand category of a node
  **----------------------------------------------------------------
  */
 {
