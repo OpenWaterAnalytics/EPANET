@@ -168,8 +168,8 @@ Public Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENreport Lib "epanet2.dll" () As Int32
  Declare Function ENresetreport Lib "epanet2.dll" () As Int32
  Declare Function ENsetreport Lib "epanet2.dll" (ByVal S As String) As Int32
-
- Declare Function ENgetcontrol Lib "epanet2.dll" (ByVal Cindex As Int32, Ctype As Int32, Lindex As Int32, Setting As Single, Nindex As Int32, Level As Single) As Int32
+ 
+ Declare Function ENgetcontrol Lib "epanet2.dll" (ByVal Cindex As Int32, ByRef CtlType As Int32, ByRef Lindex As Int32, ByRef Setting As Single, ByRef Nindex As Int32, ByRef Level As Single) As Int32
  Declare Function ENgetcount Lib "epanet2.dll" (ByVal Code As Int32, ByRef Value As Int32) As Int32
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal Code As Int32, ByRef Value As Single) As Int32
  Declare Function ENgettimeparam Lib "epanet2.dll" (ByVal Code As Int32, ByRef Value As Int32) As Int32
@@ -202,7 +202,7 @@ Public Const EN_CUSTOM = 2        ' user-defined custom curve
 
  Declare Function ENgetversion Lib "epanet2.dll" (ByRef Value As Int32) As Int32
 
- Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal Cindex As Int32, ByVal Ctype As Int32, ByVal Lindex As Int32, ByVal Setting As Single, ByVal Nindex As Int32, ByVal Level As Single) As Int32
+ Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal Cindex As Int32, ByVal CtlType As Int32, ByVal Lindex As Int32, ByVal Setting As Single, ByVal Nindex As Int32, ByVal Level As Single) As Int32
  Declare Function ENsetnodevalue Lib "epanet2.dll" (ByVal Index As Int32, ByVal Code As Int32, ByVal Value As Single) As Int32
  Declare Function ENsetlinkvalue Lib "epanet2.dll" (ByVal Index As Int32, ByVal Code As Int32, ByVal Value As Single) As Int32
  Declare Function ENsetpattern Lib "epanet2.dll" (ByVal Index as Int32, ByRef F as Single, ByVal N as Int32) as Int32
