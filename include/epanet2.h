@@ -47,6 +47,8 @@
     #else
       #define DLLEXPORT
     #endif
+  #else
+    #define DLLEXPORT
   #endif
 #endif
 
