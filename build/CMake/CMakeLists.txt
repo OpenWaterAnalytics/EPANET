@@ -15,4 +15,4 @@ add_library(epanet STATIC  ../../src/epanet.c ../../src/hydraul.c ../../src/hash
 # the standalone executable
 include_directories(../../src)
 add_executable(runepanet ../../run/main.c)
-target_link_libraries (runepanet LINK_PUBLIC epanet)
+target_link_libraries (runepanet LINK_PUBLIC epanet m)
