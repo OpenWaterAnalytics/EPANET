@@ -51,6 +51,7 @@ Global Const EN_STATUS = 11
 Global Const EN_SETTING = 12
 Global Const EN_ENERGY = 13
 Global Const EN_LINKQUAL = 14   'ES
+Global Const EN_LINKPATTERN  15
 
 Global Const EN_DURATION = 0      ' Time parameters
 Global Const EN_HYDSTEP = 1
