@@ -213,16 +213,6 @@ int DLLEXPORT ENopen(char *f1, char *f2, char *f3)
 
 /*** Updated 9/7/00 ***/
    Messageflag = TRUE;
-
-/* If binary output file being used, then   */
-/* do not write full results to Report file */
-/* (use it only for status reports).        */
-   Rptflag = 0;
-   if (strlen(f3) == 0) Rptflag = 1;
-
-/*** Updated 9/7/00 ***/
-/*** Previous code segment ignored. ***/
-/*** Rptflag now always set to 1.   ***/
    Rptflag = 1;
 
 /* Initialize global pointers to NULL. */
