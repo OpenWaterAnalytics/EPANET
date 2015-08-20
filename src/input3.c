@@ -1370,7 +1370,7 @@ int  reportdata()
 /* Check if input is a reporting criterion. */
 
 /*** Special case needed to distinguish "HEAD" from "HEADLOSS" ***/            //(2.00.11 - LR)
-   if (strcomp(Tok[0], w_HEADLOSS)) i = HEADLOSS;                              //(2.00.11 - LR)
+   if (strcomp(Tok[0], t_HEADLOSS)) i = HEADLOSS;                              
    else i = findmatch(Tok[0],Fldname);                                         //(2.00.11 - LR)
    if (i >= 0)                                                                 //(2.00.11 - LR)
 /*****************************************************************/            //(2.00.11 - LR)
