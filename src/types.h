@@ -169,9 +169,10 @@ typedef struct        /* CURVE OBJECT */
 
 typedef struct        /* Coord OBJECT */
 {
-	char   ID[MAXID+1]; /* Coord ID         */
-	double *X;          /* X-values         */
-	double *Y;          /* Y-values         */
+	char   ID[MAXID+1];  /* Coord ID         */
+	double X;            /* X-value          */
+	double Y;            /* Y-value          */
+	char   HaveCoords;   /* Coordinates flag */
 }  Scoord;
 
 struct Sdemand            /* DEMAND CATEGORY OBJECT */
