@@ -239,7 +239,6 @@ int DLLEXPORT ENopen(char *f1, char *f2, char *f3)
 /* Free temporary linked lists used for Patterns & Curves */
    freeTmplist(Patlist);
    freeTmplist(Curvelist);
-   freeTmplist(Coordlist);
 
 /* If using previously saved hydraulics then open its file */
    if (Hydflag == USE) ERRCODE(openhydfile());          
@@ -1290,9 +1289,14 @@ int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
  **----------------------------------------------------------------
  */
 {
-  *x = Coord[index].X[0];
-  *y = Coord[index].Y[0];
-  return 0;
+   if (!Openflag) return(102);
+   if (index < 1 || index > Nnodes) return(203);
+   // check if node have coords
+   if (Coord[index].HaveCoords == 0) return(254);
+   
+   *x = Coord[index].X;
+   *y = Coord[index].Y;
+   return 0;
 }
 
 int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
@@ -2770,12 +2774,11 @@ void initpointers()
    Pattern  = NULL;
    Curve    = NULL;
    Control  = NULL;
-  Coord    = NULL;
+   Coord    = NULL;
 
    X        = NULL;
    Patlist  = NULL;
    Curvelist = NULL;
-  Coordlist = NULL;
    Adjlist  = NULL;
    Aii      = NULL;
    Aij      = NULL;
@@ -2885,12 +2888,10 @@ int  allocdata()
      {
        // node demand
        Node[n].D = NULL;
-       /* Allocate memory for coord data */
-       Coord[n].X = (double *) calloc(1, sizeof(double));
-       Coord[n].Y = (double *) calloc(1, sizeof(double));
-       if (Coord[n].X == NULL || Coord[n].Y == NULL) return(101);
-       Coord[n].X[0] = 0;
-       Coord[n].Y[0] = 0;
+       /* ini coord data */
+       Coord[n].X = 0;
+       Coord[n].Y = 0;
+       Coord[n].HaveCoords = 0;
      }
      
    }
@@ -3189,6 +3190,7 @@ char *geterrmsg(int errcode)
       case 250:  sprintf(Msg,ERR250);  break;
       case 251:  sprintf(Msg,ERR251);  break;
       case 253:  sprintf(Msg,ERR253);  break;
+      case 254:  sprintf(Msg,ERR254);  break;
       
                                        /* File Errors */
       case 301:  strcpy(Msg,ERR301);   break;

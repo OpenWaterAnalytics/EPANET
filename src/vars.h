@@ -76,7 +76,6 @@ EXTERN int      MaxNodes,              /* Node count from input file   */
                 MaxRules,              /* Rule count                   */
                 MaxPats,               /* Pattern count                */
                 MaxCurves,             /* Curve count                  */
-                MaxCoords,             /* Coords count                 */
                 Nnodes,                /* Number of network nodes      */
                 Ntanks,                /* Number of tanks              */
                 Njuncs,                /* Number of junction nodes     */
@@ -88,7 +87,6 @@ EXTERN int      MaxNodes,              /* Node count from input file   */
                 Nrules,                /* Number of control rules      */
                 Npats,                 /* Number of time patterns      */
                 Ncurves,               /* Number of data curves        */
-                Ncoords,               /* Number of Coords             */
                 Nperiods,              /* Number of reporting periods  */
                 Ncoeffs,               /* Number of non-0 matrix coeffs*/
                 DefPat,                /* Default demand pattern       */
@@ -159,7 +157,6 @@ EXTERN double *QTankVolumes;
 EXTERN double *QLinkFlow;
 EXTERN STmplist *Patlist;              /* Temporary time pattern list  */ 
 EXTERN STmplist *Curvelist;            /* Temporary list of curves     */
-EXTERN STmplist *Coordlist;            /* Temporary list of coordinates*/
 EXTERN Spattern *Pattern;              /* Time patterns                */
 EXTERN Scurve   *Curve;                /* Curve data                   */
 EXTERN Scoord   *Coord;                /* Coordinate data              */

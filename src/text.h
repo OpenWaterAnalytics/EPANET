@@ -494,6 +494,7 @@ AUTHOR:     L. Rossman
 #define ERR251 "Input Error 251: function call contains invalid parameter code."
 
 #define ERR253 "Input Error 253: Function call error - No such demand category index."
+#define ERR254 "Input Error 254: Function call error - Node have no coordinates."
 
 #define ERR301 "File Error 301: identical file names."
 #define ERR302 "File Error 302: cannot open input file."
