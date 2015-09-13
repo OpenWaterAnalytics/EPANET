@@ -1283,7 +1283,7 @@ int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
 /*----------------------------------------------------------------
  **  Input:   index = node index
  **  Output:  *x = value of node's coordinate
- **           *x = value of node's coordinate
+ **           *y = value of node's coordinate
  **  Returns: error code
  **  Purpose: retrieves coordinate x, y for a node
  **----------------------------------------------------------------
@@ -1298,6 +1298,28 @@ int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
    *y = Coord[index].Y;
    return 0;
 }
+
+
+int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
+/*----------------------------------------------------------------
+ **  Input:   index = node index
+ **           *x = value of node's coordinate
+ **           *y = value of node's coordinate
+ **  Output:  None
+ **  Returns: error code
+ **  Purpose: sets coordinate x, y for a node
+ **----------------------------------------------------------------
+ */
+{
+   if (!Openflag) return(102);
+   if (index < 1 || index > Nnodes) return(203);
+   
+   Coord[index].X = x;
+   Coord[index].Y = y;
+   Coord[index].HaveCoords = 1;
+   return 0;
+}
+
 
 int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
 /*----------------------------------------------------------------

@@ -62,6 +62,7 @@ EXPORTS
     ENgetcurve                    = _ENgetcurve@20
     ENgetstatistic                = _ENgetstatistic@8
     ENgetcoord                    = _ENgetcoord@12
+    ENsetcoord                    = _ENsetcoord@12
     ENgetqualinfo                 = _ENgetqualinfo@16
     ENsetbasedemand               = _ENsetbasedemand@12
     ENgetaveragepatternvalue      = _ENgetaveragepatternvalue@8

@@ -186,7 +186,9 @@ Public Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENgetnodeid Lib "epanet2.dll" (ByVal Index As Int32, ByVal ID As StringBuilder) As Int32
  Declare Function ENgetnodetype Lib "epanet2.dll" (ByVal Index As Int32, ByRef Code As Int32) As Int32
  Declare Function ENgetnodevalue Lib "epanet2.dll" (ByVal Index As Int32, ByVal Code As Int32, ByRef Value As Single) As Int32
- 
+ Declare Function ENgetcoord Lib "epanet2.dll" (ByVal Index As Int32, ByRef X As Single, ByRef Y As Single) As Int32
+ Declare Function ENsetcoord Lib "epanet2.dll" (ByVal Index As Int32, ByVal X As Single, ByVal Y As Single) As Int32
+
  Declare Function ENgetnumdemands Lib "epanet2.dll" (ByVal Index As Int32, ByRef numDemands As Int32) As Int32   'ES
  Declare Function ENgetbasedemand Lib "epanet2.dll" (ByVal Index As Int32, ByVal DemandIndex As Int32, ByRef Value As Single) As Int32   'ES
  Declare Function ENgetdemandpattern Lib "epanet2.dll" (ByVal Index As Int32, ByVal DemandIndex As Int32, ByRef PatIndex As Int32) As Int32   'ES

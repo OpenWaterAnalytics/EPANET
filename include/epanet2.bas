@@ -51,7 +51,7 @@ Global Const EN_STATUS = 11
 Global Const EN_SETTING = 12
 Global Const EN_ENERGY = 13
 Global Const EN_LINKQUAL = 14   'ES
-Global Const EN_LINKPATTERN  15
+Global Const EN_LINKPATTERN = 15
 
 Global Const EN_DURATION = 0      ' Time parameters
 Global Const EN_HYDSTEP = 1
@@ -189,6 +189,7 @@ Global Const EN_INITFLOW = 10    ' Re-initialize flow flag
  Declare Function ENgetnodetype Lib "epanet2.dll" (ByVal Index As Long, Code As Long) As Long
  Declare Function ENgetnodevalue Lib "epanet2.dll" (ByVal Index As Long, ByVal Code As Long, Value As Single) As Long
  Declare Function ENgetcoord Lib "epanet2.dll" (ByVal Index As Long, X As Single, Y As Single) As Long
+ Declare Function ENsetcoord Lib "epanet2.dll" (ByVal Index As Long, ByVal X As Single, ByVal Y As Single) As Long
 
  Declare Function ENgetnumdemands Lib "epanet2.dll" (ByVal Index As Long, numDemands As Long) As Long
  Declare Function ENgetbasedemand Lib "epanet2.dll" (ByVal Index As Long, ByVal DemandIndex As Long, Value As Single) As Long

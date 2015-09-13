@@ -239,6 +239,7 @@ extern "C" {
   int  DLLEXPORT ENgetnodetype(int index, int *code);
   int  DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value);
   int  DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+  int  DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
   
   int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
   int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand);
