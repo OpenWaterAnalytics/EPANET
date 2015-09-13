@@ -495,6 +495,7 @@ AUTHOR:     L. Rossman
 
 #define ERR253 "Input Error 253: Function call error - No such demand category index."
 #define ERR254 "Input Error 254: Function call error - Node have no coordinates."
+#define ERR255 "Input Error 255: Function call error - Coordinates were not loaded."
 
 #define ERR301 "File Error 301: identical file names."
 #define ERR302 "File Error 302: cannot open input file."

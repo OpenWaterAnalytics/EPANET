@@ -604,7 +604,7 @@ int  coordata()
 	strncpy(Coord[j].ID, Node[j].ID, MAXID);
 	Coord[j].X  = x;
 	Coord[j].Y  = y;
-	Coord[j].HaveCoords = 1;
+	Coord[j].HaveCoords = TRUE;
 	
   return(0);
 }                        /* end of coordata */

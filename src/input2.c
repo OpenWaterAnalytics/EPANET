@@ -294,8 +294,11 @@ int  newline(int sect, char *line)
        case _OPTIONS:     return(optiondata());
 
    /* Data in these sections are not used for any computations */
-       //case _COORDS:      return (0); //uncomment to not load the coordinates
-       case _COORDS:      return(coordata()); //comment out to load the coordinates
+       case _COORDS:      if (Coordflag == TRUE)
+                          {
+                              return(coordata());
+                          }
+                          else return(0);
        case _LABELS:      return(0);
        case _TAGS:        return(0);
        case _VERTICES:    return(0);

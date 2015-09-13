@@ -210,7 +210,8 @@ int DLLEXPORT ENopen(char *f1, char *f2, char *f3)
    SaveHflag = FALSE;
    SaveQflag = FALSE;
    Warnflag  = FALSE;
-
+   Coordflag = TRUE;
+   
 /*** Updated 9/7/00 ***/
    Messageflag = TRUE;
    Rptflag = 1;
@@ -1291,8 +1292,10 @@ int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Nnodes) return(203);
+   if (!Coordflag) return(255);
+   
    // check if node have coords
-   if (Coord[index].HaveCoords == 0) return(254);
+   if (Coord[index].HaveCoords == FALSE) return(254);
    
    *x = Coord[index].X;
    *y = Coord[index].Y;
@@ -1313,10 +1316,11 @@ int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Nnodes) return(203);
+   if (!Coordflag) return(255);
    
    Coord[index].X = x;
    Coord[index].Y = y;
-   Coord[index].HaveCoords = 1;
+   Coord[index].HaveCoords = TRUE;
    return 0;
 }
 
@@ -2880,14 +2884,17 @@ int  allocdata()
       Control = (Scontrol *) calloc(MaxControls+1,sizeof(Scontrol));
       Pattern = (Spattern *) calloc(MaxPats+1,    sizeof(Spattern));
       Curve   = (Scurve *)   calloc(MaxCurves+1,  sizeof(Scurve));
-      Coord   = (Scoord *)   calloc(MaxNodes+1,  sizeof(Scoord));
+      if (Coordflag == TRUE)
+      {
+        Coord   = (Scoord *) calloc(MaxNodes+1,  sizeof(Scoord));
+      }
       ERRCODE(MEMCHECK(Tank));
       ERRCODE(MEMCHECK(Pump));
       ERRCODE(MEMCHECK(Valve));
       ERRCODE(MEMCHECK(Control));
       ERRCODE(MEMCHECK(Pattern));
       ERRCODE(MEMCHECK(Curve));
-      ERRCODE(MEMCHECK(Coord));
+      if (Coordflag == TRUE) ERRCODE(MEMCHECK(Coord));
    }
 
 /* Initialize pointers used in patterns, curves, and demand category lists */
@@ -2911,9 +2918,12 @@ int  allocdata()
        // node demand
        Node[n].D = NULL;
        /* ini coord data */
-       Coord[n].X = 0;
-       Coord[n].Y = 0;
-       Coord[n].HaveCoords = 0;
+       if (Coordflag == TRUE)
+       {
+          Coord[n].X = 0;
+          Coord[n].Y = 0;
+          Coord[n].HaveCoords = FALSE;
+       }
      }
      
    }
@@ -3213,6 +3223,7 @@ char *geterrmsg(int errcode)
       case 251:  sprintf(Msg,ERR251);  break;
       case 253:  sprintf(Msg,ERR253);  break;
       case 254:  sprintf(Msg,ERR254);  break;
+      case 255:  sprintf(Msg,ERR255);  break;
       
                                        /* File Errors */
       case 301:  strcpy(Msg,ERR301);   break;

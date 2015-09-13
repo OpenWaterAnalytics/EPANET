@@ -64,7 +64,8 @@ EXTERN char     Msg[MAXMSG+1],         /* Text of output message       */
                 SaveHflag,             /* Hydraul. results saved flag  */
                 OpenQflag,             /* Quality system opened flag   */
                 SaveQflag,             /* Quality results saved flag   */
-                Saveflag;              /* General purpose save flag    */
+                Saveflag,              /* General purpose save flag    */
+                Coordflag;             /* Load coordinates flag        */
 EXTERN int      MaxNodes,              /* Node count from input file   */
                 MaxLinks,              /* Link count from input file   */
                 MaxJuncs,              /* Junction count               */
