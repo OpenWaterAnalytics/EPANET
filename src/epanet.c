@@ -886,8 +886,8 @@ int DLLEXPORT ENgetversion(int *v)
 **  Returns:  error code (should always be 0)
 **  Purpose:  retrieves a number assigned to the most recent
 **            update of the source code. This number, set by the
-**            constant CODEVERSION found in TYPES.H,  began with
-**            20001 and increases by 1 with each new update.
+**            constant CODEVERSION found in TYPES.H, is to be
+**            interpreted with implied decimals, i.e., "20100" == "2(.)01(.)00"
 **----------------------------------------------------------------
 */
 {
