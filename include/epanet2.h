@@ -274,8 +274,4 @@ extern "C" {
 }
 #endif
 
-<<<<<<< HEAD
-#endif //TOOLKIT_H
-=======
 #endif //EPANET2_H
->>>>>>> coordinates-getter
