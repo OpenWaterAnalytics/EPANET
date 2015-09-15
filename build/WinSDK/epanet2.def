@@ -59,6 +59,12 @@ EXPORTS
     ENgetnumdemands               = _ENgetnumdemands@8
     ENgetbasedemand               = _ENgetbasedemand@12
     ENgetdemandpattern            = _ENgetdemandpattern@12
-    ENgetcurve                    = _ENgetcurve@16
+    ENgetcurve                    = _ENgetcurve@20
+    ENgetstatistic                = _ENgetstatistic@8
+    ENgetcoord                    = _ENgetcoord@12
+    ENsetcoord                    = _ENsetcoord@12
+    ENgetqualinfo                 = _ENgetqualinfo@16
+    ENsetbasedemand               = _ENsetbasedemand@12
+    ENgetaveragepatternvalue      = _ENgetaveragepatternvalue@8
     ENgetheadcurve                = _ENgetheadcurve@8
     ENgetpumptype                 = _ENgetpumptype@8

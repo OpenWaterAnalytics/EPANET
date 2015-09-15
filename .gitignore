@@ -2,9 +2,14 @@
 *.slo
 *.lo
 *.o
+*.map
+*.exp
+*.lib
 
-# Compiled Dynamic libraries
+# Compiled Dynamic libraries and executables
 *.so
+*.dll
+*.exe
 
 # Compiled Static libraries
 *.lai
@@ -101,6 +106,7 @@ ipch/
 *.psess
 *.vsp
 *.vspx
+*.idb
 
 # Guidance Automation Toolkit
 *.gpState

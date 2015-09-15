@@ -42,8 +42,6 @@ extern char *Fldname[];
 extern char      *Tok[MAXTOKS];
 extern STmplist  *PrevPat;
 extern STmplist  *PrevCurve;
-
-extern STmplist  *PrevCoord;
 extern int       Ntokens;
 
 
@@ -591,46 +589,24 @@ int  coordata()
  **--------------------------------------------------------------
  */
 {
-	double      x,y;
-	SFloatlist *fx, *fy;
-	STmplist   *c;
+	double x, y;
+  int j;
   
-	/* Check for valid curve ID */
+	/* Check for valid node ID */
 	if (Ntokens < 3) return(201);
   
-	if (
-      PrevCoord != NULL &&
-      strcmp(Tok[0],PrevCoord->ID) == 0
-      ) c = PrevCoord;
-	else c = findID(Tok[0],Coordlist);
-  
-  //	c = findID(Tok[0],Coordlist);
-	if (c == NULL) return(205);
-  
-	/* Check for valid data */
+  /* Check for valid data */
+  if ((j = findnode(Tok[0])) == 0) return(203);
 	if (!getfloat(Tok[1],&x)) return(202);
 	if (!getfloat(Tok[2],&y)) return(202);
-  
-	/* Add new data point to curve's linked list */
-	fx = (SFloatlist *) malloc(sizeof(SFloatlist));
-	fy = (SFloatlist *) malloc(sizeof(SFloatlist));
-	if (fx == NULL || fy == NULL) return(101);
-	fx->value = x;
-	fx->next = c->x;
-	c->x = fx;
-	fy->value = y;
-	fy->next = c->y;
-	c->y = fy;
-	//Curve[c->i].Npts++;
-  
-	/* Save the pointer to this curve */
-	PrevCoord = c;
-	return(0);
-  
-	/* Save coordn data */
-	//Coord[Njuncs].X  = x;
-	//Coord[Njuncs].Y  = y;
-  
+    
+	/* Save coord data */
+	strncpy(Coord[j].ID, Node[j].ID, MAXID);
+	Coord[j].X  = x;
+	Coord[j].Y  = y;
+	Coord[j].HaveCoords = TRUE;
+	
+  return(0);
 }                        /* end of coordata */
 
 int  demanddata()
@@ -1370,7 +1346,7 @@ int  reportdata()
 /* Check if input is a reporting criterion. */
 
 /*** Special case needed to distinguish "HEAD" from "HEADLOSS" ***/            //(2.00.11 - LR)
-   if (strcomp(Tok[0], w_HEADLOSS)) i = HEADLOSS;                              //(2.00.11 - LR)
+   if (strcomp(Tok[0], t_HEADLOSS)) i = HEADLOSS;                              
    else i = findmatch(Tok[0],Fldname);                                         //(2.00.11 - LR)
    if (i >= 0)                                                                 //(2.00.11 - LR)
 /*****************************************************************/            //(2.00.11 - LR)

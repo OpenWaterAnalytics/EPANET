@@ -28,7 +28,7 @@ AUTHOR:     L. Rossman
    Definition of 4-byte integers & reals
 -------------------------------------------
 */
-typedef  double        REAL4;                                                   //(2.00.11 - LR)
+typedef  float        REAL4;                                                   //(2.00.11 - LR)
 typedef  int          INT4;                                                    //(2.00.12 - LR)
 
 /*
@@ -169,9 +169,10 @@ typedef struct        /* CURVE OBJECT */
 
 typedef struct        /* Coord OBJECT */
 {
-	char   ID[MAXID+1]; /* Coord ID         */
-	double *X;          /* X-values         */
-	double *Y;          /* Y-values         */
+	char   ID[MAXID+1];  /* Coord ID         */
+	double X;            /* X-value          */
+	double Y;            /* Y-value          */
+	char   HaveCoords;   /* Coordinates flag */
 }  Scoord;
 
 struct Sdemand            /* DEMAND CATEGORY OBJECT */

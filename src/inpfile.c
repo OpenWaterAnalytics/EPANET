@@ -77,7 +77,11 @@ void  saveauxdata(FILE *f)                                                     /
             switch(sect)
             {
                case _RULES:
-               case _COORDS:
+               case _COORDS: if (Coordflag == FALSE)
+                             {
+                                 fprintf(f, "%s", line);
+                             }
+                             break;
                case _VERTICES:
                case _LABELS:
                case _BACKDROP:
@@ -92,7 +96,11 @@ void  saveauxdata(FILE *f)                                                     /
       switch(sect)
       {
           case _RULES:
-          case _COORDS:
+               case _COORDS: if (Coordflag == FALSE)
+                             {
+                                 fprintf(f, "%s", line);
+                             }
+                             break;
           case _VERTICES:
           case _LABELS:
           case _BACKDROP:
@@ -558,6 +566,9 @@ int  saveinpfile(char *fname)
    fprintf(f, "\n STATUS              %s", RptFlagTxt[Statflag]);
    fprintf(f, "\n SUMMARY             %s", RptFlagTxt[Summaryflag]);
    fprintf(f, "\n ENERGY              %s", RptFlagTxt[Energyflag]);
+   fprintf(f, "\n MESSAGES            %s", RptFlagTxt[Messageflag]);
+   if (strlen(Rpt2Fname) > 0)
+   fprintf(f, "\n FILE                %s", Rpt2Fname);
    switch (Nodeflag)
    {
       case 0:
@@ -610,7 +621,22 @@ int  saveinpfile(char *fname)
       }
       else fprintf(f, "\n %-20sNO", Field[i].Name);
    }
-   fprintf(f, "\n");
+   fprintf(f, "\n\n");
+
+/* Write [COORDINATES] section */
+
+   if (Coordflag == TRUE)
+   {
+      fprintf(f, "\n\n[COORDINATES]");
+      for (i=1; i<=Nnodes; i++)
+      {
+          if (Coord[i].HaveCoords == TRUE)
+          {
+              fprintf(f,"\n %-31s %14.6f %14.6f",Node[i].ID,Coord[i].X,Coord[i].Y);
+          }
+      }
+      fprintf(f, "\n\n"); 
+   }
 
 /* Save auxilary data to new input file */
    

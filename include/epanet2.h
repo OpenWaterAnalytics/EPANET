@@ -19,26 +19,39 @@
 #define EPANET2_H
 
 #ifndef EN_API_FLOAT_TYPE
-#define EN_API_FLOAT_TYPE float
+  #define EN_API_FLOAT_TYPE float
 #endif
 
+// --- define WINDOWS
+#undef WINDOWS
+#ifdef _WIN32
+  #define WINDOWS
+#endif
+#ifdef __WIN32__
+  #define WINDOWS
+#endif
+
+// --- define DLLEXPORT
 #ifndef DLLEXPORT
-#ifdef DLL
-#ifdef __cplusplus
-#define DLLEXPORT extern "C" __declspec(dllexport)
-#else
-#define DLLEXPORT __declspec(dllexport)
+  #ifdef WINDOWS
+    #ifdef __cplusplus
+      #define DLLEXPORT extern "C" __declspec(dllexport)
+    #else
+      #define DLLEXPORT __declspec(dllexport) __stdcall
+    #endif // __cplusplus
+  #elif defined(CYGWIN)
+    #define DLLEXPORT __stdcall
+  #elif defined(__APPLE__)
+    #ifdef __cplusplus
+      #define DLLEXPORT
+    #else
+      #define DLLEXPORT
+    #endif
+  #else
+    #define DLLEXPORT
+  #endif
 #endif
-#elif defined(CYGWIN)
-#define DLLEXPORT __stdcall
-#else
-#ifdef __cplusplus
-#define DLLEXPORT
-#else
-#define DLLEXPORT
-#endif
-#endif
-#endif
+
 // --- Define the EPANET toolkit constants
 
 #define EN_ELEVATION    0    /* Node parameters */
@@ -83,7 +96,7 @@
 #define EN_STATUS       11
 #define EN_SETTING      12
 #define EN_ENERGY       13
-#define EN_LINKQUAL     14     /* TNT */
+#define EN_LINKQUAL     14
 #define EN_LINKPATTERN  15
 
 #define EN_DURATION     0    /* Time parameters */
@@ -226,6 +239,7 @@ extern "C" {
   int  DLLEXPORT ENgetnodetype(int index, int *code);
   int  DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value);
   int  DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+  int  DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
   
   int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
   int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand);
@@ -238,7 +252,8 @@ extern "C" {
   int  DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value);
   
   int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
-
+  int  DLLEXPORT ENgetheadcurve(int, char *);
+  int  DLLEXPORT ENgetpumptype(int, int *);
   
   int  DLLEXPORT ENgetversion(int *version);
   
@@ -259,4 +274,8 @@ extern "C" {
 }
 #endif
 
+<<<<<<< HEAD
 #endif //TOOLKIT_H
+=======
+#endif //EPANET2_H
+>>>>>>> coordinates-getter
