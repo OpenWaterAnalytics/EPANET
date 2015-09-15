@@ -53,6 +53,7 @@ ENHashTable *ENHashTableCreate()
 
 int ENHashTableInsert(ENHashTable *ht, char *key, int data)
 {
+  size_t len;
   unsigned int i = _enHash(key);
   ENHashEntry *entry;
   if ( i >= ENHASHTABLEMAXSIZE ) {
@@ -62,7 +63,9 @@ int ENHashTableInsert(ENHashTable *ht, char *key, int data)
   if (entry == NULL) {
     return(0);
   }
-  entry->key = key;
+  len = strlen(key) + 1;
+  entry->key = calloc(len, sizeof(char));
+  strlcpy(entry->key, key, len);
   entry->data = data;
   entry->next = ht[i];
   ht[i] = entry;
