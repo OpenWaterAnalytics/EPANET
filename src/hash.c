@@ -118,6 +118,7 @@ void    ENHashTableFree(ENHashTable *ht)
     while (entry != NULL)
     {
       nextentry = entry->next;
+      free(entry->key);
       free(entry);
       entry = nextentry;
     }
