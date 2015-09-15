@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		223109E61BA865930030AAE8 /* Net3.inp in CopyFiles */ = {isa = PBXBuildFile; fileRef = 223109E31BA8658A0030AAE8 /* Net3.inp */; };
 		22322F851068369500641384 /* enumstxt.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322F701068369500641384 /* enumstxt.h */; };
 		22322F861068369500641384 /* epanet.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F711068369500641384 /* epanet.c */; };
 		22322F871068369500641384 /* funcs.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322F721068369500641384 /* funcs.h */; };
@@ -56,7 +57,23 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		223109E11BA865690030AAE8 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				223109E61BA865930030AAE8 /* Net3.inp in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		223109E31BA8658A0030AAE8 /* Net3.inp */ = {isa = PBXFileReference; lastKnownFileType = text; name = Net3.inp; path = "../../example-networks/Net3.inp"; sourceTree = "<group>"; };
+		223109E41BA8658A0030AAE8 /* sampletown.inp */ = {isa = PBXFileReference; lastKnownFileType = text; name = sampletown.inp; path = "../../example-networks/sampletown.inp"; sourceTree = "<group>"; };
+		223109E51BA8658A0030AAE8 /* simplenet.inp */ = {isa = PBXFileReference; lastKnownFileType = text; name = simplenet.inp; path = "../../example-networks/simplenet.inp"; sourceTree = "<group>"; };
 		22322F66106833BB00641384 /* runepanet */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = runepanet; sourceTree = BUILT_PRODUCTS_DIR; };
 		22322F701068369500641384 /* enumstxt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = enumstxt.h; path = ../../src/enumstxt.h; sourceTree = SOURCE_ROOT; };
 		22322F711068369500641384 /* epanet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 2; name = epanet.c; path = ../../src/epanet.c; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.c; };
@@ -113,6 +130,7 @@
 		08FB7794FE84155DC02AAC07 /* epanet */ = {
 			isa = PBXGroup;
 			children = (
+				223109E21BA865790030AAE8 /* sample networks */,
 				22CD9A5C1B27896200B65E83 /* run epanet */,
 				22322FA8106836A000641384 /* Include */,
 				08FB7795FE84155DC02AAC07 /* Source */,
@@ -156,6 +174,16 @@
 				2255753B17551217009946B1 /* libepanet-static.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		223109E21BA865790030AAE8 /* sample networks */ = {
+			isa = PBXGroup;
+			children = (
+				223109E31BA8658A0030AAE8 /* Net3.inp */,
+				223109E41BA8658A0030AAE8 /* sampletown.inp */,
+				223109E51BA8658A0030AAE8 /* simplenet.inp */,
+			);
+			name = "sample networks";
 			sourceTree = "<group>";
 		};
 		22322FA8106836A000641384 /* Include */ = {
@@ -209,6 +237,7 @@
 			buildPhases = (
 				22322F63106833BB00641384 /* Sources */,
 				22322F64106833BB00641384 /* Frameworks */,
+				223109E11BA865690030AAE8 /* CopyFiles */,
 			);
 			buildRules = (
 			);
