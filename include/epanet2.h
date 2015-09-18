@@ -276,7 +276,10 @@ extern "C" {
   int  DLLEXPORT ENgetcurveid(int index, char *id);
   int  DLLEXPORT ENgetcurvelen(int index, int *len);
   int  DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
-
+  int  DLLEXPORT ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE x);
+  int  DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
+  int  DLLEXPORT ENaddcurve(char *id);
+  
 #if defined(__cplusplus)
 }
 #endif

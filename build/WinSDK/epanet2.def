@@ -71,4 +71,7 @@ EXPORTS
     ENgetcurveindex               = _ENgetcurveindex@8                
     ENgetcurveid                  = _ENgetcurveid@8                   
     ENgetcurvelen                 = _ENgetcurvelen@8                  
-    ENgetcurvevalue             = _ENgetcurvevalue@16               
+    ENgetcurvevalue               = _ENgetcurvevalue@16               
+    ENsetcurvevalue               = _ENsetcurvevalue@16               
+    ENsetcurve                    = _ENsetcurve@16                    
+    ENaddcurve                    = _ENaddcurve@4                     

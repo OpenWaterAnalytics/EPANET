@@ -221,5 +221,8 @@ Public Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENgetcurveid Lib "epanet2.dll" (ByVal Index As Int32, ByVal ID As StringBuilder) As Int32
  Declare Function ENgetcurvelen Lib "epanet2.dll" (ByVal Index As Int32, ByRef L As Int32) As Int32
  Declare Function ENgetcurvevalue Lib "epanet2.dll" (ByVal Index As Int32, ByVal Pnt As Int32, ByRef X As Single, ByRef Y As Single) As Int32 
+ Declare Function ENsetcurvevalue Lib "epanet2.dll" (ByVal Index As Int32, ByVal Pnt As Int32, ByVal X As Single, ByVal Y As Single) As Int32
+ Declare Function ENsetcurve Lib "epanet2.dll" (ByVal Index as Int32, ByRef X as Single, ByRef Y as Single, ByVal N as Int32) as Int32 
+ Declare Function ENaddcurve Lib "epanet2.dll" (ByVal ID As String) As Int32
  
 End Module

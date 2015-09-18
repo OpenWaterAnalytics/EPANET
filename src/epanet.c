@@ -2386,7 +2386,7 @@ int  DLLEXPORT  ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n)
    return(0);
 }
 
-   
+
 int  DLLEXPORT  ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value)
 /*----------------------------------------------------------------
 **  Input:   index  = time pattern index
@@ -2402,6 +2402,150 @@ int  DLLEXPORT  ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value
    if (index  <= 0 || index  > Npats) return(205);
    if (period <= 0 || period > Pattern[index].Length) return(251);
    Pattern[index].F[period-1] = value;
+   return(0);
+}
+
+
+int  DLLEXPORT  ENaddcurve(char *id)
+/*----------------------------------------------------------------
+**   Input:   id   = ID name of the new curve
+**   Output:  none
+**   Returns: error code                              
+**   Purpose: adds a new curve appended to the end of the
+**            existing curves.
+**----------------------------------------------------------------
+*/
+{
+    int i, j, n, err = 0;
+    Scurve *tmpCur;
+
+/* Check if a curve with same id already exists */
+
+    if ( !Openflag ) return(102);
+    if ( ENgetcurveindex(id, &i) == 0 ) return(215);
+
+/* Check that id name is not too long */
+
+    if (strlen(id) > MAXID) return(250);
+
+/* Allocate memory for a new array of curves */
+
+    n = Ncurves + 1;
+    tmpCur = (Scurve *) calloc(n+1, sizeof(Scurve));
+    if ( tmpCur == NULL ) return(101);
+
+/* Copy contents of old curve array to new one */
+
+    for (i=0; i<=Ncurves; i++)
+    {
+        strcpy(tmpCur[i].ID, Curve[i].ID);
+        tmpCur[i].Npts  = Curve[i].Npts;
+        tmpCur[i].X = (double *) calloc(Curve[i].Npts, sizeof(double));
+        tmpCur[i].Y = (double *) calloc(Curve[i].Npts, sizeof(double));
+        if (tmpCur[i].X == NULL) err = 1;
+        else if (tmpCur[i].Y == NULL) err = 1;
+        else for (j=0; j<Curve[i].Npts; j++)
+          {
+            tmpCur[i].X[j] = Curve[i].X[j];
+            tmpCur[i].Y[j] = Curve[i].Y[j];
+          }
+    }
+
+/* Add the new Curve to the new array of curves */
+
+    strcpy(tmpCur[n].ID, id); 
+    tmpCur[n].Npts = 1;
+    tmpCur[n].X = (double *) calloc(tmpCur[n].Npts, sizeof(double));
+    tmpCur[n].Y = (double *) calloc(tmpCur[n].Npts, sizeof(double));
+    if (tmpCur[n].X == NULL) err = 1;
+    else if (tmpCur[n].Y == NULL) err = 1;
+    else
+       {
+          tmpCur[n].X[0] = 1.0;
+          tmpCur[n].Y[0] = 1.0;
+       }
+
+/* Abort if memory allocation error */
+
+    if (err)
+    {
+        for (i=0; i<=n; i++)
+        {
+           if (tmpCur[i].X) free(tmpCur[i].X);
+           if (tmpCur[i].Y) free(tmpCur[i].Y);
+        }
+        free(tmpCur);
+        return(101);
+    }
+
+// Replace old pattern array with new one
+
+    for (i=0; i<=Ncurves; i++)
+    {
+       free(Curve[i].X);
+       free(Curve[i].Y);
+    }
+    free(Curve);
+    Curve = tmpCur;
+    Ncurves = n;
+    MaxCurves = n;
+    return 0;
+}
+
+
+int  DLLEXPORT  ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int n)
+/*----------------------------------------------------------------
+**   Input:   index = curve index
+**            *x    = array of x points
+**            *y    = array of y points
+**            n     = number of points in curve
+**   Output:  none
+**   Returns: error code                              
+**   Purpose: sets x,y values for a specific curve
+**----------------------------------------------------------------
+*/
+{
+   int j;
+
+/* Check for valid arguments */
+   if (!Openflag) return(102);
+   if (index <= 0 || index > Ncurves) return(206);
+   if (n <= 0) return(202);
+
+/* Re-set number of points & reallocate memory for values */
+   Curve[index].Npts = n;
+   Curve[index].X = (double *) realloc(Curve[index].X, n*sizeof(double));
+   Curve[index].Y = (double *) realloc(Curve[index].Y, n*sizeof(double));
+   if (Curve[index].X == NULL) return(101);
+   if (Curve[index].Y == NULL) return(101);
+
+/* Load values into curve */
+   for (j=0; j<n; j++)
+   {
+     Curve[index].X[j] = x[j];
+     Curve[index].Y[j] = y[j];
+   }
+   return(0);
+}
+
+
+int  DLLEXPORT  ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
+/*----------------------------------------------------------------
+**  Input:   index  = curve index
+**           pnt    = curve's point number
+**           x      = curve x value
+**           y      = curve y value
+**  Output:  none
+**  Returns: error code                              
+**  Purpose: sets x,y point for a specific point and curve 
+**----------------------------------------------------------------
+*/
+{
+   if (!Openflag) return(102);
+   if (index  <= 0 || index  > Ncurves) return(206);
+   if (pnt <= 0 || pnt > Curve[index].Npts) return(251);
+   Curve[index].X[pnt-1] = x;
+   Curve[index].Y[pnt-1] = y;
    return(0);
 }
 
