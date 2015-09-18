@@ -219,3 +219,8 @@ Global Const EN_INITFLOW = 10    ' Re-initialize flow flag
  Declare Function ENsetqualtype Lib "epanet2.dll" (ByVal QualCode As Long, ByVal ChemName As String, ByVal ChemUnits As String, ByVal TraceNode As String) As Long
  Declare Function ENgetqualinfo Lib "epanet2.dll" (QualCode As Long, ChemName As String, ChemUnits As String, TraceNode As Long) As Long
  Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal NodeIndex As Long, ByVal DemandIndex As Long, ByVal BaseDemand As Single) As Long
+
+ Declare Function ENgetcurveindex Lib "epanet2.dll" (ByVal ID As String, Index As Long) As Long
+ Declare Function ENgetcurveid Lib "epanet2.dll" (ByVal Index As Long, ByVal ID As String) As Long
+ Declare Function ENgetcurvelen Lib "epanet2.dll" (ByVal Index As Long, L As Long) As Long
+ Declare Function ENgetcurvevalue Lib "epanet2.dll" (ByVal Index As Long, ByVal Ptn As Long, X As Single, Y As Single) As Long

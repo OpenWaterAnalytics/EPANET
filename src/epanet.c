@@ -1137,6 +1137,89 @@ int DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value)
 }
 
 
+int  DLLEXPORT  ENgetcurveindex(char *id, int *index)
+/*----------------------------------------------------------------
+**  Input:   id     = curve ID
+**  Output:  *index = index of curve in list of curves
+**  Returns: error code                              
+**  Purpose: retrieves index of curve with specific ID 
+**----------------------------------------------------------------
+*/
+{
+   int i;
+   *index = 0;
+   if (!Openflag) return(102);
+   for (i=1; i<=Ncurves; i++)
+   {
+      if (strcmp(id, Curve[i].ID) == 0)
+      {
+         *index = i;
+         return(0);
+      }
+   }
+   *index = 0;
+   return(206);
+}
+
+
+int DLLEXPORT ENgetcurveid(int index, char *id)
+/*----------------------------------------------------------------
+**  Input:   index = index of curve
+**  Output:  id    = curve ID
+**  Returns: error code                              
+**  Purpose: retrieves ID of a curve with specific index
+**
+**  NOTE: 'id' must be able to hold MAXID characters
+**----------------------------------------------------------------
+*/
+{
+   strcpy(id,"");
+   if (!Openflag) return(102);
+   if (index < 1 || index > Ncurves) return(206);
+   strcpy(id,Curve[index].ID);
+   return(0);
+}
+
+
+int DLLEXPORT ENgetcurvelen(int index, int *len)
+/*----------------------------------------------------------------
+**  Input:   index = index of curve
+**  Output:  *len  = curve length (number of points in curve)
+**  Returns: error code                              
+**  Purpose: retrieves number of points in a curve
+**----------------------------------------------------------------
+*/
+{
+   if (!Openflag) return(102);
+   if (index < 1 || index > Ncurves) return(206);
+   *len = Curve[index].Npts;
+   return(0);
+}
+
+
+int DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+/*----------------------------------------------------------------
+**  Input:   index  = index of curve
+**           pnt    = curve's point number
+**  Output:  *x     = curve x value
+**                    curve y value
+**  Returns: error code                              
+**  Purpose: retrieves x,y point for a specific point number
+**           and curve
+**----------------------------------------------------------------
+*/
+{  
+   *x = 0.0;
+   *y = 0.0;
+   if (!Openflag) return(102);
+   if (index < 1 || index > Ncurves) return(206);
+   if (pnt < 1 || pnt > Curve[index].Npts) return(251);
+   *x = (EN_API_FLOAT_TYPE)Curve[index].X[pnt-1];
+   *y = (EN_API_FLOAT_TYPE)Curve[index].Y[pnt-1];
+   return(0);
+}
+
+
 int DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode)
 /*----------------------------------------------------------------
 **  Input:   none

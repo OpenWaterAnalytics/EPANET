@@ -271,7 +271,12 @@ extern "C" {
   int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
   int  DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode);
   int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
-  
+
+  int  DLLEXPORT ENgetcurveindex(char *id, int *index);
+  int  DLLEXPORT ENgetcurveid(int index, char *id);
+  int  DLLEXPORT ENgetcurvelen(int index, int *len);
+  int  DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+
 #if defined(__cplusplus)
 }
 #endif
