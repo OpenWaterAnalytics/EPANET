@@ -218,11 +218,19 @@ int  readdata()
       /* Otherwise process next line of input in current section */
          else
          {
-            inperr = newline(sect,line);
-            if (inperr > 0)
+            if (sect >=0) //for cases were no section is present on the top of the input file
             {
-               inperrmsg(inperr,sect,line);
-               errsum++;
+                inperr = newline(sect,line);
+                if (inperr > 0)
+                {
+                   inperrmsg(inperr,sect,line);
+                   errsum++;
+                }
+            }
+            else
+            {
+                errcode = 200;
+                break;
             }
          }
 
