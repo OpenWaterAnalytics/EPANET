@@ -2785,7 +2785,7 @@ int DLLEXPORT ENgetheadcurve(int index, char *id)
 int DLLEXPORT ENgetpumptype(int index, int *type)
 /*----------------------------------------------------------------
 **  Input:   index = index of pump in list of links
-**  Output:  type = PumpType
+**  Output:  type = Pump type
 **  Returns: error code                              
 **  Purpose: retrieves type of a pump for specific link index
 **

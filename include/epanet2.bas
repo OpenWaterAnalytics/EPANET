@@ -140,6 +140,10 @@ Global Const EN_SAVE = 1
 
 Global Const EN_INITFLOW = 10    ' Re-initialize flow flag
 
+Global Const EN_CONST_HP = 0      ' constant horsepower
+Global Const EN_POWER_FUNC = 1    ' power function
+Global Const EN_CUSTOM = 2        ' user-defined custom curve
+
 'These are the external functions that comprise the DLL
 
  Declare Function ENepanet Lib "epanet2.dll" (ByVal F1 As String, ByVal F2 As String, ByVal F3 As String, ByVal F4 As Any) As Long

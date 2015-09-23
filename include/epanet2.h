@@ -188,6 +188,9 @@
 
 #define EN_INITFLOW    10   /* Re-initialize flows flag  */
 
+#define EN_CONST_HP     0   /* constant horsepower       */
+#define EN_POWER_FUNC   1   /* power function            */
+#define EN_CUSTOM       2   /* user-defined custom curve */
 
 // --- Declare the EPANET toolkit functions
 #if defined(__cplusplus)
