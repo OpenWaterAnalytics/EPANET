@@ -1,3 +1,8 @@
+/** @file epanet2.h
+    @see http://github.com/openwateranalytics/epanet
+ 
+ */
+
 /*
  *******************************************************************
  
@@ -14,6 +19,7 @@
  
  *******************************************************************
  */
+
 
 #ifndef EPANET2_H
 #define EPANET2_H
@@ -193,16 +199,82 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
+  /**
+   @brief runs a complete EPANET simulation
+   @param inpFile pointer to name of input file (must exist)
+   @param rptFile pointer to name of report file (to be created)
+   @param binOutFile pointer to name of binary output file (to be created)
+   @param callback a callback function that takes a character string (char *) as its only parameter.
+   @return error code
+   
+   The callback function should reside in and be used by the calling
+   code to display the progress messages that EPANET generates
+   as it carries out its computations. If this feature is not
+   needed then the argument should be NULL.
+   */
   int  DLLEXPORT ENepanet(char *inpFile, char *rptFile, char *binOutFile, void (*callback) (char *));
   
+  /**
+   @brief Opens EPANET input file & reads in network data
+   @param inpFile pointer to name of input file (must exist)
+   @param rptFile pointer to name of report file (to be created)
+   @param binOutFile pointer to name of binary output file (to be created)
+   @return error code
+   */
   int  DLLEXPORT ENopen(char *inpFile, char *rptFile, char *binOutFile);
+  
+  /**
+   @brief Saves current data to "INP" formatted text file.
+   @param filename The file path to create
+   @return Error code
+   */
   int  DLLEXPORT ENsaveinpfile(char *filename);
+  
+  /**
+   @brief Frees all memory and files used by EPANET
+   @return Error code
+   */
   int  DLLEXPORT ENclose();
   
+  /**
+   @brief Solves the network hydraulics for all time periods
+   @return Error code
+   */
   int  DLLEXPORT ENsolveH();
+  
+  /**
+   @brief Saves hydraulic results to binary file
+   @return Error code
+   
+   Must be called before ENreport() if no WQ simulation has been made.
+   Should not be called if ENsolveQ() will be used.
+   */
   int  DLLEXPORT ENsaveH();
+  
+  /**
+   @brief Sets up data structures for hydraulic analysis
+   @return Error code
+   */
   int  DLLEXPORT ENopenH();
+  
+  /**
+   @brief Initializes hydraulic analysis
+   @param flag 2-digit flag where 1st (left) digit indicates if link flows should be re-initialized (1) or not (0), and 2nd digit indicates if hydraulic results should be saved to file (1) or not (0).
+   @return Error code
+   */
   int  DLLEXPORT ENinitH(int initFlag);
+  
+  /**
+   @brief Run a hydraulic solution period
+   @param[out] currentTime The current simulation time in seconds
+   @return Error or warning code
+   
+   This function is used in a loop with ENnextH() to run
+   an extended period hydraulic simulation.
+   See ENsolveH() for an example.
+   
+   @see ENsolveH
+   */
   int  DLLEXPORT ENrunH(long *currentTime);
   int  DLLEXPORT ENnextH(long *tStep);
   int  DLLEXPORT ENcloseH();
@@ -255,7 +327,14 @@ extern "C" {
   
   int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
   int  DLLEXPORT ENgetheadcurve(int, char *);
-  int  DLLEXPORT ENgetpumptype(int, int *);
+  
+  /**
+   @brief Get the type of pump
+   @param linkIndex The index of the pump element
+   @param outType The integer-typed pump type signifier (output parameter)
+   @return Error code
+  */
+  int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
   
   int  DLLEXPORT ENgetversion(int *version);
   

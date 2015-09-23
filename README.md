@@ -1,4 +1,4 @@
-EPANET
+EPANET   {#epanet_readme}
 ======
 
 The EPANET Library is a pressurized pipe network hydraulic and water quality analysis toolkit written in C. 
