@@ -195,6 +195,35 @@
 #define EN_INITFLOW    10   /* Re-initialize flows flag  */
 
 
+/**
+ @defgroup FileManagement File Management
+ */
+/**
+ @defgroup HydraulicFunctions Hydraulic Analysis
+ 
+~~~~~~~~~~~~~~~{.c}
+int  errcode;
+long t, tstep;
+ 
+errcode = ENopenH();
+if (!errcode)
+{
+  errcode = ENinitH(EN_SAVE);
+  if (!errcode) do
+  {
+    tstep = 0;
+    ERRCODE(ENrunH(&t));
+    ERRCODE(ENnextH(&tstep));
+  }
+  while (tstep > 0);
+}
+
+ENcloseH();
+~~~~~~~~~~~~~~~
+
+ */
+
+
 // --- Declare the EPANET toolkit functions
 #if defined(__cplusplus)
 extern "C" {
@@ -220,6 +249,7 @@ extern "C" {
    @param rptFile pointer to name of report file (to be created)
    @param binOutFile pointer to name of binary output file (to be created)
    @return error code
+   @ingroup FileManagement
    */
   int  DLLEXPORT ENopen(char *inpFile, char *rptFile, char *binOutFile);
   
@@ -227,6 +257,7 @@ extern "C" {
    @brief Saves current data to "INP" formatted text file.
    @param filename The file path to create
    @return Error code
+   @ingroup FileManagement
    */
   int  DLLEXPORT ENsaveinpfile(char *filename);
   
@@ -239,12 +270,14 @@ extern "C" {
   /**
    @brief Solves the network hydraulics for all time periods
    @return Error code
+   @ingroup HydraulicFunctions
    */
   int  DLLEXPORT ENsolveH();
   
   /**
    @brief Saves hydraulic results to binary file
    @return Error code
+   @ingroup HydraulicFunctions
    
    Must be called before ENreport() if no WQ simulation has been made.
    Should not be called if ENsolveQ() will be used.
@@ -254,6 +287,7 @@ extern "C" {
   /**
    @brief Sets up data structures for hydraulic analysis
    @return Error code
+   @ingroup HydraulicFunctions
    */
   int  DLLEXPORT ENopenH();
   
@@ -261,6 +295,7 @@ extern "C" {
    @brief Initializes hydraulic analysis
    @param flag 2-digit flag where 1st (left) digit indicates if link flows should be re-initialized (1) or not (0), and 2nd digit indicates if hydraulic results should be saved to file (1) or not (0).
    @return Error code
+   @ingroup HydraulicFunctions
    */
   int  DLLEXPORT ENinitH(int initFlag);
   
@@ -268,6 +303,7 @@ extern "C" {
    @brief Run a hydraulic solution period
    @param[out] currentTime The current simulation time in seconds
    @return Error or warning code
+   @ingroup HydraulicFunctions
    
    This function is used in a loop with ENnextH() to run
    an extended period hydraulic simulation.
@@ -276,6 +312,11 @@ extern "C" {
    @see ENsolveH
    */
   int  DLLEXPORT ENrunH(long *currentTime);
+  
+  /**
+   @brief Determine time (in seconds) until next hydraulic event
+   @ingroup HydraulicFunctions
+   */
   int  DLLEXPORT ENnextH(long *tStep);
   int  DLLEXPORT ENcloseH();
   int  DLLEXPORT ENsavehydfile(char *filename);
