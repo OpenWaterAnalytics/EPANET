@@ -1,5 +1,5 @@
 /** @file epanet2.h
-    @see http://github.com/openwateranalytics/epanet
+ @see http://github.com/openwateranalytics/epanet
  
  */
 
@@ -201,28 +201,33 @@
 /**
  @defgroup HydraulicFunctions Hydraulic Analysis
  
-~~~~~~~~~~~~~~~{.c}
-int  errcode;
-long t, tstep;
+ ~~~~~~~~~~~~~~~{.c}
+ int  errcode;
+ long t, tstep;
  
-errcode = ENopenH();
-if (!errcode)
-{
-  errcode = ENinitH(EN_SAVE);
-  if (!errcode) do
-  {
-    tstep = 0;
-    ERRCODE(ENrunH(&t));
-    ERRCODE(ENnextH(&tstep));
-  }
-  while (tstep > 0);
-}
-
-ENcloseH();
-~~~~~~~~~~~~~~~
-
+ errcode = ENopenH();
+ if (!errcode)
+ {
+ errcode = ENinitH(EN_SAVE);
+ if (!errcode) do
+ {
+ tstep = 0;
+ ERRCODE(ENrunH(&t));
+ ERRCODE(ENnextH(&tstep));
+ }
+ while (tstep > 0);
+ }
+ 
+ ENcloseH();
+ ~~~~~~~~~~~~~~~
+ 
  */
 
+
+/**
+ @defgroup QualityFunctions Water Quality Functions
+ 
+ */
 
 // --- Declare the EPANET toolkit functions
 #if defined(__cplusplus)
@@ -304,39 +309,168 @@ extern "C" {
    @param[out] currentTime The current simulation time in seconds
    @return Error or warning code
    @ingroup HydraulicFunctions
+   @see ENsolveH
    
    This function is used in a loop with ENnextH() to run
    an extended period hydraulic simulation.
    See ENsolveH() for an example.
-   
-   @see ENsolveH
    */
   int  DLLEXPORT ENrunH(long *currentTime);
   
   /**
    @brief Determine time (in seconds) until next hydraulic event
+   @param[out] tstep Time (seconds) until next hydraulic event. 0 marks end of simulation period.
+   @return Error code
    @ingroup HydraulicFunctions
+   
+   This function is used in a loop with ENrunH() to run an extended period hydraulic simulation.
+   See ENsolveH() for an example.
    */
   int  DLLEXPORT ENnextH(long *tStep);
+  
+  
+  /**
+   @brief Frees data allocated by hydraulics solver
+   @return Error code
+   @ingroup HydraulicFunctions
+   */
   int  DLLEXPORT ENcloseH();
+  
+  /**
+   @brief Copies binary hydraulics file to disk
+   @param filename Name of file to be created
+   @return Error code
+   @ingroup HydraulicFunctions
+   */
   int  DLLEXPORT ENsavehydfile(char *filename);
+  
+  /**
+   @brief Opens previously saved binary hydraulics file
+   @param filename Name of file to be used
+   @return Error code
+   @ingroup HydraulicFunctions
+   */
   int  DLLEXPORT ENusehydfile(char *filename);
   
+  /**
+   @brief Solves for network water quality in all time periods
+   @return Error code
+   @ingroup QualityFunctions
+   */
   int  DLLEXPORT ENsolveQ();
+  
+  /**
+   @brief Sets up data structures for WQ analysis
+   @return Error code
+   @ingroup QualityFunctions
+   */
   int  DLLEXPORT ENopenQ();
+  
+  /**
+   @brief Initializes water quality analysis
+   @param saveFlag EN_SAVE (1) if results saved to file, EN_NOSAVE (0) if not
+   @return Error code
+   @ingroup QualityFunctions
+   */
   int  DLLEXPORT ENinitQ(int saveFlag);
+  
+  /**
+   @brief Retrieves hydraulic & WQ results at time t.
+   @param[out] t Current simulation time, in seconds.
+   @return Error code
+   @ingroup QualityFunctions
+   
+   This function is used in a loop with ENnextQ() to run
+   an extended period WQ simulation. See ENsolveQ() for
+   an example.
+   */
   int  DLLEXPORT ENrunQ(long *currentTime);
+  
+  /**
+   @brief Advances WQ simulation to next hydraulic event.
+   @param[out] tStep Time in seconds until next hydraulic event. 0 marks end of simulation period.
+   @return Error code
+   @ingroup QualityFunctions
+   
+   This function is used in a loop with ENrunQ() to run
+   an extended period WQ simulation. See ENsolveQ() for
+   an example.
+   */
   int  DLLEXPORT ENnextQ(long *tStep);
+  
+  /**
+   @brief Advances WQ simulation by a single WQ time step
+   @param[out] timeLeft Time left in overall simulation (in seconds)
+   @return Error code
+   @ingroup QualityFunctions
+   
+   This function is used in a loop with ENrunQ() to run
+   an extended period WQ simulation.
+   */
   int  DLLEXPORT ENstepQ(long *timeLeft);
+  
+  /**
+   @brief Frees data allocated by water quality solver.
+   @return Error code.
+   @ingroup QualityFunctions
+   */
   int  DLLEXPORT ENcloseQ();
   
+  /**
+   @brief Writes line of text to the report file.
+   @param line Text string to write
+   @return Error code.
+   @ingroup FileManagement
+   */
   int  DLLEXPORT ENwriteline(char *line);
+  
+  /**
+   @brief Writes simulation report to the report file
+   @return Error code
+   @ingroup FileManagement
+   */
   int  DLLEXPORT ENreport();
+  
+  /**
+   @brief Resets report options to default values
+   @return Error code
+   @ingroup FileManagement
+   */
   int  DLLEXPORT ENresetreport();
+  
+  /**
+   @brief Processes a reporting format command
+   @return Error code
+   @ingroup FileManagement
+   */
   int  DLLEXPORT ENsetreport(char *reportFormat);
   
+  /**
+   @brief Retrieves parameters that define a simple control
+   @param cindex Control index (position of control statement in the input file, starting from 1)
+   @param[out] ctype Control type code (see EPANET2.H)
+   @param[out] lindex Index of controlled link
+   @param[out] setting Control setting on link
+   @param[out] nindex Index of controlling node (0 for TIMER or TIMEOFDAY control)
+   @param[out] level Control level (tank level, junction pressure, or time (seconds))
+   @return Error code
+   */
   int  DLLEXPORT ENgetcontrol(int controlIndex, int *controlType, int *linkIdx, EN_API_FLOAT_TYPE *setting, int *nodeIdx, EN_API_FLOAT_TYPE *level);
+  
+  /**
+   @brief Retrieves the number of components of a given type in the network.
+   @param code Component code (see EPANET2.H)
+   @param[out] count Number of components in network
+   @return Error code
+   */
   int  DLLEXPORT ENgetcount(int code, int *count);
+  
+  /**
+   @brief Gets value for an analysis option
+   @param Code option code (see EPANET2.H)
+   @param[out] value Option value
+   @return Error code
+   */
   int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value);
   int  DLLEXPORT ENgettimeparam(int code, long *value);
   int  DLLEXPORT ENgetflowunits(int *code);
@@ -374,7 +508,7 @@ extern "C" {
    @param linkIndex The index of the pump element
    @param outType The integer-typed pump type signifier (output parameter)
    @return Error code
-  */
+   */
   int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
   
   int  DLLEXPORT ENgetversion(int *version);
@@ -391,7 +525,7 @@ extern "C" {
   int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
   int  DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode);
   int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
-
+  
   int  DLLEXPORT ENgetcurveindex(char *id, int *index);
   int  DLLEXPORT ENgetcurveid(int index, char *id);
   int  DLLEXPORT ENgetcurvelen(int index, int *len);

@@ -473,17 +473,6 @@ int DLLEXPORT ENinitH(int flag)
 
 
 int DLLEXPORT ENrunH(long *t)
-/*----------------------------------------------------------------
-**  Input:   none (no need to supply a value for *t)
-**  Output:  *t = current simulation time (seconds) 
-**  Returns: error/warning code                              
-**  Purpose: solves hydraulics for conditions at time t.
-** 
-**  This function is used in a loop with ENnextH() to run
-**  an extended period hydraulic simulation.
-**  See ENsolveH() for an example.
-**----------------------------------------------------------------
-*/
 {
    int errcode;
    *t = 0;
@@ -495,18 +484,6 @@ int DLLEXPORT ENrunH(long *t)
 
 
 int DLLEXPORT ENnextH(long *tstep)
-/*----------------------------------------------------------------
-**  Input:   none (no need to supply a value for *tstep)
-**  Output:  *tstep = time (seconds) until next hydraulic event
-**                    (0 marks end of simulation period)
-**  Returns: error code                              
-**  Purpose: determines time until next hydraulic event.
-** 
-**  This function is used in a loop with ENrunH() to run
-**  an extended period hydraulic simulation.
-**  See ENsolveH() for an example.
-**----------------------------------------------------------------
-*/
 {
    int errcode;
    *tstep = 0;
@@ -519,13 +496,7 @@ int DLLEXPORT ENnextH(long *tstep)
 
 
 int DLLEXPORT ENcloseH()
-/*----------------------------------------------------------------
-**  Input:   none                   
-**  Output:  none 
-**  Returns: error code
-**  Purpose: frees data allocated by hydraulics solver       
-**----------------------------------------------------------------
-*/
+
 {
    if (!Openflag) return(102);
    closehyd();
@@ -535,13 +506,6 @@ int DLLEXPORT ENcloseH()
 
 
 int DLLEXPORT ENsavehydfile(char *filename)
-/*----------------------------------------------------------------
-**  Input:   filename = name of file
-**  Output:  none 
-**  Returns: error code
-**  Purpose: copies binary hydraulics file to disk
-**----------------------------------------------------------------
-*/
 {
    FILE *f;
    int   c;
@@ -561,13 +525,6 @@ int DLLEXPORT ENsavehydfile(char *filename)
 
 
 int DLLEXPORT ENusehydfile(char *filename)
-/*----------------------------------------------------------------
-**  Input:   filename = name of file
-**  Output:  none 
-**  Returns: error code
-**  Purpose: opens previously saved binary hydraulics file
-**----------------------------------------------------------------
-*/
 {
    int errcode;
 
@@ -600,13 +557,6 @@ int DLLEXPORT ENusehydfile(char *filename)
 
 
 int DLLEXPORT ENsolveQ()
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  none 
-**  Returns: error code                              
-**  Purpose: solves for network water quality in all time periods
-**----------------------------------------------------------------
-*/
 {
    int  errcode;
    long t, tstep;
@@ -662,13 +612,6 @@ int DLLEXPORT ENsolveQ()
 
 
 int DLLEXPORT ENopenQ()
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  none 
-**  Returns: error code                              
-**  Purpose: sets up data structures for WQ analysis
-**----------------------------------------------------------------
-*/
 {
    int errcode = 0;
 
@@ -688,14 +631,6 @@ int DLLEXPORT ENopenQ()
 
 
 int DLLEXPORT ENinitQ(int saveflag)
-/*----------------------------------------------------------------
-**  Input:   saveflag = EN_SAVE (1) if results saved to file,
-**                      EN_NOSAVE (0) if not                    
-**  Output:  none 
-**  Returns: error code
-**  Purpose: initializes WQ analysis
-**----------------------------------------------------------------
-*/
 {
    int errcode = 0;
    if (!OpenQflag) return(105);
@@ -712,17 +647,6 @@ int DLLEXPORT ENinitQ(int saveflag)
 
 
 int DLLEXPORT ENrunQ(long *t)
-/*----------------------------------------------------------------
-**  Input:   none (no need to supply a value for *t)
-**  Output:  *t = current simulation time (seconds) 
-**  Returns: error code                              
-**  Purpose: retrieves hydraulic & WQ results at time t.
-**
-**  This function is used in a loop with ENnextQ() to run
-**  an extended period WQ simulation. See ENsolveQ() for
-**  an example.
-**----------------------------------------------------------------
-*/
 {
    int errcode;
    *t = 0;
@@ -734,18 +658,6 @@ int DLLEXPORT ENrunQ(long *t)
 
 
 int DLLEXPORT ENnextQ(long *tstep)
-/*----------------------------------------------------------------
-**  Input:   none (no need to supply a value for *tstep)
-**  Output:  *tstep = time (seconds) until next hydraulic event
-**                    (0 marks end of simulation period)
-**  Returns: error code                              
-**  Purpose: advances WQ simulation to next hydraulic event.
-**
-**  This function is used in a loop with ENrunQ() to run
-**  an extended period WQ simulation. See ENsolveQ() for
-**  an example.
-**----------------------------------------------------------------
-*/
 {
    int errcode;
    *tstep = 0;
@@ -758,16 +670,6 @@ int DLLEXPORT ENnextQ(long *tstep)
 
 
 int DLLEXPORT ENstepQ(long *tleft)
-/*----------------------------------------------------------------
-**  Input:   none
-**  Output:  *tleft = time left in overall simulation (seconds) 
-**  Returns: error code                              
-**  Purpose: advances WQ simulation by a single WQ time step
-**
-**  This function is used in a loop with ENrunQ() to run
-**  an extended period WQ simulation.
-**----------------------------------------------------------------
-*/
 {
    int errcode;
    *tleft = 0;
@@ -780,13 +682,7 @@ int DLLEXPORT ENstepQ(long *tleft)
 
 
 int DLLEXPORT ENcloseQ()
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  none 
-**  Returns: error code                              
-**  Purpose: frees data allocated by WQ solver
-**----------------------------------------------------------------
-*/
+
 {
    if (!Openflag) return(102);
    closequal();
@@ -803,13 +699,6 @@ int DLLEXPORT ENcloseQ()
 
 
 int DLLEXPORT ENwriteline(char *line)
-/*----------------------------------------------------------------
-**  Input:   line = text string                    
-**  Output:  none 
-**  Returns: error code                              
-**  Purpose: writes line of text to report file                            
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    writeline(line);
@@ -818,13 +707,6 @@ int DLLEXPORT ENwriteline(char *line)
 
 
 int DLLEXPORT ENreport()
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  none 
-**  Returns: error code                              
-**  Purpose: writes report to report file                            
-**----------------------------------------------------------------
-*/
 {
    int  errcode;
 
@@ -837,13 +719,6 @@ int DLLEXPORT ENreport()
 
 
 int  DLLEXPORT ENresetreport()
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  none 
-**  Returns: error code
-**  Purpose: resets report options to default values                            
-**----------------------------------------------------------------
-*/
 {
    int i;
    if (!Openflag) return(102);
@@ -855,13 +730,6 @@ int  DLLEXPORT ENresetreport()
 
 
 int  DLLEXPORT ENsetreport(char *s)
-/*----------------------------------------------------------------
-**  Input:   s = report format command                    
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: processes a reporting format command                            
-**----------------------------------------------------------------
-*/
 {
    char s1[MAXLINE+1];
    if (!Openflag) return(102);
@@ -897,20 +765,6 @@ int DLLEXPORT ENgetversion(int *v)
 
 
 int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex, EN_API_FLOAT_TYPE *setting, int *nindex, EN_API_FLOAT_TYPE *level)
-/*----------------------------------------------------------------
-**  Input:   cindex   = control index (position of control statement
-**                      in the input file, starting from 1) 
-**  Output:  *ctype   = control type code (see EPANET2.H)
-**           *lindex  = index of controlled link
-**           *setting = control setting on link
-**           *nindex  = index of controlling node (0 for TIMER
-**                      or TIMEOFDAY control)
-**           *level   = control level (tank level, junction
-**                      pressure, or time (seconds))
-**  Returns: error code                              
-**  Purpose: retrieves parameters that define a simple control                 
-**----------------------------------------------------------------
-*/
 {
    double s, lvl;
 
@@ -950,14 +804,6 @@ int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex, EN_API_FLOAT_TYP
 
 
 int DLLEXPORT ENgetcount(int code, int *count)
-/*----------------------------------------------------------------
-**  Input:   code = component code (see EPANET2.H)                    
-**  Output:  *count = number of components in network
-**  Returns: error code                              
-**  Purpose: retrieves the number of components of a 
-**           given type in the network  
-**----------------------------------------------------------------
-*/
 {
    *count = 0;
    if (!Openflag) return(102);
@@ -976,13 +822,6 @@ int DLLEXPORT ENgetcount(int code, int *count)
 
 
 int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value)
-/*----------------------------------------------------------------
-**  Input:   code = option code (see EPANET2.H)
-**  Output:  *value = option value
-**  Returns: error code                              
-**  Purpose: gets value for an analysis option 
-**----------------------------------------------------------------
-*/
 {
    double v = 0.0;
    *value = 0.0;
