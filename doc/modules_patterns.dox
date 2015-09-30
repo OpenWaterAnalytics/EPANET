@@ -1,0 +1,14 @@
+/**
+
+@defgroup Patterns
+
+
+@addtogroup Patterns
+@{
+@fn int ENgetpatternindex (char *id, int *index)
+@fn int ENgetpatternid (int index, char *id)
+@fn int ENgetpatternlen (int index, int *len)
+@fn int ENgetpatternvalue (int index, int period, EN_API_FLOAT_TYPE *value)
+@fn int ENgetaveragepatternvalue (int index, EN_API_FLOAT_TYPE *value)
+@}
+*/
