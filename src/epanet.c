@@ -846,13 +846,6 @@ int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value)
 
 
 int DLLEXPORT ENgettimeparam(int code, long *value)
-/*----------------------------------------------------------------
-**  Input:   code = time parameter code (see EPANET2.H)
-**  Output:  *value = value of time parameter 
-**  Returns: error code                              
-**  Purpose: retrieves value of specific time parameter                 
-**----------------------------------------------------------------
-*/
 {
    *value = 0;
    if (!Openflag) return(102);
@@ -881,14 +874,6 @@ int DLLEXPORT ENgettimeparam(int code, long *value)
 
 
 int DLLEXPORT ENgetflowunits(int *code)
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  *code = code of flow units in use 
-**                   (see EPANET2.H or TYPES.H)
-**  Returns: error code                              
-**  Purpose: retrieves flow units code 
-**----------------------------------------------------------------
-*/
 {
    *code = -1;
    if (!Openflag) return(102);
@@ -898,13 +883,6 @@ int DLLEXPORT ENgetflowunits(int *code)
 
 
 int  DLLEXPORT  ENgetpatternindex(char *id, int *index)
-/*----------------------------------------------------------------
-**  Input:   id     = time pattern ID
-**  Output:  *index = index of time pattern in list of patterns
-**  Returns: error code                              
-**  Purpose: retrieves index of time pattern with specific ID 
-**----------------------------------------------------------------
-*/
 {
    int i;
    *index = 0;
@@ -923,15 +901,6 @@ int  DLLEXPORT  ENgetpatternindex(char *id, int *index)
 
 
 int DLLEXPORT ENgetpatternid(int index, char *id)
-/*----------------------------------------------------------------
-**  Input:   index = index of time pattern
-**  Output:  id    = pattern ID
-**  Returns: error code                              
-**  Purpose: retrieves ID of a time pattern with specific index
-**
-**  NOTE: 'id' must be able to hold MAXID characters
-**----------------------------------------------------------------
-*/
 {
    strcpy(id,"");
    if (!Openflag) return(102);
@@ -942,13 +911,6 @@ int DLLEXPORT ENgetpatternid(int index, char *id)
 
 
 int DLLEXPORT ENgetpatternlen(int index, int *len)
-/*----------------------------------------------------------------
-**  Input:   index = index of time pattern
-**  Output:  *len  = pattern length (number of multipliers)
-**  Returns: error code                              
-**  Purpose: retrieves number of multipliers in a time pattern
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Npats) return(205);
@@ -958,15 +920,6 @@ int DLLEXPORT ENgetpatternlen(int index, int *len)
 
 
 int DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value)
-/*----------------------------------------------------------------
-**  Input:   index  = index of time pattern
-**           period = pattern time period
-**  Output:  *value = pattern multiplier
-**  Returns: error code                              
-**  Purpose: retrieves multiplier for a specific time period
-**           and pattern
-**----------------------------------------------------------------
-*/
 {  *value = 0.0;
    if (!Openflag) return(102);
    if (index < 1 || index > Npats) return(205);
@@ -1060,15 +1013,6 @@ int DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_F
 
 
 int DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode)
-/*----------------------------------------------------------------
-**  Input:   none
-**  Output:  *qualcode  = WQ analysis code number (see EPANET2.H)
-**           *tracenode = index of node being traced (if
-**                        qualocode = WQ tracing)
-**  Returns: error code                              
-**  Purpose: retrieves type of quality analysis called for 
-**----------------------------------------------------------------
-*/
 {
    *tracenode = 0;
    if (!Openflag) return(102);
@@ -1092,14 +1036,6 @@ int DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int 
 }
 
 int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int n)
-/*----------------------------------------------------------------
-**  Input:   errcode = error/warning code number
-**           n       = maximum length of string errmsg
-**  Output:  errmsg  = text of error/warning message
-**  Returns: error code
-**  Purpose: retrieves text of error/warning message 
-**----------------------------------------------------------------
-*/
 {
    switch (errcode)
    {
@@ -1116,13 +1052,6 @@ int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int n)
 }
 
 int  DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value)
-/*----------------------------------------------------------------
- **  Input:   code    = type of simulation statistic to retrieve
- **  Output:  value   = value of requested statistic
- **  Returns: error code
- **  Purpose: retrieves hydraulic simulation statistic
- **----------------------------------------------------------------
- */
 {
   switch (code) {
     case EN_ITERATIONS:
@@ -1145,13 +1074,6 @@ int  DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value)
 
 
 int DLLEXPORT ENgetnodeindex(char *id, int *index)
-/*----------------------------------------------------------------
-**  Input:   id = node ID
-**  Output:  *index = index of node in list of nodes 
-**  Returns: error code                              
-**  Purpose: retrieves index of a node with specific ID 
-**----------------------------------------------------------------
-*/
 {
    *index = 0;
    if (!Openflag) return(102);
@@ -1162,15 +1084,6 @@ int DLLEXPORT ENgetnodeindex(char *id, int *index)
 
 
 int DLLEXPORT ENgetnodeid(int index, char *id)
-/*----------------------------------------------------------------
-**  Input:   index = index of node in list of nodes                    
-**  Output:  id = node ID
-**  Returns: error code                              
-**  Purpose: retrieves ID of a node with specific index
-**
-**  NOTE: 'id' must be able to hold MAXID characters
-**----------------------------------------------------------------
-*/
 {
    strcpy(id,"");
    if (!Openflag) return(102);
@@ -1181,13 +1094,6 @@ int DLLEXPORT ENgetnodeid(int index, char *id)
 
 
 int  DLLEXPORT ENgetnodetype(int index, int *code)
-/*----------------------------------------------------------------
-**  Input:   index = node index                    
-**  Output:  *code = node type code number (see EPANET2.H)
-**  Returns: error code                              
-**  Purpose: retrieves node type of specific node 
-**----------------------------------------------------------------
-*/
 {
    *code = -1;
    if (!Openflag) return(102);
@@ -1203,14 +1109,6 @@ int  DLLEXPORT ENgetnodetype(int index, int *code)
 
 
 int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
-/*----------------------------------------------------------------
- **  Input:   index = node index
- **  Output:  *x = value of node's coordinate
- **           *y = value of node's coordinate
- **  Returns: error code
- **  Purpose: retrieves coordinate x, y for a node
- **----------------------------------------------------------------
- */
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Nnodes) return(203);
@@ -1226,15 +1124,6 @@ int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
 
 
 int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
-/*----------------------------------------------------------------
- **  Input:   index = node index
- **           *x = value of node's coordinate
- **           *y = value of node's coordinate
- **  Output:  None
- **  Returns: error code
- **  Purpose: sets coordinate x, y for a node
- **----------------------------------------------------------------
- */
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Nnodes) return(203);
@@ -1248,14 +1137,6 @@ int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
 
 
 int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
-/*----------------------------------------------------------------
-**  Input:   index = node index
-**           code  = node parameter code (see EPANET2.H)
-**  Output:  *value = value of node's parameter
-**  Returns: error code                              
-**  Purpose: retrieves parameter value for a node   
-**----------------------------------------------------------------
-*/
 {
    double v = 0.0;
    Pdemand demand;
@@ -3365,13 +3246,6 @@ void writewin(char *s)
 
 
 int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
-/*----------------------------------------------------------------
- **  Input:   nodeIndex   = index of node
- **  Output:  *numDemands = number of demand categories
- **  Returns: error code
- **  Purpose: retrieves the number of a demand categories for a node
- **----------------------------------------------------------------
- */
 {
 	Pdemand d;
 	int n=0;
@@ -3385,14 +3259,6 @@ int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
 
 
 int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand)
-/*----------------------------------------------------------------
- **  Input:   nodeIndex   = index of node
- **           demandIdx   = index of demand category
- **  Output:  *baseDemand = base demand for selected category
- **  Returns: error code
- **  Purpose: retrieves the node's base demand for a category
- **----------------------------------------------------------------
- */
 {
   Pdemand d;
   int n=1;
@@ -3400,9 +3266,13 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *
   if (!Openflag) return(102);
   if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
   if (nodeIndex <= Njuncs) {
-	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
-	if(n!=demandIdx) return(253);
-	*baseDemand=(EN_API_FLOAT_TYPE)(d->Base*Ucf[FLOW]);
+    for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) {
+      n++;
+    }
+    if(n != demandIdx) {
+      return(253);
+    }
+    *baseDemand=(EN_API_FLOAT_TYPE)(d->Base*Ucf[FLOW]);
   }
   else {
     *baseDemand=(EN_API_FLOAT_TYPE)(0.0);
@@ -3436,15 +3306,6 @@ int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE b
 
 
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
-/*----------------------------------------------------------------
- **  Input:   nodeIndex  = index of node
- **           demandIdx  = index of demand category
- **  Output:  *pattIdx   = demand pattern index
- **  Returns: error code
- **  Purpose: retrieves the index of a demand pattern for a specific
- **           demand category of a node
- **----------------------------------------------------------------
- */
 {
 	Pdemand d;
 	int n=1;
@@ -3459,14 +3320,7 @@ int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 
 
 int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
-/*----------------------------------------------------------------
- **  Input:   index  = index of time pattern
- **  Output:  *value = pattern average value
- **  Returns: error code
- **  Purpose: retrieves the average value of a pattern
- **----------------------------------------------------------------
- */
-{ 
+{
   int i;
   *value = 0.0;
   if (!Openflag) return(102);

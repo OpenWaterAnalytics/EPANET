@@ -62,50 +62,56 @@
 
 // --- Define the EPANET toolkit constants
 
-#define EN_ELEVATION    0    /* Node parameters */
-#define EN_BASEDEMAND   1
-#define EN_PATTERN      2
-#define EN_EMITTER      3
-#define EN_INITQUAL     4
-#define EN_SOURCEQUAL   5
-#define EN_SOURCEPAT    6
-#define EN_SOURCETYPE   7
-#define EN_TANKLEVEL    8
-#define EN_DEMAND       9
-#define EN_HEAD         10
-#define EN_PRESSURE     11
-#define EN_QUALITY      12
-#define EN_SOURCEMASS   13
-#define EN_INITVOLUME   14
-#define EN_MIXMODEL     15
-#define EN_MIXZONEVOL   16
+/// Node property codes
+typedef enum {
+  EN_ELEVATION    = 0, /**< Node Elevation */
+  EN_BASEDEMAND   = 1, /**< Node Base Demand, from last demand category */
+  EN_PATTERN      = 2, /**< Node Demand Pattern */
+  EN_EMITTER      = 3, /**< Node Emitter Coefficient */
+  EN_INITQUAL     = 4, /**< Node initial quality */
+  EN_SOURCEQUAL   = 5, /**< Node source quality */
+  EN_SOURCEPAT    = 6, /**< Node source pattern index */
+  EN_SOURCETYPE   = 7, /**< Node source type */
+  EN_TANKLEVEL    = 8, /**< Tank Level */
+  EN_DEMAND       = 9, /**< Node current simulated demand */
+  EN_HEAD         = 10, /**< Node Head value */
+  EN_PRESSURE     = 11, /**< Node pressure value */
+  EN_QUALITY      = 12, /**< Node quality value */
+  EN_SOURCEMASS   = 13, /**< Node source mass value */
+  EN_INITVOLUME   = 14, /**< Tank or Reservoir initial volume */
+  EN_MIXMODEL     = 15, /**< Tank mixing model */
+  EN_MIXZONEVOL   = 16, /**< Tank mixing zone volume  */
+  EN_TANKDIAM     = 17, /**< Tank diameter  */
+  EN_MINVOLUME    = 18, /**< Tank minimum volume  */
+  EN_VOLCURVE     = 19, /**< Tank volume curve index  */
+  EN_MINLEVEL     = 20, /**< Tank minimum level  */
+  EN_MAXLEVEL     = 21, /**< Tank maximum level  */
+  EN_MIXFRACTION  = 22, /**< Tank mixing fraction  */
+  EN_TANK_KBULK   = 23, /**< Tank bulk decay coefficient  */
+  EN_TANKVOLUME   = 24, /**< Tank current volume  */
+  EN_MAXVOLUME    = 25  /**< Tank maximum volume  */
+} EN_NodeProperty;
 
-#define EN_TANKDIAM     17
-#define EN_MINVOLUME    18
-#define EN_VOLCURVE     19
-#define EN_MINLEVEL     20
-#define EN_MAXLEVEL     21
-#define EN_MIXFRACTION  22
-#define EN_TANK_KBULK   23
-#define EN_TANKVOLUME   24
-#define EN_MAXVOLUME    25
+/// Link property codes
+typedef enum {
+  EN_DIAMETER     = 0,
+  EN_LENGTH       = 1,
+  EN_ROUGHNESS    = 2,
+  EN_MINORLOSS    = 3,
+  EN_INITSTATUS   = 4,
+  EN_INITSETTING  = 5,
+  EN_KBULK        = 6,
+  EN_KWALL        = 7,
+  EN_FLOW         = 8,
+  EN_VELOCITY     = 9,
+  EN_HEADLOSS     = 10,
+  EN_STATUS       = 11,
+  EN_SETTING      = 12,
+  EN_ENERGY       = 13,
+  EN_LINKQUAL     = 14,
+  EN_LINKPATTERN  = 15
+} EN_LinkProperty;
 
-#define EN_DIAMETER     0    /* Link parameters */
-#define EN_LENGTH       1
-#define EN_ROUGHNESS    2
-#define EN_MINORLOSS    3
-#define EN_INITSTATUS   4
-#define EN_INITSETTING  5
-#define EN_KBULK        6
-#define EN_KWALL        7
-#define EN_FLOW         8
-#define EN_VELOCITY     9
-#define EN_HEADLOSS     10
-#define EN_STATUS       11
-#define EN_SETTING      12
-#define EN_ENERGY       13
-#define EN_LINKQUAL     14
-#define EN_LINKPATTERN  15
 
 #define EN_DURATION     0    /* Time parameters */
 #define EN_HYDSTEP      1
@@ -137,15 +143,18 @@
 #define EN_RESERVOIR    1
 #define EN_TANK         2
 
-#define EN_CVPIPE       0    /* Link types. */
-#define EN_PIPE         1    /* See LinkType in TYPES.H */
-#define EN_PUMP         2
-#define EN_PRV          3
-#define EN_PSV          4
-#define EN_PBV          5
-#define EN_FCV          6
-#define EN_TCV          7
-#define EN_GPV          8
+typedef enum {
+  EN_CVPIPE       = 0,    /* Link types. */
+  EN_PIPE         = 1,   /* See LinkType in TYPES.H */
+  EN_PUMP         = 2,
+  EN_PRV          = 3,
+  EN_PSV          = 4,
+  EN_PBV          = 5,
+  EN_FCV          = 6,
+  EN_TCV          = 7,
+  EN_GPV          = 8
+} EN_LinkType;
+
 
 #define EN_NONE         0    /* Quality analysis types. */
 #define EN_CHEM         1    /* See QualType in TYPES.H */
@@ -195,39 +204,6 @@
 #define EN_INITFLOW    10   /* Re-initialize flows flag  */
 
 
-/**
- @defgroup FileManagement File Management
- */
-/**
- @defgroup HydraulicFunctions Hydraulic Analysis
- 
- ~~~~~~~~~~~~~~~{.c}
- int  errcode;
- long t, tstep;
- 
- errcode = ENopenH();
- if (!errcode)
- {
- errcode = ENinitH(EN_SAVE);
- if (!errcode) do
- {
- tstep = 0;
- ERRCODE(ENrunH(&t));
- ERRCODE(ENnextH(&tstep));
- }
- while (tstep > 0);
- }
- 
- ENcloseH();
- ~~~~~~~~~~~~~~~
- 
- */
-
-
-/**
- @defgroup QualityFunctions Water Quality Functions
- 
- */
 
 // --- Declare the EPANET toolkit functions
 #if defined(__cplusplus)
@@ -254,7 +230,6 @@ extern "C" {
    @param rptFile pointer to name of report file (to be created)
    @param binOutFile pointer to name of binary output file (to be created)
    @return error code
-   @ingroup FileManagement
    */
   int  DLLEXPORT ENopen(char *inpFile, char *rptFile, char *binOutFile);
   
@@ -262,7 +237,6 @@ extern "C" {
    @brief Saves current data to "INP" formatted text file.
    @param filename The file path to create
    @return Error code
-   @ingroup FileManagement
    */
   int  DLLEXPORT ENsaveinpfile(char *filename);
   
@@ -275,14 +249,12 @@ extern "C" {
   /**
    @brief Solves the network hydraulics for all time periods
    @return Error code
-   @ingroup HydraulicFunctions
    */
   int  DLLEXPORT ENsolveH();
   
   /**
    @brief Saves hydraulic results to binary file
    @return Error code
-   @ingroup HydraulicFunctions
    
    Must be called before ENreport() if no WQ simulation has been made.
    Should not be called if ENsolveQ() will be used.
@@ -292,15 +264,13 @@ extern "C" {
   /**
    @brief Sets up data structures for hydraulic analysis
    @return Error code
-   @ingroup HydraulicFunctions
    */
   int  DLLEXPORT ENopenH();
   
   /**
    @brief Initializes hydraulic analysis
-   @param flag 2-digit flag where 1st (left) digit indicates if link flows should be re-initialized (1) or not (0), and 2nd digit indicates if hydraulic results should be saved to file (1) or not (0).
+   @param initFlag 2-digit flag where 1st (left) digit indicates if link flows should be re-initialized (1) or not (0), and 2nd digit indicates if hydraulic results should be saved to file (1) or not (0).
    @return Error code
-   @ingroup HydraulicFunctions
    */
   int  DLLEXPORT ENinitH(int initFlag);
   
@@ -308,7 +278,6 @@ extern "C" {
    @brief Run a hydraulic solution period
    @param[out] currentTime The current simulation time in seconds
    @return Error or warning code
-   @ingroup HydraulicFunctions
    @see ENsolveH
    
    This function is used in a loop with ENnextH() to run
@@ -319,9 +288,8 @@ extern "C" {
   
   /**
    @brief Determine time (in seconds) until next hydraulic event
-   @param[out] tstep Time (seconds) until next hydraulic event. 0 marks end of simulation period.
+   @param[out] tStep Time (seconds) until next hydraulic event. 0 marks end of simulation period.
    @return Error code
-   @ingroup HydraulicFunctions
    
    This function is used in a loop with ENrunH() to run an extended period hydraulic simulation.
    See ENsolveH() for an example.
@@ -332,7 +300,6 @@ extern "C" {
   /**
    @brief Frees data allocated by hydraulics solver
    @return Error code
-   @ingroup HydraulicFunctions
    */
   int  DLLEXPORT ENcloseH();
   
@@ -340,7 +307,6 @@ extern "C" {
    @brief Copies binary hydraulics file to disk
    @param filename Name of file to be created
    @return Error code
-   @ingroup HydraulicFunctions
    */
   int  DLLEXPORT ENsavehydfile(char *filename);
   
@@ -348,21 +314,18 @@ extern "C" {
    @brief Opens previously saved binary hydraulics file
    @param filename Name of file to be used
    @return Error code
-   @ingroup HydraulicFunctions
    */
   int  DLLEXPORT ENusehydfile(char *filename);
   
   /**
    @brief Solves for network water quality in all time periods
    @return Error code
-   @ingroup QualityFunctions
    */
   int  DLLEXPORT ENsolveQ();
   
   /**
    @brief Sets up data structures for WQ analysis
    @return Error code
-   @ingroup QualityFunctions
    */
   int  DLLEXPORT ENopenQ();
   
@@ -370,15 +333,13 @@ extern "C" {
    @brief Initializes water quality analysis
    @param saveFlag EN_SAVE (1) if results saved to file, EN_NOSAVE (0) if not
    @return Error code
-   @ingroup QualityFunctions
    */
   int  DLLEXPORT ENinitQ(int saveFlag);
   
   /**
    @brief Retrieves hydraulic & WQ results at time t.
-   @param[out] t Current simulation time, in seconds.
+   @param[out] currentTime Current simulation time, in seconds.
    @return Error code
-   @ingroup QualityFunctions
    
    This function is used in a loop with ENnextQ() to run
    an extended period WQ simulation. See ENsolveQ() for
@@ -390,7 +351,6 @@ extern "C" {
    @brief Advances WQ simulation to next hydraulic event.
    @param[out] tStep Time in seconds until next hydraulic event. 0 marks end of simulation period.
    @return Error code
-   @ingroup QualityFunctions
    
    This function is used in a loop with ENrunQ() to run
    an extended period WQ simulation. See ENsolveQ() for
@@ -402,7 +362,6 @@ extern "C" {
    @brief Advances WQ simulation by a single WQ time step
    @param[out] timeLeft Time left in overall simulation (in seconds)
    @return Error code
-   @ingroup QualityFunctions
    
    This function is used in a loop with ENrunQ() to run
    an extended period WQ simulation.
@@ -412,7 +371,6 @@ extern "C" {
   /**
    @brief Frees data allocated by water quality solver.
    @return Error code.
-   @ingroup QualityFunctions
    */
   int  DLLEXPORT ENcloseQ();
   
@@ -420,42 +378,38 @@ extern "C" {
    @brief Writes line of text to the report file.
    @param line Text string to write
    @return Error code.
-   @ingroup FileManagement
    */
   int  DLLEXPORT ENwriteline(char *line);
   
   /**
    @brief Writes simulation report to the report file
    @return Error code
-   @ingroup FileManagement
    */
   int  DLLEXPORT ENreport();
   
   /**
    @brief Resets report options to default values
    @return Error code
-   @ingroup FileManagement
    */
   int  DLLEXPORT ENresetreport();
   
   /**
    @brief Processes a reporting format command
    @return Error code
-   @ingroup FileManagement
    */
   int  DLLEXPORT ENsetreport(char *reportFormat);
   
   /**
    @brief Retrieves parameters that define a simple control
-   @param cindex Control index (position of control statement in the input file, starting from 1)
-   @param[out] ctype Control type code (see EPANET2.H)
-   @param[out] lindex Index of controlled link
+   @param controlIndex Control index (position of control statement in the input file, starting from 1)
+   @param[out] controlType Control type code (see EPANET2.H)
+   @param[out] linkIndex Index of controlled link
    @param[out] setting Control setting on link
-   @param[out] nindex Index of controlling node (0 for TIMER or TIMEOFDAY control)
+   @param[out] nodeIndex Index of controlling node (0 for TIMER or TIMEOFDAY control)
    @param[out] level Control level (tank level, junction pressure, or time (seconds))
    @return Error code
    */
-  int  DLLEXPORT ENgetcontrol(int controlIndex, int *controlType, int *linkIdx, EN_API_FLOAT_TYPE *setting, int *nodeIdx, EN_API_FLOAT_TYPE *level);
+  int  DLLEXPORT ENgetcontrol(int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level);
   
   /**
    @brief Retrieves the number of components of a given type in the network.
@@ -467,40 +421,225 @@ extern "C" {
   
   /**
    @brief Gets value for an analysis option
-   @param Code option code (see EPANET2.H)
+   @param code Option code (see EPANET2.H)
    @param[out] value Option value
    @return Error code
    */
   int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value);
+  
+  /**
+   @brief Retrieves value of specific time parameter.
+   @param code Time parameter code
+   @param[out] value Value of time parameter.
+   @return Error code
+   */
   int  DLLEXPORT ENgettimeparam(int code, long *value);
+  
+  /**
+   @brief Retrieves the flow units code
+   @param[out] code Code of flow units in use
+   @return Error code
+   */
   int  DLLEXPORT ENgetflowunits(int *code);
+  
+  /**
+   @brief Retrieves the index of the time pattern with specified ID
+   @param id String ID of the time pattern
+   @param[out] index Index of the specified time pattern
+   @return Error code
+   @see ENgetpatternid
+   */
   int  DLLEXPORT ENgetpatternindex(char *id, int *index);
+  
+  /**
+   @brief Retrieves ID of a time pattern with specific index.
+   @param index The index of a time pattern.
+   @param[out] id The string ID of the time pattern.
+   @return Error code
+   @see ENgetpatternindex
+   */
   int  DLLEXPORT ENgetpatternid(int index, char *id);
+
+  /**
+   @brief Retrieves the number of multipliers in a time pattern.
+   @param index The index of a time pattern.
+   @param[out] len The length of the time pattern.
+   @return Error code
+   */
   int  DLLEXPORT ENgetpatternlen(int index, int *len);
+  
+  /**
+   @brief Retrive a multiplier from a pattern for a specific time period.
+   @param index The index of a time pattern
+   @param period The pattern time period. First time period is 1.
+   @param[out] value Pattern multiplier
+   @return Error code
+   */
   int  DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value);
+  
+  /**
+   @brief Retrieve the average multiplier value in a time pattern
+   @param index The index of a time pattern
+   @param[out] value The average of all of this time pattern's values
+   @return Error code
+   */
   int  DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value);
+  
+  /**
+   @brief Retrieve the type of quality analytis to be run.
+   @param[out] qualcode The quality analysis code number.
+   @param[out] tracenode The index of node being traced, if qualcode == trace
+   @return Error code
+   @see ENsetqualtype
+   */
   int  DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode);
+  
+  /**
+   @brief Get the text of an error code.
+   @param errcode The error code
+   @param[out] errmsg The error string represented by the code
+   @param maxLen The maximum number of characters to copy into the char pointer errmsg
+   @return Error code
+   */
   int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen);
+  
+  /**
+   @brief Get hydraulic simulation statistic
+   @param code The type of statistic to get
+   @param[out] value The value of the statistic
+   @return Error code
+   */
   int  DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value);
   
+  /**
+   @brief Get index of node with specified ID
+   @param id The string ID of the node
+   @param[out] index The node's index (first node is index 1)
+   @return Error code
+   @see ENgetnodeid
+   */
   int  DLLEXPORT ENgetnodeindex(char *id, int *index);
+  
+  /**
+   @brief Get the string ID of the specified node.
+   @param index The index of the node (first node is index 1)
+   @param[out] id The string ID of the specified node. Up to MAXID characters will be copied, so id must be pre-allocated by the calling code to hold at least that many characters.
+   @return Error code
+   @see ENgetnodeindex
+   */
   int  DLLEXPORT ENgetnodeid(int index, char *id);
+  
+  /**
+   @brief Get the type of node with specified index.
+   @param index The index of a node (first node is index 1)
+   @param[out] code The type code for the node.
+   @return Error code
+   */
   int  DLLEXPORT ENgetnodetype(int index, int *code);
+  
+  /**
+   @brief Get a property value for specified node
+   @param index The index of a node (first node is index 1).
+   @param code The property type code
+   @param[out] value The value of the node's property.
+   @return Error code
+   @see EN_NodeProperty
+   */
   int  DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value);
+  
+  /**
+   @brief Get coordinates (x,y) for a node.
+   @param index The index of a node (first node is index 1).
+   @param[out] x X-value of node's coordinate
+   @param[out] y Y-value of node's coordinate
+   @return Error code
+   @see ENsetcoord
+   */
   int  DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+  
+  /**
+   @brief Set coordinates (x,y) for a node.
+   @param index The index of a node (first node is index 1)
+   @param x X-value of node's coordinate
+   @param y Y-value of node's coordinate
+   @return Error code
+   @see ENgetcoord
+   */
   int  DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
   
+  /**
+   @brief Get the number of demand categories for a node.
+   @param nodeIndex The index of a node (first node is index 1)
+   @param[out] numDemands The number of demand categories
+   @return Error code
+   */
   int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
-  int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand);
-  int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx);
   
+  /**
+   @brief Get a node's base demand for a specified category.
+   @param nodeIndex The index of a node (first node is index 1)
+   @param demandIndex The index of the demand category (starting at 1)
+   @return Error code
+   */
+  int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
+  
+  /**
+   @brief Get the index of the demand pattern assigned to a node for a category index.
+   @param nodeIndex The index of a node (first node is index 1).
+   @param demandIndex The index of a category (first category is index 1).
+   @param[out] pattIndex The index of the pattern for this node and category.
+   @return Error code
+   */
+  int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIndex, int *pattIndex);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetlinkindex(char *id, int *index);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetlinkid(int index, char *id);
+  
+  /**
+   @brief
+   @param
+   @return
+   @see EN_LinkType
+   */
   int  DLLEXPORT ENgetlinktype(int index, int *code);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value);
   
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetheadcurve(int, char *);
   
   /**
@@ -511,27 +650,144 @@ extern "C" {
    */
   int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
   
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetversion(int *version);
   
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENaddpattern(char *id);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int len);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsettimeparam(int code, long value);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetstatusreport(int code);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
   
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetcurveindex(char *id, int *index);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetcurveid(int index, char *id);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetcurvelen(int index, int *len);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
+  
+  /**
+   @brief
+   @param
+   @return
+   */
   int  DLLEXPORT ENaddcurve(char *id);
   
 #if defined(__cplusplus)
