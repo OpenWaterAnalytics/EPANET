@@ -1760,6 +1760,8 @@ int  DLLEXPORT ENgetcurve(int curveIndex, int *nValues, float **xValues, float *
 {
   int err = 0;
   
+  if (curveIndex<1 || curveIndex>Ncurves) return(206);
+  
   Scurve curve = Curve[curveIndex];
   int nPoints = curve.Npts;
   
@@ -3164,6 +3166,7 @@ char *geterrmsg(int errcode)
       case 203:  sprintf(Msg,ERR203,t_FUNCCALL,""); break;
       case 204:  sprintf(Msg,ERR204,t_FUNCCALL,""); break;
       case 205:  sprintf(Msg,ERR205,t_FUNCCALL,""); break;
+      case 206:  sprintf(Msg,ERR206,t_FUNCCALL,""); break;
       case 207:  sprintf(Msg,ERR207,t_FUNCCALL,""); break;
       case 240:  sprintf(Msg,ERR240,t_FUNCCALL,""); break;
       case 241:  sprintf(Msg,ERR241,t_FUNCCALL,""); break;
