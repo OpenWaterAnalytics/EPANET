@@ -36,6 +36,7 @@
 // --- define DLLEXPORT
 #ifndef DLLEXPORT
   #ifdef WINDOWS
+    #define DLLDATA  __declspec(dllexport)
     #ifdef __cplusplus
       #define DLLEXPORT extern "C" __declspec(dllexport)
     #else
@@ -53,6 +54,10 @@
     #define DLLEXPORT
   #endif
 #endif
+#ifndef DLLDATA
+    #define DLLDATA
+#endif
+
 
 // --- Define the EPANET toolkit constants
 
@@ -282,6 +287,7 @@ extern "C" {
   int  DLLEXPORT ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
   int  DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
   int  DLLEXPORT ENaddcurve(char *id);
+  char DLLDATA Warnflag;
   
 #if defined(__cplusplus)
 }
