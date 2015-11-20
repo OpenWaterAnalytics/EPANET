@@ -180,7 +180,7 @@ int DLLEXPORT ENepanet(char *f1, char *f2, char *f3, void (*pviewprog) (char *))
     ERRCODE(ENsolveQ());
     ERRCODE(ENreport());
     ENclose();
-    return(errcode);
+    return(MAX(errcode, Warnflag) );
 }
 
 
@@ -290,7 +290,7 @@ int DLLEXPORT ENclose()
    }                                                                           //(2.00.12 - LR)
 
    if (InFile  != NULL) { fclose(InFile);  InFile=NULL;  }
-   if (RptFile != NULL) { fclose(RptFile); RptFile=NULL; }
+   if (RptFile != NULL && RptFile != stdout) { fclose(RptFile); RptFile=NULL; }
    if (HydFile != NULL) { fclose(HydFile); HydFile=NULL; }
    if (OutFile != NULL) { fclose(OutFile); OutFile=NULL; }
   
@@ -3499,8 +3499,8 @@ void  writecon(char *s)
 */
 {
                                                     //(2.00.11 - LR)
-   fprintf(stdout,s);
-   fflush(stdout);
+   //fprintf(stdout,s);
+   //fflush(stdout);
 
 }
 
@@ -3514,14 +3514,12 @@ void writewin(char *s)
 **----------------------------------------------------------------
 */
 {
-#ifdef DLL
    char progmsg[MAXMSG+1];
    if (viewprog != NULL)
    {
       strncpy(progmsg,s,MAXMSG);
       viewprog(progmsg);
    }
-#endif
 }
 
 

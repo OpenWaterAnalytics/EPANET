@@ -52,7 +52,7 @@ epanet_heads=enumstxt.h funcs.h hash.h mempool.h text.h types.h vars.h epanet2.h
 # Epanet main program
 epanet_main=main
 # Epanet main program header files
-epanet_main_heads=epanet2.h text.h
+epanet_main_heads=epanet2.h
 
 .PHONY: all
 all: $(libname) $(exename)
