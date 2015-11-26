@@ -1314,13 +1314,6 @@ int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
    
 
 int DLLEXPORT ENgetlinkindex(char *id, int *index)
-/*----------------------------------------------------------------
-**  Input:   id = link ID
-**  Output:  *index = index of link in list of links
-**  Returns: error code                              
-**  Purpose: retrieves index of a link with specific ID 
-**----------------------------------------------------------------
-*/
 {
    *index = 0;
    if (!Openflag) return(102);
@@ -1331,15 +1324,6 @@ int DLLEXPORT ENgetlinkindex(char *id, int *index)
 
 
 int DLLEXPORT ENgetlinkid(int index, char *id)
-/*----------------------------------------------------------------
-**  Input:   index = index of link in list of links
-**  Output:  id = link ID
-**  Returns: error code                              
-**  Purpose: retrieves ID of a link with specific index
-**
-**  NOTE: 'id' must be able to hold MAXID characters
-**----------------------------------------------------------------
-*/
 {
    strcpy(id,"");
    if (!Openflag) return(102);
@@ -1350,13 +1334,6 @@ int DLLEXPORT ENgetlinkid(int index, char *id)
 
 
 int  DLLEXPORT ENgetlinktype(int index, int *code)
-/*------------------------------------------------------------------
-**  Input:   index = link index                    
-**  Output:  *code = link type code number (see EPANET2.H)
-**  Returns: error code                              
-**  Purpose: retrieves link type of specific link 
-**------------------------------------------------------------------
-*/
 {
    *code = -1;
    if (!Openflag) return(102);
@@ -1367,14 +1344,6 @@ int  DLLEXPORT ENgetlinktype(int index, int *code)
 
 
 int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2)
-/*----------------------------------------------------------------
-**  Input:   index = link index                    
-**  Output:  *node1 = index of link's starting node
-**           *node2 = index of link's ending node
-**  Returns: error code                              
-**  Purpose: retrieves end nodes of a specific link 
-**----------------------------------------------------------------
-*/
 {
    *node1 = 0;
    *node2 = 0;
@@ -1387,14 +1356,6 @@ int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2)
 
 
 int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
-/*------------------------------------------------------------------
-**  Input:   index = link index
-**           code  = link parameter code (see EPANET2.H)                   
-**  Output:  *value = value of link's parameter
-**  Returns: error code                              
-**  Purpose: retrieves parameter value for a link   
-**------------------------------------------------------------------
-*/
 {
    double a,h,q, v = 0.0;
 
@@ -1591,21 +1552,6 @@ int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_T
 
 int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
               EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level)
-/*----------------------------------------------------------------
-**  Input:   cindex  = control index (position of control statement
-**                     in the input file, starting from 1)
-**           ctype   = control type code (see EPANET2.H)
-**           lindex  = index of controlled link
-**           setting = control setting applied to link
-**           nindex  = index of controlling node (0 for TIMER
-**                     or TIMEOFDAY control)
-**           level   = control level (tank level, junction pressure,
-**                     or time (seconds))
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: specifies parameters that define a simple control                 
-**----------------------------------------------------------------
-*/
 {
    char   status = ACTIVE;
    long   t = 0;
@@ -2011,14 +1957,6 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
 
 
 int  DLLEXPORT  ENaddpattern(char *id)
-/*----------------------------------------------------------------
-**   Input:   id = ID name of the new pattern
-**   Output:  none
-**   Returns: error code                              
-**   Purpose: adds a new time pattern appended to the end of the
-**            existing patterns.
-**----------------------------------------------------------------
-*/
 {
     int i, j, n, err = 0;
     Spattern *tmpPat;
@@ -2079,15 +2017,6 @@ int  DLLEXPORT  ENaddpattern(char *id)
 
    
 int  DLLEXPORT  ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n)
-/*----------------------------------------------------------------
-**   Input:   index = time pattern index
-**            *f    = array of pattern multipliers
-**            n     = number of time periods in pattern
-**   Output:  none
-**   Returns: error code                              
-**   Purpose: sets multipliers for a specific time pattern 
-**----------------------------------------------------------------
-*/
 {
    int j;
 
@@ -2108,15 +2037,6 @@ int  DLLEXPORT  ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n)
 
 
 int  DLLEXPORT  ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value)
-/*----------------------------------------------------------------
-**  Input:   index  = time pattern index
-**           period = time pattern period
-**           value  = pattern multiplier
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: sets multiplier for a specific time period and pattern 
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    if (index  <= 0 || index  > Npats) return(205);
@@ -2271,14 +2191,7 @@ int  DLLEXPORT  ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_
 
 
 int  DLLEXPORT  ENsettimeparam(int code, long value)
-/*----------------------------------------------------------------
-**  Input:   code  = time parameter code (see EPANET2.H)
-**           value = time parameter value
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: sets value for time parameter 
-**----------------------------------------------------------------
-*/
+
 {
    if (!Openflag) return(102);
   if (OpenHflag || OpenQflag) { 
@@ -2503,14 +2416,6 @@ int DLLEXPORT ENgetheadcurve(int index, char *id)
 }
 
 int DLLEXPORT ENgetpumptype(int index, int *type)
-/*----------------------------------------------------------------
-**  Input:   index = index of pump in list of links
-**  Output:  type = PumpType
-**  Returns: error code                              
-**  Purpose: retrieves type of a pump for specific link index
-**
-**----------------------------------------------------------------
-*/
 {
    *type=-1;
    if (!Openflag) return(102);

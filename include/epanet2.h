@@ -112,22 +112,25 @@ typedef enum {
   EN_LINKPATTERN  = 15
 } EN_LinkProperty;
 
+/// Time parameter codes
+typedef enum {
+  EN_DURATION     = 0,
+  EN_HYDSTEP      = 1,
+  EN_QUALSTEP     = 2,
+  EN_PATTERNSTEP  = 3,
+  EN_PATTERNSTART = 4,
+  EN_REPORTSTEP   = 5,
+  EN_REPORTSTART  = 6,
+  EN_RULESTEP     = 7,
+  EN_STATISTIC    = 8,
+  EN_PERIODS      = 9,
+  EN_STARTTIME    = 10,
+  EN_HTIME        = 11,
+  EN_QTIME        = 12,
+  EN_HALTFLAG     = 13,
+  EN_NEXTEVENT    = 14
+} EN_TimeProperty;
 
-#define EN_DURATION     0    /* Time parameters */
-#define EN_HYDSTEP      1
-#define EN_QUALSTEP     2
-#define EN_PATTERNSTEP  3
-#define EN_PATTERNSTART 4
-#define EN_REPORTSTEP   5
-#define EN_REPORTSTART  6
-#define EN_RULESTEP     7
-#define EN_STATISTIC    8
-#define EN_PERIODS      9
-#define EN_STARTTIME    10  /* Added TNT 10/2/2009 */
-#define EN_HTIME        11
-#define EN_QTIME        12
-#define EN_HALTFLAG     13
-#define EN_NEXTEVENT    14
 
 #define EN_ITERATIONS     0
 #define EN_RELATIVEERROR  1
@@ -177,11 +180,15 @@ typedef enum {
 #define EN_CMH          8
 #define EN_CMD          9
 
-#define EN_TRIALS       0   /* Misc. options */
-#define EN_ACCURACY     1
-#define EN_TOLERANCE    2
-#define EN_EMITEXPON    3
-#define EN_DEMANDMULT   4
+/// Simulation Option codes
+typedef enum {
+  EN_TRIALS       = 0,
+  EN_ACCURACY     = 1,
+  EN_TOLERANCE    = 2,
+  EN_EMITEXPON    = 3,
+  EN_DEMANDMULT   = 4
+} EN_Option;
+
 
 #define EN_LOWLEVEL     0   /* Control types.  */
 #define EN_HILEVEL      1   /* See ControlType */
@@ -593,54 +600,70 @@ extern "C" {
   int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIndex, int *pattIndex);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Get the index of a Link with specified ID.
+   @param id The string ID of a link.
+   @param[out] index The index of the named link (first link is index 1)
+   @return Error code
+   @see ENgetlinkid
    */
   int  DLLEXPORT ENgetlinkindex(char *id, int *index);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Get the string ID of a link with specified index
+   @param index The index of a link (first link is index 1)
+   @param[out] id The ID of the link. Up to MAXID characters will be copied, so id must be pre-allocated by the calling code to hold at least that many characters.
+   @return Error code
+   @see ENgetlinkindex
    */
   int  DLLEXPORT ENgetlinkid(int index, char *id);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Get the link type code for a specified link
+   @param index The index of a link (first link is index 1)
+   @param[out] code The type code of the link.
+   @return Error code
    @see EN_LinkType
    */
   int  DLLEXPORT ENgetlinktype(int index, int *code);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Get the indexes of a link's start- and end-nodes.
+   @param index The index of a link (first link is index 1)
+   @param[out] node1 The index of the link's start node (first node is index 1).
+   @param[out] node2 The index of the link's end node (first node is index 1).
+   @return Error code
+   @see ENgetnodeid, ENgetlinkid
    */
   int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Get a property value for specified link.
+   @param index The index of a node (first node is index 1).
+   @param code The parameter desired.
+   @param[out] value The value of the link's specified property.
+   @return Error code
+   @see ENgetnodevalue, EN_LinkProperty
    */
   int  DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Get a curve's properties.
+   @param curveIndex The index of a curve (first curve is index 1).
+   @param[out] id The curve's string ID. Client code must preallocate at least MAXID characters.
+   @param[out] nValues The number of values in the curve's (x,y) list.
+   @param[out] xValues The curve's x-values. Must be freed by client.
+   @param[out] yValues The curve's y-values. Must be freed by client.
+   @return Error code.
    */
   int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Get the string ID of the head curve assigned to a pump.
+   @param linkIndex The index of a pump
+   @param[out] curveId The string ID of a curve. Must be preallocated by the client for at least MAXID characters.
+   @return Error code.
    */
-  int  DLLEXPORT ENgetheadcurve(int, char *);
+  int  DLLEXPORT ENgetheadcurve(int linkIndex, char *curveId);
   
   /**
    @brief Get the type of pump
@@ -651,65 +674,86 @@ extern "C" {
   int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Get the version number. This number is to be interpreted with implied decimals, i.e., "20100" == "2(.)01(.)00"
+   @param[out] version The version of EPANET
+   @return Error code.
    */
   int  DLLEXPORT ENgetversion(int *version);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Specify parameters to define a simple control
+   @param cindex The index of the control to edit. First control is index 1.
+   @param ctype The type code to set for this control.
+   @param lindex The index of a link to control.
+   @param setting The control setting applied to the link.
+   @param nindex The index of a node used to control the link, or 0 for TIMER / TIMEOFDAY control.
+   @param level control point (tank level, junction pressure, or time in seconds).
+   @return Error code.
    */
   int  DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Set a property value for a node.
+   @param index The index of a node. First node is index 1.
+   @param code The code for the proprty to set.
+   @param v The value to set for this node and property.
+   @return Error code.
+   @see EN_NodeProperty
    */
   int  DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Set a proprty value for a link.
+   @param index The index of a link. First link is index 1.
+   @param code The code for the property to set.
+   @param v The value to set for this link and property.
+   @return Error code.
+   @see EN_LinkProperty
    */
   int  DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Add a new time pattern.
+   @param id The string ID of the pattern to add.
+   @return Error code.
+   @see ENgetpatternindex
    */
   int  DLLEXPORT ENaddpattern(char *id);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Set multipliers for a specific pattern
+   @param index The index of a pattern. First pattern is index 1.
+   @param f An array of multipliers
+   @param len The length of array f.
+   @return Error code.
+   @see ENgetpatternindex
    */
   int  DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int len);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Set the multiplier for a specific pattern at a specific period.
+   @param index The index of a pattern. First pattern is index 1.
+   @param period The period of the pattern to set.
+   @param value The value of the multiplier to set.
+   @return Error code.
    */
   int  DLLEXPORT ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Set the value for a time parameter.
+   @param code The code for the parameter to set.
+   @param value The desired value of the parameter.
+   @return Error code.
+   @see EN_TimeProperty
    */
   int  DLLEXPORT ENsettimeparam(int code, long value);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Set a value for an anlysis option.
+   @param code The code for the desired option.
+   @param v The desired value for the option specified.
+   @return Error code.
+   @see EN_Option
    */
   int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v);
   
