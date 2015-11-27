@@ -2764,21 +2764,19 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname,
    return(0);
 }
 
-int DLLEXPORT ENgetheadcurve(int index, char *id)
+int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
 /*----------------------------------------------------------------
 **  Input:   index = index of pump in list of links
-**  Output:  id = head curve ID
+**  Output:  curveindex = head curve index
 **  Returns: error code                              
-**  Purpose: retrieves ID of a head curve for specific link index
+**  Purpose: retrieves index of a head curve for specific link index
 **
-**  NOTE: 'id' must be able to hold MAXID characters
 **----------------------------------------------------------------
 */
 {
-   strcpy(id,"");
    if (!Openflag) return(102);
    if (index < 1 || index > Nlinks || PUMP != Link[index].Type) return(204);
-   strcpy(id,Curve[Pump[PUMPINDEX(index)].Hcurve].ID);
+   *curveindex = Pump[PUMPINDEX(index)].Hcurve;
    return(0);
 }
 

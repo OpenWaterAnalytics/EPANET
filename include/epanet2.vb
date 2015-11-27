@@ -200,7 +200,7 @@ Public Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENgetlinkvalue Lib "epanet2.dll" (ByVal Index As Int32, ByVal Code As Int32, ByRef Value As Single) As Int32
 
  Declare Function ENgetcurve Lib "epanet2.dll" (ByVal CurveIndex As Int32, ByRef nValues As Int32, ByRef xValues As Single, ByRef yValues As Single) As Int32 'ES
- Declare Function ENgetheadcurve Lib "epanet2.dll" (ByVal Index As Int32, ByVal ID As StringBuilder) As Int32  'ES
+ Declare Function ENgetheadcurveindex Lib "epanet2.dll" (ByVal Index As Int32, ByVal CurveIndex As int32) As Int32  'ES
  Declare Function ENgetpumptype Lib "epanet2.dll" (ByVal Index As Int32, ByRef PumpType As Int32) As Int32  'ES
 
  Declare Function ENgetversion Lib "epanet2.dll" (ByRef Value As Int32) As Int32
