@@ -15,5 +15,6 @@
 @fn int ENsetreport (char *reportFormat)
 @fn int ENopen (char *inpFile, char *rptFile, char *binOutFile)
 @fn int ENsaveinpfile (char *filename)
+@fn int ENclose()
 @}
 */

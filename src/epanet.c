@@ -930,13 +930,6 @@ int DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value)
 
 
 int  DLLEXPORT  ENgetcurveindex(char *id, int *index)
-/*----------------------------------------------------------------
-**  Input:   id     = curve ID
-**  Output:  *index = index of curve in list of curves
-**  Returns: error code                              
-**  Purpose: retrieves index of curve with specific ID 
-**----------------------------------------------------------------
-*/
 {
    int i;
    *index = 0;
@@ -955,15 +948,6 @@ int  DLLEXPORT  ENgetcurveindex(char *id, int *index)
 
 
 int DLLEXPORT ENgetcurveid(int index, char *id)
-/*----------------------------------------------------------------
-**  Input:   index = index of curve
-**  Output:  id    = curve ID
-**  Returns: error code                              
-**  Purpose: retrieves ID of a curve with specific index
-**
-**  NOTE: 'id' must be able to hold MAXID characters
-**----------------------------------------------------------------
-*/
 {
    strcpy(id,"");
    if (!Openflag) return(102);
@@ -974,13 +958,6 @@ int DLLEXPORT ENgetcurveid(int index, char *id)
 
 
 int DLLEXPORT ENgetcurvelen(int index, int *len)
-/*----------------------------------------------------------------
-**  Input:   index = index of curve
-**  Output:  *len  = curve length (number of points in curve)
-**  Returns: error code                              
-**  Purpose: retrieves number of points in a curve
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Ncurves) return(206);
@@ -990,17 +967,7 @@ int DLLEXPORT ENgetcurvelen(int index, int *len)
 
 
 int DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
-/*----------------------------------------------------------------
-**  Input:   index  = index of curve
-**           pnt    = curve's point number
-**  Output:  *x     = curve x value
-**                    curve y value
-**  Returns: error code                              
-**  Purpose: retrieves x,y point for a specific point number
-**           and curve
-**----------------------------------------------------------------
-*/
-{  
+{
    *x = 0.0;
    *y = 0.0;
    if (!Openflag) return(102);
@@ -1500,18 +1467,6 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
 
 
 int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
-/*----------------------------------------------------------------
- **  Input:   curveIndex = curve index
- **  Output:  *nValues = number of points on curve
- **           id = curve ID
- **           *xValues = values for x
- **           *yValues = values for y
- **  Returns: error code
- **  Purpose: retrieves curve id, number of values and (x,y) values
- **
- **  NOTE: 'id' must be able to hold MAXID characters
- **----------------------------------------------------------------
- */
 {
   int iPoint, nPoints;
   Scurve curve;
@@ -2047,14 +2002,6 @@ int  DLLEXPORT  ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value
 
 
 int  DLLEXPORT  ENaddcurve(char *id)
-/*----------------------------------------------------------------
-**   Input:   id   = ID name of the new curve
-**   Output:  none
-**   Returns: error code                              
-**   Purpose: adds a new curve appended to the end of the
-**            existing curves.
-**----------------------------------------------------------------
-*/
 {
     int i, j, n, err = 0;
     Scurve *tmpCur;
@@ -2134,16 +2081,6 @@ int  DLLEXPORT  ENaddcurve(char *id)
 
 
 int  DLLEXPORT  ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int n)
-/*----------------------------------------------------------------
-**   Input:   index = curve index
-**            *x    = array of x points
-**            *y    = array of y points
-**            n     = number of points in curve
-**   Output:  none
-**   Returns: error code                              
-**   Purpose: sets x,y values for a specific curve
-**----------------------------------------------------------------
-*/
 {
    int j;
 
@@ -2170,16 +2107,6 @@ int  DLLEXPORT  ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y
 
 
 int  DLLEXPORT  ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
-/*----------------------------------------------------------------
-**  Input:   index  = curve index
-**           pnt    = curve's point number
-**           x      = curve x value
-**           y      = curve y value
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: sets x,y point for a specific point and curve 
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    if (index  <= 0 || index  > Ncurves) return(206);
@@ -2320,13 +2247,6 @@ int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v)
  
 
 int  DLLEXPORT ENsetstatusreport(int code)
-/*----------------------------------------------------------------
-**  Input:   code = status reporting code (0, 1, or 2)
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: sets level of hydraulic status reporting 
-**----------------------------------------------------------------
-*/
 {
    int errcode = 0;
    if (code >= 0 && code <= 2) Statflag = (char)code;
@@ -2335,22 +2255,7 @@ int  DLLEXPORT ENsetstatusreport(int code)
 }
 
 
-int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname,
-                               char *chemunits, char *tracenode)
-/*----------------------------------------------------------------
-**  Input:   qualcode  = WQ parameter code (see EPANET2.H)
-**           chemname  = name of WQ constituent 
-**           chemunits = concentration units of WQ constituent
-**           tracenode = ID of node being traced
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: sets type of quality analysis called for
-**
-**  NOTE: chemname and chemunits only apply when WQ analysis
-**        is for chemical. tracenode only applies when WQ
-**        analysis is source tracing.
-**----------------------------------------------------------------
-*/
+int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode)
 {
 /*** Updated 3/1/01 ***/
    double ccf = 1.0;
@@ -2398,14 +2303,6 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname,
 }
 
 int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
-/*----------------------------------------------------------------
-**  Input:   index = index of pump in list of links
-**  Output:  curveindex = head curve index
-**  Returns: error code                              
-**  Purpose: retrieves index of a head curve for specific link index
-**
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Nlinks || PUMP != Link[index].Type) return(204);
@@ -3191,14 +3088,6 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *
 
 
 int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand)
-/*----------------------------------------------------------------
- **  Input:   nodeIndex  = index of node
- **           demandIdx  = index of demand category
- **           baseDemand = base demand for selected category
- **  Returns: error code
- **  Purpose: sets the node's base demand for a category
- **----------------------------------------------------------------
- */
 {
   Pdemand d;
   int n=1;

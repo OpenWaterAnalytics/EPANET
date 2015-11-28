@@ -692,22 +692,21 @@ extern "C" {
    @return Error code.
    */
   int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
-  int  DLLEXPORT ENgetheadcurveindex(int index, int *curveindex);
-  int  DLLEXPORT ENgetpumptype(int index, int *type);
   
   /**
-   @brief Get the string ID of the head curve assigned to a pump.
-   @param linkIndex The index of a pump
-   @param[out] curveId The string ID of a curve. Must be preallocated by the client for at least MAXID characters.
+   @brief Retrieves the curve index for a specified pump index.
+   @param pumpIndex The index of a pump
+   @param[out] curveIndex The index of the curve used by the pump.
    @return Error code.
    */
-  int  DLLEXPORT ENgetheadcurve(int linkIndex, char *curveId);
+  int  DLLEXPORT ENgetheadcurveindex(int pumpIndex, int *curveIndex);
   
   /**
    @brief Get the type of pump
    @param linkIndex The index of the pump element
-   @param outType The integer-typed pump type signifier (output parameter)
+   @param[out] outType The integer-typed pump curve type signifier (output parameter)
    @return Error code
+   @see EN_CurveType
    */
   int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
   
@@ -796,79 +795,111 @@ extern "C" {
   int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Sets the level of hydraulic status reporting.
+   @param code Status reporting code.
+   @return Error code.
    */
   int  DLLEXPORT ENsetstatusreport(int code);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Sets type of quality analysis called for
+   @param qualcode WQ parameter code, EN_QualityType
+   @param chemname Name of WQ constituent
+   @param chemunits Concentration units of WQ constituent
+   @param tracenode ID of node being traced (if applicable)
+   @return Error code.
+   @see EN_QualityType
+   
+   chemname and chemunits only apply when WQ analysis is for chemical. tracenode only applies when WQ analysis is source tracing.
    */
   int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Get quality analysis information (type, chemical name, units, trace node ID)
+   @param[out] qualcode The EN_QualityType code being used.
+   @param[out] chemname The name of the WQ constituent.
+   @param[out] chemunits The cencentration units of the WQ constituent.
+   @param[out] tracenode The trace node ID.
+   @return Error code.
+   @see EN_QualityType
    */
   int  DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Sets the node's base demand for a category.
+   @param nodeIndex The index of a node.
+   @param demandIdx The index of a demand category.
+   @param baseDemand The base demand multiplier for the selected category.
+   @return Error code.
+   @see ENgetbasedemand
    */
   int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Retrieves index of curve with specific ID.
+   @param id The ID of a curve.
+   @param[out] index The index of the named curve
+   @return Error code.
+   @see ENgetcurveid
    */
   int  DLLEXPORT ENgetcurveindex(char *id, int *index);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Retrieves ID of a curve with specific index.
+   @param index The index of a curve.
+   @param[out] id The ID of the curve specified.
+   @return Error code.
+   @see ENsetcurveindex
+   
+   NOTE: 'id' must be able to hold MAXID characters
    */
   int  DLLEXPORT ENgetcurveid(int index, char *id);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Retrieves number of points in a curve
+   @param index The index of a curve.
+   @param[out] len The length of the curve coordinate list
+   @return Error code.
+   @see ENgetcurvevalue
    */
   int  DLLEXPORT ENgetcurvelen(int index, int *len);
   
   /**
-   @brief
-   @param
-   @return
+   @brief retrieves x,y point for a specific point number and curve
+   @param curveIndex The index of a curve
+   @param pointIndex The index of a point in the curve
+   @param[out] x The x-value of the specified point.
+   @param[out] y The y-value of the specified point.
+   @return Error code.
+   @see ENgetcurvelen ENsetcurvevalue
    */
-  int  DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+  int  DLLEXPORT ENgetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Sets x,y point for a specific point and curve.
+   @param curveIndex The index of a curve.
+   @param pointIndex The index of a point in the curve.
+   @param x The x-value of the point.
+   @param y The y-value of the point.
+   @return Error code.
    */
-  int  DLLEXPORT ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
+  int  DLLEXPORT ENsetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Sets x,y values for a specified curve.
+   @param index The index of a curve.
+   @param x An array of x-values for the curve.
+   @param y An array of y-values for the curve.
+   @param len The length of the arrays x and y.
+   @return Error code.
    */
   int  DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
   
   /**
-   @brief
-   @param
-   @return
+   @brief Adds a new curve appended to the end of the existing curves.
+   @param id The name of the curve to be added.
+   @return Error code.
+   @see ENgetcurveindex ENsetcurve
    */
   int  DLLEXPORT ENaddcurve(char *id);
   

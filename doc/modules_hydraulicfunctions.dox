@@ -7,16 +7,15 @@ int  errcode;
 long t, tstep;
 
 errcode = ENopenH();
-if (!errcode)
-{
-errcode = ENinitH(EN_SAVE);
-if (!errcode) do
-{
-tstep = 0;
-ERRCODE(ENrunH(&t));
-ERRCODE(ENnextH(&tstep));
-}
-while (tstep > 0);
+if (!errcode) {
+	errcode = ENinitH(EN_SAVE);
+	if (!errcode) {
+		do {
+			tstep = 0;
+			ERRCODE(ENrunH(&t));
+			ERRCODE(ENnextH(&tstep));
+		} while (tstep > 0);
+	}
 }
 
 ENcloseH();
