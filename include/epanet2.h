@@ -60,6 +60,7 @@
   #endif
 #endif
 
+
 // --- Define the EPANET toolkit constants
 
 /// Node property codes
@@ -159,26 +160,33 @@ typedef enum {
 } EN_LinkType;
 
 
-#define EN_NONE         0    /* Quality analysis types. */
-#define EN_CHEM         1    /* See QualType in TYPES.H */
-#define EN_AGE          2
-#define EN_TRACE        3
+typedef enum {
+  EN_NONE        = 0,    /* Quality analysis types. */
+  EN_CHEM        = 1,    /* See QualType in TYPES.H */
+  EN_AGE         = 2,
+  EN_TRACE       = 3
+} EN_QualityType;
 
-#define EN_CONCEN       0    /* Source quality types.      */
-#define EN_MASS         1    /* See SourceType in TYPES.H. */
-#define EN_SETPOINT     2
-#define EN_FLOWPACED    3
+typedef enum {
+  EN_CONCEN      = 0,    /* Source quality types.      */
+  EN_MASS        = 1,    /* See SourceType in TYPES.H. */
+  EN_SETPOINT    = 2,
+  EN_FLOWPACED   = 3
+} EN_SourceType;
 
-#define EN_CFS          0    /* Flow units types.   */
-#define EN_GPM          1    /* See FlowUnitsType   */
-#define EN_MGD          2    /* in TYPES.H.         */
-#define EN_IMGD         3
-#define EN_AFD          4
-#define EN_LPS          5
-#define EN_LPM          6
-#define EN_MLD          7
-#define EN_CMH          8
-#define EN_CMD          9
+typedef enum {
+  EN_CFS         = 0,    /* Flow units types.   */
+  EN_GPM         = 1,    /* See FlowUnitsType   */
+  EN_MGD         = 2,    /* in TYPES.H.         */
+  EN_IMGD        = 3,
+  EN_AFD         = 4,
+  EN_LPS         = 5,
+  EN_LPM         = 6,
+  EN_MLD         = 7,
+  EN_CMH         = 8,
+  EN_CMD         = 9
+} EN_FlowUnits;
+
 
 /// Simulation Option codes
 typedef enum {
@@ -189,26 +197,47 @@ typedef enum {
   EN_DEMANDMULT   = 4
 } EN_Option;
 
+typedef enum {
+  EN_LOWLEVEL    = 0,   /* Control types.  */
+  EN_HILEVEL     = 1,   /* See ControlType */
+  EN_TIMER       = 2,   /* in TYPES.H.     */
+  EN_TIMEOFDAY   = 3
+} EN_ControlType;
 
-#define EN_LOWLEVEL     0   /* Control types.  */
-#define EN_HILEVEL      1   /* See ControlType */
-#define EN_TIMER        2   /* in TYPES.H.     */
-#define EN_TIMEOFDAY    3
 
-#define EN_AVERAGE      1   /* Time statistic types.    */
-#define EN_MINIMUM      2   /* See TstatType in TYPES.H */
-#define EN_MAXIMUM      3
-#define EN_RANGE        4
 
-#define EN_MIX1         0   /* Tank mixing models */
-#define EN_MIX2         1
-#define EN_FIFO         2
-#define EN_LIFO         3
+typedef enum {
+  EN_AVERAGE     = 1,   /* Time statistic types.    */
+  EN_MINIMUM     = 2,   /* See TstatType in TYPES.H */
+  EN_MAXIMUM     = 3,
+  EN_RANGE       = 4
+} EN_StatisticType;
 
-#define EN_NOSAVE       0   /* Save-results-to-file flag */
-#define EN_SAVE         1
 
-#define EN_INITFLOW    10   /* Re-initialize flows flag  */
+
+typedef enum {
+  EN_MIX1        = 0,   /* Tank mixing models */
+  EN_MIX2        = 1,
+  EN_FIFO        = 2,
+  EN_LIFO        = 3
+} EN_MixingModel;
+
+
+
+typedef enum {
+  EN_NOSAVE        = 0,
+  EN_SAVE          = 1,
+  EN_INITFLOW      = 10,
+  EN_SAVE_AND_INIT = 11
+} EN_SaveOption;
+
+
+
+typedef enum {
+  EN_CONST_HP    = 0,   /* constant horsepower       */
+  EN_POWER_FUNC  = 1,   /* power function            */
+  EN_CUSTOM      = 2    /* user-defined custom curve */
+} EN_CurveType;
 
 
 
@@ -656,6 +685,8 @@ extern "C" {
    @return Error code.
    */
   int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
+  int  DLLEXPORT ENgetheadcurveindex(int index, int *curveindex);
+  int  DLLEXPORT ENgetpumptype(int index, int *type);
   
   /**
    @brief Get the string ID of the head curve assigned to a pump.

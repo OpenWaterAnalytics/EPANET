@@ -59,6 +59,8 @@
 		2255754917551234009946B1 /* report.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7E1068369500641384 /* report.c */; };
 		2255754A17551234009946B1 /* rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F7F1068369500641384 /* rules.c */; };
 		2255754B17551234009946B1 /* smatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 22322F801068369500641384 /* smatrix.c */; };
+		225762C51C068A3900484EC7 /* Net1.inp in CopyFiles */ = {isa = PBXBuildFile; fileRef = 225762C31C068A2A00484EC7 /* Net1.inp */; };
+		225762C61C068A3B00484EC7 /* Net2.inp in CopyFiles */ = {isa = PBXBuildFile; fileRef = 225762C41C068A2A00484EC7 /* Net2.inp */; };
 		226537E0179EDEEB00258C60 /* epanet2.h in Headers */ = {isa = PBXBuildFile; fileRef = 22322FA9106836B000641384 /* epanet2.h */; };
 		22CD9A5E1B27898E00B65E83 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 22CD9A5D1B27898E00B65E83 /* main.c */; };
 		22CD9A611B278BB900B65E83 /* libepanet-static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2255753B17551217009946B1 /* libepanet-static.a */; };
@@ -89,6 +91,8 @@
 			dstSubfolderSpec = 6;
 			files = (
 				223109E61BA865930030AAE8 /* Net3.inp in CopyFiles */,
+				225762C51C068A3900484EC7 /* Net1.inp in CopyFiles */,
+				225762C61C068A3B00484EC7 /* Net2.inp in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -106,8 +110,6 @@
 
 /* Begin PBXFileReference section */
 		223109E31BA8658A0030AAE8 /* Net3.inp */ = {isa = PBXFileReference; lastKnownFileType = text; name = Net3.inp; path = "../../example-networks/Net3.inp"; sourceTree = "<group>"; };
-		223109E41BA8658A0030AAE8 /* sampletown.inp */ = {isa = PBXFileReference; lastKnownFileType = text; name = sampletown.inp; path = "../../example-networks/sampletown.inp"; sourceTree = "<group>"; };
-		223109E51BA8658A0030AAE8 /* simplenet.inp */ = {isa = PBXFileReference; lastKnownFileType = text; name = simplenet.inp; path = "../../example-networks/simplenet.inp"; sourceTree = "<group>"; };
 		223109F31BA869DA0030AAE8 /* runepanet copy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "runepanet copy"; sourceTree = BUILT_PRODUCTS_DIR; };
 		22310A091BA869F30030AAE8 /* libepanet-static copy.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libepanet-static copy.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		22322F66106833BB00641384 /* runepanet */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = runepanet; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -133,6 +135,8 @@
 		22322F841068369500641384 /* vars.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vars.h; path = ../../src/vars.h; sourceTree = SOURCE_ROOT; };
 		22322FA9106836B000641384 /* epanet2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 2; name = epanet2.h; path = ../../include/epanet2.h; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		2255753B17551217009946B1 /* libepanet-static.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libepanet-static.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		225762C31C068A2A00484EC7 /* Net1.inp */ = {isa = PBXFileReference; lastKnownFileType = text; name = Net1.inp; path = "../../example-networks/Net1.inp"; sourceTree = "<group>"; };
+		225762C41C068A2A00484EC7 /* Net2.inp */ = {isa = PBXFileReference; lastKnownFileType = text; name = Net2.inp; path = "../../example-networks/Net2.inp"; sourceTree = "<group>"; };
 		22CD9A5D1B27898E00B65E83 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../run/main.c; sourceTree = "<group>"; };
 		D2AAC0630554660B00DB518D /* libepanet.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libepanet.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -233,8 +237,8 @@
 			isa = PBXGroup;
 			children = (
 				223109E31BA8658A0030AAE8 /* Net3.inp */,
-				223109E41BA8658A0030AAE8 /* sampletown.inp */,
-				223109E51BA8658A0030AAE8 /* simplenet.inp */,
+				225762C31C068A2A00484EC7 /* Net1.inp */,
+				225762C41C068A2A00484EC7 /* Net2.inp */,
 			);
 			name = "sample networks";
 			sourceTree = "<group>";

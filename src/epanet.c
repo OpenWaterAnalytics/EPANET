@@ -180,7 +180,7 @@ int DLLEXPORT ENepanet(char *f1, char *f2, char *f3, void (*pviewprog) (char *))
     ERRCODE(ENsolveQ());
     ERRCODE(ENreport());
     ENclose();
-    return(errcode);
+    return(MAX(errcode, Warnflag) );
 }
 
 
@@ -290,7 +290,7 @@ int DLLEXPORT ENclose()
    }                                                                           //(2.00.12 - LR)
 
    if (InFile  != NULL) { fclose(InFile);  InFile=NULL;  }
-   if (RptFile != NULL) { fclose(RptFile); RptFile=NULL; }
+   if (RptFile != NULL && RptFile != stdout) { fclose(RptFile); RptFile=NULL; }
    if (HydFile != NULL) { fclose(HydFile); HydFile=NULL; }
    if (OutFile != NULL) { fclose(OutFile); OutFile=NULL; }
   
@@ -2397,25 +2397,31 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname,
    return(0);
 }
 
-int DLLEXPORT ENgetheadcurve(int index, char *id)
+int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
 /*----------------------------------------------------------------
 **  Input:   index = index of pump in list of links
-**  Output:  id = head curve ID
+**  Output:  curveindex = head curve index
 **  Returns: error code                              
-**  Purpose: retrieves ID of a head curve for specific link index
+**  Purpose: retrieves index of a head curve for specific link index
 **
-**  NOTE: 'id' must be able to hold MAXID characters
 **----------------------------------------------------------------
 */
 {
-   strcpy(id,"");
    if (!Openflag) return(102);
    if (index < 1 || index > Nlinks || PUMP != Link[index].Type) return(204);
-   strcpy(id,Curve[Pump[PUMPINDEX(index)].Hcurve].ID);
+   *curveindex = Pump[PUMPINDEX(index)].Hcurve;
    return(0);
 }
 
 int DLLEXPORT ENgetpumptype(int index, int *type)
+/*----------------------------------------------------------------
+**  Input:   index = index of pump in list of links
+**  Output:  type = Pump type
+**  Returns: error code                              
+**  Purpose: retrieves type of a pump for specific link index
+**
+**----------------------------------------------------------------
+*/
 {
    *type=-1;
    if (!Openflag) return(102);
@@ -3124,8 +3130,8 @@ void  writecon(char *s)
 */
 {
                                                     //(2.00.11 - LR)
-   fprintf(stdout,s);
-   fflush(stdout);
+   //fprintf(stdout,s);
+   //fflush(stdout);
 
 }
 
@@ -3139,14 +3145,12 @@ void writewin(char *s)
 **----------------------------------------------------------------
 */
 {
-#ifdef DLL
    char progmsg[MAXMSG+1];
    if (viewprog != NULL)
    {
       strncpy(progmsg,s,MAXMSG);
       viewprog(progmsg);
    }
-#endif
 }
 
 
