@@ -2311,14 +2311,6 @@ int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
 }
 
 int DLLEXPORT ENgetpumptype(int index, int *type)
-/*----------------------------------------------------------------
-**  Input:   index = index of pump in list of links
-**  Output:  type = Pump type
-**  Returns: error code                              
-**  Purpose: retrieves type of a pump for specific link index
-**
-**----------------------------------------------------------------
-*/
 {
    *type=-1;
    if (!Openflag) return(102);
