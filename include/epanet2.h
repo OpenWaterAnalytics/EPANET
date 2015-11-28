@@ -133,19 +133,26 @@ typedef enum {
 } EN_TimeProperty;
 
 
-#define EN_ITERATIONS     0
-#define EN_RELATIVEERROR  1
+typedef enum {
+  EN_ITERATIONS    = 0,
+  EN_RELATIVEERROR = 1
+} EN_AnalysisStatistic;
 
-#define EN_NODECOUNT    0   /* Component counts */
-#define EN_TANKCOUNT    1
-#define EN_LINKCOUNT    2
-#define EN_PATCOUNT     3
-#define EN_CURVECOUNT   4
-#define EN_CONTROLCOUNT 5
+typedef enum {
+  EN_NODECOUNT    = 0,   /**< Number of Nodes (Juntions + Tanks + Reservoirs) */
+  EN_TANKCOUNT    = 1,   /**< Number of Tanks */
+  EN_LINKCOUNT    = 2,   /**< Number of Links (Pipes + Pumps + Valves) */
+  EN_PATCOUNT     = 3,   /**< Number of Time Patterns */
+  EN_CURVECOUNT   = 4,   /**< Number of Curves */
+  EN_CONTROLCOUNT = 5    /**< Number of Control Statements */
+} EN_CountType;
 
-#define EN_JUNCTION     0    /* Node types */
-#define EN_RESERVOIR    1
-#define EN_TANK         2
+typedef enum {
+  EN_JUNCTION    = 0,
+  EN_RESERVOIR   = 1,
+  EN_TANK        = 2
+} EN_NodeType;
+
 
 typedef enum {
   EN_CVPIPE       = 0,    /* Link types. */
