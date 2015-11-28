@@ -258,7 +258,7 @@ extern "C" {
   int  DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value);
   
   int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
-  int  DLLEXPORT ENgetheadcurve(int index, char *id);
+  int  DLLEXPORT ENgetheadcurveindex(int index, int *curveindex);
   int  DLLEXPORT ENgetpumptype(int index, int *type);
   
   int  DLLEXPORT ENgetversion(int *version);

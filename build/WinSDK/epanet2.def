@@ -66,7 +66,7 @@ EXPORTS
     ENgetqualinfo                 = _ENgetqualinfo@16
     ENsetbasedemand               = _ENsetbasedemand@12
     ENgetaveragepatternvalue      = _ENgetaveragepatternvalue@8
-    ENgetheadcurve                = _ENgetheadcurve@8
+    ENgetheadcurveindex           = _ENgetheadcurveindex@8
     ENgetpumptype                 = _ENgetpumptype@8
     ENgetcurveindex               = _ENgetcurveindex@8                
     ENgetcurveid                  = _ENgetcurveid@8                   
