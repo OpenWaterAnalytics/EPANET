@@ -1,0 +1,20 @@
+/**
+
+@defgroup Curves
+
+
+@addtogroup Curves
+@{
+@fn int ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
+@fn int ENgetheadcurveindex(int index, int *curveindex)
+@fn int ENgetpumptype(int index, int *type)
+@fn int ENgetheadcurve(int linkIndex, char *curveId)
+@fn int ENgetcurveindex(char *id, int *index)
+@fn int ENgetcurveid(int index, char *id)
+@fn int ENgetcurvelen(int index, int *len)
+@fn int ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+@fn int ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
+@fn int ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len)
+@fn int ENaddcurve(char *id)
+@}
+*/
