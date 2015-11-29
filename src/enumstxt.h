@@ -133,7 +133,5 @@ char *Fldname[]         = {t_ELEV,      t_DEMAND,    t_HEAD,
                            t_SETTING,   t_REACTRATE, t_FRICTION,
                            "", "", "", "", "", "", NULL};
 
-char *LogoTxt[]         = {LOGO1,LOGO2,LOGO3,LOGO4,LOGO5,LOGO6,NULL};
-
 
 #endif

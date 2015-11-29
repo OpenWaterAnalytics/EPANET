@@ -332,10 +332,10 @@ AUTHOR:     L. Rossman
 #define LOGO4  \
 "*                   Analysis for Pipe Networks                   *"
 #define LOGO5  \
-"*                         Version 2.1                            *"
+"*                         Version %d.%d                            *"
 #define LOGO6  \
 "******************************************************************"
-#define FMT01  "\n... EPANET Version 2.1\n"
+#define FMT01  "\n... EPANET Version %d.%d\n"
 #define FMT02  "\n  o Retrieving network data"
 #define FMT03  "\n Correct syntax is:\n epanet <input file> <output file>\n"
 #define FMT04  "\n    Cannot use duplicate file names."
