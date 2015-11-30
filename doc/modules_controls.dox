@@ -3,10 +3,6 @@
 @defgroup Controls Managing Controls
 
 
-
-
-
-
 @addtogroup Controls
 @{
 @enum EN_ControlType
