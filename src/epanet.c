@@ -3262,6 +3262,9 @@ void  freedata()
        }
        free(Curve);
     }
+    
+/* Free memory for node coordinates */
+   if (Coordflag == TRUE)  free(Coord);
 
 /* Free memory for rule base (see RULES.C) */
     freerules();
