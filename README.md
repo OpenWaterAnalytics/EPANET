@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/OpenWaterAnalytics/EPANET.svg?branch=dev-2.1-travis-ci)](https://travis-ci.org/OpenWaterAnalytics/EPANET)
+[![Build Status](https://travis-ci.org/OpenWaterAnalytics/EPANET.svg?branch=dev-2.1)](https://travis-ci.org/OpenWaterAnalytics/EPANET)
 
 EPANET
 ======
