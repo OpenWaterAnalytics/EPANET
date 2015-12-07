@@ -10,7 +10,8 @@ project (EPANET)
 
 # the library
 include_directories(../../include)
-add_library(epanet STATIC  ../../src/epanet.c ../../src/hydraul.c ../../src/hash.c ../../src/inpfile.c ../../src/input1.c ../../src/input2.c ../../src/input3.c ../../src/mempool.c ../../src/output.c ../../src/quality.c ../../src/report.c ../../src/rules.c ../../src/smatrix.c)
+file(GLOB EPANET_SOURCES ../../src/*.c)
+add_library(epanet STATIC  ${EPANET_SOURCES})
 
 # the standalone executable
 include_directories(../../src)
