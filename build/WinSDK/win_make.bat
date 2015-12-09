@@ -13,7 +13,10 @@ rem : do the magic ...
   rem : creat EPANET2.DLL
   cl -o epanet2.dll epanet.c hash.c hydraul.c inpfile.c input1.c input2.c input3.c mempool.c output.c quality.c report.c rules.c smatrix.c /I ..\include /I ..\run /link /DLL /def:..\build\winsdk\epanet2.def /MAP
   rem : creat EPANET2.EXE
+  rem : first option is the standalone EXE
   cl -o epanet2.exe epanet.c ..\run\main.c hash.c hydraul.c inpfile.c input1.c input2.c input3.c mempool.c output.c quality.c report.c rules.c smatrix.c /I ..\include /I ..\run /I ..\src /link
+  rem : second option is a linked EXE (linked to the epanet2.dll)
+  rem cl -o epanet2.exe ..\run\main.c epanet2.lib /I ..\include /I ..\run /I ..\src /link
 
 rem : a bit of housekeeping and cleaning
 del %SRC_PATH%\*.obj
