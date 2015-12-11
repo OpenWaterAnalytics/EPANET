@@ -36,7 +36,7 @@ struct ENResultsAPI {
     bool isOpened;               // current state (CLOSED = 0, OPEN = 1)
     FILE *file;                  // FILE structure pointer
 
-    INT4 nodeCount, tankCount, linkCount, pumpCount;
+    INT4 nodeCount, tankCount, linkCount, pumpCount, valveCount;
     INT4 reportStart, reportStep, simDuration, nPeriods;
 
     INT4 flowFlag, pressFlag;
@@ -141,6 +141,7 @@ int DLLEXPORT ENR_getNetSize(ENResultsAPI* enrapi, ENR_ElementCount code, int* c
         case ENR_tankCount:    *count = enrapi->tankCount;  break;
         case ENR_linkCount:    *count = enrapi->linkCount;  break;
         case ENR_pumpCount:    *count = enrapi->pumpCount;  break;
+		case ENR_valveCount:   *count = enrapi->valveCount;  break;
         default: return 421;
         }
         return 0;
@@ -274,8 +275,8 @@ int DLLEXPORT ENR_getNodeSeries(ENResultsAPI* enrapi, int nodeIndex, ENR_NodeAtt
         if (outValueSeries == NULL) return 411;
 
         // loop over and build time series
-        for (k = 1; k <= seriesLength; k++)
-            outValueSeries[k] = getNodeValue(enrapi, seriesStart + k,
+        for (k = 0; k <= seriesLength; k++)
+            outValueSeries[k] = getNodeValue(enrapi, seriesStart + 1 + k,
             		nodeIndex, attr);
 
         return 0;
@@ -300,8 +301,8 @@ int DLLEXPORT ENR_getLinkSeries(ENResultsAPI* enrapi, int linkIndex, ENR_LinkAtt
         if (outValueSeries == NULL) return 411;
 
         // loop over and build time series
-        for (k = 1; k <= seriesLength; k++)
-            outValueSeries[k] = getLinkValue(enrapi, seriesStart + k,
+        for (k = 0; k <= seriesLength; k++)
+            outValueSeries[k] = getLinkValue(enrapi, seriesStart +1 + k,
             		linkIndex, attr);
 
         return 0;
@@ -324,7 +325,7 @@ int DLLEXPORT ENR_getNodeAttribute(ENResultsAPI* enrapi, int timeIndex,
         if (outValueArray == NULL) return 411;
 
         // calculate byte offset to start time for series
-        offset = enrapi->outputStartPos + (timeIndex - 1)*enrapi->bytesPerPeriod;
+        offset = enrapi->outputStartPos + (timeIndex)*enrapi->bytesPerPeriod;
         // add offset for node and attribute
         offset += (attr*enrapi->nodeCount)*RECORDSIZE;
 
@@ -350,7 +351,7 @@ int DLLEXPORT ENR_getLinkAttribute(ENResultsAPI* enrapi, int timeIndex,
         if (outValueArray == NULL) return 411;
 
         // calculate byte offset to start time for series
-        offset = enrapi->outputStartPos + (timeIndex - 1)*enrapi->bytesPerPeriod
+        offset = enrapi->outputStartPos + (timeIndex)*enrapi->bytesPerPeriod
                 + (NNODERESULTS*enrapi->nodeCount)*RECORDSIZE;
         // add offset for link and attribute
         offset += (attr*enrapi->linkCount)*RECORDSIZE;
@@ -377,7 +378,7 @@ int DLLEXPORT ENR_getNodeResult(ENResultsAPI* enrapi, int timeIndex, int nodeInd
         if (outValueArray == NULL) return 411;
 
         for (j = 0; j < NNODERESULTS; j++)
-            outValueArray[j] = getNodeValue(enrapi, timeIndex, nodeIndex, j);
+            outValueArray[j] = getNodeValue(enrapi, timeIndex + 1, nodeIndex, j);
 
         return 0;
     }
@@ -398,7 +399,7 @@ int DLLEXPORT ENR_getLinkResult(ENResultsAPI* enrapi, int timeIndex, int linkInd
         if (outValueArray == NULL) return 411;
 
         for (j = 0; j < NLINKRESULTS; j++)
-            outValueArray[j] = getLinkValue(enrapi, timeIndex, linkIndex, j);
+            outValueArray[j] = getLinkValue(enrapi, timeIndex + 1, linkIndex, j);
 
         return 0;
     }
