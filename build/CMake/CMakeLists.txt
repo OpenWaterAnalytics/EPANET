@@ -17,3 +17,7 @@ add_library(epanet STATIC  ${EPANET_SOURCES})
 include_directories(../../src)
 add_executable(runepanet ../../run/main.c)
 target_link_libraries (runepanet LINK_PUBLIC epanet m)
+
+# the binary hydraulics file API
+include_directories(../../tools/outputapi)
+add_library(epanet_bin_out STATIC ../../tools/outputapi/outputapi.c)
