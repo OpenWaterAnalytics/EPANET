@@ -134,6 +134,8 @@
 		22322FA9106836B000641384 /* epanet2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 2; name = epanet2.h; path = ../../include/epanet2.h; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		2255753B17551217009946B1 /* libepanet-static.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libepanet-static.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		22CD9A5D1B27898E00B65E83 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../run/main.c; sourceTree = "<group>"; };
+		22E107B21C163E5300689CED /* outputapi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = outputapi.c; path = ../../tools/outputapi/outputapi.c; sourceTree = "<group>"; };
+		22E107B31C163E5300689CED /* outputapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = outputapi.h; path = ../../tools/outputapi/outputapi.h; sourceTree = "<group>"; };
 		D2AAC0630554660B00DB518D /* libepanet.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libepanet.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -181,6 +183,7 @@
 		08FB7794FE84155DC02AAC07 /* epanet */ = {
 			isa = PBXGroup;
 			children = (
+				22E107B11C163E3B00689CED /* Output API */,
 				223109E21BA865790030AAE8 /* sample networks */,
 				22CD9A5C1B27896200B65E83 /* run epanet */,
 				22322FA8106836A000641384 /* Include */,
@@ -253,6 +256,15 @@
 				22CD9A5D1B27898E00B65E83 /* main.c */,
 			);
 			name = "run epanet";
+			sourceTree = "<group>";
+		};
+		22E107B11C163E3B00689CED /* Output API */ = {
+			isa = PBXGroup;
+			children = (
+				22E107B31C163E5300689CED /* outputapi.h */,
+				22E107B21C163E5300689CED /* outputapi.c */,
+			);
+			name = "Output API";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
