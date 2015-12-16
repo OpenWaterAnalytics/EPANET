@@ -8,4 +8,5 @@ before_script:
 
 script:
   - make
-  
+  - cd ../../../tests
+  - ./test_networks.sh
