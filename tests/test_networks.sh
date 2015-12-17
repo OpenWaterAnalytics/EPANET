@@ -7,14 +7,14 @@ for d in network_tests/*/ ; do
 		officialBinFile=${netfile%.*}.enb
 		candidateBinFile=${netfile%.*}-candidate.enb
 	    echo "testing $netfile with known good binary output $officialBinFile"
-	    if true ## path/to/runepanet $netfile ${netfile%.*}-candidate.rpt $candidateBinFile
+	    if ../build/CMake/buildproducts/bin/runepanet $netfile ${netfile%.*}-candidate.rpt $candidateBinFile
 	    then
 	    	echo "epanet run for $netfile SUCCESS"
 	    else
 	    	echo "epanet run for $netfile FAILED"
 	    	returnValue=1
 	    fi
-	    if python compare_enb.py $officialBinFile $candidateBinFile
+	    if python ENBinaryOutDiff.py $officialBinFile $candidateBinFile
 	    then
 	    	echo "binary output for $netfile PASSED"
 	    else
@@ -26,5 +26,10 @@ for d in network_tests/*/ ; do
 done
 return $returnValue
 }
+
+cp ../build/CMake/buildproducts/bin/libENBinaryOut.* ./libENBinaryOut.so
+cp ../tools/outputapi/*.py ./
+
+
 
 test_networks

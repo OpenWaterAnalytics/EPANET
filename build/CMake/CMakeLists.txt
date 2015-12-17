@@ -20,4 +20,4 @@ target_link_libraries (runepanet LINK_PUBLIC epanet m)
 
 # the binary hydraulics file API
 include_directories(../../tools/outputapi)
-add_library(epanet_bin_out STATIC ../../tools/outputapi/outputapi.c)
+add_library(ENBinaryOut SHARED ../../tools/outputapi/outputapi.c)
