@@ -1553,7 +1553,7 @@ double  avgqual(int k)
        msum += (seg->c)*(seg->v);
        seg = seg->prev;
    }
-   if (vsum > 0.0) return(msum/vsum);
+   if (vsum > 0.0 && Qtime > 0) return(msum/vsum);
    else return( (NodeQual[Link[k].N1] + NodeQual[Link[k].N2])/2. );
 }
 
