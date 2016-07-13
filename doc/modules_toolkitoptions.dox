@@ -1,0 +1,14 @@
+/**
+
+@defgroup ToolkitOptions Toolkit Options
+
+
+@addtogroup ToolkitOptions
+@{
+@fn int ENgetoption (int code, EN_API_FLOAT_TYPE *value)
+@fn int ENgettimeparam (int code, long *value)
+@fn int ENgetflowunits (int *code)
+@fn int ENgetqualtype (int *qualcode, int *tracenode)
+@fn int ENgeterror (int errcode, char *errmsg, int maxLen)
+@}
+*/

@@ -473,17 +473,6 @@ int DLLEXPORT ENinitH(int flag)
 
 
 int DLLEXPORT ENrunH(long *t)
-/*----------------------------------------------------------------
-**  Input:   none (no need to supply a value for *t)
-**  Output:  *t = current simulation time (seconds) 
-**  Returns: error/warning code                              
-**  Purpose: solves hydraulics for conditions at time t.
-** 
-**  This function is used in a loop with ENnextH() to run
-**  an extended period hydraulic simulation.
-**  See ENsolveH() for an example.
-**----------------------------------------------------------------
-*/
 {
    int errcode;
    *t = 0;
@@ -495,18 +484,6 @@ int DLLEXPORT ENrunH(long *t)
 
 
 int DLLEXPORT ENnextH(long *tstep)
-/*----------------------------------------------------------------
-**  Input:   none (no need to supply a value for *tstep)
-**  Output:  *tstep = time (seconds) until next hydraulic event
-**                    (0 marks end of simulation period)
-**  Returns: error code                              
-**  Purpose: determines time until next hydraulic event.
-** 
-**  This function is used in a loop with ENrunH() to run
-**  an extended period hydraulic simulation.
-**  See ENsolveH() for an example.
-**----------------------------------------------------------------
-*/
 {
    int errcode;
    *tstep = 0;
@@ -519,13 +496,7 @@ int DLLEXPORT ENnextH(long *tstep)
 
 
 int DLLEXPORT ENcloseH()
-/*----------------------------------------------------------------
-**  Input:   none                   
-**  Output:  none 
-**  Returns: error code
-**  Purpose: frees data allocated by hydraulics solver       
-**----------------------------------------------------------------
-*/
+
 {
    if (!Openflag) return(102);
    closehyd();
@@ -535,13 +506,6 @@ int DLLEXPORT ENcloseH()
 
 
 int DLLEXPORT ENsavehydfile(char *filename)
-/*----------------------------------------------------------------
-**  Input:   filename = name of file
-**  Output:  none 
-**  Returns: error code
-**  Purpose: copies binary hydraulics file to disk
-**----------------------------------------------------------------
-*/
 {
    FILE *f;
    int   c;
@@ -561,13 +525,6 @@ int DLLEXPORT ENsavehydfile(char *filename)
 
 
 int DLLEXPORT ENusehydfile(char *filename)
-/*----------------------------------------------------------------
-**  Input:   filename = name of file
-**  Output:  none 
-**  Returns: error code
-**  Purpose: opens previously saved binary hydraulics file
-**----------------------------------------------------------------
-*/
 {
    int errcode;
 
@@ -600,13 +557,6 @@ int DLLEXPORT ENusehydfile(char *filename)
 
 
 int DLLEXPORT ENsolveQ()
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  none 
-**  Returns: error code                              
-**  Purpose: solves for network water quality in all time periods
-**----------------------------------------------------------------
-*/
 {
    int  errcode;
    long t, tstep;
@@ -662,13 +612,6 @@ int DLLEXPORT ENsolveQ()
 
 
 int DLLEXPORT ENopenQ()
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  none 
-**  Returns: error code                              
-**  Purpose: sets up data structures for WQ analysis
-**----------------------------------------------------------------
-*/
 {
    int errcode = 0;
 
@@ -688,14 +631,6 @@ int DLLEXPORT ENopenQ()
 
 
 int DLLEXPORT ENinitQ(int saveflag)
-/*----------------------------------------------------------------
-**  Input:   saveflag = EN_SAVE (1) if results saved to file,
-**                      EN_NOSAVE (0) if not                    
-**  Output:  none 
-**  Returns: error code
-**  Purpose: initializes WQ analysis
-**----------------------------------------------------------------
-*/
 {
    int errcode = 0;
    if (!OpenQflag) return(105);
@@ -712,17 +647,6 @@ int DLLEXPORT ENinitQ(int saveflag)
 
 
 int DLLEXPORT ENrunQ(long *t)
-/*----------------------------------------------------------------
-**  Input:   none (no need to supply a value for *t)
-**  Output:  *t = current simulation time (seconds) 
-**  Returns: error code                              
-**  Purpose: retrieves hydraulic & WQ results at time t.
-**
-**  This function is used in a loop with ENnextQ() to run
-**  an extended period WQ simulation. See ENsolveQ() for
-**  an example.
-**----------------------------------------------------------------
-*/
 {
    int errcode;
    *t = 0;
@@ -734,18 +658,6 @@ int DLLEXPORT ENrunQ(long *t)
 
 
 int DLLEXPORT ENnextQ(long *tstep)
-/*----------------------------------------------------------------
-**  Input:   none (no need to supply a value for *tstep)
-**  Output:  *tstep = time (seconds) until next hydraulic event
-**                    (0 marks end of simulation period)
-**  Returns: error code                              
-**  Purpose: advances WQ simulation to next hydraulic event.
-**
-**  This function is used in a loop with ENrunQ() to run
-**  an extended period WQ simulation. See ENsolveQ() for
-**  an example.
-**----------------------------------------------------------------
-*/
 {
    int errcode;
    *tstep = 0;
@@ -758,16 +670,6 @@ int DLLEXPORT ENnextQ(long *tstep)
 
 
 int DLLEXPORT ENstepQ(long *tleft)
-/*----------------------------------------------------------------
-**  Input:   none
-**  Output:  *tleft = time left in overall simulation (seconds) 
-**  Returns: error code                              
-**  Purpose: advances WQ simulation by a single WQ time step
-**
-**  This function is used in a loop with ENrunQ() to run
-**  an extended period WQ simulation.
-**----------------------------------------------------------------
-*/
 {
    int errcode;
    *tleft = 0;
@@ -780,13 +682,7 @@ int DLLEXPORT ENstepQ(long *tleft)
 
 
 int DLLEXPORT ENcloseQ()
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  none 
-**  Returns: error code                              
-**  Purpose: frees data allocated by WQ solver
-**----------------------------------------------------------------
-*/
+
 {
    if (!Openflag) return(102);
    closequal();
@@ -803,13 +699,6 @@ int DLLEXPORT ENcloseQ()
 
 
 int DLLEXPORT ENwriteline(char *line)
-/*----------------------------------------------------------------
-**  Input:   line = text string                    
-**  Output:  none 
-**  Returns: error code                              
-**  Purpose: writes line of text to report file                            
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    writeline(line);
@@ -818,13 +707,6 @@ int DLLEXPORT ENwriteline(char *line)
 
 
 int DLLEXPORT ENreport()
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  none 
-**  Returns: error code                              
-**  Purpose: writes report to report file                            
-**----------------------------------------------------------------
-*/
 {
    int  errcode;
 
@@ -837,13 +719,6 @@ int DLLEXPORT ENreport()
 
 
 int  DLLEXPORT ENresetreport()
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  none 
-**  Returns: error code
-**  Purpose: resets report options to default values                            
-**----------------------------------------------------------------
-*/
 {
    int i;
    if (!Openflag) return(102);
@@ -855,13 +730,6 @@ int  DLLEXPORT ENresetreport()
 
 
 int  DLLEXPORT ENsetreport(char *s)
-/*----------------------------------------------------------------
-**  Input:   s = report format command                    
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: processes a reporting format command                            
-**----------------------------------------------------------------
-*/
 {
    char s1[MAXLINE+1];
    if (!Openflag) return(102);
@@ -897,20 +765,6 @@ int DLLEXPORT ENgetversion(int *v)
 
 
 int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex, EN_API_FLOAT_TYPE *setting, int *nindex, EN_API_FLOAT_TYPE *level)
-/*----------------------------------------------------------------
-**  Input:   cindex   = control index (position of control statement
-**                      in the input file, starting from 1) 
-**  Output:  *ctype   = control type code (see EPANET2.H)
-**           *lindex  = index of controlled link
-**           *setting = control setting on link
-**           *nindex  = index of controlling node (0 for TIMER
-**                      or TIMEOFDAY control)
-**           *level   = control level (tank level, junction
-**                      pressure, or time (seconds))
-**  Returns: error code                              
-**  Purpose: retrieves parameters that define a simple control                 
-**----------------------------------------------------------------
-*/
 {
    double s, lvl;
 
@@ -950,14 +804,6 @@ int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex, EN_API_FLOAT_TYP
 
 
 int DLLEXPORT ENgetcount(int code, int *count)
-/*----------------------------------------------------------------
-**  Input:   code = component code (see EPANET2.H)                    
-**  Output:  *count = number of components in network
-**  Returns: error code                              
-**  Purpose: retrieves the number of components of a 
-**           given type in the network  
-**----------------------------------------------------------------
-*/
 {
    *count = 0;
    if (!Openflag) return(102);
@@ -976,13 +822,6 @@ int DLLEXPORT ENgetcount(int code, int *count)
 
 
 int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value)
-/*----------------------------------------------------------------
-**  Input:   code = option code (see EPANET2.H)
-**  Output:  *value = option value
-**  Returns: error code                              
-**  Purpose: gets value for an analysis option 
-**----------------------------------------------------------------
-*/
 {
    double v = 0.0;
    *value = 0.0;
@@ -1007,13 +846,6 @@ int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value)
 
 
 int DLLEXPORT ENgettimeparam(int code, long *value)
-/*----------------------------------------------------------------
-**  Input:   code = time parameter code (see EPANET2.H)
-**  Output:  *value = value of time parameter 
-**  Returns: error code                              
-**  Purpose: retrieves value of specific time parameter                 
-**----------------------------------------------------------------
-*/
 {
    *value = 0;
    if (!Openflag) return(102);
@@ -1042,14 +874,6 @@ int DLLEXPORT ENgettimeparam(int code, long *value)
 
 
 int DLLEXPORT ENgetflowunits(int *code)
-/*----------------------------------------------------------------
-**  Input:   none                    
-**  Output:  *code = code of flow units in use 
-**                   (see EPANET2.H or TYPES.H)
-**  Returns: error code                              
-**  Purpose: retrieves flow units code 
-**----------------------------------------------------------------
-*/
 {
    *code = -1;
    if (!Openflag) return(102);
@@ -1059,13 +883,6 @@ int DLLEXPORT ENgetflowunits(int *code)
 
 
 int  DLLEXPORT  ENgetpatternindex(char *id, int *index)
-/*----------------------------------------------------------------
-**  Input:   id     = time pattern ID
-**  Output:  *index = index of time pattern in list of patterns
-**  Returns: error code                              
-**  Purpose: retrieves index of time pattern with specific ID 
-**----------------------------------------------------------------
-*/
 {
    int i;
    *index = 0;
@@ -1084,15 +901,6 @@ int  DLLEXPORT  ENgetpatternindex(char *id, int *index)
 
 
 int DLLEXPORT ENgetpatternid(int index, char *id)
-/*----------------------------------------------------------------
-**  Input:   index = index of time pattern
-**  Output:  id    = pattern ID
-**  Returns: error code                              
-**  Purpose: retrieves ID of a time pattern with specific index
-**
-**  NOTE: 'id' must be able to hold MAXID characters
-**----------------------------------------------------------------
-*/
 {
    strcpy(id,"");
    if (!Openflag) return(102);
@@ -1103,13 +911,6 @@ int DLLEXPORT ENgetpatternid(int index, char *id)
 
 
 int DLLEXPORT ENgetpatternlen(int index, int *len)
-/*----------------------------------------------------------------
-**  Input:   index = index of time pattern
-**  Output:  *len  = pattern length (number of multipliers)
-**  Returns: error code                              
-**  Purpose: retrieves number of multipliers in a time pattern
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Npats) return(205);
@@ -1119,15 +920,6 @@ int DLLEXPORT ENgetpatternlen(int index, int *len)
 
 
 int DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value)
-/*----------------------------------------------------------------
-**  Input:   index  = index of time pattern
-**           period = pattern time period
-**  Output:  *value = pattern multiplier
-**  Returns: error code                              
-**  Purpose: retrieves multiplier for a specific time period
-**           and pattern
-**----------------------------------------------------------------
-*/
 {  *value = 0.0;
    if (!Openflag) return(102);
    if (index < 1 || index > Npats) return(205);
@@ -1138,13 +930,6 @@ int DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value)
 
 
 int  DLLEXPORT  ENgetcurveindex(char *id, int *index)
-/*----------------------------------------------------------------
-**  Input:   id     = curve ID
-**  Output:  *index = index of curve in list of curves
-**  Returns: error code                              
-**  Purpose: retrieves index of curve with specific ID 
-**----------------------------------------------------------------
-*/
 {
    int i;
    *index = 0;
@@ -1163,15 +948,6 @@ int  DLLEXPORT  ENgetcurveindex(char *id, int *index)
 
 
 int DLLEXPORT ENgetcurveid(int index, char *id)
-/*----------------------------------------------------------------
-**  Input:   index = index of curve
-**  Output:  id    = curve ID
-**  Returns: error code                              
-**  Purpose: retrieves ID of a curve with specific index
-**
-**  NOTE: 'id' must be able to hold MAXID characters
-**----------------------------------------------------------------
-*/
 {
    strcpy(id,"");
    if (!Openflag) return(102);
@@ -1182,13 +958,6 @@ int DLLEXPORT ENgetcurveid(int index, char *id)
 
 
 int DLLEXPORT ENgetcurvelen(int index, int *len)
-/*----------------------------------------------------------------
-**  Input:   index = index of curve
-**  Output:  *len  = curve length (number of points in curve)
-**  Returns: error code                              
-**  Purpose: retrieves number of points in a curve
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Ncurves) return(206);
@@ -1198,17 +967,7 @@ int DLLEXPORT ENgetcurvelen(int index, int *len)
 
 
 int DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
-/*----------------------------------------------------------------
-**  Input:   index  = index of curve
-**           pnt    = curve's point number
-**  Output:  *x     = curve x value
-**                    curve y value
-**  Returns: error code                              
-**  Purpose: retrieves x,y point for a specific point number
-**           and curve
-**----------------------------------------------------------------
-*/
-{  
+{
    *x = 0.0;
    *y = 0.0;
    if (!Openflag) return(102);
@@ -1221,15 +980,6 @@ int DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_F
 
 
 int DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode)
-/*----------------------------------------------------------------
-**  Input:   none
-**  Output:  *qualcode  = WQ analysis code number (see EPANET2.H)
-**           *tracenode = index of node being traced (if
-**                        qualocode = WQ tracing)
-**  Returns: error code                              
-**  Purpose: retrieves type of quality analysis called for 
-**----------------------------------------------------------------
-*/
 {
    *tracenode = 0;
    if (!Openflag) return(102);
@@ -1253,14 +1003,6 @@ int DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int 
 }
 
 int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int n)
-/*----------------------------------------------------------------
-**  Input:   errcode = error/warning code number
-**           n       = maximum length of string errmsg
-**  Output:  errmsg  = text of error/warning message
-**  Returns: error code
-**  Purpose: retrieves text of error/warning message 
-**----------------------------------------------------------------
-*/
 {
    switch (errcode)
    {
@@ -1277,13 +1019,6 @@ int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int n)
 }
 
 int  DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value)
-/*----------------------------------------------------------------
- **  Input:   code    = type of simulation statistic to retrieve
- **  Output:  value   = value of requested statistic
- **  Returns: error code
- **  Purpose: retrieves hydraulic simulation statistic
- **----------------------------------------------------------------
- */
 {
   switch (code) {
     case EN_ITERATIONS:
@@ -1306,13 +1041,6 @@ int  DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value)
 
 
 int DLLEXPORT ENgetnodeindex(char *id, int *index)
-/*----------------------------------------------------------------
-**  Input:   id = node ID
-**  Output:  *index = index of node in list of nodes 
-**  Returns: error code                              
-**  Purpose: retrieves index of a node with specific ID 
-**----------------------------------------------------------------
-*/
 {
    *index = 0;
    if (!Openflag) return(102);
@@ -1323,15 +1051,6 @@ int DLLEXPORT ENgetnodeindex(char *id, int *index)
 
 
 int DLLEXPORT ENgetnodeid(int index, char *id)
-/*----------------------------------------------------------------
-**  Input:   index = index of node in list of nodes                    
-**  Output:  id = node ID
-**  Returns: error code                              
-**  Purpose: retrieves ID of a node with specific index
-**
-**  NOTE: 'id' must be able to hold MAXID characters
-**----------------------------------------------------------------
-*/
 {
    strcpy(id,"");
    if (!Openflag) return(102);
@@ -1342,13 +1061,6 @@ int DLLEXPORT ENgetnodeid(int index, char *id)
 
 
 int  DLLEXPORT ENgetnodetype(int index, int *code)
-/*----------------------------------------------------------------
-**  Input:   index = node index                    
-**  Output:  *code = node type code number (see EPANET2.H)
-**  Returns: error code                              
-**  Purpose: retrieves node type of specific node 
-**----------------------------------------------------------------
-*/
 {
    *code = -1;
    if (!Openflag) return(102);
@@ -1364,14 +1076,6 @@ int  DLLEXPORT ENgetnodetype(int index, int *code)
 
 
 int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
-/*----------------------------------------------------------------
- **  Input:   index = node index
- **  Output:  *x = value of node's coordinate
- **           *y = value of node's coordinate
- **  Returns: error code
- **  Purpose: retrieves coordinate x, y for a node
- **----------------------------------------------------------------
- */
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Nnodes) return(203);
@@ -1387,15 +1091,6 @@ int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
 
 
 int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
-/*----------------------------------------------------------------
- **  Input:   index = node index
- **           *x = value of node's coordinate
- **           *y = value of node's coordinate
- **  Output:  None
- **  Returns: error code
- **  Purpose: sets coordinate x, y for a node
- **----------------------------------------------------------------
- */
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Nnodes) return(203);
@@ -1409,14 +1104,6 @@ int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
 
 
 int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
-/*----------------------------------------------------------------
-**  Input:   index = node index
-**           code  = node parameter code (see EPANET2.H)
-**  Output:  *value = value of node's parameter
-**  Returns: error code                              
-**  Purpose: retrieves parameter value for a node   
-**----------------------------------------------------------------
-*/
 {
    double v = 0.0;
    Pdemand demand;
@@ -1594,13 +1281,6 @@ int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
    
 
 int DLLEXPORT ENgetlinkindex(char *id, int *index)
-/*----------------------------------------------------------------
-**  Input:   id = link ID
-**  Output:  *index = index of link in list of links
-**  Returns: error code                              
-**  Purpose: retrieves index of a link with specific ID 
-**----------------------------------------------------------------
-*/
 {
    *index = 0;
    if (!Openflag) return(102);
@@ -1611,15 +1291,6 @@ int DLLEXPORT ENgetlinkindex(char *id, int *index)
 
 
 int DLLEXPORT ENgetlinkid(int index, char *id)
-/*----------------------------------------------------------------
-**  Input:   index = index of link in list of links
-**  Output:  id = link ID
-**  Returns: error code                              
-**  Purpose: retrieves ID of a link with specific index
-**
-**  NOTE: 'id' must be able to hold MAXID characters
-**----------------------------------------------------------------
-*/
 {
    strcpy(id,"");
    if (!Openflag) return(102);
@@ -1630,13 +1301,6 @@ int DLLEXPORT ENgetlinkid(int index, char *id)
 
 
 int  DLLEXPORT ENgetlinktype(int index, int *code)
-/*------------------------------------------------------------------
-**  Input:   index = link index                    
-**  Output:  *code = link type code number (see EPANET2.H)
-**  Returns: error code                              
-**  Purpose: retrieves link type of specific link 
-**------------------------------------------------------------------
-*/
 {
    *code = -1;
    if (!Openflag) return(102);
@@ -1647,14 +1311,6 @@ int  DLLEXPORT ENgetlinktype(int index, int *code)
 
 
 int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2)
-/*----------------------------------------------------------------
-**  Input:   index = link index                    
-**  Output:  *node1 = index of link's starting node
-**           *node2 = index of link's ending node
-**  Returns: error code                              
-**  Purpose: retrieves end nodes of a specific link 
-**----------------------------------------------------------------
-*/
 {
    *node1 = 0;
    *node2 = 0;
@@ -1667,14 +1323,6 @@ int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2)
 
 
 int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
-/*------------------------------------------------------------------
-**  Input:   index = link index
-**           code  = link parameter code (see EPANET2.H)                   
-**  Output:  *value = value of link's parameter
-**  Returns: error code                              
-**  Purpose: retrieves parameter value for a link   
-**------------------------------------------------------------------
-*/
 {
    double a,h,q, v = 0.0;
 
@@ -1819,18 +1467,6 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
 
 
 int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
-/*----------------------------------------------------------------
- **  Input:   curveIndex = curve index
- **  Output:  *nValues = number of points on curve
- **           id = curve ID
- **           *xValues = values for x
- **           *yValues = values for y
- **  Returns: error code
- **  Purpose: retrieves curve id, number of values and (x,y) values
- **
- **  NOTE: 'id' must be able to hold MAXID characters
- **----------------------------------------------------------------
- */
 {
   int iPoint, nPoints;
   Scurve curve;
@@ -1871,21 +1507,6 @@ int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_T
 
 int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
               EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level)
-/*----------------------------------------------------------------
-**  Input:   cindex  = control index (position of control statement
-**                     in the input file, starting from 1)
-**           ctype   = control type code (see EPANET2.H)
-**           lindex  = index of controlled link
-**           setting = control setting applied to link
-**           nindex  = index of controlling node (0 for TIMER
-**                     or TIMEOFDAY control)
-**           level   = control level (tank level, junction pressure,
-**                     or time (seconds))
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: specifies parameters that define a simple control                 
-**----------------------------------------------------------------
-*/
 {
    char   status = ACTIVE;
    long   t = 0;
@@ -2327,14 +1948,6 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
 
 
 int  DLLEXPORT  ENaddpattern(char *id)
-/*----------------------------------------------------------------
-**   Input:   id = ID name of the new pattern
-**   Output:  none
-**   Returns: error code                              
-**   Purpose: adds a new time pattern appended to the end of the
-**            existing patterns.
-**----------------------------------------------------------------
-*/
 {
     int i, j, n, err = 0;
     Spattern *tmpPat;
@@ -2395,15 +2008,6 @@ int  DLLEXPORT  ENaddpattern(char *id)
 
    
 int  DLLEXPORT  ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n)
-/*----------------------------------------------------------------
-**   Input:   index = time pattern index
-**            *f    = array of pattern multipliers
-**            n     = number of time periods in pattern
-**   Output:  none
-**   Returns: error code                              
-**   Purpose: sets multipliers for a specific time pattern 
-**----------------------------------------------------------------
-*/
 {
    int j;
 
@@ -2424,15 +2028,6 @@ int  DLLEXPORT  ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n)
 
 
 int  DLLEXPORT  ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value)
-/*----------------------------------------------------------------
-**  Input:   index  = time pattern index
-**           period = time pattern period
-**           value  = pattern multiplier
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: sets multiplier for a specific time period and pattern 
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    if (index  <= 0 || index  > Npats) return(205);
@@ -2443,14 +2038,6 @@ int  DLLEXPORT  ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value
 
 
 int  DLLEXPORT  ENaddcurve(char *id)
-/*----------------------------------------------------------------
-**   Input:   id   = ID name of the new curve
-**   Output:  none
-**   Returns: error code                              
-**   Purpose: adds a new curve appended to the end of the
-**            existing curves.
-**----------------------------------------------------------------
-*/
 {
     int i, j, n, err = 0;
     Scurve *tmpCur;
@@ -2530,16 +2117,6 @@ int  DLLEXPORT  ENaddcurve(char *id)
 
 
 int  DLLEXPORT  ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int n)
-/*----------------------------------------------------------------
-**   Input:   index = curve index
-**            *x    = array of x points
-**            *y    = array of y points
-**            n     = number of points in curve
-**   Output:  none
-**   Returns: error code                              
-**   Purpose: sets x,y values for a specific curve
-**----------------------------------------------------------------
-*/
 {
    int j;
 
@@ -2566,16 +2143,6 @@ int  DLLEXPORT  ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y
 
 
 int  DLLEXPORT  ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
-/*----------------------------------------------------------------
-**  Input:   index  = curve index
-**           pnt    = curve's point number
-**           x      = curve x value
-**           y      = curve y value
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: sets x,y point for a specific point and curve 
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    if (index  <= 0 || index  > Ncurves) return(206);
@@ -2587,14 +2154,7 @@ int  DLLEXPORT  ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_
 
 
 int  DLLEXPORT  ENsettimeparam(int code, long value)
-/*----------------------------------------------------------------
-**  Input:   code  = time parameter code (see EPANET2.H)
-**           value = time parameter value
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: sets value for time parameter 
-**----------------------------------------------------------------
-*/
+
 {
    if (!Openflag) return(102);
   if (OpenHflag || OpenQflag) { 
@@ -2723,13 +2283,6 @@ int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v)
  
 
 int  DLLEXPORT ENsetstatusreport(int code)
-/*----------------------------------------------------------------
-**  Input:   code = status reporting code (0, 1, or 2)
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: sets level of hydraulic status reporting 
-**----------------------------------------------------------------
-*/
 {
    int errcode = 0;
    if (code >= 0 && code <= 2) Statflag = (char)code;
@@ -2738,22 +2291,7 @@ int  DLLEXPORT ENsetstatusreport(int code)
 }
 
 
-int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname,
-                               char *chemunits, char *tracenode)
-/*----------------------------------------------------------------
-**  Input:   qualcode  = WQ parameter code (see EPANET2.H)
-**           chemname  = name of WQ constituent 
-**           chemunits = concentration units of WQ constituent
-**           tracenode = ID of node being traced
-**  Output:  none
-**  Returns: error code                              
-**  Purpose: sets type of quality analysis called for
-**
-**  NOTE: chemname and chemunits only apply when WQ analysis
-**        is for chemical. tracenode only applies when WQ
-**        analysis is source tracing.
-**----------------------------------------------------------------
-*/
+int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode)
 {
 /*** Updated 3/1/01 ***/
    double ccf = 1.0;
@@ -2801,14 +2339,6 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname,
 }
 
 int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
-/*----------------------------------------------------------------
-**  Input:   index = index of pump in list of links
-**  Output:  curveindex = head curve index
-**  Returns: error code                              
-**  Purpose: retrieves index of a head curve for specific link index
-**
-**----------------------------------------------------------------
-*/
 {
    if (!Openflag) return(102);
    if (index < 1 || index > Nlinks || PUMP != Link[index].Type) return(204);
@@ -2817,14 +2347,6 @@ int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
 }
 
 int DLLEXPORT ENgetpumptype(int index, int *type)
-/*----------------------------------------------------------------
-**  Input:   index = index of pump in list of links
-**  Output:  type = Pump type
-**  Returns: error code                              
-**  Purpose: retrieves type of a pump for specific link index
-**
-**----------------------------------------------------------------
-*/
 {
    *type=-1;
    if (!Openflag) return(102);
@@ -3561,13 +3083,6 @@ void writewin(char *s)
 
 
 int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
-/*----------------------------------------------------------------
- **  Input:   nodeIndex   = index of node
- **  Output:  *numDemands = number of demand categories
- **  Returns: error code
- **  Purpose: retrieves the number of a demand categories for a node
- **----------------------------------------------------------------
- */
 {
 	Pdemand d;
 	int n=0;
@@ -3581,14 +3096,6 @@ int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
 
 
 int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand)
-/*----------------------------------------------------------------
- **  Input:   nodeIndex   = index of node
- **           demandIdx   = index of demand category
- **  Output:  *baseDemand = base demand for selected category
- **  Returns: error code
- **  Purpose: retrieves the node's base demand for a category
- **----------------------------------------------------------------
- */
 {
   Pdemand d;
   int n=1;
@@ -3596,9 +3103,13 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *
   if (!Openflag) return(102);
   if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
   if (nodeIndex <= Njuncs) {
-	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
-	if(n!=demandIdx) return(253);
-	*baseDemand=(EN_API_FLOAT_TYPE)(d->Base*Ucf[FLOW]);
+    for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) {
+      n++;
+    }
+    if(n != demandIdx) {
+      return(253);
+    }
+    *baseDemand=(EN_API_FLOAT_TYPE)(d->Base*Ucf[FLOW]);
   }
   else {
     *baseDemand=(EN_API_FLOAT_TYPE)(0.0);
@@ -3608,14 +3119,6 @@ int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *
 
 
 int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand)
-/*----------------------------------------------------------------
- **  Input:   nodeIndex  = index of node
- **           demandIdx  = index of demand category
- **           baseDemand = base demand for selected category
- **  Returns: error code
- **  Purpose: sets the node's base demand for a category
- **----------------------------------------------------------------
- */
 {
   Pdemand d;
   int n=1;
@@ -3632,15 +3135,6 @@ int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE b
 
 
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
-/*----------------------------------------------------------------
- **  Input:   nodeIndex  = index of node
- **           demandIdx  = index of demand category
- **  Output:  *pattIdx   = demand pattern index
- **  Returns: error code
- **  Purpose: retrieves the index of a demand pattern for a specific
- **           demand category of a node
- **----------------------------------------------------------------
- */
 {
 	Pdemand d;
 	int n=1;
@@ -3655,14 +3149,7 @@ int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 
 
 int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
-/*----------------------------------------------------------------
- **  Input:   index  = index of time pattern
- **  Output:  *value = pattern average value
- **  Returns: error code
- **  Purpose: retrieves the average value of a pattern
- **----------------------------------------------------------------
- */
-{ 
+{
   int i;
   *value = 0.0;
   if (!Openflag) return(102);

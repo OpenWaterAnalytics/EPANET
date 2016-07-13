@@ -1,0 +1,17 @@
+/**
+
+@defgroup QualityFunctions Water Quality Functions
+
+
+
+@addtogroup QualityFunctions
+@{
+@fn int ENsolveQ ()
+@fn int ENopenQ ()
+@fn int ENinitQ (int saveFlag)
+@fn int ENrunQ (long *currentTime)
+@fn int ENnextQ (long *tStep)
+@fn int ENstepQ (long *timeLeft)
+@fn int ENcloseQ ()
+@}
+*/

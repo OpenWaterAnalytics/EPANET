@@ -1,0 +1,41 @@
+/**
+
+@defgroup HydraulicFunctions Hydraulic Analysis
+
+~~~~~~~~~~~~~~~{.c}
+int  errcode;
+long t, tstep;
+
+errcode = ENopenH();
+if (!errcode) {
+	errcode = ENinitH(EN_SAVE);
+	if (!errcode) {
+		do {
+			tstep = 0;
+			ERRCODE(ENrunH(&t));
+			ERRCODE(ENnextH(&tstep));
+		} while (tstep > 0);
+	}
+}
+
+ENcloseH();
+~~~~~~~~~~~~~~~
+
+
+
+@addtogroup HydraulicFunctions
+@{
+
+@fn int ENsolveH()
+@fn int ENsaveH()
+@fn int ENopenH()
+@fn int ENinitH(int initFlag)
+@fn int ENrunH(long *currentTime)
+@fn int ENnextH(long *tStep)
+@fn int ENcloseH()
+@fn int ENsavehydfile(char *filename)
+@fn int ENusehydfile(char *filename)
+@fn int ENgetstatistic(int code, EN_API_FLOAT_TYPE* value)
+
+@}
+*/

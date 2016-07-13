@@ -1,0 +1,43 @@
+/** 
+@page how-to-use How to Use the Toolkit
+
+The following topics briefly describe how to accomplish some basic tasks for which the Toolkit would be used. See the Example Applications topic for code listings of complete applications of the Toolkit. 
+
+@section open-close Opening and Closing the Toolkit
+
+The Toolkit must open an EPANET [Input File](Input-File) to obtain a description of the pipe network to be analyzed before any of its other functions can be called. (The exception to this is the @ref ENepanet function, which performs a complete hydraulic/water quality simulation similar to a command line execution of EPANET). Once all analysis is completed, it must close itself down to free all allocated memory. The functions for doing this are @ref ENopen and @ref ENclose, respectively. An example of using these functions is shown below.
+
+~~~~~~~~~~~~~~~{.c}
+char *f1,  // Name of input file  
+     *f2,  // name of report file 
+     *f3;  // name of output file (can be blank) 
+int  errcode; 
+errcode = ENopen(f1, f2, f3); 
+if (errcode > 0) { 
+  ENclose(); 
+  return; 
+} 
+{ Call functions that perform desired analysis } 
+ENclose();
+~~~~~~~~~~~~~~~
+
+@section parameters Retrieving and Setting Network Parameters
+
+The Toolkit has various functions available for retrieving and setting the parameters that define the design and operation of the pipe network being analyzed. The names of retrieval functions all begin with `ENget` (e.g., [ENgetnodevalue](ENgetnodevalue), [ENgetoption](ENgetoption), etc.) while the functions used for setting parameter values begin with `ENset` (e.g., [ENsetnodevalue](ENsetnodevalue), [ENsetoption](ENsetoption), etc.).
+
+Most of these functions use an index number to reference a specific network component (such as a node, link, or time pattern). This number is simply the position of the component in the list of all components of similar type (e.g., node 10 is the tenth node, starting from 1, in the network) and is not the same as the ID label assigned to the component in the Input File being processed. A series of functions exist to determine a component's index number given its ID label (see [ENgetlinkindex](ENgetlinkindex), [ENgetnodeindex](ENgetnodeindex), and [ENgetpatternindex](ENgetpatternindex)). Likewise, functions exist to retrieve a component's ID label given its index number (see [ENgetlinkid](ENgetlinkid), [ENgetnodeid](ENgetnodeid), and [ENgetpatternid](ENgetpatternid)). The [ENgetcount](ENgetcount) function can be used to determine the number of different components in the network. 
+
+The code below is an example of using the parameter retrieval and setting functions. It changes all pipes with diameter of 10 inches to 12 inches. 
+
+~~~~~~~~~~~~~~~{.c}
+int   i, Nlinks; 
+float D; 
+ENgetcount(EN_LINKCOUNT, &Nlinks); 
+for (i = 1; i <= Nlinks; i++) { 
+  ENgetlinkvalue(i, EN_DIAMETER, &D); 
+  if (D == 10) ENsetlinkvalue(i, EN_DIAMETER, 12); 
+}
+~~~~~~~~~~~~~~~
+
+
+*/
