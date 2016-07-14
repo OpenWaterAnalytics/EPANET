@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.org/OpenWaterAnalytics/EPANET.svg?branch=dev-2.1)](https://travis-ci.org/OpenWaterAnalytics/EPANET)
-
-EPANET
+EPANET {#epanet-readme}
 ======
+
+[![Build Status](https://travis-ci.org/OpenWaterAnalytics/EPANET.svg?branch=dev-2.1)](https://travis-ci.org/OpenWaterAnalytics/EPANET)
 
 The EPANET Library is a pressurized pipe network hydraulic and water quality analysis toolkit written in C. 
 
