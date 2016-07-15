@@ -198,3 +198,7 @@ $RECYCLE.BIN/
 
 
 *.xcuserstate
+
+# WindSDK compiled folders
+build/WinSDK/32bit/
+build/WinSDK/64bit/
