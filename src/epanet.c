@@ -285,9 +285,9 @@ int DLLEXPORT ENclose()
    if (TmpOutFile != OutFile)                                                  //(2.00.12 - LR)
    {                                                                           //(2.00.12 - LR)
       if (TmpOutFile != NULL) fclose(TmpOutFile);                              //(2.00.12 - LR)
-      TmpOutFile=NULL;
       remove(TmpFname);                                                        //(2.00.12 - LR)
    }                                                                           //(2.00.12 - LR)
+   TmpOutFile=NULL;
 
    if (InFile  != NULL) { fclose(InFile);  InFile=NULL;  }
    if (RptFile != NULL && RptFile != stdout) { fclose(RptFile); RptFile=NULL; }
