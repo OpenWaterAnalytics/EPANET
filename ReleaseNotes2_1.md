@@ -73,6 +73,7 @@ Contributors to this version (listed in order of first contribution):
 - `EN_CUSTOM`
 
 ##Notable Performance Improvements, Bug Fixes, Usage Features, and other notes
+- API float type is a compile-time option with the `EN_API_FLOAT_TYPE` definition. Use either `float` or `double` - default if left undefined is `float` to maintain compatibility with 2.0.x
 - updated hash table algorithm
 - fixed memory leak when saving output
 - enables interleaved hydraulic and water quality analysis steps:
