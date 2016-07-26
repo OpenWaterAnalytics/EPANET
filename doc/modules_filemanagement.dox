@@ -1,0 +1,20 @@
+/**
+
+@defgroup FileManagement File Management
+
+
+
+
+
+
+@addtogroup FileManagement
+@{
+@fn int ENwriteline (char *line)
+@fn int ENreport ()
+@fn int ENresetreport ()
+@fn int ENsetreport (char *reportFormat)
+@fn int ENopen (char *inpFile, char *rptFile, char *binOutFile)
+@fn int ENsaveinpfile (char *filename)
+@fn int ENclose()
+@}
+*/

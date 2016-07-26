@@ -1,0 +1,12 @@
+/**
+
+@defgroup Controls Managing Controls
+
+
+@addtogroup Controls
+@{
+@enum EN_ControlType
+@fn int ENgetcontrol(int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level)
+@fn int ENsetcontrol(int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level)
+@}
+*/

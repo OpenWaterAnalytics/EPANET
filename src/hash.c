@@ -30,11 +30,12 @@ unsigned int _enHash(char *str);
 unsigned int _enHash(char *str)
 {
   unsigned int hash = 5381;
+  unsigned int retHash;
   int c;
   while ((c = *str++)) {
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
   }
-  unsigned int retHash = hash % ENHASHTABLEMAXSIZE;
+  retHash = hash % ENHASHTABLEMAXSIZE;
   return retHash;
 }
 
@@ -52,6 +53,7 @@ ENHashTable *ENHashTableCreate()
 
 int ENHashTableInsert(ENHashTable *ht, char *key, int data)
 {
+  size_t len;
   unsigned int i = _enHash(key);
   ENHashEntry *entry;
   if ( i >= ENHASHTABLEMAXSIZE ) {
@@ -61,7 +63,9 @@ int ENHashTableInsert(ENHashTable *ht, char *key, int data)
   if (entry == NULL) {
     return(0);
   }
-  entry->key = key;
+  len = strlen(key) + 1;
+  entry->key = calloc(len, sizeof(char));
+  strncpy(entry->key, key, len);
   entry->data = data;
   entry->next = ht[i];
   ht[i] = entry;
@@ -114,6 +118,7 @@ void    ENHashTableFree(ENHashTable *ht)
     while (entry != NULL)
     {
       nextentry = entry->next;
+      free(entry->key);
       free(entry);
       entry = nextentry;
     }

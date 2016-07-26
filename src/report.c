@@ -52,7 +52,6 @@ extern char *NodeTxt[];
 extern char *LinkTxt[];
 extern char *StatTxt[];
 extern char *TstatTxt[];
-extern char *LogoTxt[];
 extern char *RptFormTxt[];
 
 typedef   REAL4 *Pfloat;
@@ -147,16 +146,31 @@ void  writelogo()
 **--------------------------------------------------------------
 */
 {
-   int    i;
+   int i;
+   int version;
+   int major;
+   int minor;
+   char s[80];
    time_t timer;         /* time_t structure & functions time() & */
                          /* ctime() are defined in time.h         */
+   
+   version = CODEVERSION;
+   major=  version/10000;
+   minor=  (version%10000)/100;
+
    time(&timer);
    strcpy(DateStamp,ctime(&timer));
    PageNum = 1;
    LineNum = 2;
    fprintf(RptFile,FMT18);
    fprintf(RptFile,"%s",DateStamp);
-   for (i=0; LogoTxt[i] != NULL; i++) writeline(LogoTxt[i]);
+   writeline(LOGO1);
+   writeline(LOGO2);
+   writeline(LOGO3);
+   writeline(LOGO4);
+   sprintf(s,LOGO5, major , minor);
+   writeline(s);
+   writeline(LOGO6);
    writeline("");
 }                        /* End of writelogo */
 

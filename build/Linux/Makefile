@@ -41,10 +41,13 @@ runcmdname = runepanet2.sh
 epanetincludedir = ../../include
 # Search path for sources
 epanetsrcdir = ../../src
-VPATH = $(epanetsrcdir):$(epanetincludedir)
+epanetrundir = ../../run
+VPATH = $(epanetsrcdir):$(epanetincludedir):$(epanetrundir)
 
 # Install directories
-prefix = ~
+#prefix = /usr/local # GNU standard -- requires superuser rights
+prefix =~
+#
 exec_prefix = $(prefix)
 libdir = $(exec_prefix)/lib
 bindir = $(exec_prefix)/bin
@@ -66,11 +69,11 @@ INSTALL_DATA = $(INSTALL) -m 644
 # Files for the shared object library
 epanet_objs=hash.o hydraul.o inpfile.o input1.o input2.o \
 	    input3.o mempool.o output.o quality.o report.o \
-	    rules.o smatrix.o
+	    rules.o smatrix.o epanet.o
 # Epanet header files
-epanet_heads=enumstxt.h funcs.h hash.h mempool.h text.h toolkit.h types.h vars.h
+epanet_heads=enumstxt.h funcs.h hash.h mempool.h text.h types.h vars.h
 # Epanet main program
-epanet_main=epanet
+epanet_main=main
 # Epanet main program header files
 epanet_main_heads=epanet2.h
 
@@ -78,11 +81,9 @@ epanet_main_heads=epanet2.h
 all: $(libname) $(exename)
 
 $(libname): $(epanet_objs)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -D SOL -c $(epanetsrcdir)/$(epanet_main).c
-	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@ $(epanet_main).o $^
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@  $^
 
-$(exename): $(libname) $(epanet_main_heads)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -D CLE -c $(epanetsrcdir)/$(epanet_main).c
+$(exename): $(epanet_main).o $(epanet_main_heads)
 	$(CC) $(CFLAGS) -o $@ $(epanet_main).o -l$(epanetrootname) $(LDFLAGS)
 
 $(epanet_objs): $(epanet_heads)
@@ -95,7 +96,7 @@ install:
 	$(INSTALL_PROGRAM) -D $(exename) $(bindir)/$(exename)
 	$(INSTALL_PROGRAM) -D $(libname) $(libdir)/$(libname)
 	$(INSTALL_DATA) -D $(epanetincludedir)/epanet2.h $(includedir)/epanet2.h
-	$(INSTALL_PROGRAM) -D $(runcmdname) $(bindir)/$(runcmdname)
+	$(INSTALL_PROGRAM) -D $(runcmdname) ~/$(runcmdname)
 
 .PHONY: uninstall
 uninstall:

@@ -311,7 +311,6 @@ Link 330 OPEN IF Node 1 ABOVE 19.1
 [QUALITY]
 ;Node            	InitQual
 
-
 [SOURCES]
 ;Node            	Type        	Quality     	Pattern
 
@@ -333,7 +332,7 @@ Link 330 OPEN IF Node 1 ABOVE 19.1
 
 [TIMES]
  Duration           	24:00 
- Hydraulic Timestep 	1:00
+ Hydraulic Timestep 	1:00 
  Quality Timestep   	0:05 
  Pattern Timestep   	1:00 
  Pattern Start      	0:00 
@@ -411,6 +410,7 @@ Link 330 OPEN IF Node 1 ABOVE 19.1
  169             	25.68           	12.74           
  171             	26.65           	11.80           
  173             	26.87           	11.59           
+ 177             	25.92           	10.59           
  179             	25.71           	10.40           
  181             	25.72           	10.74           
  183             	25.45           	10.18           

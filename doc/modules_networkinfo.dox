@@ -1,0 +1,16 @@
+/**
+
+@defgroup NetworkInfo Network Info
+
+
+@addtogroup NetworkInfo
+@{
+@fn int ENgetcount (int code, int *count) 
+@fn int ENgetnodeindex (char *id, int *index) 
+@fn int ENgetnodeid (int index, char *id) 
+@fn int ENgetnodetype (int index, int *code)
+@fn int ENgetnodevalue (int index, int code, EN_API_FLOAT_TYPE *value)
+@fn int ENgetcoord (int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+@fn int ENsetcoord (int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
+@}
+*/

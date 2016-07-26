@@ -503,6 +503,7 @@ int  savefinaloutput()
       ERRCODE(savetimestat(x,LINKHDR));
       if (!errcode) Nperiods = 1;
       fclose(TmpOutFile);
+      TmpOutFile=NULL;
       free(x);
    }
 

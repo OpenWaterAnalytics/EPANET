@@ -1,0 +1,12 @@
+language: c
+
+before_script:
+  - cd build/CMake
+  - mkdir buildproducts
+  - cd buildproducts
+  - cmake ..
+
+script:
+  - make
+  - cd ../../../tests
+  - ./test_networks.sh

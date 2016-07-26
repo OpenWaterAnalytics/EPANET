@@ -1,0 +1,23 @@
+/** 
+@page toolkit-overview Toolkit Overview
+
+
+The Programmer's Toolkit is an extension of the EPANET simulation package. EPANET performs extended period simulation of hydraulic and water quality behavior within pressurized pipe networks. A network can consist of pipes, nodes (pipe junctions), pumps, valves and storage tanks or reservoirs. EPANET tracks the flow of water in each pipe, the pressure at each node, the height of water in each tank, and the concentration of a chemical species throughout the network during a multi-time period simulation. In addition to chemical species, water age and source tracing can also be simulated. 
+
+The Toolkit provides a series of functions that allow programmers to customize the use of EPANET's hydraulic and water quality solution engine to their own applications. Before using the Toolkit one should become familiar with the way that EPANET represents a pipe network and the design and operating information it requires to perform a simulation. This information can be obtained from reading EPANET's on-line Help file or from the EPANET Users Manual. 
+
+A typical usage of the Toolkit functions to analyze a distribution system might look as follows:
+
+1. Use the @ref ENopen function to open the Toolkit system, along with an EPANET [Input file](Input-File).
+2. Use the `ENsetxxx` series of functions to change selected system characteristics.  
+3. Run a full hydraulic simulation using the @ref ENsolveH function (which automatically saves results to a [Hydraulics file](Hydraulics-File)) or use the @ref ENopenH - @ref ENinitH - @ref ENrunH - @ref ENnextH - @ref ENcloseH series of functions to step through a hydraulic simulation, accessing results along the way with the `ENgetxxx` series of functions.  
+4. Run a full water quality simulation using @ref ENsolveQ (which automatically saves hydraulic and water quality results to an [Output file](Output-File)) or use the @ref ENopenQ - @ref ENinitQ - @ref ENrunQ - @ref ENnextQ (or @ref ENstepQ) - @ref ENcloseQ series of functions to step through a water quality simulation, accessing results along the way with the `ENgetxxx` series of functions.  
+5. Return to Step 2 to run additional analyses or use the @ref ENreport function to write a formatted report to the [Report file](Report-File).  
+6. Call the @ref ENclose function to close all files and release system memory.  
+
+More specific examples of using the functions can be found in the [Example Applications](Example-Applications) topic. 
+
+
+- @subpage how-to-use
+
+*/

@@ -332,10 +332,10 @@ AUTHOR:     L. Rossman
 #define LOGO4  \
 "*                   Analysis for Pipe Networks                   *"
 #define LOGO5  \
-"*                         Version 2.00.12                        *"           //(2.00.12 - LR)
+"*                         Version %d.%d                            *"
 #define LOGO6  \
 "******************************************************************"
-#define FMT01  "\n... EPANET Version 2.0\n"
+#define FMT01  "\n... EPANET Version %d.%d\n"
 #define FMT02  "\n  o Retrieving network data"
 #define FMT03  "\n Correct syntax is:\n epanet <input file> <output file>\n"
 #define FMT04  "\n    Cannot use duplicate file names."
@@ -492,6 +492,10 @@ AUTHOR:     L. Rossman
 #define ERR241 "Input Error 241: %s %s refers to undefined control."
 #define ERR250 "Input Error 250: function call contains invalid format."
 #define ERR251 "Input Error 251: function call contains invalid parameter code."
+
+#define ERR253 "Input Error 253: Function call error - No such demand category index."
+#define ERR254 "Input Error 254: Function call error - Node have no coordinates."
+#define ERR255 "Input Error 255: Function call error - Coordinates were not loaded."
 
 #define ERR301 "File Error 301: identical file names."
 #define ERR302 "File Error 302: cannot open input file."
