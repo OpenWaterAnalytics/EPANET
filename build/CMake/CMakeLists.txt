@@ -8,6 +8,11 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 project (EPANET)
 
+IF(APPLE)
+  SET(CMAKE_INSTALL_NAME_DIR @executable_path)
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+ENDIF(APPLE)
+
 # the library
 include_directories(../../include)
 file(GLOB EPANET_SOURCES ../../src/*.c)
