@@ -1,7 +1,7 @@
 Release Notes for EPANET 2.1 {#release_2_1}
 ============================
 
-The last update to the EPANET engine was "Build 2.00.12" in February of 2008. Since that time, a community effort to update and extend the open-source code has emerged. This group has made a number of bug-fixes and API additions that help to improve the EPANET engine for everyone. Version 2.1 is now released after 8.5 years.
+The last update to the EPANET engine was "Build 2.00.12" in February of 2008. Since that time, a community effort to update and extend the open-source code has emerged. This group has made a number of bug-fixes and API additions that help to improve the EPANET engine for everyone. Version 2.1 was released in July 2016, after 8.5 years.
 
 Contributors to this version (listed in order of first contribution):
 
