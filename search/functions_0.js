@@ -1,7 +1,7 @@
 var searchData=
 [
   ['enaddcurve',['ENaddcurve',['../group___curves.html#ga2d66bf702d6576bcbdd972c596b511c6',1,'ENaddcurve(char *id):&#160;epanet.c'],['../group___curves.html#ga2d66bf702d6576bcbdd972c596b511c6',1,'ENaddcurve(char *id):&#160;epanet.c']]],
-  ['enaddpattern',['ENaddpattern',['../epanet2_8h.html#a9c966836d9ff3504ebe8c8dcda76afc7',1,'epanet.c']]],
+  ['enaddpattern',['ENaddpattern',['../group___patterns.html#ga9c966836d9ff3504ebe8c8dcda76afc7',1,'ENaddpattern(char *id):&#160;epanet.c'],['../group___patterns.html#ga9c966836d9ff3504ebe8c8dcda76afc7',1,'ENaddpattern(char *id):&#160;epanet.c']]],
   ['enclose',['ENclose',['../group___file_management.html#ga1ddeebd799e15ebb7bda261a0f139919',1,'ENclose():&#160;epanet.c'],['../group___file_management.html#ga1ddeebd799e15ebb7bda261a0f139919',1,'ENclose():&#160;epanet.c']]],
   ['encloseh',['ENcloseH',['../group___hydraulic_functions.html#ga81b738e2f456c1f5e29e25af38e27e6e',1,'ENcloseH():&#160;epanet.c'],['../group___hydraulic_functions.html#ga81b738e2f456c1f5e29e25af38e27e6e',1,'ENcloseH():&#160;epanet.c']]],
   ['encloseq',['ENcloseQ',['../group___quality_functions.html#gaee81b800efb0ba62e980bcaded945497',1,'ENcloseQ():&#160;epanet.c'],['../group___quality_functions.html#gaee81b800efb0ba62e980bcaded945497',1,'ENcloseQ():&#160;epanet.c']]],
@@ -16,7 +16,7 @@ var searchData=
   ['engetcurveindex',['ENgetcurveindex',['../group___curves.html#ga8ba66e61e917700ef0a2094fd2c4e268',1,'ENgetcurveindex(char *id, int *index):&#160;epanet.c'],['../group___curves.html#ga8ba66e61e917700ef0a2094fd2c4e268',1,'ENgetcurveindex(char *id, int *index):&#160;epanet.c']]],
   ['engetcurvelen',['ENgetcurvelen',['../group___curves.html#gaa9fe83e8a55f0770097cfea1e98626cb',1,'ENgetcurvelen(int index, int *len):&#160;epanet.c'],['../group___curves.html#gaa9fe83e8a55f0770097cfea1e98626cb',1,'ENgetcurvelen(int index, int *len):&#160;epanet.c']]],
   ['engetcurvevalue',['ENgetcurvevalue',['../group___curves.html#ga6cc811baee9b2b5c8e148844c9b885c9',1,'ENgetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y):&#160;epanet.c'],['../group___curves.html#ga6cc811baee9b2b5c8e148844c9b885c9',1,'ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y):&#160;epanet.c']]],
-  ['engetdemandpattern',['ENgetdemandpattern',['../epanet2_8h.html#ae7cc1c703895259d6b78d7e1b1eaf6f3',1,'epanet.c']]],
+  ['engetdemandpattern',['ENgetdemandpattern',['../group___patterns.html#gae7cc1c703895259d6b78d7e1b1eaf6f3',1,'ENgetdemandpattern(int nodeIndex, int demandIndex, int *pattIndex):&#160;epanet.c'],['../group___patterns.html#gae7cc1c703895259d6b78d7e1b1eaf6f3',1,'ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx):&#160;epanet.c']]],
   ['engeterror',['ENgeterror',['../group___toolkit_options.html#gae0f5891ed5fe138e6cc3533cd437e9df',1,'ENgeterror(int errcode, char *errmsg, int maxLen):&#160;epanet.c'],['../group___toolkit_options.html#gae0f5891ed5fe138e6cc3533cd437e9df',1,'ENgeterror(int errcode, char *errmsg, int n):&#160;epanet.c']]],
   ['engetflowunits',['ENgetflowunits',['../group___toolkit_options.html#ga936d2fa4348557cc62c7ca4bb40a9859',1,'ENgetflowunits(int *code):&#160;epanet.c'],['../group___toolkit_options.html#ga936d2fa4348557cc62c7ca4bb40a9859',1,'ENgetflowunits(int *code):&#160;epanet.c']]],
   ['engetheadcurveindex',['ENgetheadcurveindex',['../group___curves.html#ga4b89884eaea687ec48f6db0f06d1e218',1,'ENgetheadcurveindex(int pumpIndex, int *curveIndex):&#160;epanet.c'],['../group___curves.html#ga4b89884eaea687ec48f6db0f06d1e218',1,'ENgetheadcurveindex(int index, int *curveindex):&#160;epanet.c']]],
@@ -63,8 +63,8 @@ var searchData=
   ['ensetlinkvalue',['ENsetlinkvalue',['../epanet2_8h.html#a131920a3c33585a47d6b8c058b9cfcf4',1,'epanet.c']]],
   ['ensetnodevalue',['ENsetnodevalue',['../epanet2_8h.html#a5f0232573a3b2d414b8408b47a79f0ee',1,'epanet.c']]],
   ['ensetoption',['ENsetoption',['../epanet2_8h.html#aa8589fe90d2802400caa7d2140552530',1,'epanet.c']]],
-  ['ensetpattern',['ENsetpattern',['../epanet2_8h.html#a56473628033253fe6ad21497f2904c08',1,'epanet.c']]],
-  ['ensetpatternvalue',['ENsetpatternvalue',['../epanet2_8h.html#ae8eaddc602b802ea5200de66bedc7c3a',1,'epanet.c']]],
+  ['ensetpattern',['ENsetpattern',['../group___patterns.html#ga56473628033253fe6ad21497f2904c08',1,'ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int len):&#160;epanet.c'],['../group___patterns.html#ga56473628033253fe6ad21497f2904c08',1,'ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n):&#160;epanet.c']]],
+  ['ensetpatternvalue',['ENsetpatternvalue',['../group___patterns.html#gae8eaddc602b802ea5200de66bedc7c3a',1,'ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value):&#160;epanet.c'],['../group___patterns.html#gae8eaddc602b802ea5200de66bedc7c3a',1,'ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value):&#160;epanet.c']]],
   ['ensetqualtype',['ENsetqualtype',['../epanet2_8h.html#ade16942b084a632eb3a8dac0cfb9473d',1,'epanet.c']]],
   ['ensetreport',['ENsetreport',['../group___file_management.html#ga1a6450e53b9662c1496930fe905f4c7d',1,'ENsetreport(char *reportFormat):&#160;epanet.c'],['../group___file_management.html#ga1a6450e53b9662c1496930fe905f4c7d',1,'ENsetreport(char *s):&#160;epanet.c']]],
   ['ensetstatusreport',['ENsetstatusreport',['../epanet2_8h.html#ac4c4cee43f19b96911e8e7ae614002fa',1,'epanet.c']]],
