@@ -140,7 +140,7 @@ typedef enum {
 
 typedef enum {
   EN_NODECOUNT    = 0,   /**< Number of Nodes (Juntions + Tanks + Reservoirs) */
-  EN_TANKCOUNT    = 1,   /**< Number of Tanks */
+  EN_TANKCOUNT    = 1,   /**< Number of Tanks and Reservoirs */
   EN_LINKCOUNT    = 2,   /**< Number of Links (Pipes + Pumps + Valves) */
   EN_PATCOUNT     = 3,   /**< Number of Time Patterns */
   EN_CURVECOUNT   = 4,   /**< Number of Curves */
