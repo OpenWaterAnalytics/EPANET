@@ -1461,7 +1461,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
 
       case EN_EFFICIENCY: 
          getenergy(index, &v, &a); 
-		 v=a; 
+	 v = a; 
          break; 
 
       default: return(251);
