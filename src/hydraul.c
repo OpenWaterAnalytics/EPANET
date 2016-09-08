@@ -1020,10 +1020,10 @@ void  getenergy(int k, double *kw, double *eff)
       j = PUMPINDEX(k);
       e = Epump;
       if ( (i = Pump[j].Ecurve) > 0)
-	  {  
-		  q4eff = q/LinkSetting[k];  
-		  e = interp(Curve[i].Npts,Curve[i].X, Curve[i].Y, q4eff*Ucf[FLOW]); 
-	  } 
+      { 
+         q4eff = q/LinkSetting[k]; 
+         e = interp(Curve[i].Npts,Curve[i].X, Curve[i].Y, q4eff*Ucf[FLOW]); 
+      } 
       //   e = interp(Curve[i].Npts,Curve[i].X,Curve[i].Y,q*Ucf[FLOW]); //old line of code
       e = MIN(e, 100.0);
       e = MAX(e, 1.0);
