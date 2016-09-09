@@ -998,6 +998,7 @@ void  getenergy(int k, double *kw, double *eff)
 {
    int   i,j;
    double dh, q, e;
+   double q4eff; //q4eff=flow at nominal speed to compute efficiency
 
 /*** Updated 6/24/02 ***/
    /* No energy if link is closed */
@@ -1019,7 +1020,11 @@ void  getenergy(int k, double *kw, double *eff)
       j = PUMPINDEX(k);
       e = Epump;
       if ( (i = Pump[j].Ecurve) > 0)
-         e = interp(Curve[i].Npts,Curve[i].X,Curve[i].Y,q*Ucf[FLOW]);
+      { 
+         q4eff = q/LinkSetting[k]; 
+         e = interp(Curve[i].Npts,Curve[i].X, Curve[i].Y, q4eff*Ucf[FLOW]); 
+      } 
+      //   e = interp(Curve[i].Npts,Curve[i].X,Curve[i].Y,q*Ucf[FLOW]); //old line of code
       e = MIN(e, 100.0);
       e = MAX(e, 1.0);
       e /= 100.0;

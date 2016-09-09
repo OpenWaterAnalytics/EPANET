@@ -56,6 +56,7 @@ Public Const EN_SETTING = 12
 Public Const EN_ENERGY = 13
 Public Const EN_LINKQUAL = 14   'ES
 Public Const EN_LINKPATTERN = 15
+Public Const EN_EFFICIENCY = 16
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
