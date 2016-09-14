@@ -121,8 +121,9 @@ int     checkpremise(struct Premise *);
 int     checktime(struct Premise *);
 int     checkstatus(struct Premise *);
 int     checkvalue(struct Premise *);
-int     takeactions(void);
-void    clearactlist(void);
+//int     takeactions(void);
+int     checktakeactions(void); 
+//void    clearactlist(void);
 void    clearrules(void);
 void    ruleerrmsg(int);
 
@@ -209,7 +210,38 @@ int checkrules(long dt)
    }
 
    /* Execute actions then clear list. */
-   if (ActList != NULL) r = takeactions();
+   //if (ActList != NULL) r = takeactions();
+   if (ActList != NULL) r = checktakeactions(); 
+   clearactlist();
+   return(r);
+}
+
+
+int rules(void)
+{
+   int i,
+   r;    /* Number of actions actually taken */
+
+   /* Start of rule evaluation time interval */
+   Time1 = Htime;// - dt + 1;
+
+   /* Iterate through each rule */
+   ActList = NULL;
+   r = 0;
+   for (i=1; i<=Nrules; i++)
+   {
+      /* If premises true, add THEN clauses to action list. */
+      if (evalpremises(i) == TRUE) updateactlist(i,Rule[i].Tchain);
+
+      /* If premises false, add ELSE actions to list. */
+      else
+      {
+          if (Rule[i].Fchain != NULL) updateactlist(i,Rule[i].Fchain);
+      }
+   }
+
+   /* Execute actions then clear list. */
+   if (ActList != NULL) r = takeactions(); 
    clearactlist();
    return(r);
 }
@@ -915,6 +947,67 @@ int  takeactions()
         {
            n++;
            if (Statflag) writeruleaction(k,Rule[item->ruleindex].label);
+        }
+
+        /* Move to next action on list */
+        item = item->next;
+    }
+    return(n);
+}
+
+
+int  checktakeactions(void)
+{
+    struct Action *a;
+    struct ActItem *item;
+    char   flag;
+    int    k, s, n;
+    double  tol = 1.e-3,
+           v, x;
+
+    n = 0;
+    item = ActList;
+    while (item != NULL)
+    {
+        flag = FALSE;
+        a = item->action;
+        k = a->link;
+        s = LinkStatus[k];//S[k];
+        v = LinkSetting[k];//K[k];
+        x = a->setting;
+
+        /* Switch link from closed to open */
+        if (a->status == IS_OPEN && s <= CLOSED)
+        {
+             flag = TRUE;
+        }
+
+        /* Switch link from not closed to closed */ 
+        else if (a->status == IS_CLOSED && s > CLOSED)
+        {
+            flag = TRUE;
+        }
+
+        /* Change link's setting */
+        else if (x != MISSING)
+        {
+            switch(Link[k].Type)
+            {
+                case PRV:
+                case PSV:
+                case PBV:    x = x/Ucf[PRESSURE];  break;
+                case FCV:    x = x/Ucf[FLOW];      break;
+            }
+            if (ABS(x-v) > tol)
+            {
+                flag = TRUE;
+            }
+        }
+
+        /* Report rule action */
+        if (flag == TRUE)
+        {
+           n++;
         }
 
         /* Move to next action on list */
