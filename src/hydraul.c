@@ -160,6 +160,9 @@ void inithyd(int initflag)
       OldStat[i] = LinkStatus[i];
    }
 
+   /* inizialise pump settings */
+   for (i=1; i<=Npumps; i++) OldLinkSet[i] = LinkSetting[i + Npipes]; 
+
    /* Reset pump energy usage */
    for (i=1; i<=Npumps; i++)
    {
@@ -191,6 +194,7 @@ int   runhyd(long *t)
    int   iter;                          /* Iteration count   */
    int   errcode;                       /* Error code        */
    double relerr;                        /* Solution accuracy */
+   int i; 
 
    /* Find new demands & control actions */
    *t = Htime;
@@ -203,6 +207,9 @@ int   runhyd(long *t)
    {
       /* Report new status & save results */
       if (Statflag) writehydstat(iter,relerr);
+
+	  for (i=1; i<=Npumps; i++) OldLinkSet[i]=LinkSetting[i + Npipes];
+	  for (i=1; i<=Npumps; i++) OldStat[i + Npipes] = LinkStatus[i + Npipes]; 
 
      /* solution info */
      _relativeError = relerr;
@@ -954,7 +961,8 @@ void  addenergy(long hstep)
    {
       /* Skip closed pumps */
       k = Pump[j].Link;
-      if (LinkStatus[k] <= CLOSED) continue;
+      //if (LinkStatus[k] <= CLOSED) continue;
+	  if (OldStat[k] <= CLOSED) continue; 
       q = MAX(QZERO, ABS(Q[k]));
 
       /* Find pump-specific energy cost */
@@ -998,10 +1006,12 @@ void  getenergy(int k, double *kw, double *eff)
 {
    int   i,j;
    double dh, q, e;
+   double q4eff; //q4eff=flow at nominal speed to compute efficiency
 
 /*** Updated 6/24/02 ***/
    /* No energy if link is closed */
-   if (LinkStatus[k] <= CLOSED)
+   //if (LinkStatus[k] <= CLOSED)
+   if (OldStat[k] <= CLOSED) 
    {
       *kw = 0.0;
       *eff = 0.0;
@@ -1019,7 +1029,11 @@ void  getenergy(int k, double *kw, double *eff)
       j = PUMPINDEX(k);
       e = Epump;
       if ( (i = Pump[j].Ecurve) > 0)
-         e = interp(Curve[i].Npts,Curve[i].X,Curve[i].Y,q*Ucf[FLOW]);
+	  {
+		  q4eff = q/OldLinkSet[j]; //modification for the correction on the efficiency computation for Variable Speed Pumps is included
+		  e = interp(Curve[i].Npts,Curve[i].X, Curve[i].Y, q4eff*Ucf[FLOW]); 
+	  }
+         //e = interp(Curve[i].Npts,Curve[i].X,Curve[i].Y,q*Ucf[FLOW]);
       e = MIN(e, 100.0);
       e = MAX(e, 1.0);
       e /= 100.0;

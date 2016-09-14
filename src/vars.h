@@ -149,6 +149,7 @@ EXTERN double         *NodeDemand,           /* Node actual demand           */
                 *NodeQual,             /* Node actual quality          */
                 *E,                    /* Emitter flows                */
                 *LinkSetting,          /* Link settings                */
+				*OldLinkSet,		   /* Link setting at previous time step */
                 *Q,                    /* Link flows                   */
                 *PipeRateCoeff,        /* Pipe reaction rate           */
                 *X,                    /* General purpose array        */

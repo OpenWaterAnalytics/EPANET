@@ -2574,6 +2574,7 @@ void initpointers()
    LinkStatus        = NULL;
    LinkSetting        = NULL;
    OldStat  = NULL;
+   OldLinkSet	= NULL; 
 
    Node     = NULL;
    Link     = NULL;
@@ -2651,10 +2652,12 @@ int  allocdata()
       Q    = (double *) calloc(n, sizeof(double));
       LinkSetting    = (double *) calloc(n, sizeof(double));
       LinkStatus    = (char  *) calloc(n, sizeof(char));
+	  OldLinkSet    = (double *) calloc(MaxPumps+1, sizeof(double)); 
       ERRCODE(MEMCHECK(Link));
       ERRCODE(MEMCHECK(Q));
       ERRCODE(MEMCHECK(LinkSetting));
       ERRCODE(MEMCHECK(LinkStatus));
+	  ERRCODE(MEMCHECK(OldLinkSet)); 
    } 
 
 /* Allocate memory for tanks, sources, pumps, valves,   */
@@ -2775,6 +2778,7 @@ void  freedata()
     free(Q);
     free(LinkSetting);
     free(LinkStatus);
+	free(OldLinkSet);
 
 /* Free memory for node data */
     if (Node != NULL)
