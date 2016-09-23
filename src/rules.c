@@ -36,48 +36,6 @@ AUTHOR:     L. Rossman
 #define  EXTERN  extern
 #include "vars.h"
 
-struct      Premise         /* Rule Premise Clause */
-{
-   int      logop;          /* Logical operator */
-   int      object;         /* Node or link */
-   int      index;          /* Object's index */
-   int      variable;       /* Pressure, flow, etc. */
-   int      relop;          /* Relational operator */
-   int      status;         /* Variable's status */
-   double    value;          /* Variable's value */
-   struct   Premise *next;
-};
-
-struct     Action           /* Rule Action Clause */
-{
-   int     link;            /* Link index */
-   int     status;          /* Link's status */
-   double   setting;         /* Link's setting */
-   struct  Action *next;
-};
-
-struct      aRule           /* Control Rule Structure */
-{
-   char     label[MAXID+1];    /* Rule character label */
-   double    priority;          /* Priority level */
-   struct   Premise  *Pchain;  /* Linked list of premises */
-   struct   Action   *Tchain;  /* Linked list of actions if true */
-   struct   Action   *Fchain;  /* Linked list of actions if false */
-   struct   aRule    *next;
-};
-
-struct      ActItem         /* Action list item */
-{
-   int      ruleindex;        /* Index of rule action belongs to */
-   struct   Action   *action; /* An action structure */
-   struct   ActItem  *next;     
-};
-
-struct  aRule *Rule;        /* Array of rules */
-struct  ActItem *ActList;   /* Linked list of action items */
-int     RuleState;          /* State of rule interpreter */
-long    Time1;              /* Start of rule evaluation time interval (sec) */
-struct  Premise *Plast;     /* Previous premise clause */
 
 enum    Rulewords      {r_RULE,r_IF,r_AND,r_OR,r_THEN,r_ELSE,r_PRIORITY,r_ERROR};
 char    *Ruleword[]  = {w_RULE,w_IF,w_AND,w_OR,w_THEN,w_ELSE,w_PRIORITY,NULL};
@@ -105,6 +63,8 @@ char    *Value[]     = {"XXXX",   w_OPEN, w_CLOSED, w_ACTIVE,NULL};
 extern char      *Tok[MAXTOKS];
 extern int       Ntokens;
 
+extern char *StatTxt[];
+
 /*
 **   Local function prototypes are defined here and not in FUNCS.H 
 **   because some of them utilize the Premise and Action structures
@@ -125,7 +85,7 @@ int     takeactions(void);
 void    clearactlist(void);
 void    clearrules(void);
 void    ruleerrmsg(int);
-
+int     writeRuleinInp(FILE *f, int RuleIdx);
 
 void initrules()
 /*
@@ -967,5 +927,210 @@ void  ruleerrmsg(int err)
    writeline(fmt);
 }
    
+
+int writeRuleinInp(FILE *f, int RuleIdx){
+	 
+	//int i,j;
+	struct Premise *p;
+	struct Action *a;
+	int hours = 0, minutes = 0, seconds = 0;
+
+    p = Rule[RuleIdx].Pchain;
+	if (p->value==MISSING) 
+	{
+		fprintf(f, "\nIF ");
+		if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0) ) 
+		{
+			if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			else fprintf(f,"TANK %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+		} 
+		else 
+		{   //it is a link
+			if (Link[p->index].Type == PIPE || Link[p->index].Type == CV) fprintf(f,"PIPE %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			else if (Link[p->index].Type == PUMP) fprintf(f,"PUMP %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			else fprintf(f,"VALVE %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+		}
+	}
+	else 
+	{
+		if (p->variable == r_TIME)	
+		{ 
+			hours = (int) p->value / 3600;
+			minutes = (int) ((p->value - 3600*hours)/60);
+			seconds = (int) (p->value - 3600*hours - minutes*60);
+			fprintf(f, "\nIF %s %s %s %d:%02d:%02d", Object[p->object], Varword[p->variable], Operator[p->relop], hours, minutes, seconds);
+		} 
+		else 
+		{
+			if (p->variable  == r_CLOCKTIME) 
+			{
+				hours = (int) p->value / 3600;
+				minutes = (int) ((p->value - 3600*hours)/60);
+				seconds = (int) (p->value - 3600*hours - minutes*60);
+
+				if (hours < 12) fprintf(f, "\nIF %s %s %s %d:%02d:%02d AM", Object[p->object], Varword[p->variable], Operator[p->relop], hours, minutes, seconds); 
+				else fprintf(f, "\nIF %s %s %s %d:%02d:%02d PM", Object[p->object], Varword[p->variable], Operator[p->relop], hours-12, minutes, seconds);
+			}
+			else 
+			{
+				if (p->variable == r_FILLTIME || p->variable == r_DRAINTIME) fprintf(f, "\nIF %s %s %s %s %.4lf", Object[p->object], Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value/3600.0);
+				else 
+				{
+					fprintf(f, "\nIF ");
+					if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0)) 
+					{
+						if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						else fprintf(f,"TANK %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+					} 
+					else 
+					{   //it is a link
+						if (Link[p->index].Type == PIPE || Link[p->index].Type == CV) fprintf(f,"PIPE %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						else if (Link[p->index].Type == PUMP) fprintf(f,"PUMP %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						else fprintf(f,"VALVE %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+					}
+				}
+			}
+		}
+	}
+
+	p = p->next;
+	while (p != NULL) 
+	{
+		if (p->value==MISSING) 
+		{
+			fprintf(f, "\n%s ", Ruleword[p->logop]);
+			if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0)) 
+			{
+				if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+				else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+				else fprintf(f,"TANK %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			} 
+			else 
+			{   //it is a link
+				if (Link[p->index].Type == PIPE || Link[p->index].Type == CV) fprintf(f,"PIPE %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+				else if (Link[p->index].Type == PUMP) fprintf(f,"PUMP %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+				else fprintf(f,"VALVE %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			}
+		} 
+		else 
+		{
+			if (p->variable == r_TIME)	
+			{ 
+				hours = (int) p->value / 3600;
+				minutes = (int) ((p->value - 3600*hours)/60);
+				seconds = (int) (p->value - 3600*hours - minutes*60);
+				fprintf(f, "\n%s %s %s %s %d:%02d:%02d", Ruleword[p->logop], Object[p->object], Varword[p->variable], Operator[p->relop], hours, minutes, seconds);
+			} 
+			else 
+			{
+				if (p->variable  == r_CLOCKTIME) 
+				{
+					hours = (int) p->value / 3600;
+					minutes = (int) ((p->value - 3600*hours)/60);
+					seconds = (int) (p->value - 3600*hours - minutes*60);
+
+					if (hours < 12) fprintf(f, "\n%s %s %s %s %d:%02d:%02d AM", Ruleword[p->logop], Object[p->object], Varword[p->variable], Operator[p->relop], hours, minutes, seconds);
+					else fprintf(f, "\n%s %s %s %s %d:%02d:%02d PM", Ruleword[p->logop], Object[p->object], Varword[p->variable], Operator[p->relop], hours-12, minutes, seconds);
+				}
+				else 
+				{
+					if (p->variable == r_FILLTIME || p->variable == r_DRAINTIME) fprintf(f, "\nIF %s %s %s %s %.4lf", Object[p->object], Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value/3600.0);
+					else 
+					{ 
+						fprintf(f, "\n%s ", Ruleword[p->logop]);
+						if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0)) {
+							if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+							else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+							else fprintf(f,"TANK %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						} 
+						else 
+						{   //it is a link
+							if (Link[p->index].Type == PIPE || Link[p->index].Type == CV) fprintf(f,"PIPE %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+							else if (Link[p->index].Type == PUMP) fprintf(f,"PUMP %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+							else fprintf(f,"VALVE %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						}
+					}
+				}
+			}
+		}		
+		p = p->next;
+	}
+
+	a = Rule[RuleIdx].Tchain;
+	if (a->setting==MISSING) 
+	{
+		if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nTHEN PIPE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
+		else if (Link[a->link].Type == PUMP) fprintf(f, "\nTHEN PUMP %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
+		else fprintf(f, "\nTHEN VALVE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
+	}
+	else 
+	{
+		if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nTHEN PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+		else if (Link[a->link].Type == PUMP) fprintf(f, "\nTHEN PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+		else fprintf(f, "\nTHEN VALVE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+	}
+
+	a = a->next;
+	while (a != NULL) 
+	{
+		if (a->setting==MISSING) 
+		{
+			if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nAND PIPE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
+			else if (Link[a->link].Type == PUMP) fprintf(f, "\nAND PUMP %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
+			else fprintf(f, "\nAND VALVE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
+		}
+		else 
+		{
+			if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nAND PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+			else if (Link[a->link].Type == PUMP) fprintf(f, "\nAND PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+			else  fprintf(f, "\nAND VALVE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+		}
+
+		a = a->next;
+	}
+
+
+	a = Rule[RuleIdx].Fchain;
+	if (a != NULL) 
+	{
+		if (a->setting==MISSING) 
+		{
+			if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nELSE PIPE %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
+			else if (Link[a->link].Type == PUMP) fprintf(f, "\nELSE PUMP %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
+			else fprintf(f, "\nELSE VALVE %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
+		}
+		else 
+		{ 
+			if (Link[a->link].Type == PIPE || Link[a->link].Type == CV)  fprintf(f, "\nELSE PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+			else if (Link[a->link].Type == PUMP) fprintf(f, "\nELSE PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+			else fprintf(f, "\nELSE VALVE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+		}
+
+		a = a->next;
+		while (a != NULL) 
+		{
+			if (a->setting==MISSING) 
+			{
+				if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nAND PIPE %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
+				else if (Link[a->link].Type == PUMP) fprintf(f, "\nAND PUMP %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
+				else fprintf(f, "\nAND VALVE %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
+			} 
+			else 
+			{
+				if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nAND PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+				else if (Link[a->link].Type == PUMP) fprintf(f, "\nAND PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+				else fprintf(f, "\nAND VALVE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+			}
+
+			a = a->next;
+		}
+	}
+	if (Rule[RuleIdx].priority != 0) fprintf(f, "\nPRIORITY %.4f", Rule[RuleIdx].priority);
+
+    return(0);
+}
+
 /***************** END OF RULES.C ******************/   
 
