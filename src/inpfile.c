@@ -76,7 +76,7 @@ void  saveauxdata(FILE *f)                                                     /
             if (sect == _END) break;
             switch(sect)
             {
-               case _RULES:
+               //case _RULES:
                case _COORDS: if (Coordflag == FALSE)
                              {
                                  fprintf(f, "%s", line);
@@ -95,7 +95,7 @@ void  saveauxdata(FILE *f)                                                     /
    /* Write lines appearing in the section to file */
       switch(sect)
       {
-          case _RULES:
+          //case _RULES:
                case _COORDS: if (Coordflag == FALSE)
                              {
                                  fprintf(f, "%s", line);
@@ -120,6 +120,7 @@ int  saveinpfile(char *fname)
 */
 {
    int     i,j,n;
+   int     errcode;
    double  d,kc,ke,km,ucf;
    char    s[MAXLINE+1], s1[MAXLINE+1], s2[MAXLINE+1];
    Pdemand demand;
@@ -620,6 +621,15 @@ int  saveinpfile(char *fname)
             fprintf(f, "\n %-20sABOVE %.6f", Field[i].Name, Field[i].RptLim[HI]);
       }
       else fprintf(f, "\n %-20sNO", Field[i].Name);
+   }
+   fprintf(f, "\n\n");
+
+   fprintf(f, "\n\n[RULES]");
+   for (i=1; i<=Nrules; i++)
+   {  
+	  fprintf(f, "\nRULE %s",Rule[i].label);
+	  errcode = writeRuleinInp(f, i);
+	  fprintf(f, "\n");
    }
    fprintf(f, "\n\n");
 
