@@ -462,4 +462,50 @@ enum HdrType                    /* Type of table heading   */
                   NODEHDR,      /*  Node Results           */
                   LINKHDR};     /*  Link Results           */
 
+
+//AM 22Sept2016 moved from rules.c
+struct      Premise         /* Rule Premise Clause */
+{
+   int      logop;          /* Logical operator */
+   int      object;         /* Node or link */
+   int      index;          /* Object's index */
+   int      variable;       /* Pressure, flow, etc. */
+   int      relop;          /* Relational operator */
+   int      status;         /* Variable's status */
+   double    value;          /* Variable's value */
+   struct   Premise *next;
+};
+
+struct     Action           /* Rule Action Clause */
+{
+   int     link;            /* Link index */
+   int     status;          /* Link's status */
+   double   setting;         /* Link's setting */
+   struct  Action *next;
+};
+
+struct      aRule           /* Control Rule Structure */
+{
+   char     label[MAXID+1];    /* Rule character label */
+   double    priority;          /* Priority level */
+   struct   Premise  *Pchain;  /* Linked list of premises */
+   struct   Action   *Tchain;  /* Linked list of actions if true */
+   struct   Action   *Fchain;  /* Linked list of actions if false */
+   struct   aRule    *next;
+};
+
+struct      ActItem         /* Action list item */
+{
+   int      ruleindex;        /* Index of rule action belongs to */
+   struct   Action   *action; /* An action structure */
+   struct   ActItem  *next;     
+};
+
+struct  aRule *Rule;        /* Array of rules */
+struct  ActItem *ActList;   /* Linked list of action items */
+int     RuleState;          /* State of rule interpreter */
+long    Time1;              /* Start of rule evaluation time interval (sec) */
+struct  Premise *Plast;     /* Previous premise clause */
+
+
 #endif
