@@ -229,17 +229,17 @@ Public Const EN_CUSTOM = 2        ' user-defined custom curve
 
 Declare Function ENaddcurve Lib "epanet2.dll" (ByVal ID As String) As Long
 
- Declare Function ENgetrule  Lib "epanet2.dll" (ByVal index As Int32, ByRef nPremises As Int32, ByRef nTrueActions As Int32, ByRef nFalseActions As Int32, ByRef priority As Double) As Int32
- Declare Function ENsetrulepriority Lib "epanet2.dll" (ByVal index As Int32, ByVal priority As Double) As Int32
- Declare Function ENgetpremise Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByRef logop As Int32, ByRef object As Int32, ByRef indexObj As Int32, ByRef variable As Int32, ByRef relop As Int32, ByRef status As Int32, ByRef value As Double) As Int32
- Declare Function ENsetpremise Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByVal logop As Int32, ByVal object As Int32, ByVal indexObj As Int32, ByVal variable As Int32, ByVal relop As Int32, ByVal status As Int32, ByVal value As Double) As Int32
+ Declare Function ENgetrule  Lib "epanet2.dll" (ByVal index As Int32, ByRef nPremises As Int32, ByRef nTrueActions As Int32, ByRef nFalseActions As Int32, ByRef priority As Single) As Int32
+ Declare Function ENsetrulepriority Lib "epanet2.dll" (ByVal index As Int32, ByVal priority As Single) As Int32
+ Declare Function ENgetpremise Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByRef logop As Int32, ByRef object As Int32, ByRef indexObj As Int32, ByRef variable As Int32, ByRef relop As Int32, ByRef status As Int32, ByRef value As Single) As Int32
+ Declare Function ENsetpremise Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByVal logop As Int32, ByVal object As Int32, ByVal indexObj As Int32, ByVal variable As Int32, ByVal relop As Int32, ByVal status As Int32, ByVal value As Single) As Int32
  Declare Function ENsetpremiseindex Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByVal indexObj As Int32) As Int32
  Declare Function ENsetpremisestatus Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByVal status As Int32) As Int32
- Declare Function ENsetpremisevalue Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByVal value As Double) As Int32
- Declare Function ENgettrueaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByRef indexLink As Int32, ByRef status As Int32, ByRef setting As Double) As Int32
- Declare Function ENsettrueaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByVal indexLink As Int32, ByVal status As Int32, ByVal setting As Double) As Int32
- Decalre FUnction ENgetfalseaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByRef indexLink As Int32, ByRef status As Int32, ByRef setting As Double) As Int32
- Declare Function ENsetfalseaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByVal indexLink As Int32, ByVal status As Int32, ByVal setting As Double) As Int32
+ Declare Function ENsetpremisevalue Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByVal value As Single) As Int32
+ Declare Function ENgettrueaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByRef indexLink As Int32, ByRef status As Int32, ByRef setting As Single) As Int32
+ Declare Function ENsettrueaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByVal indexLink As Int32, ByVal status As Int32, ByVal setting As Single) As Int32
+ Decalre FUnction ENgetfalseaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByRef indexLink As Int32, ByRef status As Int32, ByRef setting As Single) As Int32
+ Declare Function ENsetfalseaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByVal indexLink As Int32, ByVal status As Int32, ByVal setting As Single) As Int32
  Declare Function ENgetruleID Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal id As StringBuilder) As Int32
 
 

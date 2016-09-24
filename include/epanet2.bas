@@ -234,15 +234,15 @@ Global Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENsetcurve Lib "epanet2.dll" (ByVal Index As Long, X As Any, Y As Any, ByVal N As Long) As Long
  Declare Function ENaddcurve Lib "epanet2.dll" (ByVal ID As String) As Long
 
- Declare Function ENgetrule  Lib "epanet2.dll" (ByVal index As Long, nPremises As Long, nTrueActions As Long, nFalseActions As Long, priority As Double) As Long
- Declare Function ENsetrulepriority Lib "epanet2.dll" (ByVal index As Long, ByVal priority As Double) As Long
- Declare Function ENgetpremise Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, logop As Long, object As Long, indexObj As Long, variable As Long, relop As Long, status As Long, value As Double) As Long
- Declare Function ENsetpremise Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal logop As Long, ByVal object As Long, ByVal indexObj As Long, ByVal variable As Long, ByVal relop As Long, ByVal status As Long, ByVal value As Double) As Long
+ Declare Function ENgetrule  Lib "epanet2.dll" (ByVal index As Long, nPremises As Long, nTrueActions As Long, nFalseActions As Long, priority As Single) As Long
+ Declare Function ENsetrulepriority Lib "epanet2.dll" (ByVal index As Long, ByVal priority As Single) As Long
+ Declare Function ENgetpremise Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, logop As Long, object As Long, indexObj As Long, variable As Long, relop As Long, status As Long, value As Single) As Long
+ Declare Function ENsetpremise Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal logop As Long, ByVal object As Long, ByVal indexObj As Long, ByVal variable As Long, ByVal relop As Long, ByVal status As Long, ByVal value As Single) As Long
  Declare Function ENsetpremiseindex Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal indexObj As Long) As Long
  Declare Function ENsetpremisestatus Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal status As Long) As Long
- Declare Function ENsetpremisevalue Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal value As Double) As Long
- Declare Function ENgettrueaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Double) As Long
- Declare Function ENsettrueaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Double) As Long
- Decalre FUnction ENgetfalseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Double) As Long
- Declare Function ENsetfalseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Double) As Long
+ Declare Function ENsetpremisevalue Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal value As Single) As Long
+ Declare Function ENgettrueaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
+ Declare Function ENsettrueaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long
+ Declare FUnction ENgetfalseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
+ Declare Function ENsetfalseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long
  Declare Function ENgetruleID Lib "epanet2.dll" (ByVal indexRule As Long, ByVal id As String) As Long

@@ -915,7 +915,7 @@ extern "C" {
    @param priority The priority of a rule-based control.
    @return Error code.
    */
-  int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFalseActions, double *priority);
+  int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority);
 
   /**
    @brief Sets the priority of the existing rule-based control.
@@ -923,7 +923,7 @@ extern "C" {
    @param priority The priority to be set in the rule-based control.
    @return Error code.
    */
-  int  DLLEXPORT ENsetrulepriority(int index, double priority);
+  int  DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
 
   /**
    @brief Gets the components of a premise/condition in an existing rule-based control.
@@ -938,7 +938,7 @@ extern "C" {
    @param value The value of the variable to be checked (e.g. 5.5) 
    @return Error code.
    */
-  int  DLLEXPORT ENgetpremise(int indexRule, int indexPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, double *value);
+  int  DLLEXPORT ENgetpremise(int indexRule, int indexPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value);
 
   /**
    @brief Sets the components of a premise/condition in an existing rule-based control.

@@ -3169,8 +3169,7 @@ int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
 
 
 
-int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFalseActions, double *priority)
-{
+int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority)
 /*----------------------------------------------------------------
 **  Input:   index  = index of the rule
 **           nPremises  = number of conditions (IF AND OR) 
@@ -3181,13 +3180,13 @@ int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFal
 **  Returns: error code                              
 **----------------------------------------------------------------
 */
-
+{
    int count;
    struct Premise *p;
    struct Action *c;
 
    if (index > Nrules) return(257);
-   *priority = Rule[index].priority;
+   *priority = (EN_API_FLOAT_TYPE)Rule[index].priority;
    count = 1;
    p = Rule[index].Pchain;
    while (p->next != NULL)
@@ -3221,10 +3220,10 @@ int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFal
 }
 
 
- int  DLLEXPORT ENgetpremise(int indexRule, int idxPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, double *value)
- {
+int  DLLEXPORT ENgetpremise(int indexRule, int idxPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value)
+{
    int count = 1, error = 0, nPremises, a, b;
-   double priority;
+   EN_API_FLOAT_TYPE priority;
    struct Premise *p;
 
    if (indexRule > Nrules) return(257);
@@ -3245,11 +3244,10 @@ int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFal
    *status = p->status;
    *value = p[0].value;
    return(0);
- }
+}
 
 
-int  DLLEXPORT ENsetrulepriority(int index, double priority)
-{
+int  DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority)
 /*----------------------------------------------------------------
 **  Input:   index  = index of the rule
 **           priority = rule priority
@@ -3257,7 +3255,7 @@ int  DLLEXPORT ENsetrulepriority(int index, double priority)
 **  Returns: error code                              
 **----------------------------------------------------------------
 */
-
+{
 	if (index > Nrules) return(257);
 	Rule[index].priority = priority;
   
@@ -3268,7 +3266,7 @@ int  DLLEXPORT ENsetrulepriority(int index, double priority)
 int  DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, double value)
  {
    int count = 1,error = 0, nPremises, a, b;
-   double priority;
+   EN_API_FLOAT_TYPE priority;
    struct Premise *p;
 
    if (indexRule > Nrules) return(257);
@@ -3295,7 +3293,7 @@ int  DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int obje
 int  DLLEXPORT ENsetpremiseindex(int indexRule, int indexPremise, int indexObj)
  {
    int count = 1,error = 0, nPremises, a, b;
-   double priority;
+   EN_API_FLOAT_TYPE priority;
    struct Premise *p;
 
    if (indexRule > Nrules) return(257);
@@ -3316,7 +3314,7 @@ int  DLLEXPORT ENsetpremiseindex(int indexRule, int indexPremise, int indexObj)
 int  DLLEXPORT ENsetpremisestatus(int indexRule, int indexPremise, int status)
  {
    int count = 1, error = 0, nPremises, a, b;
-   double priority;
+   EN_API_FLOAT_TYPE priority;
    struct Premise *p;
 
    if (indexRule > Nrules) return(257);
@@ -3337,7 +3335,7 @@ int  DLLEXPORT ENsetpremisestatus(int indexRule, int indexPremise, int status)
 int  DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise, double value)
  {
    int count = 1,error = 0, nPremises, a, b;
-   double priority;
+   EN_API_FLOAT_TYPE priority;
    struct Premise *p;
 
    if (indexRule > Nrules) return(257);
@@ -3358,7 +3356,7 @@ int  DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise, double value)
 int  DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, int *status, double *setting)
    {
 	int count = 1, error = 0, nTrueAction, c, b;
-	double priority;
+	EN_API_FLOAT_TYPE priority;
 	struct Action *a;
 
    if (indexRule > Nrules) return(252);
@@ -3381,7 +3379,7 @@ int  DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, i
 int  DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, int status,double setting)
    {
 	int count = 1, error = 0, nTrueAction, c, b;
-	double priority;
+	EN_API_FLOAT_TYPE priority;
 	struct Action *a;
 
 	if (indexRule > Nrules) return(257);
@@ -3404,7 +3402,7 @@ int  DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, in
 int  DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, int *status, double *setting)
    {
 	int count = 1, error = 0, nFalseAction, c, b;
-	double priority;
+	EN_API_FLOAT_TYPE priority;
 	struct Action *a;
 
    if (indexRule > Nrules) return(257);
@@ -3427,7 +3425,7 @@ int  DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, 
 int  DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink, int status,double setting)
    {
 	int count = 1, error = 0, nFalseAction, c, b;
-    double priority;
+  EN_API_FLOAT_TYPE priority;
 	struct Action *a;
 
 	if (indexRule > Nrules) return(257);

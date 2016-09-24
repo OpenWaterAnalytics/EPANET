@@ -472,7 +472,7 @@ struct      Premise         /* Rule Premise Clause */
    int      variable;       /* Pressure, flow, etc. */
    int      relop;          /* Relational operator */
    int      status;         /* Variable's status */
-   double    value;          /* Variable's value */
+   double   value;          /* Variable's value */
    struct   Premise *next;
 };
 
@@ -480,14 +480,14 @@ struct     Action           /* Rule Action Clause */
 {
    int     link;            /* Link index */
    int     status;          /* Link's status */
-   double   setting;         /* Link's setting */
+   double  setting;         /* Link's setting */
    struct  Action *next;
 };
 
 struct      aRule           /* Control Rule Structure */
 {
    char     label[MAXID+1];    /* Rule character label */
-   double    priority;          /* Priority level */
+   double   priority;          /* Priority level */
    struct   Premise  *Pchain;  /* Linked list of premises */
    struct   Action   *Tchain;  /* Linked list of actions if true */
    struct   Action   *Fchain;  /* Linked list of actions if false */
