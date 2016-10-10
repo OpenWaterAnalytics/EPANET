@@ -3263,198 +3263,196 @@ int  DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority)
 }
 
 
-int  DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, double value)
- {
-   int count = 1,error = 0, nPremises, a, b;
-   EN_API_FLOAT_TYPE priority;
-   struct Premise *p;
+int  DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, EN_API_FLOAT_TYPE value)
+{
+    int count = 1,error = 0, nPremises, a, b;
+    EN_API_FLOAT_TYPE priority;
+    struct Premise *p;
 
-   if (indexRule > Nrules) return(257);
-   error = ENgetrule(indexRule, &nPremises, &a, &b, &priority);
-   if (indexPremise > nPremises) return(258);
-   
-   p = Rule[indexRule].Pchain;
-   while (count < indexPremise)
-   {
-	   count++;
-	   p = p->next;
-   }
-   p->logop = logop;
-   p->object = object;
-   p->index = indexObj;
-   p->variable = variable;
-   p->relop = relop;
-   p->status = status;
-   p->value = value;
-   return(0);
- }
+    if (indexRule > Nrules) return(257);
+    error = ENgetrule(indexRule, &nPremises, &a, &b, &priority);
+    if (indexPremise > nPremises) return(258);
+
+    p = Rule[indexRule].Pchain;
+    while (count < indexPremise)
+    {
+     count++;
+     p = p->next;
+    }
+    p->logop = logop;
+    p->object = object;
+    p->index = indexObj;
+    p->variable = variable;
+    p->relop = relop;
+    p->status = status;
+    p->value = value;
+    return(0);
+}
 
 
 int  DLLEXPORT ENsetpremiseindex(int indexRule, int indexPremise, int indexObj)
- {
-   int count = 1,error = 0, nPremises, a, b;
-   EN_API_FLOAT_TYPE priority;
-   struct Premise *p;
+{
+    int count = 1,error = 0, nPremises, a, b;
+    EN_API_FLOAT_TYPE priority;
+    struct Premise *p;
 
-   if (indexRule > Nrules) return(257);
-   error = ENgetrule(indexRule, &nPremises, &a, &b, &priority);
-   if (indexPremise > nPremises) return(258);
-   
-   p = Rule[indexRule].Pchain;
-   while (count < indexPremise)
-   {
-	   count++;
-	   p = p->next;
-   }
-   p->index = indexObj;
-   return(0);
- }
+    if (indexRule > Nrules) return(257);
+    error = ENgetrule(indexRule, &nPremises, &a, &b, &priority);
+    if (indexPremise > nPremises) return(258);
+
+    p = Rule[indexRule].Pchain;
+    while (count < indexPremise)
+    {
+     count++;
+     p = p->next;
+    }
+    p->index = indexObj;
+    return(0);
+}
 
 
 int  DLLEXPORT ENsetpremisestatus(int indexRule, int indexPremise, int status)
- {
-   int count = 1, error = 0, nPremises, a, b;
-   EN_API_FLOAT_TYPE priority;
-   struct Premise *p;
+{
+    int count = 1, error = 0, nPremises, a, b;
+    EN_API_FLOAT_TYPE priority;
+    struct Premise *p;
 
-   if (indexRule > Nrules) return(257);
-   error = ENgetrule(indexRule, &nPremises, &a, &b, &priority);
-   if (indexPremise > nPremises) return(258);
-   
-   p = Rule[indexRule].Pchain;
-   while (count < indexPremise)
-   {
-	   count++;
-	   p = p->next;
-   }
-   p->status = status;
-   return(0);
- }
+    if (indexRule > Nrules) return(257);
+    error = ENgetrule(indexRule, &nPremises, &a, &b, &priority);
+    if (indexPremise > nPremises) return(258);
 
-
-int  DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise, double value)
- {
-   int count = 1,error = 0, nPremises, a, b;
-   EN_API_FLOAT_TYPE priority;
-   struct Premise *p;
-
-   if (indexRule > Nrules) return(257);
-   error = ENgetrule(indexRule, &nPremises, &a, &b, &priority);
-   if (indexPremise > nPremises) return(258);
-   
-   p = Rule[indexRule].Pchain;
-   while (count < indexPremise)
-   {
-	   count++;
-	   p = p->next;
-   }
-   p->value = value;
-   return(0);
- }
+    p = Rule[indexRule].Pchain;
+    while (count < indexPremise)
+    {
+     count++;
+     p = p->next;
+    }
+    p->status = status;
+    return(0);
+}
 
 
-int  DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, int *status, double *setting)
-   {
-	int count = 1, error = 0, nTrueAction, c, b;
-	EN_API_FLOAT_TYPE priority;
-	struct Action *a;
+int  DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise, EN_API_FLOAT_TYPE value)
+{
+    int count = 1,error = 0, nPremises, a, b;
+    EN_API_FLOAT_TYPE priority;
+    struct Premise *p;
 
-   if (indexRule > Nrules) return(252);
-   error = ENgetrule(indexRule, &c, &nTrueAction, &b, &priority);
-   if (indexAction > nTrueAction) return(253);
-   
-   a = Rule[indexRule].Tchain;
-   while (count<indexAction)
-   {
-	   count++;
-	   a = a->next;
-   }
-   *indexLink = a->link;
-   *status = a->status;
-   *setting = a->setting;   
-   return(0);
-   }
+    if (indexRule > Nrules) return(257);
+    error = ENgetrule(indexRule, &nPremises, &a, &b, &priority);
+    if (indexPremise > nPremises) return(258);
+
+    p = Rule[indexRule].Pchain;
+    while (count < indexPremise)
+    {
+     count++;
+     p = p->next;
+    }
+    p->value = value;
+    return(0);
+}
 
 
-int  DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, int status,double setting)
-   {
-	int count = 1, error = 0, nTrueAction, c, b;
-	EN_API_FLOAT_TYPE priority;
-	struct Action *a;
+int  DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting)
+{
+    int count = 1, error = 0, nTrueAction, c, b;
+    EN_API_FLOAT_TYPE priority;
+    struct Action *a;
 
-	if (indexRule > Nrules) return(257);
-	error = ENgetrule(indexRule, &c, &nTrueAction, &b, &priority);
-	if (indexAction > nTrueAction) return(258);
-   
-	a = Rule[indexRule].Tchain;
-   while (count<indexAction)
-   {
-	   count++;
-	   a = a->next;
-   }
-   a->link = indexLink;
-   a->status = status;
-   a->setting = setting;   
-   return(0);
-   }
+    if (indexRule > Nrules) return(252);
+    error = ENgetrule(indexRule, &c, &nTrueAction, &b, &priority);
+    if (indexAction > nTrueAction) return(253);
 
-
-int  DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, int *status, double *setting)
-   {
-	int count = 1, error = 0, nFalseAction, c, b;
-	EN_API_FLOAT_TYPE priority;
-	struct Action *a;
-
-   if (indexRule > Nrules) return(257);
-   error = ENgetrule(indexRule, &c, &b, &nFalseAction, &priority);
-   if (indexAction > nFalseAction) return(258);
-   
-   a = Rule[indexRule].Fchain;
-   while (count < indexAction)
-   {
-	   count++;
-	   a = a->next;
-   }
-   *indexLink = a->link;
-   *status = a->status;
-   *setting = a->setting;   
-   return(0);
-   }
+    a = Rule[indexRule].Tchain;
+    while (count<indexAction)
+    {
+     count++;
+     a = a->next;
+    }
+    *indexLink = a->link;
+    *status = a->status;
+    *setting = a->setting;   
+    return(0);
+}
 
 
-int  DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink, int status,double setting)
-   {
-	int count = 1, error = 0, nFalseAction, c, b;
-  EN_API_FLOAT_TYPE priority;
-	struct Action *a;
+int  DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting)
+{
+    int count = 1, error = 0, nTrueAction, c, b;
+    EN_API_FLOAT_TYPE priority;
+    struct Action *a;
 
-	if (indexRule > Nrules) return(257);
-	error = ENgetrule(indexRule, &c, &b, &nFalseAction, &priority);
-	if (indexAction > nFalseAction) return(258);
-   
-	a = Rule[indexRule].Fchain;
-   while (count < indexAction)
-   {
-	   count++;
-	   a = a->next;
-   }
-   a->link = indexLink;
-   a->status = status;
-   a->setting = setting;
-   
-   return(0);
+    if (indexRule > Nrules) return(257);
+    error = ENgetrule(indexRule, &c, &nTrueAction, &b, &priority);
+    if (indexAction > nTrueAction) return(258);
+
+    a = Rule[indexRule].Tchain;
+    while (count<indexAction)
+    {
+     count++;
+     a = a->next;
+    }
+    a->link = indexLink;
+    a->status = status;
+    a->setting = setting;   
+    return(0);
+}
+
+
+int  DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting)
+{
+    int count = 1, error = 0, nFalseAction, c, b;
+    EN_API_FLOAT_TYPE priority;
+    struct Action *a;
+
+    if (indexRule > Nrules) return(257);
+    error = ENgetrule(indexRule, &c, &b, &nFalseAction, &priority);
+    if (indexAction > nFalseAction) return(258);
+
+    a = Rule[indexRule].Fchain;
+    while (count < indexAction)
+    {
+     count++;
+     a = a->next;
+    }
+    *indexLink = a->link;
+    *status = a->status;
+    *setting = a->setting;   
+    return(0);
+}
+
+
+int  DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink, int status,EN_API_FLOAT_TYPE setting)
+{
+    int count = 1, error = 0, nFalseAction, c, b;
+    EN_API_FLOAT_TYPE priority;
+    struct Action *a;
+
+    if (indexRule > Nrules) return(257);
+    error = ENgetrule(indexRule, &c, &b, &nFalseAction, &priority);
+    if (indexAction > nFalseAction) return(258);
+
+    a = Rule[indexRule].Fchain;
+    while (count < indexAction)
+    {
+     count++;
+     a = a->next;
+    }
+    a->link = indexLink;
+    a->status = status;
+    a->setting = setting;
+
+    return(0);
    }
 
 int  DLLEXPORT ENgetruleID(int indexRule, char* id) 
 {
-
-	strcpy(id,"");
-	if (!Openflag) return(102);
-	if (indexRule < 1 || indexRule > Nrules) return(257);
-	strcpy(id,Rule[indexRule].label);
+    strcpy(id,"");
+    if (!Openflag) return(102);
+    if (indexRule < 1 || indexRule > Nrules) return(257);
+    strcpy(id,Rule[indexRule].label);
     return(0);
-
- }
+}
 
 /*************************** END OF EPANET.C ***************************/
 

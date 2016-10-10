@@ -953,7 +953,7 @@ extern "C" {
    @param value The value of the variable to be checked (e.g. 5.5) 
    @return Error code.
    */
-  int  DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, double value);
+  int  DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, EN_API_FLOAT_TYPE value);
 
   /**
    @brief Sets the index of an object in a premise of an existing rule-based control.
@@ -980,7 +980,7 @@ extern "C" {
    @param value The value of the variable to be checked (e.g. 5.5) 
    @return Error code.
    */
-  int  DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise, double value);
+  int  DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise, EN_API_FLOAT_TYPE value);
   
   /**
    @brief Gets the components of a true-action in an existing rule-based control.
@@ -991,7 +991,7 @@ extern "C" {
    @param setting The value of the link (e.g. pump speed 0.9)
    @return Error code.
    */
-  int  DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, int *status, double *setting);
+  int  DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
 
   /**
    @brief Sets the components of a true-action in an existing rule-based control.
@@ -1002,7 +1002,7 @@ extern "C" {
    @param setting The value of the link (e.g. pump speed 0.9)
    @return Error code.
    */
-  int  DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, int status, double setting);
+  int  DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
   
   /**
    @brief Gets the components of a false-action in an existing rule-based control.
@@ -1013,7 +1013,7 @@ extern "C" {
    @param setting The value of the link (e.g. pump speed 0.9)
    @return Error code.
    */
-  int  DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, int *status, double *setting);
+  int  DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
 
   /**
    @brief Sets the components of a false-action in an existing rule-based control.
@@ -1024,7 +1024,7 @@ extern "C" {
    @param setting The value of the link (e.g. pump speed 0.9)
    @return Error code.
    */
-  int  DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink, int status,double setting);
+  int  DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
 
   /**
    @brief Returns the ID of a rule.
