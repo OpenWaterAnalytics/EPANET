@@ -3138,6 +3138,21 @@ int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE b
   return 0;
 }
 
+int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, int pattIndex)
+{
+  Pdemand d;
+  int n=1;
+  /* Check for valid arguments */
+  if (!Openflag) return(102);
+  if (nodeIndex <= 0 || nodeIndex > Nnodes) return(203);
+  if (pattIndex < 1 || pattIndex > Npats) return(205);
+  if (nodeIndex <= Njuncs) {
+	for(d=Node[nodeIndex].D; n<demandIdx && d != NULL; d=d->next) n++;
+	if(n!=demandIdx) return(253);
+    d->Pat = pattIndex;
+  }
+  return 0;
+}
 
 int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
 {

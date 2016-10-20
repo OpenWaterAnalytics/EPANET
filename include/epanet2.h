@@ -636,7 +636,7 @@ extern "C" {
    @return Error code
    */
   int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIndex, int *pattIndex);
-  
+
   /**
    @brief Get the index of a Link with specified ID.
    @param id The string ID of a link.
@@ -827,6 +827,7 @@ extern "C" {
    */
   int  DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode);
   
+   
   /**
    @brief Sets the node's base demand for a category.
    @param nodeIndex The index of a node.
@@ -836,6 +837,15 @@ extern "C" {
    @see ENgetbasedemand
    */
   int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
+  
+  /**
+   @brief Sets the index of the demand pattern assigned to a node for a category index.
+   @param nodeIndex The index of a node (first node is index 1).
+   @param demandIndex The index of a category (first category is index 1).
+   @param pattIndex The index of the pattern for this node and category.
+   @return Error code
+   */
+  int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, int pattIndex);
   
   /**
    @brief Retrieves index of curve with specific ID.
