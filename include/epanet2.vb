@@ -216,7 +216,8 @@ Public Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENsetoption Lib "epanet2.dll" (ByVal Code As Int32, ByVal Value As Single) As Int32
  Declare Function ENsetstatusreport Lib "epanet2.dll" (ByVal Code As Int32) As Int32
  Declare Function ENsetqualtype Lib "epanet2.dll" (ByVal QualCode As Int32, ByVal ChemName As String, ByVal ChemUnits As String, ByVal TraceNode As String) As Int32
- 
+ Declare Function ENsetdemandpattern Lib "epanet2.dll" (ByVal Index As Int32, ByVal DemandIndex As Int32, ByVal PatIndex As Int32) As Int32
+
  Declare Function ENaddpattern Lib "epanet2.dll" (ByVal ID As String) As Int32
 
  Declare Function ENgetcurveindex Lib "epanet2.dll" (ByVal ID As String, ByRef Index As Int32) As Int32
