@@ -65,6 +65,7 @@ EXPORTS
     ENsetcoord                    = _ENsetcoord@12
     ENgetqualinfo                 = _ENgetqualinfo@16
     ENsetbasedemand               = _ENsetbasedemand@12
+    ENsetdemandpattern            = _ENgetdemandpattern@12
     ENgetaveragepatternvalue      = _ENgetaveragepatternvalue@8
     ENgetheadcurveindex           = _ENgetheadcurveindex@8
     ENgetpumptype                 = _ENgetpumptype@8
