@@ -421,6 +421,17 @@ int  saveinpfile(char *fname)
       }
    }            
 
+    /*moved after control section */
+   fprintf(f, "\n\n[RULES]");
+   for (i=1; i<=Nrules; i++)
+   {  
+	  fprintf(f, "\nRULE %s",Rule[i].label);
+	  errcode = writeRuleinInp(f, i);
+	  fprintf(f, "\n");
+   }
+   //fprintf(f, "\n\n");
+   /* end move after control section */ 
+
 /* Write [QUALITY] section */
 /* (Skip nodes with default quality of 0) */
 
@@ -624,6 +635,7 @@ int  saveinpfile(char *fname)
    }
    fprintf(f, "\n\n");
 
+    /*moved after control section 
    fprintf(f, "\n\n[RULES]");
    for (i=1; i<=Nrules; i++)
    {  
@@ -632,6 +644,7 @@ int  saveinpfile(char *fname)
 	  fprintf(f, "\n");
    }
    fprintf(f, "\n\n");
+   end move after control section  */
 
 /* Write [COORDINATES] section */
 

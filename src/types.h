@@ -506,6 +506,7 @@ struct  ActItem *ActList;   /* Linked list of action items */
 int     RuleState;          /* State of rule interpreter */
 long    Time1;              /* Start of rule evaluation time interval (sec) */
 struct  Premise *Plast;     /* Previous premise clause */
-
+struct  Action *Tlast; /*Previous true action */ 
+struct  Action *Flast; /*Previous false action */ 
 
 #endif
