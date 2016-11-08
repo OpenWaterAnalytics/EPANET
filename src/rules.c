@@ -326,6 +326,8 @@ void  newrule()
    Rule[Nrules].Fchain = NULL;
    Rule[Nrules].priority = 0.0;
    Plast = NULL;
+   Tlast = NULL; 
+   Flast = NULL; 
 }
 
 
@@ -521,13 +523,21 @@ int  newaction()
    /* Add action to current rule's action list */
    if (RuleState == r_THEN)
    {
-     a->next = Rule[Nrules].Tchain;
-     Rule[Nrules].Tchain = a;
+       a->next = NULL;
+	   if (Tlast == NULL) Rule[Nrules].Tchain = a;
+	   else Tlast->next = a;
+	   Tlast = a;
+	   //a->next = Rule[Nrules].Tchain;
+       //Rule[Nrules].Tchain = a;
    }
    else
    {
-      a->next = Rule[Nrules].Fchain;
-      Rule[Nrules].Fchain = a;
+	   a->next = NULL;
+	   if (Flast == NULL) Rule[Nrules].Fchain = a;
+	   else Flast->next = a;
+	   Flast = a;
+       //a->next = Rule[Nrules].Fchain;
+       //Rule[Nrules].Fchain = a;
    }
    return(0);
 }
@@ -929,20 +939,34 @@ void  ruleerrmsg(int err)
    
 
 int writeRuleinInp(FILE *f, int RuleIdx){
-	 
+/* 
+**-----------------------------------------------------------
+**    This function writes a specific rule (rule ID, 
+**    premises, true and false actions and prioriry in the 
+**    text input file.
+**    INPUT:
+**    - FILE *f : pointer to the .inp file to be written
+**    - int RuleIdx : index of the rule that needs to be written
+**    OUTPUT: error code
+**-----------------------------------------------------------
+*/		 
+
 	//int i,j;
 	struct Premise *p;
 	struct Action *a;
 	int hours = 0, minutes = 0, seconds = 0;
 
+	//the first condition/premises is different from the others because it starts with IF (but it is kept in memory as AND) 
     p = Rule[RuleIdx].Pchain;
 	if (p->value==MISSING) 
 	{
 		fprintf(f, "\nIF ");
 		if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0) ) 
 		{
-			if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
-			else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			//if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			//else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			if (p->index <= Njuncs) fprintf(f,"JUNCTION %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);  
+			else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERVOIR %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 			else fprintf(f,"TANK %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 		} 
 		else 
@@ -974,14 +998,16 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 			}
 			else 
 			{
-				if (p->variable == r_FILLTIME || p->variable == r_DRAINTIME) fprintf(f, "\nIF %s %s %s %s %.4lf", Object[p->object], Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value/3600.0);
+				if (p->variable == r_FILLTIME || p->variable == r_DRAINTIME) fprintf(f, "\nIF TANK %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value/3600.0);
 				else 
 				{
 					fprintf(f, "\nIF ");
 					if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0)) 
 					{
-						if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
-						else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						//if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						//else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						if (p->index <= Njuncs) fprintf(f,"JUNCTION %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value); 
+						else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERVOIR %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value); 
 						else fprintf(f,"TANK %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
 					} 
 					else 
@@ -996,15 +1022,17 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 	}
 
 	p = p->next;
-	while (p != NULL) 
+	while (p != NULL) //for all other premises/conditions write the corresponding logicOperator
 	{
 		if (p->value==MISSING) 
 		{
 			fprintf(f, "\n%s ", Ruleword[p->logop]);
 			if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0)) 
 			{
-				if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
-				else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+				//if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+				//else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+				if (p->index <= Njuncs) fprintf(f,"JUNCTION %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]); 
+				else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERVOIR %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 				else fprintf(f,"TANK %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 			} 
 			else 
@@ -1036,13 +1064,15 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 				}
 				else 
 				{
-					if (p->variable == r_FILLTIME || p->variable == r_DRAINTIME) fprintf(f, "\nIF %s %s %s %s %.4lf", Object[p->object], Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value/3600.0);
+					if (p->variable == r_FILLTIME || p->variable == r_DRAINTIME) fprintf(f, "\n%s TANK %s %s %s %.4lf", Ruleword[p->logop], Object[p->object], Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value/3600.0);
 					else 
 					{ 
 						fprintf(f, "\n%s ", Ruleword[p->logop]);
 						if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0)) {
-							if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
-							else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+							//if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+							//else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+							if (p->index <= Njuncs) fprintf(f,"JUNCTION %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value); 
+							else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERVOIR %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value); 
 							else fprintf(f,"TANK %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
 						} 
 						else 
@@ -1058,7 +1088,7 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 		p = p->next;
 	}
 
-	a = Rule[RuleIdx].Tchain;
+	a = Rule[RuleIdx].Tchain; //The first action in hte list of true actions starts with THEN
 	if (a->setting==MISSING) 
 	{
 		if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nTHEN PIPE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
@@ -1072,7 +1102,7 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 		else fprintf(f, "\nTHEN VALVE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
 	}
 
-	a = a->next;
+	a = a->next; //The other actions in the list of true actions start with AND
 	while (a != NULL) 
 	{
 		if (a->setting==MISSING) 
@@ -1092,7 +1122,7 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 	}
 
 
-	a = Rule[RuleIdx].Fchain;
+	a = Rule[RuleIdx].Fchain; //The first action in the list of false actions starts with ELSE
 	if (a != NULL) 
 	{
 		if (a->setting==MISSING) 
@@ -1108,7 +1138,7 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 			else fprintf(f, "\nELSE VALVE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
 		}
 
-		a = a->next;
+		a = a->next; //The other actions in the list of false actions start with AND
 		while (a != NULL) 
 		{
 			if (a->setting==MISSING) 
