@@ -527,8 +527,6 @@ int  newaction()
 	   if (Tlast == NULL) Rule[Nrules].Tchain = a;
 	   else Tlast->next = a;
 	   Tlast = a;
-	   //a->next = Rule[Nrules].Tchain;
-       //Rule[Nrules].Tchain = a;
    }
    else
    {
@@ -536,8 +534,6 @@ int  newaction()
 	   if (Flast == NULL) Rule[Nrules].Fchain = a;
 	   else Flast->next = a;
 	   Flast = a;
-       //a->next = Rule[Nrules].Fchain;
-       //Rule[Nrules].Fchain = a;
    }
    return(0);
 }
@@ -963,8 +959,6 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 		fprintf(f, "\nIF ");
 		if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0) ) 
 		{
-			//if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
-			//else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 			if (p->index <= Njuncs) fprintf(f,"JUNCTION %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);  
 			else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERVOIR %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 			else fprintf(f,"TANK %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
@@ -1004,8 +998,6 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 					fprintf(f, "\nIF ");
 					if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0)) 
 					{
-						//if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
-						//else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
 						if (p->index <= Njuncs) fprintf(f,"JUNCTION %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value); 
 						else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERVOIR %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value); 
 						else fprintf(f,"TANK %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
@@ -1029,8 +1021,6 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 			fprintf(f, "\n%s ", Ruleword[p->logop]);
 			if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0)) 
 			{
-				//if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
-				//else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 				if (p->index <= Njuncs) fprintf(f,"JUNCTION %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]); 
 				else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERVOIR %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 				else fprintf(f,"TANK %s %s %s %s", Node[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
@@ -1069,8 +1059,6 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 					{ 
 						fprintf(f, "\n%s ", Ruleword[p->logop]);
 						if ((strncmp(Object[p->object], "NODE", 4)==0) || (strncmp(Object[p->object], "Junc", 4)==0) || (strncmp(Object[p->object], "Reser", 5)==0) || (strncmp(Object[p->object], "Tank", 4)==0)) {
-							//if (p->index <= Njuncs) fprintf(f,"JUNC %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
-							//else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERV %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
 							if (p->index <= Njuncs) fprintf(f,"JUNCTION %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value); 
 							else if (Tank[p->index-Njuncs].A == 0.0) fprintf(f,"RESERVOIR %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value); 
 							else fprintf(f,"TANK %s %s %s %.4lf", Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);

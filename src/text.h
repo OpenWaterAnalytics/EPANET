@@ -95,10 +95,8 @@ AUTHOR:     L. Rossman
 #define   w_METERS      "METERS"
 
 #define   w_ELEV        "ELEV"
-//#define   w_DEMAND      "DEMA"
 #define   w_DEMAND      "DEMAND"
 #define   w_HEAD        "HEAD"
-//#define   w_PRESSURE    "PRES"
 #define   w_PRESSURE    "PRESSURE"
 #define   w_QUALITY     "QUAL"
 
@@ -107,15 +105,11 @@ AUTHOR:     L. Rossman
 #define   w_ROUGHNESS   "ROUG"
 #define   w_VELOCITY    "VELO"
 #define   w_HEADLOSS    "HEADL"
-//#define   w_SETTING     "SETT"
 #define   w_SETTING     "SETTING"
-//#define   w_POWER       "POWE"
 #define   w_POWER       "POWER"
 #define   w_VOLUME      "VOLU"
 #define   w_CLOCKTIME   "CLOCKTIME"
-//#define   w_FILLTIME    "FILL"
 #define   w_FILLTIME    "FILLTIME"
-//#define   w_DRAINTIME   "DRAI"
 #define   w_DRAINTIME   "DRAINTIME"
 #define   w_GRADE       "GRADE"
 #define   w_LEVEL       "LEVEL"
@@ -166,7 +160,7 @@ AUTHOR:     L. Rossman
 
 #define   w_EFFIC       "EFFI"
 #define   w_HEAD        "HEAD"
-#define   w_POWER       "POWE"
+#define   w_POWER       "POWER"
 #define   w_SPEED       "SPEE"
 
 #define   w_MIXED       "MIXED"
