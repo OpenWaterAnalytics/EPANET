@@ -3326,8 +3326,12 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
   Nlinks++;
   n = Nlinks;
   
-/* Grow link array to accomodate the new value */
+/* Grow arrays to accomodate the new value */
   Link = (Slink *)realloc(Link, (Nlinks+1)*sizeof(Slink));
+  Q = (double *)realloc(Q, (Nlinks+1)*sizeof(double));
+  LinkSetting = (double *)realloc(LinkSetting, (Nlinks+1)*sizeof(double));
+  LinkStatus = (double *)realloc(LinkStatus, (Nlinks+1)*sizeof(double));
+  LinkStatus = (double *)realloc(LinkStatus, (Nlinks+1)*sizeof(double));
   
   strncpy(Link[n].ID, id, MAXID);
   
@@ -3353,7 +3357,7 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
     Pump[Npumps].Upat = 0;
     Pump[Npumps].Epat = 0;
     Pump[Npumps].Ecost = 0;
-    Pump[Npumps].Energy[6] = 0;
+    Pump[Npumps].Energy[5] = 0;
   }
   else {
     
