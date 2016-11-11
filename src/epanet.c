@@ -3166,6 +3166,243 @@ int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
   return(0);
 }
 
+int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
+  int i;
+  EN_LinkType fromType;
+  
+  if ( !Openflag ) return(102);
+  
+/* Check if a link with the id exists */
+  if ( ENgetnodeindex(id, &i) != 0 ) return(215);
+  
+/* Get the current type of the link */
+  ENgetnodetype(i, fromType);
+  if(fromType == toType) return(0);
+  
+  
+/* Change link from Pipe */
+  if(toType <= EN_PIPE) {
+    Npipes++;
+  }
+  else if(toType == EN_PUMP) {
+    Npumps++;
+    Pump[Npumps].Link = i;
+  } else {
+    Nvalves++;
+    Valve[Nvalves].Link = i;
+  }
+  
+  if(fromType <= EN_PIPE) {
+    Npipes--;
+  } else if(fromType == EN_PUMP) {
+    Npumps--;
+    
+  }
+  
+}
+
+
+int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
+{
+  int i,position, n;
+
+/* Check if a node with same id already exists */
+  if ( !Openflag ) return(102);
+  if ( ENgetnodeindex(id, &i) == 0 ) return(215);
+  
+/* Check that id name is not too long */
+  if (strlen(id) > MAXID) return(250);
+  
+/* Grow arrays to accomodate the new values */
+  Node = (Snode *)realloc(Node, (Nnodes+2)*sizeof(Snode));
+  Coord = realloc(Coord, (Nnodes+2)* sizeof(Scoord));
+  NodeDemand = (double *)realloc(NodeDemand, (Nnodes+2)*sizeof(double));
+  NodeQual = (double *)realloc(NodeQual, (Nnodes+2)*sizeof(double));
+  NodeHead = (double *)realloc(NodeHead, (Nnodes+2)*sizeof(double));
+  
+  if(nodeType == EN_JUNCTION) {
+    Njuncs++;
+    n = Njuncs;
+    
+    struct Sdemand *demand;
+    demand = (struct Sdemand *) malloc(sizeof(struct Sdemand));
+    demand->Base = 5.0;
+    demand->Pat = 1;
+    demand->next = NULL;
+    Node[n].D = demand;
+    
+    int index;
+    // shift rest of Node array
+    for(index = Nnodes; index >= Njuncs; index--) {
+      ENHashTableUpdate(NodeHashTable, Node[index].ID, index+1);        
+      Node[index+1] = Node[index];
+      Coord[index+1] = Coord[index];
+    }
+    // shift indices of Tank array
+    for(index = 1; index <= Ntanks; index++) {
+      Tank[index].Node += 1;
+    }
+    
+    // shift indices of Pipes, if necessary
+    for(index = 1; index <= Npipes; index++) {
+      if(Link[index].N1 > Njuncs - 1) {
+        Link[index].N1 += 1;
+      }
+      if(Link[index].N2 > Njuncs - 1) {
+        Link[index].N2 += 1;
+      }
+    }
+  } else {
+    n = Nnodes+1;
+    Ntanks++;
+    
+  /* resize tanks array */
+    Tank = (Stank *)realloc(Tank, (Ntanks+1)*sizeof(Stank));
+    
+  /* set default values for new tank or reservoir */
+    Tank[Ntanks].Node = n;
+    Tank[Ntanks].Pat = 0;
+    if(nodeType == EN_TANK) {
+      Tank[Ntanks].A  = 1.0;
+    } else {
+      Tank[Ntanks].A  = 0;
+    }
+    Tank[Ntanks].Hmin = 0;
+    Tank[Ntanks].Hmax = 0;
+    Tank[Ntanks].H0 = 0;
+    Tank[Ntanks].Vmin = 0;
+    Tank[Ntanks].Vmax = 0;
+    Tank[Ntanks].V0 = 0;
+    Tank[Ntanks].Kb = 0;
+    Tank[Ntanks].V = 0;
+    Tank[Ntanks].C = 0;
+    Tank[Ntanks].Pat = 0;
+    Tank[Ntanks].Vcurve = 0;
+    Tank[Ntanks].MixModel = 0;
+    Tank[Ntanks].V1max = 0;
+  }
+  
+  Nnodes++;
+
+  /* set default values for new node */
+  strncpy(Node[n].ID, id, MAXID);
+  
+  
+  Node[n].El = 0;
+  Node[n].S = NULL;
+  Node[n].C0 = 0;
+  Node[n].Ke = 0;
+  Node[n].Rpt = 0;
+  Coord[n].HaveCoords = FALSE;
+  Coord[n].X = 0;
+  Coord[n].Y = 0;
+  
+  /* Insert new node into hash table */
+  ENHashTableInsert(NodeHashTable, Node[n].ID, n);        /* see HASH.C */
+  return(0);
+}
+
+int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode)
+{
+  int i, n;
+  Slink *tmpLink;
+  ENHashTable *tmpLinkHashTable = ENHashTableCreate();
+  
+/* Check if a link with same id already exists */
+  if ( !Openflag ) return(102);
+  if ( ENgetlinkindex(id, &i) == 0 ) return(215);
+  
+/* Lookup the from and to nodes */
+  int N1 = ENHashTableFind(NodeHashTable, fromNode);
+  int N2 = ENHashTableFind(NodeHashTable, toNode);
+  
+  if (N1 == 0 || N2 == 0) {
+    return(203);
+  }
+  
+/* Check that id name is not too long */
+  if (strlen(id) > MAXID) return(250);
+  
+  Nlinks++;
+  n = Nlinks;
+  
+/* Grow link array to accomodate the new value */
+  Link = (Slink *)realloc(Link, (Nlinks+1)*sizeof(Slink));
+  
+  strncpy(Link[n].ID, id, MAXID);
+  
+  if (linkType <= EN_PIPE) {
+    Npipes++;
+  }
+  else if (linkType == EN_PUMP) {
+    Npumps++;
+    
+    /* Grow pump array to accomodate the new value */
+    Pump = (Spump *)realloc(Pump, (Npumps+1)*sizeof(Spump));
+    
+    Pump[Npumps].Link = n;
+    Pump[Npumps].Ptype = 0;
+    Pump[Npumps].Q0 = 0;
+    Pump[Npumps].Qmax = 0;
+    Pump[Npumps].Hmax = 0;
+    Pump[Npumps].H0 = 0;
+    Pump[Npumps].R = 0;
+    Pump[Npumps].N = 0;
+    Pump[Npumps].Hcurve = 0;
+    Pump[Npumps].Ecurve = 0;
+    Pump[Npumps].Upat = 0;
+    Pump[Npumps].Epat = 0;
+    Pump[Npumps].Ecost = 0;
+    Pump[Npumps].Energy[6] = 0;
+  }
+  else {
+    
+    /* Grow valve array to accomodate the new value */
+    Nvalves++;
+    Valve = (Svalve *)realloc(Valve, (Nvalves+1)*sizeof(Svalve));
+    Valve[Nvalves].Link = n;
+  }
+
+  
+  Link[n].Type = linkType;
+  Link[n].N1 = N1;
+  Link[n].N2 = N2;
+  
+  Link[n].Diam = 0;
+  Link[n].Len = 0;
+  Link[n].Kc  = 0.01;
+  Link[n].Km  = 0;
+  Link[n].Kb  = 0;
+  Link[n].Kw  = 0;
+  Link[n].R  = 0;
+  Link[n].Rc  = 0;
+  Link[n].Stat = 0;
+  Link[n].Rpt = 0;
+  
+  ENHashTableInsert(LinkHashTable, Link[n].ID, n);
+  return(0);
+}
+
+
+int findPump(int link) {
+  int i;
+  for(i=0;i<=Npumps;i++) {
+    if(Pump[i].Link == link) {
+      return i;
+    }
+  }
+  return NOTFOUND;
+}
+
+int findValve(int link) {
+  int i;
+  for(i=0;i<=Npumps;i++) {
+    if(Valve[i].Link == link) {
+      return i;
+    }
+  }
+  return NOTFOUND;
+}
 
 /*************************** END OF EPANET.C ***************************/
 

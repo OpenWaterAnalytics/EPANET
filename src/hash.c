@@ -72,6 +72,26 @@ int ENHashTableInsert(ENHashTable *ht, char *key, int data)
   return(1);
 }
 
+/* Abel Heinsbroek: Added function to update the hash table value for a given key */
+int ENHashTableUpdate(ENHashTable *ht, char *key, int new_data)
+{
+  unsigned int i = _enHash(key);
+  ENHashEntry *entry;
+  if ( i >= ENHASHTABLEMAXSIZE ) {
+    return(NOTFOUND);
+  }
+  entry = ht[i];
+  while (entry != NULL)
+  {
+    if ( strcmp(entry->key,key) == 0 ) {
+      entry->data = new_data;
+      return(1);
+    }
+    entry = entry->next;
+  }
+  return(NOTFOUND);
+}
+
 int     ENHashTableFind(ENHashTable *ht, char *key)
 {
   unsigned int i = _enHash(key);

@@ -904,6 +904,25 @@ extern "C" {
    */
   int  DLLEXPORT ENaddcurve(char *id);
   
+
+  /**
+   @brief Adds a new node
+   @param id The name of the node to be added.
+   @param nodeType The node type code
+   @return Error code.
+   */
+  int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType);
+  /**
+   @brief Adds a new link
+   @param id The name of the link to be added.
+   @param linkType The link type code
+   @param fromNode The id of the from node
+   @param toNode The id of the to node
+   @return Error code.
+   */
+  int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode);
+  
+  
 #if defined(__cplusplus)
 }
 #endif
