@@ -183,6 +183,64 @@ int DLLEXPORT ENepanet(char *f1, char *f2, char *f3, void (*pviewprog) (char *))
     return(MAX(errcode, Warnflag) );
 }
 
+int DLLEXPORT ENinit(char *f2, char *f3, int ff, int hf)
+/*----------------------------------------------------------------
+**  Input:
+**           f2 = pointer to name of report file
+**           f3 = pointer to name of binary output file      
+             ff = flow flag
+             hf = headloss flag
+ 
+**  Output:  none 
+**  Returns: error code                              
+**  Purpose: opens EPANET
+**----------------------------------------------------------------
+*/
+{
+  int errcode = 0;
+  /*** Updated 9/7/00 ***/
+  /* Reset math coprocessor */
+#ifdef DLL
+  _fpreset();
+#endif
+  
+  /* Set system flags */
+  Openflag  = TRUE;
+  OpenHflag = FALSE;
+  OpenQflag = FALSE;
+  SaveHflag = FALSE;
+  SaveQflag = FALSE;
+  Warnflag  = FALSE;
+  Coordflag = TRUE;
+  
+  /*** Updated 9/7/00 ***/
+  Messageflag = TRUE;
+  Rptflag = 1;
+  
+  /* Initialize global pointers to NULL. */
+  initpointers();
+  
+  ERRCODE(netsize());
+  ERRCODE(allocdata());
+  
+  setdefaults();
+  
+  Flowflag = ff;
+  Formflag = hf;
+  
+  adjustdata();
+  initreport();
+  initunits();
+  inittanks();
+  convertunits();
+  
+  MaxPats = 1;
+  // initialize default pattern
+  getpatterns();
+  
+  return(errcode);
+}
+
 
 int DLLEXPORT ENopen(char *f1, char *f2, char *f3)
 /*----------------------------------------------------------------
@@ -978,7 +1036,6 @@ int DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x, EN_API_F
    return(0);
 }
 
-
 int DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode)
 {
    *tracenode = 0;
@@ -1486,8 +1543,10 @@ int  DLLEXPORT ENgetcurve(int curveIndex, char *id, int *nValues, EN_API_FLOAT_T
   pointY = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
   
   for (iPoint = 0; iPoint < nPoints; iPoint++) {
-    double x = curve.X[iPoint] * Ucf[LENGTH];
-    double y = curve.Y[iPoint] * Ucf[VOLUME];
+//    double x = curve.X[iPoint] * Ucf[LENGTH];
+//    double y = curve.Y[iPoint] * Ucf[VOLUME];
+    double x = curve.X[iPoint];
+    double y = curve.Y[iPoint];
     pointX[iPoint] = (EN_API_FLOAT_TYPE)x;
     pointY[iPoint] = (EN_API_FLOAT_TYPE)y;
   }
@@ -1833,6 +1892,7 @@ int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
 
 
 int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
+
 /*----------------------------------------------------------------
 **  Input:   index = link index
 **           code  = link parameter code (see EPANET2.H)
@@ -1844,7 +1904,9 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
 */
 {
    char  s;
-   double r, value = v;
+   double r, value;
+  
+    value = v;
 
    if (!Openflag) return(102);
    if (index <= 0 || index > Nlinks) return(204);
@@ -1944,6 +2006,7 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
             Reactflag = 1;                                                     //(2.00.12 - LR)
          }
          break;
+
 
       default: return(251);
    }
@@ -2118,7 +2181,6 @@ int  DLLEXPORT  ENaddcurve(char *id)
     MaxCurves = n;
     return 0;
 }
-
 
 int  DLLEXPORT  ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int n)
 {
@@ -2348,6 +2410,29 @@ int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
    if (index < 1 || index > Nlinks || PUMP != Link[index].Type) return(204);
    *curveindex = Pump[PUMPINDEX(index)].Hcurve;
    return(0);
+}
+
+int DLLEXPORT ENsetheadcurveindex(int index, int curveindex)
+{
+  if (!Openflag) return(102);
+  if (index < 1 || index > Nlinks || PUMP != Link[index].Type) return(204);
+  Pump[PUMPINDEX(index)].Ptype = NOCURVE;
+  Pump[PUMPINDEX(index)].Hcurve = curveindex;
+  // update pump parameters
+  getpumpparams();
+  // convert units
+  if (Pump[PUMPINDEX(index)].Ptype == POWER_FUNC)
+  {
+    Pump[PUMPINDEX(index)].H0 /= Ucf[HEAD];
+    Pump[PUMPINDEX(index)].R  *= (pow(Ucf[FLOW],Pump[PUMPINDEX(index)].N)/Ucf[HEAD]);
+  }
+  /* Convert flow range & max. head units */
+  Pump[PUMPINDEX(index)].Q0   /= Ucf[FLOW];
+  Pump[PUMPINDEX(index)].Qmax /= Ucf[FLOW];
+  Pump[PUMPINDEX(index)].Hmax /= Ucf[HEAD];
+  
+  
+  return(0);
 }
 
 int DLLEXPORT ENgetpumptype(int index, int *type)
@@ -3201,7 +3286,6 @@ int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
   
 }
 
-
 int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
 {
   int i,position, n;
@@ -3227,7 +3311,7 @@ int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
     struct Sdemand *demand;
     demand = (struct Sdemand *) malloc(sizeof(struct Sdemand));
     demand->Base = 5.0;
-    demand->Pat = 1;
+    demand->Pat = 0;
     demand->next = NULL;
     Node[n].D = demand;
     
@@ -3279,7 +3363,7 @@ int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
     Tank[Ntanks].Pat = 0;
     Tank[Ntanks].Vcurve = 0;
     Tank[Ntanks].MixModel = 0;
-    Tank[Ntanks].V1max = 0;
+    Tank[Ntanks].V1max = 10000;
   }
   
   Nnodes++;
@@ -3357,7 +3441,8 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
     Pump[Npumps].Upat = 0;
     Pump[Npumps].Epat = 0;
     Pump[Npumps].Ecost = 0;
-    Pump[Npumps].Energy[5] = 0;
+    Pump[Npumps].Energy[5] = MISSING;
+    
   }
   else {
     
@@ -3367,12 +3452,15 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
     Valve[Nvalves].Link = n;
   }
 
-  
   Link[n].Type = linkType;
   Link[n].N1 = N1;
   Link[n].N2 = N2;
   
-  Link[n].Diam = 0;
+  if(linkType == PUMP) {
+    Link[n].Diam = Npumps;
+  } else {
+    Link[n].Diam = 0;
+  }
   Link[n].Len = 0;
   Link[n].Kc  = 0.01;
   Link[n].Km  = 0;

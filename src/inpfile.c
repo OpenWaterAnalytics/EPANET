@@ -61,6 +61,9 @@ void  saveauxdata(FILE *f)                                                     /
    char  s[MAXLINE+1];
 
    sect = -1;
+  if(InFile == NULL) {
+    return;
+  }
    rewind(InFile);
    while (fgets(line,MAXLINE,InFile) != NULL)
    {

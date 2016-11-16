@@ -27,7 +27,7 @@
 // the toolkit can be compiled with support for double-precision as well.
 // just make sure that you use the correct #define in your client code.
 #ifndef EN_API_FLOAT_TYPE
-  #define EN_API_FLOAT_TYPE float
+  #define EN_API_FLOAT_TYPE double
 #endif
 
 // --- define WINDOWS
@@ -111,7 +111,7 @@ typedef enum {
   EN_ENERGY       = 13,
   EN_LINKQUAL     = 14,
   EN_LINKPATTERN  = 15,
-  EN_EFFICIENCY   = 16
+  EN_EFFICIENCY   = 16,
 } EN_LinkProperty;
 
 /// Time parameter codes
@@ -268,6 +268,8 @@ extern "C" {
    */
   int  DLLEXPORT ENepanet(char *inpFile, char *rptFile, char *binOutFile, void (*callback) (char *));
   
+  
+  int  DLLEXPORT ENinit(char *rptFile, char *binOutFile, int flowFlag, int headlossFlag);
   /**
    @brief Opens EPANET input file & reads in network data
    @param inpFile pointer to name of input file (must exist)
@@ -275,6 +277,7 @@ extern "C" {
    @param binOutFile pointer to name of binary output file (to be created)
    @return error code
    */
+
   int  DLLEXPORT ENopen(char *inpFile, char *rptFile, char *binOutFile);
   
   /**
@@ -703,6 +706,14 @@ extern "C" {
   int  DLLEXPORT ENgetheadcurveindex(int pumpIndex, int *curveIndex);
   
   /**
+   @brief Sets the curve id for a specified pump index.
+   @param curveIndex The id of the curve
+   @param[out] curveIndex The index of the curve used by the pump.
+   @return Error code.
+   */
+  int  DLLEXPORT ENsetheadcurveindex(int pumpIndex, int curveIndex);
+  
+  /**
    @brief Get the type of pump
    @param linkIndex The index of the pump element
    @param[out] outType The integer-typed pump curve type signifier (output parameter)
@@ -739,6 +750,7 @@ extern "C" {
    @see EN_NodeProperty
    */
   int  DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
+
   
   /**
    @brief Set a proprty value for a link.
