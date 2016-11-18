@@ -1904,9 +1904,7 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
 */
 {
    char  s;
-   double r, value;
-  
-    value = v;
+   double r, value = v;
 
    if (!Openflag) return(102);
    if (index <= 0 || index > Nlinks) return(204);
