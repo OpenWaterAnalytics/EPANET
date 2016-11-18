@@ -707,8 +707,8 @@ extern "C" {
   
   /**
    @brief Sets the curve id for a specified pump index.
-   @param curveIndex The id of the curve
-   @param[out] curveIndex The index of the curve used by the pump.
+   @param pumpIndex The index of the pump
+   @param curveIndex The index of the curve used by the pump
    @return Error code.
    */
   int  DLLEXPORT ENsetheadcurveindex(int pumpIndex, int curveIndex);
@@ -933,6 +933,18 @@ extern "C" {
    @return Error code.
    */
   int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode);
+  /**
+   @brief Deletes a node
+   @param nodeIndex The node index
+   @return Error code.
+   */
+  int DLLEXPORT ENdeletenode(int nodeIndex);
+  /**
+   @brief Deletes a link
+   @param nodeIndex The link index
+   @return Error code.
+   */
+  int DLLEXPORT ENdeletelink(int linkIndex);
   
   
 #if defined(__cplusplus)

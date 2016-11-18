@@ -2431,7 +2431,6 @@ int DLLEXPORT ENsetheadcurveindex(int index, int curveindex)
   Pump[PUMPINDEX(index)].Qmax /= Ucf[FLOW];
   Pump[PUMPINDEX(index)].Hmax /= Ucf[HEAD];
   
-  
   return(0);
 }
 
@@ -3048,6 +3047,60 @@ int  findlink(char *id)
    return(ENHashTableFind(LinkHashTable,id));
 }
 
+int  findtank(int index)
+/*----------------------------------------------------------------
+**  Input:   index = node index
+**  Output:  none
+**  Returns: index of tank with given node id, or NOTFOUND if tank not found
+**  Purpose: for use in the deletenode function
+**----------------------------------------------------------------
+*/
+{
+  int i;
+  for(i=1; i<=Ntanks; i++) {
+    if(Tank[i].Node == index) {
+      return(i);
+    }
+  }
+  return(NOTFOUND);
+}
+
+int  findpump(int index)
+/*----------------------------------------------------------------
+**  Input:   index = link ID
+**  Output:  none
+**  Returns: index of pump with given link id, or NOTFOUND if pump not found
+**  Purpose: for use in the deletelink function
+**----------------------------------------------------------------
+*/
+{
+  int i;
+  for(i=1; i <= Npumps; i++) {
+    if(Pump[i].Link == index) {
+      return(i);
+    }
+  }
+  return(NOTFOUND);
+}
+
+int findvalve(int index)
+/*----------------------------------------------------------------
+**  Input:   index = link ID
+**  Output:  none
+**  Returns: index of valve with given link id, or NOTFOUND if valve not found
+**  Purpose: for use in the deletelink function
+**----------------------------------------------------------------
+*/
+{
+  int i;
+  for(i=1; i <= Nvalves; i++) {
+    if(Valve[i].Link == index) {
+      return(i);
+    }
+  }
+  return(NOTFOUND);
+}
+
 
 char *geterrmsg(int errcode)
 /*----------------------------------------------------------------
@@ -3288,7 +3341,7 @@ int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
 
 int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
 {
-  int i,position, n;
+  int i, n;
 
 /* Check if a node with same id already exists */
   if ( !Openflag ) return(102);
@@ -3389,8 +3442,6 @@ int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
 int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode)
 {
   int i, n;
-  Slink *tmpLink;
-  ENHashTable *tmpLinkHashTable = ENHashTableCreate();
   
 /* Check if a link with same id already exists */
   if ( !Openflag ) return(102);
@@ -3414,8 +3465,7 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
   Link = (Slink *)realloc(Link, (Nlinks+1)*sizeof(Slink));
   Q = (double *)realloc(Q, (Nlinks+1)*sizeof(double));
   LinkSetting = (double *)realloc(LinkSetting, (Nlinks+1)*sizeof(double));
-  LinkStatus = (double *)realloc(LinkStatus, (Nlinks+1)*sizeof(double));
-  LinkStatus = (double *)realloc(LinkStatus, (Nlinks+1)*sizeof(double));
+  LinkStatus = (char *)realloc(LinkStatus, (Nlinks+1)*sizeof(char));
   
   strncpy(Link[n].ID, id, MAXID);
   
@@ -3475,26 +3525,131 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
   return(0);
 }
 
-
-int findPump(int link) {
-  int i;
-  for(i=0;i<=Npumps;i++) {
-    if(Pump[i].Link == link) {
-      return i;
+int ENdeletelink(int index)
+{
+  int i, linkType;
+  
+  if (!Openflag) return(102);
+  if (index <= 0 || index > Nlinks) return(203);
+  
+  ENgetlinktype(index, &linkType);
+  
+  // remove from hash table
+  ENHashTableDelete(LinkHashTable, Link[index].ID);
+  ENHashTableFind(LinkHashTable, Link[index].ID);
+  
+  // shift link array to remove link
+  for(i=index;i<=Nlinks-1;i++) {
+    Link[i] = Link[i+1];
+    // update hashtable
+    ENHashTableUpdate(LinkHashTable, Link[i].ID, i);
+  }
+  
+  // update pumps
+  if(linkType == EN_PUMP) {
+    int pumpindex = findpump(index);
+    for(i = pumpindex; i<=Npumps-1;i++) {
+      Pump[i] = Pump[i+1];
+    }
+    Npumps--;
+  }
+  for(i = 1; i <= Npumps; i++) {
+    if(Pump[i].Link > index) {
+      Pump[i].Link -= 1;
     }
   }
-  return NOTFOUND;
-}
-
-int findValve(int link) {
-  int i;
-  for(i=0;i<=Npumps;i++) {
-    if(Valve[i].Link == link) {
-      return i;
+  // update pumps
+  if(linkType > EN_PUMP) {
+    int valveindex = findvalve(index);
+    for(i = valveindex; i<=Nvalves-1;i++) {
+      Valve[i] = Valve[i+1];
+    }
+    Nvalves--;
+  }
+  // update valves
+  for(i = 1; i <= Nvalves; i++) {
+    if(Valve[i].Link > index) {
+      Valve[i].Link -= 1;
     }
   }
-  return NOTFOUND;
+  
+  Nlinks--;
 }
+
+int ENdeletenode(int index)
+{
+  
+  int i, nodeType;
+  
+  if (!Openflag) return(102);
+  if (index <= 0 || index > Nnodes) return(203);
+  
+  ENgetnodetype(index, &nodeType);
+  
+  // remove from hash table
+  ENHashTableDelete(NodeHashTable, Node[index].ID);
+  
+  // shift node and coord array to remove node
+  for(i=index;i<=Nnodes-1;i++) {
+    Node[i] = Node[i+1];
+    Coord[i] = Coord[i+1];
+    // update hashtable
+    ENHashTableUpdate(NodeHashTable, Node[i].ID, i);
+  }
+  
+  // update tank array
+  if(nodeType != EN_JUNCTION) {
+    int tankindex = findtank(index);
+    for(i = tankindex; i<=Ntanks-1;i++) {
+      Tank[i] = Tank[i+1];
+    }
+  }
+  
+  // update tank node indices
+  for(i = 1; i <= Ntanks; i++) {
+    if(Tank[i].Node > index) {
+      Tank[i].Node -= 1;
+    }
+  }
+  
+  char *idstodelete[20][32];
+  int ntodelete = 0;
+  // gather a list of link ids to remove
+  for(i = 1; i <= Nlinks; i++) {
+    if(Link[i].N1 == index || Link[i].N2 == index) {
+      strcpy(idstodelete[ntodelete], Link[i].ID);
+      ntodelete++;
+    }
+  }
+  
+  // remove the links
+  for(i = 0; i < ntodelete; i++) {
+    int indextodelete;
+    // gather the link index, which may change every time a link is removed
+    ENgetlinkindex(idstodelete[i], &indextodelete);
+    ENdeletelink(indextodelete);
+  }
+  for(i = 1; i <= Nlinks; i ++) {
+    if(Link[i].N1 > index) {
+      Link[i].N1 -= 1;
+    }
+    if(Link[i].N2 > index) {
+      Link[i].N2 -= 1;
+    }
+  }
+  
+  // update counters
+  if(nodeType == EN_JUNCTION) {
+      Njuncs--;
+  } else {
+      Ntanks--;
+  }
+  
+  Nnodes--;
+  
+  return(0);
+}
+
 
 /*************************** END OF EPANET.C ***************************/
 
