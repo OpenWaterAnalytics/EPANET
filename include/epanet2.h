@@ -269,7 +269,16 @@ extern "C" {
   int  DLLEXPORT ENepanet(char *inpFile, char *rptFile, char *binOutFile, void (*callback) (char *));
   
   
+  /**
+   @brief Initializes an EPANET session
+   @param rptFile pointer to name of report file (to be created)
+   @param binOutFile pointer to name of binary output file (to be created)
+   @param flowFlag flow units flag
+   @param headlossFlag headloss formula flag
+   @return error code
+   */
   int  DLLEXPORT ENinit(char *rptFile, char *binOutFile, int flowFlag, int headlossFlag);
+  
   /**
    @brief Opens EPANET input file & reads in network data
    @param inpFile pointer to name of input file (must exist)
@@ -923,6 +932,8 @@ extern "C" {
    @param nodeType The node type code
    @return Error code.
    */
+  
+  
   int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType);
   /**
    @brief Adds a new link
@@ -932,6 +943,8 @@ extern "C" {
    @param toNode The id of the to node
    @return Error code.
    */
+  
+  
   int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode);
   /**
    @brief Deletes a node
@@ -939,9 +952,10 @@ extern "C" {
    @return Error code.
    */
   int DLLEXPORT ENdeletenode(int nodeIndex);
+  
   /**
    @brief Deletes a link
-   @param nodeIndex The link index
+   @param linkIndex The link index
    @return Error code.
    */
   int DLLEXPORT ENdeletelink(int linkIndex);
