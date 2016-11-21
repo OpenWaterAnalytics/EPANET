@@ -27,7 +27,8 @@ AUTHOR:     L. Rossman
 #define   w_AGE         "AGE"
 #define   w_TRACE       "TRACE"
 
-#define   w_SYSTEM      "SYST"
+//#define   w_SYSTEM      "SYST"
+#define   w_SYSTEM      "SYSTEM"
 #define   w_JUNC        "Junc"
 #define   w_RESERV      "Reser"
 #define   w_TANK        "Tank"
@@ -94,9 +95,9 @@ AUTHOR:     L. Rossman
 #define   w_METERS      "METERS"
 
 #define   w_ELEV        "ELEV"
-#define   w_DEMAND      "DEMA"
+#define   w_DEMAND      "DEMAND"
 #define   w_HEAD        "HEAD"
-#define   w_PRESSURE    "PRES"
+#define   w_PRESSURE    "PRESSURE"
 #define   w_QUALITY     "QUAL"
 
 #define   w_DIAM        "DIAM"
@@ -104,12 +105,12 @@ AUTHOR:     L. Rossman
 #define   w_ROUGHNESS   "ROUG"
 #define   w_VELOCITY    "VELO"
 #define   w_HEADLOSS    "HEADL"
-#define   w_SETTING     "SETT"
-#define   w_POWER       "POWE"
+#define   w_SETTING     "SETTING"
+#define   w_POWER       "POWER"
 #define   w_VOLUME      "VOLU"
 #define   w_CLOCKTIME   "CLOCKTIME"
-#define   w_FILLTIME    "FILL"
-#define   w_DRAINTIME   "DRAI"
+#define   w_FILLTIME    "FILLTIME"
+#define   w_DRAINTIME   "DRAINTIME"
 #define   w_GRADE       "GRADE"
 #define   w_LEVEL       "LEVEL"
 
@@ -159,7 +160,7 @@ AUTHOR:     L. Rossman
 
 #define   w_EFFIC       "EFFI"
 #define   w_HEAD        "HEAD"
-#define   w_POWER       "POWE"
+#define   w_POWER       "POWER"
 #define   w_SPEED       "SPEE"
 
 #define   w_MIXED       "MIXED"
@@ -496,6 +497,9 @@ AUTHOR:     L. Rossman
 #define ERR253 "Input Error 253: Function call error - No such demand category index."
 #define ERR254 "Input Error 254: Function call error - Node have no coordinates."
 #define ERR255 "Input Error 255: Function call error - Coordinates were not loaded."
+
+#define ERR257 "Input Error 257: rule does not exist."
+#define ERR258 "Input Error 258: condition or action index specified in rule does not exist."
 
 #define ERR301 "File Error 301: identical file names."
 #define ERR302 "File Error 302: cannot open input file."

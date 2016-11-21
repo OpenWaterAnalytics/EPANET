@@ -145,7 +145,8 @@ typedef enum {
   EN_LINKCOUNT    = 2,   /**< Number of Links (Pipes + Pumps + Valves) */
   EN_PATCOUNT     = 3,   /**< Number of Time Patterns */
   EN_CURVECOUNT   = 4,   /**< Number of Curves */
-  EN_CONTROLCOUNT = 5    /**< Number of Control Statements */
+  EN_CONTROLCOUNT = 5,    /**< Number of Control Statements */
+  EN_RULECOUNT	  = 6    /**< Number of Rule-based Control Statements */
 } EN_CountType;
 
 typedef enum {
@@ -904,6 +905,136 @@ extern "C" {
    */
   int  DLLEXPORT ENaddcurve(char *id);
   
+
+  /**
+   @brief Gets the number of premises, true actions, and false actions and the priority of an existing rule-based control.
+   @param index The index of a rule-based control.
+   @param nPremises The number of conditions in a rule-based control.
+   @param nTrueActions The number of actions that are executed when the conditions in the rule-based control are met.
+   @param nFalseActions The number of actions that are executed when the conditions in the rule-based control are not met.
+   @param priority The priority of a rule-based control.
+   @return Error code.
+   */
+  int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority);
+
+  /**
+   @brief Sets the priority of the existing rule-based control.
+   @param index The index of a rule-based control.
+   @param priority The priority to be set in the rule-based control.
+   @return Error code.
+   */
+  int  DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
+
+  /**
+   @brief Gets the components of a premise/condition in an existing rule-based control.
+   @param indexRule The index of a rule-based control.
+   @param indexPremise The index of the premise.
+   @param logop The logiv operator (IF/AND/OR) in the premise
+   @param object The object (e.g. TANK) the premise is looking at.
+   @param indexObj The index of the object (e.g. the index of the tank).
+   @param variable The variable to be checked (e.g. level).
+   @param relop The relashionship operator (e.g. LARGER THAN) in the premise.
+   @param status The status of the object to be checked (e.g. CLOSED)
+   @param value The value of the variable to be checked (e.g. 5.5) 
+   @return Error code.
+   */
+  int  DLLEXPORT ENgetpremise(int indexRule, int indexPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value);
+
+  /**
+   @brief Sets the components of a premise/condition in an existing rule-based control.
+   @param indexRule The index of a rule-based control.
+   @param indexPremise The index of the premise.
+   @param logop The logiv operator (IF/AND/OR) in the premise
+   @param object The object (e.g. TANK) the premise is looking at.
+   @param indexObj The index of the object (e.g. the index of the tank).
+   @param variable The variable to be checked (e.g. level).
+   @param relop The relashionship operator (e.g. LARGER THAN) in the premise.
+   @param status The status of the object to be checked (e.g. CLOSED)
+   @param value The value of the variable to be checked (e.g. 5.5) 
+   @return Error code.
+   */
+  int  DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, EN_API_FLOAT_TYPE value);
+
+  /**
+   @brief Sets the index of an object in a premise of an existing rule-based control.
+   @param indexRule The index of a rule-based control.
+   @param indexPremise The index of the premise.
+   @param indexObj The index of the object (e.g. the index of the tank).
+   @return Error code.
+   */
+  int  DLLEXPORT ENsetpremiseindex(int indexRule, int indexPremise, int indexObj);
+
+  /**
+   @brief Sets the status in a premise of an existing rule-based control.
+   @param indexRule The index of a rule-based control.
+   @param indexPremise The index of the premise.
+   @param status The status of the object to be checked (e.g. CLOSED)
+   @return Error code.
+   */
+  int  DLLEXPORT ENsetpremisestatus(int indexRule, int indexPremise, int status);
+
+  /**
+   @brief Sets the value in a premise of an existing rule-based control.
+   @param indexRule The index of a rule-based control.
+   @param indexPremise The index of the premise.
+   @param value The value of the variable to be checked (e.g. 5.5) 
+   @return Error code.
+   */
+  int  DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise, EN_API_FLOAT_TYPE value);
+  
+  /**
+   @brief Gets the components of a true-action in an existing rule-based control.
+   @param indexRule The index of a rule-based control.
+   @param indexAction The index of the action when the conditions in the rule are met.
+   @param indexLink The index of the link in the action (e.g. index of Pump 1)
+   @param status The status of the link (e.g. CLOSED)
+   @param setting The value of the link (e.g. pump speed 0.9)
+   @return Error code.
+   */
+  int  DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
+
+  /**
+   @brief Sets the components of a true-action in an existing rule-based control.
+   @param indexRule The index of a rule-based control.
+   @param indexAction The index of the action when the conditions in the rule are met.
+   @param indexLink The index of the link in the action (e.g. index of Pump 1)
+   @param status The status of the link (e.g. CLOSED)
+   @param setting The value of the link (e.g. pump speed 0.9)
+   @return Error code.
+   */
+  int  DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
+  
+  /**
+   @brief Gets the components of a false-action in an existing rule-based control.
+   @param indexRule The index of a rule-based control.
+   @param indexAction The index of the action when the conditions in the rule are not met.
+   @param indexLink The index of the link in the action (e.g. index of Pump 1)
+   @param status The status of the link (e.g. CLOSED)
+   @param setting The value of the link (e.g. pump speed 0.9)
+   @return Error code.
+   */
+  int  DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
+
+  /**
+   @brief Sets the components of a false-action in an existing rule-based control.
+   @param indexRule The index of a rule-based control.
+   @param indexAction The index of the action when the conditions in the rule are not met.
+   @param indexLink The index of the link in the action (e.g. index of Pump 1)
+   @param status The status of the link (e.g. CLOSED)
+   @param setting The value of the link (e.g. pump speed 0.9)
+   @return Error code.
+   */
+  int  DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
+
+  /**
+   @brief Returns the ID of a rule.
+   @param indexRule The index of a rule-based control.
+   @param id The ID of the rule
+   @return Error code.
+   */
+  int  DLLEXPORT ENgetruleID(int indexRule, char* id);
+
+
 #if defined(__cplusplus)
 }
 #endif

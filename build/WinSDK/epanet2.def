@@ -75,3 +75,15 @@ EXPORTS
     ENsetcurvevalue               = _ENsetcurvevalue@16               
     ENsetcurve                    = _ENsetcurve@16                    
     ENaddcurve                    = _ENaddcurve@4                     
+    ENgetrule                     = _ENgetrule@20
+    ENsetrulepriority             = _ENsetrulepriority@8
+    ENgetpremise                  = _ENgetpremise@36
+    ENsetpremise                  = _ENsetpremise@36
+    ENsetpremiseindex             = _ENsetpremiseindex@12
+    ENsetpremisestatus            = _ENsetpremisestatus@12
+    ENsetpremisevalue             = _ENsetpremisevalue@12
+    ENgettrueaction               = _ENgettrueaction@20
+    ENsettrueaction               = _ENsettrueaction@20
+    ENgetfalseaction              = _ENgetfalseaction@20
+    ENsetfalseaction              = _ENsetfalseaction@20
+    ENgetruleID                   = _ENgetruleID@8
