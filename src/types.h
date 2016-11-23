@@ -502,7 +502,7 @@ typedef struct s_aRule           /* Control Rule Structure */
 typedef struct s_ActItem              /* Action list item */
 {
    int      ruleindex;        /* Index of rule action belongs to */
-   struct   Action   *action; /* An action structure */
+   struct   s_Action   *action; /* An action structure */
    struct   s_ActItem  *next;     
 } ActItem;
 
