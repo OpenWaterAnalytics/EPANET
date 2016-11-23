@@ -123,6 +123,180 @@ typedef  int          INT4;                                                    /
 */
 #define PUMPINDEX(x) (ROUND(Link[(x)].Diam))
 
+
+
+/*
+ ----------------------------------------------
+ Global Enumeration Types
+ ----------------------------------------------
+ */
+typedef enum {
+  USE,           /*    use from previous run            */
+  SAVE,          /*    save after current run           */
+  SCRATCH
+} Hydtype;      /*    use temporary file               */
+
+typedef enum {
+  NONE,          /*    no quality analysis              */
+  CHEM,          /*    analyze a chemical               */
+  AGE,           /*    analyze water age                */
+  TRACE
+} QualType;        /*    trace % of flow from a source    */
+
+typedef enum {
+  JUNC,          /*    junction                         */
+  RESERV,        /*    reservoir                        */
+  TANK
+} NodeType;         /*    tank                             */
+
+typedef enum {
+  CV,           /*    pipe with check valve            */
+  PIPE,         /*    regular pipe                     */
+  PUMP,         /*    pump                             */
+  PRV,          /*    pressure reducing valve          */
+  PSV,          /*    pressure sustaining valve        */
+  PBV,          /*    pressure breaker valve           */
+  FCV,          /*    flow control valve               */
+  TCV,          /*    throttle control valve           */
+  GPV
+} LinkType;         /*    general purpose valve            */
+
+typedef enum {
+  V_CURVE,     /*    volume curve                      */
+  P_CURVE,     /*    pump curve                        */
+  E_CURVE,     /*    efficiency curve                  */
+  H_CURVE
+} CurveType;    /*    head loss curve                   */
+
+typedef enum {
+  CONST_HP,      /*    constant horsepower              */
+  POWER_FUNC,    /*    power function                   */
+  CUSTOM,        /*    user-defined custom curve        */
+  NOCURVE
+} PumpType;
+
+typedef enum {
+  CONCEN,        /*    inflow concentration             */
+  MASS,          /*    mass inflow booster              */
+  SETPOINT,      /*    setpoint booster                 */
+  FLOWPACED
+} SourceType;    /*    flow paced booster               */
+
+typedef enum {
+  LOWLEVEL,      /*    act when grade below set level   */
+  HILEVEL,       /*    act when grade above set level   */
+  TIMER,         /*    act when set time reached        */
+  TIMEOFDAY
+} ControlType;    /*    act when time of day occurs      */
+
+typedef enum {
+  XHEAD,        /*   pump cannot deliver head (closed) */
+  TEMPCLOSED,   /*   temporarily closed                */
+  CLOSED,       /*   closed                            */
+  OPEN,         /*   open                              */
+  ACTIVE,       /*   valve active (partially open)     */
+  XFLOW,        /*   pump exceeds maximum flow         */
+  XFCV,         /*   FCV cannot supply flow            */
+  XPRESSURE,    /*   valve cannot supply pressure      */
+  FILLING,      /*   tank filling                      */
+  EMPTYING
+} StatType;    /*   tank emptying                     */
+
+typedef enum {
+  HW,           /*   Hazen-Williams                    */
+  DW,           /*   Darcy-Weisbach                    */
+  CM
+} FormType;          /*   Chezy-Manning                     */
+
+typedef enum {
+  US,           /*   US                                */
+  SI
+} UnitsType;          /*   SI (metric)                       */
+
+typedef enum {
+  CFS,          /*   cubic feet per second             */
+  GPM,          /*   gallons per minute                */
+  MGD,          /*   million gallons per day           */
+  IMGD,         /*   imperial million gal. per day     */
+  AFD,          /*   acre-feet per day                 */
+  LPS,          /*   liters per second                 */
+  LPM,          /*   liters per minute                 */
+  MLD,          /*   megaliters per day                */
+  CMH,          /*   cubic meters per hour             */
+  CMD
+} FlowUnitsType;         /*   cubic meters per day              */
+
+typedef enum {
+  PSI,          /*   pounds per square inch            */
+  KPA,          /*   kiloPascals                       */
+  METERS
+} PressUnitsType;      /*   meters                            */
+
+typedef enum {
+  LOW,          /*   lower limit                       */
+  HI,           /*   upper limit                       */
+  PREC
+} RangeType;        /*   precision                         */
+
+typedef enum {
+  MIX1,         /*   1-compartment model               */
+  MIX2,         /*   2-compartment model               */
+  FIFO,         /*   First in, first out model         */
+  LIFO
+} MixType;        /*   Last in, first out model          */
+
+typedef enum {
+  SERIES,       /*   none                              */
+  AVG,          /*   time-averages                     */
+  MIN,          /*   minimum values                    */
+  MAX,          /*   maximum values                    */
+  RANGE
+} TstatType;       /*   max - min values                  */
+
+#define MAXVAR   21             /* Max. # types of network variables   */
+/* (equals # items enumed below)       */
+typedef enum {
+  ELEV,         /*   nodal elevation                   */
+  DEMAND,       /*   nodal demand flow                 */
+  HEAD,         /*   nodal hydraulic head              */
+  PRESSURE,     /*   nodal pressure                    */
+  QUALITY,      /*   nodal water quality               */
+  
+  LENGTH,       /*   link length                       */
+  DIAM,         /*   link diameter                     */
+  FLOW,         /*   link flow rate                    */
+  VELOCITY,     /*   link flow velocity                */
+  HEADLOSS,     /*   link head loss                    */
+  LINKQUAL,     /*   avg. water quality in link        */
+  STATUS,       /*   link status                       */
+  SETTING,      /*   pump/valve setting                */
+  REACTRATE,    /*   avg. reaction rate in link        */
+  FRICTION,     /*   link friction factor              */
+  
+  POWER,        /*   pump power output                 */
+  TIME,         /*   simulation time                   */
+  VOLUME,       /*   tank volume                       */
+  CLOCKTIME,    /*   simulation time of day            */
+  FILLTIME,     /*   time to fill a tank               */
+  DRAINTIME     /*   time to drain a tank              */
+} FieldType;
+
+typedef enum {
+  _TITLE,_JUNCTIONS,_RESERVOIRS,_TANKS,_PIPES,_PUMPS,
+  _VALVES,_CONTROLS,_RULES,_DEMANDS,_SOURCES,_EMITTERS,
+  _PATTERNS,_CURVES,_QUALITY,_STATUS,_ROUGHNESS,_ENERGY,
+  _REACTIONS,_MIXING,_REPORT,_TIMES,_OPTIONS,
+  _COORDS,_VERTICES,_LABELS,_BACKDROP,_TAGS,_END
+} SectType;
+
+typedef enum {
+  STATHDR,      /*  Hydraulic Status       */
+  ENERHDR,      /*  Energy Usage           */
+  NODEHDR,      /*  Node Results           */
+  LINKHDR
+} HdrType;     /*  Link Results           */
+
+
 /*
 ------------------------------------------------------
    Global Data Structures                             
@@ -161,7 +335,7 @@ typedef struct        /* TIME PATTERN OBJECT */
 typedef struct        /* CURVE OBJECT */
 {
    char   ID[MAXID+1]; /* Curve ID         */
-   int    Type;        /* Curve type       */
+   CurveType Type;     /* Curve type       */
    int    Npts;        /* Number of points */
    double *X;          /* X-values         */
    double *Y;          /* Y-values         */
@@ -189,7 +363,7 @@ struct Ssource     /* WQ SOURCE OBJECT */
    double C0;       /* Base concentration/mass  */
    int    Pat;      /* Pattern index            */
    double Smass;    /* Actual mass flow rate    */
-   char   Type;     /* SourceType (see below)   */
+   SourceType Type;  /* SourceType (see below)   */
 };
 typedef struct Ssource *Psource; /* Pointer to WQ source object */
 
@@ -217,8 +391,8 @@ typedef struct            /* LINK OBJECT */
    double  Kw;             /* Wall react. coeff */
    double  R;              /* Flow resistance   */
    double  Rc;             /* Reaction cal      */
-   char    Type;           /* Link type         */
-   char    Stat;           /* Initial status    */
+   LinkType Type;          /* Link type         */
+   StatType Stat;          /* Initial status    */
    char    Rpt;            /* Reporting flag    */
 }  Slink;
 
@@ -237,7 +411,7 @@ typedef struct     /* TANK OBJECT */
    double C;        /* Concentration            */
    int    Pat;      /* Fixed grade time pattern */
    int    Vcurve;   /* Vol.- elev. curve index  */
-   char   MixModel; /* Type of mixing model     */
+   MixType MixModel;/* Type of mixing model     */
                     /* (see MixType below)      */
    double V1max;    /* Mixing compartment size  */
 }  Stank;
@@ -279,8 +453,8 @@ typedef struct     /* CONTROL STATEMENT */
    long   Time;     /* Control time       */
    double Grade;    /* Control grade      */
    double Setting;  /* New link setting   */
-   char   Status;   /* New link status    */
-   char   Type;     /* Control type       */
+   StatType Status; /* New link status    */
+   ControlType Type;/* Control type       */
                    /* (see ControlType below) */
 }  Scontrol;
 
@@ -310,160 +484,6 @@ typedef struct            /* FIELD OBJECT of report table */
    double RptLim[2];       /* Lower/upper report limits  */
 } SField;
 
-
-/*
-----------------------------------------------
-   Global Enumeration Variables
-----------------------------------------------
-*/
- enum Hydtype                   /* Hydraulics solution option:         */
-                {USE,           /*    use from previous run            */
-                 SAVE,          /*    save after current run           */
-                 SCRATCH};      /*    use temporary file               */
-
- enum QualType                  /* Water quality analysis option:      */
-                {NONE,          /*    no quality analysis              */
-                 CHEM,          /*    analyze a chemical               */
-                 AGE,           /*    analyze water age                */
-                 TRACE};        /*    trace % of flow from a source    */
-
- enum NodeType                  /* Type of node:                       */
-                {JUNC,          /*    junction                         */
-                 RESERV,        /*    reservoir                        */
-                 TANK};         /*    tank                             */
-
- enum LinkType                  /* Type of link:                       */
-                 {CV,           /*    pipe with check valve            */
-                  PIPE,         /*    regular pipe                     */
-                  PUMP,         /*    pump                             */
-                  PRV,          /*    pressure reducing valve          */
-                  PSV,          /*    pressure sustaining valve        */
-                  PBV,          /*    pressure breaker valve           */
-                  FCV,          /*    flow control valve               */
-                  TCV,          /*    throttle control valve           */
-                  GPV};         /*    general purpose valve            */
-
- enum CurveType                /* Type of curve:                       */
-                 {V_CURVE,     /*    volume curve                      */
-                  P_CURVE,     /*    pump curve                        */
-                  E_CURVE,     /*    efficiency curve                  */
-                  H_CURVE};    /*    head loss curve                   */
-
- enum PumpType                  /* Type of pump curve:                 */
-                {CONST_HP,      /*    constant horsepower              */
-                 POWER_FUNC,    /*    power function                   */
-                 CUSTOM,        /*    user-defined custom curve        */
-                 NOCURVE};
-
- enum SourceType                /* Type of source quality input        */
-                {CONCEN,        /*    inflow concentration             */
-                 MASS,          /*    mass inflow booster              */
-                 SETPOINT,      /*    setpoint booster                 */
-                 FLOWPACED};    /*    flow paced booster               */
-
- enum ControlType               /* Control condition type:             */
-                {LOWLEVEL,      /*    act when grade below set level   */
-                 HILEVEL,       /*    act when grade above set level   */
-                 TIMER,         /*    act when set time reached        */
-                 TIMEOFDAY};    /*    act when time of day occurs      */
-
- enum StatType                  /* Link/Tank status:                   */
-                 {XHEAD,        /*   pump cannot deliver head (closed) */
-                  TEMPCLOSED,   /*   temporarily closed                */
-                  CLOSED,       /*   closed                            */
-                  OPEN,         /*   open                              */
-                  ACTIVE,       /*   valve active (partially open)     */
-                  XFLOW,        /*   pump exceeds maximum flow         */
-                  XFCV,         /*   FCV cannot supply flow            */
-                  XPRESSURE,    /*   valve cannot supply pressure      */
-                  FILLING,      /*   tank filling                      */
-                  EMPTYING};    /*   tank emptying                     */
-
- enum FormType                  /* Head loss formula:                  */
-                 {HW,           /*   Hazen-Williams                    */
-                  DW,           /*   Darcy-Weisbach                    */
-                  CM};          /*   Chezy-Manning                     */
-
- enum UnitsType                 /* Unit system:                        */
-                 {US,           /*   US                                */
-                  SI};          /*   SI (metric)                       */
-
- enum FlowUnitsType             /* Flow units:                         */
-                 {CFS,          /*   cubic feet per second             */
-                  GPM,          /*   gallons per minute                */
-                  MGD,          /*   million gallons per day           */
-                  IMGD,         /*   imperial million gal. per day     */
-                  AFD,          /*   acre-feet per day                 */
-                  LPS,          /*   liters per second                 */
-                  LPM,          /*   liters per minute                 */
-                  MLD,          /*   megaliters per day                */
-                  CMH,          /*   cubic meters per hour             */
-                  CMD};         /*   cubic meters per day              */
-
- enum PressUnitsType            /* Pressure units:                     */
-                 {PSI,          /*   pounds per square inch            */
-                  KPA,          /*   kiloPascals                       */
-                  METERS};      /*   meters                            */
-
- enum RangeType                 /* Range limits:                       */
-                 {LOW,          /*   lower limit                       */
-                  HI,           /*   upper limit                       */
-                  PREC};        /*   precision                         */
-
- enum MixType                   /* Tank mixing regimes                 */
-                 {MIX1,         /*   1-compartment model               */
-                  MIX2,         /*   2-compartment model               */
-                  FIFO,         /*   First in, first out model         */
-                  LIFO};        /*   Last in, first out model          */ 
-
- enum TstatType                 /* Time series statistics              */
-                 {SERIES,       /*   none                              */
-                  AVG,          /*   time-averages                     */
-                  MIN,          /*   minimum values                    */
-                  MAX,          /*   maximum values                    */
-                  RANGE};       /*   max - min values                  */
-
-#define MAXVAR   21             /* Max. # types of network variables   */
-                                /* (equals # items enumed below)       */
- enum FieldType                 /* Network variables:                  */
-                 {ELEV,         /*   nodal elevation                   */
-                  DEMAND,       /*   nodal demand flow                 */
-                  HEAD,         /*   nodal hydraulic head              */
-                  PRESSURE,     /*   nodal pressure                    */
-                  QUALITY,      /*   nodal water quality               */
-
-                  LENGTH,       /*   link length                       */
-                  DIAM,         /*   link diameter                     */
-                  FLOW,         /*   link flow rate                    */
-                  VELOCITY,     /*   link flow velocity                */
-                  HEADLOSS,     /*   link head loss                    */
-                  LINKQUAL,     /*   avg. water quality in link        */
-                  STATUS,       /*   link status                       */
-                  SETTING,      /*   pump/valve setting                */
-                  REACTRATE,    /*   avg. reaction rate in link        */
-                  FRICTION,     /*   link friction factor              */
-
-                  POWER,        /*   pump power output                 */
-                  TIME,         /*   simulation time                   */
-                  VOLUME,       /*   tank volume                       */
-                  CLOCKTIME,    /*   simulation time of day            */
-                  FILLTIME,     /*   time to fill a tank               */
-                  DRAINTIME};   /*   time to drain a tank              */
-
-enum SectType    {_TITLE,_JUNCTIONS,_RESERVOIRS,_TANKS,_PIPES,_PUMPS,
-                  _VALVES,_CONTROLS,_RULES,_DEMANDS,_SOURCES,_EMITTERS,
-                  _PATTERNS,_CURVES,_QUALITY,_STATUS,_ROUGHNESS,_ENERGY,
-                  _REACTIONS,_MIXING,_REPORT,_TIMES,_OPTIONS,
-                  _COORDS,_VERTICES,_LABELS,_BACKDROP,_TAGS,_END};
-
-enum HdrType                    /* Type of table heading   */
-                 {STATHDR,      /*  Hydraulic Status       */
-                  ENERHDR,      /*  Energy Usage           */
-                  NODEHDR,      /*  Node Results           */
-                  LINKHDR};     /*  Link Results           */
-
-
-//AM 22Sept2016 moved from rules.c
 typedef struct          /* Rule Premise Clause */
 {
    int      logop;          /* Logical operator */
