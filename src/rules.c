@@ -414,8 +414,7 @@ int  newpremise(int logop)
    else m = 4;
    k = findmatch(Tok[m],Operator);
    if (k < 0) return(201);
-   switch(k)
-   {
+   switch(k) {
       case IS:    r = EQ; break;
       case NOT:   r = NE; break;
       case BELOW: r = LT; break;
@@ -426,22 +425,22 @@ int  newpremise(int logop)
    /* Parse for status (s) or numerical value (x) */
    s = 0;
    x = MISSING;
-   if (v == r_TIME || v == r_CLOCKTIME)
-   {
+   if (v == r_TIME || v == r_CLOCKTIME) {
       if (Ntokens == 6)
          x = hour(Tok[4],Tok[5])*3600.;
       else
          x = hour(Tok[4],"")*3600.;
-      if (x < 0.0) return(202);
+      if (x < 0.0)
+        return(202);
    }
-   else if ((k = findmatch(Tok[Ntokens-1],Value)) > IS_NUMBER) s = k;
-   else
-   {
-      if (!getfloat(Tok[Ntokens-1],&x)) return(202);
-      if (v == r_FILLTIME || v == r_DRAINTIME) x = x*3600.0;                   //(2.00.11 - LR)
+   else if ((k = findmatch(Tok[Ntokens-1],Value)) > IS_NUMBER)
+     s = k;
+   else {
+      if (!getfloat(Tok[Ntokens-1],&x))
+        return(202);
+      if (v == r_FILLTIME || v == r_DRAINTIME)
+        x = x*3600.0;                   //(2.00.11 - LR)
    }
-
-   
          
    /* Create new premise structure */
    p = (Premise *) malloc(sizeof(Premise));
@@ -456,8 +455,10 @@ int  newpremise(int logop)
 
    /* Add premise to current rule's premise list */
    p->next = NULL;
-   if (Plast == NULL) Rule[Nrules].Pchain = p;
-   else Plast->next = p;
+   if (Plast == NULL)
+     Rule[Nrules].Pchain = p;
+   else
+     Plast->next = p;
    Plast = p;
    return(0);
 }
