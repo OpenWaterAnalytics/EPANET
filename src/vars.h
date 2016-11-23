@@ -172,13 +172,13 @@ EXTERN Padjlist *Adjlist;              /* Node adjacency lists         */
 EXTERN double _relativeError;
 EXTERN int _iterations; /* Info about hydraulic solution */
 
-EXTERN struct  aRule *Rule;        /* Array of rules */
-EXTERN struct  ActItem *ActList;   /* Linked list of action items */
-EXTERN int     RuleState;          /* State of rule interpreter */
-EXTERN long    Time1;              /* Start of rule evaluation time interval (sec) */
-EXTERN struct  Premise *Plast;     /* Previous premise clause */
-EXTERN struct  Action *Tlast;      /* Previous true action */
-EXTERN struct  Action *Flast;      /* Previous false action */
+EXTERN aRule *Rule;        /* Array of rules */
+EXTERN ActItem *ActList;   /* Linked list of action items */
+EXTERN int RuleState;          /* State of rule interpreter */
+EXTERN long Time1;              /* Start of rule evaluation time interval (sec) */
+EXTERN Premise *Plast;     /* Previous premise clause */
+EXTERN Action *Tlast;      /* Previous true action */
+EXTERN Action *Flast;      /* Previous false action */
 
 /*
 ** NOTE: Hydraulic analysis of the pipe network at a given point in time

@@ -464,7 +464,7 @@ enum HdrType                    /* Type of table heading   */
 
 
 //AM 22Sept2016 moved from rules.c
-struct      Premise         /* Rule Premise Clause */
+typedef struct          /* Rule Premise Clause */
 {
    int      logop;          /* Logical operator */
    int      object;         /* Node or link */
@@ -474,17 +474,17 @@ struct      Premise         /* Rule Premise Clause */
    int      status;         /* Variable's status */
    double   value;          /* Variable's value */
    struct   Premise *next;
-};
+} Premise;
 
-struct     Action           /* Rule Action Clause */
+typedef struct            /* Rule Action Clause */
 {
    int     link;            /* Link index */
    int     status;          /* Link's status */
    double  setting;         /* Link's setting */
    struct  Action *next;
-};
+} Action;
 
-struct      aRule           /* Control Rule Structure */
+typedef struct            /* Control Rule Structure */
 {
    char     label[MAXID+1];    /* Rule character label */
    double   priority;          /* Priority level */
@@ -492,14 +492,14 @@ struct      aRule           /* Control Rule Structure */
    struct   Action   *Tchain;  /* Linked list of actions if true */
    struct   Action   *Fchain;  /* Linked list of actions if false */
    struct   aRule    *next;
-};
+} aRule;
 
-struct      ActItem         /* Action list item */
+typedef struct               /* Action list item */
 {
    int      ruleindex;        /* Index of rule action belongs to */
    struct   Action   *action; /* An action structure */
    struct   ActItem  *next;     
-};
+} ActItem;
 
 
 #endif

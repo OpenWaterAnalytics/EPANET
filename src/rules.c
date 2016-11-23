@@ -75,12 +75,12 @@ int     newpremise(int);
 int     newaction(void);
 int     newpriority(void);
 int     evalpremises(int);
-void    updateactlist(int, struct Action *);
-int     checkaction(int, struct Action *);
-int     checkpremise(struct Premise *);
-int     checktime(struct Premise *);
-int     checkstatus(struct Premise *);
-int     checkvalue(struct Premise *);
+void    updateactlist(int, Action *);
+int     checkaction(int, Action *);
+int     checkpremise(Premise *);
+int     checktime(Premise *);
+int     checkstatus(Premise *);
+int     checkvalue(Premise *);
 int     takeactions(void);
 void    clearactlist(void);
 void    clearrules(void);
@@ -120,7 +120,7 @@ int  allocrules()
 **--------------------------------------------------------------
 */
 {
-   Rule = (struct aRule *) calloc(MaxRules+1,sizeof(struct aRule));
+   Rule = (aRule *) calloc(MaxRules+1,sizeof(aRule));
    if (Rule == NULL) return(101);
    else return(0);
 }
@@ -262,8 +262,8 @@ void  clearactlist()
 **----------------------------------------------------------
 */
 {
-   struct ActItem *a;
-   struct ActItem *anext;
+   ActItem *a;
+   ActItem *anext;
    a = ActList;
    while (a != NULL)
    {
@@ -281,10 +281,10 @@ void  clearrules()
 **-----------------------------------------------------------
 */
 {
-   struct Premise *p;
-   struct Premise *pnext;
-   struct Action  *a;
-   struct Action  *anext;
+   Premise *p;
+   Premise *pnext;
+   Action  *a;
+   Action  *anext;
    int i;
    for (i=1; i<=Nrules; i++)
    {
@@ -346,7 +346,7 @@ int  newpremise(int logop)
 {
    int   i,j,k,m,r,s,v;
    double x;
-   struct Premise *p;
+   Premise *p;
 
    /* Check for correct number of tokens */
    if (Ntokens != 5 && Ntokens != 6) return(201);
@@ -444,7 +444,7 @@ int  newpremise(int logop)
    
          
    /* Create new premise structure */
-   p = (struct Premise *) malloc(sizeof(struct Premise));
+   p = (Premise *) malloc(sizeof(Premise));
    if (p == NULL) return(101);
    p->object = i;
    p->index =  j;
@@ -477,7 +477,7 @@ int  newaction()
 {
    int   j,k,s;
    double x;
-   struct Action *a;
+   Action *a;
 
    /* Check for correct number of tokens */
    if (Ntokens != 6) return(201);
@@ -514,7 +514,7 @@ int  newaction()
    }
 
    /* Create a new action structure */
-   a = (struct Action *) malloc(sizeof(struct Action));
+   a = (Action *) malloc(sizeof(Action));
    if (a == NULL) return(101);
    a->link = j;
    a->status = s;
@@ -561,7 +561,7 @@ int  evalpremises(int i)
 */
 {
     int result;
-    struct Premise *p;
+    Premise *p;
 
     result = TRUE;
     p = Rule[i].Pchain;
@@ -585,7 +585,7 @@ int  evalpremises(int i)
 }
 
  
-int  checkpremise(struct Premise *p)
+int  checkpremise(Premise *p)
 /*
 **----------------------------------------------------------
 **    Checks if a particular premise is true
@@ -601,7 +601,7 @@ int  checkpremise(struct Premise *p)
 }
 
 
-int  checktime(struct Premise *p)
+int  checktime(Premise *p)
 /*
 **------------------------------------------------------------
 **    Checks if condition on system time holds
@@ -656,7 +656,7 @@ int  checktime(struct Premise *p)
 }
 
 
-int  checkstatus(struct Premise *p)
+int  checkstatus(Premise *p)
 /*
 **------------------------------------------------------------
 **    Checks if condition on link status holds
@@ -683,7 +683,7 @@ int  checkstatus(struct Premise *p)
 }
 
 
-int  checkvalue(struct Premise *p)
+int  checkvalue(Premise *p)
 /*
 **----------------------------------------------------------
 **    Checks if numerical condition on a variable is true.
@@ -753,15 +753,15 @@ int  checkvalue(struct Premise *p)
 }
 
 
-void  updateactlist(int i, struct Action *actions)
+void  updateactlist(int i, Action *actions)
 /*
 **---------------------------------------------------
 **    Adds rule's actions to action list
 **---------------------------------------------------
 */
 {
-   struct ActItem *item;
-   struct Action *a;
+   ActItem *item;
+   Action *a;
 
    /* Iterate through each action of Rule i */
    a = actions;
@@ -770,7 +770,7 @@ void  updateactlist(int i, struct Action *actions)
       /* Add action to list if not already on it */
       if (!checkaction(i,a))
       {
-         item = (struct ActItem *) malloc(sizeof(struct ActItem));
+         item = (ActItem *) malloc(sizeof(ActItem));
          if (item != NULL)
          {
             item->action = a;
@@ -784,7 +784,7 @@ void  updateactlist(int i, struct Action *actions)
 }
 
 
-int  checkaction(int i, struct Action *a)
+int  checkaction(int i, Action *a)
 /*
 **-----------------------------------------------------------
 **    Checks if an action is already on the Action List
@@ -792,8 +792,8 @@ int  checkaction(int i, struct Action *a)
 */
 {
    int i1,k,k1;
-   struct ActItem *item;
-   struct Action *a1;
+   ActItem *item;
+   Action *a1;
 
    /* Search action list for link named in action */
    k = a->link;                 /* Action applies to link k */
@@ -827,8 +827,8 @@ int  takeactions()
 **-----------------------------------------------------------
 */
 {
-    struct Action *a;
-    struct ActItem *item;
+    Action *a;
+    ActItem *item;
     char   flag;
     int    k, s, n;
     double  tol = 1.e-3,
@@ -948,8 +948,8 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 */		 
 
 	//int i,j;
-	struct Premise *p;
-	struct Action *a;
+	Premise *p;
+	Action *a;
 	int hours = 0, minutes = 0, seconds = 0;
 
 	//the first condition/premises is different from the others because it starts with IF (but it is kept in memory as AND) 
