@@ -87,3 +87,10 @@ EXPORTS
     ENgetfalseaction              = _ENgetfalseaction@20
     ENsetfalseaction              = _ENsetfalseaction@20
     ENgetruleID                   = _ENgetruleID@8
+    ENinit                        = _ENinit@16
+    ENsetheadcurveindex           = _ENsetheadcurveindex@8
+    ENsetlinktype                 = _ENsetlinktype@8
+    ENaddnode                     = _ENaddnode@8
+    ENaddlink                     = _ENaddlink@16
+    ENdeletelink                  = _ENdeletelink@4
+    ENdeletenode                  = _ENdeletenode@4
