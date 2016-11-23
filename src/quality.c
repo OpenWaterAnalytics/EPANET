@@ -67,14 +67,14 @@ AUTHOR:     L. Rossman
 ** Macros to identify upstream & downstream nodes of a link
 ** under the current flow and to compute link volume
 */
-#define   UP_NODE(x)   ( (FlowDir[(x)]=='+') ? Link[(x)].N1 : Link[(x)].N2 )
-#define   DOWN_NODE(x) ( (FlowDir[(x)]=='+') ? Link[(x)].N2 : Link[(x)].N1 )
+#define   UP_NODE(x)   ( (FlowDir[(x)]==POSITIVE) ? Link[(x)].N1 : Link[(x)].N2 )
+#define   DOWN_NODE(x) ( (FlowDir[(x)]==POSITIVE) ? Link[(x)].N2 : Link[(x)].N1 )
 #define   LINKVOL(k)   ( 0.785398*Link[(k)].Len*SQR(Link[(k)].Diam) )
 
 Pseg      FreeSeg;              /* Pointer to unused segment               */
 Pseg      *FirstSeg,            /* First (downstream) segment in each pipe */
           *LastSeg;             /* Last (upstream) segment in each pipe    */
-char      *FlowDir;             /* Flow direction for each pipe            */
+FlowDirection      *FlowDir;             /* Flow direction for each pipe            */
 double    *VolIn;               /* Total volume inflow to node             */
 double    *MassIn;              /* Total mass inflow to node               */
 double    Sc;                   /* Schmidt Number                          */
@@ -115,7 +115,7 @@ int  openqual()
    n        = Nlinks+Ntanks+1;
    FirstSeg = (Pseg *) calloc(n, sizeof(Pseg));
    LastSeg  = (Pseg *) calloc(n, sizeof(Pseg));
-   FlowDir  = (char *) calloc(n, sizeof(char));
+   FlowDir  = (FlowDirection *) calloc(n, sizeof(FlowDirection));
    n        = Nnodes+1;
    VolIn    = (double *) calloc(n, sizeof(double));
    MassIn   = (double *) calloc(n, sizeof(double));
@@ -561,9 +561,9 @@ void  initsegs()
    {
 
       /* Establish flow direction */
-     FlowDir[k] = '+';
+     FlowDir[k] = POSITIVE;
      if (Q[k] < 0.) {
-       FlowDir[k] = '-';
+       FlowDir[k] = NEGATIVE;
      }
 
       /* Set segs to zero */
@@ -623,7 +623,7 @@ void  reorientsegs()
 {
    Pseg   seg, nseg, pseg;
    int    k;
-   char   newdir;
+   FlowDirection   newdir;
 
    /* Examine each link */
    for (k=1; k<=Nlinks; k++)

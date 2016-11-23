@@ -64,17 +64,21 @@ int  juncdata()
 
 /* Add new junction to data base */
    n = Ntokens;
-   if (Nnodes == MaxNodes) return(200);
+   if (Nnodes == MaxNodes)
+     return(200);
    Njuncs++;
    Nnodes++;
-   if (!addnodeID(Njuncs,Tok[0])) return(215);
+   if (!addnodeID(Njuncs,Tok[0]))
+     return(215);
 
 /* Check for valid data */
-   if (n < 2) return(201);
-   if (!getfloat(Tok[1],&el)) return(202);
-   if (n >= 3  && !getfloat(Tok[2],&y)) return(202);
-   if (n >= 4)
-   {
+   if (n < 2)
+     return(201);
+   if (!getfloat(Tok[1],&el))
+     return(202);
+   if (n >= 3  && !getfloat(Tok[2],&y))
+     return(202);
+   if (n >= 4) {
       pat = findID(Tok[3],Patlist);
       if (pat == NULL) return(205);
       p = pat->i;
@@ -93,14 +97,17 @@ int  juncdata()
    if (n >= 3)
    {
       demand = (struct Sdemand *) malloc(sizeof(struct Sdemand));
-      if (demand == NULL) return(101);
+      if (demand == NULL)
+        return(101);
       demand->Base = y;
       demand->Pat = p;
       demand->next = Node[Njuncs].D;
       Node[Njuncs].D = demand;
       NodeDemand[Njuncs] = y;
    }
-   else NodeDemand[Njuncs] = MISSING;
+   else {
+     NodeDemand[Njuncs] = MISSING;
+   }
 /*** end of update ***/
    return(0);
 }                        /* end of juncdata */
@@ -151,18 +158,19 @@ int  tankdata()
      return(201);                   /* Too few fields.   */
    if (!getfloat(Tok[1],&el))
      return(202);   /* Read elevation    */
-   if (n <= 3)                               /* Tank is reservoir.*/
-   {
-      if (n == 3)                            /* Pattern supplied  */
-      {
+  
+   if (n <= 3) {                              /* Tank is reservoir.*/
+      if (n == 3) {                           /* Pattern supplied  */
          t = findID(Tok[2],Patlist);
-         if (t == NULL) return(205);
+         if (t == NULL)
+           return(205);
          p = t->i;
       }
    }
-   else if (n < 6) return(201);              /* Too few fields for tank.*/
-   else
-   {
+   else if (n < 6) {
+     return(201);              /* Too few fields for tank.*/
+   }
+   else {
       /* Check for valid input data */
       if (!getfloat(Tok[2],&initlevel)) return(202);
       if (!getfloat(Tok[3],&minlevel))  return(202);
@@ -173,8 +181,7 @@ int  tankdata()
       && !getfloat(Tok[6],&minvol))     return(202);
 
       /* If volume curve supplied check it exists */
-      if (n == 8)
-      {                           
+      if (n == 8) {
          t = findID(Tok[7],Curvelist);
          if (t == NULL) return(202);
          vcurve = t->i;
@@ -1882,7 +1889,7 @@ int  valvecheck(int type, int j1, int j2)
 }                   /* End of valvecheck */
 
 
-void  changestatus(int j, char status, double y)
+void  changestatus(int j, StatType status, double y)
 /*
 **--------------------------------------------------------------
 **  Input:   j      = link index                                   

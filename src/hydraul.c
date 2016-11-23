@@ -243,25 +243,30 @@ int  nexthyd(long *tstep)
    /* Compute next time step & update tank levels */
    *tstep = 0;
    hydstep = 0;
-   if (Htime < Dur) hydstep = timestep();
-   if (Saveflag) errcode = savehydstep(&hydstep);
+   if (Htime < Dur)
+     hydstep = timestep();
+   if (Saveflag)
+     errcode = savehydstep(&hydstep);
 
    /* Compute pumping energy */
-   if (Dur == 0) addenergy(0);
-   else if (Htime < Dur) addenergy(hydstep);
+   if (Dur == 0)
+     addenergy(0);
+   else if (Htime < Dur)
+     addenergy(hydstep);
 
    /* Update current time. */
    if (Htime < Dur)  /* More time remains */
    {
       Htime += hydstep;
-      if (Htime >= Rtime) Rtime += Rstep;
+      if (Htime >= Rtime)
+        Rtime += Rstep;
    }
    else
    {
       Htime++;          /* Force completion of analysis */
-     if (OpenQflag) {
-       Qtime++; // force completion of wq analysis too
-     }
+      if (OpenQflag) {
+        Qtime++; // force completion of wq analysis too
+      }
    }
    *tstep = hydstep;
    return(errcode);
@@ -299,7 +304,7 @@ int  allocmatrix()
    P   = (double *) calloc(Nlinks+1,sizeof(double));
    Y   = (double *) calloc(Nlinks+1,sizeof(double));
    X   = (double *) calloc(MAX((Nnodes+1),(Nlinks+1)),sizeof(double));
-   OldStat = (char *) calloc(Nlinks+Ntanks+1, sizeof(char));
+   OldStat = (StatType *) calloc(Nlinks+Ntanks+1, sizeof(StatType));
    ERRCODE(MEMCHECK(Aii));
    ERRCODE(MEMCHECK(Aij));
    ERRCODE(MEMCHECK(F));
@@ -1319,7 +1324,7 @@ int  valvestatus()
    int   change = FALSE,            /* Status change flag      */
          i,k,                       /* Valve & link indexes    */
          n1,n2;                     /* Start & end nodes       */
-   char  s;                         /* Valve status settings   */
+   StatType  status;                         /* Valve status settings   */
    double hset;                     /* Valve head setting      */
 
    for (i=1; i<=Nvalves; i++)                   /* Examine each valve   */
@@ -1328,7 +1333,7 @@ int  valvestatus()
       if (LinkSetting[k] == MISSING) continue;            /* Valve status fixed   */
       n1 = Link[k].N1;                          /* Start & end nodes    */
       n2 = Link[k].N2;
-      s  = LinkStatus[k];                                /* Save current status  */
+      status  = LinkStatus[k];                                /* Save current status  */
 
 //      if (s != CLOSED                           /* No change if flow is */  //(2.00.11 - LR)
 //      && ABS(Q[k]) < Qtol) continue;            /* negligible.          */  //(2.00.11 - LR)
@@ -1337,11 +1342,11 @@ int  valvestatus()
       {
          case EN_PRV:
           hset = Node[n2].El + LinkSetting[k];
-          LinkStatus[k] = prvstatus(k,s,hset,NodeHead[n1],NodeHead[n2]);
+          LinkStatus[k] = prvstatus(k,status,hset,NodeHead[n1],NodeHead[n2]);
           break;
          case EN_PSV:
           hset = Node[n1].El + LinkSetting[k];
-          LinkStatus[k] = psvstatus(k,s,hset,NodeHead[n1],NodeHead[n2]);
+          LinkStatus[k] = psvstatus(k,status,hset,NodeHead[n1],NodeHead[n2]);
           break;
 
 ////  FCV status checks moved back into the linkstatus() function ////           //(2.00.12 - LR)
@@ -1357,9 +1362,9 @@ int  valvestatus()
       /* This strategy improves convergence. */
 
       /* Check for status change */
-      if (s != LinkStatus[k])
+      if (status != LinkStatus[k])
       {
-         if (Statflag == FULL) writestatchange(k,s,LinkStatus[k]);
+         if (Statflag == FULL) writestatchange(k,status,LinkStatus[k]);
          change = TRUE;
       }
    }
@@ -1383,7 +1388,7 @@ int  linkstatus()
          n1,                         /* Start node index        */
          n2;                         /* End node index          */
    double dh;                        /* Head difference         */
-   char  status;                     /* Current status          */
+   StatType  status;                     /* Current status          */
 
    /* Examine each link */
    for (k=1; k<=Nlinks; k++)
@@ -1423,7 +1428,7 @@ int  linkstatus()
 }                        /* End of linkstatus */
 
 
-char  cvstatus(char s, double dh, double q)
+StatType  cvstatus(StatType s, double dh, double q)
 /*
 **--------------------------------------------------
 **  Input:   s  = current status
@@ -1449,7 +1454,7 @@ char  cvstatus(char s, double dh, double q)
 }
 
 
-char  pumpstatus(int k, double dh)
+StatType  pumpstatus(int k, double dh)
 /*
 **--------------------------------------------------
 **  Input:   k  = link index                         
@@ -1464,9 +1469,11 @@ char  pumpstatus(int k, double dh)
 
    /* Prevent reverse flow through pump */
    p = PUMPINDEX(k);
-   if (Pump[p].Ptype == CONST_HP) hmax = BIG;
+   if (Pump[p].Ptype == CONST_HP)
+     hmax = BIG;
    else hmax = SQR(LinkSetting[k])*Pump[p].Hmax;
-   if (dh > hmax + Htol) return(XHEAD);
+   if (dh > hmax + Htol)
+     return(XHEAD);
 
 /*** Flow higher than pump curve no longer results in a status change ***/     //(2.00.11 - LR)
    /* Check if pump cannot deliver flow */                                     //(2.00.11 - LR)
@@ -1475,7 +1482,7 @@ char  pumpstatus(int k, double dh)
 }
 
 
-char  prvstatus(int k, char s, double hset, double h1, double h2)
+StatType  prvstatus(int k, StatType s, double hset, double h1, double h2)
 /*
 **-----------------------------------------------------------
 **  Input:   k    = link index                                
@@ -1488,7 +1495,7 @@ char  prvstatus(int k, char s, double hset, double h1, double h2)
 **-----------------------------------------------------------
 */
 {
-   char  status;     /* New valve status */
+   StatType  status;     /* New valve status */
    double hml;        /* Minor headloss   */
    double htol = Htol;
 
@@ -1525,7 +1532,7 @@ char  prvstatus(int k, char s, double hset, double h1, double h2)
 }
 
 
-char  psvstatus(int k, char s, double hset, double h1, double h2)
+StatType  psvstatus(int k, StatType s, double hset, double h1, double h2)
 /*
 **-----------------------------------------------------------
 **  Input:   k    = link index                                
@@ -1538,7 +1545,7 @@ char  psvstatus(int k, char s, double hset, double h1, double h2)
 **-----------------------------------------------------------
 */
 {
-   char  status;       /* New valve status */
+   StatType  status;       /* New valve status */
    double hml;          /* Minor headloss   */
    double htol = Htol;
 
@@ -1575,7 +1582,7 @@ char  psvstatus(int k, char s, double hset, double h1, double h2)
 }
 
 
-char  fcvstatus(int k, char s, double h1, double h2)
+StatType  fcvstatus(int k, StatType s, double h1, double h2)
 /*
 **-----------------------------------------------------------
 **  Input:   k    = link index                                
@@ -1594,7 +1601,7 @@ char  fcvstatus(int k, char s, double h1, double h2)
 **-----------------------------------------------------------
 */
 {
-   char  status;        /* New valve status */
+   StatType  status;        /* New valve status */
    status = s;
    if (h1 - h2 < -Htol) {
      status = XFCV;

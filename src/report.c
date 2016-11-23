@@ -284,7 +284,7 @@ void  writehydstat(int iter, double relerr)
 */
 {
    int    i,n;
-   char   newstat;
+   StatType   newstat;
    char   s1[MAXLINE+1];
 
 /*** Updated 6/24/02 ***/
@@ -317,24 +317,21 @@ void  writehydstat(int iter, double relerr)
       if (newstat != OldStat[Nlinks+i])
       {
          if (Tank[i].A > 0.0)
-            sprintf(s1,FMT50,atime,Node[n].ID,StatTxt[newstat],
-               (NodeHead[n]-Node[n].El)*Ucf[HEAD],Field[HEAD].Units);
-         else sprintf(s1,FMT51,atime,Node[n].ID,StatTxt[newstat]);
+            snprintf(s1, MAXLINE, FMT50, atime, Node[n].ID, StatTxt[newstat], (NodeHead[n]-Node[n].El)*Ucf[HEAD], Field[HEAD].Units);
+         else
+           snprintf(s1, MAXLINE, FMT51,atime,Node[n].ID,StatTxt[newstat]);
          writeline(s1);
          OldStat[Nlinks+i] = newstat;
       }
    }
 
    /* Display status changes for links */
-   for (i=1; i<=Nlinks; i++)
-   {
-      if (LinkStatus[i] != OldStat[i])
-      {
+   for (i=1; i<=Nlinks; i++) {
+      if (LinkStatus[i] != OldStat[i]) {
          if (Htime == 0)
-            sprintf(s1,FMT52,atime,LinkTxt[Link[i].Type],Link[i].ID,
-               StatTxt[LinkStatus[i]]);
-         else sprintf(s1,FMT53,atime,LinkTxt[Link[i].Type],Link[i].ID,
-            StatTxt[OldStat[i]],StatTxt[LinkStatus[i]]);
+            sprintf(s1,FMT52,atime,LinkTxt[(int)Link[i].Type],Link[i].ID,StatTxt[(int)LinkStatus[i]]);
+         else
+           sprintf(s1,FMT53,atime,LinkTxt[Link[i].Type],Link[i].ID,StatTxt[OldStat[i]],StatTxt[LinkStatus[i]]);
          writeline(s1);
          OldStat[i] = LinkStatus[i];
       }

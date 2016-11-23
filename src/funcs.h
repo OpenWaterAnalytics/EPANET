@@ -39,8 +39,8 @@ int     openhydfile(void);                /* Opens hydraulics file      */
 int     openoutfile(void);                /* Opens binary output file   */
 int     strcomp(char *, char *);          /* Compares two strings       */
 char*   getTmpName(char* fname);          /* Gets temporary file name   */     //(2.00.12 - LR)
-double  interp(int, double *,             /* Interpolates a data curve  */
-               double *, double);
+double  interp(int, double *,double *, double);             /* Interpolates a data curve  */
+               
 int     findnode(char *);                 /* Finds node's index from ID */
 int     findlink(char *);                 /* Finds link's index from ID */
 int     findtank(int);                    /* Find tank index from node index */  // (AH)
@@ -109,7 +109,7 @@ int     powercurve(double, double, double,/* Coeffs. of power pump curve*/
                    double, double, double *,
                    double *, double *);
 int     valvecheck(int, int, int);        /* Checks valve placement     */
-void    changestatus(int, char, double);  /* Changes status of a link   */
+void    changestatus(int, StatType, double);  /* Changes status of a link   */
 
 /* -------------- RULES.C --------------*/
 void    initrules(void);                  /* Initializes rule base      */
@@ -177,14 +177,14 @@ int     netsolve(int *,double *);         /* Solves network equations   */
 int     badvalve(int);                    /* Checks for bad valve       */
 int     valvestatus(void);                /* Updates valve status       */
 int     linkstatus(void);                 /* Updates link status        */
-char    cvstatus(char,double,double);     /* Updates CV status          */
-char    pumpstatus(int,double);           /* Updates pump status        */
-char    prvstatus(int,char,double,double,double);       /* Updates PRV status         */
+StatType    cvstatus(StatType,double,double);     /* Updates CV status          */
+StatType    pumpstatus(int,double);           /* Updates pump status        */
+StatType    prvstatus(int,StatType,double,double,double);       /* Updates PRV status         */
                   
-char    psvstatus(int,char,double,double,double);        /* Updates PSV status         */
+StatType    psvstatus(int,StatType,double,double,double);        /* Updates PSV status         */
                   
-char    fcvstatus(int,char,double,        /* Updates FCV status         */
-                  double);
+StatType    fcvstatus(int,StatType,double,double);        /* Updates FCV status         */
+                  
 void    tankstatus(int,int,int);          /* Checks if tank full/empty  */
 int     pswitch(void);                    /* Pressure switch controls   */
 double  newflows(void);                   /* Updates link flows         */
@@ -279,9 +279,9 @@ int     saveoutput(void);                 /* Saves results to file      */
 int     nodeoutput(int, REAL4 *, double); /* Saves node results to file */
 int     linkoutput(int, REAL4 *, double); /* Saves link results to file */
 int     savefinaloutput(void);            /* Finishes saving output     */
-int     savetimestat(REAL4 *, char);      /* Saves time stats to file   */
-int     savenetreacts(double, double,
-                      double, double);    /* Saves react. rates to file */
+int     savetimestat(REAL4 *, HdrType);      /* Saves time stats to file   */
+int     savenetreacts(double, double,double, double);
+                          /* Saves react. rates to file */
 int     saveepilog(void);                 /* Saves output file epilog   */
 
 

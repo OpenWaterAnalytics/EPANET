@@ -517,7 +517,7 @@ int  savefinaloutput()
 }
 
 
-int  savetimestat(REAL4 *x, char objtype)
+int  savetimestat(REAL4 *x, HdrType objtype)
 /*
 **--------------------------------------------------------------
 **   Input:   *x  = buffer for node values

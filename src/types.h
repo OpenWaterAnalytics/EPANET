@@ -240,7 +240,7 @@ typedef enum {
 #define MAXVAR   21             /* Max. # types of network variables   */
 /* (equals # items enumed below)       */
 typedef enum {
-  ELEV,         /*   nodal elevation                   */
+  ELEV = 0,         /*   nodal elevation                   */
   DEMAND,       /*   nodal demand flow                 */
   HEAD,         /*   nodal hydraulic head              */
   PRESSURE,     /*   nodal pressure                    */
@@ -280,6 +280,10 @@ typedef enum {
   LINKHDR
 } HdrType;     /*  Link Results           */
 
+typedef enum {
+  POSITIVE,
+  NEGATIVE
+} FlowDirection;
 
 /*
 ------------------------------------------------------

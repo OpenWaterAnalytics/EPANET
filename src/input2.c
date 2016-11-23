@@ -564,15 +564,15 @@ int  unlinked()
 **--------------------------------------------------------------
 */
 {
-   char  *marked;
+   int  *marked;
    int   i,err, errcode;
    errcode = 0;
    err = 0;
-   marked   = (char *) calloc(Nnodes+1,sizeof(char));
+   marked   = (int *) calloc(Nnodes+1,sizeof(int));
    ERRCODE(MEMCHECK(marked));
    if (!errcode)
    {
-      memset(marked,0,(Nnodes+1)*sizeof(char));
+      memset(marked,0,(Nnodes+1)*sizeof(int));
       for (i=1; i<=Nlinks; i++)            /* Mark end nodes of each link */
       {
          marked[Link[i].N1]++;

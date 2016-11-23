@@ -2761,7 +2761,7 @@ int  allocdata()
       Link = (Slink *) calloc(n, sizeof(Slink));
       Q    = (double *) calloc(n, sizeof(double));
       LinkSetting    = (double *) calloc(n, sizeof(double));
-      LinkStatus    = (char  *) calloc(n, sizeof(char));
+      LinkStatus    = (StatType  *) calloc(n, sizeof(StatType));
       ERRCODE(MEMCHECK(Link));
       ERRCODE(MEMCHECK(Q));
       ERRCODE(MEMCHECK(LinkSetting));
@@ -3492,7 +3492,7 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
   Link = (Slink *)realloc(Link, (Nlinks+1)*sizeof(Slink));
   Q = (double *)realloc(Q, (Nlinks+1)*sizeof(double));
   LinkSetting = (double *)realloc(LinkSetting, (Nlinks+1)*sizeof(double));
-  LinkStatus = (char *)realloc(LinkStatus, (Nlinks+1)*sizeof(char));
+  LinkStatus = (StatType *)realloc(LinkStatus, (Nlinks+1)*sizeof(StatType));
   
   strncpy(Link[n].ID, id, MAXID);
   
