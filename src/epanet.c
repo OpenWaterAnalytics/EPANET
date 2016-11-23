@@ -183,13 +183,13 @@ int DLLEXPORT ENepanet(char *f1, char *f2, char *f3, void (*pviewprog) (char *))
     return(MAX(errcode, Warnflag) );
 }
 
-int DLLEXPORT ENinit(char *f2, char *f3, int ff, int hf)
+int DLLEXPORT ENinit(char *f2, char *f3, int UnitsType, int HeadlossFormula)
 /*----------------------------------------------------------------
 **  Input:
-**           f2 = pointer to name of report file
-**           f3 = pointer to name of binary output file      
-             ff = flow flag
-             hf = headloss flag
+**           f2               = pointer to name of report file
+**           f3               = pointer to name of binary output file      
+             UnitsType        = flow units flag
+             HeadlossFormula  = headloss formula flag
  
 **  Output:  none 
 **  Returns: error code                              
@@ -225,8 +225,8 @@ int DLLEXPORT ENinit(char *f2, char *f3, int ff, int hf)
   
   setdefaults();
   
-  Flowflag = ff;
-  Formflag = hf;
+  Flowflag = UnitsType;
+  Formflag = HeadlossFormula;
   
   adjustdata();
   initreport();
@@ -3327,9 +3327,9 @@ int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
   return(0);
 }
 
-int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
+int DLLEXPORT ENsetlinktype(char *id, int toType) {
   int i;
-  EN_LinkType fromType;
+  int fromType;
   
   if ( !Openflag ) return(102);
   
@@ -3337,7 +3337,7 @@ int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
   if ( ENgetnodeindex(id, &i) != 0 ) return(215);
   
 /* Get the current type of the link */
-  ENgetnodetype(i, fromType);
+  ENgetnodetype(i, &fromType);
   if(fromType == toType) return(0);
   
   
@@ -3365,6 +3365,8 @@ int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
 int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
 {
   int i, n;
+  int index;
+  struct Sdemand *demand;
 
 /* Check if a node with same id already exists */
   if ( !Openflag ) return(102);
@@ -3384,14 +3386,12 @@ int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
     Njuncs++;
     n = Njuncs;
     
-    struct Sdemand *demand;
     demand = (struct Sdemand *) malloc(sizeof(struct Sdemand));
     demand->Base = 5.0;
     demand->Pat = 0;
     demand->next = NULL;
     Node[n].D = demand;
     
-    int index;
     // shift rest of Node array
     for(index = Nnodes; index >= Njuncs; index--) {
       ENHashTableUpdate(NodeHashTable, Node[index].ID, index+1);        
@@ -3462,17 +3462,18 @@ int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
   return(0);
 }
 
-int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode)
+int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode)
 {
   int i, n;
+  int N1, N2;
   
 /* Check if a link with same id already exists */
   if ( !Openflag ) return(102);
   if ( ENgetlinkindex(id, &i) == 0 ) return(215);
   
 /* Lookup the from and to nodes */
-  int N1 = ENHashTableFind(NodeHashTable, fromNode);
-  int N2 = ENHashTableFind(NodeHashTable, toNode);
+  N1 = ENHashTableFind(NodeHashTable, fromNode);
+  N2 = ENHashTableFind(NodeHashTable, toNode);
   
   if (N1 == 0 || N2 == 0) {
     return(203);
@@ -3548,7 +3549,7 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
   return(0);
 }
 
-int ENdeletelink(int index)
+int DLLEXPORT ENdeletelink(int index)
 {
   int i, linkType;
   
@@ -3599,10 +3600,12 @@ int ENdeletelink(int index)
   Nlinks--;
 }
 
-int ENdeletenode(int index)
+int DLLEXPORT ENdeletenode(int index)
 {
   
   int i, nodeType;
+  char *idstodelete[20][32];
+  int ntodelete = 0;
   
   if (!Openflag) return(102);
   if (index <= 0 || index > Nnodes) return(203);
@@ -3663,8 +3666,6 @@ int ENdeletenode(int index)
   
   return(0);
 }
-
-
 
 int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority)
 /*----------------------------------------------------------------
