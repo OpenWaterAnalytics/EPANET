@@ -278,8 +278,8 @@ extern "C" {
    @brief Initializes an EPANET session
    @param rptFile pointer to name of report file (to be created)
    @param binOutFile pointer to name of binary output file (to be created)
-   @param flowFlag flow units flag
-   @param headlossFlag headloss formula flag
+   @param UnitsType flow units flag
+   @param HeadlossFormula headloss formula flag
    @return error code
    */
   int  DLLEXPORT ENinit(char *rptFile, char *binOutFile, int UnitsType, int HeadlossFormula);
