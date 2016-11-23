@@ -269,6 +269,17 @@ extern "C" {
    */
   int  DLLEXPORT ENepanet(char *inpFile, char *rptFile, char *binOutFile, void (*callback) (char *));
   
+  
+  /**
+   @brief Initializes an EPANET session
+   @param rptFile pointer to name of report file (to be created)
+   @param binOutFile pointer to name of binary output file (to be created)
+   @param flowFlag flow units flag
+   @param headlossFlag headloss formula flag
+   @return error code
+   */
+  int  DLLEXPORT ENinit(char *rptFile, char *binOutFile, int flowFlag, int headlossFlag);
+  
   /**
    @brief Opens EPANET input file & reads in network data
    @param inpFile pointer to name of input file (must exist)
@@ -276,6 +287,7 @@ extern "C" {
    @param binOutFile pointer to name of binary output file (to be created)
    @return error code
    */
+
   int  DLLEXPORT ENopen(char *inpFile, char *rptFile, char *binOutFile);
   
   /**
@@ -704,6 +716,14 @@ extern "C" {
   int  DLLEXPORT ENgetheadcurveindex(int pumpIndex, int *curveIndex);
   
   /**
+   @brief Sets the curve id for a specified pump index.
+   @param pumpIndex The index of the pump
+   @param curveIndex The index of the curve used by the pump
+   @return Error code.
+   */
+  int  DLLEXPORT ENsetheadcurveindex(int pumpIndex, int curveIndex);
+  
+  /**
    @brief Get the type of pump
    @param linkIndex The index of the pump element
    @param[out] outType The integer-typed pump curve type signifier (output parameter)
@@ -740,6 +760,7 @@ extern "C" {
    @see EN_NodeProperty
    */
   int  DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
+
   
   /**
    @brief Set a proprty value for a link.
@@ -1034,7 +1055,39 @@ extern "C" {
    */
   int  DLLEXPORT ENgetruleID(int indexRule, char* id);
 
-
+  /**
+   @brief Adds a new node
+   @param id The name of the node to be added.
+   @param nodeType The node type code
+   @return Error code.
+   */
+  int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType);
+  
+  /**
+   @brief Adds a new link
+   @param id The name of the link to be added.
+   @param linkType The link type code
+   @param fromNode The id of the from node
+   @param toNode The id of the to node
+   @return Error code.
+   */
+  int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode);
+  
+  /**
+   @brief Deletes a node
+   @param nodeIndex The node index
+   @return Error code.
+   */
+  int DLLEXPORT ENdeletenode(int nodeIndex);
+  
+  /**
+   @brief Deletes a link
+   @param linkIndex The link index
+   @return Error code.
+   */
+  int DLLEXPORT ENdeletelink(int linkIndex);
+  
+  
 #if defined(__cplusplus)
 }
 #endif
