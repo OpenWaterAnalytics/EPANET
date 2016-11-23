@@ -43,6 +43,9 @@ double  interp(int, double *,             /* Interpolates a data curve  */
                double *, double);
 int     findnode(char *);                 /* Finds node's index from ID */
 int     findlink(char *);                 /* Finds link's index from ID */
+int     findtank(int);                    /* Find tank index from node index */  // (AH)
+int     findvalve(int);                   /* Find valve index from node index */ // (AH)
+int     findpump(int);                    /* Find pump index from node index */  // (AH)
 char*   geterrmsg(int);                   /* Gets text of error message */
 void    errmsg(int);                      /* Reports program error      */
 void    writecon(char *);                 /* Writes text to console     */

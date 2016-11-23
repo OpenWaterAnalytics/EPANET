@@ -82,6 +82,10 @@ int  netsize()
 /* Add a default pattern 0 */
    MaxPats = -1;
    addpattern("");
+  
+  if(InFile == NULL) {
+    return(0);
+  }
 
 /* Make pass through data file counting number of each component */
    while (fgets(line,MAXLINE,InFile) != NULL)

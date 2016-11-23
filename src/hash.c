@@ -36,6 +36,7 @@ unsigned int _enHash(char *str)
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
   }
   retHash = hash % ENHASHTABLEMAXSIZE;
+  
   return retHash;
 }
 
@@ -72,13 +73,54 @@ int ENHashTableInsert(ENHashTable *ht, char *key, int data)
   return(1);
 }
 
-int     ENHashTableFind(ENHashTable *ht, char *key)
+/* Abel Heinsbroek: Added function to update the hash table value for a given key */
+int ENHashTableUpdate(ENHashTable *ht, char *key, int new_data)
 {
   unsigned int i = _enHash(key);
   ENHashEntry *entry;
   if ( i >= ENHASHTABLEMAXSIZE ) {
     return(NOTFOUND);
   }
+  entry = ht[i];
+  while (entry != NULL)
+  {
+    if ( strcmp(entry->key,key) == 0 ) {
+      entry->data = new_data;
+      return(1);
+    }
+    entry = entry->next;
+  }
+  return(NOTFOUND);
+}
+
+int ENHashTableDelete(ENHashTable *ht, char *key) {
+  unsigned int i = _enHash(key);
+  ENHashEntry *entry;
+  if ( i >= ENHASHTABLEMAXSIZE ) {
+    return(NOTFOUND);
+  }
+  entry = ht[i];
+  while (entry != NULL)
+  {
+    if (strcmp(entry->key, key) == 0) {
+      entry->key = "";
+      return(1);
+    }
+    entry = entry->next;
+  }
+
+  return(NOTFOUND);
+}
+
+int     ENHashTableFind(ENHashTable *ht, char *key)
+{
+  unsigned int i = _enHash(key);
+
+  ENHashEntry *entry;
+  if ( i >= ENHASHTABLEMAXSIZE ) {
+    return(NOTFOUND);
+  }
+
   entry = ht[i];
   while (entry != NULL)
   {
