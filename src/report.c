@@ -41,6 +41,12 @@ formatted string S to the report file.
 #define  EXTERN  extern
 #include "vars.h"
 
+#undef WINDOWS
+#ifdef _WIN32
+  #define WINDOWS
+  #define snprintf _snprintf
+#endif
+
 #define   MAXCOUNT 10     /* Max. # of disconnected nodes listed */
 long      LineNum;        /* Current line number     */
 long      PageNum;        /* Current page number     */
