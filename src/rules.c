@@ -488,7 +488,7 @@ int  newaction()
 
 /***  Updated 9/7/00  ***/
    /* Cannot control a CV */
-   if (Link[j].Type == CV) return(207);
+   if (Link[j].Type == EN_CVPIPE) return(207);
 
    /* Find value for status or setting */
    s = -1;
@@ -502,11 +502,11 @@ int  newaction()
 
 /*** Updated 9/7/00 ***/
    /* Cannot change setting for a GPV ***/
-   if (x != MISSING && Link[j].Type == GPV) return(202);
+   if (x != MISSING && Link[j].Type == EN_GPV) return(202);
 
 /*** Updated 3/1/01 ***/
    /* Set status for pipe in case setting was specified */
-   if (x != MISSING && Link[j].Type == PIPE)
+   if (x != MISSING && Link[j].Type == EN_PIPE)
    {
       if (x == 0.0) s = IS_CLOSED;
       else          s = IS_OPEN;
@@ -718,10 +718,14 @@ int  checkvalue(Premise *p)
                           x = LinkSetting[i];
                           switch (Link[i].Type)
                           {
-                             case PRV:
-                             case PSV:
-                             case PBV:  x = x*Ucf[PRESSURE]; break;
-                             case FCV:  x = x*Ucf[FLOW];     break;
+                             case EN_PRV:
+                             case EN_PSV:
+                             case EN_PBV:
+                              x = x*Ucf[PRESSURE];
+                              break;
+                             case EN_FCV:
+                              x = x*Ucf[FLOW];
+                              break;
                           }
                           break;
         case r_FILLTIME:  if (i <= Njuncs) return(0);
@@ -864,10 +868,14 @@ int  takeactions()
         {
             switch(Link[k].Type)
             {
-                case PRV:
-                case PSV:
-                case PBV:    x = x/Ucf[PRESSURE];  break;
-                case FCV:    x = x/Ucf[FLOW];      break;
+                case EN_PRV:
+                case EN_PSV:
+                case EN_PBV:
+                  x = x/Ucf[PRESSURE];
+                  break;
+                case EN_FCV:
+                  x = x/Ucf[FLOW];
+                  break;
             }
             if (ABS(x-v) > tol)
             {
@@ -965,8 +973,8 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 		} 
 		else 
 		{   //it is a link
-			if (Link[p->index].Type == PIPE || Link[p->index].Type == CV) fprintf(f,"PIPE %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
-			else if (Link[p->index].Type == PUMP) fprintf(f,"PUMP %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			if (Link[p->index].Type == EN_PIPE || Link[p->index].Type == EN_CVPIPE) fprintf(f,"PIPE %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+			else if (Link[p->index].Type == EN_PUMP) fprintf(f,"PUMP %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 			else fprintf(f,"VALVE %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 		}
 	}
@@ -1004,8 +1012,8 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 					} 
 					else 
 					{   //it is a link
-						if (Link[p->index].Type == PIPE || Link[p->index].Type == CV) fprintf(f,"PIPE %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
-						else if (Link[p->index].Type == PUMP) fprintf(f,"PUMP %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						if (Link[p->index].Type == EN_PIPE || Link[p->index].Type == EN_CVPIPE) fprintf(f,"PIPE %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+						else if (Link[p->index].Type == EN_PUMP) fprintf(f,"PUMP %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
 						else fprintf(f,"VALVE %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
 					}
 				}
@@ -1027,8 +1035,8 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 			} 
 			else 
 			{   //it is a link
-				if (Link[p->index].Type == PIPE || Link[p->index].Type == CV) fprintf(f,"PIPE %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
-				else if (Link[p->index].Type == PUMP) fprintf(f,"PUMP %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+				if (Link[p->index].Type == EN_PIPE || Link[p->index].Type == EN_CVPIPE) fprintf(f,"PIPE %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
+				else if (Link[p->index].Type == EN_PUMP) fprintf(f,"PUMP %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 				else fprintf(f,"VALVE %s %s %s %s", Link[p->index].ID, Varword[p->variable], Operator[p->relop], Value[p->status]);
 			}
 		} 
@@ -1054,7 +1062,7 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 				}
 				else 
 				{
-					if (p->variable == r_FILLTIME || p->variable == r_DRAINTIME) fprintf(f, "\n%s TANK %s %s %s %.4lf", Ruleword[p->logop], Object[p->object], Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value/3600.0);
+					if (p->variable == r_FILLTIME || p->variable == r_DRAINTIME) fprintf(f, "\n%s TANK %s %s %s %s %.4lf", Ruleword[p->logop], Object[p->object], Node[p->index].ID, Varword[p->variable], Operator[p->relop], p->value/3600.0);
 					else 
 					{ 
 						fprintf(f, "\n%s ", Ruleword[p->logop]);
@@ -1065,8 +1073,8 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 						} 
 						else 
 						{   //it is a link
-							if (Link[p->index].Type == PIPE || Link[p->index].Type == CV) fprintf(f,"PIPE %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
-							else if (Link[p->index].Type == PUMP) fprintf(f,"PUMP %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+							if (Link[p->index].Type == EN_PIPE || Link[p->index].Type == EN_CVPIPE) fprintf(f,"PIPE %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
+							else if (Link[p->index].Type == EN_PUMP) fprintf(f,"PUMP %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
 							else fprintf(f,"VALVE %s %s %s %.4lf", Link[p->index].ID, Varword[p->variable], Operator[p->relop], p->value);
 						}
 					}
@@ -1079,14 +1087,14 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 	a = Rule[RuleIdx].Tchain; //The first action in hte list of true actions starts with THEN
 	if (a->setting==MISSING) 
 	{
-		if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nTHEN PIPE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
-		else if (Link[a->link].Type == PUMP) fprintf(f, "\nTHEN PUMP %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
+		if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE) fprintf(f, "\nTHEN PIPE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
+		else if (Link[a->link].Type == EN_PUMP) fprintf(f, "\nTHEN PUMP %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
 		else fprintf(f, "\nTHEN VALVE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
 	}
 	else 
 	{
-		if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nTHEN PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
-		else if (Link[a->link].Type == PUMP) fprintf(f, "\nTHEN PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+		if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE) fprintf(f, "\nTHEN PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+		else if (Link[a->link].Type == EN_PUMP) fprintf(f, "\nTHEN PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
 		else fprintf(f, "\nTHEN VALVE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
 	}
 
@@ -1095,14 +1103,14 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 	{
 		if (a->setting==MISSING) 
 		{
-			if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nAND PIPE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
-			else if (Link[a->link].Type == PUMP) fprintf(f, "\nAND PUMP %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
+			if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE) fprintf(f, "\nAND PIPE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
+			else if (Link[a->link].Type == EN_PUMP) fprintf(f, "\nAND PUMP %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
 			else fprintf(f, "\nAND VALVE %s STATUS IS %s", Link[a->link].ID, Value[a->status]);
 		}
 		else 
 		{
-			if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nAND PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
-			else if (Link[a->link].Type == PUMP) fprintf(f, "\nAND PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+			if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE) fprintf(f, "\nAND PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+			else if (Link[a->link].Type == EN_PUMP) fprintf(f, "\nAND PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
 			else  fprintf(f, "\nAND VALVE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
 		}
 
@@ -1115,14 +1123,14 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 	{
 		if (a->setting==MISSING) 
 		{
-			if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nELSE PIPE %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
-			else if (Link[a->link].Type == PUMP) fprintf(f, "\nELSE PUMP %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
+			if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE) fprintf(f, "\nELSE PIPE %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
+			else if (Link[a->link].Type == EN_PUMP) fprintf(f, "\nELSE PUMP %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
 			else fprintf(f, "\nELSE VALVE %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
 		}
 		else 
 		{ 
-			if (Link[a->link].Type == PIPE || Link[a->link].Type == CV)  fprintf(f, "\nELSE PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
-			else if (Link[a->link].Type == PUMP) fprintf(f, "\nELSE PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+			if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)  fprintf(f, "\nELSE PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+			else if (Link[a->link].Type == EN_PUMP) fprintf(f, "\nELSE PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
 			else fprintf(f, "\nELSE VALVE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
 		}
 
@@ -1131,14 +1139,14 @@ int writeRuleinInp(FILE *f, int RuleIdx){
 		{
 			if (a->setting==MISSING) 
 			{
-				if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nAND PIPE %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
-				else if (Link[a->link].Type == PUMP) fprintf(f, "\nAND PUMP %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
+				if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE) fprintf(f, "\nAND PIPE %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
+				else if (Link[a->link].Type == EN_PUMP) fprintf(f, "\nAND PUMP %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
 				else fprintf(f, "\nAND VALVE %s  STATUS IS %s", Link[a->link].ID, Value[a->status]);
 			} 
 			else 
 			{
-				if (Link[a->link].Type == PIPE || Link[a->link].Type == CV) fprintf(f, "\nAND PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
-				else if (Link[a->link].Type == PUMP) fprintf(f, "\nAND PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+				if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE) fprintf(f, "\nAND PIPE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
+				else if (Link[a->link].Type == EN_PUMP) fprintf(f, "\nAND PUMP %s SETTING IS %.4f", Link[a->link].ID, a->setting);
 				else fprintf(f, "\nAND VALVE %s SETTING IS %.4f", Link[a->link].ID, a->setting);
 			}
 

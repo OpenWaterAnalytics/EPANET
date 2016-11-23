@@ -116,7 +116,7 @@ int  savenetdata()
       FSAVE(Nlinks);
       for (i=1; i<=Nlinks; i++)
       {
-         if (Link[i].Type != PUMP)
+         if (Link[i].Type != EN_PUMP)
             x[i] = (REAL4)(Link[i].Diam*Ucf[DIAM]);
          else
             x[i] = 0.0f;
@@ -402,7 +402,7 @@ int  linkoutput(int j, REAL4 *x, double ucf)
                       break;
       case VELOCITY:  for (i=1; i<=Nlinks; i++)
                       {
-                         if (Link[i].Type == PUMP) x[i] = 0.0f;
+                         if (Link[i].Type == EN_PUMP) x[i] = 0.0f;
                          else
                          {
                             q = ABS(Q[i]);
@@ -417,8 +417,8 @@ int  linkoutput(int j, REAL4 *x, double ucf)
                          else
                          {
                             h = NodeHead[Link[i].N1] - NodeHead[Link[i].N2];
-                            if (Link[i].Type != PUMP) h = ABS(h);
-                            if (Link[i].Type <= PIPE)
+                            if (Link[i].Type != EN_PUMP) h = ABS(h);
+                            if (Link[i].Type <= EN_PIPE)
                                x[i] = (REAL4)(1000.0*h/Link[i].Len);
                             else x[i] = (REAL4)(h*ucf);
                          }
@@ -436,18 +436,18 @@ int  linkoutput(int j, REAL4 *x, double ucf)
                          if (setting != MISSING)
                              switch (Link[i].Type)
                              {
-                               case CV:   
-                               case PIPE: x[i] = (REAL4)setting;
+                               case EN_CVPIPE:
+                               case EN_PIPE: x[i] = (REAL4)setting;
                                           break;
-                               case PUMP: x[i] = (REAL4)setting;
+                               case EN_PUMP: x[i] = (REAL4)setting;
                                           break;
-                               case PRV:
-                               case PSV:
-                               case PBV:  x[i] = (REAL4)(setting*Ucf[PRESSURE]);
+                               case EN_PRV:
+                               case EN_PSV:
+                               case EN_PBV:  x[i] = (REAL4)(setting*Ucf[PRESSURE]);
                                           break;
-                               case FCV:  x[i] = (REAL4)(setting*Ucf[FLOW]);
+                               case EN_FCV:  x[i] = (REAL4)(setting*Ucf[FLOW]);
                                           break;
-                               case TCV:  x[i] = (REAL4)setting;
+                               case EN_TCV:  x[i] = (REAL4)setting;
                                           break;
                                default:   x[i] = 0.0f;
                              }
@@ -463,7 +463,7 @@ int  linkoutput(int j, REAL4 *x, double ucf)
                        /*loss, d = diam., & L = pipe length         */
                        for (i=1; i<=Nlinks; i++)
                        {
-                          if (Link[i].Type <= PIPE && ABS(Q[i]) > TINY)
+                          if (Link[i].Type <= EN_PIPE && ABS(Q[i]) > TINY)
                           {
                              h = ABS(NodeHead[Link[i].N1] - NodeHead[Link[i].N2]);
                              f = 39.725*h*pow(Link[i].Diam,5)/Link[i].Len/SQR(Q[i]);

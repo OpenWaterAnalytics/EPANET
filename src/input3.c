@@ -86,6 +86,7 @@ int  juncdata()
    Node[Njuncs].S   = NULL;
    Node[Njuncs].Ke  = 0.0;
    Node[Njuncs].Rpt = 0;
+   Node[Njuncs].Type = EN_JUNCTION;
 
 /* Create a new demand record */
 /*** Updated 6/24/02 ***/
@@ -135,16 +136,21 @@ int  tankdata()
 
 /* Add new tank to data base */
    n = Ntokens;
-   if (Ntanks == MaxTanks
-   ||  Nnodes == MaxNodes) return(200);
+   if (Ntanks == MaxTanks ||  Nnodes == MaxNodes) {
+     return(200);
+   }
    Ntanks++;
    Nnodes++;
    i = MaxJuncs + Ntanks;                    /* i = node index.     */
-   if (!addnodeID(i,Tok[0])) return(215);    /* Add ID to database. */
+   if (!addnodeID(i,Tok[0])) {
+     return(215);    /* Add ID to database. */
+   }
 
 /* Check for valid data */
-   if (n < 2) return(201);                   /* Too few fields.   */
-   if (!getfloat(Tok[1],&el)) return(202);   /* Read elevation    */
+   if (n < 2)
+     return(201);                   /* Too few fields.   */
+   if (!getfloat(Tok[1],&el))
+     return(202);   /* Read elevation    */
    if (n <= 3)                               /* Tank is reservoir.*/
    {
       if (n == 3)                            /* Pattern supplied  */
@@ -180,6 +186,7 @@ int  tankdata()
    Node[i].C0            = 0.0;              /* Init. quality.       */
    Node[i].S             = NULL;             /* WQ source data       */     
    Node[i].Ke            = 0.0;              /* Emitter coeff.       */
+   Node[i].Type          = (diam == 0) ? EN_RESERVOIR : EN_TANK;
    Tank[Ntanks].Node     = i;                /* Node index.          */
    Tank[Ntanks].H0       = initlevel;        /* Init. level.         */
    Tank[Ntanks].Hmin     = minlevel;         /* Min. level.          */
@@ -222,8 +229,8 @@ int  pipedata()
    int   j1,                     /* Start-node index  */
          j2,                     /* End-node index    */
          n;                      /* # data items      */
-   char  type = PIPE,            /* Link type         */
-         status = OPEN;          /* Link status       */
+   EN_LinkType  type = EN_PIPE;   /* Link type         */
+   StatType status = OPEN;          /* Link status       */
    double length,                 /* Link length       */
          diam,                   /* Link diameter     */
          rcoeff,                 /* Roughness coeff.  */
@@ -258,7 +265,7 @@ int  pipedata()
    /* Case where either loss coeff. or status supplied */
    if (n == 7)
    {
-      if      (match(Tok[6],w_CV))        type = CV;
+      if      (match(Tok[6],w_CV))        type = EN_CVPIPE;
       else if (match(Tok[6],w_CLOSED))    status = CLOSED;
       else if (match(Tok[6],w_OPEN))      status = OPEN;
       else if (!getfloat(Tok[6],&lcoeff)) return(202);
@@ -268,7 +275,7 @@ int  pipedata()
    if (n == 8)
    {
       if (!getfloat(Tok[6],&lcoeff))   return(202);
-      if      (match(Tok[7],w_CV))     type = CV;
+      if      (match(Tok[7],w_CV))     type = EN_CVPIPE;
       else if (match(Tok[7],w_CLOSED)) status = CLOSED;
       else if (match(Tok[7],w_OPEN))   status = OPEN;
       else return(202);
@@ -343,7 +350,7 @@ int  pumpdata()
    Link[Nlinks].Km    = 0.0;              /* Horsepower.        */
    Link[Nlinks].Kb    = 0.0;
    Link[Nlinks].Kw    = 0.0;
-   Link[Nlinks].Type  = PUMP;             /* Link type.         */
+   Link[Nlinks].Type  = EN_PUMP;             /* Link type.         */
    Link[Nlinks].Stat  = OPEN;             /* Link status.       */
    Link[Nlinks].Rpt   = 0;                /* Report flag.       */
    Pump[Npumps].Link = Nlinks;            /* Link index.        */
@@ -444,16 +451,16 @@ int  valvedata()
 /*** Updated 10/25/00 ***/
    if (j1 == j2) return(222);    
 
-   if      (match(Tok[4],w_PRV)) type = PRV;
-   else if (match(Tok[4],w_PSV)) type = PSV;
-   else if (match(Tok[4],w_PBV)) type = PBV;
-   else if (match(Tok[4],w_FCV)) type = FCV;
-   else if (match(Tok[4],w_TCV)) type = TCV;
-   else if (match(Tok[4],w_GPV)) type = GPV;
+   if      (match(Tok[4],w_PRV)) type = EN_PRV;
+   else if (match(Tok[4],w_PSV)) type = EN_PSV;
+   else if (match(Tok[4],w_PBV)) type = EN_PBV;
+   else if (match(Tok[4],w_FCV)) type = EN_FCV;
+   else if (match(Tok[4],w_TCV)) type = EN_TCV;
+   else if (match(Tok[4],w_GPV)) type = EN_GPV;
    else    return(201);                      /* Illegal valve type.*/
    if (!getfloat(Tok[3],&diam)) return(202);
    if (diam <= 0.0) return(202);             /* Illegal diameter.*/
-   if (type == GPV)                          /* Headloss curve for GPV */
+   if (type == EN_GPV)                          /* Headloss curve for GPV */
    {
       t = findID(Tok[5],Curvelist);
       if (t == NULL) return(206);
@@ -471,7 +478,7 @@ int  valvedata()
 /* Check that PRV, PSV, or FCV not connected to a tank & */
 /* check for illegal connections between pairs of valves.*/
    if ((j1 > Njuncs || j2 > Njuncs) &&
-       (type == PRV || type == PSV || type == FCV)
+       (type == EN_PRV || type == EN_PSV || type == EN_FCV)
       ) return(219);
    if (!valvecheck(type,j1,j2)) return(220);
 
@@ -698,8 +705,9 @@ int  controldata()
    int   i = 0,                /* Node index             */
          k,                    /* Link index             */
          n;                    /* # data items           */
-   char  status = ACTIVE,      /* Link status            */
-         type;                 /* Link or control type   */
+   StatType status = ACTIVE;      /* Link status            */
+   ControlType c_type;                 /* control type   */
+  EN_LinkType l_type;           /* Link Type */
    double setting = MISSING,    /* Link setting           */
          time = 0.0,           /* Simulation time        */
          level = 0.0;          /* Pressure or tank level */
@@ -711,34 +719,35 @@ int  controldata()
 /* Check that controlled link exists */
    k = findlink(Tok[1]);
    if (k == 0) return(204);
-   type = Link[k].Type;
-   if (type == CV) return(207);         /* Cannot control check valve. */
-
+   l_type = Link[k].Type;
+  if (l_type == EN_CVPIPE) {
+     return(207);         /* Cannot control check valve. */
+  }
 /*** Updated 9/7/00 ***/
 /* Parse control setting into a status level or numerical setting. */
-   if (match(Tok[2],w_OPEN))
-   {
+   if (match(Tok[2],w_OPEN)) {
       status = OPEN;
-      if (type == PUMP) setting = 1.0;
-      if (type == GPV)  setting = Link[k].Kc;
+     if (l_type == EN_PUMP) setting = 1.0;
+      if (l_type == EN_GPV)  setting = Link[k].Kc;
    }
-   else if (match(Tok[2],w_CLOSED))
-   {
+   else if (match(Tok[2],w_CLOSED)) {
       status = CLOSED;
-      if (type == PUMP) setting = 0.0;
-      if (type == GPV)  setting = Link[k].Kc;
+      if (l_type == EN_PUMP) setting = 0.0;
+      if (l_type == EN_GPV)  setting = Link[k].Kc;
    }
-   else if (type == GPV) return(206);
-   else if (!getfloat(Tok[2],&setting)) return(202);
+   else if (l_type == EN_GPV) {
+     return(206);
+   }
+   else if (!getfloat(Tok[2],&setting)) {
+     return(202);
+   }
 
 /*** Updated 3/1/01 ***/
 /* Set status for pump in case speed setting was supplied */
 /* or for pipe if numerical setting was supplied */
 
-   if (type == PUMP || type == PIPE)
-   {
-      if (setting != MISSING)
-      {
+   if (l_type == EN_PUMP || l_type == EN_PIPE) {
+      if (setting != MISSING) {
          if (setting < 0.0)       return(202);
          else if (setting == 0.0) status = CLOSED;
          else                     status = OPEN;
@@ -746,29 +755,43 @@ int  controldata()
    }
 
 /* Determine type of control */
-   if      (match(Tok[4],w_TIME))      type = TIMER;
-   else if (match(Tok[4],w_CLOCKTIME)) type = TIMEOFDAY;
-   else
-   {
-      if (n < 8) return(201);
-      if ((i = findnode(Tok[5])) == 0) return(203);
-      if      (match(Tok[6],w_BELOW)) type = LOWLEVEL;
-      else if (match(Tok[6],w_ABOVE)) type = HILEVEL;
-      else return(201);
+  if (match(Tok[4],w_TIME)) {
+    c_type = TIMER;
+  }
+   else if (match(Tok[4],w_CLOCKTIME)) {
+     c_type = TIMEOFDAY;
+   }
+   else {
+      if (n < 8)
+        return(201);
+     
+      if ((i = findnode(Tok[5])) == 0)
+        return(203);
+     
+      if (match(Tok[6],w_BELOW))
+        c_type = LOWLEVEL;
+      else if (match(Tok[6],w_ABOVE))
+        c_type = HILEVEL;
+      else
+        return(201);
    }
 
 /* Parse control level or time */
-   switch (type)
+   switch (c_type)
    {
       case TIMER:
       case TIMEOFDAY:
-         if (n == 6) time = hour(Tok[5],"");
-         if (n == 7) time = hour(Tok[5],Tok[6]);
-         if (time < 0.0) return(201);
+         if (n == 6)
+           time = hour(Tok[5],"");
+         if (n == 7)
+           time = hour(Tok[5],Tok[6]);
+         if (time < 0.0)
+           return(201);
          break;
       case LOWLEVEL:
       case HILEVEL:   
-         if (!getfloat(Tok[7],&level)) return(202);
+         if (!getfloat(Tok[7],&level))
+           return(202);
          break;
    }
 
@@ -777,11 +800,11 @@ int  controldata()
    if (Ncontrols > MaxControls) return(200);
    Control[Ncontrols].Link     = k;
    Control[Ncontrols].Node     = i;
-   Control[Ncontrols].Type     = type;
+   Control[Ncontrols].Type     = c_type;
    Control[Ncontrols].Status   = status;
    Control[Ncontrols].Setting  = setting;
    Control[Ncontrols].Time     = (long)(3600.0*time);
-   if (type == TIMEOFDAY)
+   if (c_type == TIMEOFDAY)
       Control[Ncontrols].Time %= SECperDAY;
    Control[Ncontrols].Grade    = level;
    return(0);
@@ -1117,11 +1140,11 @@ int  statusdata()
    {
       if ( (j = findlink(Tok[0])) == 0) return(0);
       /* Cannot change status of a Check Valve */
-      if (Link[j].Type == CV) return(211);
+      if (Link[j].Type == EN_CVPIPE) return(211);
 
 /*** Updated 9/7/00 ***/      
       /* Cannot change setting for a GPV */
-      if (Link[j].Type == GPV
+      if (Link[j].Type == EN_GPV
       &&  status == ACTIVE)   return(211);
 
       changestatus(j,status,y);
@@ -1187,7 +1210,7 @@ int  energydata()
       if (n < 4) return(201);
       k = findlink(Tok[1]);                      /* Check that pump exists */
       if (k == 0) return(216);
-      if (Link[k].Type != PUMP) return(216);
+      if (Link[k].Type != EN_PUMP) return(216);
       j = PUMPINDEX(k);
    }
    else return(201);
@@ -1808,7 +1831,8 @@ int  valvecheck(int type, int j1, int j2)
 **--------------------------------------------------------------
 */
 {
-   int  k, vk, vj1, vj2, vtype;
+  int  k, vk, vj1, vj2;
+  EN_LinkType vtype;
 
    /* Examine each existing valve */
    for (k=1; k<=Nvalves; k++)
@@ -1819,7 +1843,7 @@ int  valvecheck(int type, int j1, int j2)
       vtype = Link[vk].Type;
 
       /* Cannot have two PRVs sharing downstream nodes or in series */
-      if (vtype == PRV && type == PRV)
+      if (vtype == EN_PRV && type == EN_PRV)
       {
          if (vj2 == j2 ||
              vj2 == j1 ||
@@ -1827,7 +1851,7 @@ int  valvecheck(int type, int j1, int j2)
       }
 
       /* Cannot have two PSVs sharing upstream nodes or in series */
-      if (vtype == PSV && type == PSV)
+      if (vtype == EN_PSV && type == EN_PSV)
       {
          if (vj1 == j1 ||
              vj1 == j2 ||
@@ -1835,18 +1859,24 @@ int  valvecheck(int type, int j1, int j2)
       }
 
       /* Cannot have PSV connected to downstream node of PRV */
-      if (vtype == PSV && type == PRV && vj1 == j2) return(0);
-      if (vtype == PRV && type == PSV && vj2 == j1) return(0);
+      if (vtype == EN_PSV && type == EN_PRV && vj1 == j2)
+        return(0);
+      if (vtype == EN_PRV && type == EN_PSV && vj2 == j1)
+        return(0);
 
 /*** Updated 3/1/01 ***/
       /* Cannot have PSV connected to downstream node of FCV */
       /* nor have PRV connected to upstream node of FCV */
-      if (vtype == FCV && type == PSV && vj2 == j1) return(0);
-      if (vtype == FCV && type == PRV && vj1 == j2) return(0);
+      if (vtype == EN_FCV && type == EN_PSV && vj2 == j1)
+        return(0);
+      if (vtype == EN_FCV && type == EN_PRV && vj1 == j2)
+        return(0);
 
 /*** Updated 4/14/05 ***/
-      if (vtype == PSV && type == FCV && vj1 == j2) return (0);
-      if (vtype == PRV && type == FCV && vj2 == j1) return (0);
+      if (vtype == EN_PSV && type == EN_FCV && vj1 == j2)
+        return (0);
+      if (vtype == EN_PRV && type == EN_FCV && vj2 == j1)
+        return (0);
    }
    return(1);
 }                   /* End of valvecheck */
@@ -1868,27 +1898,28 @@ void  changestatus(int j, char status, double y)
 **--------------------------------------------------------------
 */
 {
-   if (Link[j].Type == PIPE || Link[j].Type == GPV)
-   {
-      if (status != ACTIVE) Link[j].Stat = status;
-   }
-   else if (Link[j].Type == PUMP)
-   {
-      if (status == ACTIVE)
-      {
-         Link[j].Kc = y;
-         status = OPEN;
-         if (y == 0.0) status = CLOSED;
-      }
-      else if (status == OPEN) Link[j].Kc = 1.0;
-      Link[j].Stat = status;
-   }
-   else if (Link[j].Type >= PRV)
-   {
+  if (Link[j].Type == EN_PIPE || Link[j].Type == EN_GPV) {
+    if (status != ACTIVE) Link[j].Stat = status;
+  }
+  else if (Link[j].Type == EN_PUMP) {
+    if (status == ACTIVE) {
       Link[j].Kc = y;
-      Link[j].Stat = status;
-      if (status != ACTIVE) Link[j].Kc = MISSING;
-   }
+      status = OPEN;
+      if (y == 0.0)
+        status = CLOSED;
+    }
+    else if (status == OPEN) {
+      Link[j].Kc = 1.0;
+    }
+    Link[j].Stat = status;
+  }
+  else if (Link[j].Type >= EN_PRV) {
+    Link[j].Kc = y;
+    Link[j].Stat = status;
+    if (status != ACTIVE) {
+      Link[j].Kc = MISSING;
+    }
+  }
 }                        /* end of changestatus */
 
 /********************** END OF INPUT3.C ************************/

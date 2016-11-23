@@ -582,7 +582,7 @@ void  writelinktable(Pfloat *x)
          }
 
          /* Note if link is a pump or valve */
-         if ( (j = Link[i].Type) > PIPE)
+         if ( (j = Link[i].Type) > EN_PIPE)
          {
             strcat(s, "  ");
             strcat(s, LinkTxt[j]);
@@ -781,10 +781,13 @@ void  writestatchange(int k, char s1, char s2)
 
       switch (Link[k].Type)
       {
-         case PRV:
-         case PSV:
-         case PBV: setting *= Ucf[PRESSURE]; break;
-         case FCV: setting *= Ucf[FLOW];
+         case EN_PRV:
+         case EN_PSV:
+         case EN_PBV:
+          setting *= Ucf[PRESSURE];
+          break;
+         case EN_FCV:
+          setting *= Ucf[FLOW];
       }
       sprintf(Msg,FMT56,LinkTxt[Link[k].Type],Link[k].ID,setting);
       writeline(Msg);
@@ -1076,9 +1079,12 @@ void  marknodes(int m, int *nodelist, char *marked)
          /* Check if valve connection is in correct direction */
          switch (Link[k].Type)
          {
-            case CV:
-            case PRV:
-            case PSV: if (j == Link[k].N1) continue;
+            case EN_CVPIPE:
+            case EN_PRV:
+            case EN_PSV:
+             if (j == Link[k].N1) {
+               continue;
+             }
          }
 
          /* Mark connection node if link not closed */

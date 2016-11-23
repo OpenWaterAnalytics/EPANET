@@ -838,10 +838,13 @@ int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex, EN_API_FLOAT_TYP
    s = Control[cindex].Setting;
    if (Control[cindex].Setting != MISSING) switch (Link[*lindex].Type)
    {
-      case PRV:
-      case PSV:
-      case PBV: s *= Ucf[PRESSURE]; break;
-      case FCV: s *= Ucf[FLOW];
+      case EN_PRV:
+      case EN_PSV:
+      case EN_PBV:
+       s *= Ucf[PRESSURE];
+       break;
+      case EN_FCV:
+       s *= Ucf[FLOW];
    }
    else if (Control[cindex].Status == OPEN) s = 1.0;
 
@@ -1393,7 +1396,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
    switch (code)
    {
       case EN_DIAMETER:
-         if (Link[index].Type == PUMP) v = 0.0;
+         if (Link[index].Type == EN_PUMP) v = 0.0;
          else v = Link[index].Diam*Ucf[DIAM];
          break;
 
@@ -1402,7 +1405,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
          break;
 
       case EN_ROUGHNESS:
-         if (Link[index].Type <= PIPE)
+         if (Link[index].Type <= EN_PIPE)
          {
             if (Formflag == DW)
                v = Link[index].Kc*(1000.0*Ucf[ELEV]);
@@ -1412,7 +1415,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
          break;
 
       case EN_MINORLOSS:
-         if (Link[index].Type != PUMP)
+         if (Link[index].Type != EN_PUMP)
          {
             v = Link[index].Km;
             v *= (SQR(Link[index].Diam)*SQR(Link[index].Diam)/0.02517);
@@ -1426,15 +1429,18 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
          break;
 
       case EN_INITSETTING:
-         if (Link[index].Type == PIPE || Link[index].Type == CV) 
+         if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
             return(ENgetlinkvalue(index, EN_ROUGHNESS, value));
          v = Link[index].Kc;
          switch (Link[index].Type)
          {
-            case PRV:
-            case PSV:
-            case PBV: v *= Ucf[PRESSURE]; break;
-            case FCV: v *= Ucf[FLOW];
+            case EN_PRV:
+            case EN_PSV:
+            case EN_PBV:
+             v *= Ucf[PRESSURE];
+             break;
+            case EN_FCV:
+             v *= Ucf[FLOW];
          }            
          break;
 
@@ -1454,13 +1460,15 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
          break;
 
       case EN_VELOCITY:
-         if (Link[index].Type == PUMP) v = 0.0;
+       if (Link[index].Type == EN_PUMP) {
+           v = 0.0;
+       }
 
 /*** Updated 11/19/01 ***/
-         else if (LinkStatus[index] <= CLOSED) v = 0.0;
+         else if (LinkStatus[index] <= CLOSED)
+           v = 0.0;
 
-         else
-         {
+         else {
             q = ABS(Q[index]);
             a = PI*SQR(Link[index].Diam)/4.0;
             v = q/a*Ucf[VELOCITY];
@@ -1472,10 +1480,9 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
 /*** Updated 11/19/01 ***/
          if (LinkStatus[index] <= CLOSED) v = 0.0;
 
-         else
-         {
+         else {
             h = NodeHead[Link[index].N1] - NodeHead[Link[index].N2];
-            if (Link[index].Type != PUMP) h = ABS(h);
+            if (Link[index].Type != EN_PUMP) h = ABS(h);
             v = h*Ucf[HEADLOSS];
          }
          break;
@@ -1486,7 +1493,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
          break;
 
       case EN_SETTING:
-         if (Link[index].Type == PIPE || Link[index].Type == CV) {
+         if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE) {
             return(ENgetlinkvalue(index, EN_ROUGHNESS, value));
          }
          if (LinkSetting[index] == MISSING) {
@@ -1497,10 +1504,13 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
          }
          switch (Link[index].Type)
          {
-            case PRV:
-            case PSV:
-            case PBV: v *= Ucf[PRESSURE]; break;
-            case FCV: v *= Ucf[FLOW];
+            case EN_PRV:
+            case EN_PSV:
+            case EN_PBV:
+             v *= Ucf[PRESSURE];
+             break;
+            case EN_FCV:
+             v *= Ucf[FLOW];
          }            
          break;
 
@@ -1513,7 +1523,7 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
          break;
 
       case EN_LINKPATTERN:
-         if (Link[index].Type == PUMP)
+         if (Link[index].Type == EN_PUMP)
             v = (double)Pump[PUMPINDEX(index)].Upat;
          break;
 
@@ -1591,10 +1601,12 @@ int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
    if (lindex < 0 || lindex > Nlinks) return(204);
 
 /* Cannot control check valve. */
-   if (Link[lindex].Type == CV) return(207);
+   if (Link[lindex].Type == EN_CVPIPE)
+     return(207);
 
 /* Check for valid parameters */
-   if (ctype < 0 || ctype > EN_TIMEOFDAY) return(251);
+   if (ctype < 0 || ctype > EN_TIMEOFDAY)
+     return(251);
    if (ctype == EN_LOWLEVEL || ctype == EN_HILEVEL)
    {
       if (nindex < 1 || nindex > Nnodes) return(203);
@@ -1605,23 +1617,31 @@ int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
 /* Adjust units of control parameters */
    switch (Link[lindex].Type)
    {
-      case PRV:
-      case PSV:
-      case PBV:  s /= Ucf[PRESSURE];
-                 break;
-      case FCV:  s /= Ucf[FLOW];
-                 break;
+      case EN_PRV:
+      case EN_PSV:
+      case EN_PBV:
+       s /= Ucf[PRESSURE];
+       break;
+      case EN_FCV:
+       s /= Ucf[FLOW];
+       break;
 
 /*** Updated 9/7/00 ***/
-      case GPV:  if (s == 0.0) status = CLOSED;
-                 else if (s == 1.0) status = OPEN;
-                 else return(202);
-                 s = Link[lindex].Kc;
-                 break;
+      case EN_GPV:
+       if (s == 0.0)
+         status = CLOSED;
+       else if (s == 1.0)
+         status = OPEN;
+       else
+         return(202);
+       s = Link[lindex].Kc;
+       break;
 
-      case PIPE:
-      case PUMP: status = OPEN;
-                 if (s == 0.0) status = CLOSED;               
+      case EN_PIPE:
+      case EN_PUMP:
+       status = OPEN;
+       if (s == 0.0)
+         status = CLOSED;
    }
    if (ctype == LOWLEVEL || ctype == HILEVEL)
    {
@@ -1912,7 +1932,7 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
    switch (code)
    {
       case EN_DIAMETER:
-         if (Link[index].Type != PUMP)
+         if (Link[index].Type != EN_PUMP)
          {
             if (value <= 0.0) return(202);
             value /= Ucf[DIAM];              /* Convert to feet */
@@ -1924,7 +1944,7 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
          break;
 
       case EN_LENGTH:
-         if (Link[index].Type <= PIPE)
+         if (Link[index].Type <= EN_PIPE)
          {
             if (value <= 0.0) return(202);
             Link[index].Len = value/Ucf[ELEV];
@@ -1933,7 +1953,7 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
          break;
 
       case EN_ROUGHNESS:
-         if (Link[index].Type <= PIPE)
+         if (Link[index].Type <= EN_PIPE)
          {
             if (value <= 0.0) return(202);
             Link[index].Kc = value;
@@ -1943,7 +1963,7 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
          break;
 
       case EN_MINORLOSS:
-         if (Link[index].Type != PUMP)
+         if (Link[index].Type != EN_PUMP)
          {
             if (value <= 0.0) return(202);
             Link[index].Km = 0.02517*value/SQR(Link[index].Diam)/SQR(Link[index].Diam);
@@ -1953,9 +1973,11 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
       case EN_INITSTATUS:
       case EN_STATUS:
       /* Cannot set status for a check valve */
-         if (Link[index].Type == CV) return(207);
+         if (Link[index].Type == EN_CVPIPE)
+           return(207);
          s = (char)ROUND(value);
-         if (s < 0 || s > 1) return(251);
+         if (s < 0 || s > 1)
+           return(251);
          if (code == EN_INITSTATUS)
            setlinkstatus(index, s, &Link[index].Stat, &Link[index].Kc);
          else
@@ -1964,24 +1986,30 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
 
       case EN_INITSETTING:
       case EN_SETTING:
-         if (value < 0.0) return(202);
-         if (Link[index].Type == PIPE || Link[index].Type == CV) 
+         if (value < 0.0)
+           return(202);
+         if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
            return(ENsetlinkvalue(index, EN_ROUGHNESS, v));
-         else
-         {
-            switch (Link[index].Type)
-            {
-               case PUMP: break;
-               case PRV:
-               case PSV:
-               case PBV: value /= Ucf[PRESSURE]; break;
-               case FCV: value /= Ucf[FLOW]; break;
-               case TCV: break;
+         else {
+            switch (Link[index].Type) {
+               case EN_PUMP:
+                break;
+               case EN_PRV:
+               case EN_PSV:
+               case EN_PBV:
+                value /= Ucf[PRESSURE];
+                break;
+               case EN_FCV:
+                value /= Ucf[FLOW];
+                break;
+               case EN_TCV: break;
 
 /***  Updated 9/7/00  ***/
-               case GPV: return(202);  /* Cannot modify setting for GPV */
+               case EN_GPV:
+                return(202);  /* Cannot modify setting for GPV */
 
-               default:  return(251);
+               default:
+                return(251);
             }
             if (code == EN_INITSETTING)
               setlinksetting(index, value, &Link[index].Stat, &Link[index].Kc);
@@ -1991,16 +2019,14 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
          break;
 
       case EN_KBULK:
-         if (Link[index].Type <= PIPE)
-         {
+         if (Link[index].Type <= EN_PIPE) {
             Link[index].Kb = value/SECperDAY;
             Reactflag = 1;                                                     //(2.00.12 - LR)
          }
          break;
 
       case EN_KWALL:
-         if (Link[index].Type <= PIPE)
-         {
+         if (Link[index].Type <= EN_PIPE) {
             Link[index].Kw = value/SECperDAY;
             Reactflag = 1;                                                     //(2.00.12 - LR)
          }
@@ -2406,7 +2432,7 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char
 int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
 {
    if (!Openflag) return(102);
-   if (index < 1 || index > Nlinks || PUMP != Link[index].Type) return(204);
+   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) return(204);
    *curveindex = Pump[PUMPINDEX(index)].Hcurve;
    return(0);
 }
@@ -2414,7 +2440,7 @@ int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
 int DLLEXPORT ENsetheadcurveindex(int index, int curveindex)
 {
   if (!Openflag) return(102);
-  if (index < 1 || index > Nlinks || PUMP != Link[index].Type) return(204);
+  if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) return(204);
   Pump[PUMPINDEX(index)].Ptype = NOCURVE;
   Pump[PUMPINDEX(index)].Hcurve = curveindex;
   // update pump parameters
@@ -2437,7 +2463,7 @@ int DLLEXPORT ENgetpumptype(int index, int *type)
 {
    *type=-1;
    if (!Openflag) return(102);
-   if (index < 1 || index > Nlinks || PUMP != Link[index].Type) return(204);
+   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) return(204);
    *type = Pump[PUMPINDEX(index)].Ptype;
    return(0);
 }
@@ -3505,7 +3531,7 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
   Link[n].N1 = N1;
   Link[n].N2 = N2;
   
-  if(linkType == PUMP) {
+  if(linkType == EN_PUMP) {
     Link[n].Diam = Npumps;
   } else {
     Link[n].Diam = 0;
@@ -3611,7 +3637,7 @@ int ENdeletenode(int index)
     }
   }
   
-  char *idstodelete[20][32];
+  char *idstodelete[MAXID];
   int ntodelete = 0;
   // gather a list of link ids to remove
   for(i = 1; i <= Nlinks; i++) {
@@ -3674,11 +3700,11 @@ int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFal
    while (p->next != NULL)
    {
 	   count++;
-	   p=p->next;
+	   p = p->next;
    }
    *nPremises = count;
    count = 1;
-   c=Rule[index].Tchain;
+   c = Rule[index].Tchain;
    while (c->next != NULL)
    {
 	   count++;

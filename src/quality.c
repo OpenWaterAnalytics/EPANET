@@ -501,9 +501,9 @@ char  setReactflag()
    {
       for (i=1; i<=Nlinks; i++)
       {
-         if (Link[i].Type <= PIPE)
-         {
-            if (Link[i].Kb != 0.0 || Link[i].Kw != 0.0) return(1);
+         if (Link[i].Type <= EN_PIPE) {
+            if (Link[i].Kb != 0.0 || Link[i].Kw != 0.0)
+              return(1);
          }
       }
       for (i=1; i<=Ntanks; i++)

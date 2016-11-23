@@ -143,9 +143,9 @@ EXTERN long     Tstart,                /* Starting time of day (sec)   */
 EXTERN SField   Field[MAXVAR];         /* Output reporting fields      */
 
 /* Array pointers not allocated and freed in same routine */
-EXTERN char           *LinkStatus,           /* Link status                  */
+EXTERN StatType *LinkStatus,           /* Link status                  */
                 *OldStat;              /* Previous link/tank status    */
-EXTERN double         *NodeDemand,           /* Node actual demand           */
+EXTERN double   *NodeDemand,           /* Node actual demand           */
                 *NodeQual,             /* Node actual quality          */
                 *E,                    /* Emitter flows                */
                 *LinkSetting,          /* Link settings                */

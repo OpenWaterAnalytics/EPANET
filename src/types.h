@@ -20,6 +20,8 @@ AUTHOR:     L. Rossman
 #ifndef TYPES_H
 #define TYPES_H
 
+#include "epanet2.h"
+
 /*********************************************************/
 /* All floats have been re-declared as doubles (7/3/07). */
 /*********************************************************/ 
@@ -142,24 +144,6 @@ typedef enum {
   AGE,           /*    analyze water age                */
   TRACE
 } QualType;        /*    trace % of flow from a source    */
-
-typedef enum {
-  JUNC,          /*    junction                         */
-  RESERV,        /*    reservoir                        */
-  TANK
-} NodeType;         /*    tank                             */
-
-typedef enum {
-  CV,           /*    pipe with check valve            */
-  PIPE,         /*    regular pipe                     */
-  PUMP,         /*    pump                             */
-  PRV,          /*    pressure reducing valve          */
-  PSV,          /*    pressure sustaining valve        */
-  PBV,          /*    pressure breaker valve           */
-  FCV,          /*    flow control valve               */
-  TCV,          /*    throttle control valve           */
-  GPV
-} LinkType;         /*    general purpose valve            */
 
 typedef enum {
   V_CURVE,     /*    volume curve                      */
@@ -376,6 +360,7 @@ typedef struct            /* NODE OBJECT */
    double  C0;             /* Initial quality  */
    double  Ke;             /* Emitter coeff.   */
    char    Rpt;            /* Reporting flag   */
+   EN_NodeType Type;       /* Node Type */
 }  Snode;
 
 typedef struct            /* LINK OBJECT */
@@ -391,7 +376,7 @@ typedef struct            /* LINK OBJECT */
    double  Kw;             /* Wall react. coeff */
    double  R;              /* Flow resistance   */
    double  Rc;             /* Reaction cal      */
-   LinkType Type;          /* Link type         */
+   EN_LinkType Type;       /* Link type         */
    StatType Stat;          /* Initial status    */
    char    Rpt;            /* Reporting flag    */
 }  Slink;
@@ -484,7 +469,7 @@ typedef struct            /* FIELD OBJECT of report table */
    double RptLim[2];       /* Lower/upper report limits  */
 } SField;
 
-typedef struct          /* Rule Premise Clause */
+typedef struct s_Premise         /* Rule Premise Clause */
 {
    int      logop;          /* Logical operator */
    int      object;         /* Node or link */
@@ -493,32 +478,32 @@ typedef struct          /* Rule Premise Clause */
    int      relop;          /* Relational operator */
    int      status;         /* Variable's status */
    double   value;          /* Variable's value */
-   struct   Premise *next;
+   struct   s_Premise *next;
 } Premise;
 
-typedef struct            /* Rule Action Clause */
+typedef struct s_Action           /* Rule Action Clause */
 {
    int     link;            /* Link index */
    int     status;          /* Link's status */
    double  setting;         /* Link's setting */
-   struct  Action *next;
+   struct  s_Action *next;
 } Action;
 
-typedef struct            /* Control Rule Structure */
+typedef struct s_aRule           /* Control Rule Structure */
 {
    char     label[MAXID+1];    /* Rule character label */
    double   priority;          /* Priority level */
-   struct   Premise  *Pchain;  /* Linked list of premises */
-   struct   Action   *Tchain;  /* Linked list of actions if true */
-   struct   Action   *Fchain;  /* Linked list of actions if false */
-   struct   aRule    *next;
+   Premise  *Pchain;  /* Linked list of premises */
+   Action   *Tchain;  /* Linked list of actions if true */
+   Action   *Fchain;  /* Linked list of actions if false */
+   struct   s_aRule    *next;
 } aRule;
 
-typedef struct               /* Action list item */
+typedef struct s_ActItem              /* Action list item */
 {
    int      ruleindex;        /* Index of rule action belongs to */
    struct   Action   *action; /* An action structure */
-   struct   ActItem  *next;     
+   struct   s_ActItem  *next;     
 } ActItem;
 
 

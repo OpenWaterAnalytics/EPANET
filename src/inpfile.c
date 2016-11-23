@@ -195,7 +195,7 @@ int  saveinpfile(char *fname)
    fprintf(f,"\n\n[PIPES]");
    for (i=1; i<=Nlinks; i++)
    {
-      if (Link[i].Type <= PIPE)
+      if (Link[i].Type <= EN_PIPE)
       {
          d = Link[i].Diam;
          kc = Link[i].Kc;
@@ -209,7 +209,7 @@ int  saveinpfile(char *fname)
             d*Ucf[DIAM]);
          if (Formflag == DW) sprintf(s1, "%12.4f %12.4f", kc, km);
          else                sprintf(s1, "%12.4f %12.4f", kc, km);
-         if (Link[i].Type == CV) sprintf(s2,"CV");
+         if (Link[i].Type == EN_CVPIPE) sprintf(s2,"CV");
          else if (Link[i].Stat == CLOSED) sprintf(s2,"CLOSED");
          else strcpy(s2,"");
          fprintf(f,"\n%s %s %s",s,s1,s2);
@@ -271,10 +271,14 @@ int  saveinpfile(char *fname)
       if (kc == MISSING) kc = 0.0;
       switch (Link[n].Type)
       {
-         case FCV: kc *= Ucf[FLOW]; break;
-         case PRV:
-         case PSV:
-         case PBV: kc *= Ucf[PRESSURE]; break;
+         case EN_FCV:
+          kc *= Ucf[FLOW];
+          break;
+         case EN_PRV:
+         case EN_PSV:
+         case EN_PBV:
+          kc *= Ucf[PRESSURE];
+          break;
       }
       km = Link[n].Km*SQR(d)*SQR(d)/0.02517;
 
@@ -285,9 +289,10 @@ int  saveinpfile(char *fname)
          d*Ucf[DIAM],
          LinkTxt[Link[n].Type]);
 
-      if (Link[n].Type == GPV && (j = ROUND(Link[n].Kc)) > 0)
+      if (Link[n].Type == EN_GPV && (j = ROUND(Link[n].Kc)) > 0)
          sprintf(s1,"%-31s %12.4f", Curve[j].ID, km);
-      else sprintf(s1,"%12.4f %12.4f",kc,km);
+      else
+        sprintf(s1,"%12.4f %12.4f",kc,km);
 
       fprintf(f, "\n%s %s", s,s1);
    }
@@ -322,13 +327,13 @@ int  saveinpfile(char *fname)
    fprintf(f, "\n\n[STATUS]");
    for (i=1; i<=Nlinks; i++)
    {
-      if (Link[i].Type <= PUMP)
+      if (Link[i].Type <= EN_PUMP)
       {
          if (Link[i].Stat == CLOSED)
             fprintf(f, "\n %-31s %s",Link[i].ID,StatTxt[CLOSED]);
 
       /* Write pump speed here for pumps with old-style pump curve input */
-         else if (Link[i].Type == PUMP)
+         else if (Link[i].Type == EN_PUMP)
          {
             n = PUMPINDEX(i);
             if (
@@ -389,10 +394,14 @@ int  saveinpfile(char *fname)
          kc = Control[i].Setting;
          switch(Link[j].Type)
          {
-            case PRV:
-            case PSV:
-            case PBV: kc *= Ucf[PRESSURE]; break;
-            case FCV: kc *= Ucf[FLOW];     break;
+            case EN_PRV:
+            case EN_PSV:
+            case EN_PBV:
+             kc *= Ucf[PRESSURE];
+             break;
+            case EN_FCV:
+             kc *= Ucf[FLOW];
+             break;
          }
          sprintf(s, " LINK %s %.4f",Link[j].ID, kc);
       }
@@ -487,7 +496,7 @@ int  saveinpfile(char *fname)
    fprintf(f, "\n ROUGHNESS CORRELATION  %-.6f",Rfactor);
    for (i=1; i<=Nlinks; i++)
    {
-      if (Link[i].Type > PIPE) continue;
+      if (Link[i].Type > EN_PIPE) continue;
       if (Link[i].Kb != Kbulk)
          fprintf(f, "\n BULK   %-31s %-.6f",Link[i].ID,Link[i].Kb*SECperDAY);
       if (Link[i].Kw != Kwall)

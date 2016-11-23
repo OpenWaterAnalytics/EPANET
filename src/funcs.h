@@ -157,10 +157,10 @@ int     allocmatrix(void);                /* Allocates matrix coeffs.   */
 void    freematrix(void);                 /* Frees matrix coeffs.       */
 void    initlinkflow(int, char, double);  /* Initializes link flow      */
 void    setlinkflow(int, double);         /* Sets link flow via headloss*/
-void    setlinkstatus(int, char, char *,  /* Sets link status           */
-                      double *);
-void    setlinksetting(int, double,       /* Sets pump/valve setting    */
-                       char *, double *);
+void    setlinkstatus(int, char, StatType *, double *);  /* Sets link status           */
+                      
+void    setlinksetting(int, double, StatType *, double *);       /* Sets pump/valve setting    */
+                       
 void    resistance(int);                  /* Computes resistance coeff. */
 void    demands(void);                    /* Computes current demands   */
 int     controls(void);                   /* Controls link settings     */
@@ -179,10 +179,10 @@ int     valvestatus(void);                /* Updates valve status       */
 int     linkstatus(void);                 /* Updates link status        */
 char    cvstatus(char,double,double);     /* Updates CV status          */
 char    pumpstatus(int,double);           /* Updates pump status        */
-char    prvstatus(int,char,double,        /* Updates PRV status         */
-                  double,double);
-char    psvstatus(int,char,double,        /* Updates PSV status         */
-                  double,double);
+char    prvstatus(int,char,double,double,double);       /* Updates PRV status         */
+                  
+char    psvstatus(int,char,double,double,double);        /* Updates PSV status         */
+                  
 char    fcvstatus(int,char,double,        /* Updates FCV status         */
                   double);
 void    tankstatus(int,int,int);          /* Checks if tank full/empty  */

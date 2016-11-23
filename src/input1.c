@@ -285,7 +285,8 @@ void  adjustdata()
 /* See if default reaction coeffs. apply */
    for (i=1; i<=Nlinks; i++)
    {
-      if (Link[i].Type > PIPE) continue;
+      if (Link[i].Type > EN_PIPE)
+        continue;
       if (Link[i].Kb == MISSING) Link[i].Kb = Kbulk;  /* Bulk coeff. */
       if (Link[i].Kw == MISSING)                      /* Wall coeff. */
       {
@@ -547,7 +548,7 @@ void  convertunits()
 /* Convert units of link parameters */
    for (k=1; k<=Nlinks; k++)
    {
-      if (Link[k].Type <= PIPE)
+      if (Link[k].Type <= EN_PIPE)
       {
       /* Convert pipe parameter units:                         */
       /*    - for Darcy-Weisbach formula, convert roughness    */
@@ -565,7 +566,7 @@ void  convertunits()
          Link[k].Kw /= SECperDAY;
       }
 
-      else if (Link[k].Type == PUMP )
+      else if (Link[k].Type == EN_PUMP )
       {
       /* Convert units for pump curve parameters */
          i = PUMPINDEX(k);
@@ -598,10 +599,10 @@ void  convertunits()
          Link[k].Km = 0.02517*Link[k].Km/SQR(Link[k].Diam)/SQR(Link[k].Diam);      
          if (Link[k].Kc != MISSING) switch (Link[k].Type)
          {
-            case FCV: Link[k].Kc /= Ucf[FLOW]; break;
-            case PRV:
-            case PSV:
-            case PBV: Link[k].Kc /= Ucf[PRESSURE]; break;
+            case EN_FCV: Link[k].Kc /= Ucf[FLOW]; break;
+            case EN_PRV:
+            case EN_PSV:
+            case EN_PBV: Link[k].Kc /= Ucf[PRESSURE]; break;
          }
       }
 
@@ -626,12 +627,12 @@ void  convertunits()
       /* Convert units on valve settings */
       if (Control[i].Setting != MISSING) switch (Link[k].Type)
       {
-         case PRV:
-         case PSV:
-         case PBV:
+         case EN_PRV:
+         case EN_PSV:
+         case EN_PBV:
             Control[i].Setting /= Ucf[PRESSURE];
             break;
-         case FCV:
+         case EN_FCV:
             Control[i].Setting /= Ucf[FLOW];
       }
    }
