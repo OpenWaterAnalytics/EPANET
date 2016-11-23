@@ -697,12 +697,13 @@ extern "C" {
   int  DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value);
   
   /**
-   @brief Get a curve's properties.
+   @brief Get curve x/y data.
+   @details PLEASE NOTE: x/y data returned will be in EPANET's native units, not the units specified by the project. This is a known issue related to the library not keeping track of the curve type (head, efficiency, volume, ...)
    @param curveIndex The index of a curve (first curve is index 1).
    @param[out] id The curve's string ID. Client code must preallocate at least MAXID characters.
    @param[out] nValues The number of values in the curve's (x,y) list.
-   @param[out] xValues The curve's x-values. Must be freed by client.
-   @param[out] yValues The curve's y-values. Must be freed by client.
+   @param[out] xValues The curve's x-values. Pointer must be freed by client.
+   @param[out] yValues The curve's y-values. Pointer must be freed by client.
    @return Error code.
    */
   int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
