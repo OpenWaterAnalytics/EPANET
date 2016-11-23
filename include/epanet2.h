@@ -678,16 +678,16 @@ extern "C" {
    @return Error code
    @see EN_LinkType
    */
-  int  DLLEXPORT ENgetlinktype(int index, int *code);
+  int  DLLEXPORT ENgetlinktype(int index, EN_LinkType *code);
 
   /**
    @brief Set the link type code for a specified link
-   @param index The index of a link (first link is index 1)
+   @param id The id of a link
    @param code The type code of the link.
    @return Error code
    @see EN_LinkType
    */
-  int  DLLEXPORT ENsetlinktype(int index, int code);
+  int  DLLEXPORT ENsetlinktype(char *id, EN_LinkType type);
   
   /**
    @brief Get the indexes of a link's start- and end-nodes.
@@ -1075,7 +1075,7 @@ extern "C" {
    @param nodeType The node type code
    @return Error code.
    */
-  int DLLEXPORT ENaddnode(char *id, int nodeType);
+  int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType);
   
   /**
    @brief Adds a new link
@@ -1085,7 +1085,7 @@ extern "C" {
    @param toNode The id of the to node
    @return Error code.
    */
-  int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode);
+  int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode);
   
   /**
    @brief Deletes a node

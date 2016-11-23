@@ -1361,7 +1361,7 @@ int DLLEXPORT ENgetlinkid(int index, char *id)
 }
 
 
-int  DLLEXPORT ENgetlinktype(int index, int *code)
+int  DLLEXPORT ENgetlinktype(int index, EN_LinkType *code)
 {
    *code = -1;
    if (!Openflag) return(102);
@@ -3327,19 +3327,21 @@ int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
   return(0);
 }
 
-int DLLEXPORT ENsetlinktype(char *id, int toType) {
+int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
   int i;
-  int fromType;
+  EN_LinkType fromType;
   
-  if ( !Openflag ) return(102);
+  if ( !Openflag )
+    return(102);
   
 /* Check if a link with the id exists */
-  if ( ENgetnodeindex(id, &i) != 0 ) return(215);
+  if ( ENgetlinkindex(id, &i) != 0 )
+    return(215);
   
 /* Get the current type of the link */
-  ENgetnodetype(i, &fromType);
-  if(fromType == toType) return(0);
-  
+  ENgetlinktype(i, &fromType);
+  if(fromType == toType)
+    return(0);
   
 /* Change link from Pipe */
   if(toType <= EN_PIPE) {
@@ -3348,18 +3350,19 @@ int DLLEXPORT ENsetlinktype(char *id, int toType) {
   else if(toType == EN_PUMP) {
     Npumps++;
     Pump[Npumps].Link = i;
-  } else {
+  }
+  else {
     Nvalves++;
     Valve[Nvalves].Link = i;
   }
   
   if(fromType <= EN_PIPE) {
     Npipes--;
-  } else if(fromType == EN_PUMP) {
-    Npumps--;
-    
   }
-  
+  else if(fromType == EN_PUMP) {
+    Npumps--;
+  }
+  return 0;
 }
 
 int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
@@ -3462,7 +3465,7 @@ int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
   return(0);
 }
 
-int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode)
+int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode)
 {
   int i, n;
   int N1, N2;
