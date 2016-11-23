@@ -876,7 +876,7 @@ int DLLEXPORT ENgetcount(int code, int *count)
       case EN_PATCOUNT:     *count = Npats;     break;
       case EN_CURVECOUNT:   *count = Ncurves;   break;
       case EN_CONTROLCOUNT: *count = Ncontrols; break;
-	  case EN_RULECOUNT:    *count = Nrules;    break;
+	    case EN_RULECOUNT:    *count = Nrules;    break;
       default: return(251);
    }
    return(0);
@@ -3390,7 +3390,7 @@ int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
     n = Njuncs;
     
     demand = (struct Sdemand *) malloc(sizeof(struct Sdemand));
-    demand->Base = 5.0;
+    demand->Base = 0.0;
     demand->Pat = 0;
     demand->next = NULL;
     Node[n].D = demand;
@@ -3406,8 +3406,8 @@ int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
       Tank[index].Node += 1;
     }
     
-    // shift indices of Pipes, if necessary
-    for(index = 1; index <= Npipes; index++) {
+    // shift indices of Links, if necessary
+    for(index = 1; index <= Nlinks; index++) {
       if(Link[index].N1 > Njuncs - 1) {
         Link[index].N1 += 1;
       }
