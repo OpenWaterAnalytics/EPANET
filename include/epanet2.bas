@@ -105,6 +105,10 @@ Global Const EN_MASS = 1
 Global Const EN_SETPOINT = 2
 Global Const EN_FLOWPACED = 3
 
+Global Const EN_HW = 0           ' Head loss formula
+Global Const EN_DW = 1
+Global Const EN_CM = 2
+
 Global Const EN_CFS = 0           ' Flow units types
 Global Const EN_GPM = 1
 Global Const EN_MGD = 2
@@ -246,3 +250,11 @@ Global Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare FUnction ENgetfalseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
  Declare Function ENsetfalseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long
  Declare Function ENgetruleID Lib "epanet2.dll" (ByVal indexRule As Long, ByVal id As String) As Long
+
+ Declare Function ENinit Lib "epanet2.dll" (ByVal rptFile As String, ByVal binOutFile As String, ByVal UnitsType As Long, ByVal HeadlossFormula As Long) As Long
+ Declare Function ENsetheadcurveindex Lib "epanet2.dll" (ByVal pumpIndex As Long, ByVal curveIndex As Long) As Long
+ Declare Function ENsetlinktype Lib "epanet2.dll" (ByVal index As Long, ByVal code As Long) As Long
+ Declare Function ENaddnode Lib "epanet2.dll" (ByVal id As String, ByVal nodeType As Long) As Long
+ Declare Function ENaddlink Lib "epanet2.dll" (ByVal id As String, ByVal linkType As Long, ByVal fromNode As String, ByVal toNode As String) As Long
+ Declare Function ENdeletelink Lib "epanet2.dll" (ByVal nodeIndex As Long) As Long
+ Declare Function ENdeletenode Lib "epanet2.dll" (ByVal linkIndex As Long) As Long

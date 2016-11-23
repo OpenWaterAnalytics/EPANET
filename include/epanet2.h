@@ -155,9 +155,8 @@ typedef enum {
   EN_TANK        = 2
 } EN_NodeType;
 
-
 typedef enum {
-  EN_CVPIPE       = 0,    /* Link types. */
+  EN_CVPIPE       = 0,   /* Link types. */
   EN_PIPE         = 1,   /* See LinkType in TYPES.H */
   EN_PUMP         = 2,
   EN_PRV          = 3,
@@ -167,7 +166,6 @@ typedef enum {
   EN_TCV          = 7,
   EN_GPV          = 8
 } EN_LinkType;
-
 
 typedef enum {
   EN_NONE        = 0,    /* Quality analysis types. */
@@ -182,6 +180,12 @@ typedef enum {
   EN_SETPOINT    = 2,
   EN_FLOWPACED   = 3
 } EN_SourceType;
+
+typedef enum {          /* Head loss formula:                  */
+  EN_HW          = 0,    /*   Hazen-Williams                    */
+  EN_DW          = 1,    /*   Darcy-Weisbach                    */
+  EN_CM          = 2     /*   Chezy-Manning                     */
+} EN_FormType;           /* See FormType in TYPES.H             */
 
 typedef enum {
   EN_CFS         = 0,    /* Flow units types.   */
@@ -278,7 +282,7 @@ extern "C" {
    @param headlossFlag headloss formula flag
    @return error code
    */
-  int  DLLEXPORT ENinit(char *rptFile, char *binOutFile, int flowFlag, int headlossFlag);
+  int  DLLEXPORT ENinit(char *rptFile, char *binOutFile, int UnitsType, int HeadlossFormula);
   
   /**
    @brief Opens EPANET input file & reads in network data
@@ -675,6 +679,15 @@ extern "C" {
    @see EN_LinkType
    */
   int  DLLEXPORT ENgetlinktype(int index, int *code);
+
+  /**
+   @brief Set the link type code for a specified link
+   @param index The index of a link (first link is index 1)
+   @param code The type code of the link.
+   @return Error code
+   @see EN_LinkType
+   */
+  int  DLLEXPORT ENsetlinktype(int index, int code);
   
   /**
    @brief Get the indexes of a link's start- and end-nodes.
@@ -1061,7 +1074,7 @@ extern "C" {
    @param nodeType The node type code
    @return Error code.
    */
-  int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType);
+  int DLLEXPORT ENaddnode(char *id, int nodeType);
   
   /**
    @brief Adds a new link
@@ -1071,7 +1084,7 @@ extern "C" {
    @param toNode The id of the to node
    @return Error code.
    */
-  int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode);
+  int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode);
   
   /**
    @brief Deletes a node

@@ -183,13 +183,13 @@ int DLLEXPORT ENepanet(char *f1, char *f2, char *f3, void (*pviewprog) (char *))
     return(MAX(errcode, Warnflag) );
 }
 
-int DLLEXPORT ENinit(char *f2, char *f3, int ff, int hf)
+int DLLEXPORT ENinit(char *f2, char *f3, int UnitsType, int HeadlossFormula)
 /*----------------------------------------------------------------
 **  Input:
-**           f2 = pointer to name of report file
-**           f3 = pointer to name of binary output file      
-             ff = flow flag
-             hf = headloss flag
+**           f2               = pointer to name of report file
+**           f3               = pointer to name of binary output file      
+             UnitsType        = flow units flag
+             HeadlossFormula  = headloss formula flag
  
 **  Output:  none 
 **  Returns: error code                              
@@ -225,8 +225,8 @@ int DLLEXPORT ENinit(char *f2, char *f3, int ff, int hf)
   
   setdefaults();
   
-  Flowflag = ff;
-  Formflag = hf;
+  Flowflag = UnitsType;
+  Formflag = HeadlossFormula;
   
   adjustdata();
   initreport();
@@ -3438,7 +3438,7 @@ int  DLLEXPORT  ENaddnode(char *id, EN_NodeType nodeType)
   return(0);
 }
 
-int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode)
+int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode)
 {
   int i, n;
   int N1, N2;
