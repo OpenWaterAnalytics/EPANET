@@ -34,6 +34,10 @@ typedef struct
    long  dummy;
 }  alloc_handle_t;
 
-alloc_handle_t *AllocInit(void);
+DLLEXPORT alloc_handle_t *AllocInit(void);
+DLLEXPORT char           *Alloc(long);
+DLLEXPORT alloc_handle_t *AllocSetPool(alloc_handle_t *);
+DLLEXPORT void            AllocReset(void);
+DLLEXPORT void            AllocFreePool(void);
 
 #endif
