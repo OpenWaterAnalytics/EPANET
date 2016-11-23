@@ -3637,23 +3637,14 @@ int ENdeletenode(int index)
     }
   }
   
-  char *idstodelete[MAXID];
-  int ntodelete = 0;
-  // gather a list of link ids to remove
-  for(i = 1; i <= Nlinks; i++) {
+  // gather a list of link ids to remove in reverse order,
+  // so that re-shuffling doesn't destroy the indexing
+  for(i = Nlinks; i >= 1; i--) {
     if(Link[i].N1 == index || Link[i].N2 == index) {
-      strcpy(idstodelete[ntodelete], Link[i].ID);
-      ntodelete++;
+      ENdeletelink(i);
     }
   }
   
-  // remove the links
-  for(i = 0; i < ntodelete; i++) {
-    int indextodelete;
-    // gather the link index, which may change every time a link is removed
-    ENgetlinkindex(idstodelete[i], &indextodelete);
-    ENdeletelink(indextodelete);
-  }
   for(i = 1; i <= Nlinks; i ++) {
     if(Link[i].N1 > index) {
       Link[i].N1 -= 1;
