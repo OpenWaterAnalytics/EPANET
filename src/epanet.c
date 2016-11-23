@@ -3554,7 +3554,8 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
 
 int DLLEXPORT ENdeletelink(int index)
 {
-  int i, linkType;
+  int i;
+  EN_LinkType linkType;
   
   if (!Openflag) return(102);
   if (index <= 0 || index > Nlinks) return(203);
@@ -3601,14 +3602,14 @@ int DLLEXPORT ENdeletelink(int index)
   }
   
   Nlinks--;
+  
+  return 0;
 }
 
 int DLLEXPORT ENdeletenode(int index)
 {
   
   int i, nodeType;
-  char *idstodelete[20][32];
-  int ntodelete = 0;
   
   if (!Openflag) return(102);
   if (index <= 0 || index > Nnodes) return(203);
