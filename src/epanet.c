@@ -3580,6 +3580,7 @@ int DLLEXPORT ENdeletenode(int index)
 {
   
   int i, nodeType;
+  char *idstodelete[20][32];
   int ntodelete = 0;
   
   if (!Openflag) return(102);
