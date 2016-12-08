@@ -2191,7 +2191,7 @@ int  DLLEXPORT  ENaddcurve(char *id)
         return(101);
     }
 
-// Replace old pattern array with new one
+// Replace old curves array with new one
 
     for (i=0; i<=Ncurves; i++)
     {
@@ -2439,6 +2439,7 @@ int DLLEXPORT ENsetheadcurveindex(int index, int curveindex)
 {
   if (!Openflag) return(102);
   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) return(204);
+  if (curveindex <= 0 || curveindex > Ncurves) return(206);
   Pump[PUMPINDEX(index)].Ptype = NOCURVE;
   Pump[PUMPINDEX(index)].Hcurve = curveindex;
   // update pump parameters
@@ -3535,12 +3536,23 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
   
   if(linkType == EN_PUMP) {
     Link[n].Diam = Npumps;
-  } else {
-    Link[n].Diam = 0;
+    Link[n].Kc  = 1.0; //Speed factor
+    Link[n].Km  = 0.0;   //Horsepower
+    Link[n].Len = 0.0;
+  } else if (linkType == EN_PIPE) {
+    Link[n].Diam = 10/Ucf[DIAM];
+    Link[n].Kc  = 100; //Rough. coeff
+    Link[n].Km  = 0.0; //Loss coeff
+    Link[n].Len = 1000;
+  } else { //Valve
+    Link[n].Diam = 10/Ucf[DIAM];
+    Link[n].Kc  = 0.0; //Valve setting.
+    Link[n].Km  = 0.0; //Loss coeff
+    Link[n].Len = 0.0;
   }
-  Link[n].Len = 0;
-  Link[n].Kc  = 0.01;
-  Link[n].Km  = 0;
+  //Link[n].Len = 0.0;
+  //Link[n].Kc  = 0.01;
+  //Link[n].Km  = 0;
   Link[n].Kb  = 0;
   Link[n].Kw  = 0;
   Link[n].R  = 0;
