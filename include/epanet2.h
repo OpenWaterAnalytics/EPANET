@@ -111,7 +111,9 @@ typedef enum {
   EN_ENERGY       = 13,
   EN_LINKQUAL     = 14,
   EN_LINKPATTERN  = 15,
-  EN_EFFICIENCY   = 16
+  EN_EFFICIENCY   = 16,
+  EN_HEADCURVE    = 17,
+  EN_EFFICIENCYCURVE = 18
 } EN_LinkProperty;
 
 /// Time parameter codes
@@ -1168,7 +1170,7 @@ extern "C" {
   int DLLEXPORT EN_getlinktype(EN_Project *p, int index, EN_LinkType *code);
   int DLLEXPORT EN_setlinktype(EN_Project *p, char *id, EN_LinkType type);
   int DLLEXPORT EN_getlinknodes(EN_Project *p, int index, int *node1, int *node2);
-  int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, int code, EN_API_FLOAT_TYPE *value);
+  int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value);
   int DLLEXPORT EN_getcurve(EN_Project *p, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
   int DLLEXPORT EN_getheadcurveindex(EN_Project *p, int pumpIndex, int *curveIndex);
   int DLLEXPORT EN_setheadcurveindex(EN_Project *p, int pumpIndex, int curveIndex);

@@ -299,7 +299,7 @@ int DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2) {
   return EN_getlinknodes(_defaultModel, index, node1, node2);
 }
 int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value) {
-  return EN_getlinkvalue(_defaultModel, index, code, value);
+  return EN_getlinkvalue(_defaultModel, index, (EN_LinkProperty)code, value);
 }
 int DLLEXPORT ENgetcurve(int curveIndex, char *id, int *nValues,
                          EN_API_FLOAT_TYPE **xValues,
@@ -1803,10 +1803,10 @@ int DLLEXPORT EN_getlinknodes(EN_Project *p, int index, int *node1,
   return (0);
 }
 
-int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, int code,
-                              EN_API_FLOAT_TYPE *value) {
+int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value) {
   double a, h, q, v = 0.0;
-
+  int returnValue = 0;
+  
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
   
@@ -1976,11 +1976,37 @@ int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, int code,
       getenergy(p, index, &a, &v);
       break;
       
+    case EN_HEADCURVE:
+      if (Link[index].Type == EN_PUMP) {
+        v = (double)Pump[findpump(&p->network, index)].Hcurve;
+        if (v == 0) {
+          returnValue = 226;
+        }
+      }
+      else {
+        v = 0;
+        returnValue = 211;
+      }
+      break;
+      
+    case EN_EFFICIENCYCURVE:
+      if (Link[index].Type == EN_PUMP) {
+        v = (double)Pump[findpump(&p->network, index)].Ecurve;
+        if (v == 0) {
+          returnValue = 268;
+        }
+      }
+      else {
+        v = 0;
+        returnValue = 211;
+      }
+      
     default:
-      return (251);
+      v = 0;
+      returnValue = 251;
   }
   *value = (EN_API_FLOAT_TYPE)v;
-  return (0);
+  return returnValue;
 }
 
 int DLLEXPORT EN_getcurve(EN_Project *p, int curveIndex, char *id, int *nValues,

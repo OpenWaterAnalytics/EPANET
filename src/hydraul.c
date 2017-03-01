@@ -1142,10 +1142,9 @@ void  getenergy(EN_Project *pr, int k, double *kw, double *eff)
       if ( (i = net->Pump[j].Ecurve) > 0)
       { 
          q4eff = q / hyd->LinkSetting[k];
-        Scurve *curve = &net->Curve[i];
+         Scurve *curve = &net->Curve[i];
          e = interp(curve->Npts,curve->X, curve->Y, q4eff * pr->Ucf[FLOW]);
       } 
-      //   e = interp(Curve[i].Npts,Curve[i].X,Curve[i].Y,q*p->Ucf[FLOW]); //old line of code
       e = MIN(e, 100.0);
       e = MAX(e, 1.0);
       e /= 100.0;
