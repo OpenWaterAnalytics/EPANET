@@ -97,6 +97,7 @@ int juncdata(EN_Project *pr)
   node->Ke = 0.0;
   node->Rpt = 0;
   node->Type = EN_JUNCTION;
+  strcpy(node->Comment, par->Comment);
 
   /* Create a new demand record */
   /*** Updated 6/24/02 ***/
@@ -207,6 +208,7 @@ int tankdata(EN_Project *pr)
   node->S = NULL; /* WQ source data       */
   node->Ke = 0.0; /* Emitter coeff.       */
   node->Type = (diam == 0) ? EN_RESERVOIR : EN_TANK;
+  strcpy(node->Comment, par->Comment);
   tank->Node = i;        /* Node index.          */
   tank->H0 = initlevel;  /* Init. level.         */
   tank->Hmin = minlevel; /* Min. level.          */
@@ -327,6 +329,7 @@ int pipedata(EN_Project *pr)
   link->Type = type;   /* Link type        */
   link->Stat = status; /* Link status      */
   link->Rpt = 0;       /* Report flag      */
+  strcpy(link->Comment, par->Comment);
   return (0);
 } /* end of pipedata */
 
@@ -391,6 +394,7 @@ int pumpdata(EN_Project *pr)
   link->Type = EN_PUMP;  /* Link type.         */
   link->Stat = OPEN;     /* Link status.       */
   link->Rpt = 0;         /* Report flag.       */
+  strcpy(link->Comment, par->Comment);
   pump->Link = net->Nlinks;   /* Link index.        */
   pump->Ptype = NOCURVE; /* Type of pump curve -- "NOCURVE" is a placeholder. this may be modified in getpumpparams() */
   pump->Hcurve = 0;      /* Pump curve index   */
@@ -552,6 +556,7 @@ int valvedata(EN_Project *pr)
   link->Type = type;     /* Valve type.       */
   link->Stat = status;   /* Valve status.     */
   link->Rpt = 0;         /* Report flag.      */
+  strcpy(link->Comment, par->Comment);
   net->Valve[net->Nvalves].Link = net->Nlinks; /* Link index.       */
   return (0);
 } /* end of valvedata */

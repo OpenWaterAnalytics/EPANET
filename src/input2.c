@@ -199,7 +199,7 @@ int readdata(EN_Project *pr)
 
       /* Make copy of line and scan for tokens */
       strcpy(wline, line);
-      par->Ntokens = gettokens(par, wline);
+      par->Ntokens = gettokens(wline, par->Tok, MAXTOKS, par->Comment);
 
       /* Skip blank lines and comments */
       if (par->Ntokens == 0)
@@ -812,58 +812,72 @@ int match(const char *str, const char *substr)
   return (1);
 } /* end of match */
 
-/*** Updated 10/25/00 ***/
-/* The gettokens function has been totally re-written. */
-
-int gettokens(parser_data_t *par, char *s)
+int  gettokens(char *s, char** Tok, int maxToks, char *comment)
 /*
-**--------------------------------------------------------------
-**  Input:   *s = string to be tokenized
-**  Output:  returns number of tokens in s
-**  Purpose: scans string for tokens, saving pointers to them
-**           in module global variable Tok[]
-**
-** Tokens can be separated by the characters listed in SEPSTR
-** (spaces, tabs, newline, carriage return) which is defined
-** in TYPES.H. Text between quotes is treated as a single token.
-**--------------------------------------------------------------
-*/
+ **--------------------------------------------------------------
+ **  Input:   *s = string to be tokenized
+ **  Output:  returns number of tokens in s
+ **  Purpose: scans string for tokens, saving pointers to them
+ **           in module global variable Tok[]
+ **
+ ** Tokens can be separated by the characters listed in SEPSTR
+ ** (spaces, tabs, newline, carriage return) which is defined
+ ** in TYPES.H. Text between quotes is treated as a single token.
+ **--------------------------------------------------------------
+ */
 {
-  int len, m, n;
-  char *c;
+  int  m, n;
+  size_t len;
+  char *c, *c2;
+  
+  // clear comment
+  comment[0] = '\0';
   
   /* Begin with no tokens */
-  for (n = 0; n < MAXTOKS; n++) {
-    par->Tok[n] = NULL;
+  for (n=0; n<maxToks; n++) { 
+    Tok[n] = NULL;
   }
   n = 0;
-
+  
   /* Truncate s at start of comment */
-  c = strchr(s, ';');
-  if (c)
-    *c = '\0';
-  len = (int)strlen(s);
-
-  /* Scan s for tokens until nothing left */
-  while (len > 0 && n < MAXTOKS) {
-    m = (int)strcspn(s, SEPSTR); /* Find token length */
-    len -= m + 1;                /* Update length of s */
-    if (m == 0)
-      s++; /* No token found */
-    else {
-      if (*s == '"') /* Token begins with quote */
-      {
-        s++;                           /* Start token after quote */
-        m = (int)strcspn(s, "\"\n\r"); /* Find end quote (or EOL) */
+  c = strchr(s,';');
+  if (c) {
+    c2 = c+1;
+    if (c2) {
+      // there is a comment here, after the semi-colon.
+      len = strlen(c2);
+      if (len > 0) {
+        len = strcspn(c2, "\n\r");
+        len = MIN(len, MAXMSG);
+        strncpy(comment, c2, len);
+        comment[MIN(len,MAXMSG)] = '\0';
       }
-      s[m] = '\0'; /* Null-terminate the token */
-      par->Tok[n] = s;  /* Save pointer to token */
-      n++;         /* Update token count */
-      s += m + 1;  /* Begin next token */
+    }
+    *c = '\0';
+  }
+  len = (int)strlen(s);
+  
+  /* Scan s for tokens until nothing left */
+  while (len > 0 && n < MAXTOKS)
+  {
+    m = (int)strcspn(s,SEPSTR);          /* Find token length */
+    len -= m+1;                     /* Update length of s */
+    if (m == 0) s++;                /* No token found */
+    else
+    {
+      if (*s == '"')               /* Token begins with quote */
+      {
+        s++;                      /* Start token after quote */
+        m = (int)strcspn(s,"\"\n\r");  /* Find end quote (or EOL) */
+      }                            
+      s[m] = '\0';                 /* Null-terminate the token */
+      Tok[n] = s;                  /* Save pointer to token */
+      n++;                         /* Update token count */
+      s += m+1;                    /* Begin next token */
     }
   }
-  return (n);
-} /* End of gettokens */
+  return(n);
+}  
 
 double hour(char *time, char *units)
 /*
@@ -963,7 +977,7 @@ int setreport(EN_Project *pr, char *s)
 */
 {
   parser_data_t *par = &pr->parser;
-  par->Ntokens = gettokens(par,s);
+  par->Ntokens = gettokens(s, par->Tok, MAXTOKS, par->Comment);
   return (reportdata(pr));
 }
 

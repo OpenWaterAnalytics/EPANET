@@ -77,7 +77,7 @@ int     getpatterns(EN_Project *pr);                /* Gets pattern data from li
 int     getcurves(EN_Project *pr);                  /* Gets curve data from list  */
 int     findmatch(char *, char *[]);       /* Finds keyword in line      */
 int     match(const char *, const char *);            /* Checks for word match      */
-int     gettokens(parser_data_t *par, char *);                /* Tokenizes input line       */
+int     gettokens(char *s, char** Tok, int maxToks, char *comment); /* Tokenizes input line       */
 int     getfloat(char *, double *);       /* Converts string to double   */
 double  hour(char *, char *);             /* Converts time to hours     */
 int     setreport(EN_Project *pr, char *);                /* Processes reporting command*/

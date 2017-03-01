@@ -364,6 +364,7 @@ typedef struct            /* NODE OBJECT */
    double  Ke;             /* Emitter coeff.   */
    char    Rpt;            /* Reporting flag   */
    EN_NodeType Type;       /* Node Type */
+   char Comment[MAXMSG+1]; /* Node Comment */
 }  Snode;
 
 typedef struct            /* LINK OBJECT */
@@ -381,7 +382,8 @@ typedef struct            /* LINK OBJECT */
    double  Rc;             /* Reaction cal      */
    EN_LinkType Type;       /* Link type         */
    StatType Stat;          /* Initial status    */
-   char    Rpt;            /* Reporting flag    */
+   char Rpt;            /* Reporting flag    */
+   char Comment[MAXMSG+1]; /* Link Comment */
 }  Slink;
 
 typedef struct     /* TANK OBJECT */
@@ -617,6 +619,7 @@ typedef struct {
   Ntitle;         /* Number of title lines             */
   
   char *Tok[MAXTOKS]; /* Array of token strings            */
+  char Comment[MAXMSG+1];
   STmplist *PrevPat;   /* Pointer to pattern list element   */
   STmplist *PrevCurve; /* Pointer to curve list element     */
   

@@ -159,7 +159,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n\n[JUNCTIONS]");
   for (i = 1; i <= net->Njuncs; i++) {
     Snode *node = &net->Node[i];
-    fprintf(f, "\n %-31s %12.4f", node->ID, node->El * pr->Ucf[ELEV]);
+    fprintf(f, "\n %-31s %12.4f ;%s", node->ID, node->El * pr->Ucf[ELEV], node->Comment);
   }
   /* Write [RESERVOIRS] section */
 
@@ -175,7 +175,7 @@ int saveinpfile(EN_Project *pr, char *fname)
       else {
         strcpy(s1, "");
       }
-      fprintf(f, "\n%s %s", s, s1);
+      fprintf(f, "\n%s %s ;%s", s, s1, node->Comment);
     }
   }
 
@@ -196,7 +196,7 @@ int saveinpfile(EN_Project *pr, char *fname)
         sprintf(s1, "%-31s", net->Curve[j].ID);
       else
         strcpy(s1, "");
-      fprintf(f, "\n%s %s", s, s1);
+      fprintf(f, "\n%s %s ;%s", s, s1, node->Comment);
     }
   }
 
@@ -224,7 +224,7 @@ int saveinpfile(EN_Project *pr, char *fname)
         sprintf(s2, "CLOSED");
       else
         strcpy(s2, "");
-      fprintf(f, "\n%s %s %s", s, s1, s2);
+      fprintf(f, "\n%s %s %s ;%s", s, s1, s2, link->Comment);
     }
   }
 
@@ -268,7 +268,7 @@ int saveinpfile(EN_Project *pr, char *fname)
       strcpy(s1, "");
     strcat(s, s1);
 
-    fprintf(f, "\n%s", s);
+    fprintf(f, "\n%s ;%s", s, link->Comment);
   }
 
   /* Write [VALVES] section */
@@ -304,7 +304,7 @@ int saveinpfile(EN_Project *pr, char *fname)
     else
       sprintf(s1, "%12.4f %12.4f", kc, km);
 
-    fprintf(f, "\n%s %s", s, s1);
+    fprintf(f, "\n%s %s ;%s", s, s1, link->Comment);
   }
 
   /* Write [DEMANDS] section */
