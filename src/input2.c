@@ -92,7 +92,7 @@ int netsize(EN_Project *pr)
       continue;
 
     /* Check if line begins with a new section heading */
-    if (*tok == '[') {
+    if (tok[0] == '[') {
       newsect = findmatch(tok, SectTxt);
       if (newsect >= 0) {
         sect = newsect;
@@ -216,7 +216,7 @@ int readdata(EN_Project *pr)
       }
 
       /* Check if at start of a new input section */
-      if (*par->Tok[0] == '[') {
+      if (par->Tok[0][0] == '[') {
         newsect = findmatch(par->Tok[0], SectTxt);
         if (newsect >= 0) {
           sect = newsect;
@@ -224,7 +224,7 @@ int readdata(EN_Project *pr)
             break;
           continue;
         } else {
-          inperrmsg(pr,201, sect, line);
+          inperrmsg(pr, 201, sect, line);
           errsum++;
           break;
         }

@@ -1156,7 +1156,7 @@ extern "C" {
   int DLLEXPORT EN_getpatternvalue(EN_Project *p, int index, int period, EN_API_FLOAT_TYPE *value);
   int DLLEXPORT EN_getaveragepatternvalue(EN_Project *p, int index, EN_API_FLOAT_TYPE *value);
   int DLLEXPORT EN_getqualtype(EN_Project *p, int *qualcode, int *tracenode);
-  int DLLEXPORT EN_geterror(EN_Project *p, int errcode, char *errmsg, int maxLen);
+  int DLLEXPORT EN_geterror(int errcode, char *errmsg, int maxLen);
   int DLLEXPORT EN_getstatistic(EN_Project *p, int code, EN_API_FLOAT_TYPE* value);
   int DLLEXPORT EN_getnodeindex(EN_Project *p, char *id, int *index);
   int DLLEXPORT EN_getnodeid(EN_Project *p, int index, char *id);
@@ -1177,7 +1177,7 @@ extern "C" {
   int DLLEXPORT EN_getheadcurveindex(EN_Project *p, int pumpIndex, int *curveIndex);
   int DLLEXPORT EN_setheadcurveindex(EN_Project *p, int pumpIndex, int curveIndex);
   int DLLEXPORT EN_getpumptype(EN_Project *p, int linkIndex, int *outType);
-  int DLLEXPORT EN_getversion(EN_Project *p, int *version);
+  int DLLEXPORT EN_getversion(int *version);
   int DLLEXPORT EN_setcontrol(EN_Project *p, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
   int DLLEXPORT EN_setnodevalue(EN_Project *p, int index, int code, EN_API_FLOAT_TYPE v);
   int DLLEXPORT EN_setlinkvalue(EN_Project *p, int index, int code, EN_API_FLOAT_TYPE v);

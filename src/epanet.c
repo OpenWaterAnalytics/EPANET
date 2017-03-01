@@ -209,7 +209,7 @@ int DLLEXPORT ENwriteline(char *line) {
 int DLLEXPORT ENreport() { return EN_report(_defaultModel); }
 int DLLEXPORT ENresetreport() { return EN_resetreport(_defaultModel); }
 int DLLEXPORT ENsetreport(char *s) { return EN_setreport(_defaultModel, s); }
-int DLLEXPORT ENgetversion(int *v) { return EN_getversion(_defaultModel, v); }
+int DLLEXPORT ENgetversion(int *v) { return EN_getversion(v); }
 int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex,
                            EN_API_FLOAT_TYPE *setting, int *nindex,
                            EN_API_FLOAT_TYPE *level) {
@@ -263,7 +263,7 @@ int DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits,
                         tracenode);
 }
 int DLLEXPORT ENgeterror(int errcode, char *errmsg, int n) {
-  return EN_geterror(_defaultModel, errcode, errmsg, n);
+  return EN_geterror(errcode, errmsg, n);
 }
 int DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE *value) {
   return EN_getstatistic(_defaultModel, code, value);
@@ -1118,7 +1118,7 @@ int DLLEXPORT EN_setreport(EN_Project *p, char *s) {
  */
 
 /*** Updated 10/25/00 ***/
-int DLLEXPORT EN_getversion(EN_Project *p, int *v)
+int DLLEXPORT EN_getversion(int *v)
 /*----------------------------------------------------------------
  **  Input:    none
  **  Output:   *v = version number of the source code
@@ -1449,7 +1449,9 @@ int DLLEXPORT EN_getqualinfo(EN_Project *p, int *qualcode, char *chemname, char 
   return 0;
 }
 
-int DLLEXPORT EN_geterror(EN_Project *p, int errcode, char *errmsg, int n) {
+int DLLEXPORT EN_geterror(int errcode, char *errmsg, int n) {
+  char newMsg[MAXMSG+1];
+  
   switch (errcode) {
   case 1:
     strncpy(errmsg, WARN1, n);
@@ -1470,7 +1472,8 @@ int DLLEXPORT EN_geterror(EN_Project *p, int errcode, char *errmsg, int n) {
     strncpy(errmsg, WARN6, n);
     break;
   default:
-    strncpy(errmsg, geterrmsg(errcode, p->Msg), n);
+    geterrmsg(n, newMsg);
+    strncpy(errmsg, newMsg, n);
   }
   if (strlen(errmsg) == 0)
     return (251);
@@ -3820,7 +3823,7 @@ int findvalve(EN_Network *n, int index)
   return (NOTFOUND);
 }
 
-char *geterrmsg(int errcode, char *Msg)
+char *geterrmsg(int errcode, char *msg)
 /*----------------------------------------------------------------
 **  Input:   errcode = error code
 **  Output:  none
@@ -3840,124 +3843,124 @@ char *geterrmsg(int errcode, char *Msg)
                      */
   /* System Errors */
   case 101:
-    strcpy(Msg, ERR101);
+    strcpy(msg, ERR101);
     break;
   case 102:
-    strcpy(Msg, ERR102);
+    strcpy(msg, ERR102);
     break;
   case 103:
-    strcpy(Msg, ERR103);
+    strcpy(msg, ERR103);
     break;
   case 104:
-    strcpy(Msg, ERR104);
+    strcpy(msg, ERR104);
     break;
   case 105:
-    strcpy(Msg, ERR105);
+    strcpy(msg, ERR105);
     break;
   case 106:
-    strcpy(Msg, ERR106);
+    strcpy(msg, ERR106);
     break;
   case 107:
-    strcpy(Msg, ERR107);
+    strcpy(msg, ERR107);
     break;
   case 108:
-    strcpy(Msg, ERR108);
+    strcpy(msg, ERR108);
     break;
   case 109:
-    strcpy(Msg, ERR109);
+    strcpy(msg, ERR109);
     break;
   case 110:
-    strcpy(Msg, ERR110);
+    strcpy(msg, ERR110);
     break;
   case 120:
-    strcpy(Msg, ERR120);
+    strcpy(msg, ERR120);
     break;
 
   /* Input Errors */
   case 200:
-    strcpy(Msg, ERR200);
+    strcpy(msg, ERR200);
     break;
   case 223:
-    strcpy(Msg, ERR223);
+    strcpy(msg, ERR223);
     break;
   case 224:
-    strcpy(Msg, ERR224);
+    strcpy(msg, ERR224);
     break;
 
   /* Toolkit function errors */
   case 202:
-    sprintf(Msg, ERR202, t_FUNCCALL, "");
+    sprintf(msg, ERR202, t_FUNCCALL, "");
     break;
   case 203:
-    sprintf(Msg, ERR203, t_FUNCCALL, "");
+    sprintf(msg, ERR203, t_FUNCCALL, "");
     break;
   case 204:
-    sprintf(Msg, ERR204, t_FUNCCALL, "");
+    sprintf(msg, ERR204, t_FUNCCALL, "");
     break;
   case 205:
-    sprintf(Msg, ERR205, t_FUNCCALL, "");
+    sprintf(msg, ERR205, t_FUNCCALL, "");
     break;
   case 207:
-    sprintf(Msg, ERR207, t_FUNCCALL, "");
+    sprintf(msg, ERR207, t_FUNCCALL, "");
     break;
   case 240:
-    sprintf(Msg, ERR240, t_FUNCCALL, "");
+    sprintf(msg, ERR240, t_FUNCCALL, "");
     break;
   case 241:
-    sprintf(Msg, ERR241, t_FUNCCALL, "");
+    sprintf(msg, ERR241, t_FUNCCALL, "");
     break;
   case 250:
-    sprintf(Msg, ERR250);
+    sprintf(msg, ERR250);
     break;
   case 251:
-    sprintf(Msg, ERR251);
+    sprintf(msg, ERR251);
     break;
   case 253:
-    sprintf(Msg, ERR253);
+    sprintf(msg, ERR253);
     break;
   case 254:
-    sprintf(Msg, ERR254);
+    sprintf(msg, ERR254);
     break;
   case 255:
-    sprintf(Msg, ERR255);
+    sprintf(msg, ERR255);
     break;
 
   /* File Errors */
   case 301:
-    strcpy(Msg, ERR301);
+    strcpy(msg, ERR301);
     break;
   case 302:
-    strcpy(Msg, ERR302);
+    strcpy(msg, ERR302);
     break;
   case 303:
-    strcpy(Msg, ERR303);
+    strcpy(msg, ERR303);
     break;
   case 304:
-    strcpy(Msg, ERR304);
+    strcpy(msg, ERR304);
     break;
   case 305:
-    strcpy(Msg, ERR305);
+    strcpy(msg, ERR305);
     break;
   case 306:
-    strcpy(Msg, ERR306);
+    strcpy(msg, ERR306);
     break;
   case 307:
-    strcpy(Msg, ERR307);
+    strcpy(msg, ERR307);
     break;
   case 308:
-    strcpy(Msg, ERR308);
+    strcpy(msg, ERR308);
     break;
   case 309:
-    strcpy(Msg, ERR309);
+    strcpy(msg, ERR309);
     break;
 
   case 401:
-    strcpy(Msg, ERR401);
+    strcpy(msg, ERR401);
     break;
   default:
-    strcpy(Msg, "");
+    strcpy(msg, "");
   }
-  return (Msg);
+  return (msg);
 }
 
 void errmsg(EN_Project *p, int errcode)
@@ -3971,9 +3974,9 @@ void errmsg(EN_Project *p, int errcode)
   if (errcode == 309) /* Report file write error -  */
   {                   /* Do not write msg to file.  */
     writecon("\n  ");
-    writecon(geterrmsg(errcode, p->Msg));
+    writecon(geterrmsg(errcode,p->Msg));
   } else if (p->report.RptFile != NULL && p->report.Messageflag) {
-    writeline(p, geterrmsg(errcode, p->Msg));
+    writeline(p, geterrmsg(errcode,p->Msg));
   }
 }
 

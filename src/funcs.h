@@ -48,7 +48,7 @@ int     findlink(EN_Network *n, char *);                 /* Finds link's index f
 int     findtank(EN_Network *n, int);                    /* Find tank index from node index */  // (AH)
 int     findvalve(EN_Network *n, int);                   /* Find valve index from node index */ // (AH)
 int     findpump(EN_Network *n, int);                    /* Find pump index from node index */  // (AH)
-char*   geterrmsg(int code, char* Msg);                   /* Gets text of error message */
+char   *geterrmsg(int errcode, char *msg);                   /* Gets text of error message */
 void    errmsg(EN_Project *p, int);                      /* Reports program error      */
 void    writecon(char *);                 /* Writes text to console     */
 void    writewin(void (*vp)(char *), char *);                 /* Passes text to calling app */

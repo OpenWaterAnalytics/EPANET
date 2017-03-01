@@ -146,7 +146,7 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [TITLE] section */
 
-  fprintf(f, "[TITLE]");
+  fprintf(f, s_TITLE);
   for (i = 0; i < 3; i++) {
     if (strlen(pr->Title[i]) > 0) {
       fprintf(f, "\n%s", pr->Title[i]);
@@ -156,14 +156,16 @@ int saveinpfile(EN_Project *pr, char *fname)
   /* Write [JUNCTIONS] section */
   /* (Leave demands for [DEMANDS] section) */
 
-  fprintf(f, "\n\n[JUNCTIONS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_JUNCTIONS);
   for (i = 1; i <= net->Njuncs; i++) {
     Snode *node = &net->Node[i];
     fprintf(f, "\n %-31s %12.4f ;%s", node->ID, node->El * pr->Ucf[ELEV], node->Comment);
   }
   /* Write [RESERVOIRS] section */
 
-  fprintf(f, "\n\n[RESERVOIRS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_RESERVOIRS);
   for (i = 1; i <= net->Ntanks; i++) {
     Stank *tank = &net->Tank[i];
     if (tank->A == 0.0) {
@@ -181,7 +183,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [TANKS] section */
 
-  fprintf(f, "\n\n[TANKS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_TANKS);
   for (i = 1; i <= net->Ntanks; i++) {
     Stank *tank = &net->Tank[i];
     if (tank->A > 0.0) {
@@ -202,7 +205,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [PIPES] section */
 
-  fprintf(f, "\n\n[PIPES]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_PIPES);
   for (i = 1; i <= net->Nlinks; i++) {
     Slink *link = &net->Link[i];
     if (link->Type <= EN_PIPE) {
@@ -230,7 +234,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [PUMPS] section */
 
-  fprintf(f, "\n\n[PUMPS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_PUMPS);
   for (i = 1; i <= net->Npumps; i++) {
     n = net->Pump[i].Link;
     Slink *link = &net->Link[n];
@@ -273,7 +278,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [VALVES] section */
 
-  fprintf(f, "\n\n[VALVES]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_VALVES);
   for (i = 1; i <= net->Nvalves; i++) {
     n = net->Valve[i].Link;
     Slink *link = &net->Link[n];
@@ -309,7 +315,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [DEMANDS] section */
 
-  fprintf(f, "\n\n[DEMANDS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_DEMANDS);
   ucf = pr->Ucf[DEMAND];
   for (i = 1; i <= net->Njuncs; i++) {
     Snode *node = &net->Node[i];
@@ -325,7 +332,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [EMITTERS] section */
 
-  fprintf(f, "\n\n[EMITTERS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_EMITTERS);
   for (i = 1; i <= net->Njuncs; i++) {
     Snode *node = &net->Node[i];
     if (node->Ke == 0.0)
@@ -336,7 +344,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [STATUS] section */
 
-  fprintf(f, "\n\n[STATUS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_STATUS);
   for (i = 1; i <= net->Nlinks; i++) {
     Slink *link = &net->Link[i];
     if (link->Type <= EN_PUMP) {
@@ -365,7 +374,8 @@ int saveinpfile(EN_Project *pr, char *fname)
   /* Write [PATTERNS] section */
   /* (Use 6 pattern factors per line) */
 
-  fprintf(f, "\n\n[PATTERNS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_PATTERNS);
   for (i = 1; i <= net->Npats; i++) {
     for (j = 0; j < net->Pattern[i].Length; j++) {
       if (j % 6 == 0)
@@ -376,7 +386,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [CURVES] section */
 
-  fprintf(f, "\n\n[CURVES]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_CURVES);
   for (i = 1; i <= net->Ncurves; i++) {
     for (j = 0; j < net->Curve[i].Npts; j++) {
       Scurve *curve = &net->Curve[i];
@@ -386,7 +397,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [CONTROLS] section */
 
-  fprintf(f, "\n\n[CONTROLS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_CONTROLS);
   for (i = 1; i <= net->Ncontrols; i++) {
     Scontrol *control = &net->Control[i];
     /* Check that controlled link exists */
@@ -445,7 +457,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [RULES] section */
 
-  fprintf(f, "\n\n[RULES]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_RULES);
   for (i = 1; i <= net->Nrules; i++) {
     fprintf(f, "\nRULE %s", pr->rules.Rule[i].label);
     errcode = writeRuleinInp(f, i);
@@ -455,7 +468,8 @@ int saveinpfile(EN_Project *pr, char *fname)
   /* Write [QUALITY] section */
   /* (Skip nodes with default quality of 0) */
 
-  fprintf(f, "\n\n[QUALITY]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_QUALITY);
   for (i = 1; i <= net->Nnodes; i++) {
     Snode *node = &net->Node[i];
     if (node->C0 == 0.0)
@@ -465,7 +479,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [SOURCES] section */
 
-  fprintf(f, "\n\n[SOURCES]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_SOURCES);
   for (i = 1; i <= net->Nnodes; i++) {
     Snode *node = &net->Node[i];
     source = node->S;
@@ -481,7 +496,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [MIXING] section */
 
-  fprintf(f, "\n\n[MIXING]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_MIXING);
   for (i = 1; i <= net->Ntanks; i++) {
     Stank *tank = &net->Tank[i];
     if (tank->A == 0.0)
@@ -492,7 +508,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [REACTIONS] section */
 
-  fprintf(f, "\n\n[REACTIONS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_REACTIONS);
   fprintf(f, "\n ORDER  BULK            %-.2f", qu->BulkOrder);
   fprintf(f, "\n ORDER  WALL            %-.0f", qu->WallOrder);
   fprintf(f, "\n ORDER  TANK            %-.2f", qu->TankOrder);
@@ -522,7 +539,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [ENERGY] section */
 
-  fprintf(f, "\n\n[ENERGY]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_ENERGY);
   if (hyd->Ecost != 0.0)
     fprintf(f, "\n GLOBAL PRICE        %-.4f", hyd->Ecost);
   if (hyd->Epat != 0)
@@ -544,7 +562,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [TIMES] section */
 
-  fprintf(f, "\n\n[TIMES]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_TIMES);
   fprintf(f, "\n DURATION            %s", clocktime(rep->Atime, time->Dur));
   fprintf(f, "\n HYDRAULIC TIMESTEP  %s", clocktime(rep->Atime, time->Hstep));
   fprintf(f, "\n QUALITY TIMESTEP    %s", clocktime(rep->Atime, qu->Qstep));
@@ -558,7 +577,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [OPTIONS] section */
 
-  fprintf(f, "\n\n[OPTIONS]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_OPTIONS);
   fprintf(f, "\n UNITS               %s", FlowUnitsTxt[par->Flowflag]);
   fprintf(f, "\n PRESSURE            %s", PressUnitsTxt[par->Pressflag]);
   fprintf(f, "\n HEADLOSS            %s", FormTxt[hyd->Formflag]);
@@ -594,7 +614,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Write [REPORT] section */
 
-  fprintf(f, "\n\n[REPORT]");
+  fprintf(f, "\n\n");
+  fprintf(f, s_REPORT);
   fprintf(f, "\n PAGESIZE            %d", rep->PageSize);
   fprintf(f, "\n STATUS              %s", RptFlagTxt[rep->Statflag]);
   fprintf(f, "\n SUMMARY             %s", RptFlagTxt[rep->Summaryflag]);
@@ -656,7 +677,8 @@ int saveinpfile(EN_Project *pr, char *fname)
   /* Write [COORDINATES] section */
 
   if (par->Coordflag == TRUE) {
-    fprintf(f, "\n\n[COORDINATES]");
+    fprintf(f, "\n\n");
+    fprintf(f, s_COORDS);
     for (i = 1; i <= net->Nnodes; i++) {
       Snode *node = &net->Node[i];
       Scoord *coord = &net->Coord[i];
@@ -673,7 +695,8 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Close the new input file */
 
-  fprintf(f, "\n[END]");
+  fprintf(f, "\n");
+  fprintf(f, s_END);
   fclose(f);
   return (0);
 }

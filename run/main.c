@@ -2,7 +2,7 @@
 #include <string.h>
 #include "epanet2.h"
 
-#define   MAXMSG         79       /* Max. # characters in message text      */
+#define   MAXMSG         255       /* Max. # characters in message text      */
 #define   MAXWARNCODE    99      
 /* text copied here, no more need of include "text.h" */
 #define FMT01  "\nEPANET Version %d.%d.%d\n"
