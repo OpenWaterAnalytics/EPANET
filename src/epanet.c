@@ -1263,7 +1263,7 @@ int DLLEXPORT EN_gettimeparam(EN_Project *pr, int code, long *value) {
   *value = 0;
   if (!pr->Openflag)
     return (102);
-  if (code < EN_DURATION || code > EN_NEXTEVENT)
+  if (code < EN_DURATION || code > EN_NEXTEVENTIDX)
     return (251);
   switch (code) {
   case EN_DURATION:
@@ -1307,6 +1307,11 @@ int DLLEXPORT EN_gettimeparam(EN_Project *pr, int code, long *value) {
                     // time to next fill/empty
     tanktimestep(pr,value);
     break;
+  case EN_NEXTEVENTIDX:
+      *value = time->Hstep;
+      int i = tanktimestep(pr, value);
+      *value = i;
+      break;
   }
   return (0);
 }

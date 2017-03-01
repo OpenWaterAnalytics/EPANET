@@ -167,7 +167,7 @@ void    resistance(EN_Project *pr, int);                  /* Computes resistance
 void    demands(EN_Project *pr);                    /* Computes current demands   */
 int     controls(EN_Project *pr);                   /* Controls link settings     */
 long    timestep(EN_Project *pr);                   /* Computes new time step     */
-void    tanktimestep(EN_Project *pr, long *);             /* Time till tanks fill/drain */
+int     tanktimestep(EN_Project *pr, long *);             /* Time till tanks fill/drain */
 void    controltimestep(EN_Project *pr, long *);          /* Time till control action   */
 void    ruletimestep(EN_Project *pr, long *);             /* Time till rule action      */
 void    addenergy(EN_Project *pr, long);                  /* Accumulates energy usage   */

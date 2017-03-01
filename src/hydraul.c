@@ -816,7 +816,7 @@ long  timestep(EN_Project *pr)
 }
 
 
-void  tanktimestep(EN_Project *pr, long *tstep)
+int  tanktimestep(EN_Project *pr, long *tstep)
 /*
 **-----------------------------------------------------------------
 **  Input:   *tstep = current time step                                                
@@ -826,7 +826,7 @@ void  tanktimestep(EN_Project *pr, long *tstep)
 **-----------------------------------------------------------------
 */
 {
-  int    i,n;
+  int    i,n, tankIdx = 0;
   double  h,q,v;
   long   t;
   
@@ -858,8 +858,10 @@ void  tanktimestep(EN_Project *pr, long *tstep)
     t = (long)ROUND(v/q);                     /* Time to fill/drain  */
     if (t > 0 && t < *tstep) {
       *tstep = t;
+      tankIdx = n;
     }
   }
+  return tankIdx;
 }
 
 
