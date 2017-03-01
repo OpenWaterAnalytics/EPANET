@@ -170,8 +170,9 @@ int DLLEXPORT ENepanet(char *f1, char *f2, char *f3,
   }
   ERRCODE(EN_solveQ(_defaultModel));
   ERRCODE(EN_report(_defaultModel));
-  ENclose();
-  return (MAX(errcode, _defaultModel->Warnflag));
+  EN_close(_defaultModel);
+  EN_free(_defaultModel);
+  return (errcode);
 }
 int DLLEXPORT ENopen(char *f1, char *f2, char *f3) {
   return EN_open(_defaultModel, f1, f2, f3);
@@ -458,6 +459,12 @@ int DLLEXPORT EN_alloc(EN_Project **p)
 {
   EN_Project *project = calloc(1, sizeof(EN_Project));
   *p = project;
+  return 0;
+}
+
+int DLLEXPORT EN_free(EN_Project *p) 
+{
+  free(p);
   return 0;
 }
 

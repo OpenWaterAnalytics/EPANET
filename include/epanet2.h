@@ -1119,6 +1119,7 @@ extern "C" {
    
    ***************************************************/
   int DLLEXPORT EN_alloc(EN_Project **p);
+  int DLLEXPORT EN_free(EN_Project *p);
   int DLLEXPORT EN_epanet(char *inpFile, char *rptFile, char *binOutFile, void (*callback) (char *));
   int DLLEXPORT EN_init(EN_Project *p, char *rptFile, char *binOutFile, EN_FlowUnits UnitsType, EN_FormType HeadlossFormula);
   int DLLEXPORT EN_open(EN_Project *p, char *inpFile, char *rptFile, char *binOutFile);
