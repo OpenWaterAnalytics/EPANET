@@ -13,6 +13,7 @@ AUTHOR:     L. Rossman
 
 #ifndef ENUMSTXT_H
 #define ENUMSTXT_H
+#include "text.h"
 
 char *NodeTxt[]         = {t_JUNCTION,
                            t_RESERVOIR,

@@ -41,14 +41,12 @@ Linsolve() solves the linearized system of hydraulic equations.
 #include "hash.h"
 #include "text.h"
 #include "types.h"
+#include "epanet2.h"
 #include "funcs.h"
 #define  EXTERN  extern
 #include "vars.h"
 
-int      *Degree;     /* Number of links adjacent to each node  */
-
-
-int  createsparse()
+int  createsparse(EN_Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none                                                
@@ -58,47 +56,56 @@ int  createsparse()
 */
 {
    int errcode = 0;
+  EN_Network *n = &pr->network;
+  solver_t *s = &pr->hydraulics.solver;
+  
+  EN_Network *net = &pr->network;
+  hydraulics_t *hyd = &pr->hydraulics;
 
    /* Allocate data structures */
-   ERRCODE(allocsparse());
-   if (errcode) return(errcode);
+   ERRCODE(allocsparse(pr));
+  
+  if (errcode) {
+    return(errcode);
+  }
 
    /* Build node-link adjacency lists with parallel links removed. */
-   Degree = (int *) calloc(Nnodes+1, sizeof(int));
-   ERRCODE(MEMCHECK(Degree));
-   ERRCODE(buildlists(TRUE));
-   if (!errcode)
-   {
-      xparalinks();    /* Remove parallel links */
-      countdegree();   /* Find degree of each junction */
+   s->Degree = (int *) calloc(n->Nnodes+1, sizeof(int));
+   ERRCODE(MEMCHECK(s->Degree));
+   ERRCODE(buildlists(pr,TRUE));
+   if (!errcode){
+      xparalinks(pr);    /* Remove parallel links */
+      countdegree(pr);   /* Find degree of each junction */
    }                   /* (= # of adjacent links)  */
 
    /* Re-order nodes to minimize number of non-zero coeffs.    */
    /* in factorized solution matrix. At same time, adjacency   */
    /* list is updated with links representing non-zero coeffs. */
-   Ncoeffs = Nlinks;
-   ERRCODE(reordernodes());
+   hyd->Ncoeffs = n->Nlinks;
+   ERRCODE(reordernodes(pr));
 
    /* Allocate memory for sparse storage of positions of non-zero */
    /* coeffs. and store these positions in vector NZSUB. */
-   ERRCODE(storesparse(Njuncs));
+   ERRCODE(storesparse(pr,net->Njuncs));
 
    /* Free memory used for adjacency lists and sort */
    /* row indexes in NZSUB to optimize linsolve().  */
-   if (!errcode) freelists();
-   ERRCODE(ordersparse(Njuncs));
+  if (!errcode) {
+     freelists(pr);
+  }
+   ERRCODE(ordersparse(hyd,net->Njuncs));
 
    /* Re-build adjacency lists without removing parallel */
    /* links for use in future connectivity checking.     */
-   ERRCODE(buildlists(FALSE));
+   ERRCODE(buildlists(pr,FALSE));
 
    /* Free allocated memory */
-   free(Degree);
+   free(s->Degree);
    return(errcode);
 }                        /* End of createsparse */
 
 
-int  allocsparse()
+int  allocsparse(EN_Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none                                              
@@ -107,20 +114,23 @@ int  allocsparse()
 **--------------------------------------------------------------
 */
 {
+  EN_Network *n = &pr->network;
+  solver_t *s = &pr->hydraulics.solver;
+  
    int errcode = 0;
-   Adjlist = (Padjlist *) calloc(Nnodes+1,  sizeof(Padjlist));
-   Order  = (int *)   calloc(Nnodes+1,  sizeof(int));
-   Row    = (int *)   calloc(Nnodes+1,  sizeof(int));
-   Ndx    = (int *)   calloc(Nlinks+1,  sizeof(int));
-   ERRCODE(MEMCHECK(Adjlist));
-   ERRCODE(MEMCHECK(Order));
-   ERRCODE(MEMCHECK(Row));
-   ERRCODE(MEMCHECK(Ndx));
+   n->Adjlist = (Padjlist *) calloc(n->Nnodes+1,  sizeof(Padjlist));
+   s->Order  = (int *)   calloc(n->Nnodes+1,  sizeof(int));
+   s->Row    = (int *)   calloc(n->Nnodes+1,  sizeof(int));
+   s->Ndx    = (int *)   calloc(n->Nlinks+1,  sizeof(int));
+   ERRCODE(MEMCHECK(n->Adjlist));
+   ERRCODE(MEMCHECK(s->Order));
+   ERRCODE(MEMCHECK(s->Row));
+   ERRCODE(MEMCHECK(s->Ndx));
    return(errcode);
 }
 
 
-void  freesparse()
+void  freesparse(EN_Project *pr)
 /*
 **----------------------------------------------------------------
 ** Input:   None                                                
@@ -129,18 +139,21 @@ void  freesparse()
 **----------------------------------------------------------------
 */
 {
-   freelists();
-   free(Adjlist);
-   free(Order);
-   free(Row);
-   free(Ndx);
-   free(XLNZ);
-   free(NZSUB);
-   free(LNZ); 
+  EN_Network *n = &pr->network;
+  solver_t *s = &pr->hydraulics.solver;
+  
+   freelists(pr);
+   free(n->Adjlist);
+   free(s->Order);
+   free(s->Row);
+   free(s->Ndx);
+   free(s->XLNZ);
+   free(s->NZSUB);
+   free(s->LNZ);
 }                        /* End of freesparse */
 
 
-int  buildlists(int paraflag)
+int  buildlists(EN_Project *pr, int paraflag)
 /*
 **--------------------------------------------------------------
 ** Input:   paraflag = TRUE if list marks parallel links      
@@ -153,13 +166,17 @@ int  buildlists(int paraflag)
    int    pmark = 0;
    int    errcode = 0;
    Padjlist  alink;
+  
+  EN_Network *n = &pr->network;
 
    /* For each link, update adjacency lists of its end nodes */
-   for (k=1; k<=Nlinks; k++)
+   for (k=1; k <= n->Nlinks; k++)
    {
-      i = Link[k].N1;
-      j = Link[k].N2;
-      if (paraflag) pmark = paralink(i,j,k);  /* Parallel link check */
+      i = n->Link[k].N1;
+      j = n->Link[k].N2;
+     if (paraflag) { 
+       pmark = paralink(pr,i,j,k);  /* Parallel link check */
+     }
 
       /* Include link in start node i's list */
       alink = (struct Sadjlist *) malloc(sizeof(struct Sadjlist));
@@ -167,8 +184,8 @@ int  buildlists(int paraflag)
       if (!pmark) alink->node = j;
       else        alink->node = 0;           /* Parallel link marker */
       alink->link = k;
-      alink->next = Adjlist[i];
-      Adjlist[i] = alink;
+      alink->next = n->Adjlist[i];
+      n->Adjlist[i] = alink;
 
       /* Include link in end node j's list */
       alink = (struct Sadjlist *) malloc(sizeof(struct Sadjlist));
@@ -176,14 +193,14 @@ int  buildlists(int paraflag)
       if (!pmark) alink->node = i;
       else        alink->node = 0;           /* Parallel link marker */
       alink->link = k;
-      alink->next = Adjlist[j];
-      Adjlist[j] = alink;
+      alink->next = n->Adjlist[j];
+      n->Adjlist[j] = alink;
    }
    return(errcode);
 }                        /* End of buildlists */
 
 
-int  paralink(int i, int j, int k)
+int  paralink(EN_Project *pr, int i, int j, int k)
 /*
 **--------------------------------------------------------------
 ** Input:   i = index of start node of link                    
@@ -196,20 +213,20 @@ int  paralink(int i, int j, int k)
 */
 {
    Padjlist alink;
-   for (alink = Adjlist[i]; alink != NULL; alink = alink->next)
+   for (alink = pr->network.Adjlist[i]; alink != NULL; alink = alink->next)
    {
       if (alink->node == j)     /* Link || to k (same end nodes) */
       {
-         Ndx[k] = alink->link;  /* Assign Ndx entry to this link */
+         pr->hydraulics.solver.Ndx[k] = alink->link;  /* Assign Ndx entry to this link */
          return(1);
       }
    }
-   Ndx[k] = k;                  /* Ndx entry if link not parallel */
+   pr->hydraulics.solver.Ndx[k] = k;                  /* Ndx entry if link not parallel */
    return(0);
 }                        /* End of paralink */
 
 
-void  xparalinks()
+void  xparalinks(EN_Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none                                                
@@ -221,11 +238,12 @@ void  xparalinks()
    int    i;
    Padjlist  alink,       /* Current item in adjacency list */
              blink;       /* Previous item in adjacency list */
+  EN_Network *n = &pr->network;
 
    /* Scan adjacency list of each node */
-   for (i=1; i<=Nnodes; i++)
+   for (i=1; i <= n->Nnodes; i++)
    {
-      alink = Adjlist[i];              /* First item in list */
+      alink = n->Adjlist[i];              /* First item in list */
       blink = NULL;
       while (alink != NULL)
       {
@@ -233,9 +251,9 @@ void  xparalinks()
          {
             if (blink == NULL)      /* This holds at start of list */
             {
-               Adjlist[i] = alink->next;
+               n->Adjlist[i] = alink->next;
                free(alink);             /* Remove item from list */
-               alink = Adjlist[i];
+               alink = n->Adjlist[i];
             }
             else                    /* This holds for interior of list */
             {
@@ -254,7 +272,7 @@ void  xparalinks()
 }                        /* End of xparalinks */
 
 
-void  freelists()
+void  freelists(EN_Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none                                                
@@ -265,19 +283,21 @@ void  freelists()
 {
    int   i;
    Padjlist alink;
+  EN_Network *n = &pr->network;
 
-   for (i=0; i<=Nnodes; i++)
+
+   for (i=0; i <= n->Nnodes; i++)
    {
-      for (alink = Adjlist[i]; alink != NULL; alink = Adjlist[i])
+      for (alink = n->Adjlist[i]; alink != NULL; alink = n->Adjlist[i])
       {
-         Adjlist[i] = alink->next;
+         n->Adjlist[i] = alink->next;
          free(alink);
       }
    }
 }                        /* End of freelists */
 
 
-void  countdegree()
+void  countdegree(EN_Project *pr)
 /*
 **----------------------------------------------------------------
 ** Input:   none                                                
@@ -286,20 +306,25 @@ void  countdegree()
 **----------------------------------------------------------------
 */
 {
-    int   i;
-    Padjlist alink;
-    memset(Degree,0,(Nnodes+1)*sizeof(int));
-
-   /* NOTE: For purposes of node re-ordering, Tanks (nodes with  */
-   /*       indexes above Njuncs) have zero degree of adjacency. */
-
-    for (i=1; i<=Njuncs; i++)
-        for (alink = Adjlist[i]; alink != NULL; alink = alink->next)
-            if (alink->node > 0) Degree[i]++;
+  int   i;
+  Padjlist alink;
+  EN_Network *n = &pr->network;
+  memset(pr->hydraulics.solver.Degree,0,(n->Nnodes+1) * sizeof(int));
+  
+  /* NOTE: For purposes of node re-ordering, Tanks (nodes with  */
+  /*       indexes above Njuncs) have zero degree of adjacency. */
+  
+  for (i=1; i <= n->Njuncs; i++) {
+    for (alink = n->Adjlist[i]; alink != NULL; alink = alink->next) {
+      if (alink->node > 0) { 
+        pr->hydraulics.solver.Degree[i]++;
+      }
+    }
+  }
 }
 
 
-int   reordernodes()
+int   reordernodes(EN_Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none                                                
@@ -309,29 +334,35 @@ int   reordernodes()
 **--------------------------------------------------------------
 */
 {
-   int k, knode, m, n;
-   for (k=1; k<=Nnodes; k++)
-   {
-      Row[k] = k;
-      Order[k] = k;
-   }
-   n = Njuncs;
-   for (k=1; k<=n; k++)                   /* Examine each junction    */
-   {
-      m = mindegree(k,n);                 /* Node with lowest degree  */
-      knode = Order[m];                   /* Node's index             */
-      if (!growlist(knode)) return(101);  /* Augment adjacency list   */
-      Order[m] = Order[k];                /* Switch order of nodes    */
-      Order[k] = knode;
-      Degree[knode] = 0;                  /* In-activate node         */
-   }
-   for (k=1; k<=n; k++)                   /* Assign nodes to rows of  */
-     Row[Order[k]] = k;                   /*   coeff. matrix          */
-   return(0);
+  int k, knode, m, n;
+  EN_Network *net = &pr->network;
+  solver_t *s = &pr->hydraulics.solver;
+  
+  for (k=1; k <= net->Nnodes; k++)
+  {
+    s->Row[k] = k;
+    s->Order[k] = k;
+  }
+  n = net->Njuncs;
+  for (k=1; k<=n; k++)                   /* Examine each junction    */
+  {
+    m = mindegree(s,k,n);                 /* Node with lowest degree  */
+    knode = s->Order[m];                   /* Node's index             */
+    if (!growlist(pr,knode)) { 
+      return(101);  /* Augment adjacency list   */
+    }
+    s->Order[m] = s->Order[k];                /* Switch order of nodes    */
+    s->Order[k] = knode;
+    s->Degree[knode] = 0;                  /* In-activate node         */
+  }
+  for (k=1; k<=n; k++) {                  /* Assign nodes to rows of  */
+    s->Row[s->Order[k]] = k;                   /*   coeff. matrix          */
+  }
+  return(0);
 }                        /* End of reordernodes */
 
 
-int  mindegree(int k, int n)
+int  mindegree(solver_t *s, int k, int n)
 /*
 **--------------------------------------------------------------
 ** Input:   k = first node in list of active nodes              
@@ -347,7 +378,7 @@ int  mindegree(int k, int n)
 
    for (i=k; i<=n; i++)
    {
-      m = Degree[Order[i]];
+      m = s->Degree[s->Order[i]];
       if (m < min)
       {
          min = m;
@@ -358,7 +389,7 @@ int  mindegree(int k, int n)
 }                        /* End of mindegree */
 
 
-int  growlist(int knode)
+int  growlist(EN_Project *pr, int knode)
 /*
 **--------------------------------------------------------------
 ** Input:   knode = node index                                  
@@ -369,25 +400,28 @@ int  growlist(int knode)
 **--------------------------------------------------------------
 */
 {
-   int   node;
-   Padjlist alink;
-
-   /* Iterate through all nodes connected to knode */
-   for (alink = Adjlist[knode]; alink != NULL; alink = alink -> next)
-   {
-      node = alink->node;       /* End node of connecting link  */
-      if (Degree[node] > 0)     /* End node is active           */
-      {
-         Degree[node]--;        /* Reduce degree of adjacency   */
-         if (!newlink(alink))   /* Add to adjacency list        */
-            return(0);
+  int   node;
+  Padjlist alink;
+  EN_Network *n = &pr->network;
+  solver_t *s = &pr->hydraulics.solver;
+  
+  /* Iterate through all nodes connected to knode */
+  for (alink = n->Adjlist[knode]; alink != NULL; alink = alink -> next)
+  {
+    node = alink->node;       /* End node of connecting link  */
+    if (s->Degree[node] > 0)     /* End node is active           */
+    {
+      s->Degree[node]--;        /* Reduce degree of adjacency   */
+      if (!newlink(pr,alink)) {  /* Add to adjacency list        */
+        return(0);
       }
-   }
-   return(1);
+    }
+  }
+  return(1);
 }                        /* End of growlist */
 
 
-int  newlink(Padjlist alink)
+int  newlink(EN_Project *pr, Padjlist alink)
 /*
 **--------------------------------------------------------------
 ** Input:   alink = element of node's adjacency list            
@@ -397,40 +431,45 @@ int  newlink(Padjlist alink)
 **--------------------------------------------------------------
 */
 {
-   int   inode, jnode;
-   Padjlist blink;
-
-   /* Scan all entries in adjacency list that follow anode. */
-   inode = alink->node;             /* End node of connection to anode */
-   for (blink = alink->next; blink != NULL; blink = blink->next)
-   {
-      jnode = blink->node;          /* End node of next connection */
-
-      /* If jnode still active, and inode not connected to jnode, */
-      /* then add a new connection between inode and jnode.       */
-      if (Degree[jnode] > 0)        /* jnode still active */
-      {
-         if (!linked(inode,jnode))  /* inode not linked to jnode */
-         {
-
-            /* Since new connection represents a non-zero coeff. */
-	    /* in the solution matrix, update the coeff. count.  */
-            Ncoeffs++;
-
-	    /* Update adjacency lists for inode & jnode to */
-	    /* reflect the new connection.                 */
-            if (!addlink(inode,jnode,Ncoeffs)) return(0);
-            if (!addlink(jnode,inode,Ncoeffs)) return(0);
-            Degree[inode]++;
-            Degree[jnode]++;
-         }
+  int   inode, jnode;
+  Padjlist blink;
+  EN_Network *n = &pr->network;
+  hydraulics_t *hyd = &pr->hydraulics;
+  solver_t *s = &pr->hydraulics.solver;
+  
+  /* Scan all entries in adjacency list that follow anode. */
+  inode = alink->node;             /* End node of connection to anode */
+  for (blink = alink->next; blink != NULL; blink = blink->next)
+  {
+    jnode = blink->node;          /* End node of next connection */
+    
+    /* If jnode still active, and inode not connected to jnode, */
+    /* then add a new connection between inode and jnode.       */
+    if (s->Degree[jnode] > 0)        /* jnode still active */
+    {
+      if (!linked(n, inode,jnode)) { /* inode not linked to jnode */
+        /* Since new connection represents a non-zero coeff. */
+        /* in the solution matrix, update the coeff. count.  */
+        hyd->Ncoeffs++;
+        
+        /* Update adjacency lists for inode & jnode to */
+        /* reflect the new connection.                 */
+        if (!addlink(n,inode,jnode,hyd->Ncoeffs)) { 
+          return(0);
+        }
+        if (!addlink(n,jnode,inode,hyd->Ncoeffs)) { 
+          return(0);
+        }
+        s->Degree[inode]++;
+        s->Degree[jnode]++;
       }
-   }
-   return(1);
+    }
+  }
+  return(1);
 }                        /* End of newlink */
 
 
-int  linked(int i, int j)
+int  linked(EN_Network *n, int i, int j)
 /*
 **--------------------------------------------------------------
 ** Input:   i = node index                                      
@@ -440,14 +479,17 @@ int  linked(int i, int j)
 **--------------------------------------------------------------
 */
 {
-   Padjlist alink;
-   for (alink = Adjlist[i]; alink != NULL; alink = alink->next)
-      if (alink->node == j) return(1);
-   return(0);
+  Padjlist alink;
+  for (alink = n->Adjlist[i]; alink != NULL; alink = alink->next) {
+    if (alink->node == j) {
+      return(1);
+    }
+  }
+  return(0);
 }                        /* End of linked */
 
 
-int  addlink(int i, int j, int n)
+int  addlink(EN_Network *net, int i, int j, int n)
 /*
 **--------------------------------------------------------------
 ** Input:   i = node index                                      
@@ -463,13 +505,13 @@ int  addlink(int i, int j, int n)
    if (alink == NULL) return(0);
    alink->node = j;
    alink->link = n;
-   alink->next = Adjlist[i];
-   Adjlist[i] = alink;
+   alink->next = net->Adjlist[i];
+   net->Adjlist[i] = alink;
    return(1);
 }                        /* End of addlink */
 
 
-int  storesparse(int n)
+int  storesparse(EN_Project *pr, int n)
 /*
 **--------------------------------------------------------------
 ** Input:   n = number of rows in solution matrix               
@@ -479,45 +521,49 @@ int  storesparse(int n)
 **--------------------------------------------------------------
 */
 {
-   Padjlist alink;
-   int   i, ii, j, k, l, m;
-   int   errcode = 0;
-
-   /* Allocate sparse matrix storage */
-   XLNZ  = (int *) calloc(n+2, sizeof(int));
-   NZSUB = (int *) calloc(Ncoeffs+2, sizeof(int));
-   LNZ   = (int *) calloc(Ncoeffs+2, sizeof(int));
-   ERRCODE(MEMCHECK(XLNZ));
-   ERRCODE(MEMCHECK(NZSUB));
-   ERRCODE(MEMCHECK(LNZ));
-   if (errcode) return(errcode);
-
-   /* Generate row index pointers for each column of matrix */
-   k = 0;
-   XLNZ[1] = 1;
-   for (i=1; i<=n; i++)             /* column */
-   {
-       m = 0;
-       ii = Order[i];
-       for (alink = Adjlist[ii]; alink != NULL; alink = alink->next)
-       {
-          j = Row[alink->node];    /* row */
-          l = alink->link;
-          if (j > i && j <= n)
-          {
-             m++;
-             k++;
-             NZSUB[k] = j;
-             LNZ[k] = l;
-          }
-       }
-       XLNZ[i+1] = XLNZ[i] + m;
-   }
-   return(errcode);
+  Padjlist alink;
+  int   i, ii, j, k, l, m;
+  int   errcode = 0;
+  
+  EN_Network *net = &pr->network;
+  hydraulics_t *hyd = &pr->hydraulics;
+  solver_t *s = &pr->hydraulics.solver;
+  
+  /* Allocate sparse matrix storage */
+  s->XLNZ  = (int *) calloc(n+2, sizeof(int));
+  s->NZSUB = (int *) calloc(hyd->Ncoeffs+2, sizeof(int));
+  s->LNZ   = (int *) calloc(hyd->Ncoeffs+2, sizeof(int));
+  ERRCODE(MEMCHECK(s->XLNZ));
+  ERRCODE(MEMCHECK(s->NZSUB));
+  ERRCODE(MEMCHECK(s->LNZ));
+  if (errcode) { 
+    return(errcode);
+  }
+  
+  /* Generate row index pointers for each column of matrix */
+  k = 0;
+  s->XLNZ[1] = 1;
+  for (i=1; i<=n; i++) {            /* column */
+    m = 0;
+    ii = s->Order[i];
+    for (alink = net->Adjlist[ii]; alink != NULL; alink = alink->next)
+    {
+      j = s->Row[alink->node];    /* row */
+      l = alink->link;
+      if (j > i && j <= n) {
+        m++;
+        k++;
+        s->NZSUB[k] = j;
+        s->LNZ[k] = l;
+      }
+    }
+    s->XLNZ[i+1] = s->XLNZ[i] + m;
+  }
+  return(errcode);
 }                        /* End of storesparse */
 
 
-int  ordersparse(int n)
+int  ordersparse(hydraulics_t *h, int n)
 /*
 **--------------------------------------------------------------
 ** Input:   n = number of rows in solution matrix               
@@ -526,41 +572,42 @@ int  ordersparse(int n)
 **--------------------------------------------------------------
 */
 {
-   int  i, k;
-   int  *xlnzt, *nzsubt, *lnzt, *nzt;
-   int  errcode = 0;
-
-   xlnzt  = (int *) calloc(n+2, sizeof(int));
-   nzsubt = (int *) calloc(Ncoeffs+2, sizeof(int));
-   lnzt   = (int *) calloc(Ncoeffs+2, sizeof(int));
-   nzt    = (int *) calloc(n+2, sizeof(int));
-   ERRCODE(MEMCHECK(xlnzt));
-   ERRCODE(MEMCHECK(nzsubt));
-   ERRCODE(MEMCHECK(lnzt));
-   ERRCODE(MEMCHECK(nzt));
-   if (!errcode)
-   {
-
-      /* Count # non-zeros in each row */
-      for (i=1; i<=n; i++) nzt[i] = 0;
-      for (i=1; i<=n; i++)
-      {
-          for (k=XLNZ[i]; k<XLNZ[i+1]; k++) nzt[NZSUB[k]]++;
-      }
-      xlnzt[1] = 1;
-      for (i=1; i<=n; i++) xlnzt[i+1] = xlnzt[i] + nzt[i];
-
-      /* Transpose matrix twice to order column indexes */
-      transpose(n,XLNZ,NZSUB,LNZ,xlnzt,nzsubt,lnzt,nzt);
-      transpose(n,xlnzt,nzsubt,lnzt,XLNZ,NZSUB,LNZ,nzt);
-   }
-
-   /* Reclaim memory */
-   free(xlnzt);
-   free(nzsubt);
-   free(lnzt);
-   free(nzt);
-   return(errcode);
+  int  i, k;
+  int  *xlnzt, *nzsubt, *lnzt, *nzt;
+  int  errcode = 0;
+  solver_t *s = &h->solver;
+  
+  xlnzt  = (int *) calloc(n+2, sizeof(int));
+  nzsubt = (int *) calloc(h->Ncoeffs+2, sizeof(int));
+  lnzt   = (int *) calloc(h->Ncoeffs+2, sizeof(int));
+  nzt    = (int *) calloc(n+2, sizeof(int));
+  ERRCODE(MEMCHECK(xlnzt));
+  ERRCODE(MEMCHECK(nzsubt));
+  ERRCODE(MEMCHECK(lnzt));
+  ERRCODE(MEMCHECK(nzt));
+  if (!errcode) {
+    
+    /* Count # non-zeros in each row */
+    for (i=1; i<=n; i++) { 
+      nzt[i] = 0;
+    }
+    for (i=1; i<=n; i++) {
+      for (k = s->XLNZ[i]; k < s->XLNZ[i+1]; k++) nzt[s->NZSUB[k]]++;
+    }
+    xlnzt[1] = 1;
+    for (i=1; i<=n; i++) xlnzt[i+1] = xlnzt[i] + nzt[i];
+    
+    /* Transpose matrix twice to order column indexes */
+    transpose(n,s->XLNZ,s->NZSUB,s->LNZ,xlnzt,nzsubt,lnzt,nzt);
+    transpose(n,xlnzt,nzsubt,lnzt,s->XLNZ,s->NZSUB,s->LNZ,nzt);
+  }
+  
+  /* Reclaim memory */
+  free(xlnzt);
+  free(nzsubt);
+  free(lnzt);
+  free(nzt);
+  return(errcode);
 }                        /* End of ordersparse */
 
 
@@ -593,14 +640,12 @@ void  transpose(int n, int *il, int *jl, int *xl, int *ilt, int *jlt,
 }                        /* End of transpose */
 
 
-int  linsolve(int n, double *Aii, double *Aij, double *B)
+int  linsolve(solver_t *s, int n)
 /*
 **--------------------------------------------------------------
-** Input:   n    = number of equations                          
-**          Aii  = diagonal entries of solution matrix          
-**          Aij  = non-zero off-diagonal entries of matrix      
-**          B    = right hand side coeffs.                      
-** Output:  B    = solution values                              
+** Input:   s    = solver struct
+            n    = number of equations                                                
+** Output:  s->F    = solution values                              
 **          returns 0 if solution found, or index of            
 **          equation causing system to be ill-conditioned       
 ** Purpose: solves sparse symmetric system of linear            
@@ -621,6 +666,14 @@ int  linsolve(int n, double *Aii, double *Aij, double *B)
 **--------------------------------------------------------------
 */
 {
+  
+  double *Aii = s->Aii;
+  double *Aij = s->Aij;
+  double *B = s->F;
+  int *LNZ = s->LNZ;
+  int *XLNZ = s->XLNZ;
+  int *NZSUB = s->NZSUB;
+  
    int    *link, *first;
    int    i, istop, istrt, isub, j, k, kfirst, newk;
    int    errcode = 0;

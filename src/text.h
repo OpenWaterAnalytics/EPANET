@@ -141,7 +141,7 @@ AUTHOR:     L. Rossman
 #define   w_RQTOL       "RQTOL"
 #define   w_CHECKFREQ   "CHECKFREQ"
 #define   w_MAXCHECK    "MAXCHECK"
-#define   w_DAMPLIMIT   "DAMPLIMIT"                                            //(2.00.12 - LR)
+#define   w_DAMPLIMIT   "DAMPLIMIT"                                            
 
 #define   w_SECONDS     "SEC"
 #define   w_MINUTES     "MIN"
@@ -363,9 +363,9 @@ AUTHOR:     L. Rossman
 #define FMT26  "    Hydraulic Timestep ................ %-.2f %s"
 #define FMT27  "    Hydraulic Accuracy ................ %-.6f"
 
-#define FMT27a "    Status Check Frequency ............ %-d"                   //(2.00.12 - LR)
-#define FMT27b "    Maximum Trials Checked ............ %-d"                   //(2.00.12 - LR)
-#define FMT27c "    Damping Limit Threshold ........... %-.6f"                 //(2.00.12 - LR)
+#define FMT27a "    Status Check Frequency ............ %-d"                   
+#define FMT27b "    Maximum Trials Checked ............ %-d"                   
+#define FMT27c "    Damping Limit Threshold ........... %-.6f"                 
 
 #define FMT28  "    Maximum Trials .................... %-d"
 #define FMT29  "    Quality Analysis .................. None"
@@ -404,8 +404,8 @@ AUTHOR:     L. Rossman
 #define FMT58  "%10s: Balanced after %-d trials"
 #define FMT59  "%10s: Unbalanced after %-d trials (flow change = %-.6f)"
 
-#define FMT60a "            Max. flow imbalance is %.4f %s at Node %s"         //(2.00.12 - LR)
-#define FMT60b "            Max. head imbalance is %.4f %s at Link %s"         //(2.00.12 - LR)
+#define FMT60a "            Max. flow imbalance is %.4f %s at Node %s"         
+#define FMT60b "            Max. head imbalance is %.4f %s at Link %s"         
 
 #define FMT61  "%10s: Valve %s caused ill-conditioning"
 #define FMT62  "%10s: System ill-conditioned at node %s"
@@ -471,8 +471,7 @@ AUTHOR:     L. Rossman
 #define ERR211 "Input Error 211: illegal %s value for Link %s."
 #define ERR212 "Input Error 212: trace node %.0s %s is undefined."
 #define ERR213 "Input Error 213: illegal option value in [%s] section:"
-#define ERR214 \
- "Input Error 214: following line of [%s] section contains too many characters:"
+#define ERR214 "Input Error 214: following line of [%s] section contains too many characters:"
 #define ERR215 "Input Error 215: %s %s is a duplicate ID."
 #define ERR216 "Input Error 216: %s data specified for undefined Pump %s."
 #define ERR217 "Input Error 217: invalid %s data for Pump %s."
