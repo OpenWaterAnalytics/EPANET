@@ -99,21 +99,20 @@ int juncdata(EN_Project *pr)
   node->Type = EN_JUNCTION;
   strcpy(node->Comment, par->Comment);
 
-  /* Create a new demand record */
-  /*** Updated 6/24/02 ***/
-  if (n >= 3) {
-    demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
-    if (demand == NULL)
-      return (101);
-    demand->Base = y;
-    demand->Pat = p;
-    demand->next = node->D;
-    node->D = demand;
-    hyd->NodeDemand[Njuncs] = y;
-  } else {
-    hyd->NodeDemand[Njuncs] = MISSING;
+  
+  // create a demand record, even if no demand is specified here.
+  // perhaps the [DEMANDS] section contains data, but not always.
+  
+  demand = (struct Sdemand *) malloc(sizeof(struct Sdemand));
+  if (demand == NULL) { 
+    return(101);
   }
-  /*** end of update ***/
+  demand->Base = y;
+  demand->Pat = p;
+  demand->next = node->D;
+  node->D = demand;
+  hyd->NodeDemand[Njuncs] = y;
+  
   return (0);
 } /* end of juncdata */
 
@@ -755,19 +754,16 @@ int demanddata(EN_Project *pr)
   }
 
   /* Replace any demand entered in [JUNCTIONS] section */
-  /* (Such demand was temporarily stored in D[]) */
 
-  /*** Updated 6/24/02 ***/
   demand = net->Node[j].D;
-  if (demand && hyd->NodeDemand[j] != MISSING) {
+  if (hyd->NodeDemand[j] != MISSING) {
+    // first category encountered will overwrite "dummy" demand category
+    // with what is specified in this section
     demand->Base = y;
     demand->Pat = p;
-    hyd->NodeDemand[j] = MISSING;
+    hyd->NodeDemand[j] = MISSING; // marker - next iteration will append a new category.
   }
-  /*** End of update ***/
-
-  /* Otherwise add a new demand to this junction */
-  else {
+  else { // add new demand to junction
     demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
     if (demand == NULL)
       return (101);
