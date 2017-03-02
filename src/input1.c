@@ -400,7 +400,9 @@ int inittanks(EN_Project *pr)
 
     /* Report error in levels if found */
     if (levelerr) {
-      sprintf(pr->Msg, ERR225, net->Node[tank->Node].ID);
+      char errMsg[MAXMSG+1];
+      EN_geterror(225, errMsg, MAXMSG);
+      sprintf(pr->Msg, "%s node: %s", errMsg, net->Node[tank->Node].ID);
       writeline(pr, pr->Msg);
       errcode = 200;
     }

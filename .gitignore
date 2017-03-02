@@ -41,7 +41,6 @@ xcuserdata
 *~.nib/
 *.swp
 *~
-*.dat
 *.dep
 
 *.xcodeproj/

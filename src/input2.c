@@ -45,7 +45,6 @@ The following utility functions are all called from INPUT3.C
 
 /* Defined in enumstxt.h in EPANET.C */
 extern char *SectTxt[]; /* Input section keywords            */
-extern char *RptSectTxt[];
 
 int netsize(EN_Project *pr)
 /*
@@ -209,7 +208,9 @@ int readdata(EN_Project *pr)
 
       /* Check if max. length exceeded */
       if (strlen(line) >= MAXLINE) {
-        sprintf(pr->Msg, ERR214, SectTxt[sect]);
+        char errMsg[MAXMSG+1];
+        EN_geterror(214, errMsg, MAXMSG);
+        sprintf(pr->Msg, "%s section: %s", errMsg, SectTxt[sect]);
         writeline(pr, pr->Msg);
         writeline(pr, line);
         errsum++;
@@ -389,7 +390,9 @@ int getpumpparams(EN_Project *pr)
     else if (pump->Ptype == NOCURVE) { /* Pump curve specified */
       j = pump->Hcurve; /* Get index of head curve */
       if (j == 0) {       /* Error: No head curve */
-        sprintf(pr->Msg, ERR226, link->ID);
+        char errMsg[MAXMSG+1];
+        EN_geterror(226, errMsg, MAXMSG);
+        sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
         writeline(pr, pr->Msg);
         return (200);
       }
@@ -419,7 +422,9 @@ int getpumpparams(EN_Project *pr)
       /* Compute shape factors & limits of power function pump curves */
       if (pump->Ptype == POWER_FUNC) {
         if (!powercurve(h0, h1, h2, q1, q2, &a, &b, &c)) { /* Error: Invalid curve */
-          sprintf(pr->Msg, ERR227, link->ID);
+          char errMsg[MAXMSG+1];
+          EN_geterror(227, errMsg, MAXMSG);
+          sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
           writeline(pr, pr->Msg);
           return (200);
         } else {
@@ -438,7 +443,9 @@ int getpumpparams(EN_Project *pr)
       Scurve *curve = &net->Curve[j];
       for (m = 1; m < n; m++) {
         if (curve->Y[m] >= curve->Y[m - 1]) { /* Error: Invalid curve */
-          sprintf(pr->Msg, ERR227, link->ID);
+          char errMsg[MAXMSG+1];
+          EN_geterror(227, errMsg, MAXMSG);
+          sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
           writeline(pr, pr->Msg);
           return (200);
         }
@@ -612,7 +619,9 @@ int unlinked(EN_Project *pr)
       if (marked[i] == 0) /* If not marked then error */
       {
         err++;
-        sprintf(pr->Msg, ERR233, net->Node[i].ID);
+        char errMsg[MAXMSG+1];
+        EN_geterror(233, errMsg, MAXMSG);
+        sprintf(pr->Msg, "%s node: %s", errMsg, net->Node[i].ID);
         writeline(pr, pr->Msg);
       }
       if (err >= MAXERRS)
@@ -722,7 +731,9 @@ int getcurves(EN_Project *pr)
 
       /* Check that curve has data points */
       if (curve->Npts <= 0) {
-        sprintf(pr->Msg, ERR230, c->ID);
+        char errMsg[MAXMSG+1];
+        EN_geterror(230, errMsg, MAXMSG);
+        sprintf(pr->Msg, "%s curve: %s", errMsg, curve->ID);
         writeline(pr, pr->Msg);
         return (200);
       }
@@ -742,7 +753,9 @@ int getcurves(EN_Project *pr)
 
         /* Check that x data is in ascending order */
         if (fx->value >= x) {
-          sprintf(pr->Msg, ERR230, c->ID);
+          char errMsg[MAXMSG+1];
+          EN_geterror(230, errMsg, MAXMSG);
+          sprintf(pr->Msg, "%s node: %s", errMsg, curve->ID);
           writeline(pr, pr->Msg);
           return (200);
         }
@@ -994,91 +1007,31 @@ void inperrmsg(EN_Project *pr, int err, int sect, char *line)
 {
   parser_data_t *par = &pr->parser;
   
-  char fmt[MAXMSG + 1];
+  char errStr[MAXMSG + 1];
   char id[MAXMSG + 1];
-
+  
+  EN_geterror(err, errStr, MAXMSG);
+  
+  /* get text for error message */
+  sprintf(pr->Msg, "%s - section: %s", errStr, SectTxt[sect]);
+  
+  // append ID?
   /* Retrieve ID label of object with input error */
   /* (No ID used for CONTROLS or REPORT sections).*/
-  if (sect == _CONTROLS || sect == _REPORT)
-    strcpy(id, "");
-  else if (sect == _ENERGY)
-    strcpy(id, par->Tok[1]);
-  else
-    strcpy(id, par->Tok[0]);
-
-  /* Copy error messge to string variable fmt */
-  switch (err) {
-  case 201:
-    strcpy(fmt, ERR201);
-    break;
-  case 202:
-    strcpy(fmt, ERR202);
-    break;
-  case 203:
-    strcpy(fmt, ERR203);
-    break;
-  case 204:
-    strcpy(fmt, ERR204);
-    break;
-  case 205:
-    strcpy(fmt, ERR205);
-    break;
-  case 206:
-    strcpy(fmt, ERR206);
-    break;
-  case 207:
-    strcpy(fmt, ERR207);
-    break;
-  case 208:
-    strcpy(fmt, ERR208);
-    break;
-  case 209:
-    strcpy(fmt, ERR209);
-    break;
-  case 210:
-    strcpy(fmt, ERR210);
-    break;
-  case 211:
-    strcpy(fmt, ERR211);
-    break;
-  case 212:
-    strcpy(fmt, ERR212);
-    break;
-  case 213:
-    strcpy(id, "");
-    strcpy(fmt, ERR213);
-    break;
-  case 214:
-    strcpy(id, "");
-    strcpy(fmt, ERR214);
-    break;
-  case 215:
-    strcpy(fmt, ERR215);
-    break;
-  case 216:
-    strcpy(fmt, ERR216);
-    break;
-  case 217:
-    strcpy(fmt, ERR217);
-    break;
-  case 219:
-    strcpy(fmt, ERR219);
-    break;
-  case 220:
-    strcpy(fmt, ERR220);
-    break;
-
-  /*** Updated 10/25/00 ***/
-  case 222:
-    strcpy(fmt, ERR222);
-    break;
-
-  default:
-    return;
+  switch (sect) {
+    case _CONTROLS:
+    case _REPORT:
+      // don't append
+      break;
+    case _ENERGY:
+      sprintf(id, " id: %s", par->Tok[1]);
+      break;
+    default:
+      sprintf(id, " id: %s", par->Tok[0]);
+      break;
   }
-
-  /* Write error message to Report file */
-  sprintf(pr->Msg, fmt, RptSectTxt[sect], id);
+    
+  strcat(pr->Msg, id);
   writeline(pr, pr->Msg);
 
   /* Echo input line for syntax errors, and   */

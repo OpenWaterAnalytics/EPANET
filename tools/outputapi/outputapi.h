@@ -11,12 +11,6 @@
 #define MAXFNAME 259
 
 /*------------------- Error Messages --------------------*/
-#define ERR411 "Input Error 411: no memory allocated for results."
-#define ERR412 "Input Error 412: no results; binary file hasn't been opened."
-#define ERR421 "Input Error 421: invalid parameter code."
-#define ERR434 "File Error  434: unable to open binary output file."
-#define ERR435 "File Error  435: run terminated; no results in binary file."
-
 
 /* Epanet Results binary file API */
 typedef struct ENResultsAPI ENResultsAPI; // opaque struct object
