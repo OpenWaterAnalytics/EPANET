@@ -867,9 +867,12 @@ int DLLEXPORT EN_nextH(EN_Project *p, long *tstep) {
 int DLLEXPORT EN_closeH(EN_Project *p)
 
 {
-  if (!p->Openflag)
+  if (!p->Openflag) {
     return (102);
-  closehyd(p);
+  }
+  if (p->hydraulics.OpenHflag) {
+    closehyd(p);
+  }
   p->hydraulics.OpenHflag = FALSE;
   return (0);
 }
