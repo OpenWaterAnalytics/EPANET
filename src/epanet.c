@@ -882,6 +882,41 @@ int DLLEXPORT ENgetflowunits(int *code)
    return(0);
 }
 
+int DLLEXPORT ENsetflowunits(int code)
+{
+   int i, j;
+   if (!Openflag) return(102);
+   
+   /* Determine unit system based on flow units */
+   Flowflag = code;
+   switch (Flowflag)
+   {
+      case LPS:          /* Liters/sec */
+      case LPM:          /* Liters/min */
+      case MLD:          /* megaliters/day  */
+      case CMH:          /* cubic meters/hr */
+      case CMD:          /* cubic meters/day */
+         Unitsflag = SI;
+         break;
+      default:
+         Unitsflag = US;
+   }
+
+   /* Revise pressure units depending on flow units */
+   if (Unitsflag != SI) Pressflag = PSI;
+   else if (Pressflag == PSI) Pressflag = METERS;
+
+   //update curves
+   for (i=1; i<=Ncurves; i++)
+   {
+      for (j=0; j<Curve[i].Npts; j++)
+        Curve[i].X[j] = Curve[i].X[j];
+        Curve[i].Y[j] = Curve[i].Y[j];
+   }
+
+   initunits();
+   return(0);
+}
 
 int  DLLEXPORT  ENgetpatternindex(char *id, int *index)
 {

@@ -87,3 +87,4 @@ EXPORTS
     ENgetfalseaction              = _ENgetfalseaction@20
     ENsetfalseaction              = _ENsetfalseaction@20
     ENgetruleID                   = _ENgetruleID@8
+    ENsetflowunits                = _ENsetflowunits@4                   
