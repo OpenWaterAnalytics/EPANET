@@ -111,7 +111,8 @@ typedef enum {
   EN_ENERGY       = 13,
   EN_LINKQUAL     = 14,
   EN_LINKPATTERN  = 15,
-  EN_EFFICIENCY   = 16
+  EN_EFFICIENCY   = 16,
+  EN_PRICEPATTERN = 17
 } EN_LinkProperty;
 
 /// Time parameter codes

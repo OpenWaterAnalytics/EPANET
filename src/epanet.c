@@ -1460,6 +1460,11 @@ int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
             v = (double)Pump[PUMPINDEX(index)].Upat;
          break;
 
+      case EN_PRICEPATTERN:
+         if (Link[index].Type == PUMP)
+            v = (double)Pump[PUMPINDEX(index)].Epat;
+         break;
+
       case EN_EFFICIENCY: 
          getenergy(index, &a, &v);  
          break; 
