@@ -109,7 +109,6 @@ int DLLEXPORT ENR_getLinkResult(ENResultsAPI* enrapi, int timeIndex, int linkInd
 
 int DLLEXPORT ENR_free(float *array);
 int DLLEXPORT ENR_close(ENResultsAPI* enrapi);
-int DLLEXPORT ENR_errMessage(int errcode, char* errmsg, int n);
 
 
 #endif /* OUTPUTAPI_H_ */

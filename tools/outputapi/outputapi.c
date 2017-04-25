@@ -436,29 +436,6 @@ int DLLEXPORT ENR_close(ENResultsAPI* enrapi)
 }
 
 
-int DLLEXPORT ENR_errMessage(int errcode, char* errmsg, int n)
-//
-//  Purpose: takes error code returns error message
-//
-//  Input Error 411: no memory allocated for results
-//  Input Error 412: no results binary file hasn't been opened
-//  Input Error 421: invalid parameter code
-//  File Error  434: unable to open binary output file
-//  File Error  435: run terminated no results in binary file
-{
-    switch (errcode)
-    {
-    case 411: strncpy(errmsg, ERR411, n); break;
-    case 412: strncpy(errmsg, ERR412, n); break;
-    case 421: strncpy(errmsg, ERR421, n); break;
-    case 434: strncpy(errmsg, ERR434, n); break;
-    case 435: strncpy(errmsg, ERR435, n); break;
-    default: return 421;
-    }
-
-    return 0;
-}
-
 
 float getNodeValue(ENResultsAPI* enrapi, int timeIndex, int nodeIndex,
 		ENR_NodeAttribute attr)
