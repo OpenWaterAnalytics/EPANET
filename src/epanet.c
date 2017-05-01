@@ -2305,6 +2305,7 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char
 {
 /*** Updated 3/1/01 ***/
    double ccf = 1.0;
+   int i;
 
    if (!Openflag) return(102);
    if (qualcode < EN_NONE || qualcode > EN_TRACE) return(251);
@@ -2338,6 +2339,14 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char
 
 /*** Updated 3/1/01 ***/
       strcpy(Field[QUALITY].Units,u_HOURS);
+   }
+   
+   if ((Qualflag == AGE || Qualflag == TRACE) & (Ucf[QUALITY] != 1))
+   {
+       for (i=1; i<=Nnodes; i++)
+       {
+          Node[i].C0 *= Ucf[QUALITY];
+       }   
    }
 
 /*** Updated 3/1/01 ***/
