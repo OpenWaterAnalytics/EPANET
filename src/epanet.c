@@ -2341,6 +2341,7 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char
       strcpy(Field[QUALITY].Units,u_HOURS);
    }
    
+   /* when changing from CHEM to AGE or TRACE, nodes initial quality values must be returned to their original ones */
    if ((Qualflag == AGE || Qualflag == TRACE) & (Ucf[QUALITY] != 1))
    {
        for (i=1; i<=Nnodes; i++)
