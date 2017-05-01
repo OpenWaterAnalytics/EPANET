@@ -234,7 +234,7 @@ int DLLEXPORT ENinit(char *f2, char *f3, int UnitsType, int HeadlossFormula)
   inittanks();
   convertunits();
   
-  MaxPats = 1;
+  MaxPats = 0;
   // initialize default pattern
   getpatterns();
   
@@ -2442,19 +2442,25 @@ int DLLEXPORT ENsetheadcurveindex(int index, int curveindex)
   if (curveindex <= 0 || curveindex > Ncurves) return(206);
   Pump[PUMPINDEX(index)].Ptype = NOCURVE;
   Pump[PUMPINDEX(index)].Hcurve = curveindex;
-  // update pump parameters
-  getpumpparams();
-  // convert units
-  if (Pump[PUMPINDEX(index)].Ptype == POWER_FUNC)
-  {
-    Pump[PUMPINDEX(index)].H0 /= Ucf[HEAD];
-    Pump[PUMPINDEX(index)].R  *= (pow(Ucf[FLOW],Pump[PUMPINDEX(index)].N)/Ucf[HEAD]);
-  }
-  /* Convert flow range & max. head units */
-  Pump[PUMPINDEX(index)].Q0   /= Ucf[FLOW];
-  Pump[PUMPINDEX(index)].Qmax /= Ucf[FLOW];
-  Pump[PUMPINDEX(index)].Hmax /= Ucf[HEAD];
   
+  int i;
+  for(i=1; i<=Npumps; i++) {
+    Pump[i].Ptype = NOCURVE;
+  }
+    
+  getpumpparams();
+  for(i=1; i<=Npumps; i++) {
+  // convert units
+      if (Pump[i].Ptype == POWER_FUNC)
+      {
+          Pump[i].H0 /= Ucf[HEAD];
+          Pump[i].R  *= (pow(Ucf[FLOW],Pump[i].N)/Ucf[HEAD]);
+      }
+      /* Convert flow range & max. head units */
+      Pump[i].Q0   /= Ucf[FLOW];
+      Pump[i].Qmax /= Ucf[FLOW];
+      Pump[i].Hmax /= Ucf[HEAD];
+  }
   return(0);
 }
 
@@ -3539,7 +3545,7 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
     Link[n].Kc  = 1.0; //Speed factor
     Link[n].Km  = 0.0;   //Horsepower
     Link[n].Len = 0.0;
-  } else if (linkType == EN_PIPE) {
+  } else if (linkType <= EN_PIPE) {
     Link[n].Diam = 10/Ucf[DIAM];
     Link[n].Kc  = 100; //Rough. coeff
     Link[n].Km  = 0.0; //Loss coeff
@@ -3557,7 +3563,12 @@ int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *to
   Link[n].Kw  = 0;
   Link[n].R  = 0;
   Link[n].Rc  = 0;
-  Link[n].Stat = 0;
+  if(linkType == EN_CVPIPE) {
+    Link[n].Stat = OPEN;
+  } else {
+    Link[n].Stat = 0;
+  }
+  
   Link[n].Rpt = 0;
   
   ENHashTableInsert(LinkHashTable, Link[n].ID, n);
