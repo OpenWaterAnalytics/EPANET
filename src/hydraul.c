@@ -196,6 +196,7 @@ int   runhyd(long *t)
    *t = Htime;
    demands();
    controls();
+   rules(); 
 
    /* Solve network hydraulic equations */
    errcode = netsolve(&iter,&relerr);

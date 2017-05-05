@@ -115,6 +115,9 @@ int     allocrules(void);                 /* Allocates memory for rule  */
 int     ruledata(void);                   /* Processes rule input data  */
 int     checkrules(long);                 /* Checks all rules           */
 void    freerules(void);                  /* Frees rule base memory     */  
+int     rules(void);                      /* Updates link settings for rule-based controls */
+int     takeactions(void);                /* Implements actions on action list */
+void    clearactlist(void);               /* Clears memory used for action list */
 
 /* ------------- REPORT.C --------------*/
 int     writereport(void);                /* Writes formatted report    */
