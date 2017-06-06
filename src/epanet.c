@@ -2171,8 +2171,7 @@ int DLLEXPORT EN_setcontrol(EN_Project *p, int cindex, int ctype, int lindex,
   return (0);
 }
 
-int DLLEXPORT EN_setnodevalue(EN_Project *p, int index, int code,
-                              EN_API_FLOAT_TYPE v)
+int DLLEXPORT EN_setnodevalue(EN_Project *p, int index, int code, EN_API_FLOAT_TYPE v)
 /*----------------------------------------------------------------
  **  Input:   index = node index
  **           code  = node parameter code (see EPANET2.H)

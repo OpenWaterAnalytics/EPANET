@@ -137,7 +137,7 @@
 		2255753B17551217009946B1 /* libepanet-static.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libepanet-static.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		225762C31C068A2A00484EC7 /* Net1.inp */ = {isa = PBXFileReference; lastKnownFileType = text; name = Net1.inp; path = "../../example-networks/Net1.inp"; sourceTree = "<group>"; };
 		225762C41C068A2A00484EC7 /* Net2.inp */ = {isa = PBXFileReference; lastKnownFileType = text; name = Net2.inp; path = "../../example-networks/Net2.inp"; sourceTree = "<group>"; };
-		228680961E68C87C0047806B /* errors.dat */ = {isa = PBXFileReference; lastKnownFileType = text; name = errors.dat; path = ../../include/errors.dat; sourceTree = "<group>"; };
+		228680971E68C9D80047806B /* errors.dat */ = {isa = PBXFileReference; lastKnownFileType = text; name = errors.dat; path = ../../src/errors.dat; sourceTree = "<group>"; };
 		22CD9A5D1B27898E00B65E83 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../../run/main.c; sourceTree = "<group>"; };
 		22E107B21C163E5300689CED /* outputapi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = outputapi.c; path = ../../tools/outputapi/outputapi.c; sourceTree = "<group>"; };
 		22E107B31C163E5300689CED /* outputapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = outputapi.h; path = ../../tools/outputapi/outputapi.h; sourceTree = "<group>"; };
@@ -201,6 +201,7 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				228680971E68C9D80047806B /* errors.dat */,
 				22322F711068369500641384 /* epanet.c */,
 				22322F751068369500641384 /* hydraul.c */,
 				22322F701068369500641384 /* enumstxt.h */,
@@ -251,7 +252,6 @@
 			isa = PBXGroup;
 			children = (
 				22322FA9106836B000641384 /* epanet2.h */,
-				228680961E68C87C0047806B /* errors.dat */,
 			);
 			name = Include;
 			sourceTree = "<group>";

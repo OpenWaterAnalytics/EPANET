@@ -266,6 +266,8 @@ extern "C" {
    @brief The EPANET Project wrapper object
    */
   typedef struct EN_Project EN_Project;
+  typedef struct EN_Pattern EN_Pattern;
+  typedef struct EN_Curve EN_Curve;
   
   /**
    @brief runs a complete EPANET simulation
