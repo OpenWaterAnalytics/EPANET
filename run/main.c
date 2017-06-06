@@ -6,7 +6,7 @@
 #define   MAXWARNCODE    99      
 /* text copied here, no more need of include "text.h" */
 #define FMT01  "\nEPANET Version %d.%d.%d\n"
-#define FMT03  "\n Correct syntax is:\n epanet <input file> <output file>\n"
+#define FMT03  "\n Correct syntax is:\n %s <input file> <output file>\n"
 #define FMT09  "\nEPANET completed.\n"
 #define FMT10  "\nEPANET completed. There are warnings."
 #define FMT11  "\nEPANET completed. There are errors."
@@ -43,7 +43,7 @@ int   main(int argc, char *argv[])
   char errmsg[MAXMSG+1]="";
   int  errcode;
   int  version;
-  char s[25];
+  char s[256];
   int major;
   int minor;
   int patch;
@@ -60,7 +60,8 @@ int   main(int argc, char *argv[])
   
   /* Check for proper number of command line arguments */
   if (argc < 2) {
-    writeConsole(FMT03);
+    sprintf(s, FMT03, argv[0]);
+    writeConsole(s);
     return(1);
   }
 
