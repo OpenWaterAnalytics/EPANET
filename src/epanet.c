@@ -2310,6 +2310,7 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char
    if (!Openflag) return(102);
    if (qualcode < EN_NONE || qualcode > EN_TRACE) return(251);
    Qualflag = (char)qualcode;
+   Ctol *= Ucf[QUALITY];
    if (Qualflag == CHEM)                   /* Chemical constituent */
    {
       strncpy(ChemName,chemname,MAXID);
@@ -2354,6 +2355,8 @@ int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char
    Ucf[QUALITY]   = ccf;
    Ucf[LINKQUAL]  = ccf;
    Ucf[REACTRATE] = ccf;
+
+   Ctol /= Ucf[QUALITY];
 
    return(0);
 }
