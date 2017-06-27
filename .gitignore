@@ -203,6 +203,19 @@ build/WinSDK/32bit/
 build/WinSDK/64bit/
 =======
 
+
+# Python compiler files
+*.py[c]
+
+# Python distribution and packaging
+dist/
+temp/
+*.cfg
+*.egg-info/
+
 # Eclipse Stuff
 .metadata/
 .settings/
+.project
+.cproject
+.pydevproject
