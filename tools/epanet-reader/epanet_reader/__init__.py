@@ -1,4 +1,5 @@
 
+from outputapi import ElementType
 from .epanet_reader import *
 
 def reader(path_ref):

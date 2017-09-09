@@ -11,9 +11,32 @@ import numpy as np
 import epanet_reader as er
 
 
+__author__ = "Michael Tryby"
+__copyright__ = "None"
+__credits__ = "Colleen Barr, Maurizio Cingi, Mark Gray, David Hall, Bryant McDonnell"
+__license__ = "CC0 1.0 Universal"
+
+__version__ = "0.3.0"
+__date__ = "September 6, 2017"
+
+__maintainer__ = "Michael Tryby"
+__email__ = "tryby.michael@epa.gov"
+__status  = "Development"
+
+
 def epanet_allclose_compare(path_test, path_ref, rtol, atol):
     ''' 
-    Compares results in two EPANET binary files. 
+    Compares results in two EPANET binary files. Using the comparison criteria 
+    described in the numpy assert_allclose documentation. 
+            
+        (test_value - ref_value) <= atol + rtol * abs(ref_value) 
+    
+    Returns true if all of the results in the two binary files meet the 
+    comparison criteria; otherwise, an AssertionError is thrown. 
+    
+    Numpy allclose is quite expensive to evaluate. Test and reference results 
+    are checked to see if they are equal before being compared using the 
+    allclose criteria. This reduces comparison times significantly. 
     
     Arguments: 
         path_test - path to result file being tested

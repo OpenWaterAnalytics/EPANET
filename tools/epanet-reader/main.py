@@ -126,11 +126,11 @@ if __name__ == "__main__":
 #    output_path = "benchmarks\\test\\"
 #    nrtest_execute(app_path, test_path, output_path)
     
-    test_path = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2011a"
-    ref_path  = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2012"
-    print(nrtest_compare(test_path, ref_path, (0.001, 0.0)))
+#    test_path = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2011a"
+#    ref_path  = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2012"
+#    print(nrtest_compare(test_path, ref_path, (0.001, 0.0)))
 
     
-#    path_test = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2011a\\Example_3\\example3.out"
-#    path_ref  = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2012\\Example_3\\example3.out"    
-#    result_compare(path_test, path_ref, (0.001, 0.0))
+    path_test = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2011a\\Example_3\\example3.out"
+    path_ref  = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2012\\Example_3\\example3.out"    
+    result_compare(path_test, path_ref, (0.001, 0.0))
