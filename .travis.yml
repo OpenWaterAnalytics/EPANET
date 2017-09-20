@@ -8,5 +8,5 @@ before_script:
 
 script:
   - make
-  - cd ../../../tests
-  - ./test_networks.sh
+#  - cd ../../../tests
+#  - ./test_networks.sh
