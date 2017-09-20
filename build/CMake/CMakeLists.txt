@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 2.6)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
-project (EPANET)
+project(EPANET)
 
 IF(APPLE)
   SET(CMAKE_INSTALL_NAME_DIR @executable_path)
@@ -24,5 +24,6 @@ add_executable(runepanet ../../run/main.c)
 target_link_libraries (runepanet LINK_PUBLIC epanet m)
 
 # the binary hydraulics file API
-include_directories(../../tools/outputapi)
-add_library(ENBinaryOut SHARED ../../tools/outputapi/outputapi.c)
+include_directories(../../tools/epanet-output/src)
+file(GLOB EN_OUTPUT_SOURCES ../../tools/epanet-output/src/*.c)
+add_library(ENBinaryOut SHARED ${EN_OUTPUT_SOURCES})
