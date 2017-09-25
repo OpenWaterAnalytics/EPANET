@@ -211,7 +211,7 @@ int DLLEXPORT ENR_open(ENR_Handle p_handle, const char* path)
 	}
 	// If error close the binary file
 	if (errorcode > 400) {
-		throw_error(p_data->error_handle, errorcode);
+		set_error(p_data->error_handle, errorcode);
 		ENR_close(&p_handle);
 	}
 
@@ -241,7 +241,7 @@ int DLLEXPORT ENR_getVersion(ENR_Handle p_handle, int* version)
 			errorcode = 436;
 	}
 
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getNetSize(ENR_Handle p_handle, ENR_ElementCount code, int* count)
@@ -286,7 +286,7 @@ int DLLEXPORT ENR_getNetSize(ENR_Handle p_handle, ENR_ElementCount code, int* co
 		}
 	}
 
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getUnits(ENR_Handle p_handle, ENR_Units code, int* unitFlag)
@@ -339,7 +339,7 @@ int DLLEXPORT ENR_getUnits(ENR_Handle p_handle, ENR_Units code, int* unitFlag)
 		default: errorcode = 421;
 		}
 	}
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getTimes(ENR_Handle p_handle, ENR_Time code, int* time)
@@ -387,7 +387,7 @@ int DLLEXPORT ENR_getTimes(ENR_Handle p_handle, ENR_Time code, int* time)
 			errorcode = 421;
 		}
 	}
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getElementName(ENR_Handle p_handle, ENR_ElementType type,
@@ -446,7 +446,7 @@ int DLLEXPORT ENR_getElementName(ENR_Handle p_handle, ENR_ElementType type,
 		}
 	}
 
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getEnergyUsage(ENR_Handle p_handle, int pumpIndex,
@@ -491,7 +491,7 @@ int DLLEXPORT ENR_getEnergyUsage(ENR_Handle p_handle, int pumpIndex,
 		*outValues = temp;
 		*length = NENERGYRESULTS;
 	}
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getNetReacts(ENR_Handle p_handle, float** outValues, int* length)
@@ -526,7 +526,7 @@ int DLLEXPORT ENR_getNetReacts(ENR_Handle p_handle, float** outValues, int* leng
 		*outValues = temp;
 		*length = NREACTRESULTS;
 	}
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 void DLLEXPORT ENR_free(void** array)
@@ -572,7 +572,7 @@ int DLLEXPORT ENR_getNodeSeries(ENR_Handle p_handle, int nodeIndex, ENR_NodeAttr
 		*outValueSeries = temp;
 		*dim = length;
 	}
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getLinkSeries(ENR_Handle p_handle, int linkIndex, ENR_LinkAttribute attr,
@@ -607,7 +607,7 @@ int DLLEXPORT ENR_getLinkSeries(ENR_Handle p_handle, int linkIndex, ENR_LinkAttr
 		*outValueSeries = temp;
 		*dim = length;
 	}
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getNodeAttribute(ENR_Handle p_handle, int periodIndex,
@@ -656,7 +656,7 @@ int DLLEXPORT ENR_getNodeAttribute(ENR_Handle p_handle, int periodIndex,
 		*length = p_data->nodeCount;
 	}
 
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getLinkAttribute(ENR_Handle p_handle, int periodIndex,
@@ -706,7 +706,7 @@ int DLLEXPORT ENR_getLinkAttribute(ENR_Handle p_handle, int periodIndex,
 		*length = p_data->linkCount;
 	}
 
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getNodeResult(ENR_Handle p_handle, int periodIndex,
@@ -736,7 +736,7 @@ int DLLEXPORT ENR_getNodeResult(ENR_Handle p_handle, int periodIndex,
 		*length = NNODERESULTS;
 	}
 
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 int DLLEXPORT ENR_getLinkResult(ENR_Handle p_handle, int periodIndex,
@@ -763,7 +763,7 @@ int DLLEXPORT ENR_getLinkResult(ENR_Handle p_handle, int periodIndex,
 		*outValueArray = temp;
 		*length = NLINKRESULTS;
 	}
-	return throw_error(p_data->error_handle, errorcode);
+	return set_error(p_data->error_handle, errorcode);
 }
 
 void DLLEXPORT ENR_clearError(ENR_Handle p_handle)

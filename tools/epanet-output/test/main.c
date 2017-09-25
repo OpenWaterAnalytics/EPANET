@@ -249,5 +249,7 @@ int main(int nargs, char** args)
 	testGetEnergyUsage(path);
 
 	testGetNetReacts(path);
+
+	return 0;
 }
 

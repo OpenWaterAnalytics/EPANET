@@ -18,7 +18,7 @@ typedef struct error_s {
 error_t* new_errormanager(void (*p_error_message)(int, char*, int));
 void dst_errormanager(error_t* error_handle);
 
-int throw_error(error_t* error_handle, int errorcode);
+int set_error(error_t* error_handle, int errorcode);
 char* check_error(error_t* error_handle);
 void clear_error(error_t* error_handle);
 

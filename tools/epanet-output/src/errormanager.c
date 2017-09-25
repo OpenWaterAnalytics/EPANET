@@ -35,9 +35,9 @@ void dst_errormanager(error_t* error_handle)
 	free(error_handle);
 }
 
-int throw_error(error_t* error_handle, int errorcode)
+int set_error(error_t* error_handle, int errorcode)
 //
-// Purpose: Stores an error code in the handle.
+// Purpose: Sets an error code in the handle.
 //
 {
 	// If the error code is 0 no action is taken and 0 is returned.
