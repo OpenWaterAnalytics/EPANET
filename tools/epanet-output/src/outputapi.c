@@ -1,9 +1,10 @@
 //-----------------------------------------------------------------------------
 //
-//   outputapi.c -- API for reading results from EPANet binary output file
+//   outputapi.c -- API for reading results from EPANET binary output file
 //
-//   Version:    0.20
-//   Data        06/17/2016
+//   Version:    0.30
+//   Date        09/06/2017
+//               06/17/2016
 //               08/05/2014
 //               05/21/2014
 //
@@ -14,41 +15,49 @@
 //               University of Modena
 //
 //   Purpose: Output API provides an interface for retrieving results from an
-//   EPANet binary output file.
+//   EPANET binary output file.
 //
 //   Output data in the binary file are aligned on a 4 byte word size.
 //   Therefore all values both integers and reals are 32 bits in length.
 //
-//   The output API indexes reporting periods as well as node and link elements
-//   identical to the binary file writer found in EPANET. Times correspond to
-//   reporting periods and are indexed from zero to the number of reporting
-//   periods. Node and link elements are indexed from one to nodeCount and one
-//   to linkCount respectively.
+//   All values returned by the output API are indexed are from 0 to n-1. This
+//   differs from how node and link elements are indexed by the binary file
+//   writer found in EPANET. Times correspond to reporting periods are indexed
+//   from 0 to number of reporting periods minus one. Node and link elements
+//   are indexed from 0 to nodeCount minus one and 0 to linkCount minus one
+//   respectively.
 //
 //   The Output API functions provide a convenient way to select "slices" of
-//   data from the output file. As such they return arrays of data. The caller
-//   is responsible for allocating and deallocating memory. The functions
-//   ENR_newOutValueSeries() and ENR_newOutValueArray() are provided to size
-//   arrays properly. The function ENR_free() is provided to deallocate memory.
+//   data from the output file. As such they return arrays of data. The API
+//   functions automatically allocate memory for the array to be returned. The
+//   caller is responsible for deallocating memory. The function ENR_free() is
+//   provided to deallocate memory.
 //
 //-----------------------------------------------------------------------------
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include "outputapi.h"
+#include "errormanager.h"
 #include "messages.h"
 
 // NOTE: These depend on machine data model and may change when porting
-#define F_OFF  long long  // Must be a 8 byte / 64 bit integer for large file support
-#define INT4    int       // Must be a 4 byte / 32 bit integer type
-#define REAL4 float       // Must be a 4 byte / 32 bit real type
+// F_OFF Must be a 8 byte / 64 bit integer for large file support
+#ifdef _WIN32 // Windows (32-bit and 64-bit)
+    #define F_OFF __int64
+    #define FSEEK64 _fseeki64
+    #define FTELL64 _ftelli64
+#else         // Other platforms
+    #define F_OFF off_t
+    #define FSEEK64 fseeko
+    #define FTELL64 ftello
+#endif
+#define INT4  int          // Must be a 4 byte / 32 bit integer type
+#define REAL4 float        // Must be a 4 byte / 32 bit real type
+#define WORDSIZE       4   // Memory alignment 4 byte word size for both int and real
 
-#define WORDSIZE       4  // Memory alignment 4 byte word size for both int and real
-
-#define MINNREC       14  // Minimum allowable number of records
-
+#define MINNREC       14   // Minimum allowable number of records
 #define PROLOGUE     884   // Preliminary fixed length section of header
 #define MAXID_P1      32   // Max. # characters in ID name
 
@@ -57,332 +66,391 @@
 #define NLINKRESULTS   8   // number of result fields for links
 #define NREACTRESULTS  4   // number of net reaction results
 
-
 #define MEMCHECK(x)  (((x) == NULL) ? 411 : 0 )
 
+// Typedefs for opaque pointer
+typedef struct data_s {
+	char  name[MAXFNAME];  // file path/name
+	FILE* file;            // FILE structure pointer
+	INT4  nodeCount, tankCount, linkCount, pumpCount, valveCount, nPeriods;
+	F_OFF outputStartPos;  // starting file position of output data
+	F_OFF bytesPerPeriod;  // bytes saved per simulation time period
 
-struct ENResultsAPI {
-    char  name[MAXFNAME];     // file path/name
-    FILE  *file;                  // FILE structure pointer
-    INT4  nodeCount, tankCount, linkCount, pumpCount, valveCount, nPeriods;
-    F_OFF outputStartPos;         // starting file position of output data
-    F_OFF bytesPerPeriod;         // bytes saved per simulation time period
-};
+	error_t* error_handle;
+} data_t;
+
+typedef data_t* p_data_t;
 
 //-----------------------------------------------------------------------------
 //   Local functions
 //-----------------------------------------------------------------------------
-int    validateFile(ENResultsAPI*);
-float  getNodeValue(ENResultsAPI*, int, int, int);
-float  getLinkValue(ENResultsAPI*, int, int, int);
+void errorLookup(int errcode, char* errmsg, int length);
+int    validateFile(ENR_Handle);
+float  getNodeValue(ENR_Handle, int, int, int);
+float  getLinkValue(ENR_Handle, int, int, int);
+float* newArray(int);
+char*  newString(int);
+int fseek_s(FILE* stream, F_OFF offset, int whence);
+F_OFF ftell_s(FILE* stream);
 
-
-ENResultsAPI* DLLEXPORT ENR_init(void)
-//  Purpose: Returns an initialized pointer for the opaque ENResultsAPI
-//    structure.
+int DLLEXPORT ENR_init(ENR_Handle* p_handle)
+//  Purpose: Initialized pointer for the opaque ENR_Handle.
 //
-//  FYI: The existence of this function has been carefully considered. I will
-//  give you three good reasons not to change it. 1) Abstracting struct
-//  initialization in its own function simplifies the API. The user can call
-//  all API function with first degree pointer to the struct eliminating the
-//  need for dealing with second degree pointers on the open and close calls.
-//  2) It simplifies the code when wrapping the API in other languages. And,
-//  3) Other libraries use this same pattern (see MPI Library C API).
+//  Returns: Error code 0 on success, -1 on failure
+//
+//  Note: The existence of this function has been carefully considered.
+//   Don't change it.
 //
 {
-	return malloc(sizeof(struct ENResultsAPI));
+	int errorcode = 0;
+	data_t* priv_data;
+
+	// Allocate memory for private data
+	priv_data = (data_t*)calloc(1, sizeof(data_t));
+
+	if (priv_data != NULL){
+		priv_data->error_handle = new_errormanager(&errorLookup);
+		*p_handle = priv_data;
+	}
+	else
+		errorcode = -1;
+
+    // TODO: Need to handle errors during initialization better.
+	return errorcode;
 }
 
-
-int DLLEXPORT ENR_open(ENResultsAPI* enrapi, const char* path)
+int DLLEXPORT ENR_close(ENR_Handle* p_handle)
 /*------------------------------------------------------------------------
-**   Input:   path
-**   Output:  penrapi = pointer to ENResultsAPI struct
-**  Returns:  error code
-**  Purpose:  Allocate ENResultsAPI struc, open the output binary file and
-**            read epilogue
-**  NOTE: ENR_open must be called before any other ENR_* functions
-**        no need to allocate ENResultsAPI struc before calling
-**-------------------------------------------------------------------------
-*/
+ **    Input:  *p_handle = pointer to ENR_Handle struct
+ **
+ **  Returns:  Error code 0 on success, -1 on failure
+ **
+ **  Purpose:  Close the output binary file, dellocate ENR_Handle struc
+ **            and nullify pointer to ENR_Handle struct
+ **
+ **  NOTE: ENR_close must be called before program end
+ **        after calling ENR_close data in  ENR_Handle struct are no more
+ **        accessible
+ **-------------------------------------------------------------------------
+ */
 {
-    int err, errorcode = 0;
-    F_OFF bytecount;
+	p_data_t p_data;
+	int errorcode = 0;
 
-    if (enrapi == NULL) errorcode = 440;
-    else
-    {
-		strncpy(enrapi->name, path, MAXFNAME+1);
+	p_data = *p_handle;
 
+	if (p_data == NULL || p_data->file == NULL)
+		errorcode = -1;
+
+	else
+	{
+		dst_errormanager(p_data->error_handle);
+		fclose(p_data->file);
+		free(p_data);
+
+		*p_handle = NULL;
+	}
+
+	return errorcode;
+}
+
+int DLLEXPORT ENR_open(ENR_Handle p_handle, const char* path)
+/*------------------------------------------------------------------------
+ **   Input:   path
+ **   Output:  p_handle = pointer to ENR_Handle struct
+ **  Returns:  warning / error code
+ **  Purpose:  Opens the output binary file and reads prologue and epilogue
+ **
+ **  NOTE: ENR_init must be called before anyother ENR_* functions
+ **-------------------------------------------------------------------------
+ */
+{
+	int err, errorcode = 0;
+	F_OFF bytecount;
+	p_data_t p_data;
+
+	p_data = p_handle;
+
+	if (p_data == NULL) return -1;
+	else
+	{
+		strncpy_s(p_data->name, MAXFNAME+1, path, MAXFNAME+1);
 		// Attempt to open binary output file for reading only
-		if ((enrapi->file = fopen(path, "rb")) == NULL) errorcode = 434;
-		// Perform checks to insure the file is valid
-		else if ((err = validateFile(enrapi)) != 0) errorcode = err;
+		if ((fopen_s(&(p_data->file), path, "rb")) != 0) errorcode = 434;
 
-		else {
+		// Perform checks to insure the file is valid
+		else if ((err = validateFile(p_data)) != 0) errorcode = err;
+
+		// If a warning is encountered read file header
+		if (errorcode < 400 ) {
+
 			// read network size
-			fseek(enrapi->file, 2*WORDSIZE, SEEK_SET);
-			fread(&(enrapi->nodeCount), WORDSIZE, 1, enrapi->file);
-			fread(&(enrapi->tankCount), WORDSIZE, 1, enrapi->file);
-			fread(&(enrapi->linkCount), WORDSIZE, 1, enrapi->file);
-			fread(&(enrapi->pumpCount), WORDSIZE, 1, enrapi->file);
-			fread(&(enrapi->valveCount), WORDSIZE, 1, enrapi->file);
+			fseek(p_data->file, 2*WORDSIZE, SEEK_SET);
+			fread(&(p_data->nodeCount), WORDSIZE, 1, p_data->file);
+			fread(&(p_data->tankCount), WORDSIZE, 1, p_data->file);
+			fread(&(p_data->linkCount), WORDSIZE, 1, p_data->file);
+			fread(&(p_data->pumpCount), WORDSIZE, 1, p_data->file);
+			fread(&(p_data->valveCount), WORDSIZE, 1, p_data->file);
 
 			// Compute positions and offsets for retrieving data
 			// fixed portion of header + title section + filenames + chem names
 			bytecount = PROLOGUE;
 			// node names + link names
-			bytecount += MAXID_P1*enrapi->nodeCount + MAXID_P1*enrapi->linkCount;
+			bytecount += MAXID_P1*p_data->nodeCount + MAXID_P1*p_data->linkCount;
 			// network connectivity + tank nodes + tank areas
-			bytecount += 3*WORDSIZE*enrapi->linkCount + 2*WORDSIZE*enrapi->tankCount;
+			bytecount += 3*WORDSIZE*p_data->linkCount + 2*WORDSIZE*p_data->tankCount;
 			// node elevations + link lengths and link diameters
-			bytecount += WORDSIZE*enrapi->nodeCount + 2*WORDSIZE*enrapi->linkCount;
+			bytecount += WORDSIZE*p_data->nodeCount + 2*WORDSIZE*p_data->linkCount;
 			// pump energy summary
-			bytecount += 7*WORDSIZE*enrapi->pumpCount + WORDSIZE;
-			enrapi->outputStartPos= bytecount;
+			bytecount += 7*WORDSIZE*p_data->pumpCount + WORDSIZE;
+			p_data->outputStartPos= bytecount;
 
-			enrapi->bytesPerPeriod = NNODERESULTS*WORDSIZE*enrapi->nodeCount +
-					NLINKRESULTS*WORDSIZE*enrapi->linkCount;
+			p_data->bytesPerPeriod = NNODERESULTS*WORDSIZE*p_data->nodeCount +
+					NLINKRESULTS*WORDSIZE*p_data->linkCount;
 		}
-    }
-
-    if (errorcode) ENR_close(enrapi);
-
-    return errorcode;
-}
-
-int DLLEXPORT ENR_close(ENResultsAPI* enrapi)
-/*------------------------------------------------------------------------
-**   Input:   enrapi = pointer to ENResultsAPI struct
-**  Returns:  error code
-**  Purpose:  Close the output binary file, dellocate ENResultsAPI struc
-**            and nullify pointer to ENResultsAPI struct
-**  NOTE: ENR_close must be called before program end
-**        after calling ENR_close data in  ENResultsAPI struct are no more 
-**        accessible
-**-------------------------------------------------------------------------
-*/
-{   int errcode = 0;
-
-	if (enrapi == NULL) errcode = 440;
-	else if (enrapi->file == NULL) errcode = 412;
-	else
-	{
-        fclose( enrapi->file);
-
-        free(enrapi);
-        enrapi = NULL;
-    }
-    return errcode;
-}
-
-int DLLEXPORT ENR_getVersion(ENResultsAPI* enrapi, int* version)
-/*------------------------------------------------------------------------
-**   Input:   enrapi = pointer to ENResultsAPI struct
-**   Output:  version  Epanet version
-**  Returns: error code
-**  Purpose: Returns Epanet version that wrote EBOFile
-**
-**--------------element codes-------------------------------------------
-*/
-{
-	int errcode = 0;
-
-	if (enrapi == NULL) errcode = 412;
-	else
-	{
-		fseek(enrapi->file, 1*WORDSIZE, SEEK_SET);
-		if (fread(version, WORDSIZE, 1, enrapi->file) != 1)
-			errcode = 436;
 	}
-	return errcode;
+	// If error close the binary file
+	if (errorcode > 400) {
+		set_error(p_data->error_handle, errorcode);
+		ENR_close(&p_handle);
+	}
+
+	return errorcode;
 }
 
-int DLLEXPORT ENR_getNetSize(ENResultsAPI* enrapi, ENR_ElementCount code, int* count)
+int DLLEXPORT ENR_getVersion(ENR_Handle p_handle, int* version)
 /*------------------------------------------------------------------------
-**   Input:   enrapi = pointer to ENResultsAPI struct
-**            code=  element code
-**   Output:  count
-**  Returns: error code                              
-**  Purpose: Returns count of elements  of given kind
-**-------------------------------------------------------------------------
-*/
+ **    Input: p_handle = pointer to ENR_Handle struct
+ **   Output: version  Epanet version
+ **  Returns: error code
+ **
+ **  Purpose: Returns Epanet version that wrote EBOFile
+ **--------------element codes-------------------------------------------
+ */
 {
-	int errcode = 0;
+	int errorcode = 0;
+	p_data_t p_data;
+
+	p_data = p_handle;
+
+	if (p_data == NULL) return -1;
+	else
+	{
+		fseek(p_data->file, 1*WORDSIZE, SEEK_SET);
+		if (fread(version, WORDSIZE, 1, p_data->file) != 1)
+			errorcode = 436;
+	}
+
+	return set_error(p_data->error_handle, errorcode);
+}
+
+int DLLEXPORT ENR_getNetSize(ENR_Handle p_handle, ENR_ElementCount code, int* count)
+/*------------------------------------------------------------------------
+ **   Input:   p_handle = pointer to ENR_Handle struct
+ **            code=  element code
+ **   Output:  count
+ **  Returns: error code
+ **  Purpose: Returns count of elements  of given kind
+ **-------------------------------------------------------------------------
+ */
+{
+	int errorcode = 0;
+	p_data_t p_data;
 
 	*count = -1;
 
-    if (enrapi == NULL) errcode = 412;
-    else
-    {
-    	switch (code)
-    	{
-    	case ENR_nodeCount:
-    		*count = enrapi->nodeCount;
-    		break;
-    	case ENR_tankCount:
-    		*count = enrapi->tankCount;
-    		break;
-    	case ENR_linkCount:
-    		*count = enrapi->linkCount;
-    		break;
-    	case ENR_pumpCount:
-    		*count = enrapi->pumpCount;
-    		break;
-    	case ENR_valveCount:
-    		*count = enrapi->valveCount;
-    		break;
-    	default:
-    		errcode = 421;
-    	}
-    }
-    return errcode;
-}
+	p_data = p_handle;
 
-int DLLEXPORT ENR_getUnits(ENResultsAPI* enrapi, ENR_Unit code, int* unitFlag)
-/*------------------------------------------------------------------------
-**   Input:   enrapi = pointer to ENResultsAPI struct
-**            code
-**   Output:  count
-**  Returns: unitFlag
-**  Purpose: Returns pressure or flow unit flag
-**--------------pressure unit flags----------------------------------------
-**  0 = psi
-**  1 = meters
-**  2 = kPa
-**------------------flow unit flags----------------------------------------
-**  0 = cubic feet/second
-**  1 = gallons/minute
-**  2 = million gallons/day
-**  3 = Imperial million gallons/day
-**  4 = acre-ft/day
-**  5 = liters/second
-**  6 = liters/minute
-**  7 = megaliters/day
-**  8 = cubic meters/hour
-**  9 = cubic meters/day
-**-------------------------------------------------------------------------
-*/
-{
-	int errcode = 0;
-
-    *unitFlag = -1;
-
-	if (enrapi == NULL) errcode = 412;
+	if (p_data == NULL) return -1;
 	else
 	{
 		switch (code)
-        {
-        case ENR_flowUnits:   
-           fseek(enrapi->file, 9*WORDSIZE, SEEK_SET);
-           fread(unitFlag, WORDSIZE, 1, enrapi->file);
-           break;
-
-        case ENR_pressUnits:  
-           fseek(enrapi->file, 10*WORDSIZE, SEEK_SET);
-           fread(unitFlag, WORDSIZE, 1, enrapi->file);
-           break;
-
-        default: errcode = 421;
-        }
+		{
+		case ENR_nodeCount:
+			*count = p_data->nodeCount;
+			break;
+		case ENR_tankCount:
+			*count = p_data->tankCount;
+			break;
+		case ENR_linkCount:
+			*count = p_data->linkCount;
+			break;
+		case ENR_pumpCount:
+			*count = p_data->pumpCount;
+			break;
+		case ENR_valveCount:
+			*count = p_data->valveCount;
+			break;
+		default:
+			errorcode = 421;
+		}
 	}
-	return errcode;
+
+	return set_error(p_data->error_handle, errorcode);
 }
 
-int DLLEXPORT ENR_getTimes(ENResultsAPI* enrapi, ENR_Time code, int* time)
+int DLLEXPORT ENR_getUnits(ENR_Handle p_handle, ENR_Units code, int* unitFlag)
 /*------------------------------------------------------------------------
-**   Input:   enrapi = pointer to ENResultsAPI struct
-**            code=  element code
-**   Output:  time
-**  Returns: error code                              
-**  Purpose: Returns report and simulation time related parameters.
-**-------------------------------------------------------------------------
-*/
+ **   Input:   p_handle = pointer to ENR_Handle struct
+ **            code
+ **   Output:  count
+ **  Returns: unitFlag
+ **  Purpose: Returns pressure or flow unit flag
+ **--------------pressure unit flags----------------------------------------
+ **  0 = psi
+ **  1 = meters
+ **  2 = kPa
+ **------------------flow unit flags----------------------------------------
+ **  0 = cubic feet/second
+ **  1 = gallons/minute
+ **  2 = million gallons/day
+ **  3 = Imperial million gallons/day
+ **  4 = acre-ft/day
+ **  5 = liters/second
+ **  6 = liters/minute
+ **  7 = megaliters/day
+ **  8 = cubic meters/hour
+ **  9 = cubic meters/day
+ **-------------------------------------------------------------------------
+ */
 {
-	int errcode = 0;
+	int errorcode = 0;
+	p_data_t p_data;
+
+	*unitFlag = -1;
+
+	p_data = p_handle;
+
+	if (p_data == NULL) return -1;
+	else
+	{
+		switch (code)
+		{
+		case ENR_flowUnits:
+			fseek(p_data->file, 9*WORDSIZE, SEEK_SET);
+			fread(unitFlag, WORDSIZE, 1, p_data->file);
+			break;
+
+		case ENR_pressUnits:
+			fseek(p_data->file, 10*WORDSIZE, SEEK_SET);
+			fread(unitFlag, WORDSIZE, 1, p_data->file);
+			break;
+
+		default: errorcode = 421;
+		}
+	}
+	return set_error(p_data->error_handle, errorcode);
+}
+
+int DLLEXPORT ENR_getTimes(ENR_Handle p_handle, ENR_Time code, int* time)
+/*------------------------------------------------------------------------
+ **   Input:   p_handle = pointer to ENR_Handle struct
+ **            code = element code
+ **   Output:  time
+ **  Returns: error code
+ **  Purpose: Returns report and simulation time related parameters.
+ **-------------------------------------------------------------------------
+ */
+{
+	int errorcode = 0;
+	p_data_t p_data;
 
 	*time = -1;
-    if (enrapi == NULL) errcode = 412;
-    else
-    {
-        switch (code)
-        {
-        case ENR_reportStart:
-            fseek(enrapi->file, 12*WORDSIZE, SEEK_SET);
-            fread(time, WORDSIZE, 1, enrapi->file);
-            break;
 
-        case ENR_reportStep:
-            fseek(enrapi->file, 13*WORDSIZE, SEEK_SET);
-            fread(time, WORDSIZE, 1, enrapi->file);
-            break;
+	p_data = p_handle;
 
-        case ENR_simDuration: 
-            fseek(enrapi->file, 14*WORDSIZE, SEEK_SET);
-            fread(time, WORDSIZE, 1, enrapi->file);
-            break;
+	if (p_data == NULL) return -1;
+	else
+	{
+		switch (code)
+		{
+		case ENR_reportStart:
+			fseek(p_data->file, 12*WORDSIZE, SEEK_SET);
+			fread(time, WORDSIZE, 1, p_data->file);
+			break;
 
-        case ENR_numPeriods:  
-        	*time = enrapi->nPeriods;
-        	break;
+		case ENR_reportStep:
+			fseek(p_data->file, 13*WORDSIZE, SEEK_SET);
+			fread(time, WORDSIZE, 1, p_data->file);
+			break;
 
-        default:
-        	errcode = 421;
-        }
-    }
-    return errcode;
+		case ENR_simDuration:
+			fseek(p_data->file, 14*WORDSIZE, SEEK_SET);
+			fread(time, WORDSIZE, 1, p_data->file);
+			break;
+
+		case ENR_numPeriods:
+			*time = p_data->nPeriods;
+			break;
+
+		default:
+			errorcode = 421;
+		}
+	}
+	return set_error(p_data->error_handle, errorcode);
 }
 
-int DLLEXPORT ENR_getElementName(ENResultsAPI* enrapi, ENR_ElementType type,
-		int elementIndex, char* name)
+int DLLEXPORT ENR_getElementName(ENR_Handle p_handle, ENR_ElementType type,
+		int elementIndex, char** name)
 /*------------------------------------------------------------------------
-**   Input:   enrapi = pointer to ENResultsAPI struct
-**            type = ENR_node or ENR_link
-**            elementIndex from 1 to nodeCount or 1 to linkCount
-**   Output:  name = elementName
-**  Returns: error code
-**  Purpose: Retrieves Name of a specified node or link element
-**  NOTE: 'name' must be able to hold MAXID characters
-**-------------------------------------------------------------------------
-*/
+ **   Input:   p_handle = pointer to ENR_Handle struct
+ **            type = ENR_node or ENR_link
+ **            elementIndex from 1 to nodeCount or 1 to linkCount
+ **   Output:  name = elementName
+ **  Returns: error code
+ **  Purpose: Retrieves Name of a specified node or link element
+ **  NOTE: 'name' must be able to hold MAXID characters
+ **  TODO: Takes EPANET indexing from 1 to n not 0 to n-1
+ **-------------------------------------------------------------------------
+ */
 {
 	F_OFF offset;
-    int errcode = 0;
+	int errorcode = 0;
+	char* temp;
+	p_data_t p_data;
 
-    if (enrapi == NULL) errcode = 412;
-    else
-    {
-    	switch (type)
-    	{
-    	case ENR_node:
-    		if (elementIndex < 1 || elementIndex > enrapi->nodeCount)
-    			errcode = 423;
-    		else offset = PROLOGUE + (elementIndex - 1)*MAXID_P1;
-    		break;
+	p_data = p_handle;
 
-    	case ENR_link:
-    		if (elementIndex < 1 || elementIndex > enrapi->linkCount)
-    			errcode = 423;
-    		else
-    			offset = PROLOGUE + enrapi->nodeCount*MAXID_P1 +
-    					(elementIndex - 1)*MAXID_P1;
-    		break;
+	if (p_data == NULL) return -1;
+	/* Allocate memory for name */
+	else if MEMCHECK(temp = newString(MAXID_P1)) errorcode = 411;
 
-    	default:
-    		errcode = 421;
-    	}
+	else
+	{
+		switch (type)
+		{
+		case ENR_node:
+			if (elementIndex < 1 || elementIndex > p_data->nodeCount)
+				errorcode = 423;
+			else offset = PROLOGUE + (elementIndex - 1)*MAXID_P1;
+			break;
 
-    	if (!errcode)
-    	{
-    		fseek(enrapi->file, offset, SEEK_SET);
-    		fread(name, 1, MAXID_P1, enrapi->file);
-    	}
-    }
-    return errcode;
+		case ENR_link:
+			if (elementIndex < 1 || elementIndex > p_data->linkCount)
+				errorcode = 423;
+			else
+				offset = PROLOGUE + p_data->nodeCount*MAXID_P1 +
+				(elementIndex - 1)*MAXID_P1;
+			break;
+
+		default:
+			errorcode = 421;
+		}
+
+		if (!errorcode)
+		{
+			fseek_s(p_data->file, offset, SEEK_SET);
+			fread(temp, 1, MAXID_P1, p_data->file);
+
+			*name = temp;
+		}
+	}
+
+	return set_error(p_data->error_handle, errorcode);
 }
 
-int DLLEXPORT ENR_getEnergyUsage(ENResultsAPI* enrapi, int pumpIndex,
-		int* linkIndex, float* outValues)
+int DLLEXPORT ENR_getEnergyUsage(ENR_Handle p_handle, int pumpIndex,
+		int* linkIndex, float** outValues, int* length)
 /*
  * Purpose: Returns pump energy usage statistics.
  *
@@ -396,30 +464,37 @@ int DLLEXPORT ENR_getEnergyUsage(ENResultsAPI* enrapi, int pumpIndex,
  */
 {
 	F_OFF offset;
-	int errcode = 0;
+	int errorcode = 0;
+	float* temp;
+	p_data_t p_data;
 
-	if (enrapi == NULL) errcode = 412;
-	// Check memory for outValues
-	else if (outValues == NULL) errcode = 411;
+	p_data = p_handle;
+
+	if (p_data == NULL) return -1;
 	// Check for valid pump index
-	else if (pumpIndex < 1 || pumpIndex > enrapi->pumpCount) errcode = 423;
+	else if (pumpIndex < 1 || pumpIndex > p_data->pumpCount) errorcode = 423;
+	// Check memory for outValues
+	else if MEMCHECK(temp = newArray(NENERGYRESULTS)) errorcode = 411;
 
 	else
 	{
-	    // Position offset to start of pump energy summary
-	    offset = enrapi->outputStartPos - (enrapi->pumpCount*(WORDSIZE + 6*WORDSIZE) + WORDSIZE);
-	    // Adjust offset by pump index
-	    offset += (pumpIndex - 1)*(WORDSIZE + 6*WORDSIZE);
+		// Position offset to start of pump energy summary
+		offset = p_data->outputStartPos - (p_data->pumpCount*(WORDSIZE + 6*WORDSIZE) + WORDSIZE);
+		// Adjust offset by pump index
+		offset += (pumpIndex - 1)*(WORDSIZE + 6*WORDSIZE);
 
-	    // Power summary is 1 int and 6 floats for each pump
-	    fseek(enrapi->file, offset, SEEK_SET);
-	    fread(linkIndex, WORDSIZE, 1, enrapi->file);
-	    fread(outValues+1, WORDSIZE, 6, enrapi->file);
+		// Power summary is 1 int and 6 floats for each pump
+		fseek_s(p_data->file, offset, SEEK_SET);
+		fread(linkIndex, WORDSIZE, 1, p_data->file);
+		fread(temp, WORDSIZE, 6, p_data->file);
+
+		*outValues = temp;
+		*length = NENERGYRESULTS;
 	}
-	return errcode;
+	return set_error(p_data->error_handle, errorcode);
 }
 
-int DLLEXPORT ENR_getNetReacts(ENResultsAPI* enrapi, float* outValues)
+int DLLEXPORT ENR_getNetReacts(ENR_Handle p_handle, float** outValues, int* length)
 /*
  *  Purpose: Returns network wide average reaction rates and average
  *  source mass inflow:
@@ -430,417 +505,440 @@ int DLLEXPORT ENR_getNetReacts(ENResultsAPI* enrapi, float* outValues)
  */
 {
 	F_OFF offset;
-	int errcode = 0;
+	int errorcode = 0;
+    float* temp;
+	p_data_t p_data;
 
-    if (enrapi == NULL) errcode = 412;
-    else if (outValues == NULL) errcode = 411;
+	p_data = p_handle;
 
-    else
-    {
-        // Reaction summary is 4 floats located right before epilogue.
-    	// This offset is relative to the end of the file.
-    	offset = - 3*WORDSIZE - 4*WORDSIZE;
-        fseek(enrapi->file, offset, SEEK_END);
-        fread(outValues+1, WORDSIZE, 4, enrapi->file);
-    }
-    return errcode;
+	if (p_data == NULL) return -1;
+	// Check memory for outValues
+	else if MEMCHECK(temp = newArray(NREACTRESULTS)) errorcode = 411;
+
+	else
+	{
+		// Reaction summary is 4 floats located right before epilogue.
+		// This offset is relative to the end of the file.
+		offset = - 3*WORDSIZE - 4*WORDSIZE;
+		fseek_s(p_data->file, offset, SEEK_END);
+		fread(temp, WORDSIZE, 4, p_data->file);
+
+		*outValues = temp;
+		*length = NREACTRESULTS;
+	}
+	return set_error(p_data->error_handle, errorcode);
 }
 
-float* DLLEXPORT ENR_newOutValueSeries(ENResultsAPI* enrapi, int startPeriod,
-        int endPeriod, int* length, int* errcode)
+void DLLEXPORT ENR_free(void** array)
 //
-//  Purpose: Allocates memory for outValue Series.
-//
-//  Warning: Caller must free memory allocated by this function using ENR_free().
+//  Purpose: Frees memory allocated by API calls
 //
 {
-    int size;
-    float* array;
-
-    if (enrapi!=NULL)
-    {
-    	if (startPeriod < 0 || endPeriod >= enrapi->nPeriods ||
-    			endPeriod <= startPeriod)
-    	{
-    		*errcode = 422; return NULL;
-    	}
-
-        size = endPeriod - startPeriod;
-        if (size > enrapi->nPeriods) size = enrapi->nPeriods - 1;
-
-        // Allocate memory for outValues
-        array = (float*) calloc(size + 1, sizeof(float));
-        *errcode = (MEMCHECK(array));
-
-        *length = size + 1;
-        return array;
-    }
-    *errcode = 412;
-    return NULL;
+	if (array != NULL) {
+		free(*array);
+		*array = NULL;
+	}
 }
 
-float* DLLEXPORT ENR_newOutValueArray(ENResultsAPI* enrapi, ENR_ApiFunction func,
-        ENR_ElementType type, int* length, int* errcode)
-//
-//  Purpose: Allocates memory for outValue Array.
-//
-//  Warning: Caller must free memory allocated by this function using ENR_free().
-//
-{
-    int size;
-    float* array;
-
-    if (enrapi!=NULL) {
-        switch (func)
-        {
-        case ENR_getAttribute:
-            if (type == ENR_node)
-                size = enrapi->nodeCount;
-            else
-                size = enrapi->linkCount;
-            break;
-
-        case ENR_getResult:
-            if (type == ENR_node)
-                size = NNODERESULTS;
-            else
-                size = NLINKRESULTS;
-            break;
-
-        case ENR_getReacts:
-        	size = NREACTRESULTS;
-        	break;
-
-        case ENR_getEnergy:
-        	size = NENERGYRESULTS;
-        	break;
-
-        default:
-        	*errcode = 421;
-        	return NULL;
-        }
-
-        // Allocate memory for outValues
-        array = (float*) calloc(size + 1, sizeof(float));
-        *errcode = (MEMCHECK(array));
-
-        *length = size + 1;
-        return array;
-    }
-    *errcode = 412;
-    return NULL;
-}
-
-int DLLEXPORT ENR_free(float* array)
-//
-//  Purpose: frees memory allocated using ENR_newOutValueSeries() or
-//  ENR_newOutValueArray()
-//
-{
-	if (array != NULL)
-		free(array);
-
-	return 0;
-}
-
-int DLLEXPORT ENR_getNodeSeries(ENResultsAPI* enrapi, int nodeIndex, ENR_NodeAttribute attr,
-        int startPeriod, int length, float* outValueSeries)
+int DLLEXPORT ENR_getNodeSeries(ENR_Handle p_handle, int nodeIndex, ENR_NodeAttribute attr,
+		int startPeriod, int endPeriod, float** outValueSeries, int* dim)
 //
 //  Purpose: Get time series results for particular attribute. Specify series
 //  start and length using seriesStart and seriesLength respectively.
 //
+//  NOTE: The node index argument corresponds to the EPANET node index from 1 to
+//     nnodes. The series returned is indexed from 0 to nperiods - 1.
+//
 {
-    int k, errcode = 0;
+	int k, length, errorcode = 0;
+	float* temp;
+	p_data_t p_data;
 
-    if (enrapi == NULL) errcode = 412;
-    // Check memory and node index
-    else if (outValueSeries == NULL) errcode = 411;
-    else if (nodeIndex < 1 || nodeIndex > enrapi->nodeCount) errcode = 423;
-    else if (startPeriod < 0 || startPeriod >= enrapi->nPeriods ||
-        		length > enrapi->nPeriods) errcode = 422;
-    else
-    {
-        // loop over and build time series
-        for (k = 0; k < length; k++)
-            outValueSeries[k] = getNodeValue(enrapi, startPeriod + k,
-            		nodeIndex, attr);
-    }
-    return errcode;
+	p_data = p_handle;
+
+	if (p_data == NULL) return -1;
+	else if (nodeIndex < 1 || nodeIndex > p_data->nodeCount) errorcode = 423;
+	else if (startPeriod < 0 || endPeriod >= p_data->nPeriods ||
+					endPeriod <= startPeriod) errorcode = 422;
+	// Check memory for outValues
+	else if MEMCHECK(temp = newArray(length = endPeriod - startPeriod)) errorcode = 411;
+	else
+	{
+		// loop over and build time series
+		for (k = 0; k < length; k++)
+			temp[k] = getNodeValue(p_handle, startPeriod + k,
+					nodeIndex, attr);
+
+		*outValueSeries = temp;
+		*dim = length;
+	}
+	return set_error(p_data->error_handle, errorcode);
 }
 
-int DLLEXPORT ENR_getLinkSeries(ENResultsAPI* enrapi, int linkIndex,
-		ENR_LinkAttribute attr, int startPeriod, int length,
-		float* outValueSeries)
+int DLLEXPORT ENR_getLinkSeries(ENR_Handle p_handle, int linkIndex, ENR_LinkAttribute attr,
+		int startPeriod, int endPeriod, float** outValueSeries, int* dim)
 //
 //  Purpose: Get time series results for particular attribute. Specify series
 //  start and length using seriesStart and seriesLength respectively.
 //
-{
-    int k, errcode = 0;
-
-    if (enrapi == NULL) errcode = 412;
-    // Check memory for outValues
-    else if (outValueSeries == NULL) errcode = 411;
-    else if (linkIndex < 1 || linkIndex > enrapi->linkCount) errcode = 423;
-    else if (startPeriod < 0 || startPeriod >= enrapi->nPeriods ||
-        		length > enrapi->nPeriods) errcode = 422;
-    else
-    {
-        // loop over and build time series
-        for (k = 0; k < length; k++)
-            outValueSeries[k] = getLinkValue(enrapi, startPeriod + k,
-            		linkIndex, attr);
-    }
-    return errcode;
-}
-
-int DLLEXPORT ENR_getNodeAttribute(ENResultsAPI* enrapi, int periodIndex,
-        ENR_NodeAttribute attr, float* outValueArray, int* length)
-//
-//   Purpose: For all nodes at given time, get a particular attribute
+//  NOTE:
+//     The link index argument corresponds to the EPANET link index from 1 to
+//     nlinks. The series returned is indexed from 0 to nperiods - 1.
 //
 {
-    int offset, errcode = 0;
+	int k, length, errorcode = 0;
+	float* temp;
+	p_data_t p_data;
 
-    if (enrapi == NULL) errcode = 412;
-    // Check memory for outValues
-    else if (outValueArray == NULL) errcode = 411;
-    // if the time index is out of range return an error
-    else if (periodIndex < 0 || periodIndex >= enrapi->nPeriods) errcode = 422;
+	p_data = p_handle;
 
-    else
-    {
-        // calculate byte offset to start time for series
-        offset = enrapi->outputStartPos + (periodIndex)*enrapi->bytesPerPeriod;
-        // add offset for node and attribute
-        offset += ((attr - 1)*enrapi->nodeCount)*WORDSIZE;
+	if (p_data == NULL) return -1;
+	else if (linkIndex < 1 || linkIndex > p_data->linkCount) errorcode = 423;
+	else if (startPeriod < 0 || endPeriod >= p_data->nPeriods ||
+			endPeriod <= startPeriod) errorcode = 422;
+	// Check memory for outValues
+	else if MEMCHECK(temp = newArray(length = endPeriod - startPeriod)) errorcode = 411;
+	else
+	{
+		// loop over and build time series
+		for (k = 0; k < length; k++)
+			temp[k] = getLinkValue(p_handle, startPeriod + k, linkIndex, attr);
 
-        fseek(enrapi->file, offset, SEEK_SET);
-        fread(outValueArray+1, WORDSIZE, enrapi->nodeCount, enrapi->file);
-        *length = enrapi->nodeCount;
-    }
-    return errcode;
+		*outValueSeries = temp;
+		*dim = length;
+	}
+	return set_error(p_data->error_handle, errorcode);
 }
 
-int DLLEXPORT ENR_getLinkAttribute(ENResultsAPI* enrapi, int periodIndex,
-        ENR_LinkAttribute attr, float* outValueArray, int* length)
+int DLLEXPORT ENR_getNodeAttribute(ENR_Handle p_handle, int periodIndex,
+		ENR_NodeAttribute attr, float** outValueArray, int* length)
 //
-//   Purpose: For all links at given time, get a particular attribute
+//   Purpose:
+//        For all nodes at given time, get a particular attribute
+//
+//   Returns:
+//        Error code
+//        OutValueArray of results is indexed from 0 to nodeCount
+//
+//   Warning:
+//        Caller must free memory allocated for outValueArray
+//
+//   NOTE:
+//        The array returned is indexed from 0 to nnodes - 1. So to access
+//        node values by their EPANET index, the index value must be
+//        decremented by one.
 //
 {
 	F_OFF offset;
-    int errcode = 0;
+	int errorcode = 0;
+	float * temp;
+	p_data_t p_data;
 
-    if (enrapi == NULL) errcode = 412;
-    // Check memory for outValues
-    else if (outValueArray == NULL) errcode = 411;
-    // if the time index is out of range return an error
-    else if (periodIndex < 0 || periodIndex >= enrapi->nPeriods) errcode = 422;
+	p_data = p_handle;
 
-    else
-    {
-        // calculate byte offset to start time for series
-        offset = enrapi->outputStartPos + (periodIndex)*enrapi->bytesPerPeriod
-                + (NNODERESULTS*enrapi->nodeCount)*WORDSIZE;
-        // add offset for link and attribute
-        offset += ((attr - 1)*enrapi->linkCount)*WORDSIZE;
+	if (p_data == NULL) return -1;
+	// if the time index is out of range return an error
+	else if (periodIndex < 0 || periodIndex >= p_data->nPeriods) errorcode = 422;
+	// Check memory for outValues
+	else if MEMCHECK(temp = newArray(p_data->nodeCount)) errorcode = 411;
 
-        fseek(enrapi->file, offset, SEEK_SET);
-        fread(outValueArray+1, WORDSIZE, enrapi->linkCount, enrapi->file);
-        *length = enrapi->linkCount;
-    }
-    return errcode;
+	else
+	{
+		// calculate byte offset to start time for series
+		offset = p_data->outputStartPos + (periodIndex)*p_data->bytesPerPeriod;
+		// add offset for node and attribute
+		offset += ((attr - 1)*p_data->nodeCount)*WORDSIZE;
+
+		fseek_s(p_data->file, offset, SEEK_SET);
+		fread(temp, WORDSIZE, p_data->nodeCount, p_data->file);
+
+		*outValueArray = temp;
+		*length = p_data->nodeCount;
+	}
+
+	return set_error(p_data->error_handle, errorcode);
 }
 
-int DLLEXPORT ENR_getNodeResult(ENResultsAPI* enrapi, int periodIndex, int nodeIndex,
-        float* outValueArray)
+int DLLEXPORT ENR_getLinkAttribute(ENR_Handle p_handle, int periodIndex,
+		ENR_LinkAttribute attr, float** outValueArray, int* length)
 //
-//   Purpose: For a node at given time, get all attributes
+//   Purpose:
+//        For all links at given time, get a particular attribute
+//
+//   Returns:
+//        Error code
+//        OutValueArray of results is indexed from 0 to linkCount
+//
+//   Warning:
+//        Caller must free memory allocated for outValueArray
+//
+//   NOTE:
+//        The array returned is indexed from 0 to nlinks - 1. So to access
+//        link values by their EPANET index, the index value must be
+//        decremented by one.
 //
 {
-    int j, errcode = 0;
+	F_OFF offset;
+	int errorcode = 0;
+	float * temp;
+	p_data_t p_data;
 
-    if (enrapi == NULL) errcode = 412;
-    else if (outValueArray == NULL) errcode = 411;
-    else if (periodIndex < 0 || periodIndex >= enrapi->nPeriods) errcode = 422;
-    else if (nodeIndex < 1 || nodeIndex > enrapi->nodeCount) errcode = 423;
-    else
-    {
-        for (j = 1; j <= NNODERESULTS; j++)
-            outValueArray[j] = getNodeValue(enrapi, periodIndex, nodeIndex, j);
-    }
-    return errcode;
+	p_data = p_handle;
+
+	if (p_data == NULL) return -1;
+	// if the time index is out of range return an error
+	else if (periodIndex < 0 || periodIndex >= p_data->nPeriods) errorcode = 422;
+	// Check memory for outValues
+	else if MEMCHECK(temp = newArray(p_data->linkCount)) errorcode = 411;
+
+	else
+	{
+		// calculate byte offset to start time for series
+		offset = p_data->outputStartPos + (periodIndex)*p_data->bytesPerPeriod
+				+ (NNODERESULTS*p_data->nodeCount)*WORDSIZE;
+		// add offset for link and attribute
+		offset += ((attr - 1)*p_data->linkCount)*WORDSIZE;
+
+		fseek_s(p_data->file, offset, SEEK_SET);
+		fread(temp, WORDSIZE, p_data->linkCount, p_data->file);
+
+		*outValueArray = temp;
+		*length = p_data->linkCount;
+	}
+
+	return set_error(p_data->error_handle, errorcode);
 }
 
-int DLLEXPORT ENR_getLinkResult(ENResultsAPI* enrapi, int periodIndex, int linkIndex,
-        float* outValueArray)
+int DLLEXPORT ENR_getNodeResult(ENR_Handle p_handle, int periodIndex,
+		int nodeIndex, float** outValueArray, int* length)
+//
+//   Purpose: For a node at given time, get all attributes.
+//
+//   NOTE:
+//
+{
+	int j, errorcode = 0;
+	float* temp;
+	p_data_t p_data;
+
+	p_data = p_handle;
+
+	if (p_data == NULL) return -1;
+	else if (periodIndex < 0 || periodIndex >= p_data->nPeriods) errorcode = 422;
+	else if (nodeIndex < 1 || nodeIndex > p_data->nodeCount) errorcode = 423;
+	else if MEMCHECK(temp = newArray(NNODERESULTS)) errorcode = 411;
+	else
+	{
+		for (j = 0; j < NNODERESULTS; j++)
+			temp[j] = getNodeValue(p_handle, periodIndex, nodeIndex, j);
+
+		*outValueArray = temp;
+		*length = NNODERESULTS;
+	}
+
+	return set_error(p_data->error_handle, errorcode);
+}
+
+int DLLEXPORT ENR_getLinkResult(ENR_Handle p_handle, int periodIndex,
+		int linkIndex, float** outValueArray, int* length)
 //
 //   Purpose: For a link at given time, get all attributes
 //
 {
-    int j, errcode = 0;
+	int j, errorcode = 0;
+	float* temp;
+	p_data_t p_data;
 
-    if (enrapi == NULL) errcode = 412;
-    else if (outValueArray == NULL) errcode = 411;
-    else if (periodIndex < 0 || periodIndex >= enrapi->nPeriods) errcode = 422;
-    else if (linkIndex < 1 || linkIndex > enrapi->linkCount) errcode = 423;
-    else
-    {
-        for (j = 1; j <= NLINKRESULTS; j++)
-            outValueArray[j] = getLinkValue(enrapi, periodIndex, linkIndex, j);
-    }
-    return errcode;
+	p_data = p_handle;
+
+	if (p_data == NULL) return -1;
+	else if (periodIndex < 0 || periodIndex >= p_data->nPeriods) errorcode = 422;
+	else if (linkIndex < 1 || linkIndex > p_data->linkCount) errorcode = 423;
+	else if MEMCHECK(temp = newArray(NLINKRESULTS)) errorcode = 411;
+	else
+	{
+		for (j = 0; j < NLINKRESULTS; j++)
+			temp[j] = getLinkValue(p_handle, periodIndex, linkIndex, j);
+
+		*outValueArray = temp;
+		*length = NLINKRESULTS;
+	}
+	return set_error(p_data->error_handle, errorcode);
 }
 
-int DLLEXPORT ENR_errMessage(int errcode, char* errmsg, int n)
-//
-//  Purpose: takes error code returns error message
-//
+void DLLEXPORT ENR_clearError(ENR_Handle p_handle)
 {
-    switch (errcode)
-    {
-    case 411: strncpy(errmsg, ERR411, n);
-    	break;
-    case 412: strncpy(errmsg, ERR412, n);
-    	break;
-    case 421: strncpy(errmsg, ERR421, n);
-    	break;
-    case 422: strncpy(errmsg, ERR422, n);
-    	break;
-    case 423: strncpy(errmsg, ERR423, n);
-    	break;
-    case 434: strncpy(errmsg, ERR434, n);
-    	break;
-    case 435: strncpy(errmsg, ERR435, n);
-    	break;
-    case 436: strncpy(errmsg, ERR436, n);
-    	break;
-    case 437: strncpy(errmsg, ERR437, n);
-    	break;
-    default: return -1;
-    }
-    return 0;
+	p_data_t p_data;
+
+	p_data = p_handle;
+	clear_error(p_data->error_handle);
 }
 
-
-int validateFile(ENResultsAPI* enrapi)
-//
+int DLLEXPORT ENR_checkError(ENR_Handle p_handle, char** msg_buffer)
 {
-	INT4 magic1, magic2, hydcode;
 	int errorcode = 0;
-    F_OFF filepos;
+	char *temp = NULL;
+	p_data_t p_data;
 
-	// Read magic number from beginning of file
-	fseek(enrapi->file, 0L, SEEK_SET);
-	fread(&magic1, WORDSIZE, 1, enrapi->file);
+	p_data = p_handle;
 
-	// Fast forward to end and read file epilogue
-	fseek(enrapi->file, -3*WORDSIZE, SEEK_END);
-	fread(&(enrapi->nPeriods), WORDSIZE, 1, enrapi->file);
-	fread(&hydcode, WORDSIZE, 1, enrapi->file);
-	fread(&magic2, WORDSIZE, 1, enrapi->file);
+	if (p_data == NULL) return -1;
+	else
+	{
+		errorcode = p_data->error_handle->error_status;
+		if (errorcode)
+			temp = check_error(p_data->error_handle);
 
-	filepos = ftell(enrapi->file);
-
-	// Is the file an EPANET binary file?
-	if (magic1 != magic2) errorcode = 435;
-	// Does the binary file contain results?
-	else if (filepos < MINNREC*WORDSIZE || enrapi->nPeriods == 0)
-		errorcode = 436;
-	// Were there any problems with the model run?
-	else if (hydcode != 0) errorcode = 437;
+		*msg_buffer = temp;
+	}
 
 	return errorcode;
 }
 
-float getNodeValue(ENResultsAPI* enrapi, int periodIndex, int nodeIndex,
+
+void errorLookup(int errcode, char* dest_msg, int dest_len)
+//
+//  Purpose: takes error code returns error message
+//
+{
+	const char* msg;
+
+	switch (errcode)
+	{
+	case 10:  msg = WARN10;
+		break;
+	case 411: msg = ERR411;
+		break;
+	case 412: msg = ERR412;
+		break;
+	case 421: msg = ERR421;
+		break;
+	case 422: msg = ERR422;
+		break;
+	case 423: msg = ERR423;
+		break;
+	case 434: msg = ERR434;
+		break;
+	case 435: msg = ERR435;
+		break;
+	case 436: msg = ERR436;
+		break;
+	default:  msg = ERRERR;
+	}
+
+	strncpy_s(dest_msg, dest_len, msg, MAXMSG+1);
+}
+
+int validateFile(ENR_Handle p_handle)
+// Returns:
+// 	 Error code: 435, 436
+//   Warning code: 10
+{
+	INT4 magic1, magic2, hydcode;
+	int errorcode = 0;
+	F_OFF filepos;
+	p_data_t p_data;
+
+	p_data = p_handle;
+
+	// Read magic number from beginning of file
+	fseek(p_data->file, 0L, SEEK_SET);
+	fread(&magic1, WORDSIZE, 1, p_data->file);
+
+	// Fast forward to end and read file epilogue
+	fseek(p_data->file, -3*WORDSIZE, SEEK_END);
+	fread(&(p_data->nPeriods), WORDSIZE, 1, p_data->file);
+	fread(&hydcode, WORDSIZE, 1, p_data->file);
+	fread(&magic2, WORDSIZE, 1, p_data->file);
+
+	filepos = ftell_s(p_data->file);
+
+	// Is the file an EPANET binary file?
+	if (magic1 != magic2) errorcode = 435;
+	// Does the binary file contain results?
+	else if (filepos < MINNREC*WORDSIZE || p_data->nPeriods == 0)
+		errorcode = 436;
+	// Issue warning if there were problems with the model run.
+	else if (hydcode != 0) errorcode = 10;
+
+	return errorcode;
+}
+
+float getNodeValue(ENR_Handle p_handle, int periodIndex, int nodeIndex,
 		int attr)
 //
 //   Purpose: Retrieves an attribute value at a specified node and time
 //
 {
 	F_OFF offset;
-    REAL4 y;
+	REAL4 y;
+	p_data_t p_data;
 
-    // calculate byte offset to start time for series
-    offset = enrapi->outputStartPos + periodIndex*enrapi->bytesPerPeriod;
-    // add byte position for attribute and node
-    offset += ((attr - 1)*enrapi->nodeCount + (nodeIndex - 1))*WORDSIZE;
+	p_data = p_handle;
 
-    fseek(enrapi->file, offset, SEEK_SET);
-    fread(&y, WORDSIZE, 1, enrapi->file);
+	// calculate byte offset to start time for series
+	offset = p_data->outputStartPos + periodIndex*p_data->bytesPerPeriod;
+	// add byte position for attribute and node
+	offset += ((attr - 1)*p_data->nodeCount + (nodeIndex - 1))*WORDSIZE;
 
-    return y;
+	fseek_s(p_data->file, offset, SEEK_SET);
+	fread(&y, WORDSIZE, 1, p_data->file);
+
+	return y;
 }
 
-float getLinkValue(ENResultsAPI* enrapi, int periodIndex, int linkIndex,
-        int attr)
+float getLinkValue(ENR_Handle p_handle, int periodIndex, int linkIndex,
+		int attr)
 //
 //   Purpose: Retrieves an attribute value at a specified link and time
 //
 {
 	F_OFF offset;
-    REAL4 y;
+	REAL4 y;
+	p_data_t p_data;
 
-    // Calculate byte offset to start time for series
-    offset = enrapi->outputStartPos + periodIndex*enrapi->bytesPerPeriod
-            + (NNODERESULTS*enrapi->nodeCount)*WORDSIZE;
-    // add byte position for attribute and link
-    offset += ((attr - 1)*enrapi->linkCount + (linkIndex - 1))*WORDSIZE;
+	p_data = p_handle;
 
-    fseek(enrapi->file, offset, SEEK_SET);
-    fread(&y, WORDSIZE, 1, enrapi->file);
+	// Calculate byte offset to start time for series
+	offset = p_data->outputStartPos + periodIndex*p_data->bytesPerPeriod
+			+ (NNODERESULTS*p_data->nodeCount)*WORDSIZE;
+	// add byte position for attribute and link
+	offset += ((attr - 1)*p_data->linkCount + (linkIndex - 1))*WORDSIZE;
 
-    return y;
+	fseek_s(p_data->file, offset, SEEK_SET);
+	fread(&y, WORDSIZE, 1, p_data->file);
+
+	return y;
 }
 
-
-/*
-int DLLEXPORT ENR_getNodeValue(ENResultsAPI* enrapi, int periodIndex, int nodeIndex,
-		ENR_NodeAttribute attr, float *value)
-------------------------------------------------------------------------
-**   Input:   enrapi = pointer to ENResultsAPI struct
-**            nodeIndex from 1 to nodeCount
-**            timeIndex from 0 to nPeriods
-**            attr = attribute code
-**   Output:  value=
-**  Returns: error code
-**  Purpose: Returns attribute for a node at given time
-**-------------------------------------------------------------------------
-
-{   int errcode = 0;
-
-    if (enrapi==NULL) errcode =  412;
-    else if ( periodIndex < 0 || periodIndex >=enrapi->nPeriods ) errcode = 422;
-    else if ( nodeIndex < 1 || nodeIndex > enrapi->nodeCount ) errcode = 423;
-    else
-    	*value = getNodeValue(enrapi, periodIndex, nodeIndex, attr);
-
-    return errcode;
-}
-
-int DLLEXPORT ENR_getLinkValue(ENResultsAPI* enrapi, int periodIndex, int linkIndex,
-		ENR_LinkAttribute attr, float *value)
-------------------------------------------------------------------------
-**   Input:   enrapi = pointer to ENResultsAPI struct
-**            linkIndex from 1 to linkCount
-**            timeIndex from 0 to nPeriods
-**
-**            attr = attribute code
-**   Output:  value=
-**  Returns: error code
-**  Purpose: Returns attribute for a link at given time
-**-------------------------------------------------------------------------
-
+float* newArray(int n)
+//
+//  Warning: Caller must free memory allocated by this function.
+//
 {
-    int errcode = 0;
-
-    if (enrapi==NULL) errcode = 412;
-    else if ( periodIndex < 0 || periodIndex >=enrapi->nPeriods ) errcode = 422;
-    else if ( linkIndex < 1 || linkIndex > enrapi->linkCount ) errcode = 423;
-    else
-    	*value = getLinkValue(enrapi, periodIndex, linkIndex, attr);
-
-    return errcode;
+	return (float*) malloc((n)*sizeof(float));
 }
-*/
+
+char* newString(int n)
+//
+//  Warning: Caller must free memory allocated by this function.
+//
+{
+	return (char*) malloc((n)*sizeof(char));
+}
+
+int fseek_s(FILE* stream, F_OFF offset, int whence)
+//
+//  Purpose: Selects platform fseek() for large file support
+//
+{
+	return FSEEK64(stream, offset, whence);
+}
+
+F_OFF ftell_s(FILE* stream)
+//
+//  Purpose: Selects platform ftell() for large file support
+//
+{
+	return FTELL64(stream);
+}

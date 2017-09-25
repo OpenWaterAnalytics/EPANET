@@ -7,123 +7,132 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../src/outputapi.h"
+#include "../src/messages.h"
 
+int testGetNodeAttribute(char* path) {
 
+	int i, length, error = 0;
+	float* array = NULL;
+	char* err_msg = NULL;
+	ENR_Handle p_handle = NULL;
 
-int testGetNodeAttribute(char *path) {
+	error = ENR_init(&p_handle);
 
-	int i, length, error;
-	float *array;
-
-	ENResultsAPI *enrapi = ENR_init();
-	ENR_open(enrapi, path);
+	ENR_clearError(p_handle);
+	error = ENR_open(p_handle, path);
 
 	// Test getNodeAttribute
-	array  = ENR_newOutValueArray(enrapi, ENR_getAttribute, ENR_node, &length, &error);
-	error = ENR_getNodeAttribute(enrapi, 1, ENR_quality, array);
+	error = ENR_getNodeAttribute(p_handle, -1, ENR_quality, &array, &length);
 
 	if (!error)
 	{
-		for (i = 1; i < length; i++)
+		for (i = 0; i < length; i++)
 			printf("%f\n", array[i]);
 	}
 	printf("\n");
 
-	ENR_free(array);
-    ENR_close(enrapi);
+    ENR_checkError(p_handle, &err_msg);
+    printf("%s\n", err_msg);
+
+    ENR_free((void*)&array);
+    ENR_free((void*)&err_msg);
+
+    ENR_close(&p_handle);
 
 	return error;
 }
 
 
-int testGetLinkAttribute(char *path) {
+int testGetLinkAttribute(char* path) {
 
 	int i, length, error;
-	float *array;
+	float* array = NULL;
+	ENR_Handle p_handle = NULL;
 
-	ENResultsAPI *enrapi = ENR_init();
-	ENR_open(enrapi, path);
+	ENR_init(&p_handle);
+	ENR_open(p_handle, path);
 
-	// Test getNodeAttribute
-	array  = ENR_newOutValueArray(enrapi, ENR_getAttribute, ENR_link, &length, &error);
-	error = ENR_getLinkAttribute(enrapi, 1, ENR_flow, array);
+	// Test getLinkAttribute
+	error = ENR_getLinkAttribute(p_handle, 1, ENR_flow, &array ,&length);
 
 	if (!error)
 	{
-		for (i = 1; i < length; i++)
+		for (i = 0; i < length; i++)
 			printf("%f\n", array[i]);
 	}
 	printf("\n");
 
-	ENR_free(array);
-    ENR_close(enrapi);
+    ENR_free((void*)&array);
+    ENR_close(&p_handle);
 
 	return error;
 }
 
-int testGetNodeResult(char *path) {
+int testGetNodeResult(char* path) {
 
 	int i, length, error;
-	float *array;
+	float* array = NULL;
+	ENR_Handle p_handle = NULL;
 
-	ENResultsAPI *enrapi = ENR_init();
-	ENR_open(enrapi, path);
+	ENR_init(&p_handle);
+	ENR_open(p_handle, path);
 
 	// Test getNodeResult
-	array  = ENR_newOutValueArray(enrapi, ENR_getResult, ENR_node, &length, &error);
-	error = ENR_getNodeResult(enrapi, 1, 2, array);
+	error = ENR_getNodeResult(p_handle, 1, 2, &array, &length);
 
 	if (!error)
 	{
-		for (i = 1; i < length; i++)
+		for (i = 0; i < length; i++)
 			printf("%f\n", array[i]);
 	}
 	printf("\n");
 
-	ENR_free(array);
-    ENR_close(enrapi);
+    ENR_free((void*)&array);
+    ENR_close(&p_handle);
 
 	return error;
 }
 
-int testGetLinkResult(char *path) {
+int testGetLinkResult(char* path) {
 
 	int i, length, error;
-	float *array;
+	float* array = NULL;
+	ENR_Handle p_handle = NULL;
 
-	ENResultsAPI *enrapi = ENR_init();
-	ENR_open(enrapi, path);
+	ENR_init(&p_handle);
+	ENR_open(p_handle, path);
 
 	// Test getLinkResult
-	array  = ENR_newOutValueArray(enrapi, ENR_getResult, ENR_link, &length, &error);
-	error = ENR_getLinkResult(enrapi, 24, 13, array);
+	error = ENR_getLinkResult(p_handle, 24, 13, &array, &length);
 
 	if (!error)
 	{
-		for (i = 1; i < length; i++)
+		for (i = 0; i < length; i++)
 			printf("%f\n", array[i]);
 	}
 	printf("\n");
 
-	ENR_free(array);
-    ENR_close(enrapi);
+    ENR_free((void*)&array);
+    ENR_close(&p_handle);
 
 	return error;
 }
 
-int testGetNodeSeries(char *path) {
+int testGetNodeSeries(char* path) {
 
-	int i, length, simDur, rptStep, error;
-	float *series;
+	int i, length, simDur, rptStep, endPeriod, error;
+	float* series = NULL;
+	ENR_Handle p_handle = NULL;
 
-	ENResultsAPI *enrapi = ENR_init();
-	ENR_open(enrapi, path);
+	ENR_init(&p_handle);
+	ENR_open(p_handle, path);
 
 	// Test getNodeSeries
-	error = ENR_getTimes(enrapi, ENR_simDuration, &simDur);
-	error = ENR_getTimes(enrapi, ENR_reportStep, &rptStep);
-	series = ENR_newOutValueSeries(enrapi, 0, simDur/rptStep, &length, &error);
-	error = ENR_getNodeSeries(enrapi, 2, ENR_pressure, 0, length, series);
+	error = ENR_getTimes(p_handle, ENR_simDuration, &simDur);
+	error = ENR_getTimes(p_handle, ENR_reportStep, &rptStep);
+	endPeriod = simDur/rptStep;
+
+	error = ENR_getNodeSeries(p_handle, 2, ENR_pressure, 0, endPeriod, &series, &length);
 
 	if (!error) {
 		for (i = 0; i < length; i++)
@@ -131,25 +140,28 @@ int testGetNodeSeries(char *path) {
 	}
 	printf("\n");
 
-	ENR_free(series);
-    ENR_close(enrapi);
+    ENR_free((void*)&series);
+    ENR_close(&p_handle);
 
     return error;
 }
 
-int testGetLinkSeries(char *path) {
+int testGetLinkSeries(char* path) {
 
-	int i, length, simDur, rptStep, error;
-	float *series;
+	int i, length, simDur, rptStep, endPeriod, error;
+	float* series = NULL;
+	ENR_Handle p_handle = NULL;
 
-	ENResultsAPI *enrapi = ENR_init();
-	ENR_open(enrapi, path);
+	ENR_init(&p_handle);
+	ENR_open(p_handle, path);
 
 	// Test getNodeSeries
-	error = ENR_getTimes(enrapi, ENR_simDuration, &simDur);
-	error = ENR_getTimes(enrapi, ENR_reportStep, &rptStep);
-	series = ENR_newOutValueSeries(enrapi, 6, 12, &length, &error);
-	//error = ENR_getLinkSeries(enrapi, 2, ENR_flow, 0, length, series);
+	error = ENR_getTimes(p_handle, ENR_simDuration, &simDur);
+	error = ENR_getTimes(p_handle, ENR_reportStep, &rptStep);
+	endPeriod = simDur/rptStep;
+
+	//series = ENR_newOutValueSeries(p_handle, 6, 12, &length, &error);
+	error = ENR_getLinkSeries(p_handle, 2, ENR_flow, 0, endPeriod, &series, &length);
 
 	if (!error) {
 		for (i = 0; i < length; i++)
@@ -157,63 +169,68 @@ int testGetLinkSeries(char *path) {
 	}
 	printf("\n");
 
-	ENR_free(series);
-    ENR_close(enrapi);
+    ENR_free((void*)&series);
+    ENR_close(&p_handle);
 
     return error;
 
 }
 
-int testGetNetReacts(char *path) {
+int testGetNetReacts(char* path) {
 
 	int i, length, error;
-	float *array;
+	float* array = NULL;
+	ENR_Handle p_handle = NULL;
 
-	ENResultsAPI *enrapi = ENR_init();
-	ENR_open(enrapi, path);
+	ENR_init(&p_handle);
+	ENR_open(p_handle, path);
 
 	// Test Network Reaction Summary
-	array = ENR_newOutValueArray(enrapi, ENR_getReacts, 0, &length, &error);
-	error = ENR_getNetReacts(enrapi, array);
+	error = ENR_getNetReacts(p_handle, &array, &length);
 
 	if (!error) {
-		for (i = 1; i < length; i++)
+		for (i = 0; i < length; i++)
 		printf("%f\n", array[i]);
 	}
 	printf("\n");
 
-    ENR_free(array);
-    ENR_close(enrapi);
+    ENR_free((void*)&array);
+    ENR_close(&p_handle);
 
     return error;
 }
 
-int testGetEnergyUsage(char *path) {
+int testGetEnergyUsage(char* path) {
 
 	int i, length, linkIdx, error;
-	float *array;
+	float **arg4 = (float **) 0 ;
+	int* arg5 = (int*) 0;
+	float *temp4 = 0 ;
+	int temp5 = 0;
+	ENR_Handle p_handle = NULL;
 
-	ENResultsAPI *enrapi = ENR_init();
-	ENR_open(enrapi, path);
+	ENR_init(&p_handle);
+	ENR_open(p_handle, path);
 
+    arg4 = &temp4;
+    arg5 = &temp5;
 	// Test Pump Energy Usage Summary
-	array = ENR_newOutValueArray(enrapi, ENR_getEnergy, 0, &length, &error);
-	error = ENR_getEnergyUsage(enrapi, 1, &linkIdx, array);
+	error = ENR_getEnergyUsage(p_handle, 1, &linkIdx, arg4, arg5);
 
 	if (!error) {
-	for (i = 1; i < length; i++)
-		printf("%f\n", array[i]);
+	for (i = 0; i < *arg5; i++)
+		printf("%f\n", temp4[i]);
 	}
 	printf("\n");
 
-	ENR_free(array);
-    ENR_close(enrapi);
+    ENR_free((void*)arg4);
+    ENR_close(&p_handle);
 
     return error;
 
 }
 
-int main(int nargs, char **args)
+int main(int nargs, char** args)
 {
 	char path[MAXFNAME] = "M:\\net mydocuments\\EPA Projects\\EPAnet Examples\\net1.out";
 
@@ -232,5 +249,7 @@ int main(int nargs, char **args)
 	testGetEnergyUsage(path);
 
 	testGetNetReacts(path);
+
+	return 0;
 }
 

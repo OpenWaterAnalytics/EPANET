@@ -12,8 +12,8 @@
 #define MAXFNAME     259   // Max characters in file name
 #define MAXID         31   // Max characters in ID name
 
-// This is an opaque struct. Do not access variables.
-typedef struct ENResultsAPI ENResultsAPI;
+// This is an opaque pointer to struct. Do not access variables.
+typedef void* ENR_Handle;
 
 typedef enum {
 	ENR_node = 1,
@@ -39,7 +39,7 @@ typedef enum {
 typedef enum {
     ENR_flowUnits   = 1,
     ENR_pressUnits  = 2
-} ENR_Unit;
+} ENR_Units;
 
 typedef enum {
 	ENR_reportStart = 1,
@@ -82,51 +82,50 @@ typedef enum {
 #endif
 
 
-ENResultsAPI* DLLEXPORT ENR_init(void);
+int DLLEXPORT ENR_init(ENR_Handle* p_handle_out);
 
-int DLLEXPORT ENR_open(ENResultsAPI* enrapi, const char* path);
+int DLLEXPORT ENR_open(ENR_Handle p_handle_in, const char* path);
 
-int DLLEXPORT ENR_getVersion(ENResultsAPI* enrapi, int* version);
+int DLLEXPORT ENR_getVersion(ENR_Handle p_handle_in, int* int_out);
 
-int DLLEXPORT ENR_getNetSize(ENResultsAPI* enrapi, ENR_ElementCount code, int* count);
+int DLLEXPORT ENR_getNetSize(ENR_Handle p_handle_in, ENR_ElementCount t_enum, int* int_out);
 
-int DLLEXPORT ENR_getUnits(ENResultsAPI* enrapi, ENR_Unit code, int* unitFlag);
+int DLLEXPORT ENR_getUnits(ENR_Handle p_handle_in, ENR_Units t_enum, int* int_out);
 
-int DLLEXPORT ENR_getTimes(ENResultsAPI* enrapi, ENR_Time code, int* time);
+int DLLEXPORT ENR_getTimes(ENR_Handle p_handle_in, ENR_Time t_enum, int* int_out);
 
-int DLLEXPORT ENR_getElementName(ENResultsAPI* enrapi, ENR_ElementType type,
-		int elementIndex, char* name);
+int DLLEXPORT ENR_getElementName(ENR_Handle p_handle_in, ENR_ElementType t_enum,
+		int elementIndex, char** string_out);
 
-int DLLEXPORT ENR_getEnergyUsage(ENResultsAPI* enrapi, int pumpIndex,
-		int* linkIndex, float* values);
-int DLLEXPORT ENR_getNetReacts(ENResultsAPI* enrapi, float* values);
+int DLLEXPORT ENR_getEnergyUsage(ENR_Handle p_handle_in, int pumpIndex,
+		int* int_out, float** float_out, int* int_dim);
 
-float* DLLEXPORT ENR_newOutValueSeries(ENResultsAPI* enrapi, int startPeriod,
-        int endPeriod, int* length, int* errcode);
-float* DLLEXPORT ENR_newOutValueArray(ENResultsAPI* enrapi, ENR_ApiFunction func,
-        ENR_ElementType type, int* length, int* errcode);
+int DLLEXPORT ENR_getNetReacts(ENR_Handle p_handle_in, float** float_out, int* int_dim);
 
-int DLLEXPORT ENR_getNodeSeries(ENResultsAPI* enrapi, int nodeIndex, ENR_NodeAttribute attr,
-        int startPeriod, int length, float* outValueSeries);
-int DLLEXPORT ENR_getLinkSeries(ENResultsAPI* enrapi, int linkIndex, ENR_LinkAttribute attr,
-        int startPeriod, int length, float* outValueSeries);
+int DLLEXPORT ENR_getNodeSeries(ENR_Handle p_handle_in, int nodeIndex, ENR_NodeAttribute t_enum,
+        int startPeriod, int endPeriod, float** ARGOUTVIEWM_ARRAY1, int* DIM1);
 
-int DLLEXPORT ENR_getNodeAttribute(ENResultsAPI* enrapi, int periodIndex,
-        ENR_NodeAttribute attr, float* outValueArray, int* length);
-int DLLEXPORT ENR_getLinkAttribute(ENResultsAPI* enrapi, int periodIndex,
-        ENR_LinkAttribute attr, float* outValueArray, int* length);
+int DLLEXPORT ENR_getLinkSeries(ENR_Handle p_handle_in, int linkIndex, ENR_LinkAttribute t_enum,
+        int startPeriod, int endPeriod, float** ARGOUTVIEWM_ARRAY1, int* DIM1);
 
-int DLLEXPORT ENR_getNodeResult(ENResultsAPI* enrapi, int periodIndex, int nodeIndex,
-        float* outValueArray);
-int DLLEXPORT ENR_getLinkResult(ENResultsAPI* enrapi, int periodIndex, int linkIndex,
-        float* outValueArray);
+int DLLEXPORT ENR_getNodeAttribute(ENR_Handle p_handle_in, int periodIndex,
+        ENR_NodeAttribute t_enum, float** ARGOUTVIEWM_ARRAY1, int* DIM1);
 
-int DLLEXPORT ENR_free(float *array);
+int DLLEXPORT ENR_getLinkAttribute(ENR_Handle p_handle_in, int periodIndex,
+        ENR_LinkAttribute t_enum, float** ARGOUTVIEWM_ARRAY1, int* DIM1);
 
-int DLLEXPORT ENR_close(ENResultsAPI* enrapi);
+int DLLEXPORT ENR_getNodeResult(ENR_Handle p_handle_in, int periodIndex, int nodeIndex,
+		float** float_out, int* int_dim);
 
-int DLLEXPORT ENR_errMessage(int errcode, char* errmsg, int n);
+int DLLEXPORT ENR_getLinkResult(ENR_Handle p_handle_in, int periodIndex, int linkIndex,
+		float** float_out, int* int_dim);
 
+int DLLEXPORT ENR_close(ENR_Handle* p_handle_out);
+
+void DLLEXPORT ENR_free(void** array);
+
+void DLLEXPORT ENR_clearError(ENR_Handle p_handle_in);
+
+int DLLEXPORT ENR_checkError(ENR_Handle p_handle_in, char** msg_buffer);
 
 #endif /* OUTPUTAPI_H_ */
-
