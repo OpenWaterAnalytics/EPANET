@@ -1,11 +1,13 @@
 language: c
 
+python: 
+  - "2.7"
+
 env: 
   - BUILD_HOME=$TRAVIS_BUILD_DIR/build/CMake/buildproducts
   - TEST_HOME=$TRAVIS_BUILD_DIR/tests/epanet-nrtestsuite
 
 install:
-  - pip install urllib3[secure]
   - pip install -r ./requirements.txt
 
 before_script:
