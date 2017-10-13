@@ -4,6 +4,9 @@ env:
   - BUILD_HOME=$TRAVIS_BUILD_DIR/build/CMake/buildproducts
   - TEST_HOME=$TRAVIS_BUILD_DIR/tests/epanet-nrtestsuite
 
+before_install:
+  -sudo apt-get install python2.7 
+
 install:
   - python -V
   - pip install -r ./requirements.txt
