@@ -18,12 +18,6 @@ setup(
     packages = ['epanet_reader'],
     
     install_requires = ['numpy', 'enum34'],
-    
-    package_data = {
-        'epanet_reader':['*.dll']
-    },
-    include_package_data = True,  
-      
-    zip_safe = False,
+
     keywords='epanet_reader'
 )

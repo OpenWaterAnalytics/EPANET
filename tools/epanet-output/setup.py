@@ -19,7 +19,6 @@ except ImportError:
 class CustomBuildExtCommand(build_ext):
     """build_ext command for use when numpy headers are needed."""
     def run(self):
-
         # Import numpy here, only when headers are needed
         import numpy
 
@@ -28,15 +27,16 @@ class CustomBuildExtCommand(build_ext):
             numpy_include = numpy.get_include()
         except AttributeError:
             numpy_include = numpy.get_numpy_include()
-            
-        self.include_dirs.append(numpy_include)
 
+        self.include_dirs.append(numpy_include)
+        
         # Call original build_ext command
         build_ext.run(self)
+
         
 setup(
-    name = "OUTPUTAPI",
-    cmdclass = {'build_ext': CustomBuildExtCommand},    
+    name = "outputapi", 
+    cmdclass = {'build_ext': CustomBuildExtCommand}, 
     version = "1.0",
     ext_modules = [
         Extension(
@@ -45,6 +45,9 @@ setup(
             swig_opts=['-modern']
         )
     ],
+    package_dir = {'':'src'},  
+    py_modules = ['outputapi'],
+      
     install_requires = [
         'numpy>=1.6.0'
     ]
