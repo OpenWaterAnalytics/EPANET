@@ -2,8 +2,9 @@ language: python
 
 env: 
   global: 
-    - BUILD_HOME=$TRAVIS_BUILD_DIR/build/CMake/buildproducts
-    - TEST_HOME=$TRAVIS_BUILD_DIR/tests/epanet-nrtestsuite
+    - EPANET_HOME=`pwd`
+    - BUILD_HOME=./build/CMake/buildproducts
+    - TEST_HOME=./tests/epanet-nrtestsuite
 
 before_install:
   - sudo apt-get -qq update
@@ -19,6 +20,6 @@ before_script:
 
 script:
   - make
-  - cd $TRAVIS_BUILD_DIR
-  - ./tools/gen-config.sh $BUILD_HOME/bin >| $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
+  - cd $EPANET_HOME
+  - ./tools/gen-config.sh $EPANET_HOME/$BUILD_HOME/bin > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
   - ./tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
