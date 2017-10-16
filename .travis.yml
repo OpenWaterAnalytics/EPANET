@@ -1,12 +1,23 @@
-language: c
+language: python
+
+env: 
+  - BUILD_HOME=$TRAVIS_BUILD_DIR/build/CMake/buildproducts
+  - TEST_HOME=$TRAVIS_BUILD_DIR/tests/epanet-nrtestsuite
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y swig 
+
+install:
+  - pip install -r ./requirements.txt
 
 before_script:
-  - cd build/CMake
-  - mkdir buildproducts
-  - cd buildproducts
+  - mkdir -p $BUILD_HOME
+  - cd $BUILD_HOME
   - cmake ..
 
 script:
   - make
-#  - cd ../../../tests
-#  - ./test_networks.sh
+  - cd $TRAVIS_BUILD_DIR
+  - ./tools/gen-config.sh > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json $BUILD_HOME/bin
+  - ./tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
