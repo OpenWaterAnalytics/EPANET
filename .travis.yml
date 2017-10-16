@@ -5,7 +5,8 @@ env:
   - TEST_HOME=$TRAVIS_BUILD_DIR/tests/epanet-nrtestsuite
 
 before_install:
-  - python -V 
+  - sudo apt-get -qq update
+  - sudo apt-get install -y swig 
 
 install:
   - pip install -r ./requirements.txt
