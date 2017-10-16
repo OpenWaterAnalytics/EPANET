@@ -14,20 +14,20 @@
 #include <string.h>
 #include "errormanager.h"
 
-error_t* new_errormanager(void (*p_error_message)(int, char*, int))
+error_handle_t* new_errormanager(void (*p_error_message)(int, char*, int))
 //
 // Purpose: Constructs a new error handle.
 //
 {
-	error_t* error_handle;
-	error_handle = (error_t*)calloc(1, sizeof(error_t));
+	error_handle_t* error_handle;
+	error_handle = (error_handle_t*)calloc(1, sizeof(error_handle_t));
 
 	error_handle->p_msg_lookup = p_error_message;
 
 	return error_handle;
 }
 
-void dst_errormanager(error_t* error_handle)
+void dst_errormanager(error_handle_t* error_handle)
 //
 // Purpose: Destroys the error handle.
 //
@@ -35,7 +35,7 @@ void dst_errormanager(error_t* error_handle)
 	free(error_handle);
 }
 
-int set_error(error_t* error_handle, int errorcode)
+int set_error(error_handle_t* error_handle, int errorcode)
 //
 // Purpose: Sets an error code in the handle.
 //
@@ -48,7 +48,7 @@ int set_error(error_t* error_handle, int errorcode)
 	return errorcode;
 }
 
-char* check_error(error_t* error_handle)
+char* check_error(error_handle_t* error_handle)
 //
 // Purpose: Returns the error message or NULL.
 //
@@ -66,7 +66,7 @@ char* check_error(error_t* error_handle)
 	return temp;
 }
 
-void clear_error(error_t* error_handle)
+void clear_error(error_handle_t* error_handle)
 //
 // Purpose: Clears the error from the handle.
 //

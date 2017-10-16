@@ -76,7 +76,7 @@ typedef struct data_s {
 	F_OFF outputStartPos;  // starting file position of output data
 	F_OFF bytesPerPeriod;  // bytes saved per simulation time period
 
-	error_t* error_handle;
+	error_handle_t* error_handle;
 } data_t;
 
 typedef data_t* p_data_t;
