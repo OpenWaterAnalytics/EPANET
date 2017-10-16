@@ -19,5 +19,5 @@ before_script:
 script:
   - make
   - cd $TRAVIS_BUILD_DIR
-  - ./tools/gen-config.sh > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json $BUILD_HOME/bin
+  - ./tools/gen-config.sh $BUILD_HOME/bin >| $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json 
   - ./tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
