@@ -23,7 +23,7 @@ script:
   - cd bin
   - ls
   - ../../../../tools/gen-config.sh `pwd`
-  - `pwd`/runepanet
+  - $EPANET_HOME/runepanet
  # $EPANET_HOME/$BUILD_HOME/bin 
  # > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
  # - ./tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
