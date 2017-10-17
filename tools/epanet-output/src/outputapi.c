@@ -38,8 +38,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
-#include <errno.h>
 #include "outputapi.h"
 #include "errormanager.h"
 #include "messages.h"
@@ -931,7 +929,7 @@ char* newString(int n)
 	return (char*) malloc((n)*sizeof(char));
 }
 
-errno_t _fopen(FILE **f, const char *name, const char *mode) {
+int _fopen(FILE **f, const char *name, const char *mode) {
 //
 //  Purpose: Substitute for fopen_s on platforms where it doesn't exist
 //  Note: fopen_s is part of C++11 standard
@@ -940,11 +938,9 @@ errno_t _fopen(FILE **f, const char *name, const char *mode) {
 #ifdef _WIN32
 	ret = (int)fopen_s(f, name, mode);
 #else
-    assert(f);
     *f = fopen(name, mode);
-    /* Can't be sure about 1-to-1 mapping of errno and MS' errno_t */
     if (!*f)
-        ret = errno;
+        ret = -1;
 #endif
     return ret;
 }
