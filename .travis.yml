@@ -20,6 +20,7 @@ before_script:
 
 script:
   - make
-  - cd $EPANET_HOME
-  - ./tools/gen-config.sh $EPANET_HOME/$BUILD_HOME/bin > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
-  - ./tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
+  - cd bin
+  - pwd
+ # - ./tools/gen-config.sh $EPANET_HOME/$BUILD_HOME/bin > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
+ # - ./tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
