@@ -9,8 +9,22 @@
 #    3 - build description
 #
 
-# Removes a leading '/c' from file path if present
-abs_build_path="$( echo "$1" | sed -e 's#/c##' )"
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     ;&
+    Darwin*)    abs_build_path=$1
+                test_cmd="runepanet"
+                ;;
+
+    MINGW*)     ;&
+    MSYS*)      # Remove leading '/c' from file path for nrtest
+                abs_build_path="$( echo "$1" | sed -e 's#/c##' )"
+                test_cmd="runepanet.exe"
+                ;;
+				
+    *)          # Machine unknown
+esac
+
 version=""
 build_description=""
 
@@ -20,6 +34,6 @@ cat<<EOF
     "version" : "${version}",
     "description" : "${build_description}", 
     "setup_script" : "",
-    "exe" : "${abs_build_path}/runepanet.exe"
+    "exe" : "${abs_build_path}/${test_cmd}"
 }
 EOF
