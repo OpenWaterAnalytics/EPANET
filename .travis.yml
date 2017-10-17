@@ -22,5 +22,7 @@ script:
   - make
   - cd bin
   - pwd
+  - ls
+  - ./runepanet
  # - ./tools/gen-config.sh $EPANET_HOME/$BUILD_HOME/bin > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
  # - ./tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
