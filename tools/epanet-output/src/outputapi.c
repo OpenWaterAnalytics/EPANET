@@ -38,6 +38,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
+#include <errno.h>
 #include "outputapi.h"
 #include "errormanager.h"
 #include "messages.h"
@@ -90,8 +92,10 @@ float  getNodeValue(ENR_Handle, int, int, int);
 float  getLinkValue(ENR_Handle, int, int, int);
 float* newArray(int);
 char*  newString(int);
-int fseek_s(FILE* stream, F_OFF offset, int whence);
-F_OFF ftell_s(FILE* stream);
+
+errno_t _fopen(FILE **f, const char *name, const char *mode);
+int _fseek(FILE* stream, F_OFF offset, int whence);
+F_OFF _ftell(FILE* stream);
 
 int DLLEXPORT ENR_init(ENR_Handle* p_handle)
 //  Purpose: Initialized pointer for the opaque ENR_Handle.
@@ -176,7 +180,7 @@ int DLLEXPORT ENR_open(ENR_Handle p_handle, const char* path)
 	{
 		strncpy_s(p_data->name, MAXFNAME+1, path, MAXFNAME+1);
 		// Attempt to open binary output file for reading only
-		if ((fopen_s(&(p_data->file), path, "rb")) != 0) errorcode = 434;
+		if ((_fopen(&(p_data->file), path, "rb")) != 0) errorcode = 434;
 
 		// Perform checks to insure the file is valid
 		else if ((err = validateFile(p_data)) != 0) errorcode = err;
@@ -439,7 +443,7 @@ int DLLEXPORT ENR_getElementName(ENR_Handle p_handle, ENR_ElementType type,
 
 		if (!errorcode)
 		{
-			fseek_s(p_data->file, offset, SEEK_SET);
+			_fseek(p_data->file, offset, SEEK_SET);
 			fread(temp, 1, MAXID_P1, p_data->file);
 
 			*name = temp;
@@ -484,7 +488,7 @@ int DLLEXPORT ENR_getEnergyUsage(ENR_Handle p_handle, int pumpIndex,
 		offset += (pumpIndex - 1)*(WORDSIZE + 6*WORDSIZE);
 
 		// Power summary is 1 int and 6 floats for each pump
-		fseek_s(p_data->file, offset, SEEK_SET);
+		_fseek(p_data->file, offset, SEEK_SET);
 		fread(linkIndex, WORDSIZE, 1, p_data->file);
 		fread(temp, WORDSIZE, 6, p_data->file);
 
@@ -520,7 +524,7 @@ int DLLEXPORT ENR_getNetReacts(ENR_Handle p_handle, float** outValues, int* leng
 		// Reaction summary is 4 floats located right before epilogue.
 		// This offset is relative to the end of the file.
 		offset = - 3*WORDSIZE - 4*WORDSIZE;
-		fseek_s(p_data->file, offset, SEEK_END);
+		_fseek(p_data->file, offset, SEEK_END);
 		fread(temp, WORDSIZE, 4, p_data->file);
 
 		*outValues = temp;
@@ -649,7 +653,7 @@ int DLLEXPORT ENR_getNodeAttribute(ENR_Handle p_handle, int periodIndex,
 		// add offset for node and attribute
 		offset += ((attr - 1)*p_data->nodeCount)*WORDSIZE;
 
-		fseek_s(p_data->file, offset, SEEK_SET);
+		_fseek(p_data->file, offset, SEEK_SET);
 		fread(temp, WORDSIZE, p_data->nodeCount, p_data->file);
 
 		*outValueArray = temp;
@@ -699,7 +703,7 @@ int DLLEXPORT ENR_getLinkAttribute(ENR_Handle p_handle, int periodIndex,
 		// add offset for link and attribute
 		offset += ((attr - 1)*p_data->linkCount)*WORDSIZE;
 
-		fseek_s(p_data->file, offset, SEEK_SET);
+		_fseek(p_data->file, offset, SEEK_SET);
 		fread(temp, WORDSIZE, p_data->linkCount, p_data->file);
 
 		*outValueArray = temp;
@@ -851,7 +855,7 @@ int validateFile(ENR_Handle p_handle)
 	fread(&hydcode, WORDSIZE, 1, p_data->file);
 	fread(&magic2, WORDSIZE, 1, p_data->file);
 
-	filepos = ftell_s(p_data->file);
+	filepos = _ftell(p_data->file);
 
 	// Is the file an EPANET binary file?
 	if (magic1 != magic2) errorcode = 435;
@@ -881,7 +885,7 @@ float getNodeValue(ENR_Handle p_handle, int periodIndex, int nodeIndex,
 	// add byte position for attribute and node
 	offset += ((attr - 1)*p_data->nodeCount + (nodeIndex - 1))*WORDSIZE;
 
-	fseek_s(p_data->file, offset, SEEK_SET);
+	_fseek(p_data->file, offset, SEEK_SET);
 	fread(&y, WORDSIZE, 1, p_data->file);
 
 	return y;
@@ -905,7 +909,7 @@ float getLinkValue(ENR_Handle p_handle, int periodIndex, int linkIndex,
 	// add byte position for attribute and link
 	offset += ((attr - 1)*p_data->linkCount + (linkIndex - 1))*WORDSIZE;
 
-	fseek_s(p_data->file, offset, SEEK_SET);
+	_fseek(p_data->file, offset, SEEK_SET);
 	fread(&y, WORDSIZE, 1, p_data->file);
 
 	return y;
@@ -927,7 +931,26 @@ char* newString(int n)
 	return (char*) malloc((n)*sizeof(char));
 }
 
-int fseek_s(FILE* stream, F_OFF offset, int whence)
+errno_t _fopen(FILE **f, const char *name, const char *mode) {
+//
+//  Purpose: Substitute for fopen_s on platforms where it doesn't exist
+//  Note: fopen_s is part of C++11 standard
+//
+	errno_t ret = 0;
+#ifdef _WIN32
+	ret = fopen_s(f, name, mode);
+
+#else
+    assert(f);
+    *f = fopen(name, mode);
+    /* Can't be sure about 1-to-1 mapping of errno and MS' errno_t */
+    if (!*f)
+        ret = errno;
+#endif
+    return ret;
+}
+
+int _fseek(FILE* stream, F_OFF offset, int whence)
 //
 //  Purpose: Selects platform fseek() for large file support
 //
@@ -935,7 +958,7 @@ int fseek_s(FILE* stream, F_OFF offset, int whence)
 	return FSEEK64(stream, offset, whence);
 }
 
-F_OFF ftell_s(FILE* stream)
+F_OFF _ftell(FILE* stream)
 //
 //  Purpose: Selects platform ftell() for large file support
 //
