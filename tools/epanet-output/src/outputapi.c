@@ -935,13 +935,13 @@ int _fopen(FILE **f, const char *name, const char *mode) {
 //  Note: fopen_s is part of C++11 standard
 //
 	int ret = 0;
-#ifdef _WIN32
+//#ifdef _WIN32
 	ret = (int)fopen_s(f, name, mode);
-#else
-    *f = fopen(name, mode);
-    if (!*f)
-        ret = -1;
-#endif
+//#else
+//    *f = fopen(name, mode);
+//    if (!*f)
+//        ret = -1;
+//#endif
     return ret;
 }
 

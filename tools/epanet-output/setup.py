@@ -31,9 +31,8 @@ class CustomBuildExtCommand(build_ext):
         self.include_dirs.append(numpy_include)
         
         # Call original build_ext command
-        build_ext.run(self)
+        build_ext.run(self)    
 
-        
 setup(
     name = "outputapi", 
     cmdclass = {'build_ext': CustomBuildExtCommand}, 
@@ -42,7 +41,9 @@ setup(
         Extension(
             "_outputapi", 
             sources = ['src/outputapi.i', 'src/outputapi.c', 'src/errormanager.c'],
-            swig_opts=['-modern']
+            swig_opts=['-modern'],
+            extra_compile_args=["std=c++11"],
+            language='C'
         )
     ],
     package_dir = {'':'src'},  
