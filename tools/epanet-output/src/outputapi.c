@@ -93,7 +93,7 @@ float  getLinkValue(ENR_Handle, int, int, int);
 float* newArray(int);
 char*  newString(int);
 
-errno_t _fopen(FILE **f, const char *name, const char *mode);
+int _fopen(FILE **f, const char *name, const char *mode);
 int _fseek(FILE* stream, F_OFF offset, int whence);
 F_OFF _ftell(FILE* stream);
 
@@ -936,10 +936,9 @@ errno_t _fopen(FILE **f, const char *name, const char *mode) {
 //  Purpose: Substitute for fopen_s on platforms where it doesn't exist
 //  Note: fopen_s is part of C++11 standard
 //
-	errno_t ret = 0;
+	int ret = 0;
 #ifdef _WIN32
-	ret = fopen_s(f, name, mode);
-
+	ret = (int)fopen_s(f, name, mode);
 #else
     assert(f);
     *f = fopen(name, mode);
