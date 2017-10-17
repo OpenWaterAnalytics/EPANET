@@ -176,7 +176,7 @@ int DLLEXPORT ENR_open(ENR_Handle p_handle, const char* path)
 	if (p_data == NULL) return -1;
 	else
 	{
-		strncpy_s(p_data->name, MAXFNAME+1, path, MAXFNAME+1);
+		strncpy(p_data->name, path, MAXFNAME+1);
 		// Attempt to open binary output file for reading only
 		if ((_fopen(&(p_data->file), path, "rb")) != 0) errorcode = 434;
 
@@ -828,7 +828,7 @@ void errorLookup(int errcode, char* dest_msg, int dest_len)
 	default:  msg = ERRERR;
 	}
 
-	strncpy_s(dest_msg, dest_len, msg, MAXMSG+1);
+	strncpy(dest_msg, msg, MAXMSG+1);
 }
 
 int validateFile(ENR_Handle p_handle)
@@ -935,13 +935,13 @@ int _fopen(FILE **f, const char *name, const char *mode) {
 //  Note: fopen_s is part of C++11 standard
 //
 	int ret = 0;
-//#ifdef _WIN32
+#ifdef _WIN32
 	ret = (int)fopen_s(f, name, mode);
-//#else
-//    *f = fopen(name, mode);
-//    if (!*f)
-//        ret = -1;
-//#endif
+#else
+    *f = fopen(name, mode);
+    if (!*f)
+        ret = -1;
+#endif
     return ret;
 }
 

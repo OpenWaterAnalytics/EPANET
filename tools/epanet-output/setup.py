@@ -38,11 +38,9 @@ setup(
     cmdclass = {'build_ext': CustomBuildExtCommand}, 
     version = "1.0",
     ext_modules = [
-        Extension(
-            "_outputapi", 
+        Extension("_outputapi", 
             sources = ['src/outputapi.i', 'src/outputapi.c', 'src/errormanager.c'],
             swig_opts=['-modern'],
-            extra_compile_args=["std=c++11"],
             language='C'
         )
     ],
