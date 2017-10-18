@@ -5,6 +5,8 @@
 #
 #  Arguments:
 #    1 - absolute path to test executable
+# 
+#  NOT IMPLEMENTED YET
 #    2 - test executable version number
 #    3 - build description
 #

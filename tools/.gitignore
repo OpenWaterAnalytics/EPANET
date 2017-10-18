@@ -1,5 +1,5 @@
 # Python compiler files
-*.py[c]
+*.py[cd]
 
 # Python distribution and packaging
 build/
@@ -7,7 +7,11 @@ dist/
 temp/
 *.cfg
 *.egg-info/
+*.whl
 
+# SWIG generated files
+outputapi_wrap.c
+outputapi.py
 
 # C compiler
 *.o

@@ -20,12 +20,12 @@
 
 typedef void* ENR_Handle;
 
-typedef enum elmType {
+typedef enum {
 	ENR_node = 1,
     ENR_link = 2
 } ENR_ElementType;
 
-typedef enum elmCount {
+typedef enum {
     ENR_nodeCount  = 1,
     ENR_tankCount  = 2,
     ENR_linkCount  = 3,
@@ -33,26 +33,26 @@ typedef enum elmCount {
     ENR_valveCount = 5
 } ENR_ElementCount;
 
-typedef enum units {
+typedef enum {
     ENR_flowUnits   = 1,
     ENR_pressUnits  = 2
 } ENR_Units;
 
-typedef enum time {
+typedef enum {
     ENR_reportStart = 1,
     ENR_reportStep  = 2,
     ENR_simDuration = 3,
     ENR_numPeriods  = 4
 }ENR_Time;
 
-typedef enum nodeAttr {
+typedef enum {
     ENR_demand   = 1,
     ENR_head     = 2,
     ENR_pressure = 3,
     ENR_quality  = 4
 } ENR_NodeAttribute;
 
-typedef enum linkAttr {
+typedef enum {
     ENR_flow         = 1,
     ENR_velocity     = 2,
     ENR_headloss     = 3,
@@ -214,10 +214,10 @@ class Units(enum.Enum):
     PRESS_UNIT = ENR_pressUnits
 
 class Time(enum.Enum):
-	REPORT_START = ENR_reportStart
-	REPORT_STEP  = ENR_reportStep
-	SIM_DURATION = ENR_simDuration
-	NUM_PERIODS  = ENR_numPeriods
+    REPORT_START = ENR_reportStart
+    REPORT_STEP  = ENR_reportStep
+    SIM_DURATION = ENR_simDuration
+    NUM_PERIODS  = ENR_numPeriods
     
 class NodeAttribute(enum.Enum):
     DEMAND   = ENR_demand
