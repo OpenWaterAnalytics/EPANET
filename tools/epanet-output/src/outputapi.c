@@ -70,7 +70,7 @@
 
 // Typedefs for opaque pointer
 typedef struct data_s {
-	char  name[MAXFNAME];  // file path/name
+	char  name[MAXFNAME+1];  // file path/name
 	FILE* file;            // FILE structure pointer
 	INT4  nodeCount, tankCount, linkCount, pumpCount, valveCount, nPeriods;
 	F_OFF outputStartPos;  // starting file position of output data
@@ -176,7 +176,7 @@ int DLLEXPORT ENR_open(ENR_Handle p_handle, const char* path)
 	if (p_data == NULL) return -1;
 	else
 	{
-		strncpy(p_data->name, path, MAXFNAME+1);
+		strncpy(p_data->name, path, MAXFNAME);
 		// Attempt to open binary output file for reading only
 		if ((_fopen(&(p_data->file), path, "rb")) != 0) errorcode = 434;
 
@@ -828,7 +828,7 @@ void errorLookup(int errcode, char* dest_msg, int dest_len)
 	default:  msg = ERRERR;
 	}
 
-	strncpy(dest_msg, msg, MAXMSG+1);
+	strncpy(dest_msg, msg, MAXMSG);
 }
 
 int validateFile(ENR_Handle p_handle)
