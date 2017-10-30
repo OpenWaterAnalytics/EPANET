@@ -2103,6 +2103,7 @@ int  DLLEXPORT  ENaddcurve(char *id)
     {
         strcpy(tmpCur[i].ID, Curve[i].ID);
         tmpCur[i].Npts  = Curve[i].Npts;
+        tmpCur[i].Type  = Curve[i].Type;
         tmpCur[i].X = (double *) calloc(Curve[i].Npts, sizeof(double));
         tmpCur[i].Y = (double *) calloc(Curve[i].Npts, sizeof(double));
         if (tmpCur[i].X == NULL) err = 1;
@@ -2118,6 +2119,7 @@ int  DLLEXPORT  ENaddcurve(char *id)
 
     strcpy(tmpCur[n].ID, id); 
     tmpCur[n].Npts = 1;
+    tmpCur[n].Type = -1;
     tmpCur[n].X = (double *) calloc(tmpCur[n].Npts, sizeof(double));
     tmpCur[n].Y = (double *) calloc(tmpCur[n].Npts, sizeof(double));
     if (tmpCur[n].X == NULL) err = 1;

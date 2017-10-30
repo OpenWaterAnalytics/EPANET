@@ -353,6 +353,7 @@ int  getpumpparams(void)
             writeline(Msg);
             return(200);
          }
+         Curve[j].Type = P_CURVE;
          n = Curve[j].Npts;
          if (n == 1)                      /* Only a single h-q point */
          {                                /* supplied so use generic */
