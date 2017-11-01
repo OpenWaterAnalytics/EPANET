@@ -885,9 +885,14 @@ int DLLEXPORT ENgetflowunits(int *code)
 int DLLEXPORT ENsetflowunits(int code)
 {
    int i, j;
+   double qfactor, vfactor, hfactor, efactor, xfactor, yfactor;
    if (!Openflag) return(102);
    
    /* Determine unit system based on flow units */
+   qfactor = Ucf[FLOW];
+   vfactor = Ucf[VOLUME];
+   hfactor = Ucf[HEAD];
+   efactor = Ucf[ELEV];
    Flowflag = code;
    switch (Flowflag)
    {
@@ -905,16 +910,39 @@ int DLLEXPORT ENsetflowunits(int code)
    /* Revise pressure units depending on flow units */
    if (Unitsflag != SI) Pressflag = PSI;
    else if (Pressflag == PSI) Pressflag = METERS;
-
+   
+   initunits();
+   
    //update curves
    for (i=1; i<=Ncurves; i++)
    {
+      switch (Curve[i].Type)
+      {
+         case V_CURVE:
+            xfactor = efactor/Ucf[ELEV];
+            yfactor = vfactor/Ucf[VOLUME];
+            break;
+         case H_CURVE:
+         case P_CURVE:
+            xfactor = qfactor/Ucf[FLOW];
+            yfactor = hfactor/Ucf[HEAD];
+            break;
+         case E_CURVE:
+            xfactor = qfactor/Ucf[FLOW];
+            yfactor = 1;
+            break;
+         default:
+            xfactor = 1;
+            yfactor = 1;
+      }
+      
       for (j=0; j<Curve[i].Npts; j++)
-        Curve[i].X[j] = Curve[i].X[j];
-        Curve[i].Y[j] = Curve[i].Y[j];
+        {
+          Curve[i].X[j] = Curve[i].X[j]/xfactor;
+          Curve[i].Y[j] = Curve[i].Y[j]/yfactor;
+        }
    }
 
-   initunits();
    return(0);
 }
 
