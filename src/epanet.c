@@ -1522,8 +1522,8 @@ int  DLLEXPORT ENgetcurve(int curveIndex, char *id, int *nValues, EN_API_FLOAT_T
   pointY = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
   
   for (iPoint = 0; iPoint < nPoints; iPoint++) {
-    double x = curve.X[iPoint] * Ucf[LENGTH];
-    double y = curve.Y[iPoint] * Ucf[VOLUME];
+    double x = curve.X[iPoint];
+    double y = curve.Y[iPoint];
     pointX[iPoint] = (EN_API_FLOAT_TYPE)x;
     pointY[iPoint] = (EN_API_FLOAT_TYPE)y;
   }
