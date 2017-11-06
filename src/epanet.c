@@ -290,7 +290,7 @@ int DLLEXPORT ENclose()
    TmpOutFile=NULL;
 
    if (InFile  != NULL) { fclose(InFile);  InFile=NULL;  }
-   if (RptFile != NULL && RptFile != stdout) { fclose(RptFile); RptFile=NULL; }
+   if (RptFile != NULL) { fclose(RptFile); RptFile=NULL; }
    if (HydFile != NULL) { fclose(HydFile); HydFile=NULL; }
    if (OutFile != NULL) { fclose(OutFile); OutFile=NULL; }
   
