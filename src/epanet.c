@@ -2400,7 +2400,7 @@ int   openfiles(char *f1, char *f2, char *f3)
       writecon(f1);
       return(302);
    }
-   if (strlen(f2) == 0) RptFile = stdout;
+   if (strlen(f2) == 0) return(303);
    else if ((RptFile = fopen(f2,"wt")) == NULL)
    {
       writecon(FMT06);
