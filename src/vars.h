@@ -209,4 +209,4 @@ EXTERN int      *XLNZ,       /* Start position of each column in NZSUB  */
                 *NZSUB,      /* Row index of each coeff. in each column */
                 *LNZ;        /* Position of each coeff. in Aij array    */
 
-#endif
+#endif 
