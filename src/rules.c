@@ -954,7 +954,7 @@ void  ruleerrmsg(int err)
       strcat(label,Rule[Nrules].label);
    }
    else strcpy(label,t_RULES_SECT);
-   sprintf(Msg,fmt);
+   sprintf(Msg,"%s",fmt);
    strcat(Msg,label);
    strcat(Msg,":");
    writeline(Msg);
