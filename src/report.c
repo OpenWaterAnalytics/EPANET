@@ -823,17 +823,17 @@ void writecontrolaction(int k, int i)
       case LOWLEVEL:
       case HILEVEL:
          n = Control[i].Node;
-         sprintf(Msg,FMT54,clocktime(Atime,Htime),LinkTxt[Link[k].Type],
+         sprintf(LongMsg,FMT54,clocktime(Atime,Htime),LinkTxt[Link[k].Type],
             Link[k].ID,NodeTxt[getnodetype(n)],Node[n].ID);
          break;
       case TIMER:
       case TIMEOFDAY:
-         sprintf(Msg,FMT55,clocktime(Atime,Htime),LinkTxt[Link[k].Type],
+         sprintf(LongMsg,FMT55,clocktime(Atime,Htime),LinkTxt[Link[k].Type],
             Link[k].ID);
          break;
       default: return;
    }
-   writeline(Msg);
+   writeline(LongMsg);
 }
 
 
