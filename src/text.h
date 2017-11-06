@@ -396,7 +396,7 @@ AUTHOR:     L. Rossman
 #define FMT51  "%10s: Reservoir %s is %s"
 #define FMT52  "%10s: %s %s %s"
 #define FMT53  "%10s: %s %s changed from %s to %s"
-#define FMT54  "%10s: %s %s changed by %s %s control"
+#define FMT54  "%10s: %s %s chngd by %s %s ctrl"
 #define FMT55  "%10s: %s %s changed by timer control"
 #define FMT56  "            %s %s setting changed to %-.2f"
 #define FMT57  "            %s %s switched from %s to %s"
@@ -483,10 +483,10 @@ AUTHOR:     L. Rossman
 
 #define ERR223 "Input Error 223: not enough nodes in network"
 #define ERR224 "Input Error 224: no tanks or reservoirs in network."
-#define ERR225 "Input Error 225: invalid lower/upper levels for Tank %s."
-#define ERR226 "Input Error 226: no head curve supplied for Pump %s."
+#define ERR225 "Input Error 225: invalid levels for Tank %s."
+#define ERR226 "Input Error 226: no head curve given for Pump %s."
 #define ERR227 "Input Error 227: invalid head curve for Pump %s."
-#define ERR230 "Input Error 230: Curve %s has nonincreasing x-values."
+#define ERR230 "Input Error 230: Curve %s has nonincreasing x."
 #define ERR233 "Input Error 233: Node %s is unconnected."
 #define ERR240 "Input Error 240: %s %s refers to undefined source."
 #define ERR241 "Input Error 241: %s %s refers to undefined control."
@@ -536,4 +536,4 @@ AUTHOR:     L. Rossman
 #define WARN5 "WARNING: Valves cannot deliver enough flow."
 #define WARN6 "WARNING: System has negative pressures."
 
-#endif
+#endif 

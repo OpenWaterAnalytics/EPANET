@@ -26,6 +26,7 @@ EXTERN long     HydOffset,             /* Hydraulics file byte offset  */
                 OutOffset1,            /* 1st output file byte offset  */
                 OutOffset2;            /* 2nd output file byte offset  */
 EXTERN char     Msg[MAXMSG+1],         /* Text of output message       */
+                LongMsg[(MAXMSG+1)*2], /* Text of output message       */
                 InpFname[MAXFNAME+1],  /* Input file name              */
                 Rpt1Fname[MAXFNAME+1], /* Primary report file name     */
                 Rpt2Fname[MAXFNAME+1], /* Secondary report file name   */
@@ -208,4 +209,4 @@ EXTERN int      *XLNZ,       /* Start position of each column in NZSUB  */
                 *NZSUB,      /* Row index of each coeff. in each column */
                 *LNZ;        /* Position of each coeff. in Aij array    */
 
-#endif
+#endif 
