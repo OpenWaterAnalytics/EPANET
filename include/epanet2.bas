@@ -53,6 +53,9 @@ Global Const EN_ENERGY = 13
 Global Const EN_LINKQUAL = 14   'ES
 Global Const EN_LINKPATTERN = 15
 Global Const EN_EFFICIENCY = 16
+Global Const EN_HEADCURVE = 17
+Global Const EN_EFFICIENCYCURVE = 18
+Global Const EN_PRICEPATTERN = 19
 
 Global Const EN_DURATION = 0      ' Time parameters
 Global Const EN_HYDSTEP = 1

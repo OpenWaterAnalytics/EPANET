@@ -3,16 +3,8 @@
 
 EPANET.C -- Hydraulic & Water Quality Simulator for Water Distribution Networks
 
-VERSION:    2.00
-DATE:       5/30/00
-            9/7/00
-            10/25/00
-            3/1/01
-            11/19/01
-            6/24/02
-            8/15/07    (2.00.11)
-            2/14/08    (2.00.12)
- AUTHORS:     L. Rossman - US EPA - NRMRL
+VERSION:    2.1
+AUTHORS:     L. Rossman - US EPA - NRMRL
               OpenWaterAnalytics members: see git stats for contributors
 
 EPANET performs extended period hydraulic and water quality analysis of
@@ -378,6 +370,55 @@ int DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx) {
 int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value) {
   return EN_getaveragepatternvalue(_defaultModel, index, value);
 }
+
+int DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority) {
+  return EN_getrule(_defaultModel, index, nPremises, nTrueActions, nFalseActions, priority);
+}
+
+int DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority){
+  return EN_setrulepriority(_defaultModel, index, priority);
+}
+
+int DLLEXPORT ENgetpremise(int indexRule, int indexPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value){
+  return EN_getpremise(_defaultModel, indexRule, indexPremise, logop, object, indexObj, variable, relop, status, value);
+}
+
+int DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, EN_API_FLOAT_TYPE value){
+  return EN_setpremise(_defaultModel, indexRule, indexPremise, logop, object, indexObj, variable, relop, status, value);
+}
+
+int DLLEXPORT ENsetpremiseindex(int indexRule, int indexPremise, int indexObj){
+  return EN_setpremiseindex(_defaultModel, indexRule, indexPremise, indexObj);
+}
+
+int DLLEXPORT ENsetpremisestatus(int indexRule, int indexPremise, int status){
+  return EN_setpremisestatus(_defaultModel, indexRule, indexPremise, status);
+}
+
+int DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise, EN_API_FLOAT_TYPE value){
+  return EN_setpremisevalue(_defaultModel, indexRule, indexPremise, value);
+}
+
+int DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting){
+  return EN_gettrueaction(_defaultModel, indexRule, indexAction, indexLink, status, setting);
+}
+
+int DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting){
+  return EN_settrueaction(_defaultModel, indexRule, indexAction, indexLink, status, setting);
+}
+
+int DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting){
+  return EN_getfalseaction(_defaultModel, indexRule, indexAction, indexLink, status, setting);
+}
+
+int DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting){
+  return EN_setfalseaction(_defaultModel, indexRule, indexAction, indexLink, status, setting);
+}
+
+int DLLEXPORT ENgetruleID(int indexRule, char* id){
+  return EN_getruleID(_defaultModel, indexRule, id);
+}
+
 int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
   return EN_setlinktype(_defaultModel, id, toType);
 }
@@ -393,59 +434,6 @@ int DLLEXPORT ENdeletelink(int index) {
 }
 int DLLEXPORT ENdeletenode(int index) {
   return EN_deletenode(_defaultModel, index);
-}
-int DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions,
-                        int *nFalseActions, EN_API_FLOAT_TYPE *priority) {
-  return EN_getrule(_defaultModel, index, nPremises, nTrueActions,
-                    nFalseActions, priority);
-}
-int DLLEXPORT ENgetpremise(int indexRule, int idxPremise, int *logop,
-                           int *object, int *indexObj, int *variable,
-                           int *relop, int *status, EN_API_FLOAT_TYPE *value) {
-  return EN_getpremise(_defaultModel, indexRule, idxPremise, logop, object,
-                       indexObj, variable, relop, status, value);
-}
-int DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority) {
-  return EN_setrulepriority(_defaultModel, index, priority);
-}
-int DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop,
-                           int object, int indexObj, int variable, int relop,
-                           int status, EN_API_FLOAT_TYPE value) {
-  return EN_setpremise(_defaultModel, indexRule, indexPremise, logop, object,
-                       indexObj, variable, relop, status, value);
-}
-int DLLEXPORT ENsetpremiseindex(int indexRule, int indexPremise, int indexObj) {
-  return EN_setpremiseindex(_defaultModel, indexRule, indexPremise, indexObj);
-}
-int DLLEXPORT ENsetpremisestatus(int indexRule, int indexPremise, int status) {
-  return EN_setpremisestatus(_defaultModel, indexRule, indexPremise, status);
-}
-int DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise,
-                                EN_API_FLOAT_TYPE value) {
-  return EN_setpremisevalue(_defaultModel, indexRule, indexPremise, value);
-}
-int DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink,
-                              int *status, EN_API_FLOAT_TYPE *setting) {
-  return EN_gettrueaction(_defaultModel, indexRule, indexAction, indexLink,
-                          status, setting);
-}
-int DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink,
-                              int status, EN_API_FLOAT_TYPE setting) {
-  return EN_settrueaction(_defaultModel, indexRule, indexAction, indexLink,
-                          status, setting);
-}
-int DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink,
-                               int *status, EN_API_FLOAT_TYPE *setting) {
-  return EN_getfalseaction(_defaultModel, indexRule, indexAction, indexLink,
-                           status, setting);
-}
-int DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink,
-                               int status, EN_API_FLOAT_TYPE setting) {
-  return EN_setfalseaction(_defaultModel, indexRule, indexAction, indexLink,
-                           status, setting);
-}
-int DLLEXPORT ENgetruleID(int indexRule, char *id) {
-  return EN_getruleID(_defaultModel, indexRule, id);
 }
 
 /*

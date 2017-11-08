@@ -113,7 +113,8 @@ typedef enum {
   EN_LINKPATTERN  = 15,
   EN_EFFICIENCY   = 16,
   EN_HEADCURVE    = 17,
-  EN_EFFICIENCYCURVE = 18
+  EN_EFFICIENCYCURVE = 18,
+  EN_PRICEPATTERN = 19
 } EN_LinkProperty;
 
 /// Time parameter codes
@@ -284,7 +285,6 @@ extern "C" {
    */
   int  DLLEXPORT ENepanet(char *inpFile, char *rptFile, char *binOutFile, void (*callback) (char *));
   
-  
   /**
    @brief Initializes an EPANET session
    @param rptFile pointer to name of report file (to be created)
@@ -302,7 +302,6 @@ extern "C" {
    @param binOutFile pointer to name of binary output file (to be created)
    @return error code
    */
-
   int  DLLEXPORT ENopen(char *inpFile, char *rptFile, char *binOutFile);
   
   /**
@@ -721,8 +720,7 @@ extern "C" {
   int  DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value);
   
   /**
-   @brief Get curve x/y data.
-   @details PLEASE NOTE: x/y data returned will be in EPANET's native units, not the units specified by the project. This is a known issue related to the library not keeping track of the curve type (head, efficiency, volume, ...)
+   @brief Get a curve's properties.
    @param curveIndex The index of a curve (first curve is index 1).
    @param[out] id The curve's string ID. Client code must preallocate at least MAXID characters.
    @param[out] nValues The number of values in the curve's (x,y) list.
@@ -785,7 +783,6 @@ extern "C" {
    @see EN_NodeProperty
    */
   int  DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
-
   
   /**
    @brief Set a proprty value for a link.
