@@ -1,0 +1,27 @@
+# Python compiler files
+*.py[cd]
+
+# Python distribution and packaging
+build/
+dist/
+temp/
+*.cfg
+*.egg-info/
+*.whl
+
+# SWIG generated files
+outputapi_wrap.c
+outputapi.py
+
+# C compiler
+*.o
+*.dll
+*.exe
+
+# Eclipse project files and directories
+.metadata/
+.settings/
+Release/
+.project
+.cproject
+.pydevproject
