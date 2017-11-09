@@ -290,7 +290,7 @@ int DLLEXPORT ENclose()
    TmpOutFile=NULL;
 
    if (InFile  != NULL) { fclose(InFile);  InFile=NULL;  }
-   if (RptFile != NULL && RptFile != stdout) { fclose(RptFile); RptFile=NULL; }
+   if (RptFile != NULL) { fclose(RptFile); RptFile=NULL; }
    if (HydFile != NULL) { fclose(HydFile); HydFile=NULL; }
    if (OutFile != NULL) { fclose(OutFile); OutFile=NULL; }
   
@@ -2423,7 +2423,7 @@ int   openfiles(char *f1, char *f2, char *f3)
       writecon(f1);
       return(302);
    }
-   if (strlen(f2) == 0) RptFile = stdout;
+   if (strlen(f2) == 0) return(303);
    else if ((RptFile = fopen(f2,"wt")) == NULL)
    {
       writecon(FMT06);
