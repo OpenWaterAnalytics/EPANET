@@ -3010,7 +3010,7 @@ int DLLEXPORT EN_setqualtype(EN_Project *p, int qualcode, char *chemname, char *
   quality_t *qu = &p->quality;
   
   double *Ucf = p->Ucf;
-  
+  int i;
   
   /*** Updated 3/1/01 ***/
   double ccf = 1.0;
@@ -3020,6 +3020,7 @@ int DLLEXPORT EN_setqualtype(EN_Project *p, int qualcode, char *chemname, char *
   if (qualcode < EN_NONE || qualcode > EN_TRACE)
     return (251);
   qu->Qualflag = (char)qualcode;
+  qu->Ctol *= Ucf[QUALITY];
   if (qu->Qualflag == CHEM) /* Chemical constituent */
   {
     strncpy(qu->ChemName, chemname, MAXID);
@@ -3050,11 +3051,19 @@ int DLLEXPORT EN_setqualtype(EN_Project *p, int qualcode, char *chemname, char *
     /*** Updated 3/1/01 ***/
     strcpy(rep->Field[QUALITY].Units, u_HOURS);
   }
+  
+  /* when changing from CHEM to AGE or TRACE, nodes initial quality values must be returned to their original ones */
+  if ((qu->Qualflag == AGE || qu->Qualflag == TRACE) & (Ucf[QUALITY] != 1)) {
+    for (i=1; i<=p->network.Nnodes; i++) {
+      p->network.Node[i].C0 *= Ucf[QUALITY];
+    }
+  }
 
   /*** Updated 3/1/01 ***/
   Ucf[QUALITY] = ccf;
   Ucf[LINKQUAL] = ccf;
   Ucf[REACTRATE] = ccf;
+  qu->Ctol /= Ucf[QUALITY];
 
   return (0);
 }
