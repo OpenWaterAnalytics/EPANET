@@ -417,6 +417,7 @@ void  setlinkflow(EN_Project *pr, int k, double dh)
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   Slink *link = &net->Link[k];
+  Scurve *curve;
   
   switch (link->Type)
   {
@@ -457,7 +458,7 @@ void  setlinkflow(EN_Project *pr, int k, double dh)
       {
         dh = -dh * pr->Ucf[HEAD] / SQR(hyd->LinkSetting[k]);
         i = net->Pump[p].Hcurve;
-        Scurve *curve = &net->Curve[i];
+        curve = &net->Curve[i];
         hyd->LinkFlows[k] = interp(curve->Npts,curve->Y,curve->X,dh) * hyd->LinkSetting[k] / pr->Ucf[FLOW];
       }
       
@@ -696,6 +697,7 @@ int  controls(EN_Project *pr)
    double v1, v2;
    double k1, k2;
    char  s1, s2;
+   Slink *link;
   
   EN_Network *net = &pr->network;
   time_options_t *top = &pr->time_options;
@@ -711,7 +713,7 @@ int  controls(EN_Project *pr)
      if ( (k = control->Link) <= 0) {
        continue;
      }
-     Slink *link = &net->Link[k];
+     link = &net->Link[k];
       /* Link is controlled by tank level */
       if ((n = control->Node) > 0 && n > net->Njuncs)
       {
@@ -878,6 +880,8 @@ void  controltimestep(EN_Project *pr, long *tstep)
    int   i,j,k,n;
    double h,q,v;
    long  t,t1,t2;
+   Slink *link;
+   Scontrol *control;
 
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
@@ -885,7 +889,7 @@ void  controltimestep(EN_Project *pr, long *tstep)
    for (i=1; i <= net->Ncontrols; i++)
    {
       t = 0;
-     Scontrol *control = &net->Control[i];
+      control = &net->Control[i];
       if ( (n = control->Node) > 0)           /* Node control:       */
       {
         if ((j = n - net->Njuncs) <= 0) {
@@ -930,7 +934,7 @@ void  controltimestep(EN_Project *pr, long *tstep)
       {
          /* Check if rule actually changes link status or setting */
          k = control->Link;
-         Slink *link = &net->Link[k];
+         link = &net->Link[k];
          if ( (link->Type > EN_PIPE && hyd->LinkSetting[k] != control->Setting)
                || (hyd->LinkStatus[k] != control->Status) ) {
             *tstep = t;
@@ -1117,7 +1121,8 @@ void  getenergy(EN_Project *pr, int k, double *kw, double *eff)
    int   i,j;
    double dh, q, e;
    double q4eff; //q4eff=flow at nominal speed to compute efficiency
-
+   Scurve *curve;
+   
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   Slink *link = &net->Link[k];
@@ -1144,7 +1149,7 @@ void  getenergy(EN_Project *pr, int k, double *kw, double *eff)
       if ( (i = net->Pump[j].Ecurve) > 0)
       { 
          q4eff = q / hyd->LinkSetting[k];
-         Scurve *curve = &net->Curve[i];
+         curve = &net->Curve[i];
          e = interp(curve->Npts,curve->X, curve->Y, q4eff * pr->Ucf[FLOW]);
       } 
       e = MIN(e, 100.0);
@@ -1430,6 +1435,7 @@ int  badvalve(EN_Project *pr, int n)
 */
 {
    int i,k,n1,n2;
+   Slink *link;
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   report_options_t *rep = &pr->report;
@@ -1437,7 +1443,7 @@ int  badvalve(EN_Project *pr, int n)
   
    for (i=1; i <= net->Nvalves; i++) {
       k = net->Valve[i].Link;
-      Slink *link = &net->Link[k];
+      link = &net->Link[k];
       n1 = link->N1;
       n2 = link->N2;
       if (n == n1 || n == n2) {
@@ -1480,7 +1486,8 @@ int  valvestatus(EN_Project *pr)
          n1,n2;                     /* Start & end nodes       */
    StatType  status;                         /* Valve status settings   */
    double hset;                     /* Valve head setting      */
-
+   Slink *link;
+   
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   report_options_t *rep = &pr->report;
@@ -1488,7 +1495,7 @@ int  valvestatus(EN_Project *pr)
    for (i=1; i <= net->Nvalves; i++)                   /* Examine each valve   */
    {
       k = net->Valve[i].Link;                        /* Link index of valve  */
-      Slink *link = &net->Link[k];
+      link = &net->Link[k];
      if (hyd->LinkSetting[k] == MISSING) {
        continue;            /* Valve status fixed   */
      }
@@ -1877,7 +1884,8 @@ void  tankstatus(EN_Project *pr, int k, int n1, int n2)
 {
    int   i,n;
    double h,q;
-
+   Stank *tank;
+   
   hydraulics_t *hyd = &pr->hydraulics;
   EN_Network *net = &pr->network;
   Slink *link = &net->Link[k];
@@ -1896,7 +1904,7 @@ void  tankstatus(EN_Project *pr, int k, int n1, int n2)
       q = -q;
    }
    h = hyd->NodeHead[n1] - hyd->NodeHead[n2];
-  Stank *tank = &net->Tank[i];
+   tank = &net->Tank[i];
    /* Skip reservoirs & closed links */
   if (tank->A == 0.0 || hyd->LinkStatus[k] <= CLOSED) {
     return;
@@ -2271,12 +2279,14 @@ void  valvecoeffs(EN_Project *pr)
 
   hydraulics_t *hyd = &pr->hydraulics;
   EN_Network *n = &pr->network;
+  Slink *link;
+  Svalve *valve;
   
    for (i=1; i<=n->Nvalves; i++)                   /* Examine each valve   */
    {
-     Svalve *valve = &n->Valve[i];
+     valve = &n->Valve[i];
      k = valve->Link;                        /* Link index of valve  */
-     Slink *link = &n->Link[k];
+     link = &n->Link[k];
      if (hyd->LinkSetting[k] == MISSING) {
        continue;            /* Valve status fixed   */
      }
@@ -2533,11 +2543,15 @@ void  pumpcoeff(EN_Project *pr, int k)
          q,         /* Abs. value of flow     */
          r,         /* Flow resistance coeff. */
          n;         /* Flow exponent coeff.   */
+  hydraulics_t *hyd;
+  solver_t *s;
+  double setting;
+  Spump *pump;
   
-  hydraulics_t *hyd = &pr->hydraulics;
-  solver_t *s = &hyd->solver;
+  hyd = &pr->hydraulics;
+  s = &hyd->solver;
 
-   double setting = hyd->LinkSetting[k];
+   setting = hyd->LinkSetting[k];
   
    /* Use high resistance pipe if pump closed or cannot deliver head */
    if (hyd->LinkStatus[k] <= CLOSED || setting == 0.0) {
@@ -2550,7 +2564,7 @@ void  pumpcoeff(EN_Project *pr, int k)
    q = MAX(q,TINY);
    p = findpump(&pr->network,k);
 
-   Spump *pump = &pr->network.Pump[p];
+   pump = &pr->network.Pump[p];
    /* Get pump curve coefficients for custom pump curve. */
    if (pump->Ptype == CUSTOM)
    {
@@ -2594,10 +2608,11 @@ void  curvecoeff(EN_Project *p, int i, double q, double *h0, double *r)
 {
    int   k1, k2, npts;
    double *x, *y;
-
+   Scurve *curve;
+    
    /* Remember that curve is stored in untransformed units */
    q *= p->Ucf[FLOW];
-   Scurve *curve = &p->network.Curve[i];
+   curve = &p->network.Curve[i];
    x = curve->X;           /* x = flow */
    y = curve->Y;           /* y = head */
    npts = curve->Npts;

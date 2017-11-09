@@ -59,8 +59,8 @@ typedef  int          INT4;
 #define   TINY      1.E-6
 #define   MISSING   -1.E10
 
-#ifndef M_PI
-  #define PI M_PI
+#ifdef M_PI
+  #define M_PI
 #else
   #define   PI        3.141592654
 #endif

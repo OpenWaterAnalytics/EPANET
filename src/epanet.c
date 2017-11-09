@@ -611,12 +611,14 @@ int DLLEXPORT EN_close(EN_Project *p)
  **----------------------------------------------------------------
  */
 {
+  out_file_t *out;
+  
   if (p->Openflag) {
     writetime(p, FMT105);
   }
   freedata(p);
 
-  out_file_t *out = &p->out_files;
+  out = &p->out_files;
 
   if (out->TmpOutFile != out->OutFile) {
     if (out->TmpOutFile != NULL) {
@@ -853,7 +855,6 @@ int DLLEXPORT EN_nextH(EN_Project *p, long *tstep) {
 }
 
 int DLLEXPORT EN_closeH(EN_Project *p)
-
 {
   if (!p->Openflag) {
     return (102);
@@ -868,7 +869,8 @@ int DLLEXPORT EN_closeH(EN_Project *p)
 int DLLEXPORT EN_savehydfile(EN_Project *p, char *filename) {
   FILE *f;
   int c;
-
+  FILE *HydFile;
+  
   /* Check that hydraulics results exist */
   if (p->out_files.HydFile == NULL || !p->save_options.SaveHflag)
     return (104);
@@ -878,7 +880,7 @@ int DLLEXPORT EN_savehydfile(EN_Project *p, char *filename) {
     return (305);
 
   /* Copy from HydFile to f */
-  FILE *HydFile = p->out_files.HydFile;
+  HydFile = p->out_files.HydFile;
   fseek(HydFile, 0, SEEK_SET);
   while ((c = fgetc(HydFile)) != EOF) {
     fputc(c, f);
@@ -1253,6 +1255,7 @@ int DLLEXPORT EN_getoption(EN_Project *pr, EN_Option code,
 
 int DLLEXPORT EN_gettimeparam(EN_Project *pr, int code, long *value) {
 
+  int i;
   report_options_t *rep = &pr->report;
   quality_t *qu = &pr->quality;
   time_options_t *time = &pr->time_options;
@@ -1307,7 +1310,7 @@ int DLLEXPORT EN_gettimeparam(EN_Project *pr, int code, long *value) {
     break;
   case EN_NEXTEVENTIDX:
       *value = time->Hstep;
-      int i = tanktimestep(pr, value);
+      i = tanktimestep(pr, value);
       *value = i;
       break;
   }
@@ -2060,6 +2063,15 @@ int DLLEXPORT EN_setcontrol(EN_Project *p, int cindex, int ctype, int lindex,
   char status = ACTIVE;
   long t = 0;
   double s = setting, lvl = level;
+  EN_Network *net;
+  Snode *Node;
+  Slink *Link;
+  Scontrol *Control;
+  
+  int Nnodes;
+  int Njuncs;
+  int Nlinks;
+  double *Ucf;
 
   /* Check that input file opened */
   if (!p->Openflag)
@@ -2070,20 +2082,18 @@ int DLLEXPORT EN_setcontrol(EN_Project *p, int cindex, int ctype, int lindex,
     return (241);
 
   
-  EN_Network *net = &p->network;
+  net = &p->network;
   
-  Snode *Node = net->Node;
-  Slink *Link = net->Link;
-  Scontrol *Control = net->Control;
+  Node = net->Node;
+  Link = net->Link;
+  Control = net->Control;
   
-  const int Nnodes = net->Nnodes;
-  const int Njuncs = net->Njuncs;
-  const int Nlinks = net->Nlinks;
+  Nnodes = net->Nnodes;
+  Njuncs = net->Njuncs;
+  Nlinks = net->Nlinks;
   
-  double *Ucf = p->Ucf;
-  
-  
-  
+  Ucf = p->Ucf;
+    
   /* Check that controlled link exists */
   if (lindex == 0) {
     Control[cindex].Link = 0;
@@ -3092,6 +3102,8 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project *p, int index, int curveindex) {
   const int Ncurves = net->Ncurves;
   
   double *Ucf = p->Ucf;
+  int pIdx;
+  Spump *pump;
   
   if (!p->Openflag)
     return (102);
@@ -3101,8 +3113,8 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project *p, int index, int curveindex) {
   if (curveindex <= 0 || curveindex > Ncurves) {
     return (206);
   }
-  int pIdx = findpump(net, index);
-  Spump *pump = &p->network.Pump[pIdx];
+  pIdx = findpump(net, index);
+  pump = &p->network.Pump[pIdx];
   pump->Ptype = NOCURVE;
   pump->Hcurve = curveindex;
   // update pump parameters
@@ -3429,19 +3441,22 @@ int allocdata(EN_Project *p)
 {
   int n;
   int errcode = 0;
-
+  EN_Network *net;
+  hydraulics_t *hyd;
+  quality_t *qu;
+  parser_data_t *par;
+  
   /* Allocate node & link ID hash tables */
   p->network.NodeHashTable = ENHashTableCreate();
   p->network.LinkHashTable = ENHashTableCreate();
   ERRCODE(MEMCHECK(p->network.NodeHashTable));
   ERRCODE(MEMCHECK(p->network.LinkHashTable));
 
-  EN_Network *net = &p->network;
-  hydraulics_t *hyd = &p->hydraulics;
-  quality_t *qu = &p->quality;
-  parser_data_t *par = &p->parser;
-  
-  
+  net = &p->network;
+  hyd = &p->hydraulics;
+  qu = &p->quality;
+  par = &p->parser;
+    
   /* Allocate memory for network nodes */
   /*************************************************************
    NOTE: Because network components of a given type are indexed
@@ -4035,6 +4050,9 @@ int DLLEXPORT EN_addnode(EN_Project *p, char *id, EN_NodeType nodeType) {
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
   quality_t *qu = &p->quality;
+  Stank *tank;
+  Snode *node;
+  Scoord *coord;
   
   /* Check if a node with same id already exists */
   if (!p->Openflag)
@@ -4054,8 +4072,8 @@ int DLLEXPORT EN_addnode(EN_Project *p, char *id, EN_NodeType nodeType) {
   hyd->NodeHead = (double *)realloc(hyd->NodeHead, (net->Nnodes + 2) * sizeof(double));
   
   nIdx = net->Nnodes + 1;
-  Snode *node = &net->Node[nIdx];
-  Scoord *coord = &net->Coord[nIdx];
+  node = &net->Node[nIdx];
+  coord = &net->Coord[nIdx];
   
   if (nodeType == EN_JUNCTION) {
     net->Njuncs++;
@@ -4092,7 +4110,7 @@ int DLLEXPORT EN_addnode(EN_Project *p, char *id, EN_NodeType nodeType) {
     /* resize tanks array */
     net->Tank = (Stank *)realloc(net->Tank, (net->Ntanks + 1) * sizeof(Stank));
     
-    Stank *tank = &net->Tank[net->Ntanks];
+    tank = &net->Tank[net->Ntanks];
     
     /* set default values for new tank or reservoir */
     tank->Node = nIdx;
@@ -4144,6 +4162,8 @@ int DLLEXPORT EN_addlink(EN_Project *p, char *id, EN_LinkType linkType, char *fr
   int N1, N2;
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
+  Slink *link;
+  Spump *pump;
 
   /* Check if a link with same id already exists */
   if (!p->Openflag)
@@ -4172,7 +4192,7 @@ int DLLEXPORT EN_addlink(EN_Project *p, char *id, EN_LinkType linkType, char *fr
   hyd->LinkSetting = (double *)realloc(hyd->LinkSetting, (net->Nlinks + 1) * sizeof(double));
   hyd->LinkStatus = (StatType *)realloc(hyd->LinkStatus, (net->Nlinks + 1) * sizeof(StatType));
 
-  Slink *link = &net->Link[net->Nlinks];
+  link = &net->Link[net->Nlinks];
   
   strncpy(net->Link[n].ID, id, MAXID);
 
@@ -4182,7 +4202,7 @@ int DLLEXPORT EN_addlink(EN_Project *p, char *id, EN_LinkType linkType, char *fr
     net->Npumps++;
     /* Grow pump array to accomodate the new value */
     net->Pump = (Spump *)realloc(net->Pump, (net->Npumps + 1) * sizeof(Spump));
-    Spump *pump = &net->Pump[net->Npumps];
+    pump = &net->Pump[net->Npumps];
     
     pump->Link = n;
     pump->Ptype = 0;
@@ -4250,7 +4270,7 @@ int DLLEXPORT EN_deletelink(EN_Project *p, int index) {
   int i;
   EN_LinkType linkType;
   EN_Network *net = &p->network;
-  
+  Slink *link;
   
   if (!p->Openflag)
     return (102);
@@ -4259,7 +4279,7 @@ int DLLEXPORT EN_deletelink(EN_Project *p, int index) {
 
   EN_getlinktype(p, index, &linkType);
 
-  Slink *link = &net->Link[index];
+  link = &net->Link[index];
   
   // remove from hash table
   ENHashTableDelete(net->LinkHashTable, link->ID);
