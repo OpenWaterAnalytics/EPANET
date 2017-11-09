@@ -137,6 +137,12 @@ int saveinpfile(EN_Project *pr, char *fname)
   Pdemand demand;
   Psource source;
   FILE *f;
+  Slink *link;
+  Stank *tank;
+  Snode *node;
+  Spump *pump;
+  Scontrol *control;
+  Scurve *curve;
 
   /* Open the new text file */
 
@@ -159,7 +165,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n\n");
   fprintf(f, s_JUNCTIONS);
   for (i = 1; i <= net->Njuncs; i++) {
-    Snode *node = &net->Node[i];
+    node = &net->Node[i];
     fprintf(f, "\n %-31s %12.4f ;%s", node->ID, node->El * pr->Ucf[ELEV], node->Comment);
   }
   /* Write [RESERVOIRS] section */
@@ -167,9 +173,9 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n\n");
   fprintf(f, s_RESERVOIRS);
   for (i = 1; i <= net->Ntanks; i++) {
-    Stank *tank = &net->Tank[i];
+    tank = &net->Tank[i];
     if (tank->A == 0.0) {
-      Snode *node = &net->Node[tank->Node];
+      node = &net->Node[tank->Node];
       sprintf(s, " %-31s %12.4f", node->ID, node->El * pr->Ucf[ELEV]);
       if ((j = tank->Pat) > 0) {
         sprintf(s1, " %-31s", net->Pattern[j].ID);
@@ -186,9 +192,9 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n\n");
   fprintf(f, s_TANKS);
   for (i = 1; i <= net->Ntanks; i++) {
-    Stank *tank = &net->Tank[i];
+    tank = &net->Tank[i];
     if (tank->A > 0.0) {
-      Snode *node = &net->Node[tank->Node];
+      node = &net->Node[tank->Node];
       sprintf(s, " %-31s %12.4f %12.4f %12.4f %12.4f %12.4f %12.4f", node->ID,
               node->El * pr->Ucf[ELEV], (tank->H0 - node->El) * pr->Ucf[ELEV],
               (tank->Hmin - node->El) * pr->Ucf[ELEV],
@@ -208,7 +214,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n\n");
   fprintf(f, s_PIPES);
   for (i = 1; i <= net->Nlinks; i++) {
-    Slink *link = &net->Link[i];
+    link = &net->Link[i];
     if (link->Type <= EN_PIPE) {
       d = link->Diam;
       kc = link->Kc;
@@ -238,8 +244,8 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, s_PUMPS);
   for (i = 1; i <= net->Npumps; i++) {
     n = net->Pump[i].Link;
-    Slink *link = &net->Link[n];
-    Spump *pump = &net->Pump[i];
+    link = &net->Link[n];
+    pump = &net->Pump[i];
     sprintf(s, " %-31s %-31s %-31s", link->ID, net->Node[link->N1].ID, net->Node[link->N2].ID);
 
     /* Pump has constant power */
@@ -282,7 +288,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, s_VALVES);
   for (i = 1; i <= net->Nvalves; i++) {
     n = net->Valve[i].Link;
-    Slink *link = &net->Link[n];
+    link = &net->Link[n];
     d = link->Diam;
     kc = link->Kc;
     if (kc == MISSING)
@@ -319,7 +325,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, s_DEMANDS);
   ucf = pr->Ucf[DEMAND];
   for (i = 1; i <= net->Njuncs; i++) {
-    Snode *node = &net->Node[i];
+    node = &net->Node[i];
     for (demand = node->D; demand != NULL; demand = demand->next) {
       sprintf(s, " %-31s %14.6f", node->ID, ucf * demand->Base);
       if ((j = demand->Pat) > 0)
@@ -335,7 +341,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n\n");
   fprintf(f, s_EMITTERS);
   for (i = 1; i <= net->Njuncs; i++) {
-    Snode *node = &net->Node[i];
+    node = &net->Node[i];
     if (node->Ke == 0.0)
       continue;
     ke = pr->Ucf[FLOW] / pow(pr->Ucf[PRESSURE] * node->Ke, (1.0 / hyd->Qexp));
@@ -347,7 +353,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n\n");
   fprintf(f, s_STATUS);
   for (i = 1; i <= net->Nlinks; i++) {
-    Slink *link = &net->Link[i];
+    link = &net->Link[i];
     if (link->Type <= EN_PUMP) {
       if (link->Stat == CLOSED)
         fprintf(f, "\n %-31s %s", link->ID, StatTxt[CLOSED]);
@@ -355,7 +361,7 @@ int saveinpfile(EN_Project *pr, char *fname)
       /* Write pump speed here for pumps with old-style pump curve input */
       else if (link->Type == EN_PUMP) {
         n = findpump(net, i);
-        Spump *pump = &net->Pump[n];
+        pump = &net->Pump[n];
         if (pump->Hcurve == 0 && pump->Ptype != CONST_HP &&
             link->Kc != 1.0)
           fprintf(f, "\n %-31s %-.4f", link->ID, link->Kc);
@@ -390,7 +396,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, s_CURVES);
   for (i = 1; i <= net->Ncurves; i++) {
     for (j = 0; j < net->Curve[i].Npts; j++) {
-      Scurve *curve = &net->Curve[i];
+      curve = &net->Curve[i];
       fprintf(f, "\n %-31s %12.4f %12.4f", curve->ID, curve->X[j], curve->Y[j]);
     }
   }
@@ -400,11 +406,11 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n\n");
   fprintf(f, s_CONTROLS);
   for (i = 1; i <= net->Ncontrols; i++) {
-    Scontrol *control = &net->Control[i];
+    control = &net->Control[i];
     /* Check that controlled link exists */
     if ((j = control->Link) <= 0)
       continue;
-    Slink *link = &net->Link[j];
+    link = &net->Link[j];
 
     /* Get text of control's link status/setting */
     if (control->Setting == MISSING)
@@ -431,7 +437,7 @@ int saveinpfile(EN_Project *pr, char *fname)
     case LOWLEVEL:
     case HILEVEL:
       n = control->Node;
-        Snode *node = &net->Node[n];
+        node = &net->Node[n];
       kc = control->Grade - node->El;
       if (n > net->Njuncs)
         kc *= pr->Ucf[HEAD];
@@ -471,7 +477,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n\n");
   fprintf(f, s_QUALITY);
   for (i = 1; i <= net->Nnodes; i++) {
-    Snode *node = &net->Node[i];
+    node = &net->Node[i];
     if (node->C0 == 0.0)
       continue;
     fprintf(f, "\n %-31s %14.6f", node->ID, node->C0 * pr->Ucf[QUALITY]);
@@ -482,7 +488,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n\n");
   fprintf(f, s_SOURCES);
   for (i = 1; i <= net->Nnodes; i++) {
-    Snode *node = &net->Node[i];
+    node = &net->Node[i];
     source = node->S;
     if (source == NULL)
       continue;
@@ -520,7 +526,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   if (qu->Rfactor != MISSING && qu->Rfactor != 0.0)
     fprintf(f, "\n ROUGHNESS CORRELATION  %-.6f", qu->Rfactor);
   for (i = 1; i <= net->Nlinks; i++) {
-    Slink *link = &net->Link[i];
+    link = &net->Link[i];
     if (link->Type > EN_PIPE)
       continue;
     if (link->Kb != qu->Kbulk)
@@ -529,7 +535,7 @@ int saveinpfile(EN_Project *pr, char *fname)
       fprintf(f, "\n WALL   %-31s %-.6f", link->ID, link->Kw * SECperDAY);
   }
   for (i = 1; i <= net->Ntanks; i++) {
-    Stank *tank = &net->Tank[i];
+    tank = &net->Tank[i];
     if (tank->A == 0.0)
       continue;
     if (tank->Kb != qu->Kbulk)
@@ -548,7 +554,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n GLOBAL EFFIC        %-.4f", hyd->Epump);
   fprintf(f, "\n DEMAND CHARGE       %-.4f", hyd->Dcost);
   for (i = 1; i <= net->Npumps; i++) {
-    Spump *pump = &net->Pump[i];
+    pump = &net->Pump[i];
     if (pump->Ecost > 0.0)
       fprintf(f, "\n PUMP %-31s PRICE   %-.4f", net->Link[pump->Link].ID,
               pump->Ecost);

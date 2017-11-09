@@ -289,15 +289,20 @@ int nextqual(EN_Project *pr, long *tstep)
   int errcode = 0;
   double *tankVolumes;
   int i;
-
+  EN_Network *net;
+  hydraulics_t *hyd;
+  quality_t *qu;
+  time_options_t *time;
+  save_options_t *sav;
+  
   /* Determine time step */
   *tstep = 0;
 
-  EN_Network *net = &pr->network;
-  hydraulics_t *hyd = &pr->hydraulics;
-  quality_t *qu = &pr->quality;
-  time_options_t *time = &pr->time_options;
-  save_options_t *sav = &pr->save_options;
+  net = &pr->network;
+  hyd = &pr->hydraulics;
+  qu = &pr->quality;
+  time = &pr->time_options;
+  sav = &pr->save_options;
   
   // hydstep = time->Htime - qu->Qtime;
 

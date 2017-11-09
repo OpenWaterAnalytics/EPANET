@@ -558,18 +558,23 @@ void convertunits(EN_Project *pr)
   int i, j, k;
   double ucf;     /* Unit conversion factor */
   Pdemand demand; /* Pointer to demand record */
-
+  Snode *node;
+  Stank *tank;
+  Slink *link;
+  Spump *pump;
+  Scontrol *control;
+  
   /* Convert nodal elevations & initial WQ */
   /* (WQ source units are converted in QUALITY.C */
   for (i = 1; i <= net->Nnodes; i++) {
-    Snode *node = &net->Node[i];
+    node = &net->Node[i];
     node->El /= pr->Ucf[ELEV];
     node->C0 /= pr->Ucf[QUALITY];
   }
 
   /* Convert demands */
   for (i = 1; i <= net->Njuncs; i++) {
-    Snode *node = &net->Node[i];
+    node = &net->Node[i];
     for (demand = node->D; demand != NULL; demand = demand->next) {
       demand->Base /= pr->Ucf[DEMAND];
     }
@@ -578,16 +583,16 @@ void convertunits(EN_Project *pr)
   /* Convert emitter discharge coeffs. to head loss coeff. */
   ucf = pow(pr->Ucf[FLOW], hyd->Qexp) / pr->Ucf[PRESSURE];
   for (i = 1; i <= net->Njuncs; i++) {
-    Snode *node = &net->Node[i];
+    node = &net->Node[i];
     if (node->Ke > 0.0) {
       node->Ke = ucf / pow(node->Ke, hyd->Qexp);
     }
   }
   /* Initialize tank variables (convert tank levels to elevations) */
   for (j = 1; j <= net->Ntanks; j++) {
-    Stank *tank = &net->Tank[j];
+    tank = &net->Tank[j];
     i = tank->Node;
-    Snode *node = &net->Node[i];
+    node = &net->Node[i];
     tank->H0 = node->El + tank->H0 / pr->Ucf[ELEV];
     tank->Hmin = node->El + tank->Hmin / pr->Ucf[ELEV];
     tank->Hmax = node->El + tank->Hmax / pr->Ucf[ELEV];
@@ -611,7 +616,7 @@ void convertunits(EN_Project *pr)
 
   /* Convert units of link parameters */
   for (k = 1; k <= net->Nlinks; k++) {
-    Slink *link = &net->Link[k];
+    link = &net->Link[k];
     if (link->Type <= EN_PIPE) {
       /* Convert pipe parameter units:                         */
       /*    - for Darcy-Weisbach formula, convert roughness    */
@@ -633,7 +638,7 @@ void convertunits(EN_Project *pr)
     else if (link->Type == EN_PUMP) {
       /* Convert units for pump curve parameters */
       i = findpump(net, k);
-      Spump *pump = &net->Pump[i];
+      pump = &net->Pump[i];
       if (pump->Ptype == CONST_HP) {
         /* For constant hp pump, convert kw to hp */
         if (par->Unitsflag == SI)
@@ -679,13 +684,13 @@ void convertunits(EN_Project *pr)
 
   /* Convert units on control settings */
   for (i = 1; i <= net->Ncontrols; i++) {
-    Scontrol *control = &net->Control[i];
+    control = &net->Control[i];
     if ((k = control->Link) == 0) {
       continue;
     }
-    Slink *link = &net->Link[k];
+    link = &net->Link[k];
     if ((j = control->Node) > 0) {
-      Snode *node = &net->Node[j];
+      node = &net->Node[j];
       if (j > net->Njuncs) {
         /* j > Njuncs, then control is based on tank level */
         control->Grade = node->El + control->Grade / pr->Ucf[ELEV];

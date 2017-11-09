@@ -371,13 +371,17 @@ int getpumpparams(EN_Project *pr)
 {
   int i, j = 0, k, m, n = 0;
   double a, b, c, h0 = 0.0, h1 = 0.0, h2 = 0.0, q1 = 0.0, q2 = 0.0;
-
+  char errMsg[MAXMSG+1];
+  Spump *pump;
+  Slink *link;
+  Scurve *curve;
+  
   EN_Network *net = &pr->network;
   
   for (i = 1; i <= net->Npumps; i++) {
-    Spump *pump = &net->Pump[i];
+    pump = &net->Pump[i];
     k = pump->Link;
-    Slink *link = &net->Link[k];
+    link = &net->Link[k];
     if (pump->Ptype == CONST_HP) { /* Constant Hp pump */
       pump->H0 = 0.0;
       pump->R = -8.814 * link->Km;
@@ -390,13 +394,12 @@ int getpumpparams(EN_Project *pr)
     else if (pump->Ptype == NOCURVE) { /* Pump curve specified */
       j = pump->Hcurve; /* Get index of head curve */
       if (j == 0) {       /* Error: No head curve */
-        char errMsg[MAXMSG+1];
         EN_geterror(226, errMsg, MAXMSG);
         sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
         writeline(pr, pr->Msg);
         return (200);
       }
-      Scurve *curve = &net->Curve[j];
+      curve = &net->Curve[j];
       n = curve->Npts;
       if (n == 1) {  /* Only a single h-q point supplied so use generic */
         pump->Ptype = POWER_FUNC; /* power function curve.   */
@@ -422,7 +425,6 @@ int getpumpparams(EN_Project *pr)
       /* Compute shape factors & limits of power function pump curves */
       if (pump->Ptype == POWER_FUNC) {
         if (!powercurve(h0, h1, h2, q1, q2, &a, &b, &c)) { /* Error: Invalid curve */
-          char errMsg[MAXMSG+1];
           EN_geterror(227, errMsg, MAXMSG);
           sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
           writeline(pr, pr->Msg);
@@ -440,10 +442,9 @@ int getpumpparams(EN_Project *pr)
 
     /* Assign limits to custom pump curves */
     if (pump->Ptype == CUSTOM) {
-      Scurve *curve = &net->Curve[j];
+      curve = &net->Curve[j];
       for (m = 1; m < n; m++) {
         if (curve->Y[m] >= curve->Y[m - 1]) { /* Error: Invalid curve */
-          char errMsg[MAXMSG+1];
           EN_geterror(227, errMsg, MAXMSG);
           sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
           writeline(pr, pr->Msg);
@@ -603,6 +604,8 @@ int unlinked(EN_Project *pr)
   EN_Network *net = &pr->network;
   int *marked;
   int i, err, errcode;
+  char errMsg[MAXMSG+1];
+  
   errcode = 0;
   err = 0;
   marked = (int *)calloc(net->Nnodes + 1, sizeof(int));
@@ -619,7 +622,6 @@ int unlinked(EN_Project *pr)
       if (marked[i] == 0) /* If not marked then error */
       {
         err++;
-        char errMsg[MAXMSG+1];
         EN_geterror(233, errMsg, MAXMSG);
         sprintf(pr->Msg, "%s node: %s", errMsg, net->Node[i].ID);
         writeline(pr, pr->Msg);

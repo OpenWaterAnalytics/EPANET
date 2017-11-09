@@ -61,16 +61,19 @@ int juncdata(EN_Project *pr)
   EN_Network *net = &pr->network;
   parser_data_t *par = &pr->parser;
   hydraulics_t *hyd = &pr->hydraulics;
-
+  int n;
+  int Njuncs;
+  Snode *node;
+  
   /* Add new junction to data base */
-  const int n = par->Ntokens;
+  n = par->Ntokens;
   if (net->Nnodes == par->MaxNodes) {
     return (200);
   }
   net->Njuncs++;
   net->Nnodes++;
 
-  const int Njuncs = net->Njuncs;
+  Njuncs = net->Njuncs;
 
   if (!addnodeID(net, net->Njuncs, par->Tok[0])) {
     return (215);
@@ -90,7 +93,7 @@ int juncdata(EN_Project *pr)
   }
 
   /* Save junction data */
-  Snode *node = &net->Node[Njuncs];
+  node = &net->Node[Njuncs];
   node->El = el;
   node->C0 = 0.0;
   node->S = NULL;
@@ -145,6 +148,9 @@ int tankdata(EN_Project *pr)
 
   EN_Network *net = &pr->network;
   parser_data_t *par = &pr->parser;
+  Snode *node;
+  Stank *tank;
+  int i;
   
   /* Add new tank to data base */
   n = par->Ntokens;
@@ -154,7 +160,7 @@ int tankdata(EN_Project *pr)
   net->Ntanks++;
   net->Nnodes++;
 
-  const int i = par->MaxJuncs + net->Ntanks; /* i = node index.     */
+  i = par->MaxJuncs + net->Ntanks; /* i = node index.     */
   if (!addnodeID(net, i, par->Tok[0])) {
     return (215); /* Add ID to database. */
   }
@@ -198,8 +204,8 @@ int tankdata(EN_Project *pr)
     }
   }
 
-  Snode *node = &net->Node[i];
-  Stank *tank = &net->Tank[net->Ntanks];
+  node = &net->Node[i];
+  tank = &net->Tank[net->Ntanks];
 
   node->Rpt = 0;
   node->El = el;  /* Elevation.           */
@@ -259,6 +265,7 @@ int pipedata(EN_Project *pr)
 
   EN_Network *net = &pr->network;
   parser_data_t *par = &pr->parser;
+  Slink *link;
   
   /* Add new pipe to data base */
   n = par->Ntokens;
@@ -315,7 +322,7 @@ int pipedata(EN_Project *pr)
     return (202);
 
   /* Save pipe data */
-  Slink *link = &net->Link[net->Nlinks];
+  link = &net->Link[net->Nlinks];
   
   link->N1 = j1;       /* Start-node index */
   link->N2 = j2;       /* End-node index   */
@@ -358,7 +365,9 @@ int pumpdata(EN_Project *pr)
 
   EN_Network *net = &pr->network;
   parser_data_t *par = &pr->parser;
-  
+  Slink *link;
+  Spump *pump;
+
   /* Add new pump to data base */
   n = par->Ntokens;
   if (net->Nlinks == par->MaxLinks || net->Npumps == par->MaxPumps)
@@ -379,8 +388,8 @@ int pumpdata(EN_Project *pr)
     return (222);
 
   /* Save pump data */
-  Slink *link = &net->Link[net->Nlinks];
-  Spump *pump = &net->Pump[net->Npumps];
+  link = &net->Link[net->Nlinks];
+  pump = &net->Pump[net->Npumps];
   
   link->N1 = j1;   /* Start-node index.  */
   link->N2 = j2;   /* End-node index.    */
@@ -481,6 +490,7 @@ int valvedata(EN_Project *pr)
 
   EN_Network *net = &pr->network;
   parser_data_t *par = &pr->parser;
+  Slink *link;
   
   /* Add new valve to data base */
   n = par->Ntokens;
@@ -543,7 +553,7 @@ int valvedata(EN_Project *pr)
     return (220);
 
   /* Save valve data */
-  Slink *link = &net->Link[net->Nlinks];
+  link = &net->Link[net->Nlinks];
   link->N1 = j1;      /* Start-node index. */
   link->N2 = j2;      /* End-node index.   */
   link->Diam = diam;  /* Valve diameter.   */
@@ -676,7 +686,9 @@ int coordata(EN_Project *pr)
   
   double x, y;
   int j;
-
+  Scoord *coord;
+  Snode *node;
+  
   /* Check for valid node ID */
   if (par->Ntokens < 3)
     return (201);
@@ -690,8 +702,8 @@ int coordata(EN_Project *pr)
     return (202);
 
   /* Save coord data */
-  Scoord *coord = &net->Coord[j];
-  Snode *node = &net->Node[j];
+  coord = &net->Coord[j];
+  node = &net->Node[j];
   strncpy(coord->ID, node->ID, MAXID);
   coord->X = x;
   coord->Y = y;
@@ -803,7 +815,8 @@ int controldata(EN_Project *pr)
   double setting = MISSING, /* Link setting           */
       time = 0.0,           /* Simulation time        */
       level = 0.0;          /* Pressure or tank level */
-
+  Scontrol *control;
+  
   /* Check for sufficient number of input tokens */
   n = par->Ntokens;
   if (n < 6)
@@ -895,7 +908,7 @@ int controldata(EN_Project *pr)
   if (net->Ncontrols > par->MaxControls)
     return (200);
   
-  Scontrol *control = &net->Control[net->Ncontrols];
+  control = &net->Control[net->Ncontrols];
   control->Link = k;
   control->Node = i;
   control->Type = c_type;
