@@ -508,7 +508,7 @@ int DLLEXPORT EN_init(EN_Project *pr, char *f2, char *f3,
   inittanks(pr);
   convertunits(pr);
 
-  pr->parser.MaxPats = 1;
+  pr->parser.MaxPats = 0;
   // initialize default pattern
   getpatterns(pr);
 
@@ -3093,7 +3093,6 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project *p, int index, int curveindex) {
   
   double *Ucf = p->Ucf;
   
-  
   if (!p->Openflag)
     return (102);
   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) {
@@ -4216,7 +4215,7 @@ int DLLEXPORT EN_addlink(EN_Project *p, char *id, EN_LinkType linkType, char *fr
     link->Kc = 1.0; // Speed factor
     link->Km = 0.0; // Horsepower
     link->Len = 0.0;
-  } else if (linkType == EN_PIPE) {
+  } else if (linkType <= EN_PIPE) { // pipe or cvpipe
     link->Diam = 10 / p->Ucf[DIAM];
     link->Kc = 100; // Rough. coeff
     link->Km = 0.0; // Loss coeff
@@ -4234,9 +4233,15 @@ int DLLEXPORT EN_addlink(EN_Project *p, char *id, EN_LinkType linkType, char *fr
   link->Kw = 0;
   link->R = 0;
   link->Rc = 0;
-  link->Stat = 0;
   link->Rpt = 0;
-
+  
+  if (linkType == EN_CVPIPE) {
+    link->Stat = OPEN;
+  }
+  else {
+    link->Stat = CLOSED;
+  }
+  
   ENHashTableInsert(net->LinkHashTable, link->ID, n);
   return (0);
 }
