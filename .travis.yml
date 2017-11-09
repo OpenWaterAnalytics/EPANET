@@ -3,7 +3,7 @@ language: python
 env: 
   global: 
     - EPANET_HOME=`pwd`
-    - BUILD_HOME=build/CMake/buildproducts
+    - BUILD_HOME=buildproducts
     - TEST_HOME=tests/epanet-nrtestsuite
 
 before_install:
