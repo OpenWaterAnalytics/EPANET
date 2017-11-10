@@ -143,6 +143,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   Spump *pump;
   Scontrol *control;
   Scurve *curve;
+  Scoord *coord;
 
   /* Open the new text file */
 
@@ -639,7 +640,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   default:
     j = 0;
     for (i = 1; i <= net->Nnodes; i++) {
-      Snode *node = &net->Node[i];
+      node = &net->Node[i];
       if (node->Rpt == 1) {
         if (j % 5 == 0)
           fprintf(f, "\n NODES               ");
@@ -686,8 +687,8 @@ int saveinpfile(EN_Project *pr, char *fname)
     fprintf(f, "\n\n");
     fprintf(f, s_COORDS);
     for (i = 1; i <= net->Nnodes; i++) {
-      Snode *node = &net->Node[i];
-      Scoord *coord = &net->Coord[i];
+      node = &net->Node[i];
+      coord = &net->Coord[i];
       if (coord->HaveCoords == TRUE) {
         fprintf(f, "\n %-31s %14.6f %14.6f", node->ID, coord->X, coord->Y);
       }
