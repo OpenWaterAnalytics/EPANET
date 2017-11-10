@@ -2708,8 +2708,6 @@ int DLLEXPORT EN_addcurve(EN_Project *p, char *id) {
   parser_data_t *par = &p->parser;
   Scurve *Curve = net->Curve;
   
-  
-  
   int i, j, n, err = 0;
   Scurve *tmpCur;
 
@@ -2735,18 +2733,18 @@ int DLLEXPORT EN_addcurve(EN_Project *p, char *id) {
   /* Copy contents of old curve array to new one */
 
   for (i = 0; i <= net->Ncurves; i++) {
-    strcpy(tmpCur[i].ID, Curve[i].ID);
+    strcpy(tmpCur[i].ID, net->Curve[i].ID);
     tmpCur[i].Npts = Curve[i].Npts;
-    tmpCur[i].X = (double *)calloc(Curve[i].Npts, sizeof(double));
-    tmpCur[i].Y = (double *)calloc(Curve[i].Npts, sizeof(double));
+    tmpCur[i].X = (double *)calloc(net->Curve[i].Npts, sizeof(double));
+    tmpCur[i].Y = (double *)calloc(net->Curve[i].Npts, sizeof(double));
     if (tmpCur[i].X == NULL)
       err = 1;
     else if (tmpCur[i].Y == NULL)
       err = 1;
     else
       for (j = 0; j < Curve[i].Npts; j++) {
-        tmpCur[i].X[j] = Curve[i].X[j];
-        tmpCur[i].Y[j] = Curve[i].Y[j];
+        tmpCur[i].X[j] = net->Curve[i].X[j];
+        tmpCur[i].Y[j] = net->Curve[i].Y[j];
       }
   }
 
@@ -2781,11 +2779,11 @@ int DLLEXPORT EN_addcurve(EN_Project *p, char *id) {
   // Replace old curves array with new one
 
   for (i = 0; i <= net->Ncurves; i++) {
-    free(Curve[i].X);
-    free(Curve[i].Y);
+    free(net->Curve[i].X);
+    free(net->Curve[i].Y);
   }
-  free(Curve);
-  Curve = tmpCur;
+  free(net->Curve);
+  net->Curve = tmpCur;
   net->Ncurves = n;
   par->MaxCurves = n;
   return 0;
