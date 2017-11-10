@@ -40,7 +40,7 @@ int     openfiles(EN_Project *p, char *,char *,char *);  /* Opens input & report
 int     openhydfile(EN_Project *p);                /* Opens hydraulics file      */
 int     openoutfile(EN_Project *p);                /* Opens binary output file   */
 int     strcomp(char *, char *);          /* Compares two strings       */
-char*   getTmpName(char* fname);          /* Gets temporary file name   */     
+char*   getTmpName(EN_Project *p, char* fname);          /* Gets temporary file name   */     
 double  interp(int, double *,double *, double);             /* Interpolates a data curve  */
                
 int     findnode(EN_Network *n, char *);                 /* Finds node's index from ID */

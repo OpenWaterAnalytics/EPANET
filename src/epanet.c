@@ -3246,7 +3246,7 @@ int openhydfile(EN_Project *p)
   out->HydFile = NULL;
   switch (out->Hydflag) {
   case SCRATCH:
-    getTmpName(out->HydFname);             
+    getTmpName(p, out->HydFname);             
     out->HydFile = fopen(out->HydFname, "w+b"); 
     break;
   case SAVE:
@@ -3339,7 +3339,7 @@ int openoutfile(EN_Project *p)
   // else if ( (OutFile = tmpfile()) == NULL) 
   else 
   {
-    getTmpName(out->OutFname);                           
+    getTmpName(p, out->OutFname);                           
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) 
     {
       writecon(FMT08);
@@ -3357,7 +3357,7 @@ int openoutfile(EN_Project *p)
   if (!errcode) {
     if (rep->Tstatflag != SERIES) {
       // if ( (TmpOutFile = tmpfile()) == NULL) errcode = 304; 
-      getTmpName(out->TmpFname);                
+      getTmpName(p, out->TmpFname);                
       out->TmpOutFile = fopen(out->TmpFname, "w+b"); 
       if (out->TmpOutFile == NULL)
         errcode = 304; 
@@ -3665,25 +3665,27 @@ void freedata(EN_Project *p)
 */
 
 /*** New function for 2.00.12 ***/ 
-char *getTmpName(char *fname)
+char *getTmpName(EN_Project *p, char *fname)
 //
 //  Input:   fname = file name string
 //  Output:  returns pointer to file name
 //  Purpose: creates a temporary file name with path prepended to it.
 //
 {
+  out_file_t *out = &p->out_files;
 // --- for Windows systems:
 #ifdef WINDOWS
   // --- use system function tmpnam() to create a temporary file name
   char name[MAXFNAME + 1];
   int n;
+  
   tmpnam(name);
   
   // --- if user supplied the name of a temporary directory,
   //     then make it be the prefix of the full file name
-  n = (int)strlen(TmpDir);
+  n = (int)strlen(out->TmpDir);
   if (n > 0) {
-    strcpy(fname, TmpDir);
+    strcpy(fname, out->TmpDir);
     if (fname[n - 1] != '\\')
       strcat(fname, "\\");
   }
