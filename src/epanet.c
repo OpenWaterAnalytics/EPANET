@@ -167,7 +167,10 @@ int DLLEXPORT ENepanet(char *f1, char *f2, char *f3,
   return (errcode);
 }
 int DLLEXPORT ENopen(char *f1, char *f2, char *f3) {
-  return EN_open(_defaultModel, f1, f2, f3);
+  int errcode = 0;
+  ERRCODE(EN_alloc(&_defaultModel));
+  EN_open(_defaultModel, f1, f2, f3);
+  return (errcode);
 }
 int DLLEXPORT ENsaveinpfile(char *filename) {
   return EN_saveinpfile(_defaultModel, filename);
