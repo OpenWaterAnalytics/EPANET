@@ -468,7 +468,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, s_RULES);
   for (i = 1; i <= net->Nrules; i++) {
     fprintf(f, "\nRULE %s", pr->rules.Rule[i].label);
-    errcode = writeRuleinInp(f, i);
+    errcode = writeRuleinInp(pr, f, i);
     fprintf(f, "\n");
   }
 
