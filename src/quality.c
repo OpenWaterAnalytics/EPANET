@@ -676,11 +676,11 @@ void reorientsegs(EN_Project *pr)
   for (k = 1; k <= net->Nlinks; k++) {
 
     /* Find new flow direction */
-    newdir = '+';
+    newdir = POSITIVE;
     if (hyd->LinkFlows[k] == 0.0) {
       newdir = qu->FlowDir[k];
     } else if (hyd->LinkFlows[k] < 0.0) {
-      newdir = '-';
+      newdir = NEGATIVE;
     }
 
     /* If direction changes, then reverse order of segments */
