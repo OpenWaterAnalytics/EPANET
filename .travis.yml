@@ -3,7 +3,7 @@ language: python
 env: 
   global: 
     - EPANET_HOME=`pwd`
-    - BUILD_HOME=buildproducts
+    - BUILD_HOME=build/CMake/buildproducts
     - TEST_HOME=tests/epanet-nrtestsuite
 
 before_install:
@@ -11,7 +11,7 @@ before_install:
   - sudo apt-get install -y swig 
 
 install:
-  - pip install -r requirements.txt
+  - pip install --src build/packages -r tools/requirements.txt
 
 before_script:
   - mkdir -p $BUILD_HOME

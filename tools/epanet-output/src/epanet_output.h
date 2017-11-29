@@ -1,12 +1,14 @@
 /*
- * outputapi.h
+ *  epanet_output.h - EPANET Output API
  *
  *  Created on: Jun 4, 2014
- *      Author: mtryby
+ *
+ *      Author: Michael E. Tryby
+ *              US EPA - ORD/NRMRL
  */
 
-#ifndef OUTPUTAPI_H_
-#define OUTPUTAPI_H_
+#ifndef EPANET_OUTPUT_H_
+#define EPANET_OUTPUT_H_
 /* Epanet Results binary file API */
 
 #define MAXFNAME     259   // Max characters in file name
@@ -16,7 +18,7 @@
 typedef void* ENR_Handle;
 
 typedef enum {
-	ENR_node = 1,
+    ENR_node = 1,
     ENR_link = 2
 } ENR_ElementType;
 
@@ -24,17 +26,9 @@ typedef enum {
     ENR_getSeries    = 1,
     ENR_getAttribute = 2,
     ENR_getResult    = 3,
-	ENR_getReacts    = 4,
-	ENR_getEnergy    = 5
+    ENR_getReacts    = 4,
+    ENR_getEnergy    = 5
 } ENR_ApiFunction;
-
-typedef enum {
-    ENR_nodeCount  = 1,
-    ENR_tankCount  = 2,
-    ENR_linkCount  = 3,
-    ENR_pumpCount  = 4,
-    ENR_valveCount = 5
-} ENR_ElementCount;
 
 typedef enum {
     ENR_flowUnits   = 1,
@@ -42,10 +36,10 @@ typedef enum {
 } ENR_Units;
 
 typedef enum {
-	ENR_reportStart = 1,
-	ENR_reportStep  = 2,
-	ENR_simDuration = 3,
-	ENR_numPeriods  = 4
+    ENR_reportStart = 1,
+    ENR_reportStep  = 2,
+    ENR_simDuration = 3,
+    ENR_numPeriods  = 4
 }ENR_Time;
 
 typedef enum {
@@ -68,19 +62,18 @@ typedef enum {
 
 
 #ifdef WINDOWS
-  #ifdef __cplusplus
-  #define DLLEXPORT extern "C" __declspec(dllexport) __stdcall
-  #else
-  #define DLLEXPORT __declspec(dllexport) __stdcall
-  #endif
+#ifdef __cplusplus
+#define DLLEXPORT __declspec(dllexport) __cdecl
 #else
-  #ifdef __cplusplus
-  #define DLLEXPORT extern "C"
-  #else
-  #define DLLEXPORT
-  #endif
+#define DLLEXPORT __declspec(dllexport) __stdcall
+#endif
+#else
+#define DLLEXPORT
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int DLLEXPORT ENR_init(ENR_Handle* p_handle_out);
 
@@ -88,37 +81,38 @@ int DLLEXPORT ENR_open(ENR_Handle p_handle_in, const char* path);
 
 int DLLEXPORT ENR_getVersion(ENR_Handle p_handle_in, int* int_out);
 
-int DLLEXPORT ENR_getNetSize(ENR_Handle p_handle_in, ENR_ElementCount t_enum, int* int_out);
+int DLLEXPORT ENR_getNetSize(ENR_Handle p_handle_in, int** int_out, int* int_dim);
 
 int DLLEXPORT ENR_getUnits(ENR_Handle p_handle_in, ENR_Units t_enum, int* int_out);
 
 int DLLEXPORT ENR_getTimes(ENR_Handle p_handle_in, ENR_Time t_enum, int* int_out);
 
 int DLLEXPORT ENR_getElementName(ENR_Handle p_handle_in, ENR_ElementType t_enum,
-		int elementIndex, char** string_out);
+        int elementIndex, char** string_out, int* slen);
 
 int DLLEXPORT ENR_getEnergyUsage(ENR_Handle p_handle_in, int pumpIndex,
-		int* int_out, float** float_out, int* int_dim);
+        int* int_out, float** float_out, int* int_dim);
 
 int DLLEXPORT ENR_getNetReacts(ENR_Handle p_handle_in, float** float_out, int* int_dim);
 
+
 int DLLEXPORT ENR_getNodeSeries(ENR_Handle p_handle_in, int nodeIndex, ENR_NodeAttribute t_enum,
-        int startPeriod, int endPeriod, float** ARGOUTVIEWM_ARRAY1, int* DIM1);
+        int startPeriod, int endPeriod, float** outValueSeries, int* dim);
 
 int DLLEXPORT ENR_getLinkSeries(ENR_Handle p_handle_in, int linkIndex, ENR_LinkAttribute t_enum,
-        int startPeriod, int endPeriod, float** ARGOUTVIEWM_ARRAY1, int* DIM1);
+        int startPeriod, int endPeriod, float** outValueSeries, int* dim);
 
 int DLLEXPORT ENR_getNodeAttribute(ENR_Handle p_handle_in, int periodIndex,
-        ENR_NodeAttribute t_enum, float** ARGOUTVIEWM_ARRAY1, int* DIM1);
+        ENR_NodeAttribute t_enum, float** outValueArray, int* dim);
 
 int DLLEXPORT ENR_getLinkAttribute(ENR_Handle p_handle_in, int periodIndex,
-        ENR_LinkAttribute t_enum, float** ARGOUTVIEWM_ARRAY1, int* DIM1);
+        ENR_LinkAttribute t_enum, float** outValueArray, int* dim);
 
 int DLLEXPORT ENR_getNodeResult(ENR_Handle p_handle_in, int periodIndex, int nodeIndex,
-		float** float_out, int* int_dim);
+        float** float_out, int* int_dim);
 
 int DLLEXPORT ENR_getLinkResult(ENR_Handle p_handle_in, int periodIndex, int linkIndex,
-		float** float_out, int* int_dim);
+        float** float_out, int* int_dim);
 
 int DLLEXPORT ENR_close(ENR_Handle* p_handle_out);
 
@@ -128,4 +122,8 @@ void DLLEXPORT ENR_clearError(ENR_Handle p_handle_in);
 
 int DLLEXPORT ENR_checkError(ENR_Handle p_handle_in, char** msg_buffer);
 
-#endif /* OUTPUTAPI_H_ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* EPANET_OUTPUT_H_ */

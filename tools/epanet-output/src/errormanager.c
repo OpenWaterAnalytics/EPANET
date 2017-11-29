@@ -4,11 +4,10 @@
 //
 //   Purpose: Provides a simple interface for managing runtime error messages.
 //
-//   Version:    0.0.0
-//   Date        08/25/2017
+//   Date:       08/25/2017
 //
 //   Author:     Michael E. Tryby
-//               US EPA - NRMRL
+//               US EPA - ORD/NRMRL
 //-----------------------------------------------------------------------------
 #include <stdlib.h>
 #include <string.h>

@@ -2,7 +2,9 @@
  *  errormanager.h
  *
  *  Created on: Aug 25, 2017
- *      Author: mtryby
+ *
+ *      Author: Michael E. Tryby
+ *              US EPA - ORD/NRMRL
  */
 
 #ifndef ERRORMANAGER_H_

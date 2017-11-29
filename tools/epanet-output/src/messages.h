@@ -1,3 +1,11 @@
+/*
+ * messages.h - EPANET
+ *
+ *  Created on: June 1, 2017
+ *
+ *  Author:     Michael E. Tryby
+ *              US EPA - ORD/NRMRL
+ */
 
 #ifndef MESSAGES_H_
 #define MESSAGES_H_

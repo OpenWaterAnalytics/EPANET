@@ -10,8 +10,8 @@ temp/
 *.whl
 
 # SWIG generated files
-outputapi_wrap.c
-outputapi.py
+epanet_output_wrap.c
+epanet_output.py
 
 # C compiler
 *.o
