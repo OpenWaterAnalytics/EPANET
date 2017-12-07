@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
 
+#
+#  __init__.py - nrtest_epanet module
+# 
+#  Author:     Michael E. Tryby
+#              US EPA - ORD/NRMRL
+#
+
+'''
+Numerical regression testing (nrtest) plugin for comparing EPANET binary results 
+files and EPANET text based report files. 
+'''
+
 # system imports
 import itertools as it
 
@@ -8,7 +20,7 @@ import header_detail_footer as hdf
 import numpy as np
 
 # project import
-import epanet_reader as er
+import nrtest_epanet.output_reader as ordr
 
 
 __author__ = "Michael Tryby"
@@ -16,7 +28,7 @@ __copyright__ = "None"
 __credits__ = "Colleen Barr, Maurizio Cingi, Mark Gray, David Hall, Bryant McDonnell"
 __license__ = "CC0 1.0 Universal"
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __date__ = "September 6, 2017"
 
 __maintainer__ = "Michael Tryby"
@@ -52,9 +64,10 @@ def epanet_allclose_compare(path_test, path_ref, rtol, atol):
         AssertionError()
         ...
     '''
-    for test, ref in it.izip(er.reader(path_test), er.reader(path_ref)):
+    for (test, ref) in it.izip(ordr.output_generator(path_test), 
+                               ordr.output_generator(path_ref)):
         
-        if test.size != ref.size:
+        if len(test) != len(ref):
             raise ValueError('Inconsistent lengths')
         
         # Skip over arrays that are equal

@@ -3,6 +3,11 @@
 # 
 #  gen-config.sh - Generates nrtest app configuration file for test executable
 #
+#  Date Created: 10/16/2017
+#
+#  Author:       Michael E. Tryby
+#                US EPA - ORD/NRMRL
+#
 #  Arguments:
 #    1 - absolute path to test executable
 # 

@@ -60,7 +60,7 @@ typedef  int          INT4;
 #define   MISSING   -1.E10
 
 #ifdef M_PI
-  #define M_PI
+  #define   PI        M_PI
 #else
   #define   PI        3.141592654
 #endif

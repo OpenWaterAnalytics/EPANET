@@ -1,8 +1,13 @@
-'''
-Created on Aug 30, 2016
+# -*- coding: utf-8 -*-
 
-@author: mtryby
-'''
+#
+#  setup.py 
+#
+#  Created on  Aug 30, 2016
+#  Author:     Michael E. Tryby
+#              US EPA - ORD/NRMRL
+#
+''' Setup up script for nrtest_epanet package. '''
 
 try: 
     from setuptools import setup
@@ -19,7 +24,7 @@ entry_points = {
 
 setup(
     name='nrtest-epanet',
-    version='0.2.0',
+    version='0.3.0',
     description="EPANET extension for nrtest",
     
     author="Michael E. Tryby",
@@ -28,11 +33,12 @@ setup(
     
     packages=['nrtest_epanet',],
     entry_points=entry_points,
-    include_package_data=True,
+
     install_requires=[
         'header_detail_footer>=2.3',
         'nrtest>=0.2.0',
-        'numpy>=1.6.0',
-        'epanet_reader>=0.2.0',
-    ]
+        'numpy>=1.7.0',
+        'epanet_output>=0.4.0'
+    ],
+    keywords='nrtest_epanet'  
 )

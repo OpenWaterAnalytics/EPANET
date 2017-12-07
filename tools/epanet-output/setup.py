@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 #
 # setup.py 
-#
-# Setup up script for outputapi python extension
+# 
+# Created:    9/20/2017
+# Author:     Michael E. Tryby
+#             US EPA - ORD/NRMRL
+# 
+# Setup up script for en_outputapi python extension
 #
 # Requires:
 #   Platform C language compiler   
@@ -16,38 +20,20 @@ except ImportError:
     from distutils.core import setup, Extension
     from distutils.command.build_ext import build_ext
 
-class CustomBuildExtCommand(build_ext):
-    """build_ext command for use when numpy headers are needed."""
-    def run(self):
-        # Import numpy here, only when headers are needed
-        import numpy
-
-        # Add numpy headers to include_dirs
-        try:
-            numpy_include = numpy.get_include()
-        except AttributeError:
-            numpy_include = numpy.get_numpy_include()
-
-        self.include_dirs.append(numpy_include)
-        
-        # Call original build_ext command
-        build_ext.run(self)    
-
 setup(
-    name = "outputapi", 
-    cmdclass = {'build_ext': CustomBuildExtCommand}, 
+    name = "epanet-output", 
     version = "1.0",
     ext_modules = [
-        Extension("_outputapi", 
-            sources = ['src/outputapi.i', 'src/outputapi.c', 'src/errormanager.c'],
+        Extension("_epanet_output",
+            sources = ['src/epanet_output.i', 'src/epanet_output.c', 'src/errormanager.c'],
             swig_opts=['-modern'],
-            language='C'
+            language = 'C'
         )
     ],
     package_dir = {'':'src'},  
-    py_modules = ['outputapi'],
+    py_modules = ['epanet_output'],
       
     install_requires = [
-        'numpy>=1.6.0'
+        'enum34'
     ]
 )
