@@ -172,6 +172,7 @@ int  tankdata()
          t = findID(Tok[7],Curvelist);
          if (t == NULL) return(202);
          vcurve = t->i;
+         Curve[t->i].Type = V_CURVE;
       }
    }
 
@@ -458,6 +459,7 @@ int  valvedata()
       t = findID(Tok[5],Curvelist);
       if (t == NULL) return(206);
       setting = t->i;
+      Curve[t->i].Type = H_CURVE;
 
 /*** Updated 9/7/00 ***/
       status = OPEN;
@@ -1229,6 +1231,7 @@ int  energydata()
          t = findID(Tok[n-1],Curvelist);         /* Check if curve exists */ 
          if (t == NULL) return(217);
          Pump[j].Ecurve = t->i;
+         Curve[t->i].Type = E_CURVE;
       }
       return(0);
    }

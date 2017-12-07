@@ -882,6 +882,69 @@ int DLLEXPORT ENgetflowunits(int *code)
    return(0);
 }
 
+int DLLEXPORT ENsetflowunits(int code)
+{
+   int i, j;
+   double qfactor, vfactor, hfactor, efactor, xfactor, yfactor;
+   if (!Openflag) return(102);
+   
+   /* Determine unit system based on flow units */
+   qfactor = Ucf[FLOW];
+   vfactor = Ucf[VOLUME];
+   hfactor = Ucf[HEAD];
+   efactor = Ucf[ELEV];
+   Flowflag = code;
+   switch (Flowflag)
+   {
+      case LPS:          /* Liters/sec */
+      case LPM:          /* Liters/min */
+      case MLD:          /* megaliters/day  */
+      case CMH:          /* cubic meters/hr */
+      case CMD:          /* cubic meters/day */
+         Unitsflag = SI;
+         break;
+      default:
+         Unitsflag = US;
+   }
+
+   /* Revise pressure units depending on flow units */
+   if (Unitsflag != SI) Pressflag = PSI;
+   else if (Pressflag == PSI) Pressflag = METERS;
+   
+   initunits();
+   
+   //update curves
+   for (i=1; i<=Ncurves; i++)
+   {
+      switch (Curve[i].Type)
+      {
+         case V_CURVE:
+            xfactor = efactor/Ucf[ELEV];
+            yfactor = vfactor/Ucf[VOLUME];
+            break;
+         case H_CURVE:
+         case P_CURVE:
+            xfactor = qfactor/Ucf[FLOW];
+            yfactor = hfactor/Ucf[HEAD];
+            break;
+         case E_CURVE:
+            xfactor = qfactor/Ucf[FLOW];
+            yfactor = 1;
+            break;
+         default:
+            xfactor = 1;
+            yfactor = 1;
+      }
+      
+      for (j=0; j<Curve[i].Npts; j++)
+        {
+          Curve[i].X[j] = Curve[i].X[j]/xfactor;
+          Curve[i].Y[j] = Curve[i].Y[j]/yfactor;
+        }
+   }
+
+   return(0);
+}
 
 int  DLLEXPORT  ENgetpatternindex(char *id, int *index)
 {
@@ -1492,8 +1555,8 @@ int  DLLEXPORT ENgetcurve(int curveIndex, char *id, int *nValues, EN_API_FLOAT_T
   pointY = calloc(nPoints, sizeof(EN_API_FLOAT_TYPE));
   
   for (iPoint = 0; iPoint < nPoints; iPoint++) {
-    double x = curve.X[iPoint] * Ucf[LENGTH];
-    double y = curve.Y[iPoint] * Ucf[VOLUME];
+    double x = curve.X[iPoint];
+    double y = curve.Y[iPoint];
     pointX[iPoint] = (EN_API_FLOAT_TYPE)x;
     pointY[iPoint] = (EN_API_FLOAT_TYPE)y;
   }
@@ -2073,6 +2136,7 @@ int  DLLEXPORT  ENaddcurve(char *id)
     {
         strcpy(tmpCur[i].ID, Curve[i].ID);
         tmpCur[i].Npts  = Curve[i].Npts;
+        tmpCur[i].Type  = Curve[i].Type;
         tmpCur[i].X = (double *) calloc(Curve[i].Npts, sizeof(double));
         tmpCur[i].Y = (double *) calloc(Curve[i].Npts, sizeof(double));
         if (tmpCur[i].X == NULL) err = 1;
@@ -2088,6 +2152,7 @@ int  DLLEXPORT  ENaddcurve(char *id)
 
     strcpy(tmpCur[n].ID, id); 
     tmpCur[n].Npts = 1;
+    tmpCur[n].Type = -1;
     tmpCur[n].X = (double *) calloc(tmpCur[n].Npts, sizeof(double));
     tmpCur[n].Y = (double *) calloc(tmpCur[n].Npts, sizeof(double));
     if (tmpCur[n].X == NULL) err = 1;

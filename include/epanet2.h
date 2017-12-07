@@ -487,6 +487,13 @@ extern "C" {
    @return Error code
    */
   int  DLLEXPORT ENgetflowunits(int *code);
+
+  /**
+   @brief Sets the flow units code
+   @param Code of flow units to be used
+   @return Error code
+   */
+  int  DLLEXPORT ENsetflowunits(int code);
   
   /**
    @brief Retrieves the index of the time pattern with specified ID
