@@ -1,0 +1,7 @@
+{
+	"name" : "epanet",
+	"version" : "2.0.12", 
+	"description" : "Windows, MS VC 2010, 32 Bit",
+	"setup_script" : "",
+	"exe" : "./epanet2012.exe"
+}

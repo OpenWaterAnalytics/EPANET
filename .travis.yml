@@ -1,12 +1,25 @@
-language: c
+language: python
+
+env: 
+  global: 
+    - EPANET_HOME=`pwd`
+    - BUILD_HOME=buildproducts
+    - TEST_HOME=tests/epanet-nrtestsuite
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y swig 
+
+install:
+  - pip install --src build/packages -r tools/requirements.txt
 
 before_script:
-  - cd build/CMake
-  - mkdir buildproducts
-  - cd buildproducts
+  - mkdir -p $BUILD_HOME
+  - cd $BUILD_HOME
   - cmake ..
 
 script:
   - make
-  - cd ../../../tests
-  - ./test_networks.sh
+  - cd $EPANET_HOME
+  - tools/gen-config.sh $EPANET_HOME/$BUILD_HOME/bin > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
+  - tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT

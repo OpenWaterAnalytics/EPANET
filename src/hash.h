@@ -24,5 +24,7 @@ int     ENHashTableInsert(ENHashTable *, char *, int);
 int     ENHashTableFind(ENHashTable *, char *);
 char    *ENHashTableFindKey(ENHashTable *, char *);
 void    ENHashTableFree(ENHashTable *);
+int     ENHashTableUpdate(ENHashTable *ht, char *key, int new_data);
+int     ENHashTableDelete(ENHashTable *ht, char *key);
 	
 #endif

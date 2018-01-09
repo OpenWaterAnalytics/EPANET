@@ -1,0 +1,42 @@
+{
+    "Application": {
+        "description": "Windows, MS VC 2010, 32 Bit",
+        "name": "epanet",
+        "version": "2.0.12"
+    },
+    "Tests": [
+        {
+            "description": "A simple example of modeling chlorine decay",
+            "error_msg": null,
+            "name": "Example 1",
+            "output_files": {
+                "example1.out": "epanet allclose",
+                "example1.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
+        },
+        {
+            "description": "Example of modeling a 55-hour fluoride tracer study.",
+            "error_msg": null,
+            "name": "Example 2",
+            "output_files": {
+                "example2.out": "epanet allclose",
+                "example2.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
+        },
+        {
+            "description": "Dual-source system example",
+            "error_msg": null,
+            "name": "Example 3",
+            "output_files": {
+                "example3.out": "epanet allclose",
+                "example3.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
+        }
+    ]
+}
