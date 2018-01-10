@@ -50,6 +50,9 @@ IF(APPLE)
   SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 ENDIF(APPLE)
 
+# Suppresses MSVC insecure string warnings 
+add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+
 # create object library for reuse in other targets
 include_directories(include)
 file(GLOB EPANET_SOURCES src/*.c)
