@@ -7,13 +7,10 @@
 #          US EPA - ORD/NRMRL
 # 
 
-
 version: 2.0.{build} 
-
 
 image: 
   - Visual Studio 2013
-
 
 # called before repo cloning
 init: 
@@ -28,16 +25,14 @@ init:
 install: 
   - python -m pip install --src %BUILD_HOME%\packages -r tools\requirements.txt
 
-
 # called before build
 before_build:
   - cd %BUILD_HOME%
-  - cmake -G GENERATOR -DCMAKE_BUILD_TYPE=Release ..
+  - cmake -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release ..
 
 # run custom build script
 build_script: 
   - cmake --build . --target runepanet --config Release 
-
 
 before_test:
   - cd %EPANET_HOME%
