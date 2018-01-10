@@ -33,7 +33,7 @@ install:
 # called before build
 before_build:
   - cd %BUILD_HOME%
-  - cmake -G %GENERATOR% -D_CRT_SECURE_NO_DEPRECATE -DCMAKE_BUILD_TYPE=Release ..
+  - cmake -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release ..
 
 # run custom build script
 build_script: 
