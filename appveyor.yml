@@ -11,11 +11,6 @@
 version: 2.0.{build} 
 
 
-branches: 
-  only: 
-    - feature-wrapper
-
-
 image: 
   - Visual Studio 2013
 
