@@ -36,8 +36,8 @@ build_script:
 
 before_test:
   - cd %EPANET_HOME%
-  - tools/gen-config.cmd %EPANET_HOME%\%BUILD_HOME%\bin\Release > %TEST_HOME%\apps\epanet-%APPVEYOR_REPO_COMMIT%.json 
+  - tools\gen-config.cmd %EPANET_HOME%\%BUILD_HOME%\bin\Release > %TEST_HOME%\apps\epanet-%APPVEYOR_REPO_COMMIT%.json 
 
 # run custom test script
 test_script:
-  - tools/run-nrtest.cmd %NRTEST_SCRIPT% %TEST_HOME% %APPVEYOR_REPO_COMMIT%
+  - tools\run-nrtest.cmd %NRTEST_SCRIPT% %TEST_HOME% %APPVEYOR_REPO_COMMIT%
