@@ -26,13 +26,19 @@
 #   cmake -G "Visual Studio 10 2010" ..
 #   msbuild /p:Configuration=Release ALL_BUILD.vcxproj
 #
+# Generic Invocation:
+#   cmake -E make_directory buildprod
+#   cd build
+#   cmake -G GENERATOR -DCMAKE_BUILD_TYPE=Release ../source
+#   cmake --build . --target SOME_TARGET --config Release
+#
 # More information:
 #   cmake --help
 # 
 #   CMake is available at https://cmake.org/download/
 # 
 
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8.8)
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
@@ -44,12 +50,17 @@ IF(APPLE)
   SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 ENDIF(APPLE)
 
-# the library
+# create object library for reuse in other targets
 include_directories(include)
 file(GLOB EPANET_SOURCES src/*.c)
-add_library(epanet STATIC  ${EPANET_SOURCES})
+add_library(epanet_objs OBJECT ${EPANET_SOURCES})
+
+# the library
+add_library(epanet SHARED  $<TARGET_OBJECTS:epanet_objs>)
 
 # the standalone executable
 include_directories(src)
-add_executable(runepanet run/main.c)
-target_link_libraries (runepanet LINK_PUBLIC epanet m)
+add_executable(runepanet run/main.c $<TARGET_OBJECTS:epanet_objs>)
+if (NOT MSVC)
+    target_link_libraries (runepanet m)    
+endif (NOT MSVC)
