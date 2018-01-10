@@ -22,6 +22,11 @@ init:
   - set NRTEST_SCRIPT=%EPANET_HOME%\%BUILD_HOME%\packages\nrtest\scripts
   - set GENERATOR="Visual Studio 10 2010"
 
+cache: 
+  - C:\ProgramData\chocolately\bin -> appveyor.yml
+  - C:\ProgramData\chocolately\lib -> appveyor.yml
+  - '%BUILD_HOME% -> CMakeLists.txt'
+
 # called after repo clone
 install: 
   - python -m pip install --src %BUILD_HOME%\packages -r tools\requirements.txt
