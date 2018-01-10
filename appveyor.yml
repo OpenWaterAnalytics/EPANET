@@ -14,27 +14,26 @@ image:
 
 # called before repo cloning
 init: 
-  - choco install swig
   - set EPANET_HOME=%APPVEYOR_BUILD_FOLDER%
-  - echo %EPANET_HOME%
   - set BUILD_HOME=buildprod
   - set TEST_HOME=tests\epanet-nrtestsuite
   - set NRTEST_SCRIPT=%EPANET_HOME%\%BUILD_HOME%\packages\nrtest\scripts
   - set GENERATOR="Visual Studio 10 2010"
 
 cache: 
-  - C:\ProgramData\chocolately\bin -> appveyor.yml
-  - C:\ProgramData\chocolately\lib -> appveyor.yml
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
   - '%BUILD_HOME% -> CMakeLists.txt'
 
 # called after repo clone
 install: 
+  - choco install swig
   - python -m pip install --src %BUILD_HOME%\packages -r tools\requirements.txt
 
 # called before build
 before_build:
   - cd %BUILD_HOME%
-  - cmake -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release ..
+  - cmake -G %GENERATOR% -D_CRT_SECURE_NO_DEPRECATE -DCMAKE_BUILD_TYPE=Release ..
 
 # run custom build script
 build_script: 
