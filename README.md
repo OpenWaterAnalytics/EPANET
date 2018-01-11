@@ -1,7 +1,7 @@
 EPANET {#epanet-readme}
 ======
 
-##Build Status
+## Build Status
 [![Build status](https://ci.appveyor.com/api/projects/status/eitwkr1f9jhj5m3a/branch/dev?svg=true)](https://ci.appveyor.com/project/OpenWaterAnalytics/epanet/branch/dev)
 [![Build Status](https://travis-ci.org/OpenWaterAnalytics/EPANET.svg?branch=master)](https://travis-ci.org/OpenWaterAnalytics/EPANET)
 
