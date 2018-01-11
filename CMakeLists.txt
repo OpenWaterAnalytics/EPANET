@@ -46,13 +46,15 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-IF(APPLE)
+IF (APPLE)
   SET(CMAKE_INSTALL_NAME_DIR @executable_path)
   SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
-ENDIF(APPLE)
+ENDIF (APPLE)
 
-# Suppresses MSVC insecure string warnings 
-add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+IF (MSVC)
+  set(CMAKE_C_FLAGS_RELEASE "/GL")
+  add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+ENDIF (MSVC)
 
 # create object library for reuse in other targets
 include_directories(include)
