@@ -47,7 +47,11 @@ ENDIF(APPLE)
 # the library
 include_directories(include)
 file(GLOB EPANET_SOURCES src/*.c)
-add_library(epanet STATIC  ${EPANET_SOURCES})
+file(GLOB EPANET_HEADERS src/*.h)
+file(GLOB EPANET_DATA src/*.dat)
+set(EPANET_API_HEADER "include/epanet2.h")
+
+add_library(epanet STATIC ${EPANET_SOURCES} ${EPANET_HEADERS} ${EPANET_DATA} ${EPANET_API_HEADER})
 
 # the standalone executable
 include_directories(src)
