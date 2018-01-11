@@ -58,7 +58,7 @@ ENDIF (MSVC)
 
 # create object library for reuse in other targets
 include_directories(include)
-file(GLOB EPANET_SOURCES src/*.c)
+file(GLOB EPANET_SOURCES src/*)
 add_library(epanet_objs OBJECT ${EPANET_SOURCES})
 
 # the library
