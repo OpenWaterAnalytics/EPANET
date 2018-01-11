@@ -29,7 +29,7 @@
 # Generic Invocation:
 #   cmake -E make_directory buildprod
 #   cd build
-#   cmake -G GENERATOR -DCMAKE_BUILD_TYPE=Release ../source
+#   cmake -G GENERATOR -DCMAKE_BUILD_TYPE=Release ..
 #   cmake --build . --target SOME_TARGET --config Release
 #
 # More information:
@@ -40,10 +40,11 @@
 
 cmake_minimum_required (VERSION 2.8.8)
 
+project(EPANET)
+
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-
-project(EPANET)
+SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 IF(APPLE)
   SET(CMAKE_INSTALL_NAME_DIR @executable_path)
