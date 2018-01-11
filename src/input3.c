@@ -198,9 +198,11 @@ int tankdata(EN_Project *pr)
     /* If volume curve supplied check it exists */
     if (n == 8) {
       t = findID(par->Tok[7], par->Curvelist);
-      if (t == NULL)
+      if (t == NULL) {
         return (202);
+      }
       vcurve = t->i;
+      net->Curve[t->i].Type = V_CURVE;
     }
   }
 
@@ -529,16 +531,16 @@ int valvedata(EN_Project *pr)
     return (202);
   if (diam <= 0.0)
     return (202);     /* Illegal diameter.*/
-  if (type == EN_GPV) /* Headloss curve for GPV */
-  {
+  if (type == EN_GPV) { /* Headloss curve for GPV */
     t = findID(par->Tok[5], par->Curvelist);
-    if (t == NULL)
+    if (t == NULL) {
       return (206);
+    }
     setting = t->i;
+    net->Curve[t->i].Type = H_CURVE;
 
     /*** Updated 9/7/00 ***/
     status = OPEN;
-
   } else if (!getfloat(par->Tok[5], &setting))
     return (202);
   if (n >= 7 && !getfloat(par->Tok[6], &lcoeff))
@@ -1436,6 +1438,7 @@ int energydata(EN_Project *pr)
       if (t == NULL)
         return (217);
       Pump[j].Ecurve = t->i;
+      net->Curve[t->i].Type = E_CURVE;
     }
     return (0);
   }

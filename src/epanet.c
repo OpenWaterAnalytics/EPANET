@@ -223,6 +223,9 @@ int DLLEXPORT ENgettimeparam(int code, long *value) {
 int DLLEXPORT ENgetflowunits(int *code) {
   return EN_getflowunits(_defaultModel, code);
 }
+int DLLEXPORT ENsetflowunits(int code) {
+  return EN_setflowunits(_defaultModel, code);
+}
 int DLLEXPORT ENgetpatternindex(char *id, int *index) {
   return EN_getpatternindex(_defaultModel, id, index);
 }
@@ -1326,6 +1329,80 @@ int DLLEXPORT EN_getflowunits(EN_Project *p, int *code) {
     return (102);
   *code = p->parser.Flowflag;
   return (0);
+}
+
+int DLLEXPORT EN_setflowunits(EN_Project *p, int code) {
+  int i, j;
+  double qfactor, vfactor, hfactor, efactor, xfactor, yfactor;
+  double *Ucf = p->Ucf;
+  EN_Network *net = &p->network;
+  
+  if (!p->Openflag) { 
+    return(102);
+  }
+  
+  /* Determine unit system based on flow units */
+  qfactor = Ucf[FLOW];
+  vfactor = Ucf[VOLUME];
+  hfactor = Ucf[HEAD];
+  efactor = Ucf[ELEV];
+  
+  p->parser.Flowflag = code;
+  switch (code)
+  {
+    case LPS:          /* Liters/sec */
+    case LPM:          /* Liters/min */
+    case MLD:          /* megaliters/day  */
+    case CMH:          /* cubic meters/hr */
+    case CMD:          /* cubic meters/day */
+      p->parser.Unitsflag = SI;
+      break;
+    default:
+      p->parser.Unitsflag = US;
+      break;
+  }
+  
+  /* Revise pressure units depending on flow units */
+  if (p->parser.Unitsflag != SI) { 
+    p->parser.Pressflag = PSI;
+  }
+  else if (p->parser.Pressflag == PSI) { 
+    p->parser.Pressflag = METERS;
+  }
+  
+  initunits(p);
+  
+  //update curves
+  for (i=1; i <= net->Ncurves; i++)
+  {
+    switch (net->Curve[i].Type)
+    {
+      case V_CURVE:
+        xfactor = efactor/Ucf[ELEV];
+        yfactor = vfactor/Ucf[VOLUME];
+        break;
+      case H_CURVE:
+      case P_CURVE:
+        xfactor = qfactor/Ucf[FLOW];
+        yfactor = hfactor/Ucf[HEAD];
+        break;
+      case E_CURVE:
+        xfactor = qfactor/Ucf[FLOW];
+        yfactor = 1;
+        break;
+      default:
+        xfactor = 1;
+        yfactor = 1;
+    }
+    
+    for (j=0; j < net->Curve[i].Npts; j++)
+    {
+      net->Curve[i].X[j] = net->Curve[i].X[j]/xfactor;
+      net->Curve[i].Y[j] = net->Curve[i].Y[j]/yfactor;
+    }
+  }
+  
+  return(0);
 }
 
 int DLLEXPORT EN_getpatternindex(EN_Project *p, char *id, int *index) {
@@ -2757,6 +2834,7 @@ int DLLEXPORT EN_addcurve(EN_Project *p, char *id) {
 
   strcpy(tmpCur[n].ID, id);
   tmpCur[n].Npts = 1;
+  tmpCur[n].Type = -1;
   tmpCur[n].X = (double *)calloc(tmpCur[n].Npts, sizeof(double));
   tmpCur[n].Y = (double *)calloc(tmpCur[n].Npts, sizeof(double));
   if (tmpCur[n].X == NULL)

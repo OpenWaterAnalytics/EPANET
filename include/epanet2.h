@@ -514,6 +514,13 @@ extern "C" {
   int  DLLEXPORT ENgetflowunits(int *code);
   
   /**
+   @brief Sets the flow units
+   @param code Code of flow units to use
+   @return Error code
+   */
+  int  DLLEXPORT ENsetflowunits(int code);
+  
+  /**
    @brief Retrieves the index of the time pattern with specified ID
    @param id String ID of the time pattern
    @param[out] index Index of the specified time pattern
@@ -1149,6 +1156,7 @@ extern "C" {
   int DLLEXPORT EN_getoption(EN_Project *p, EN_Option opt, EN_API_FLOAT_TYPE *value);
   int DLLEXPORT EN_gettimeparam(EN_Project *p, int code, long *value);
   int DLLEXPORT EN_getflowunits(EN_Project *p, int *code);
+  int DLLEXPORT EN_setflowunits(EN_Project *p, int code);
   int DLLEXPORT EN_getpatternindex(EN_Project *p, char *id, int *index);
   int DLLEXPORT EN_getpatternid(EN_Project *p, int index, char *id);
   int DLLEXPORT EN_getpatternlen(EN_Project *p, int index, int *len);
