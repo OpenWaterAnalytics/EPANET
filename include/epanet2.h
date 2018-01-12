@@ -43,7 +43,7 @@
 #ifndef DLLEXPORT
   #ifdef WINDOWS
     #ifdef __cplusplus
-      #define DLLEXPORT extern "C" __declspec(dllexport)
+      #define DLLEXPORT __declspec(dllexport)
     #else
       #define DLLEXPORT __declspec(dllexport) __stdcall
     #endif // __cplusplus
@@ -266,6 +266,7 @@ extern "C" {
   /**
    @brief The EPANET Project wrapper object
    */
+  typedef void* EN_ProjectHandle;
   typedef struct EN_Project EN_Project;
   typedef struct EN_Pattern EN_Pattern;
   typedef struct EN_Curve EN_Curve;
@@ -1117,14 +1118,22 @@ extern "C" {
    Threadsafe versions of all epanet functions
    
    ***************************************************/
-  int DLLEXPORT EN_alloc(EN_Project **p);
-  int DLLEXPORT EN_free(EN_Project *p);
-  int DLLEXPORT EN_epanet(char *inpFile, char *rptFile, char *binOutFile, void (*callback) (char *));
-  int DLLEXPORT EN_init(EN_Project *p, char *rptFile, char *binOutFile, EN_FlowUnits UnitsType, EN_FormType HeadlossFormula);
-  int DLLEXPORT EN_open(EN_Project *p, char *inpFile, char *rptFile, char *binOutFile);
+  int DLLEXPORT EN_alloc(EN_ProjectHandle *ph);
+  int DLLEXPORT EN_free(EN_ProjectHandle ph);
+
+  int DLLEXPORT EN_epanet(char *inpFile, char *rptFile, char *binOutFile,
+          void (*callback) (char *));
+  int DLLEXPORT EN_init(EN_Project *p, char *rptFile, char *binOutFile,
+          EN_FlowUnits UnitsType, EN_FormType HeadlossFormula);
+
+  int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *inpFile,
+          const char *rptFile, const char *binOutFile);
+
   int DLLEXPORT EN_saveinpfile(EN_Project *p, char *filename);
-  int DLLEXPORT EN_close(EN_Project *p);
-  int DLLEXPORT EN_solveH(EN_Project *p);
+
+  int DLLEXPORT EN_close(EN_ProjectHandle ph);
+  int DLLEXPORT EN_solveH(EN_ProjectHandle ph);
+
   int DLLEXPORT EN_saveH(EN_Project *p);
   int DLLEXPORT EN_openH(EN_Project *p);
   int DLLEXPORT EN_initH(EN_Project *p, int EN_SaveOption);
@@ -1133,7 +1142,9 @@ extern "C" {
   int DLLEXPORT EN_closeH(EN_Project *p);
   int DLLEXPORT EN_savehydfile(EN_Project *p, char *filename);
   int DLLEXPORT EN_usehydfile(EN_Project *p, char *filename);
-  int DLLEXPORT EN_solveQ(EN_Project *p);
+
+  int DLLEXPORT EN_solveQ(EN_ProjectHandle ph);
+
   int DLLEXPORT EN_openQ(EN_Project *p);
   int DLLEXPORT EN_initQ(EN_Project *p, int saveFlag);
   int DLLEXPORT EN_runQ(EN_Project *p, long *currentTime);
@@ -1141,7 +1152,9 @@ extern "C" {
   int DLLEXPORT EN_stepQ(EN_Project *p, long *timeLeft);
   int DLLEXPORT EN_closeQ(EN_Project *p);
   int DLLEXPORT EN_writeline(EN_Project *p, char *line);
-  int DLLEXPORT EN_report(EN_Project *p);
+
+  int DLLEXPORT EN_report(EN_ProjectHandle ph);
+
   int DLLEXPORT EN_resetreport(EN_Project *p);
   int DLLEXPORT EN_setreport(EN_Project *p, char *reportFormat);
   int DLLEXPORT EN_getcontrol(EN_Project *p, int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level);
@@ -1212,10 +1225,6 @@ extern "C" {
   int DLLEXPORT EN_addlink(EN_Project *p, char *id, EN_LinkType linkType, char *fromNode, char *toNode);
   int DLLEXPORT EN_deletenode(EN_Project *p, int nodeIndex);
   int DLLEXPORT EN_deletelink(EN_Project *p, int linkIndex);
-  
-  
-  
-  
   
   
 #if defined(__cplusplus)

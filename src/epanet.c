@@ -151,30 +151,40 @@ execute function x and set the error code equal to its return value.
  **  needed then the argument should be NULL.
  **-------------------------------------------------------------------------
  */
-int DLLEXPORT ENepanet(char *f1, char *f2, char *f3,
-                       void (*pviewprog)(char *)) {
+int DLLEXPORT ENepanet(char *f1, char *f2, char *f3, void (*pviewprog)(char *))
+{
   int errcode = 0;
+  EN_Project* _p;
+
+  _p = (EN_Project*)_defaultModel;
+
   ERRCODE(EN_alloc(&_defaultModel));
   ERRCODE(EN_open(_defaultModel, f1, f2, f3));
-  _defaultModel->viewprog = pviewprog;
-  if (_defaultModel->out_files.Hydflag != USE) {
+
+  _p->viewprog = pviewprog;
+  if (_p->out_files.Hydflag != USE) {
     ERRCODE(EN_solveH(_defaultModel));
   }
+
   ERRCODE(EN_solveQ(_defaultModel));
   ERRCODE(EN_report(_defaultModel));
   EN_close(_defaultModel);
   EN_free(_defaultModel);
+
   return (errcode);
 }
+
 int DLLEXPORT ENopen(char *f1, char *f2, char *f3) {
   int errcode = 0;
   ERRCODE(EN_alloc(&_defaultModel));
   EN_open(_defaultModel, f1, f2, f3);
   return (errcode);
 }
+
 int DLLEXPORT ENsaveinpfile(char *filename) {
   return EN_saveinpfile(_defaultModel, filename);
 }
+
 int DLLEXPORT ENclose() { return EN_close(_defaultModel); }
 int DLLEXPORT ENsolveH() { return EN_solveH(_defaultModel); }
 int DLLEXPORT ENsaveH() { return EN_saveH(_defaultModel); }
@@ -446,16 +456,21 @@ int DLLEXPORT ENdeletenode(int index) {
 */
 
 /// allocate a project pointer
-int DLLEXPORT EN_alloc(EN_Project **p)
+int DLLEXPORT EN_alloc(EN_ProjectHandle *ph)
 {
   EN_Project *project = calloc(1, sizeof(EN_Project));
-  *p = project;
+  *ph = project;
+
   return 0;
 }
 
-int DLLEXPORT EN_free(EN_Project *p) 
+int DLLEXPORT EN_free(EN_ProjectHandle ph)
 {
+  EN_Project* p;
+  p = (EN_Project*)ph;
+
   free(p);
+
   return 0;
 }
 
@@ -518,7 +533,7 @@ int DLLEXPORT EN_init(EN_Project *pr, char *f2, char *f3,
   return (errcode);
 }
 
-int DLLEXPORT EN_open(EN_Project *p, char *f1, char *f2, char *f3)
+int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const char *f3)
 /*----------------------------------------------------------------
  **  Input:   f1 = pointer to name of input file
  **           f2 = pointer to name of report file
@@ -536,6 +551,9 @@ int DLLEXPORT EN_open(EN_Project *p, char *f1, char *f2, char *f3)
 #ifdef DLL
   _fpreset();
 #endif
+
+  EN_Project* p;
+  p = (EN_Project*)ph;
 
   /* Set system flags */
   p->Openflag = FALSE;
@@ -605,7 +623,7 @@ int DLLEXPORT EN_saveinpfile(EN_Project *p, char *filename)
   return (saveinpfile(p, filename));
 }
 
-int DLLEXPORT EN_close(EN_Project *p)
+int DLLEXPORT EN_close(EN_ProjectHandle ph)
 /*----------------------------------------------------------------
  **  Input:   none
  **  Output:  none
@@ -615,6 +633,9 @@ int DLLEXPORT EN_close(EN_Project *p)
  */
 {
   out_file_t *out;
+  EN_Project* p;
+
+  p = (EN_Project*)ph;
   
   if (p->Openflag) {
     writetime(p, FMT105);
@@ -667,7 +688,7 @@ int DLLEXPORT EN_close(EN_Project *p)
  ----------------------------------------------------------------
  */
 
-int DLLEXPORT EN_solveH(EN_Project *p)
+int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
 /*----------------------------------------------------------------
  **  Input:   none
  **  Output:  none
@@ -678,6 +699,9 @@ int DLLEXPORT EN_solveH(EN_Project *p)
 {
   int errcode;
   long t, tstep;
+  EN_Project* p;
+
+  p = (EN_Project*)ph;
 
   /* Open hydraulics solver */
   errcode = EN_openH(p);
@@ -922,9 +946,12 @@ int DLLEXPORT EN_usehydfile(EN_Project *p, char *filename) {
  ----------------------------------------------------------------
  */
 
-int DLLEXPORT EN_solveQ(EN_Project *p) {
+int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
   int errcode;
   long t, tstep;
+  EN_Project* p;
+
+  p = (EN_Project*)ph;
 
   /* Open WQ solver */
   errcode = EN_openQ(p);
@@ -1070,8 +1097,11 @@ int DLLEXPORT EN_writeline(EN_Project *p, char *line) {
   return (0);
 }
 
-int DLLEXPORT EN_report(EN_Project *p) {
+int DLLEXPORT EN_report(EN_ProjectHandle ph) {
   int errcode;
+  EN_Project* p;
+
+  p = (EN_Project*)ph;
 
   /* Check if results saved to binary output file */
   if (!p->save_options.SaveQflag)
