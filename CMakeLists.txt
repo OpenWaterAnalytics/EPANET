@@ -26,34 +26,48 @@
 #   cmake -G "Visual Studio 10 2010" ..
 #   msbuild /p:Configuration=Release ALL_BUILD.vcxproj
 #
+# Generic Invocation:
+#   cmake -E make_directory buildprod
+#   cd build
+#   cmake -G GENERATOR -DCMAKE_BUILD_TYPE=Release ..
+#   cmake --build . --target SOME_TARGET --config Release
+#
 # More information:
 #   cmake --help
 # 
 #   CMake is available at https://cmake.org/download/
 # 
 
-cmake_minimum_required (VERSION 2.6)
-
-SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+cmake_minimum_required (VERSION 2.8.8)
 
 project(EPANET)
 
-IF(APPLE)
+SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+IF (APPLE)
   SET(CMAKE_INSTALL_NAME_DIR @executable_path)
   SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
-ENDIF(APPLE)
+ENDIF (APPLE)
 
-# the library
-include_directories(include)
-file(GLOB EPANET_SOURCES src/*.c)
-file(GLOB EPANET_HEADERS src/*.h)
-file(GLOB EPANET_DATA src/*.dat)
+IF (MSVC)
+  set(CMAKE_C_FLAGS_RELEASE "/GL")
+  add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+ENDIF (MSVC)
+
 set(EPANET_API_HEADER "include/epanet2.h")
 
-add_library(epanet STATIC ${EPANET_SOURCES} ${EPANET_HEADERS} ${EPANET_DATA} ${EPANET_API_HEADER})
+# create object library for reuse in other targets
+include_directories(include; src)
+file(GLOB EPANET_SOURCES src/*.c)
+add_library(epanet_objs OBJECT ${EPANET_SOURCES})
+
+# the shared library
+add_library(epanet SHARED  $<TARGET_OBJECTS:epanet_objs> ${EPANET_API_HEADER})
 
 # the standalone executable
-include_directories(src)
-add_executable(runepanet run/main.c)
-target_link_libraries (runepanet LINK_PUBLIC epanet m)
+add_executable(runepanet run/main.c $<TARGET_OBJECTS:epanet_objs>)
+if (NOT MSVC)
+    target_link_libraries (runepanet m)    
+endif (NOT MSVC)
