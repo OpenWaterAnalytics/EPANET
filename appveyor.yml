@@ -21,9 +21,9 @@ init:
   - set GENERATOR="Visual Studio 10 2010"
 
 cache: 
- # - C:\ProgramData\chocolatey\bin -> appveyor.yml
- # - C:\ProgramData\chocolatey\lib -> appveyor.yml
- # - '%BUILD_HOME% -> CMakeLists.txt'
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
+  - '%BUILD_HOME% -> CMakeLists.txt'
 
 # called after repo clone
 install: 
