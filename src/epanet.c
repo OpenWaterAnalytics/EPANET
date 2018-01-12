@@ -1988,6 +1988,11 @@ int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, EN_LinkProperty code, EN
       getenergy(p, index, &a, &v);
       break;
       
+    case EN_PRICEPATTERN:
+      if (Link[index].Type == EN_PUMP)
+        v = (double)Pump[findpump(&p->network, index)].Epat;
+      break;
+      
     case EN_HEADCURVE:
       if (Link[index].Type == EN_PUMP) {
         v = (double)Pump[findpump(&p->network, index)].Hcurve;
