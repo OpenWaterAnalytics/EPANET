@@ -400,6 +400,7 @@ int getpumpparams(EN_Project *pr)
         return (200);
       }
       curve = &net->Curve[j];
+      curve->Type = P_CURVE;
       n = curve->Npts;
       if (n == 1) {  /* Only a single h-q point supplied so use generic */
         pump->Ptype = POWER_FUNC; /* power function curve.   */
