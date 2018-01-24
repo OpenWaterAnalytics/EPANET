@@ -56,18 +56,26 @@ IF (MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 ENDIF (MSVC)
 
-set(EPANET_API_HEADER "include/epanet2.h")
-
 # create object library for reuse in other targets
-include_directories(include; src)
+include_directories(include src)
+
+# configure file groups
 file(GLOB EPANET_SOURCES src/*.c)
-add_library(epanet_objs OBJECT ${EPANET_SOURCES})
+set(EPANET_API_HEADER include/epanet2.h)
+set(EPANET_CLI_SOURCES run/main.c)
+
+file(GLOB EPANET_LIB_ALL src/*)
+source_group("Library" FILES ${EPANET_LIB_ALL})
+source_group("CLI" REGULAR_EXPRESSION "run/.*")
 
 # the shared library
-add_library(epanet SHARED  $<TARGET_OBJECTS:epanet_objs> ${EPANET_API_HEADER})
+add_library(epanet SHARED ${EPANET_SOURCES} ${EPANET_API_HEADER})
 
 # the standalone executable
-add_executable(runepanet run/main.c $<TARGET_OBJECTS:epanet_objs>)
-if (NOT MSVC)
-    target_link_libraries (runepanet m)    
-endif (NOT MSVC)
+add_executable(runepanet ${EPANET_CLI_SOURCES})
+
+if(NOT MSVC)
+    target_link_libraries(runepanet LINK_PUBLIC epanet m)
+else(NOT MSVC)
+	target_link_libraries(runepanet LINK_PUBLIC epanet)
+endif(NOT MSVC)
