@@ -56,17 +56,19 @@ IF (MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 ENDIF (MSVC)
 
-# create object library for reuse in other targets
-include_directories(include src)
+include_directories(include src tools/epanet-output/src)
 
 # configure file groups
 file(GLOB EPANET_SOURCES src/*.c)
 set(EPANET_API_HEADER include/epanet2.h)
 set(EPANET_CLI_SOURCES run/main.c)
+file(GLOB EPANET_OUT_SOURCES tools/epanet-output/src/*.c)
+set(EPANET_OUT_HEADER tools/epanet-output/src/epanet_output.h)
+file(GLOB EPANET_LIB_ALL src/*.c)
 
-file(GLOB EPANET_LIB_ALL src/*)
 source_group("Library" FILES ${EPANET_LIB_ALL})
 source_group("CLI" REGULAR_EXPRESSION "run/.*")
+source_group("Output" FILES ${EPANET_OUT_SOURCES})
 
 # the shared library
 add_library(epanet SHARED ${EPANET_SOURCES} ${EPANET_API_HEADER})
@@ -79,3 +81,6 @@ if(NOT MSVC)
 else(NOT MSVC)
 	target_link_libraries(runepanet LINK_PUBLIC epanet)
 endif(NOT MSVC)
+
+# the binary hydraulics file API		
+add_library(epanet-output SHARED ${EPANET_OUT_SOURCES} ${EPANET_OUT_HEADERS})
