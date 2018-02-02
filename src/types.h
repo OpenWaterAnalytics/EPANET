@@ -825,7 +825,7 @@ typedef struct {
 
 
 /* project wrapper */
-struct EN_Project {
+typedef struct EN_Project {
   
   EN_Network network; /// the network description struct
   hydraulics_t hydraulics;
@@ -849,9 +849,7 @@ struct EN_Project {
   
   void (* viewprog) (char *);     /* Pointer to progress viewing function */   
   
-};
-
-
+} EN_Project;
 
 
 #endif

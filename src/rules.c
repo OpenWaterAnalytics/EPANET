@@ -114,7 +114,7 @@ int takeactions(EN_Project *pr);
 void clearactlist(rules_t *rules);
 void clearrules(EN_Project *pr);
 void ruleerrmsg(EN_Project *pr, int);
-int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx);
+//int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx);
 
 void initrules(rules_t *rules)
 /*
