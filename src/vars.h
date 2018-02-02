@@ -11,6 +11,6 @@
 
 // this single global variable is used only when the library is called in "legacy mode"
 // with the 2.1-style API. 
-EXTERN void* _defaultModel;
+EXTERN void *_defaultModel;
 
 #endif

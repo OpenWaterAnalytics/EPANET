@@ -266,7 +266,7 @@ extern "C" {
   /**
    @brief The EPANET Project wrapper object
    */
-  typedef void* EN_ProjectHandle;
+  typedef void *EN_ProjectHandle;
 //  typedef struct EN_Project EN_Project;
   typedef struct EN_Pattern EN_Pattern;
   typedef struct EN_Curve EN_Curve;
@@ -1125,10 +1125,10 @@ extern "C" {
    Threadsafe versions of all epanet functions
    
    ***************************************************/
-  int DLLEXPORT EN_alloc(EN_ProjectHandle* ph);
-  int DLLEXPORT EN_free(EN_ProjectHandle* ph);
+  int DLLEXPORT EN_alloc(EN_ProjectHandle *ph);
+  int DLLEXPORT EN_free(EN_ProjectHandle *ph);
 
-  int DLLEXPORT EN_init(EN_ProjectHandle* ph, char *rptFile, char *binOutFile,
+  int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *rptFile, char *binOutFile,
           EN_FlowUnits UnitsType, EN_FormType HeadlossFormula);
 
   int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *inpFile,
