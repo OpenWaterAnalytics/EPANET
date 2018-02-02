@@ -154,11 +154,12 @@ execute function x and set the error code equal to its return value.
 int DLLEXPORT ENepanet(char *f1, char *f2, char *f3, void (*pviewprog)(char *))
 {
   int errcode = 0;
-
-  EN_Project* _p = (EN_Project*)_defaultModel;
+  EN_Project* _p;
 
   ERRCODE(EN_alloc(&_defaultModel));
   ERRCODE(EN_open(_defaultModel, f1, f2, f3));
+  
+  _p = (EN_Project*)_defaultModel;
 
   _p->viewprog = pviewprog;
   if (_p->out_files.Hydflag != USE) {
@@ -468,7 +469,7 @@ int DLLEXPORT EN_alloc(EN_ProjectHandle* ph)
 
 int DLLEXPORT EN_free(EN_ProjectHandle* ph)
 {
-  EN_Project* p = (EN_Project*)*ph;
+  EN_Project* p = (EN_Project*)ph;
 
   free(p);
 
