@@ -8,6 +8,7 @@ env:
 
 before_install:
   - sudo apt-get -qq update
+  - sudo apt-get install -y libboost-test
   - sudo apt-get install -y swig 
 
 install:
