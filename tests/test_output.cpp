@@ -53,6 +53,13 @@ boost::test_tools::predicate_result check_cdd(std::vector<float>& test,
         return std::lround(min_cdd) <= cdd_tol;
 }
 
+boost::test_tools::predicate_result check_string(std::string test, std::string ref)
+{
+    if (ref.compare(test) == 0)
+        return true;
+    else
+        return false;
+}
 
 BOOST_AUTO_TEST_SUITE (test_output_auto)
 
@@ -134,7 +141,9 @@ BOOST_FIXTURE_TEST_CASE(test_getElementName, Fixture) {
     error = ENR_getElementName(p_handle, ENR_node, index, &name, &length);
     BOOST_REQUIRE(error == 0);
 
-    BOOST_CHECK("10" == name);
+    std::string test (name);
+    std::string ref ("10");
+    BOOST_CHECK(check_string(test, ref));
 
     delete(name);
 }
