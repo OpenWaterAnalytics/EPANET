@@ -63,7 +63,8 @@ include_directories(include src tools/epanet-output/src)
 file(GLOB EPANET_SOURCES src/*.c)
 set(EPANET_API_HEADER include/epanet2.h)
 set(EPANET_CLI_SOURCES run/main.c)
-file(GLOB EPANET_OUT_SOURCES tools/epanet-output/src/*.c)
+set(EPANET_OUT_SOURCES tools/epanet-output/src/epanet_output.c 
+  tools/epanet-output/src/errormanager.c)
 set(EPANET_OUT_HEADER tools/epanet-output/src/epanet_output.h)
 file(GLOB EPANET_LIB_ALL src/*.c)
 
