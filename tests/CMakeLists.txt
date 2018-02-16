@@ -12,6 +12,10 @@
 #Setup CMake to run tests
 enable_testing()
 
+if(UNIX)
+    set(CMAKE_CXX_FLAGS "-std=c++11")
+endif(UNIX)
+
 #Prep ourselves for compiling boost
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 include_directories (${Boost_INCLUDE_DIRS} ../include ../tools/epanet-output/src)
