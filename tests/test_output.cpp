@@ -185,7 +185,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkAttribute, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3)));
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNodeResult, Fixture) {
@@ -201,7 +201,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeResult, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3)));
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getLinkResult, Fixture) {
@@ -221,7 +221,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkResult, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3)));
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNodeSeries, Fixture){
