@@ -22,7 +22,7 @@ before_script:
 script:
   - cmake --build . 
   # run unit tests
-  - cd /tests
+  - cd tests
   - ctest
   # run regression tests
   - cd $EPANET_HOME
