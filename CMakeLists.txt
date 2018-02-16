@@ -41,6 +41,7 @@
 cmake_minimum_required (VERSION 2.8.8)
 
 project(EPANET)
+add_subdirectory(tests)
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
