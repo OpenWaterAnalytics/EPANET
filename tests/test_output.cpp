@@ -134,7 +134,7 @@ BOOST_FIXTURE_TEST_CASE(test_getElementName, Fixture) {
     error = ENR_getElementName(p_handle, ENR_node, index, &name, &length);
     BOOST_REQUIRE(error == 0);
 
-    BOOST_TEST("10" == name);
+    BOOST_CHECK("10" == name);
 
     delete(name);
 }
@@ -159,7 +159,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeAttribute, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_TEST(ref_vec == test_vec, boost::test_tools::per_element());
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getLinkAttribute, Fixture) {
@@ -185,7 +185,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkAttribute, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_TEST(ref_vec == test_vec, boost::test_tools::per_element());
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3)));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNodeResult, Fixture) {
@@ -201,7 +201,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeResult, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_TEST(ref_vec == test_vec, boost::test_tools::per_element());
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3)));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getLinkResult, Fixture) {
@@ -221,7 +221,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkResult, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_TEST(ref_vec == test_vec, boost::test_tools::per_element());
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3)));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNodeSeries, Fixture){
@@ -243,7 +243,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeSeries, Fixture){
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
     
-    BOOST_TEST(check_cdd(test_vec, ref_vec, 3));
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getLinkSeries, Fixture) {
@@ -265,7 +265,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkSeries, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_TEST(ref_vec == test_vec, boost::test_tools::per_element());
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNetReacts, Fixture) {
@@ -301,7 +301,7 @@ BOOST_FIXTURE_TEST_CASE(test_getEnergyUsage, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_TEST(ref_vec == test_vec, boost::test_tools::per_element());
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
