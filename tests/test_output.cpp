@@ -281,7 +281,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNetReacts, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_TEST(check_cdd(test_vec, ref_vec, 2));
+    BOOST_CHECK(check_cdd(test_vec, ref_vec, 2));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getEnergyUsage, Fixture) {
