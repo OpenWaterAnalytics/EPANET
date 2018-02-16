@@ -1,9 +1,9 @@
-language: python
+language: c
 
 env: 
   global: 
     - EPANET_HOME=`pwd`
-    - BUILD_HOME=buildproducts
+    - BUILD_HOME=buildprod
     - TEST_HOME=tests/epanet-nrtestsuite
 
 before_install:
@@ -20,7 +20,11 @@ before_script:
   - cmake ..
 
 script:
-  - make
+  - cmake --build . 
+  # run unit tests
+  - cd /tests
+  - ctest
+  # run regression tests
   - cd $EPANET_HOME
   - tools/gen-config.sh $EPANET_HOME/$BUILD_HOME/bin > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
   - tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
