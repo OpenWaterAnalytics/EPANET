@@ -57,6 +57,10 @@ IF (MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 ENDIF (MSVC)
 
+if(UNIX)
+    set(CMAKE_CXX_FLAGS "-std=c++11")
+endif(UNIX)
+
 include_directories(include src tools/epanet-output/src)
 
 # configure file groups
