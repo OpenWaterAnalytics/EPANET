@@ -12,7 +12,6 @@
 
 #define BOOST_TEST_MODULE "output"
 #include <boost/test/included/unit_test.hpp>
-#include <boost/tuple/tuple.hpp>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -119,11 +118,11 @@ BOOST_FIXTURE_TEST_CASE(test_getNetSize, Fixture)
     BOOST_REQUIRE(error == 0);
 
     // nodes, tanks, links, pumps, valves
-    std::vector<int> test_vec;
-    test_vec.assign(i_array, i_array + array_dim);
-    std::vector<int> ref_vec({11,2,13,1,0});
+    std::vector<int> test;
+    test.assign(i_array, i_array + array_dim);
+    std::vector<int> ref({11,2,13,1,0});
 
-    BOOST_TEST(ref_vec == test_vec, boost::test_tools::per_element());
+    BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
 
     ENR_free((void**)&i_array);
 }
