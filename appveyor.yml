@@ -7,7 +7,7 @@
 #          US EPA - ORD/NRMRL
 # 
 
-version: 2.0.{build} 
+version: 2.0.{build}
 
 image: 
   - Visual Studio 2013
@@ -25,7 +25,7 @@ init:
 # called after repo clone
 install: 
   - choco install swig
-  
+
 # called before build
 before_build:
   - mkdir %BUILD_HOME%
@@ -46,6 +46,9 @@ before_test:
 
 # run custom test script
 test_script:
+  - cd %BUILD_HOME%\tests
+  - ctest -C Release
+  - cd %EPANET_HOME%
   - tools\run-nrtest.cmd %NRTEST_SCRIPT% %TEST_HOME% %APPVEYOR_REPO_COMMIT%
 
 cache:
