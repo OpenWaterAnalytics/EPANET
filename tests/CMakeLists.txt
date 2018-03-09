@@ -13,6 +13,10 @@
 enable_testing()
 
 
+# Sets for output directory for executables and libraries. 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+
 #Prep ourselves for compiling boost
 find_package(Boost REQUIRED)
 include_directories (${Boost_INCLUDE_DIRS})
@@ -40,6 +44,6 @@ foreach(testSrc ${TEST_SRCS})
         #Finally add it to test execution - 
         #Notice the WORKING_DIRECTORY and COMMAND
         add_test(NAME ${testName}
-                 COMMAND ${CMAKE_BINARY_DIR}/bin/${testName}  
+                 COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${testName}  
                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
 endforeach(testSrc)
