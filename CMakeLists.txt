@@ -44,9 +44,15 @@ project(EPANET)
 add_subdirectory(tools/epanet-output)
 add_subdirectory(tests)
 
-SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+
+# Sets for output directory for executables and libraries. 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+# Sets the position independent code property for all targets
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 
 IF (APPLE)
   SET(CMAKE_INSTALL_NAME_DIR @executable_path)
@@ -59,7 +65,7 @@ IF (MSVC)
 ENDIF (MSVC)
 
 
-include_directories(include src)
+#include_directories(include src)
 
 
 # configure file groups

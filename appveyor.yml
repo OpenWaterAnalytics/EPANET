@@ -37,7 +37,7 @@ before_build:
 
 # run custom build script
 build_script: 
-  - cmake --build . --target runepanet --config Release 
+  - cmake --build . --config Release 
 
 before_test:
   - cd %EPANET_HOME%
@@ -46,8 +46,10 @@ before_test:
 
 # run custom test script
 test_script:
+  # run unit tests
   - cd %BUILD_HOME%\tests
   - ctest -C Release
+  # run regression tests
   - cd %EPANET_HOME%
   - tools\run-nrtest.cmd %NRTEST_SCRIPT% %TEST_HOME% %APPVEYOR_REPO_COMMIT%
 
