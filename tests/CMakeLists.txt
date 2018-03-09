@@ -37,9 +37,6 @@ foreach(testSrc ${TEST_SRCS})
         #link to Boost libraries AND your targets and dependencies
         target_link_libraries(${testName} ${Boost_LIBRARIES} epanet epanet-output)
 
-        #I like to move testing binaries into a testBin directory
-        set_target_properties(${testName} PROPERTIES 
-            RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/bin)
 
         #Finally add it to test execution - 
         #Notice the WORKING_DIRECTORY and COMMAND
