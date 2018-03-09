@@ -33,8 +33,7 @@ before_build:
   - cmake -G %GENERATOR% 
     -DBOOST_ROOT="%BOOST_ROOT%"
     -DBOOST_LIBRARYDIR="%BOOST_LIB%"
-    -DBoost_USE_STATIC_LIBS="ON"  
-    -DCMAKE_BUILD_TYPE=Release
+    -DBoost_USE_STATIC_LIBS="ON" ..
 
 # run custom build script
 build_script: 
