@@ -14,7 +14,9 @@ before_install:
 #install:
 
 before_script:
-  - cmake -DCMAKE_INSTALL_PREFIX:PATH=$BUILD_HOME
+  - mkdir -p $BUILD_HOME
+  - cd $BUILD_HOME
+  - cmake ..
 
 script:
   - cmake --build . 

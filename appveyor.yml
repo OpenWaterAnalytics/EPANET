@@ -28,11 +28,12 @@ install:
   
 # called before build
 before_build:
+  - mkdir %BUILD_HOME%
+  - cd %BUILD_HOME%
   - cmake -G %GENERATOR% 
     -DBOOST_ROOT="%BOOST_ROOT%"
     -DBOOST_LIBRARYDIR="%BOOST_LIB%"
     -DBoost_USE_STATIC_LIBS="ON"  
-    -DCMAKE_INSTALL_PREFIX:PATH=%BUILD_HOME% 
     -DCMAKE_BUILD_TYPE=Release
 
 # run custom build script
@@ -40,9 +41,8 @@ build_script:
   - cmake --build . --target runepanet --config Release 
 
 before_test:
-  - python -m pip install -r tools\requirements.txt
-
   - cd %EPANET_HOME%
+  - python -m pip install -r tools\requirements.txt
   - tools\gen-config.cmd %EPANET_HOME%\%BUILD_HOME%\bin\Release > %TEST_HOME%\apps\epanet-%APPVEYOR_REPO_COMMIT%.json 
 
 # run custom test script
