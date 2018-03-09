@@ -14,14 +14,12 @@ before_install:
 #install:
 
 before_script:
-  - mkdir -p $BUILD_HOME
-  - cd $BUILD_HOME
-  - cmake ..
+  - cmake -DCMAKE_INSTALL_PREFIX:PATH=$BUILD_HOME
 
 script:
   - cmake --build . 
   # run unit tests
-  - cd tests
+  - cd $BUILD_HOME/tests
   - ctest
   # run regression tests
   - cd $EPANET_HOME

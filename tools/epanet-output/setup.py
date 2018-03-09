@@ -25,6 +25,8 @@ setup(
     version = "1.0",
     ext_modules = [
         Extension("_epanet_output",
+            define_macros = [('epanet_output_EXPORTS', None)],
+            include_dirs = ['include'],
             sources = ['src/epanet_output.i', 'src/epanet_output.c', 'src/errormanager.c'],
             swig_opts=['-modern'],
             language = 'C'
