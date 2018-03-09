@@ -19,10 +19,10 @@ before_script:
 script:
   - cmake --build . 
   # run unit tests
-  - cd $BUILD_HOME/tests
+  - cd tests
   - ctest
   # run regression tests
   - cd $EPANET_HOME
-  - pip install --src build/packages -r tools/requirements.txt
+  - pip install -r tools/requirements.txt
   - tools/gen-config.sh $EPANET_HOME/$BUILD_HOME/bin > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
   - tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
