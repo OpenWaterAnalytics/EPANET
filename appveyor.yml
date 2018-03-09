@@ -28,8 +28,7 @@ cache:
 # called after repo clone
 install: 
   - choco install swig
-  - python -m pip install --src %BUILD_HOME%\packages -r tools\requirements.txt
-
+  
 # called before build
 before_build:
   - cd %BUILD_HOME%
@@ -40,6 +39,8 @@ build_script:
   - cmake --build . --target runepanet --config Release 
 
 before_test:
+  - python -m pip install -r tools\requirements.txt
+
   - cd %EPANET_HOME%
   - tools\gen-config.cmd %EPANET_HOME%\%BUILD_HOME%\bin\Release > %TEST_HOME%\apps\epanet-%APPVEYOR_REPO_COMMIT%.json 
 
