@@ -13,6 +13,9 @@
 
 nrtest>=0.2.3
 
--f https://github.com/OpenWaterAnalytics/epanet-python/releases/download/v0.1.0-alpha/ epanet_output
+-f https://github.com/OpenWaterAnalytics/epanet-python/releases/download/v0.1.0-alpha/epanet_output-0.1.0a0-cp27-cp27m-win32.whl
 
 -e ./tools/nrtest-epanet
+
+https://github.com/OpenWaterAnalytics/epanet-python/tree/v0.1.0-alpha
+https://github.com/OpenWaterAnalytics/epanet-python/releases/download/v0.1.0-alpha
