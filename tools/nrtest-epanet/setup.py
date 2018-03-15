@@ -38,7 +38,7 @@ setup(
         'header_detail_footer>=2.3',
         'nrtest>=0.2.0',
         'numpy>=1.7.0',
-        'epanet_output>=0.4.0'
+        'epanet_output'
     ],
     keywords='nrtest_epanet'  
 )
