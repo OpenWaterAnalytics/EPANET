@@ -60,6 +60,7 @@ IF (APPLE)
 ENDIF (APPLE)
 
 IF (MSVC)
+  set(CMAKE_C_FLAGS "/Gz")
   set(CMAKE_C_FLAGS_RELEASE "/GL")
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 ENDIF (MSVC)
