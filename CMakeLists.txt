@@ -83,15 +83,15 @@ add_library(epanet SHARED ${EPANET_SOURCES})  #${EPANET_API_HEADER})
 target_include_directories(epanet PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 # create export lib so we can link against dll using Visual Studio
-include(GenerateExportHeader)
-GENERATE_EXPORT_HEADER(epanet
-    BASE_NAME epanet
-    EXPORT_MACRO_NAME DLLEXPORT
-    EXPORT_FILE_NAME epanet_export.h
-    STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC)
-    
-file(COPY ${CMAKE_CURRENT_BINARY_DIR}/epanet_export.h 
-    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include)
+#include(GenerateExportHeader)
+#GENERATE_EXPORT_HEADER(epanet
+#    BASE_NAME epanet
+#    EXPORT_MACRO_NAME DLLEXPORT
+#    EXPORT_FILE_NAME epanet_export.h
+#    STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC)
+#    
+#file(COPY ${CMAKE_CURRENT_BINARY_DIR}/epanet_export.h 
+#    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 
 # the standalone executable
