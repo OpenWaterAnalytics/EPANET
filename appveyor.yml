@@ -20,24 +20,19 @@ init:
   - set NRTEST_SCRIPT=%EPANET_HOME%\%BUILD_HOME%\packages\nrtest\scripts
   - set GENERATOR="Visual Studio 10 2010"
 
-cache: 
-  - C:\ProgramData\chocolatey\bin -> appveyor.yml
-  - C:\ProgramData\chocolatey\lib -> appveyor.yml
-  - '%BUILD_HOME% -> CMakeLists.txt'
-
 # called after repo clone
 install: 
-  - choco install swig
-  - python -m pip install --src %BUILD_HOME%\packages -r tools\requirements.txt
+  - python -m pip install -r tools\requirements-appveyor.txt
 
 # called before build
 before_build:
+  - mkdir %BUILD_HOME%
   - cd %BUILD_HOME%
   - cmake -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release ..
 
 # run custom build script
 build_script: 
-  - cmake --build . --target runepanet --config Release 
+  - cmake --build . --config Release 
 
 before_test:
   - cd %EPANET_HOME%
