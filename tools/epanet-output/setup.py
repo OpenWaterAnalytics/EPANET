@@ -22,7 +22,7 @@ except ImportError:
 
 setup(
     name = "epanet-output", 
-    version = "1.0",
+    version = "0.1.0-alpha",
     ext_modules = [
         Extension("_epanet_output",
             define_macros = [('epanet_output_EXPORTS', None)],

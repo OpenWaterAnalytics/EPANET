@@ -24,7 +24,7 @@ init:
 
 # called after repo clone
 install: 
-  - choco install swig
+  - python -m pip install -r tools\requirements-appveyor.txt
 
 # called before build
 before_build:
@@ -41,7 +41,6 @@ build_script:
 
 before_test:
   - cd %EPANET_HOME%
-  - python -m pip install -r tools\requirements.txt
   - tools\gen-config.cmd %EPANET_HOME%\%BUILD_HOME%\bin\Release > %TEST_HOME%\apps\epanet-%APPVEYOR_REPO_COMMIT%.json 
 
 # run custom test script
@@ -52,7 +51,3 @@ test_script:
   # run regression tests
   - cd %EPANET_HOME%
   - tools\run-nrtest.cmd %NRTEST_SCRIPT% %TEST_HOME% %APPVEYOR_REPO_COMMIT%
-
-cache:
-  - C:\ProgramData\chocolatey\bin -> appveyor.yml
-  - C:\ProgramData\chocolatey\lib -> appveyor.yml
