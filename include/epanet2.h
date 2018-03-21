@@ -60,6 +60,7 @@
   #endif
 #endif
 
+//#include "epanet_export.h"
 
 // --- Define the EPANET toolkit constants
 
