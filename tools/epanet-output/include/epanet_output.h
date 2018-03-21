@@ -61,15 +61,19 @@ typedef enum {
 } ENR_LinkAttribute;
 
 
-#ifdef WINDOWS
-#ifdef __cplusplus
-#define DLLEXPORT __declspec(dllexport) __cdecl
-#else
-#define DLLEXPORT __declspec(dllexport) __stdcall
-#endif
-#else
-#define DLLEXPORT
-#endif
+// #ifdef WINDOWS
+// #ifdef __cplusplus
+// #define DLLEXPORT __declspec(dllexport) __cdecl
+// #else
+// #define DLLEXPORT __declspec(dllexport) __stdcall
+// #endif
+// #else
+// #define DLLEXPORT
+// #endif
+
+
+#include "epanet_output_export.h"
+
 
 #ifdef __cplusplus
 extern "C" {

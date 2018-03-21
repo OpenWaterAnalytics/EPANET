@@ -7,7 +7,7 @@
 #          US EPA - ORD/NRMRL
 # 
 
-version: 2.0.{build} 
+version: 2.0.{build}
 
 image: 
   - Visual Studio 2013
@@ -19,6 +19,8 @@ init:
   - set TEST_HOME=tests\epanet-nrtestsuite
   - set NRTEST_SCRIPT=C:\Python27\Scripts
   - set GENERATOR="Visual Studio 10 2010"
+  - set BOOST_ROOT="C:\\Libraries\\boost"
+  - set BOOST_LIB="C:\\Libraries\\boost\\lib32-msvc-12.0"
 
 # called after repo clone
 install: 
@@ -28,7 +30,10 @@ install:
 before_build:
   - mkdir %BUILD_HOME%
   - cd %BUILD_HOME%
-  - cmake -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release ..
+  - cmake -G %GENERATOR% 
+    -DBOOST_ROOT="%BOOST_ROOT%"
+    -DBOOST_LIBRARYDIR="%BOOST_LIB%"
+    -DBoost_USE_STATIC_LIBS="ON" ..
 
 # run custom build script
 build_script: 
@@ -40,4 +45,9 @@ before_test:
 
 # run custom test script
 test_script:
+  # run unit tests
+  - cd %BUILD_HOME%\tests
+  - ctest -C Release
+  # run regression tests
+  - cd %EPANET_HOME%
   - tools\run-nrtest.cmd %NRTEST_SCRIPT% %TEST_HOME% %APPVEYOR_REPO_COMMIT%
