@@ -37,6 +37,94 @@
             },
             "passed": true,
             "version": "1.0"
+        },
+        {
+            "description": "",
+            "error_msg": null,
+            "name": "NET1",
+            "output_files": {
+                "NET1.out": "epanet allclose",
+                "NET1.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
+        },
+        {
+            "description": "",
+            "error_msg": null,
+            "name": "NET1-3",
+            "output_files": {
+                "NET1-3.out": "epanet allclose",
+                "NET1-3.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
+        },
+        {
+            "description": "",
+            "error_msg": null,
+            "name": "NET1-PBV",
+            "output_files": {
+                "NET1-PBV.out": "epanet allclose",
+                "NET1-PBV.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
+        },
+        {
+            "description": "",
+            "error_msg": null,
+            "name": "NET1cv",
+            "output_files": {
+                "NET1cv.out": "epanet allclose",
+                "NET1cv.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
+        },
+        {
+            "description": "",
+            "error_msg": null,
+            "name": "NET1emit",
+            "output_files": {
+                "NET1emit.out": "epanet allclose",
+                "NET1emit.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
+        },
+        {
+            "description": "",
+            "error_msg": null,
+            "name": "NET1negemit",
+            "output_files": {
+                "NET1negemit.out": "epanet allclose",
+                "NET1negemit.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
+        },
+        {
+            "description": "",
+            "error_msg": null,
+            "name": "NET1np",
+            "output_files": {
+                "NET1np.out": "epanet allclose",
+                "NET1np.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
+        },
+        {
+            "description": "",
+            "error_msg": null,
+            "name": "NET1para",
+            "output_files": {
+                "NET1para.out": "epanet allclose",
+                "NET1para.rpt": "epanet report"
+            },
+            "passed": true,
+            "version": "1.0"
         }
     ]
 }

@@ -1,0 +1,95 @@
+  Page 1                                    Thu Mar 22 17:13:07 2018
+
+  ******************************************************************
+  *                           E P A N E T                          *
+  *                   Hydraulic and Water Quality                  *
+  *                   Analysis for Pipe Networks                   *
+  *                         Version 2.00.12                        *
+  ******************************************************************
+  
+  Analysis begun Thu Mar 22 17:13:07 2018
+
+   
+  Hydraulic Status:
+  -----------------------------------------------------------------------
+     0:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.763338
+              Trial  2: relative flow change = 0.090158
+              Trial  3: relative flow change = 0.003566
+              Trial  4: relative flow change = 0.000023
+     0:00:00: Balanced after 4 trials
+     0:00:00: Reservoir 9 is emptying
+     0:00:00: Tank 2 is filling at 120.00 ft
+   
+     1:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.013863
+              Trial  2: relative flow change = 0.000081
+     1:00:00: Balanced after 2 trials
+   
+     2:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.078226
+              Trial  2: relative flow change = 0.004052
+              Trial  3: relative flow change = 0.000157
+     2:00:00: Balanced after 3 trials
+   
+     3:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.011208
+              Trial  2: relative flow change = 0.000058
+     3:00:00: Balanced after 2 trials
+   
+     4:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.081776
+              Trial  2: relative flow change = 0.001709
+              Trial  3: relative flow change = 0.000017
+     4:00:00: Balanced after 3 trials
+   
+     5:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.007916
+              Trial  2: relative flow change = 0.000024
+     5:00:00: Balanced after 2 trials
+   
+     6:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.079414
+              Trial  2: relative flow change = 0.000909
+     6:00:00: Balanced after 2 trials
+   
+     7:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.004548
+              Trial  2: relative flow change = 0.000008
+     7:00:00: Balanced after 2 trials
+   
+     8:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.075544
+              Trial  2: relative flow change = 0.000607
+     8:00:00: Balanced after 2 trials
+   
+     8:50:33: Pump 9 changed by Tank 2 control
+     8:50:33: Balancing the network:
+              Trial  1: relative flow change = 2.375922
+              Trial  2: relative flow change = 0.228731
+              Trial  3: relative flow change = 0.010863
+              Trial  4: relative flow change = 0.000037
+     8:50:33: Balanced after 4 trials
+     8:50:33: Reservoir 9 is closed
+     8:50:33: Tank 2 is emptying at 140.00 ft
+     8:50:33: Pump 9 changed from open to closed
+   
+     9:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.000000
+     9:00:00: Balanced after 1 trials
+   
+    10:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.166666
+              Trial  2: relative flow change = 0.000000
+    10:00:00: Balanced after 2 trials
+   
+    11:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.000000
+    11:00:00: Balanced after 1 trials
+   
+    12:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.200000
+              Trial  2: relative flow change = 0.000000
+    12:00:00: Balanced after 2 trials
+   
+  Analysis ended Thu Mar 22 17:13:07 2018

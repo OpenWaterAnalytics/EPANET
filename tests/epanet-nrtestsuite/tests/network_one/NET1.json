@@ -1,17 +1,17 @@
 {
-    "name": ".//NET1",
+    "name": "NET1",
     "version": "1.0",
     "description": "",
     "args": [
-        ".//NET1.inp",
-        ".//NET1.rpt", 
-        ".//NET1.out"
+        "NET1.inp",
+        "NET1.rpt", 
+        "NET1.out"
     ],
     "input_files": [
-        ".//NET1.inp"
+        "NET1.inp"
     ],
     "output_files": {
-        ".//NET1.rpt": "epanet report",
-        ".//NET1.out": "epanet allclose"
+        "NET1.rpt": "epanet report",
+        "NET1.out": "epanet allclose"
     }
 }
