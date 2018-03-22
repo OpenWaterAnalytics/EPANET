@@ -20,7 +20,7 @@ set TEST_SUITE_PATH=%~2
 
 set NRTEST_EXECUTE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest execute
 set TEST_APP_PATH=apps\epanet-%3.json
-set TESTS=tests\examples
+set TESTS=tests\examples tests\network_one
 set TEST_OUTPUT_PATH=benchmark\epanet-%3
 
 set NRTEST_COMPARE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest compare
