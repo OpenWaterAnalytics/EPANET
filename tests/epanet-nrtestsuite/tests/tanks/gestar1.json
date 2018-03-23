@@ -1,0 +1,17 @@
+{
+    "name": "gestar1",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "gestar1.inp",
+        "gestar1.rpt", 
+        "gestar1.out"
+    ],
+    "input_files": [
+        "gestar1.inp"
+    ],
+    "output_files": {
+        "gestar1.rpt": "epanet report",
+        "gestar1.out": "epanet allclose"
+    }
+}

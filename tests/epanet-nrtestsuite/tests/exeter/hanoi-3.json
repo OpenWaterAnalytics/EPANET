@@ -1,0 +1,17 @@
+{
+    "name": "hanoi-3",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "hanoi-3.inp",
+        "hanoi-3.rpt", 
+        "hanoi-3.out"
+    ],
+    "input_files": [
+        "hanoi-3.inp"
+    ],
+    "output_files": {
+        "hanoi-3.rpt": "epanet report",
+        "hanoi-3.out": "epanet allclose"
+    }
+}

@@ -1,7 +1,7 @@
 {
     "name": "NET1-3",
     "version": "1.0",
-    "description": "",
+    "description": "Example network one with control.",
     "args": [
         "NET1-3.inp",
         "NET1-3.rpt", 

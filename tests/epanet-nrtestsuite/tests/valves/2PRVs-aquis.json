@@ -1,0 +1,17 @@
+{
+    "name": "2PRVs-aquis",
+    "version": "1.0",
+    "description": "Another variation of a loop network with two pressure reducing valves.",
+    "args": [
+        "2PRVs-aquis.inp",
+        "2PRVs-aquis.rpt", 
+        "2PRVs-aquis.out"
+    ],
+    "input_files": [
+        "2PRVs-aquis.inp"
+    ],
+    "output_files": {
+        "2PRVs-aquis.rpt": "epanet report",
+        "2PRVs-aquis.out": "epanet allclose"
+    }
+}

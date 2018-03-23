@@ -1,0 +1,17 @@
+{
+    "name": "NW_Model",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "NW_Model.inp",
+        "NW_Model.rpt", 
+        "NW_Model.out"
+    ],
+    "input_files": [
+        "NW_Model.inp"
+    ],
+    "output_files": {
+        "NW_Model.rpt": "epanet report",
+        "NW_Model.out": "epanet allclose"
+    }
+}

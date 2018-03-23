@@ -1,0 +1,17 @@
+{
+    "name": "simplenet",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "simplenet.inp",
+        "simplenet.rpt", 
+        "simplenet.out"
+    ],
+    "input_files": [
+        "simplenet.inp"
+    ],
+    "output_files": {
+        "simplenet.rpt": "epanet report",
+        "simplenet.out": "epanet allclose"
+    }
+}

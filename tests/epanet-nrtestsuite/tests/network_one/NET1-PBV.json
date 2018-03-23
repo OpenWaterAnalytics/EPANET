@@ -1,7 +1,7 @@
 {
     "name": "NET1-PBV",
     "version": "1.0",
-    "description": "",
+    "description": "Network one with pressure breaker valve.",
     "args": [
         "NET1-PBV.inp",
         "NET1-PBV.rpt", 

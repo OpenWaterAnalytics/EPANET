@@ -1,7 +1,7 @@
 {
     "name": "NET1negemit",
     "version": "1.0",
-    "description": "",
+    "description": "Network one with emitter and negative pressure condition",
     "args": [
         "NET1negemit.inp",
         "NET1negemit.rpt", 

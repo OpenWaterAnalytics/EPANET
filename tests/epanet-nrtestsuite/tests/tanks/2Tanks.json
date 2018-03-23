@@ -1,0 +1,17 @@
+{
+    "name": "2Tanks",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "2Tanks.inp",
+        "2Tanks.rpt", 
+        "2Tanks.out"
+    ],
+    "input_files": [
+        "2Tanks.inp"
+    ],
+    "output_files": {
+        "2Tanks.rpt": "epanet report",
+        "2Tanks.out": "epanet allclose"
+    }
+}

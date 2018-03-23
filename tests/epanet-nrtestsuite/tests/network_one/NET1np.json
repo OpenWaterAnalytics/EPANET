@@ -1,7 +1,7 @@
 {
     "name": "NET1np",
     "version": "1.0",
-    "description": "",
+    "description": "Network one with steady-state hydraulics and no water quality.",
     "args": [
         "NET1np.inp",
         "NET1np.rpt", 

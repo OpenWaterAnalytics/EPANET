@@ -1,7 +1,7 @@
 {
     "name": "NET1emit",
     "version": "1.0",
-    "description": "",
+    "description": "Example network one with emitter.",
     "args": [
         "NET1emit.inp",
         "NET1emit.rpt", 

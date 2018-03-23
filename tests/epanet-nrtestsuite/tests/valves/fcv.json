@@ -1,0 +1,17 @@
+{
+    "name": "fcv",
+    "version": "1.0",
+    "description": "Flow control valve on line between two reservoirs.",
+    "args": [
+        "fcv.inp",
+        "fcv.rpt", 
+        "fcv.out"
+    ],
+    "input_files": [
+        "fcv.inp"
+    ],
+    "output_files": {
+        "fcv.rpt": "epanet report",
+        "fcv.out": "epanet allclose"
+    }
+}

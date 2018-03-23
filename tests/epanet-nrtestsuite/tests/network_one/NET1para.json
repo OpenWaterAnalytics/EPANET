@@ -1,7 +1,7 @@
 {
     "name": "NET1para",
     "version": "1.0",
-    "description": "",
+    "description": "Network one with steady-state hydrulics and no water quality.",
     "args": [
         "NET1para.inp",
         "NET1para.rpt", 

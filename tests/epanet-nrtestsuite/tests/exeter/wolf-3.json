@@ -1,0 +1,17 @@
+{
+    "name": "wolf-3",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "wolf-3.inp",
+        "wolf-3.rpt", 
+        "wolf-3.out"
+    ],
+    "input_files": [
+        "wolf-3.inp"
+    ],
+    "output_files": {
+        "wolf-3.rpt": "epanet report",
+        "wolf-3.out": "epanet allclose"
+    }
+}

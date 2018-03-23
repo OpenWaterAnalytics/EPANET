@@ -1,0 +1,17 @@
+{
+    "name": "5fcvs",
+    "version": "1.0",
+    "description": "Branch network with pump header and five flow control valves.",
+    "args": [
+        "5fcvs.inp",
+        "5fcvs.rpt", 
+        "5fcvs.out"
+    ],
+    "input_files": [
+        "5fcvs.inp"
+    ],
+    "output_files": {
+        "5fcvs.rpt": "epanet report",
+        "5fcvs.out": "epanet allclose"
+    }
+}

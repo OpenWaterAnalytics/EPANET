@@ -1,7 +1,7 @@
 {
     "name": "NET1cv",
     "version": "1.0",
-    "description": "",
+    "description": "Example network one with check valve.",
     "args": [
         "NET1cv.inp",
         "NET1cv.rpt", 
