@@ -1,0 +1,17 @@
+{
+    "name": "NET1np",
+    "version": "1.0",
+    "description": "Network one with steady-state hydraulics and no water quality.",
+    "args": [
+        "NET1np.inp",
+        "NET1np.rpt", 
+        "NET1np.out"
+    ],
+    "input_files": [
+        "NET1np.inp"
+    ],
+    "output_files": {
+        "NET1np.rpt": "epanet report",
+        "NET1np.out": "epanet allclose"
+    }
+}

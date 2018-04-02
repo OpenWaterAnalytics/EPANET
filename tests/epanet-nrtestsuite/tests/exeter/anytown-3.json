@@ -1,0 +1,17 @@
+{
+    "name": "anytown-3",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "anytown-3.inp",
+        "anytown-3.rpt", 
+        "anytown-3.out"
+    ],
+    "input_files": [
+        "anytown-3.inp"
+    ],
+    "output_files": {
+        "anytown-3.rpt": "epanet report",
+        "anytown-3.out": "epanet allclose"
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "name": "6848-68nodes",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "6848-68nodes.inp",
+        "6848-68nodes.rpt", 
+        "6848-68nodes.out"
+    ],
+    "input_files": [
+        "6848-68nodes.inp"
+    ],
+    "output_files": {
+        "6848-68nodes.rpt": "epanet report",
+        "6848-68nodes.out": "epanet allclose"
+    }
+}

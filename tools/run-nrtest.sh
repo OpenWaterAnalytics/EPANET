@@ -22,7 +22,7 @@ test_suite_path=$1
 
 nrtest_execute_cmd="nrtest execute"
 test_app_path="apps/epanet-$2.json"
-tests="tests/examples"
+tests="tests/examples tests/exeter tests/large tests/network_one tests/small tests/tanks tests/valves"
 test_output_path="benchmark/epanet-$2"
 
 nrtest_compare_cmd="nrtest compare"

@@ -1,0 +1,17 @@
+{
+    "name": "JEP5-13",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "JEP5-13.inp",
+        "JEP5-13.rpt", 
+        "JEP5-13.out"
+    ],
+    "input_files": [
+        "JEP5-13.inp"
+    ],
+    "output_files": {
+        "JEP5-13.rpt": "epanet report",
+        "JEP5-13.out": "epanet allclose"
+    }
+}

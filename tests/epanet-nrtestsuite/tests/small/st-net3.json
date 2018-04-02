@@ -1,0 +1,17 @@
+{
+    "name": "st-net3",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "st-net3.inp",
+        "st-net3.rpt", 
+        "st-net3.out"
+    ],
+    "input_files": [
+        "st-net3.inp"
+    ],
+    "output_files": {
+        "st-net3.rpt": "epanet report",
+        "st-net3.out": "epanet allclose"
+    }
+}

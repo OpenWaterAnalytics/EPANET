@@ -26,5 +26,5 @@ script:
   # run regression tests
   - cd $EPANET_HOME
   - pip install -r tools/requirements.txt
-  - tools/gen-config.sh $EPANET_HOME/$BUILD_HOME/bin > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
+  - tools/app-config.sh $EPANET_HOME/$BUILD_HOME/bin > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
   - tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT

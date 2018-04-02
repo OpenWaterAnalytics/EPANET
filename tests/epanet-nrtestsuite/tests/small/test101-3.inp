@@ -1,0 +1,187 @@
+[TITLE]
+
+
+[JUNCTIONS]
+;ID              	Elev        	Demand      	Pattern         
+ 14              	96.000      	0.000       	                	;
+ 18              	96.000      	0.000       	                	;
+ 19              	96.000      	0.000       	                	;
+ 20              	96.000      	0.000       	                	;
+ 21              	96.000      	0.000       	                	;
+ 22              	96.000      	0.000       	                	;
+ 23              	96.000      	0.000       	                	;
+ 24              	100.000     	0.000       	                	;
+ 26              	96.000      	0.000       	                	;
+ 27              	96.000      	0.000       	                	;
+ 28              	96.000      	0.000       	                	;
+ 29              	100.000     	0.000       	                	;
+ 30              	108.000     	17          	                	;
+ ;30              	108.000     	0          	                	;
+ 31              	96.000      	0.000       	                	;
+ 37              	96.000      	0.000       	                	;
+
+[RESERVOIRS]
+;ID              	Head        	Pattern         
+ 1               	196         	                	;
+ 32              	100.000     	                	;
+ 
+ ;30                 108
+
+[TANKS]
+;ID              	Elevation   	InitLevel   	MinLevel    	MaxLevel    	Diameter    	MinVol      	VolCurve
+
+[PIPES]
+;ID              	Node1           	Node2           	Length      	Diameter    	Roughness   	MinorLoss   	Status
+ 14              	1               	14              	232.73      	1.00        	0.0050      	2.83        	Open  	;
+ 18              	14              	37              	6.79        	4.00        	0.0050      	0.00        	Open  	;
+ 22              	18              	19              	210.00      	4.00        	0.0050      	0.00        	Open  	;
+ 23              	19              	20              	65.00       	4.00        	0.0050      	0.00        	Open  	;
+ 24              	20              	21              	110.00      	4.00        	0.0050      	0.00        	Open  	;
+ 25              	21              	22              	575.00      	4.00        	0.0050      	0.00        	Open  	;
+ 26              	23              	22              	165.00      	4.00        	0.0050      	0.00        	Open  	;
+ 27              	31              	23              	480.00      	4.00        	0.0050      	0.00        	Open  	;
+ 33              	22              	26              	180.00      	4.00        	0.0050      	0.00        	Open  	;
+ 34              	26              	27              	320.00      	4.00        	0.0050      	2.70        	Open  	;
+ 35              	27              	28              	35.00       	4.00        	0.0050      	0.00        	Open  	;
+ 36              	28              	29              	575.00      	4.00        	0.0050      	0.00        	Open  	;
+ 37              	29              	30              	8.00        	2.00        	0.0050      	3.60        	Open  	;
+ 38              	24              	31              	4.00        	4.00        	0.0050      	0.00        	Open  	;
+ 43              	37              	18              	6.79        	4.00        	0.0050      	0.00        	Open  	;
+ 48              	24              	32              	0.10        	4.00        	0.0050      	0.00        	Open  	;
+
+[PUMPS]
+;ID              	Node1           	Node2           	Parameters
+
+[VALVES]
+;ID              	Node1           	Node2           	Diameter    	Type	Setting     	MinorLoss   
+
+[TAGS]
+
+[DEMANDS]
+;Junction        	Demand      	Pattern         	Category
+
+[STATUS]
+;ID              	Status/Setting
+
+[PATTERNS]
+;ID              	Multipliers
+
+[CURVES]
+;ID              	X-Value     	Y-Value
+;PUMP: PUMP: ------------------------------------------------------------------
+ PQH_29          	0.00        	410.00      
+ PQH_29          	8.00        	235.00      
+ PQH_29          	10.00       	130.00      
+;PUMP: PUMP: 
+ PQH_30          	0.00        	410.00      
+ PQH_30          	6.50        	295.00      
+ PQH_30          	10.00       	130.00      
+;PUMP: PUMP: 
+ PQH_31          	0.00        	410.00      
+ PQH_31          	6.50        	295.00      
+ PQH_31          	10.00       	130.00      
+;PUMP: PUMP: 
+ PQH_32          	0.00        	410.00      
+ PQH_32          	6.50        	295.00      
+ PQH_32          	10.00       	130.00      
+
+[CONTROLS]
+
+
+[RULES]
+;------------------------------------------------------------------
+
+
+
+
+
+[ENERGY]
+ Global Efficiency  	75.000
+ Global Price       	0.000
+ Demand Charge      	0.000
+
+[EMITTERS]
+;Junction        	Coefficient
+
+[QUALITY]
+;Node            	InitQual
+
+[SOURCES]
+;Node            	Type        	Quality     	Pattern
+
+[REACTIONS]
+;Type     	Pipe/Tank       	Coefficient
+
+
+[REACTIONS]
+ Order Bulk            	1
+ Order Tank            	1
+ Order Wall            	1
+ Global Bulk           	0
+ Global Wall           	0
+ Limiting Potential    	0
+ Roughness Correlation 	0
+
+[MIXING]
+;Tank            	Model
+
+[TIMES]
+ Duration        	0:00 
+ Hydraulic Timestep 	1:00 
+ Quality Timestep   	0:05 
+ Pattern Timestep   	1:00 
+ Pattern Start      	0:00 
+ Report Timestep    	1:00 
+ Report Start       	0:00 
+ Start ClockTime    	12 am
+ ;Report Statistic      	NONE
+
+[REPORT]
+ Status             	Full
+ Summary            	No
+ Page               	0
+
+[OPTIONS]
+ Units                  GPM
+ Headloss               D-W
+ ;Demand Model          FH
+ Specific Gravity       1.000
+ Specific Viscosity    	1
+ Trials        	        100
+ Accuracy               0.00100
+ Demand Multiplier  	1.0
+ Emitter Exponent   	0.5
+
+[COORDINATES]
+;Node            	X-Coord         	Y-Coord
+ 14              	475.23          	175.08          
+ 18              	382.32          	225.09          
+ 19              	324.08          	225.09          
+ 20              	269.60          	225.09          
+ 21              	217.00          	225.09          
+ 22              	50.62           	226.77          
+ 23              	85.69           	330.15          
+ 24              	32.15           	525.85          
+ 26              	-1.80           	226.17          
+ 27              	-373.94         	451.14          
+ 28              	-409.46         	432.54          
+ 29              	-409.46         	116.22          
+ 30              	-409.46         	51.94           
+ 31              	38.80           	499.35          
+ 37              	485.65          	213.82          
+ 1               	400.46          	-0.31           
+ 32              	269.60          	540.71          
+
+[VERTICES]
+;Link            	X-Coord         	Y-Coord
+
+[LABELS]
+;X-Coord           Y-Coord          Label & Anchor Node
+
+[BACKDROP]
+ DIMENSIONS     	-453.70         	-26.89          	519.47          	557.84          
+ UNITS          	None
+ FILE           	
+ OFFSET         	0.00            	0.00            
+
+[END]

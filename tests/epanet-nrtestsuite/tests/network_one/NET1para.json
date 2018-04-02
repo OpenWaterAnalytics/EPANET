@@ -1,0 +1,17 @@
+{
+    "name": "NET1para",
+    "version": "1.0",
+    "description": "Network one with steady-state hydrulics and no water quality.",
+    "args": [
+        "NET1para.inp",
+        "NET1para.rpt", 
+        "NET1para.out"
+    ],
+    "input_files": [
+        "NET1para.inp"
+    ],
+    "output_files": {
+        "NET1para.rpt": "epanet report",
+        "NET1para.out": "epanet allclose"
+    }
+}

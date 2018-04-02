@@ -1,0 +1,17 @@
+{
+    "name": "2fcvs",
+    "version": "1.0",
+    "description": "Simple branch network with two flow control valves",
+    "args": [
+        "2fcvs.inp",
+        "2fcvs.rpt", 
+        "2fcvs.out"
+    ],
+    "input_files": [
+        "2fcvs.inp"
+    ],
+    "output_files": {
+        "2fcvs.rpt": "epanet report",
+        "2fcvs.out": "epanet allclose"
+    }
+}

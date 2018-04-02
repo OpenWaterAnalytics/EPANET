@@ -1,0 +1,17 @@
+{
+    "name": "gestar1modHW",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "gestar1modHW.inp",
+        "gestar1modHW.rpt", 
+        "gestar1modHW.out"
+    ],
+    "input_files": [
+        "gestar1modHW.inp"
+    ],
+    "output_files": {
+        "gestar1modHW.rpt": "epanet report",
+        "gestar1modHW.out": "epanet allclose"
+    }
+}

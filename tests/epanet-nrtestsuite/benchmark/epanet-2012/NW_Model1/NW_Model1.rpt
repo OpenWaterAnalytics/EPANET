@@ -1,0 +1,26 @@
+  Page 1                                    Fri Mar 23 14:48:37 2018
+
+  ******************************************************************
+  *                           E P A N E T                          *
+  *                   Hydraulic and Water Quality                  *
+  *                   Analysis for Pipe Networks                   *
+  *                         Version 2.00.12                        *
+  ******************************************************************
+  
+  Analysis begun Fri Mar 23 14:48:37 2018
+
+   
+  Hydraulic Status:
+  -----------------------------------------------------------------------
+     0:00:00: Balancing the network:
+              Trial  1: relative flow change = 1.809664
+              Trial  2: relative flow change = 0.544139
+              Trial  3: relative flow change = 0.176056
+              Trial  4: relative flow change = 0.036352
+              Trial  5: relative flow change = 0.006877
+     0:00:00: Balanced after 5 trials
+     0:00:00: Reservoir 7384 is emptying
+     0:00:00: Reservoir 311 is emptying
+     0:00:00: Reservoir RES9000 is emptying
+   
+  Analysis ended Fri Mar 23 14:48:38 2018

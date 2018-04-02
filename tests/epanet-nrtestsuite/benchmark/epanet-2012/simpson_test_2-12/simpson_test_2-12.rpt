@@ -1,0 +1,30 @@
+  Page 1                                    Fri Mar 23 14:48:40 2018
+
+  ******************************************************************
+  *                           E P A N E T                          *
+  *                   Hydraulic and Water Quality                  *
+  *                   Analysis for Pipe Networks                   *
+  *                         Version 2.00.12                        *
+  ******************************************************************
+  
+  Analysis begun Fri Mar 23 14:48:40 2018
+
+   
+  Hydraulic Status:
+  -----------------------------------------------------------------------
+     0:00:00: Balancing the network:
+              Trial  1: relative flow change = 0.928415
+              Trial  2: relative flow change = 1.072474
+              PRV 5 switched from active to closed
+              FCV 4 switched from active to open
+              Trial  3: relative flow change = 77.341455
+              Trial  4: relative flow change = 0.000004
+     0:00:00: Balanced after 4 trials
+     0:00:00: Reservoir 1 is closed
+     0:00:00: Reservoir 6 is closed
+     0:00:00: FCV 4 open but cannot deliver flow
+     0:00:00: PRV 5 closed
+   
+  WARNING: FCV 4 open but cannot deliver flow at 0:00:00 hrs.
+  
+  Analysis ended Fri Mar 23 14:48:40 2018
