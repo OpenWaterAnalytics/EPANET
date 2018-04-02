@@ -1,0 +1,17 @@
+{
+    "name": "gestar1mod",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "gestar1mod.inp",
+        "gestar1mod.rpt", 
+        "gestar1mod.out"
+    ],
+    "input_files": [
+        "gestar1mod.inp"
+    ],
+    "output_files": {
+        "gestar1mod.rpt": "epanet report",
+        "gestar1mod.out": "epanet allclose"
+    }
+}

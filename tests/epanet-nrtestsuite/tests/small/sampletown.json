@@ -1,0 +1,17 @@
+{
+    "name": "sampletown",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "sampletown.inp",
+        "sampletown.rpt", 
+        "sampletown.out"
+    ],
+    "input_files": [
+        "sampletown.inp"
+    ],
+    "output_files": {
+        "sampletown.rpt": "epanet report",
+        "sampletown.out": "epanet allclose"
+    }
+}

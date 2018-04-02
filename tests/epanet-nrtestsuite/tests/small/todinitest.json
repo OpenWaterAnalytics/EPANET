@@ -1,0 +1,17 @@
+{
+    "name": "todinitest",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "todinitest.inp",
+        "todinitest.rpt", 
+        "todinitest.out"
+    ],
+    "input_files": [
+        "todinitest.inp"
+    ],
+    "output_files": {
+        "todinitest.rpt": "epanet report",
+        "todinitest.out": "epanet allclose"
+    }
+}

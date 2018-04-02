@@ -1,0 +1,17 @@
+{
+    "name": "mod_anytown-3a",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "mod_anytown-3a.inp",
+        "mod_anytown-3a.rpt", 
+        "mod_anytown-3a.out"
+    ],
+    "input_files": [
+        "mod_anytown-3a.inp"
+    ],
+    "output_files": {
+        "mod_anytown-3a.rpt": "epanet report",
+        "mod_anytown-3a.out": "epanet allclose"
+    }
+}

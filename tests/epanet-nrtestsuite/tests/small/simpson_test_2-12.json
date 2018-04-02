@@ -1,0 +1,17 @@
+{
+    "name": "simpson_test_2-12",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "simpson_test_2-12.inp",
+        "simpson_test_2-12.rpt", 
+        "simpson_test_2-12.out"
+    ],
+    "input_files": [
+        "simpson_test_2-12.inp"
+    ],
+    "output_files": {
+        "simpson_test_2-12.rpt": "epanet report",
+        "simpson_test_2-12.out": "epanet allclose"
+    }
+}

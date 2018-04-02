@@ -1,0 +1,17 @@
+{
+    "name": "2PRVs-a",
+    "version": "1.0",
+    "description": "Another loop network with two pressure reducing valves",
+    "args": [
+        "2PRVs-a.inp",
+        "2PRVs-a.rpt", 
+        "2PRVs-a.out"
+    ],
+    "input_files": [
+        "2PRVs-a.inp"
+    ],
+    "output_files": {
+        "2PRVs-a.rpt": "epanet report",
+        "2PRVs-a.out": "epanet allclose"
+    }
+}

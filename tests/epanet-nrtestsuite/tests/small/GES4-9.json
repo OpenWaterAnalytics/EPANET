@@ -1,0 +1,17 @@
+{
+    "name": "GES4-9",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "GES4-9.inp",
+        "GES4-9.rpt", 
+        "GES4-9.out"
+    ],
+    "input_files": [
+        "GES4-9.inp"
+    ],
+    "output_files": {
+        "GES4-9.rpt": "epanet report",
+        "GES4-9.out": "epanet allclose"
+    }
+}

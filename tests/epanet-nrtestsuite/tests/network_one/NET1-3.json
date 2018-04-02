@@ -1,0 +1,17 @@
+{
+    "name": "NET1-3",
+    "version": "1.0",
+    "description": "Example network one with control.",
+    "args": [
+        "NET1-3.inp",
+        "NET1-3.rpt", 
+        "NET1-3.out"
+    ],
+    "input_files": [
+        "NET1-3.inp"
+    ],
+    "output_files": {
+        "NET1-3.rpt": "epanet report",
+        "NET1-3.out": "epanet allclose"
+    }
+}

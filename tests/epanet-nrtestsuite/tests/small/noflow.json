@@ -1,0 +1,17 @@
+{
+    "name": "noflow",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "noflow.inp",
+        "noflow.rpt", 
+        "noflow.out"
+    ],
+    "input_files": [
+        "noflow.inp"
+    ],
+    "output_files": {
+        "noflow.rpt": "epanet report",
+        "noflow.out": "epanet allclose"
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "name": "Elhay-ZeroFlow",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "Elhay-ZeroFlow.inp",
+        "Elhay-ZeroFlow.rpt", 
+        "Elhay-ZeroFlow.out"
+    ],
+    "input_files": [
+        "Elhay-ZeroFlow.inp"
+    ],
+    "output_files": {
+        "Elhay-ZeroFlow.rpt": "epanet report",
+        "Elhay-ZeroFlow.out": "epanet allclose"
+    }
+}

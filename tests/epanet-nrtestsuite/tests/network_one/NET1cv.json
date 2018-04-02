@@ -1,0 +1,17 @@
+{
+    "name": "NET1cv",
+    "version": "1.0",
+    "description": "Example network one with check valve.",
+    "args": [
+        "NET1cv.inp",
+        "NET1cv.rpt", 
+        "NET1cv.out"
+    ],
+    "input_files": [
+        "NET1cv.inp"
+    ],
+    "output_files": {
+        "NET1cv.rpt": "epanet report",
+        "NET1cv.out": "epanet allclose"
+    }
+}

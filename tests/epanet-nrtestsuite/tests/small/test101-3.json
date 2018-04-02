@@ -1,0 +1,17 @@
+{
+    "name": "test101-3",
+    "version": "1.0",
+    "description": "",
+    "args": [
+        "test101-3.inp",
+        "test101-3.rpt", 
+        "test101-3.out"
+    ],
+    "input_files": [
+        "test101-3.inp"
+    ],
+    "output_files": {
+        "test101-3.rpt": "epanet report",
+        "test101-3.out": "epanet allclose"
+    }
+}

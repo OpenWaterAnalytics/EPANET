@@ -1,0 +1,17 @@
+{
+    "name": "fcv-noflow",
+    "version": "1.0",
+    "description": "Flow control valve between two reservoirs under a no flow condition.",
+    "args": [
+        "fcv-noflow.inp",
+        "fcv-noflow.rpt", 
+        "fcv-noflow.out"
+    ],
+    "input_files": [
+        "fcv-noflow.inp"
+    ],
+    "output_files": {
+        "fcv-noflow.rpt": "epanet report",
+        "fcv-noflow.out": "epanet allclose"
+    }
+}

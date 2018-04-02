@@ -1,0 +1,17 @@
+{
+    "name": "NET1negemit",
+    "version": "1.0",
+    "description": "Network one with emitter and negative pressure condition",
+    "args": [
+        "NET1negemit.inp",
+        "NET1negemit.rpt", 
+        "NET1negemit.out"
+    ],
+    "input_files": [
+        "NET1negemit.inp"
+    ],
+    "output_files": {
+        "NET1negemit.rpt": "epanet report",
+        "NET1negemit.out": "epanet allclose"
+    }
+}

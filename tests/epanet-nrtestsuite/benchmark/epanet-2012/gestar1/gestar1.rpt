@@ -1,0 +1,41 @@
+  Page 1                                    Fri Mar 23 14:48:39 2018
+
+  ******************************************************************
+  *                           E P A N E T                          *
+  *                   Hydraulic and Water Quality                  *
+  *                   Analysis for Pipe Networks                   *
+  *                         Version 2.00.12                        *
+  ******************************************************************
+  
+  Analysis begun Fri Mar 23 14:48:39 2018
+
+   
+  Hydraulic Status:
+  -----------------------------------------------------------------------
+     0:00:00: Balancing the network:
+              Trial  1: relative flow change = 2.337526
+              Trial  2: relative flow change = 0.996214
+              Trial  3: relative flow change = 0.986741
+              Trial  4: relative flow change = 0.969377
+              Trial  5: relative flow change = 0.953164
+              Trial  6: relative flow change = 0.936956
+              Trial  7: relative flow change = 0.864790
+              Trial  8: relative flow change = 0.999442
+              Trial  9: relative flow change = 0.698432
+              Trial 10: relative flow change = 0.387803
+              Trial 11: relative flow change = 0.205241
+              Trial 12: relative flow change = 0.105711
+              Trial 13: relative flow change = 0.053664
+              Trial 14: relative flow change = 0.027039
+              Trial 15: relative flow change = 0.013572
+              Trial 16: relative flow change = 0.006799
+              Trial 17: relative flow change = 0.003339
+              Trial 18: relative flow change = 0.001263
+              Trial 19: relative flow change = 0.000417
+              Trial 20: relative flow change = 0.000184
+              Trial 21: relative flow change = 0.000092
+     0:00:00: Balanced after 21 trials
+     0:00:00: Reservoir B is emptying
+     0:00:00: Reservoir A is emptying
+   
+  Analysis ended Fri Mar 23 14:48:39 2018

@@ -1,0 +1,123 @@
+[TITLE]
+EPANET Example Network 3
+Example showing how the percent of Lake water in a dual-source 
+system changes over time.
+
+[JUNCTIONS]
+;ID              	Elev        	Demand      	Pattern         
+ node1              	147         	1           	1               	;
+ node2			147		1		1
+
+[RESERVOIRS]
+;ID              	Head        	Pattern         
+ reservoir              220.0       	                	;
+
+[TANKS]
+;ID              	Elevation   	InitLevel   	MinLevel    	MaxLevel    	Diameter    	MinVol      	VolCurve
+
+[PIPES]
+;ID              	Node1           	Node2           	Length      	Diameter    	Roughness   	MinorLoss   	Status
+ pipe1              	reservoir          	node1              	100          	12          	100         	0           	Open  	;
+ pipe2			node1			node2			100		12		100		0		Open	;
+ 
+[PUMPS]
+;ID              	Node1           	Node2           	Parameters
+
+[VALVES]
+;ID              	Node1           	Node2           	Diameter    	Type	Setting     	MinorLoss   
+
+[TAGS]
+
+[DEMANDS]
+;Junction        	Demand      	Pattern         	Category
+
+[STATUS]
+;ID              	Status/Setting
+ 10              	Closed
+
+[PATTERNS]
+;ID              	Multipliers
+;General Default Demand Pattern
+ 1               	1        	
+ 
+[CURVES]
+;ID              	X-Value     	Y-Value
+         
+
+[CONTROLS]
+
+[RULES]
+
+[ENERGY]
+ Global Efficiency  	75
+ Global Price       	0.0
+ Demand Charge      	0.0
+
+[EMITTERS]
+;Junction        	Coefficient
+
+[QUALITY]
+;Node            	InitQual
+
+
+[SOURCES]
+;Node            	Type        	Quality     	Pattern
+
+[REACTIONS]
+;Type     	Pipe/Tank       	Coefficient
+
+
+[REACTIONS]
+ Order Bulk            	1
+ Order Tank            	1
+ Order Wall            	1
+ Global Bulk           	0.0
+ Global Wall           	0.0
+ Limiting Potential    	0.0
+ Roughness Correlation 	0.0
+
+[MIXING]
+;Tank            	Model
+
+[TIMES]
+ Duration           	24:00 
+ Hydraulic Timestep 	0:05 
+ Quality Timestep   	0:05 
+ Pattern Timestep   	1:00 
+ Pattern Start      	0:00 
+ Report Timestep    	1:00 
+ Report Start       	0:00 
+ Start ClockTime    	12 am
+ Statistic          	None
+
+[REPORT]
+ Status             	Yes
+ Summary            	Yes
+ Page               	0
+
+[OPTIONS]
+ Units              	GPM
+ Headloss           	H-W
+ Specific Gravity   	1.0
+ Viscosity          	1.0
+ Trials             	40
+ Accuracy           	0.001
+ CHECKFREQ          	2
+ MAXCHECK           	10
+ DAMPLIMIT          	0
+ Unbalanced         	Continue 10
+ Pattern            	1
+ Demand Multiplier  	1.0
+ Emitter Exponent   	0.5
+ Quality            	Trace reservoir
+ Diffusivity        	1.0
+ Tolerance          	0.01
+
+[COORDINATES]
+;Node            	X-Coord         	Y-Coord
+          
+
+[VERTICES]
+;Link            	X-Coord         	Y-Coord          
+
+[END]

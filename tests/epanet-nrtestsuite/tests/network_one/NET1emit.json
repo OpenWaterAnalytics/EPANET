@@ -1,0 +1,17 @@
+{
+    "name": "NET1emit",
+    "version": "1.0",
+    "description": "Example network one with emitter.",
+    "args": [
+        "NET1emit.inp",
+        "NET1emit.rpt", 
+        "NET1emit.out"
+    ],
+    "input_files": [
+        "NET1emit.inp"
+    ],
+    "output_files": {
+        "NET1emit.rpt": "epanet report",
+        "NET1emit.out": "epanet allclose"
+    }
+}
