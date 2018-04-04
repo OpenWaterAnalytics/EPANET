@@ -16,7 +16,7 @@ image:
 init: 
   - set EPANET_HOME=%APPVEYOR_BUILD_FOLDER%
   - set BUILD_HOME=buildprod
-  - set TEST_HOME=tests\epanet-nrtestsuite
+  - set TEST_HOME=nrtestsuite
   - set NRTEST_SCRIPT=C:\Python27\Scripts
   - set GENERATOR="Visual Studio 10 2010"
   - set BOOST_ROOT="C:\\Libraries\\boost"
@@ -41,7 +41,7 @@ build_script:
 
 before_test:
   - cd %EPANET_HOME%
-  - tools\gen-config.cmd %EPANET_HOME%\%BUILD_HOME%\bin\Release > %TEST_HOME%\apps\epanet-%APPVEYOR_REPO_COMMIT%.json 
+  - tools\before_test.cmd %TEST_HOME% %EPANET_HOME%\%BUILD_HOME%\bin\Release %APPVEYOR_REPO_COMMIT%
 
 # run custom test script
 test_script:
