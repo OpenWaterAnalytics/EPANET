@@ -107,8 +107,8 @@ def epanet_report_compare(path_test, path_ref, rtol, atol):
         RunTimeError()
         ...
     '''
-    HEADER = 11 
-    FOOTER = 3
+    HEADER = 10 
+    FOOTER = 2
     
     with open(path_test ,'r') as ftest, open(path_ref, 'r') as fref:
         

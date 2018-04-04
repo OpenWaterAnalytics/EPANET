@@ -1,3 +1,8 @@
+# Ignore the performance data and logs
+performance.json
+stderr.log
+stdout.log
+
 # Ignore app description files generated for nrtest
 apps/
 
