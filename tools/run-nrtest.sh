@@ -9,7 +9,7 @@
 #                US EPA - ORD/NRMRL
 #
 #  Arguments:
-#   1 - test suite path
+#   1 - relative path to location there test suite is staged
 #   2 - version/build identifier 
 # 
 
