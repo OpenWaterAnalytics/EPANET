@@ -41,7 +41,7 @@ build_script:
 
 before_test:
   - cd %EPANET_HOME%
-  - tools\before_test.cmd %TEST_HOME% %EPANET_HOME%\%BUILD_HOME%\bin\Release %APPVEYOR_REPO_COMMIT%
+  - tools\before-test.cmd %TEST_HOME% %EPANET_HOME%\%BUILD_HOME%\bin\Release %APPVEYOR_REPO_COMMIT%
 
 # run custom test script
 test_script:
