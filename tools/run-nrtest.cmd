@@ -20,7 +20,7 @@ set TEST_SUITE_PATH=%~2
 
 set NRTEST_EXECUTE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest execute
 set TEST_APP_PATH=apps\epanet-%3.json
-set TESTS=tests\examples
+set TESTS=tests\examples tests\exeter tests\large tests\network_one tests\small tests\tanks tests\valves
 set TEST_OUTPUT_PATH=benchmark\epanet-%3
 
 set NRTEST_COMPARE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest compare
@@ -40,6 +40,8 @@ echo INFO: Creating test benchmark
 set NRTEST_COMMAND=%NRTEST_EXECUTE_CMD% %TEST_APP_PATH% %TESTS% -o %TEST_OUTPUT_PATH%
 :: if there is an error exit the script with error value 1
 %NRTEST_COMMAND% || exit /B 1
+
+echo.
 
 echo INFO: Comparing test and ref benchmark
 set NRTEST_COMMAND=%NRTEST_COMPARE_CMD% %TEST_OUTPUT_PATH% %REF_OUTPUT_PATH% --rtol %RTOL_VALUE% --atol %ATOL_VALUE% 
