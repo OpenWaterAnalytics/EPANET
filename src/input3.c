@@ -112,7 +112,7 @@ int juncdata(EN_Project *pr)
   }
   demand->Base = y;
   demand->Pat = p;
-  demand->next = node->D;
+  demand->next = NULL;
   node->D = demand;
   hyd->NodeDemand[Njuncs] = y;
   
@@ -737,6 +737,7 @@ int demanddata(EN_Project *pr)
   int j, n, p = 0;
   double y;
   Pdemand demand;
+  Pdemand cur_demand;
   STmplist *pat;
 
   /* Extract data from tokens */
@@ -778,13 +779,17 @@ int demanddata(EN_Project *pr)
     hyd->NodeDemand[j] = MISSING; // marker - next iteration will append a new category.
   }
   else { // add new demand to junction
+    cur_demand = net->Node[j].D;
+    while (cur_demand->next != NULL) {
+      cur_demand = cur_demand->next;
+    }
     demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
     if (demand == NULL)
       return (101);
     demand->Base = y;
     demand->Pat = p;
-    demand->next = net->Node[j].D;
-    net->Node[j].D = demand;
+    demand->next = NULL;
+    cur_demand->next = demand;
   }
   return (0);
 } /* end of demanddata */
