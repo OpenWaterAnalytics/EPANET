@@ -1,0 +1,8 @@
+Links Flow max diff = 3
+Links Headloss max diff = 4
+Links Quality max diff = 3
+Links Velocity max diff = 6
+Nodes Demand max diff = 3
+Nodes Head max diff = 5
+Nodes Pressure max diff = 3
+Nodes Quality max diff = 100
