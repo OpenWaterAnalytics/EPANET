@@ -1,9 +1,0 @@
-# Ignore app description files generated for nrtest
-apps/
-
-# Ignore results generated during nrtest execution
-benchmark/
-
-# Except changes to reference benchmark
-!benchmark/epanet-2012   # Results for EPANET 2.0.12 MSVC 2010 32-bit
-
