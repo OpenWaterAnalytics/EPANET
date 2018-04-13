@@ -18,14 +18,17 @@ setlocal
 set NRTEST_SCRIPT_PATH=%~1
 set TEST_SUITE_PATH=%~2
 
+set BENCHMARK_VER=2012vs10
+
+
 set NRTEST_EXECUTE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest execute
 set TEST_APP_PATH=apps\epanet-%3.json
 set TESTS=tests\examples tests\exeter tests\large tests\network_one tests\small tests\tanks tests\valves
 set TEST_OUTPUT_PATH=benchmark\epanet-%3
 
 set NRTEST_COMPARE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest compare
-set REF_OUTPUT_PATH=benchmark\epanet-2012
-set RTOL_VALUE=0.1
+set REF_OUTPUT_PATH=benchmark\epanet-%BENCHMARK_VER%
+set RTOL_VALUE=0.01
 set ATOL_VALUE=0.0
 
 :: change current directory to test suite
@@ -44,5 +47,5 @@ set NRTEST_COMMAND=%NRTEST_EXECUTE_CMD% %TEST_APP_PATH% %TESTS% -o %TEST_OUTPUT_
 echo.
 
 echo INFO: Comparing test and ref benchmark
-set NRTEST_COMMAND=%NRTEST_COMPARE_CMD% %TEST_OUTPUT_PATH% %REF_OUTPUT_PATH% --rtol %RTOL_VALUE% --atol %ATOL_VALUE% 
+set NRTEST_COMMAND=%NRTEST_COMPARE_CMD% %TEST_OUTPUT_PATH% %REF_OUTPUT_PATH% --rtol %RTOL_VALUE% --atol %ATOL_VALUE% -o receipt.json
 %NRTEST_COMMAND%
