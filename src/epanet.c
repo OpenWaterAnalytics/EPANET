@@ -4157,13 +4157,12 @@ int DLLEXPORT EN_addnode(EN_Project *p, char *id, EN_NodeType nodeType) {
   qu->NodeQual = (double *)realloc(qu->NodeQual, (net->Nnodes + 2) * sizeof(double));
   hyd->NodeHead = (double *)realloc(hyd->NodeHead, (net->Nnodes + 2) * sizeof(double));
   
-  nIdx = net->Nnodes + 1;
-  node = &net->Node[nIdx];
-  coord = &net->Coord[nIdx];
-  
   if (nodeType == EN_JUNCTION) {
     net->Njuncs++;
-
+    nIdx = net->Njuncs;
+    node = &net->Node[nIdx];
+    coord = &net->Coord[nIdx];
+    
     demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
     demand->Base = 0.0;
     demand->Pat = 0;
@@ -4191,6 +4190,9 @@ int DLLEXPORT EN_addnode(EN_Project *p, char *id, EN_NodeType nodeType) {
       }
     }
   } else {
+    nIdx = net->Nnodes++;
+    node = &net->Node[nIdx];
+    coord = &net->Coord[nIdx];
     net->Ntanks++;
     
     /* resize tanks array */
@@ -4231,8 +4233,7 @@ int DLLEXPORT EN_addnode(EN_Project *p, char *id, EN_NodeType nodeType) {
   node->C0 = 0;
   node->Ke = 0;
   node->Rpt = 0;
-  
-  
+
   coord->HaveCoords = FALSE;
   coord->X = 0;
   coord->Y = 0;

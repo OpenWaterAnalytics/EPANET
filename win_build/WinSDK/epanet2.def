@@ -88,3 +88,8 @@ EXPORTS
     ENsetfalseaction              = _ENsetfalseaction@20
     ENgetruleID                   = _ENgetruleID@8
     ENsetflowunits                = _ENsetflowunits@4
+    ENaddnode                     = _ENaddnode@8
+    ENaddlink                     = _ENaddlink@16
+    ENdeletelink                  = _ENdeletelink@4
+    ENdeletenode                  = _ENdeletenode@4
+    ENsetlinktype                 = _ENsetlinktype@8
