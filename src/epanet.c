@@ -1512,7 +1512,7 @@ int DLLEXPORT EN_getqualtype(EN_Project *p, int *qualcode, int *tracenode) {
 }
 
 int DLLEXPORT EN_getqualinfo(EN_Project *p, int *qualcode, char *chemname, char *chemunits, int *tracenode) {
-  ENgetqualtype(qualcode, tracenode);
+  EN_getqualtype(p, qualcode, tracenode);
   if (p->quality.Qualflag == TRACE) {
     strncpy(chemname, "", MAXID);
     strncpy(chemunits, "dimensionless", MAXID);
@@ -4165,7 +4165,7 @@ int DLLEXPORT EN_addnode(EN_Project *p, char *id, EN_NodeType nodeType) {
     
     demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
     demand->Base = 0.0;
-    demand->Pat = 0;
+    demand->Pat = hyd->DefPat; // Use default pattern
     demand->next = NULL;
     node->D = demand;
 
