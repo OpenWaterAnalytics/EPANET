@@ -115,11 +115,13 @@ void    changestatus(EN_Network *net, int, StatType, double);  /* Changes status
 
 /* -------------- RULES.C --------------*/
 void    initrules(rules_t *rules);                  /* Initializes rule base      */
-void    addrule(parser_data_t *par, char *);                  /* Adds rule to rule base     */
+void    addrule(parser_data_t *par, char *);        /* Adds rule to rule base     */
 int     allocrules(EN_Project *pr);                 /* Allocates memory for rule  */
 int     ruledata(EN_Project *pr);                   /* Processes rule input data  */
-int     checkrules(EN_Project *pr, long);                 /* Checks all rules           */
+int     checkrules(EN_Project *pr, long);           /* Checks all rules           */
 void    freerules(EN_Project *pr);                  /* Frees rule base memory     */  
+int     writeRuleinInp(EN_Project *pr, FILE *f,     /* Writes rule to an INP file */
+                      int RuleIdx);
 
 /* ------------- REPORT.C --------------*/
 int     writereport(EN_Project *pr);                /* Writes formatted report    */

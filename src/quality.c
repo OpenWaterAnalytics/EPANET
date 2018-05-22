@@ -161,6 +161,9 @@ void initqual(EN_Project *pr)
       net->Node[i].S->Smass = 0.0;
   }
 
+  qu->QTempVolumes = 
+      calloc(net->Ntanks,
+          sizeof(double)); // keep track of next tank volumes.
   qu->QTankVolumes =
       calloc(net->Ntanks,
              sizeof(double)); // keep track of previous step's tank volumes.
@@ -287,7 +290,7 @@ int nextqual(EN_Project *pr, long *tstep)
 {
   long hydstep; /* Hydraulic solution time step */
   int errcode = 0;
-  double *tankVolumes;
+  //double *tankVolumes = NULL;
   int i;
   EN_Network *net;
   hydraulics_t *hyd;
@@ -315,10 +318,10 @@ int nextqual(EN_Project *pr, long *tstep)
   // if we're operating in stepwise mode, capture the tank levels so we can
   // restore them later.
   if (hyd->OpenHflag) {
-    tankVolumes = calloc(net->Ntanks, sizeof(double));
+    //tankVolumes = calloc(net->Ntanks, sizeof(double));
     for (i = 1; i <= net->Ntanks; ++i) {
       if (net->Tank[i].A != 0) { // skip reservoirs
-        tankVolumes[i - 1] = net->Tank[i].V;
+        qu->QTempVolumes[i - 1] = net->Tank[i].V;
       }
     }
 
@@ -359,7 +362,7 @@ int nextqual(EN_Project *pr, long *tstep)
     for (i = 1; i <= net->Ntanks; i++) {
       if (net->Tank[i].A != 0) { // skip reservoirs again
         int n = net->Tank[i].Node;
-        net->Tank[i].V = tankVolumes[i - 1];
+        net->Tank[i].V = qu->QTempVolumes[i - 1];
         hyd->NodeHead[n] = tankgrade(pr, i, net->Tank[i].V);
       }
     }
@@ -370,7 +373,7 @@ int nextqual(EN_Project *pr, long *tstep)
       }
     }
 
-    free(tankVolumes);
+    //free(tankVolumes);
   }
 
   return (errcode);
@@ -448,6 +451,7 @@ int closequal(EN_Project *pr)
   free(qu->MassIn);
   free(qu->PipeRateCoeff);
   free(qu->TempQual);
+  free(qu->QTempVolumes);
   free(qu->QTankVolumes);
   free(qu->QLinkFlow);
   return (errcode);

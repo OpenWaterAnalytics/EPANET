@@ -542,6 +542,7 @@ typedef struct {
   Climit,    /// Limiting potential quality   
   *NodeQual, /// Node quality state
   *TempQual, /// General purpose array for water quality
+  *QTempVolumes,
   *QTankVolumes,
   *QLinkFlow,
   *PipeRateCoeff;
@@ -551,12 +552,12 @@ typedef struct {
   Qtime; /// Current quality time (sec)
   
   char      OutOfMemory;          /* Out of memory indicator                 */
-  alloc_handle_t *SegPool; // Memory pool for water quality segments   
+  alloc_handle_t *SegPool;        // Memory pool for water quality segments   
   
   Pseg      FreeSeg;              /* Pointer to unused segment               */
   Pseg      *FirstSeg,            /* First (downstream) segment in each pipe */
-  *LastSeg;             /* Last (upstream) segment in each pipe    */
-  FlowDirection      *FlowDir;             /* Flow direction for each pipe            */
+            *LastSeg;             /* Last (upstream) segment in each pipe    */
+  FlowDirection *FlowDir;         /* Flow direction for each pipe            */
   double    *VolIn;               /* Total volume inflow to node             */
   double    *MassIn;              /* Total mass inflow to node               */
   double    Sc;                   /* Schmidt Number                          */

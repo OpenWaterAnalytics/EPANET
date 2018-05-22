@@ -628,7 +628,7 @@ void  demands(EN_Project *pr)
    long k,p;
    double djunc, sum;
    Pdemand demand;
-  
+
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   time_options_t *top = &pr->time_options;
@@ -680,6 +680,7 @@ void  demands(EN_Project *pr)
          setlinksetting(pr, i, net->Pattern[j].F[k], &hyd->LinkStatus[i], &hyd->LinkSetting[i]);
       }
    }
+
 }                        /* End of demands */
 
 
