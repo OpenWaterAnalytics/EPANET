@@ -18,14 +18,12 @@ matrix:
 environment: 
   matrix:
   - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-    VS_VERSION: "10 2010"
-    ARCH: Win32
+    GENERATOR: "Visual Studio 10 2010"
     GROUP: "SUPPORTED"
     BOOST_ROOT: "C:/Libraries/boost"
   # New build on Visual Studio 15 2017
   - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    VS_VERSION: "15 2017"
-    ARCH: Win64
+    GENERATOR: "Visual Studio 15 2017 Win64"
     GROUP: "EXPERIMENTAL"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
 
@@ -35,11 +33,8 @@ init:
   - set BUILD_HOME=buildprod
   - set TEST_HOME=nrtestsuite
   - set NRTEST_SCRIPT=C:\Python27\Scripts
-  - if "%ARCH%"=="Win64" (set VS_ARCH= Win64)
-  - set GENERATOR="Visual Studio %VS_VERSION% %VS_ARCH%"
   # See values set
   - echo %APPVEYOR_BUILD_WORKER_IMAGE%
-  - echo %ARCH%
   - echo %BUILD_HOME%
   - echo %GENERATOR%
   - echo %BOOST_ROOT%
