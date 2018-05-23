@@ -21,13 +21,13 @@ environment:
     VS_VERSION: "10 2010"
     ARCH: Win32
     GROUP: "SUPPORTED"
-    BOOST_ROOT:"C:/Libraries/boost"
+    BOOST_ROOT: "C:/Libraries/boost"
   # New build on Visual Studio 15 2017
   - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     VS_VERSION: "15 2017"
     ARCH: Win64
     GROUP: "EXPERIMENTAL"
-    BOOST_ROOT:"C:/Libraries/boost_1_67_0"
+    BOOST_ROOT: "C:/Libraries/boost_1_67_0"
 
 # called before repo cloning
 init: 
