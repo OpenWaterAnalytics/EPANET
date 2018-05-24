@@ -228,80 +228,79 @@ int ruledata(EN_Project *pr)
 
   rules_t *rules = &pr->rules;
   char **Tok = par->Tok;
-  
+
   int key, /* Keyword code */
       err;
 
   /* Exit if current rule has an error */
-  if (rules->RuleState == r_ERROR)
-    return (0);
+  if (rules->RuleState == r_ERROR) return (0);
 
   /* Find the key word that begins the rule statement */
   err = 0;
   key = findmatch(Tok[0], Ruleword);
   switch (key) {
-  case -1:
-    err = 201; /* Unrecognized keyword */
-    break;
-  case r_RULE:
-    net->Nrules++;
-    newrule(pr);
-    rules->RuleState = r_RULE;
-    break;
-  case r_IF:
-    if (rules->RuleState != r_RULE) {
-      err = 221; /* Mis-placed IF clause */
+    case -1:
+      err = 201; /* Unrecognized keyword */
       break;
-    }
-    rules->RuleState = r_IF;
-    err = newpremise(pr,r_AND);
-    break;
-  case r_AND:
-    if (rules->RuleState == r_IF)
+    case r_RULE:
+      net->Nrules++;
+      newrule(pr);
+      rules->RuleState = r_RULE;
+      break;
+    case r_IF:
+      if (rules->RuleState != r_RULE) {
+        err = 221; /* Mis-placed IF clause */
+        break;
+      }
+      rules->RuleState = r_IF;
       err = newpremise(pr, r_AND);
-    else if (rules->RuleState == r_THEN || rules->RuleState == r_ELSE)
+      break;
+    case r_AND:
+      if (rules->RuleState == r_IF)
+        err = newpremise(pr, r_AND);
+      else if (rules->RuleState == r_THEN || rules->RuleState == r_ELSE)
+        err = newaction(pr);
+      else
+        err = 221;
+      break;
+    case r_OR:
+      if (rules->RuleState == r_IF)
+        err = newpremise(pr, r_OR);
+      else
+        err = 221;
+      break;
+    case r_THEN:
+      if (rules->RuleState != r_IF) {
+        err = 221; /* Mis-placed THEN clause */
+        break;
+      }
+      rules->RuleState = r_THEN;
       err = newaction(pr);
-    else
-      err = 221;
-    break;
-  case r_OR:
-    if (rules->RuleState == r_IF)
-      err = newpremise(pr, r_OR);
-    else
-      err = 221;
-    break;
-  case r_THEN:
-    if (rules->RuleState != r_IF) {
-      err = 221; /* Mis-placed THEN clause */
       break;
-    }
-    rules->RuleState = r_THEN;
-    err = newaction(pr);
-    break;
-  case r_ELSE:
-    if (rules->RuleState != r_THEN) {
-      err = 221; /* Mis-placed ELSE clause */
+    case r_ELSE:
+      if (rules->RuleState != r_THEN) {
+        err = 221; /* Mis-placed ELSE clause */
+        break;
+      }
+      rules->RuleState = r_ELSE;
+      err = newaction(pr);
       break;
-    }
-    rules->RuleState = r_ELSE;
-    err = newaction(pr);
-    break;
-  case r_PRIORITY:
-    if (rules->RuleState != r_THEN && rules->RuleState != r_ELSE) {
-      err = 221;
+    case r_PRIORITY:
+      if (rules->RuleState != r_THEN && rules->RuleState != r_ELSE) {
+        err = 221;
+        break;
+      }
+      rules->RuleState = r_PRIORITY;
+      err = newpriority(pr);
       break;
-    }
-    rules->RuleState = r_PRIORITY;
-    err = newpriority(pr);
-    break;
-  default:
-    err = 201;
+    default:
+      err = 201;
   }
 
   /* Set RuleState to r_ERROR if errors found */
   if (err) {
     rules->RuleState = r_ERROR;
-    ruleerrmsg(pr,err);
+    ruleerrmsg(pr, err);
     err = 200;
   }
   return (err);
@@ -313,7 +312,7 @@ void clearactlist(rules_t *rules)
 **    Clears memory used for action list
 **----------------------------------------------------------
 */
-{  
+{
   ActItem *a;
   ActItem *anext;
   a = rules->ActList;
@@ -334,7 +333,7 @@ void clearrules(EN_Project *pr)
   EN_Network *net = &pr->network;
 
   rules_t *rules = &pr->rules;
-  
+
   Premise *p;
   Premise *pnext;
   Action *a;
@@ -401,14 +400,13 @@ int newpremise(EN_Project *pr, int logop)
 
   rules_t *rules = &pr->rules;
   char **Tok = par->Tok;
-  
+
   int i, j, k, m, r, s, v;
   double x;
   Premise *p;
 
   /* Check for correct number of tokens */
-  if (par->Ntokens != 5 && par->Ntokens != 6)
-    return (201);
+  if (par->Ntokens != 5 && par->Ntokens != 6) return (201);
 
   /* Find network object & id if present */
   i = findmatch(Tok[1], Object);
@@ -424,42 +422,41 @@ int newpremise(EN_Project *pr, int logop)
       return (201);
     }
     switch (i) {
-    case r_NODE:
-    case r_JUNC:
-    case r_RESERV:
-    case r_TANK:
-      k = r_NODE;
-      break;
-    case r_LINK:
-    case r_PIPE:
-    case r_PUMP:
-    case r_VALVE:
-      k = r_LINK;
-      break;
-    default:
-      return (201);
+      case r_NODE:
+      case r_JUNC:
+      case r_RESERV:
+      case r_TANK:
+        k = r_NODE;
+        break;
+      case r_LINK:
+      case r_PIPE:
+      case r_PUMP:
+      case r_VALVE:
+        k = r_LINK;
+        break;
+      default:
+        return (201);
     }
     i = k;
     if (i == r_NODE) {
       j = findnode(net, Tok[2]);
-      if (j == 0)
-        return (203);
+      if (j == 0) return (203);
       switch (v) {
-      case r_DEMAND:
-      case r_HEAD:
-      case r_GRADE:
-      case r_LEVEL:
-      case r_PRESSURE:
-        break;
-      case r_FILLTIME:
-      case r_DRAINTIME:
-        if (j <= net->Njuncs) {
-          return (201);
-        }
-        break;
+        case r_DEMAND:
+        case r_HEAD:
+        case r_GRADE:
+        case r_LEVEL:
+        case r_PRESSURE:
+          break;
+        case r_FILLTIME:
+        case r_DRAINTIME:
+          if (j <= net->Njuncs) {
+            return (201);
+          }
+          break;
 
-      default:
-        return (201);
+        default:
+          return (201);
       }
     } else {
       j = findlink(net, Tok[2]);
@@ -467,12 +464,12 @@ int newpremise(EN_Project *pr, int logop)
         return (204);
       }
       switch (v) {
-      case r_FLOW:
-      case r_STATUS:
-      case r_SETTING:
-        break;
-      default:
-        return (201);
+        case r_FLOW:
+        case r_STATUS:
+        case r_SETTING:
+          break;
+        default:
+          return (201);
       }
     }
   }
@@ -484,23 +481,22 @@ int newpremise(EN_Project *pr, int logop)
     m = 4;
   }
   k = findmatch(Tok[m], Operator);
-  if (k < 0)
-    return (201);
+  if (k < 0) return (201);
   switch (k) {
-  case IS:
-    r = EQ;
-    break;
-  case NOT:
-    r = NE;
-    break;
-  case BELOW:
-    r = LT;
-    break;
-  case ABOVE:
-    r = GT;
-    break;
-  default:
-    r = k;
+    case IS:
+      r = EQ;
+      break;
+    case NOT:
+      r = NE;
+      break;
+    case BELOW:
+      r = LT;
+      break;
+    case ABOVE:
+      r = GT;
+      break;
+    default:
+      r = k;
   }
 
   /* Parse for status (s) or numerical value (x) */
@@ -511,21 +507,17 @@ int newpremise(EN_Project *pr, int logop)
       x = hour(Tok[4], Tok[5]) * 3600.;
     else
       x = hour(Tok[4], "") * 3600.;
-    if (x < 0.0)
-      return (202);
+    if (x < 0.0) return (202);
   } else if ((k = findmatch(Tok[par->Ntokens - 1], Value)) > IS_NUMBER)
     s = k;
   else {
-    if (!getfloat(Tok[par->Ntokens - 1], &x))
-      return (202);
-    if (v == r_FILLTIME || v == r_DRAINTIME)
-      x = x * 3600.0; 
+    if (!getfloat(Tok[par->Ntokens - 1], &x)) return (202);
+    if (v == r_FILLTIME || v == r_DRAINTIME) x = x * 3600.0;
   }
 
   /* Create new premise structure */
   p = (Premise *)malloc(sizeof(Premise));
-  if (p == NULL)
-    return (101);
+  if (p == NULL) return (101);
   p->object = i;
   p->index = j;
   p->variable = v;
@@ -566,18 +558,15 @@ int newaction(EN_Project *pr)
   Action *a;
 
   /* Check for correct number of tokens */
-  if (par->Ntokens != 6)
-    return (201);
+  if (par->Ntokens != 6) return (201);
 
   /* Check that link exists */
   j = findlink(net, Tok[2]);
-  if (j == 0)
-    return (204);
+  if (j == 0) return (204);
 
   /***  Updated 9/7/00  ***/
   /* Cannot control a CV */
-  if (net->Link[j].Type == EN_CVPIPE)
-    return (207);
+  if (net->Link[j].Type == EN_CVPIPE) return (207);
 
   /* Find value for status or setting */
   s = -1;
@@ -595,8 +584,7 @@ int newaction(EN_Project *pr)
 
   /*** Updated 9/7/00 ***/
   /* Cannot change setting for a GPV ***/
-  if (x != MISSING && net->Link[j].Type == EN_GPV)
-    return (202);
+  if (x != MISSING && net->Link[j].Type == EN_GPV) return (202);
 
   /*** Updated 3/1/01 ***/
   /* Set status for pipe in case setting was specified */
@@ -610,8 +598,7 @@ int newaction(EN_Project *pr)
 
   /* Create a new action structure */
   a = (Action *)malloc(sizeof(Action));
-  if (a == NULL)
-    return (101);
+  if (a == NULL) return (101);
   a->link = j;
   a->status = s;
   a->setting = x;
@@ -646,10 +633,9 @@ int newpriority(EN_Project *pr)
   parser_data_t *par = &pr->parser;
   rules_t *rules = &pr->rules;
   char **Tok = par->Tok;
-  
+
   double x;
-  if (!getfloat(Tok[1], &x))
-    return (202);
+  if (!getfloat(Tok[1], &x)) return (202);
   rules->Rule[net->Nrules].priority = x;
   return (0);
 }
@@ -662,7 +648,7 @@ int evalpremises(EN_Project *pr, int i)
 */
 {
   rules_t *rules = &pr->rules;
-  
+
   int result;
   Premise *p;
 
@@ -671,12 +657,11 @@ int evalpremises(EN_Project *pr, int i)
   while (p != NULL) {
     if (p->logop == r_OR) {
       if (result == FALSE) {
-        result = checkpremise(pr,p);
+        result = checkpremise(pr, p);
       }
     } else {
-      if (result == FALSE)
-        return (FALSE);
-      result = checkpremise(pr,p);
+      if (result == FALSE) return (FALSE);
+      result = checkpremise(pr, p);
     }
     p = p->next;
   }
@@ -691,11 +676,11 @@ int checkpremise(EN_Project *pr, Premise *p)
 */
 {
   if (p->variable == r_TIME || p->variable == r_CLOCKTIME)
-    return (checktime(pr,p));
+    return (checktime(pr, p));
   else if (p->status > IS_NUMBER)
-    return (checkstatus(pr,p));
+    return (checkstatus(pr, p));
   else
-    return (checkvalue(pr,p));
+    return (checkvalue(pr, p));
 }
 
 int checktime(EN_Project *pr, Premise *p)
@@ -707,7 +692,7 @@ int checktime(EN_Project *pr, Premise *p)
 {
   time_options_t *time = &pr->time_options;
   rules_t *rules = &pr->rules;
-  
+
   char flag;
   long t1, t2, x;
 
@@ -715,8 +700,7 @@ int checktime(EN_Project *pr, Premise *p)
   if (p->variable == r_TIME) {
     t1 = rules->Time1;
     t2 = time->Htime;
-  } 
-  else if (p->variable == r_CLOCKTIME) {
+  } else if (p->variable == r_CLOCKTIME) {
     t1 = (rules->Time1 + time->Tstart) % SECperDAY;
     t2 = (time->Htime + time->Tstart) % SECperDAY;
   } else
@@ -725,41 +709,33 @@ int checktime(EN_Project *pr, Premise *p)
   /* Test premise's time */
   x = (long)(p->value);
   switch (p->relop) {
-  /* For inequality, test against current time */
-  case LT:
-    if (t2 >= x)
-      return (0);
-    break;
-  case LE:
-    if (t2 > x)
-      return (0);
-    break;
-  case GT:
-    if (t2 <= x)
-      return (0);
-    break;
-  case GE:
-    if (t2 < x)
-      return (0);
-    break;
+    /* For inequality, test against current time */
+    case LT:
+      if (t2 >= x) return (0);
+      break;
+    case LE:
+      if (t2 > x) return (0);
+      break;
+    case GT:
+      if (t2 <= x) return (0);
+      break;
+    case GE:
+      if (t2 < x) return (0);
+      break;
 
-  /* For equality, test if within interval */
-  case EQ:
-  case NE:
-    flag = FALSE;
-    if (t2 < t1) /* E.g., 11:00 am to 1:00 am */
-    {
-      if (x >= t1 || x <= t2)
-        flag = TRUE;
-    } else {
-      if (x >= t1 && x <= t2)
-        flag = TRUE;
-    }
-    if (p->relop == EQ && flag == FALSE)
-      return (0);
-    if (p->relop == NE && flag == TRUE)
-      return (0);
-    break;
+    /* For equality, test if within interval */
+    case EQ:
+    case NE:
+      flag = FALSE;
+      if (t2 < t1) /* E.g., 11:00 am to 1:00 am */
+      {
+        if (x >= t1 || x <= t2) flag = TRUE;
+      } else {
+        if (x >= t1 && x <= t2) flag = TRUE;
+      }
+      if (p->relop == EQ && flag == FALSE) return (0);
+      if (p->relop == NE && flag == TRUE) return (0);
+      break;
   }
 
   /* If we get to here then premise was satisfied */
@@ -774,24 +750,22 @@ int checkstatus(EN_Project *pr, Premise *p)
 */
 {
   hydraulics_t *hyd = &pr->hydraulics;
-  
+
   char i;
   int j;
   switch (p->status) {
-  case IS_OPEN:
-  case IS_CLOSED:
-  case IS_ACTIVE:
-    i = hyd->LinkStatus[p->index];
-    if (i <= CLOSED)
-      j = IS_CLOSED;
-    else if (i == ACTIVE)
-      j = IS_ACTIVE;
-    else
-      j = IS_OPEN;
-    if (j == p->status && p->relop == EQ)
-      return (1);
-    if (j != p->status && p->relop == NE)
-      return (1);
+    case IS_OPEN:
+    case IS_CLOSED:
+    case IS_ACTIVE:
+      i = hyd->LinkStatus[p->index];
+      if (i <= CLOSED)
+        j = IS_CLOSED;
+      else if (i == ACTIVE)
+        j = IS_ACTIVE;
+      else
+        j = IS_OPEN;
+      if (j == p->status && p->relop == EQ) return (1);
+      if (j != p->status && p->relop == NE) return (1);
   }
   return (0);
 }
@@ -806,17 +780,17 @@ int checkvalue(EN_Project *pr, Premise *p)
 {
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
-  
+
   Snode *Node = net->Node;
   Slink *Link = net->Link;
   Stank *Tank = net->Tank;
-  
+
   const int Njuncs = net->Njuncs;
   double *Ucf = pr->Ucf;
   double *NodeDemand = hyd->NodeDemand;
   double *LinkFlows = hyd->LinkFlows;
   double *LinkSetting = hyd->LinkSetting;
-  
+
   int i, j, v;
   double x, tol = 1.e-3;
 
@@ -829,7 +803,7 @@ int checkvalue(EN_Project *pr, Premise *p)
       else
         x = NodeDemand[i] * Ucf[DEMAND];
       break;
-      
+
     case r_HEAD:
     case r_GRADE:
       x = hyd->NodeHead[i] * Ucf[HEAD];
@@ -844,8 +818,7 @@ int checkvalue(EN_Project *pr, Premise *p)
       x = ABS(LinkFlows[i]) * Ucf[FLOW];
       break;
     case r_SETTING:
-      if (LinkSetting[i] == MISSING)
-        return (0);
+      if (LinkSetting[i] == MISSING) return (0);
       x = LinkSetting[i];
       switch (Link[i].Type) {
         case EN_PRV:
@@ -861,53 +834,41 @@ int checkvalue(EN_Project *pr, Premise *p)
       }
       break;
     case r_FILLTIME:
-      if (i <= Njuncs)
-        return (0);
+      if (i <= Njuncs) return (0);
       j = i - Njuncs;
-      if (Tank[j].A == 0.0)
-        return (0);
-      if (NodeDemand[i] <= TINY)
-        return (0);
+      if (Tank[j].A == 0.0) return (0);
+      if (NodeDemand[i] <= TINY) return (0);
       x = (Tank[j].Vmax - Tank[j].V) / NodeDemand[i];
       break;
     case r_DRAINTIME:
-      if (i <= Njuncs)
-        return (0);
+      if (i <= Njuncs) return (0);
       j = i - Njuncs;
-      if (Tank[j].A == 0.0)
-        return (0);
-      if (NodeDemand[i] >= -TINY)
-        return (0);
+      if (Tank[j].A == 0.0) return (0);
+      if (NodeDemand[i] >= -TINY) return (0);
       x = (Tank[j].Vmin - Tank[j].V) / NodeDemand[i];
       break;
     default:
       return (0);
   }
   switch (p->relop) {
-  case EQ:
-    if (ABS(x - p->value) > tol)
-      return (0);
-    break;
-  case NE:
-    if (ABS(x - p->value) < tol)
-      return (0);
-    break;
-  case LT:
-    if (x > p->value + tol)
-      return (0);
-    break;
-  case LE:
-    if (x > p->value - tol)
-      return (0);
-    break;
-  case GT:
-    if (x < p->value - tol)
-      return (0);
-    break;
-  case GE:
-    if (x < p->value + tol)
-      return (0);
-    break;
+    case EQ:
+      if (ABS(x - p->value) > tol) return (0);
+      break;
+    case NE:
+      if (ABS(x - p->value) < tol) return (0);
+      break;
+    case LT:
+      if (x > p->value + tol) return (0);
+      break;
+    case LE:
+      if (x > p->value - tol) return (0);
+      break;
+    case GT:
+      if (x < p->value - tol) return (0);
+      break;
+    case GE:
+      if (x < p->value + tol) return (0);
+      break;
   }
   return (1);
 }
@@ -978,18 +939,17 @@ int takeactions(EN_Project *pr)
 **-----------------------------------------------------------
 */
 {
-  
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   report_options_t *rep = &pr->report;
   rules_t *rules = &pr->rules;
-  
+
   Action *a;
   ActItem *item;
   char flag;
   int k, s, n;
   double tol = 1.e-3, v, x;
-  
+
   n = 0;
   item = rules->ActList;
   while (item != NULL) {
@@ -1056,34 +1016,34 @@ void ruleerrmsg(EN_Project *pr, int err)
   parser_data_t *par = &pr->parser;
   rules_t *rules = &pr->rules;
   char **Tok = par->Tok;
-  
+
   int i;
   char label[81];
   char fmt[256];
   switch (err) {
-  case 201:
-    strcpy(fmt, R_ERR201);
-    break;
-  case 202:
-    strcpy(fmt, R_ERR202);
-    break;
-  case 203:
-    strcpy(fmt, R_ERR203);
-    break;
-  case 204:
-    strcpy(fmt, R_ERR204);
-    break;
+    case 201:
+      strcpy(fmt, R_ERR201);
+      break;
+    case 202:
+      strcpy(fmt, R_ERR202);
+      break;
+    case 203:
+      strcpy(fmt, R_ERR203);
+      break;
+    case 204:
+      strcpy(fmt, R_ERR204);
+      break;
 
-  /***  Updated on 9/7/00  ***/
-  case 207:
-    strcpy(fmt, R_ERR207);
-    break;
+    /***  Updated on 9/7/00  ***/
+    case 207:
+      strcpy(fmt, R_ERR207);
+      break;
 
-  case 221:
-    strcpy(fmt, R_ERR221);
-    break;
-  default:
-    return;
+    case 221:
+      strcpy(fmt, R_ERR221);
+      break;
+    default:
+      return;
   }
   if (net->Nrules > 0) {
     strcpy(label, t_RULE);
@@ -1118,11 +1078,11 @@ int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
 
   EN_Network *net = &pr->network;
   rules_t *rules = &pr->rules;
-  
+
   Slink *Link = net->Link;
   Stank *Tank = net->Tank;
   Snode *Node = net->Node;
-  
+
   // int i,j;
   Premise *p;
   Action *a;
@@ -1146,7 +1106,7 @@ int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
       else
         fprintf(f, "TANK %s %s %s %s", Node[p->index].ID, Varword[p->variable],
                 Operator[p->relop], Value[p->status]);
-    } else { // it is a link
+    } else {  // it is a link
       if (Link[p->index].Type == EN_PIPE || Link[p->index].Type == EN_CVPIPE)
         fprintf(f, "PIPE %s %s %s %s", Link[p->index].ID, Varword[p->variable],
                 Operator[p->relop], Value[p->status]);
@@ -1198,7 +1158,7 @@ int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
             else
               fprintf(f, "TANK %s %s %s %.4lf", Node[p->index].ID,
                       Varword[p->variable], Operator[p->relop], p->value);
-          } else { // it is a link
+          } else {  // it is a link
             if (Link[p->index].Type == EN_PIPE ||
                 Link[p->index].Type == EN_CVPIPE)
               fprintf(f, "PIPE %s %s %s %.4lf", Link[p->index].ID,
@@ -1216,8 +1176,9 @@ int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
   }
 
   p = p->next;
-  while (p != NULL) // for all other premises/conditions write the corresponding
-                    // logicOperator
+  while (p !=
+         NULL)  // for all other premises/conditions write the corresponding
+                // logicOperator
   {
     if (p->value == MISSING) {
       fprintf(f, "\n%s ", Ruleword[p->logop]);
@@ -1234,7 +1195,7 @@ int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
         else
           fprintf(f, "TANK %s %s %s %s", Node[p->index].ID,
                   Varword[p->variable], Operator[p->relop], Value[p->status]);
-      } else { // it is a link
+      } else {  // it is a link
         if (Link[p->index].Type == EN_PIPE || Link[p->index].Type == EN_CVPIPE)
           fprintf(f, "PIPE %s %s %s %s", Link[p->index].ID,
                   Varword[p->variable], Operator[p->relop], Value[p->status]);
@@ -1287,7 +1248,7 @@ int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
               else
                 fprintf(f, "TANK %s %s %s %.4lf", Node[p->index].ID,
                         Varword[p->variable], Operator[p->relop], p->value);
-            } else { // it is a link
+            } else {  // it is a link
               if (Link[p->index].Type == EN_PIPE ||
                   Link[p->index].Type == EN_CVPIPE)
                 fprintf(f, "PIPE %s %s %s %.4lf", Link[p->index].ID,
@@ -1306,8 +1267,9 @@ int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
     p = p->next;
   }
 
-  a = rules->Rule[RuleIdx].Tchain; // The first action in hte list of true actions
-                            // starts with THEN
+  a = rules->Rule[RuleIdx]
+          .Tchain;  // The first action in hte list of true actions
+                    // starts with THEN
   if (a->setting == MISSING) {
     if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
       fprintf(f, "\nTHEN PIPE %s STATUS IS %s", Link[a->link].ID,
@@ -1330,7 +1292,7 @@ int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
               a->setting);
   }
 
-  a = a->next; // The other actions in the list of true actions start with AND
+  a = a->next;  // The other actions in the list of true actions start with AND
   while (a != NULL) {
     if (a->setting == MISSING) {
       if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
@@ -1357,8 +1319,9 @@ int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
     a = a->next;
   }
 
-  a = rules->Rule[RuleIdx].Fchain; // The first action in the list of false actions
-                            // starts with ELSE
+  a = rules->Rule[RuleIdx]
+          .Fchain;  // The first action in the list of false actions
+                    // starts with ELSE
   if (a != NULL) {
     if (a->setting == MISSING) {
       if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
@@ -1382,8 +1345,8 @@ int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
                 a->setting);
     }
 
-    a = a->next; // The other actions in the list of false actions start with
-                 // AND
+    a = a->next;  // The other actions in the list of false actions start with
+                  // AND
     while (a != NULL) {
       if (a->setting == MISSING) {
         if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)

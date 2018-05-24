@@ -8,23 +8,22 @@
 #define HASH_H
 
 #define ENHASHTABLEMAXSIZE 128000
-#define NOTFOUND  0
+#define NOTFOUND 0
 
-typedef struct HTentryStruct
-{
-	char 	*key;
-	int 	data;
-	struct	HTentryStruct *next;
+typedef struct HTentryStruct {
+  char *key;
+  int data;
+  struct HTentryStruct *next;
 } ENHashEntry;
 
 typedef ENHashEntry *ENHashTable;
 
 ENHashTable *ENHashTableCreate(void);
-int     ENHashTableInsert(ENHashTable *, char *, int);
-int     ENHashTableFind(ENHashTable *, char *);
-char    *ENHashTableFindKey(ENHashTable *, char *);
-void    ENHashTableFree(ENHashTable *);
-int     ENHashTableUpdate(ENHashTable *ht, char *key, int new_data);
-int     ENHashTableDelete(ENHashTable *ht, char *key);
-	
+int ENHashTableInsert(ENHashTable *, char *, int);
+int ENHashTableFind(ENHashTable *, char *);
+char *ENHashTableFindKey(ENHashTable *, char *);
+void ENHashTableFree(ENHashTable *);
+int ENHashTableUpdate(ENHashTable *ht, char *key, int new_data);
+int ENHashTableDelete(ENHashTable *ht, char *key);
+
 #endif

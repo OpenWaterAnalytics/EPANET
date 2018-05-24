@@ -31,17 +31,16 @@ The following utility functions are all called from INPUT3.C
 #ifndef __APPLE__
 #include <malloc.h>
 #endif
+#include <math.h>
+#include "epanet2.h"
+#include "funcs.h"
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#include "epanet2.h"
-#include "funcs.h"
-#include <math.h>
 #define EXTERN extern
 #include "vars.h"
 
 #define MAXERRS 10 /* Max. input errors reported        */
-
 
 /* Defined in enumstxt.h in EPANET.C */
 extern char *SectTxt[]; /* Input section keywords            */
@@ -56,7 +55,7 @@ int netsize(EN_Project *pr)
 */
 {
   parser_data_t *par = &pr->parser;
-  
+
   char line[MAXLINE + 1]; /* Line from input data file    */
   char *tok;              /* First token of line          */
   int sect, newsect;      /* Input data sections          */
@@ -75,7 +74,7 @@ int netsize(EN_Project *pr)
 
   /* Add a default pattern 0 */
   par->MaxPats = -1;
-  addpattern(par,"");
+  addpattern(par, "");
 
   if (par->InFile == NULL) {
     return (0);
@@ -85,18 +84,15 @@ int netsize(EN_Project *pr)
   while (fgets(line, MAXLINE, par->InFile) != NULL) {
     /* Skip blank lines & those beginning with a comment */
     tok = strtok(line, SEPSTR);
-    if (tok == NULL)
-      continue;
-    if (*tok == ';')
-      continue;
+    if (tok == NULL) continue;
+    if (*tok == ';') continue;
 
     /* Check if line begins with a new section heading */
     if (tok[0] == '[') {
       newsect = findmatch(tok, SectTxt);
       if (newsect >= 0) {
         sect = newsect;
-        if (sect == _END)
-          break;
+        if (sect == _END) break;
         continue;
       } else
         continue;
@@ -104,43 +100,41 @@ int netsize(EN_Project *pr)
 
     /* Add to count of current component */
     switch (sect) {
-    case _JUNCTIONS:
-      par->MaxJuncs++;
-      break;
-    case _RESERVOIRS:
-    case _TANKS:
-      par->MaxTanks++;
-      break;
-    case _PIPES:
-      par->MaxPipes++;
-      break;
-    case _PUMPS:
-      par->MaxPumps++;
-      break;
-    case _VALVES:
-      par->MaxValves++;
-      break;
-    case _CONTROLS:
-      par->MaxControls++;
-      break;
-    case _RULES:
-      addrule(par,tok);
-      break; /* See RULES.C */
-    case _PATTERNS:
-      errcode = addpattern(par, tok);
-      break;
-    case _CURVES:
-      errcode = addcurve(par, tok);
-      break;
+      case _JUNCTIONS:
+        par->MaxJuncs++;
+        break;
+      case _RESERVOIRS:
+      case _TANKS:
+        par->MaxTanks++;
+        break;
+      case _PIPES:
+        par->MaxPipes++;
+        break;
+      case _PUMPS:
+        par->MaxPumps++;
+        break;
+      case _VALVES:
+        par->MaxValves++;
+        break;
+      case _CONTROLS:
+        par->MaxControls++;
+        break;
+      case _RULES:
+        addrule(par, tok);
+        break; /* See RULES.C */
+      case _PATTERNS:
+        errcode = addpattern(par, tok);
+        break;
+      case _CURVES:
+        errcode = addcurve(par, tok);
+        break;
     }
-    if (errcode)
-      break;
+    if (errcode) break;
   }
 
   par->MaxNodes = par->MaxJuncs + par->MaxTanks;
   par->MaxLinks = par->MaxPipes + par->MaxPumps + par->MaxValves;
-  if (par->MaxPats < 1)
-    par->MaxPats = 1;
+  if (par->MaxPats < 1) par->MaxPats = 1;
   if (!errcode) {
     if (par->MaxJuncs < 1)
       errcode = 223; /* Not enough nodes */
@@ -173,7 +167,6 @@ int readdata(EN_Project *pr)
   ERRCODE(MEMCHECK(par->X));
 
   if (!errcode) {
-
     /* Initialize number of network components */
     par->Ntitle = 0;
     net->Nnodes = 0;
@@ -195,20 +188,17 @@ int readdata(EN_Project *pr)
 
     /* Read each line from input file. */
     while (fgets(line, MAXLINE, par->InFile) != NULL) {
-
       /* Make copy of line and scan for tokens */
       strcpy(wline, line);
       par->Ntokens = gettokens(wline, par->Tok, MAXTOKS, par->Comment);
 
       /* Skip blank lines and comments */
-      if (par->Ntokens == 0)
-        continue;
-      if (*par->Tok[0] == ';')
-        continue;
+      if (par->Ntokens == 0) continue;
+      if (*par->Tok[0] == ';') continue;
 
       /* Check if max. length exceeded */
       if (strlen(line) >= MAXLINE) {
-        char errMsg[MAXMSG+1];
+        char errMsg[MAXMSG + 1];
         EN_geterror(214, errMsg, MAXMSG);
         sprintf(pr->Msg, "%s section: %s", errMsg, SectTxt[sect]);
         writeline(pr, pr->Msg);
@@ -221,8 +211,7 @@ int readdata(EN_Project *pr)
         newsect = findmatch(par->Tok[0], SectTxt);
         if (newsect >= 0) {
           sect = newsect;
-          if (sect == _END)
-            break;
+          if (sect == _END) break;
           continue;
         } else {
           inperrmsg(pr, 201, sect, line);
@@ -233,12 +222,13 @@ int readdata(EN_Project *pr)
 
       /* Otherwise process next line of input in current section */
       else {
-        if (sect >= 0) // for cases were no section is present on the top of the
-                       // input file
+        if (sect >=
+            0)  // for cases were no section is present on the top of the
+                // input file
         {
           inperr = newline(pr, sect, line);
           if (inperr > 0) {
-            inperrmsg(pr,inperr, sect, line);
+            inperrmsg(pr, inperr, sect, line);
             errsum++;
           }
         } else {
@@ -248,26 +238,20 @@ int readdata(EN_Project *pr)
       }
 
       /* Stop if reach end of file or max. error count */
-      if (errsum == MAXERRS)
-        break;
+      if (errsum == MAXERRS) break;
     } /* End of while */
 
     /* Check for errors */
-    if (errsum > 0)
-      errcode = 200;
+    if (errsum > 0) errcode = 200;
   }
 
   /* Check for unlinked nodes */
-  if (!errcode)
-    errcode = unlinked(pr);
+  if (!errcode) errcode = unlinked(pr);
 
   /* Get pattern & curve data from temp. lists */
-  if (!errcode)
-    errcode = getpatterns(pr);
-  if (!errcode)
-    errcode = getcurves(pr);
-  if (!errcode)
-    errcode = getpumpparams(pr);
+  if (!errcode) errcode = getpatterns(pr);
+  if (!errcode) errcode = getcurves(pr);
+  if (!errcode) errcode = getpumpparams(pr);
 
   /* Free input buffer */
   free(par->X);
@@ -286,76 +270,75 @@ int newline(EN_Project *pr, int sect, char *line)
 */
 {
   parser_data_t *par = &pr->parser;
-  
+
   int n;
   switch (sect) {
-  case _TITLE:
-    if (par->Ntitle < 3) {
-      n = (int)strlen(line);
-      if (line[n - 1] == 10)
-        line[n - 1] = ' ';
-      strncpy(pr->Title[par->Ntitle], line, MAXMSG);
-      par->Ntitle++;
-    }
-    return (0);
-  case _JUNCTIONS:
-    return (juncdata(pr));
-  case _RESERVOIRS:
-  case _TANKS:
-    return (tankdata(pr));
-  case _PIPES:
-    return (pipedata(pr));
-  case _PUMPS:
-    return (pumpdata(pr));
-  case _VALVES:
-    return (valvedata(pr));
-  case _PATTERNS:
-    return (patterndata(pr));
-  case _CURVES:
-    return (curvedata(pr));
-  case _DEMANDS:
-    return (demanddata(pr));
-  case _CONTROLS:
-    return (controldata(pr));
-  case _RULES:
-    return (ruledata(pr)); /* See RULES.C */
-  case _SOURCES:
-    return (sourcedata(pr));
-  case _EMITTERS:
-    return (emitterdata(pr));
-  case _QUALITY:
-    return (qualdata(pr));
-  case _STATUS:
-    return (statusdata(pr));
-  case _ROUGHNESS:
-    return (0);
-  case _ENERGY:
-    return (energydata(pr));
-  case _REACTIONS:
-    return (reactdata(pr));
-  case _MIXING:
-    return (mixingdata(pr));
-  case _REPORT:
-    return (reportdata(pr));
-  case _TIMES:
-    return (timedata(pr));
-  case _OPTIONS:
-    return (optiondata(pr));
-
-  /* Data in these sections are not used for any computations */
-  case _COORDS:
-    if (par->Coordflag == TRUE) {
-      return (coordata(pr));
-    } else
+    case _TITLE:
+      if (par->Ntitle < 3) {
+        n = (int)strlen(line);
+        if (line[n - 1] == 10) line[n - 1] = ' ';
+        strncpy(pr->Title[par->Ntitle], line, MAXMSG);
+        par->Ntitle++;
+      }
       return (0);
-  case _LABELS:
-    return (0);
-  case _TAGS:
-    return (0);
-  case _VERTICES:
-    return (0);
-  case _BACKDROP:
-    return (0);
+    case _JUNCTIONS:
+      return (juncdata(pr));
+    case _RESERVOIRS:
+    case _TANKS:
+      return (tankdata(pr));
+    case _PIPES:
+      return (pipedata(pr));
+    case _PUMPS:
+      return (pumpdata(pr));
+    case _VALVES:
+      return (valvedata(pr));
+    case _PATTERNS:
+      return (patterndata(pr));
+    case _CURVES:
+      return (curvedata(pr));
+    case _DEMANDS:
+      return (demanddata(pr));
+    case _CONTROLS:
+      return (controldata(pr));
+    case _RULES:
+      return (ruledata(pr)); /* See RULES.C */
+    case _SOURCES:
+      return (sourcedata(pr));
+    case _EMITTERS:
+      return (emitterdata(pr));
+    case _QUALITY:
+      return (qualdata(pr));
+    case _STATUS:
+      return (statusdata(pr));
+    case _ROUGHNESS:
+      return (0);
+    case _ENERGY:
+      return (energydata(pr));
+    case _REACTIONS:
+      return (reactdata(pr));
+    case _MIXING:
+      return (mixingdata(pr));
+    case _REPORT:
+      return (reportdata(pr));
+    case _TIMES:
+      return (timedata(pr));
+    case _OPTIONS:
+      return (optiondata(pr));
+
+    /* Data in these sections are not used for any computations */
+    case _COORDS:
+      if (par->Coordflag == TRUE) {
+        return (coordata(pr));
+      } else
+        return (0);
+    case _LABELS:
+      return (0);
+    case _TAGS:
+      return (0);
+    case _VERTICES:
+      return (0);
+    case _BACKDROP:
+      return (0);
   }
   return (201);
 } /* end of newline */
@@ -371,13 +354,13 @@ int getpumpparams(EN_Project *pr)
 {
   int i, j = 0, k, m, n = 0;
   double a, b, c, h0 = 0.0, h1 = 0.0, h2 = 0.0, q1 = 0.0, q2 = 0.0;
-  char errMsg[MAXMSG+1];
+  char errMsg[MAXMSG + 1];
   Spump *pump;
   Slink *link;
   Scurve *curve;
-  
+
   EN_Network *net = &pr->network;
-  
+
   for (i = 1; i <= net->Npumps; i++) {
     pump = &net->Pump[i];
     k = pump->Link;
@@ -390,10 +373,9 @@ int getpumpparams(EN_Project *pr)
       pump->Qmax = BIG; /* No flow limit      */
       pump->Q0 = 1.0;   /* Init. flow = 1 cfs */
       continue;
-    }
-    else if (pump->Ptype == NOCURVE) { /* Pump curve specified */
-      j = pump->Hcurve; /* Get index of head curve */
-      if (j == 0) {       /* Error: No head curve */
+    } else if (pump->Ptype == NOCURVE) { /* Pump curve specified */
+      j = pump->Hcurve;                  /* Get index of head curve */
+      if (j == 0) {                      /* Error: No head curve */
         EN_geterror(226, errMsg, MAXMSG);
         sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
         writeline(pr, pr->Msg);
@@ -402,7 +384,7 @@ int getpumpparams(EN_Project *pr)
       curve = &net->Curve[j];
       curve->Type = P_CURVE;
       n = curve->Npts;
-      if (n == 1) {  /* Only a single h-q point supplied so use generic */
+      if (n == 1) { /* Only a single h-q point supplied so use generic */
         pump->Ptype = POWER_FUNC; /* power function curve.   */
         q1 = curve->X[0];
         h1 = curve->Y[0];
@@ -410,22 +392,22 @@ int getpumpparams(EN_Project *pr)
         q2 = 2.0 * q1;
         h2 = 0.0;
       } else if (n == 3 && curve->X[0] == 0.0) /* 3 h-q points supplied with */
-      {                                /* shutoff head so use fitted */
-        pump->Ptype = POWER_FUNC;    /* power function curve.      */
+      {                                        /* shutoff head so use fitted */
+        pump->Ptype = POWER_FUNC;              /* power function curve.      */
         h0 = curve->Y[0];
         q1 = curve->X[1];
         h1 = curve->Y[1];
         q2 = curve->X[2];
         h2 = curve->Y[2];
-      } 
-      else { // use a custom curve, referenced by ID
+      } else {                // use a custom curve, referenced by ID
         pump->Ptype = CUSTOM; /* Else use custom pump curve.*/
         // at this point, j is set to that curve's index.
       }
-      
+
       /* Compute shape factors & limits of power function pump curves */
       if (pump->Ptype == POWER_FUNC) {
-        if (!powercurve(h0, h1, h2, q1, q2, &a, &b, &c)) { /* Error: Invalid curve */
+        if (!powercurve(h0, h1, h2, q1, q2, &a, &b,
+                        &c)) { /* Error: Invalid curve */
           EN_geterror(227, errMsg, MAXMSG);
           sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
           writeline(pr, pr->Msg);
@@ -470,7 +452,7 @@ int addnodeID(EN_Network *net, int n, char *id)
 **--------------------------------------------------------------
 */
 {
-  if (findnode(net,id)) {
+  if (findnode(net, id)) {
     return (0); /* see EPANET.C */
   }
   strncpy(net->Node[n].ID, id, MAXID);
@@ -488,7 +470,7 @@ int addlinkID(EN_Network *net, int n, char *id)
 **--------------------------------------------------------------
 */
 {
-  if (findlink(net,id)) {
+  if (findlink(net, id)) {
     return (0); /* see EPANET.C */
   }
   strncpy(net->Link[n].ID, id, MAXID);
@@ -505,7 +487,6 @@ int addpattern(parser_data_t *par, char *id)
 **--------------------------------------------------------------
 */
 {
-  
   STmplist *p;
 
   /* Check if ID is same as last one processed */
@@ -515,12 +496,10 @@ int addpattern(parser_data_t *par, char *id)
 
   /* Check that pattern was not already created */
   if (findID(id, par->Patlist) == NULL) {
-
     /* Update pattern count & create new list element */
     (par->MaxPats)++;
     p = (STmplist *)malloc(sizeof(STmplist));
-    if (p == NULL)
-      return (101);
+    if (p == NULL) return (101);
 
     /* Initialize list element properties */
     else {
@@ -547,17 +526,14 @@ int addcurve(parser_data_t *par, char *id)
   STmplist *c;
 
   /* Check if ID is same as last one processed */
-  if (par->Curvelist != NULL && strcmp(id, par->Curvelist->ID) == 0)
-    return (0);
+  if (par->Curvelist != NULL && strcmp(id, par->Curvelist->ID) == 0) return (0);
 
   /* Check that curve was not already created */
   if (findID(id, par->Curvelist) == NULL) {
-
     /* Update curve count & create new list element */
     (par->MaxCurves)++;
     c = (STmplist *)malloc(sizeof(STmplist));
-    if (c == NULL)
-      return (101);
+    if (c == NULL) return (101);
 
     /* Initialize list element properties */
     else {
@@ -605,8 +581,8 @@ int unlinked(EN_Project *pr)
   EN_Network *net = &pr->network;
   int *marked;
   int i, err, errcode;
-  char errMsg[MAXMSG+1];
-  
+  char errMsg[MAXMSG + 1];
+
   errcode = 0;
   err = 0;
   marked = (int *)calloc(net->Nnodes + 1, sizeof(int));
@@ -627,11 +603,9 @@ int unlinked(EN_Project *pr)
         sprintf(pr->Msg, "%s node: %s", errMsg, net->Node[i].ID);
         writeline(pr, pr->Msg);
       }
-      if (err >= MAXERRS)
-        break;
+      if (err >= MAXERRS) break;
     }
-    if (err > 0)
-      errcode = 200;
+    if (err > 0) errcode = 200;
   }
   free(marked);
   return (errcode);
@@ -649,7 +623,7 @@ int getpatterns(EN_Project *pr)
   int i, j;
   SFloatlist *f;
   STmplist *pat;
-  
+
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   parser_data_t *par = &pr->parser;
@@ -659,7 +633,6 @@ int getpatterns(EN_Project *pr)
 
   /* Traverse list of patterns */
   while (pat != NULL) {
-
     /* Get index of current pattern in Pattern array */
     i = pat->i;
 
@@ -669,17 +642,15 @@ int getpatterns(EN_Project *pr)
     }
     if (i >= 0 && i <= par->MaxPats) {
       /* Save pattern ID */
-      
+
       Spattern *pattern = &net->Pattern[i];
-      
+
       strcpy(pattern->ID, pat->ID);
 
       /* Give pattern a length of at least 1 */
-      if (pattern->Length == 0)
-        pattern->Length = 1;
+      if (pattern->Length == 0) pattern->Length = 1;
       pattern->F = (double *)calloc(pattern->Length, sizeof(double));
-      if (pattern->F == NULL)
-        return (101);
+      if (pattern->F == NULL) return (101);
 
       /* Start at head of pattern multiplier list */
       /* (which holds multipliers in reverse order)*/
@@ -687,8 +658,7 @@ int getpatterns(EN_Project *pr)
       j = pattern->Length - 1;
 
       /* Use at least one multiplier equal to 1.0 */
-      if (f == NULL)
-        pattern->F[0] = 1.0;
+      if (f == NULL) pattern->F[0] = 1.0;
 
       /* Traverse list, storing multipliers in Pattern array */
       else
@@ -714,7 +684,7 @@ int getcurves(EN_Project *pr)
 {
   EN_Network *net = &pr->network;
   parser_data_t *par = &pr->parser;
-  
+
   int i, j;
   double x;
   SFloatlist *fx, *fy;
@@ -728,13 +698,13 @@ int getcurves(EN_Project *pr)
     i = c->i;
     if (i >= 1 && i <= par->MaxCurves) {
       Scurve *curve = &net->Curve[i];
-      
+
       /* Save curve ID */
       strcpy(curve->ID, c->ID);
 
       /* Check that curve has data points */
       if (curve->Npts <= 0) {
-        char errMsg[MAXMSG+1];
+        char errMsg[MAXMSG + 1];
         EN_geterror(230, errMsg, MAXMSG);
         sprintf(pr->Msg, "%s curve: %s", errMsg, curve->ID);
         writeline(pr, pr->Msg);
@@ -744,8 +714,7 @@ int getcurves(EN_Project *pr)
       /* Allocate memory for curve data */
       curve->X = (double *)calloc(curve->Npts, sizeof(double));
       curve->Y = (double *)calloc(curve->Npts, sizeof(double));
-      if (curve->X == NULL || curve->Y == NULL)
-        return (101);
+      if (curve->X == NULL || curve->Y == NULL) return (101);
 
       /* Traverse list of x,y data */
       x = BIG;
@@ -753,10 +722,9 @@ int getcurves(EN_Project *pr)
       fy = c->y;
       j = curve->Npts - 1;
       while (fx != NULL && fy != NULL && j >= 0) {
-
         /* Check that x data is in ascending order */
         if (fx->value >= x) {
-          char errMsg[MAXMSG+1];
+          char errMsg[MAXMSG + 1];
           EN_geterror(230, errMsg, MAXMSG);
           sprintf(pr->Msg, "%s node: %s", errMsg, curve->ID);
           writeline(pr, pr->Msg);
@@ -790,8 +758,7 @@ int findmatch(char *line, char *keyword[])
 {
   int i = 0;
   while (keyword[i] != NULL) {
-    if (match(line, keyword[i]))
-      return (i);
+    if (match(line, keyword[i])) return (i);
     i++;
   }
   return (-1);
@@ -813,22 +780,19 @@ int match(const char *str, const char *substr)
 
   /*** Updated 9/7/00 ***/
   /* Fail if substring is empty */
-  if (!substr[0])
-    return (0);
+  if (!substr[0]) return (0);
 
   /* Skip leading blanks of str. */
   for (i = 0; str[i]; i++)
-    if (str[i] != ' ')
-      break;
+    if (str[i] != ' ') break;
 
   /* Check if substr matches remainder of str. */
   for (i = i, j = 0; substr[j]; i++, j++)
-    if (!str[i] || UCHAR(str[i]) != UCHAR(substr[j]))
-      return (0);
+    if (!str[i] || UCHAR(str[i]) != UCHAR(substr[j])) return (0);
   return (1);
 } /* end of match */
 
-int  gettokens(char *s, char** Tok, int maxToks, char *comment)
+int gettokens(char *s, char **Tok, int maxToks, char *comment)
 /*
  **--------------------------------------------------------------
  **  Input:   *s = string to be tokenized
@@ -842,23 +806,23 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
  **--------------------------------------------------------------
  */
 {
-  int  m, n;
+  int m, n;
   size_t len;
   char *c, *c2;
-  
+
   // clear comment
   comment[0] = '\0';
-  
+
   /* Begin with no tokens */
-  for (n=0; n<maxToks; n++) { 
+  for (n = 0; n < maxToks; n++) {
     Tok[n] = NULL;
   }
   n = 0;
-  
+
   /* Truncate s at start of comment */
-  c = strchr(s,';');
+  c = strchr(s, ';');
   if (c) {
-    c2 = c+1;
+    c2 = c + 1;
     if (c2) {
       // there is a comment here, after the semi-colon.
       len = strlen(c2);
@@ -866,34 +830,33 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
         len = strcspn(c2, "\n\r");
         len = MIN(len, MAXMSG);
         strncpy(comment, c2, len);
-        comment[MIN(len,MAXMSG)] = '\0';
+        comment[MIN(len, MAXMSG)] = '\0';
       }
     }
     *c = '\0';
   }
   len = (int)strlen(s);
-  
+
   /* Scan s for tokens until nothing left */
-  while (len > 0 && n < MAXTOKS)
-  {
-    m = (int)strcspn(s,SEPSTR);          /* Find token length */
-    len -= m+1;                     /* Update length of s */
-    if (m == 0) s++;                /* No token found */
-    else
-    {
-      if (*s == '"')               /* Token begins with quote */
+  while (len > 0 && n < MAXTOKS) {
+    m = (int)strcspn(s, SEPSTR); /* Find token length */
+    len -= m + 1;                /* Update length of s */
+    if (m == 0)
+      s++; /* No token found */
+    else {
+      if (*s == '"') /* Token begins with quote */
       {
-        s++;                      /* Start token after quote */
-        m = (int)strcspn(s,"\"\n\r");  /* Find end quote (or EOL) */
-      }                            
-      s[m] = '\0';                 /* Null-terminate the token */
-      Tok[n] = s;                  /* Save pointer to token */
-      n++;                         /* Update token count */
-      s += m+1;                    /* Begin next token */
+        s++;                           /* Start token after quote */
+        m = (int)strcspn(s, "\"\n\r"); /* Find end quote (or EOL) */
+      }
+      s[m] = '\0'; /* Null-terminate the token */
+      Tok[n] = s;  /* Save pointer to token */
+      n++;         /* Update token count */
+      s += m + 1;  /* Begin next token */
     }
   }
-  return(n);
-}  
+  return (n);
+}
 
 double hour(char *time, char *units)
 /*
@@ -911,13 +874,11 @@ double hour(char *time, char *units)
   char *s;
 
   /* Separate clock time into hrs, min, sec. */
-  for (n = 0; n < 3; n++)
-    y[n] = 0.0;
+  for (n = 0; n < 3; n++) y[n] = 0.0;
   n = 0;
   s = strtok(time, ":");
   while (s != NULL && n <= 3) {
-    if (!getfloat(s, &y[n]))
-      return (-1.0);
+    if (!getfloat(s, &y[n])) return (-1.0);
     s = strtok(NULL, ":");
     n++;
   }
@@ -925,37 +886,28 @@ double hour(char *time, char *units)
   /* If decimal time with units attached then convert to hours. */
   if (n == 1) {
     /*if (units[0] == '\0')       return(y[0]);*/
-    if (strlen(units) == 0)
-      return (y[0]);
-    if (match(units, w_SECONDS))
-      return (y[0] / 3600.0);
-    if (match(units, w_MINUTES))
-      return (y[0] / 60.0);
-    if (match(units, w_HOURS))
-      return (y[0]);
-    if (match(units, w_DAYS))
-      return (y[0] * 24.0);
+    if (strlen(units) == 0) return (y[0]);
+    if (match(units, w_SECONDS)) return (y[0] / 3600.0);
+    if (match(units, w_MINUTES)) return (y[0] / 60.0);
+    if (match(units, w_HOURS)) return (y[0]);
+    if (match(units, w_DAYS)) return (y[0] * 24.0);
   }
 
   /* Convert hh:mm:ss format to decimal hours */
-  if (n > 1)
-    y[0] = y[0] + y[1] / 60.0 + y[2] / 3600.0;
+  if (n > 1) y[0] = y[0] + y[1] / 60.0 + y[2] / 3600.0;
 
   /* If am/pm attached then adjust hour accordingly */
   /* (12 am is midnight, 12 pm is noon) */
-  if (units[0] == '\0')
-    return (y[0]);
+  if (units[0] == '\0') return (y[0]);
   if (match(units, w_AM)) {
-    if (y[0] >= 13.0)
-      return (-1.0);
+    if (y[0] >= 13.0) return (-1.0);
     if (y[0] >= 12.0)
       return (y[0] - 12.0);
     else
       return (y[0]);
   }
   if (match(units, w_PM)) {
-    if (y[0] >= 13.0)
-      return (-1.0);
+    if (y[0] >= 13.0) return (-1.0);
     if (y[0] >= 12.0)
       return (y[0]);
     else
@@ -976,8 +928,7 @@ int getfloat(char *s, double *y)
 {
   char *endptr;
   *y = (double)strtod(s, &endptr);
-  if (*endptr > 0)
-    return (0);
+  if (*endptr > 0) return (0);
   return (1);
 }
 
@@ -1009,15 +960,15 @@ void inperrmsg(EN_Project *pr, int err, int sect, char *line)
 */
 {
   parser_data_t *par = &pr->parser;
-  
+
   char errStr[MAXMSG + 1];
   char id[MAXMSG + 1];
-  
+
   EN_geterror(err, errStr, MAXMSG);
-  
+
   /* get text for error message */
   sprintf(pr->Msg, "%s - section: %s", errStr, SectTxt[sect]);
-  
+
   // append ID?
   /* Retrieve ID label of object with input error */
   /* (No ID used for CONTROLS or REPORT sections).*/
@@ -1033,7 +984,7 @@ void inperrmsg(EN_Project *pr, int err, int sect, char *line)
       sprintf(id, " id: %s", par->Tok[0]);
       break;
   }
-    
+
   strcat(pr->Msg, id);
   writeline(pr, pr->Msg);
 

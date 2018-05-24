@@ -27,12 +27,12 @@ AUTHOR:     L. Rossman
 #ifndef __APPLE__
 #include <malloc.h>
 #endif
+#include <math.h>
+#include "epanet2.h"
+#include "funcs.h"
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#include "epanet2.h"
-#include "funcs.h"
-#include <math.h>
 #define EXTERN extern
 #include "vars.h"
 
@@ -40,8 +40,7 @@ AUTHOR:     L. Rossman
   --------------------- Module Global Variables  ----------------------
 */
 
-#define MAXITER                                                                \
-  200 /* Default max. # hydraulic iterations    */ 
+#define MAXITER 200 /* Default max. # hydraulic iterations    */
 #define HACC 0.001  /* Default hydraulics convergence ratio   */
 #define HTOL 0.0005 /* Default hydraulic head tolerance (ft)  */
 
@@ -62,8 +61,7 @@ AUTHOR:     L. Rossman
 #define RQTOL 1E-7  /* Default low flow resistance tolerance  */
 #define CHECKFREQ 2 /* Default status check frequency         */
 #define MAXCHECK 10 /* Default # iterations for status checks */
-#define DAMPLIMIT                                                              \
-  0 /* Default damping threshold              */ 
+#define DAMPLIMIT 0 /* Default damping threshold              */
 
 extern char *Fldname[]; /* Defined in enumstxt.h in EPANET.C      */
 extern char *RptFlowUnitsTxt[];
@@ -78,17 +76,14 @@ int getdata(EN_Project *pr)
 */
 {
   int errcode = 0;
-  setdefaults(pr);           /* Assign default data values     */
-  initreport(&pr->report);   /* Initialize reporting options   */
-  rewind(pr->parser.InFile); /* Rewind input file              */
-  ERRCODE(readdata(pr));       /* Read in network data           */
-  if (!errcode)
-    adjustdata(pr); /* Adjust data for default values */
-  if (!errcode)
-    initunits(pr);        /* Initialize units on input data */
-  ERRCODE(inittanks(pr)); /* Initialize tank volumes        */
-  if (!errcode)
-    convertunits(pr); /* Convert units on input data    */
+  setdefaults(pr);                /* Assign default data values     */
+  initreport(&pr->report);        /* Initialize reporting options   */
+  rewind(pr->parser.InFile);      /* Rewind input file              */
+  ERRCODE(readdata(pr));          /* Read in network data           */
+  if (!errcode) adjustdata(pr);   /* Adjust data for default values */
+  if (!errcode) initunits(pr);    /* Initialize units on input data */
+  ERRCODE(inittanks(pr));         /* Initialize tank volumes        */
+  if (!errcode) convertunits(pr); /* Convert units on input data    */
   return (errcode);
 } /*  End of getdata  */
 
@@ -111,27 +106,27 @@ void setdefaults(EN_Project *pr)
   strncpy(pr->Title[0], "", MAXMSG);
   strncpy(pr->Title[1], "", MAXMSG);
   strncpy(pr->Title[2], "", MAXMSG);
-  strncpy(out->TmpDir, "", MAXFNAME);   
-  strncpy(out->TmpFname, "", MAXFNAME); 
+  strncpy(out->TmpDir, "", MAXFNAME);
+  strncpy(out->TmpFname, "", MAXFNAME);
   strncpy(out->HydFname, "", MAXFNAME);
   strncpy(pr->MapFname, "", MAXFNAME);
   strncpy(qu->ChemName, t_CHEMICAL, MAXID);
   strncpy(qu->ChemUnits, u_MGperL, MAXID);
   strncpy(par->DefPatID, DEFPATID, MAXID);
   out->Hydflag = SCRATCH;  /* No external hydraulics file    */
-  qu->Qualflag = NONE;    /* No quality simulation          */
+  qu->Qualflag = NONE;     /* No quality simulation          */
   hyd->Formflag = HW;      /* Use Hazen-Williams formula     */
   par->Unitsflag = US;     /* US unit system                 */
   par->Flowflag = GPM;     /* Flow units are gpm             */
   par->Pressflag = PSI;    /* Pressure units are psi         */
   rep->Tstatflag = SERIES; /* Generate time series output    */
   pr->Warnflag = FALSE;    /* Warning flag is off            */
-  hyd->Htol = HTOL;          /* Default head tolerance         */
-  hyd->Qtol = QTOL;          /* Default flow tolerance         */
-  hyd->Hacc = HACC;          /* Default hydraulic accuracy     */
+  hyd->Htol = HTOL;        /* Default head tolerance         */
+  hyd->Qtol = QTOL;        /* Default flow tolerance         */
+  hyd->Hacc = HACC;        /* Default hydraulic accuracy     */
   qu->Ctol = MISSING;      /* No pre-set quality tolerance   */
-  hyd->MaxIter = MAXITER;    /* Default max. hydraulic trials  */
-  hyd->ExtraIter = -1;       /* Stop if network unbalanced     */
+  hyd->MaxIter = MAXITER;  /* Default max. hydraulic trials  */
+  hyd->ExtraIter = -1;     /* Stop if network unbalanced     */
   time->Dur = 0;           /* 0 sec duration (steady state)  */
   time->Tstart = 0;        /* Starting time of day           */
   time->Pstart = 0;        /* Starting pattern period        */
@@ -150,20 +145,20 @@ void setdefaults(EN_Project *pr)
   qu->Climit = 0.0;        /* No limiting potential quality  */
   qu->Diffus = MISSING;    /* Temporary diffusivity          */
   qu->Rfactor = 0.0;       /* No roughness-reaction factor   */
-  hyd->Viscos = MISSING;     /* Temporary viscosity            */
-  hyd->SpGrav = SPGRAV;      /* Default specific gravity       */
-  hyd->DefPat = 0;           /* Default demand pattern index   */
-  hyd->Epat = 0;             /* No energy price pattern        */
-  hyd->Ecost = 0.0;          /* Zero unit energy cost          */
-  hyd->Dcost = 0.0;          /* Zero energy demand charge      */
-  hyd->Epump = EPUMP;        /* Default pump efficiency        */
-  hyd->Emax = 0.0;           /* Zero peak energy usage         */
-  hyd->Qexp = 2.0;           /* Flow exponent for emitters     */
-  hyd->Dmult = 1.0;          /* Demand multiplier              */
-  hyd->RQtol = RQTOL;        /* Default hydraulics parameters  */
+  hyd->Viscos = MISSING;   /* Temporary viscosity            */
+  hyd->SpGrav = SPGRAV;    /* Default specific gravity       */
+  hyd->DefPat = 0;         /* Default demand pattern index   */
+  hyd->Epat = 0;           /* No energy price pattern        */
+  hyd->Ecost = 0.0;        /* Zero unit energy cost          */
+  hyd->Dcost = 0.0;        /* Zero energy demand charge      */
+  hyd->Epump = EPUMP;      /* Default pump efficiency        */
+  hyd->Emax = 0.0;         /* Zero peak energy usage         */
+  hyd->Qexp = 2.0;         /* Flow exponent for emitters     */
+  hyd->Dmult = 1.0;        /* Demand multiplier              */
+  hyd->RQtol = RQTOL;      /* Default hydraulics parameters  */
   hyd->CheckFreq = CHECKFREQ;
   hyd->MaxCheck = MAXCHECK;
-  hyd->DampLimit = DAMPLIMIT; 
+  hyd->DampLimit = DAMPLIMIT;
 } /*  End of setdefaults  */
 
 void initreport(report_options_t *r)
@@ -224,35 +219,26 @@ void adjustdata(EN_Project *pr)
   Pdemand demand; /* Pointer to demand record */
 
   /* Use 1 hr pattern & report time step if none specified */
-  if (time->Pstep <= 0)
-    time->Pstep = 3600;
-  if (time->Rstep == 0)
-    time->Rstep = time->Pstep;
+  if (time->Pstep <= 0) time->Pstep = 3600;
+  if (time->Rstep == 0) time->Rstep = time->Pstep;
 
   /* Hydraulic time step cannot be greater than pattern or report time step */
-  if (time->Hstep <= 0)
-    time->Hstep = 3600;
-  if (time->Hstep > time->Pstep)
-    time->Hstep = time->Pstep;
-  if (time->Hstep > time->Rstep)
-    time->Hstep = time->Rstep;
+  if (time->Hstep <= 0) time->Hstep = 3600;
+  if (time->Hstep > time->Pstep) time->Hstep = time->Pstep;
+  if (time->Hstep > time->Rstep) time->Hstep = time->Rstep;
 
   /* Report start time cannot be greater than simulation duration */
-  if (time->Rstart > time->Dur)
-    time->Rstart = 0;
+  if (time->Rstart > time->Dur) time->Rstart = 0;
 
   /* No water quality analysis for steady state run */
-  if (time->Dur == 0)
-    qu->Qualflag = NONE;
+  if (time->Dur == 0) qu->Qualflag = NONE;
 
   /* If no quality timestep, then make it 1/10 of hydraulic timestep */
-  if (qu->Qstep == 0)
-    qu->Qstep = time->Hstep / 10;
+  if (qu->Qstep == 0) qu->Qstep = time->Hstep / 10;
 
   /* If no rule time step then make it 1/10 of hydraulic time step; */
   /* Rule time step cannot be greater than hydraulic time step */
-  if (time->Rulestep == 0)
-    time->Rulestep = time->Hstep / 10;
+  if (time->Rulestep == 0) time->Rulestep = time->Hstep / 10;
   time->Rulestep = MIN(time->Rulestep, time->Hstep);
 
   /* Quality timestep cannot exceed hydraulic timestep */
@@ -268,15 +254,15 @@ void adjustdata(EN_Project *pr)
 
   /* Determine unit system based on flow units */
   switch (par->Flowflag) {
-  case LPS: /* Liters/sec */
-  case LPM: /* Liters/min */
-  case MLD: /* megaliters/day  */
-  case CMH: /* cubic meters/hr */
-  case CMD: /* cubic meters/day */
-    par->Unitsflag = SI;
-    break;
-  default:
-    par->Unitsflag = US;
+    case LPS: /* Liters/sec */
+    case LPM: /* Liters/min */
+    case MLD: /* megaliters/day  */
+    case CMH: /* cubic meters/hr */
+    case CMD: /* cubic meters/day */
+      par->Unitsflag = SI;
+      break;
+    default:
+      par->Unitsflag = US;
   }
 
   /* Revise pressure units depending on flow units */
@@ -287,8 +273,7 @@ void adjustdata(EN_Project *pr)
 
   /* Store value of viscosity & diffusivity */
   ucf = 1.0;
-  if (par->Unitsflag == SI)
-    ucf = SQR(MperFT);
+  if (par->Unitsflag == SI) ucf = SQR(MperFT);
 
   if (hyd->Viscos == MISSING) /* No value supplied */
     hyd->Viscos = VISCOS;
@@ -319,22 +304,18 @@ void adjustdata(EN_Project *pr)
   /* See if default reaction coeffs. apply */
   for (i = 1; i <= net->Nlinks; i++) {
     Slink *link = &net->Link[i];
-    if (link->Type > EN_PIPE)
-      continue;
-    if (link->Kb == MISSING)
-      link->Kb = qu->Kbulk;      /* Bulk coeff. */
-    if (link->Kw == MISSING) /* Wall coeff. */
+    if (link->Type > EN_PIPE) continue;
+    if (link->Kb == MISSING) link->Kb = qu->Kbulk; /* Bulk coeff. */
+    if (link->Kw == MISSING)                       /* Wall coeff. */
     {
       /* Rfactor is the pipe roughness correlation factor */
       if (qu->Rfactor == 0.0)
         link->Kw = qu->Kwall;
       else if ((link->Kc > 0.0) && (link->Diam > 0.0)) {
-        if (hyd->Formflag == HW)
-          link->Kw = qu->Rfactor / link->Kc;
+        if (hyd->Formflag == HW) link->Kw = qu->Rfactor / link->Kc;
         if (hyd->Formflag == DW)
           link->Kw = qu->Rfactor / ABS(log(link->Kc / link->Diam));
-        if (hyd->Formflag == CM)
-          link->Kw = qu->Rfactor * link->Kc;
+        if (hyd->Formflag == CM) link->Kw = qu->Rfactor * link->Kc;
       } else
         link->Kw = 0.0;
     }
@@ -356,8 +337,7 @@ void adjustdata(EN_Project *pr)
   }
 
   /* Remove QUALITY as a reporting variable if no WQ analysis */
-  if (qu->Qualflag == NONE)
-    rep->Field[QUALITY].Enabled = FALSE;
+  if (qu->Qualflag == NONE) rep->Field[QUALITY].Enabled = FALSE;
 
 } /*  End of adjustdata  */
 
@@ -379,8 +359,7 @@ int inittanks(EN_Project *pr)
   for (j = 1; j <= net->Ntanks; j++) {
     Stank *tank = &net->Tank[j];
     /* Skip reservoirs */
-    if (tank->A == 0.0)
-      continue;
+    if (tank->A == 0.0) continue;
 
     /* Check for valid lower/upper tank levels */
     levelerr = 0;
@@ -394,13 +373,12 @@ int inittanks(EN_Project *pr)
     if (i > 0) {
       Scurve *curve = &net->Curve[i];
       n = curve->Npts - 1;
-      if (tank->Hmin < curve->X[0] || tank->Hmax > curve->X[n])
-        levelerr = 1;
+      if (tank->Hmin < curve->X[0] || tank->Hmax > curve->X[n]) levelerr = 1;
     }
 
     /* Report error in levels if found */
     if (levelerr) {
-      char errMsg[MAXMSG+1];
+      char errMsg[MAXMSG + 1];
       EN_geterror(225, errMsg, MAXMSG);
       sprintf(pr->Msg, "%s node: %s", errMsg, net->Node[tank->Node].ID);
       writeline(pr, pr->Msg);
@@ -463,14 +441,10 @@ void initunits(EN_Project *pr)
     strcpy(rep->Field[POWER].Units, u_KW);
     dcf = 1000.0 * MperFT;
     qcf = LPSperCFS;
-    if (par->Flowflag == LPM)
-      qcf = LPMperCFS;
-    if (par->Flowflag == MLD)
-      qcf = MLDperCFS;
-    if (par->Flowflag == CMH)
-      qcf = CMHperCFS;
-    if (par->Flowflag == CMD)
-      qcf = CMDperCFS;
+    if (par->Flowflag == LPM) qcf = LPMperCFS;
+    if (par->Flowflag == MLD) qcf = MLDperCFS;
+    if (par->Flowflag == CMH) qcf = CMHperCFS;
+    if (par->Flowflag == CMD) qcf = CMDperCFS;
     hcf = MperFT;
     if (par->Pressflag == METERS)
       pcf = MperFT * hyd->SpGrav;
@@ -492,14 +466,10 @@ void initunits(EN_Project *pr)
     strcpy(rep->Field[POWER].Units, u_HP);
     dcf = 12.0;
     qcf = 1.0;
-    if (par->Flowflag == GPM)
-      qcf = GPMperCFS;
-    if (par->Flowflag == MGD)
-      qcf = MGDperCFS;
-    if (par->Flowflag == IMGD)
-      qcf = IMGDperCFS;
-    if (par->Flowflag == AFD)
-      qcf = AFDperCFS;
+    if (par->Flowflag == GPM) qcf = GPMperCFS;
+    if (par->Flowflag == MGD) qcf = MGDperCFS;
+    if (par->Flowflag == IMGD) qcf = IMGDperCFS;
+    if (par->Flowflag == AFD) qcf = AFDperCFS;
     hcf = 1.0;
     pcf = PSIperFT * hyd->SpGrav;
     wcf = 1.0;
@@ -530,7 +500,7 @@ void initunits(EN_Project *pr)
   pr->Ucf[FRICTION] = 1.0;
   pr->Ucf[POWER] = wcf;
   pr->Ucf[VOLUME] = hcf * hcf * hcf;
-  if (time->Hstep < 1800)             /* Report time in mins.    */
+  if (time->Hstep < 1800)       /* Report time in mins.    */
   {                             /* if hydraulic time step  */
     pr->Ucf[TIME] = 1.0 / 60.0; /* is less than 1/2 hour.  */
     strcpy(rep->Field[TIME].Units, u_MINUTES);
@@ -563,7 +533,7 @@ void convertunits(EN_Project *pr)
   Slink *link;
   Spump *pump;
   Scontrol *control;
-  
+
   /* Convert nodal elevations & initial WQ */
   /* (WQ source units are converted in QUALITY.C */
   for (i = 1; i <= net->Nnodes; i++) {
@@ -622,8 +592,7 @@ void convertunits(EN_Project *pr)
       /*    - for Darcy-Weisbach formula, convert roughness    */
       /*      from millifeet (or mm) to ft (or m)              */
       /*    - for US units, convert diameter from inches to ft */
-      if (hyd->Formflag == DW)
-        link->Kc /= (1000.0 * pr->Ucf[ELEV]);
+      if (hyd->Formflag == DW) link->Kc /= (1000.0 * pr->Ucf[ELEV]);
       link->Diam /= pr->Ucf[DIAM];
       link->Len /= pr->Ucf[LENGTH];
 
@@ -641,8 +610,7 @@ void convertunits(EN_Project *pr)
       pump = &net->Pump[i];
       if (pump->Ptype == CONST_HP) {
         /* For constant hp pump, convert kw to hp */
-        if (par->Unitsflag == SI)
-          pump->R /= pr->Ucf[POWER];
+        if (par->Unitsflag == SI) pump->R /= pr->Ucf[POWER];
       } else {
         /* For power curve pumps, convert     */
         /* shutoff head and flow coefficient  */
@@ -662,8 +630,7 @@ void convertunits(EN_Project *pr)
       /* while for other valves convert pressure setting  */
       link->Diam /= pr->Ucf[DIAM];
       link->Km = 0.02517 * link->Km / SQR(link->Diam) / SQR(link->Diam);
-      if (link->Kc != MISSING)
-        switch (link->Type) {
+      if (link->Kc != MISSING) switch (link->Type) {
           case EN_FCV:
             link->Kc /= pr->Ucf[FLOW];
             break;
@@ -675,7 +642,6 @@ void convertunits(EN_Project *pr)
           default:
             break;
         }
-      
     }
 
     /* Compute flow resistances */
