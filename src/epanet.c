@@ -129,7 +129,6 @@ execute function x and set the error code equal to its return value.
 #include "text.h"
 #include "types.h"
 #define EXTERN
-#include "epanet2.h"
 #include "vars.h"
 
 /****************************************************************
@@ -3420,7 +3419,7 @@ int openhydfile(EN_Project *p)
   out->HydFile = NULL;
   switch (out->Hydflag) {
   case SCRATCH:
-    getTmpName(p, out->HydFname); 
+    getTmpName(out->HydFname); 
     out->HydFile = fopen(out->HydFname, "w+b"); 
     break;
   case SAVE:
@@ -3513,7 +3512,7 @@ int openoutfile(EN_Project *p)
   // else if ( (OutFile = tmpfile()) == NULL) 
   else 
   {
-    getTmpName(p, out->OutFname);                           
+    getTmpName(out->OutFname);                           
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) 
     {
       writecon(FMT08);
@@ -3531,7 +3530,7 @@ int openoutfile(EN_Project *p)
   if (!errcode) {
     if (rep->Tstatflag != SERIES) {
       // if ( (TmpOutFile = tmpfile()) == NULL) errcode = 304; 
-      getTmpName(p, out->TmpFname);                
+      getTmpName(out->TmpFname);                
       out->TmpOutFile = fopen(out->TmpFname, "w+b"); 
       if (out->TmpOutFile == NULL)
         errcode = 304; 
@@ -3838,30 +3837,35 @@ void freedata(EN_Project *p)
 ----------------------------------------------------------------
 */
 
-/*** New function for 2.00.12 ***/ //    DEPRECATED 
-char *getTmpName(EN_Project *p, char *fname)
+char *getTmpName(char *fname)
 //
 //  Input:   fname = file name string
 //  Output:  returns pointer to file name
 //  Purpose: creates a temporary file name with path prepended to it.
 //
 {
-  out_file_t *out = &p->out_files;
+
 #ifdef _WIN32
-  TCHAR tmpFileName[MAXFNAME];
-  TCHAR tmpPathName[MAXFNAME];
-  int rtnValue = GetTempPath(MAXFNAME, tmpPathName);
-  if (rtnValue == 0 || rtnValue > MAXFNAME) return 0;
-  rtnValue = GetTempFileName(tmpPathName, TEXT("EN"), 0, tmpFileName);
-  if (rtnValue > 0) strncpy(fname, tmpFileName, MAXFNAME);
 
+  char* name = NULL;
 
-///////////////////  DEPRECATED   /////////////////////////////////////
-// There is an OS limit on the number of times tmpnam will return a
-// unique file name and it is not thread safe.
+  // --- use Windows _tempnam function to get a pointer to an
+  //     unused file name that begins with "en"
+  name = _tempnam(NULL, "en");
+  if (name == NULL) return NULL;
+
+  // --- copy the file name to fname
+  if (strlen(name) < MAXFNAME) strncpy(fname, name, MAXFNAME);
+  else fname = NULL;
+
+  // --- free the pointer returned by _tempnam
+  if (name) free(name);
+
 /*
+///////////////////  DEPRECATED   /////////////////////////////////////
 // --- for Windows systems:
 #ifdef WINDOWS
+  out_file_t *out = &p->out_files;
   // --- use system function tmpnam() to create a temporary file name
   char name[MAXFNAME + 1];
   int n;
