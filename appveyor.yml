@@ -20,7 +20,6 @@ init:
   - set NRTEST_SCRIPT=C:\Python27\Scripts
   - set GENERATOR="Visual Studio 10 2010"
   - set BOOST_ROOT="C:\\Libraries\\boost"
-  - set BOOST_LIB="C:\\Libraries\\boost\\lib32-msvc-12.0"
 
 # called after repo clone
 install: 
@@ -31,8 +30,8 @@ before_build:
   - mkdir %BUILD_HOME%
   - cd %BUILD_HOME%
   - cmake -G %GENERATOR% 
+    -DBUILD_TESTS=1
     -DBOOST_ROOT="%BOOST_ROOT%"
-    -DBOOST_LIBRARYDIR="%BOOST_LIB%"
     -DBoost_USE_STATIC_LIBS="ON" ..
 
 # run custom build script
