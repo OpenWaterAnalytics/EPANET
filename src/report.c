@@ -32,13 +32,13 @@ formatted string S to the report file.
 #else
 #include <stdlib.h>
 #endif
+#include <math.h>
+#include <time.h>
 #include "epanet2.h"
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#include <math.h>
-#include <time.h>
 #define EXTERN extern
 #include "vars.h"
 
@@ -74,7 +74,7 @@ int writereport(EN_Project *pr)
 {
   report_options_t *rep = &pr->report;
   parser_data_t *par = &pr->parser;
-  
+
   char tflag;
   FILE *tfile;
   int errcode = 0;
@@ -85,27 +85,24 @@ int writereport(EN_Project *pr)
   if (rep->Rptflag && strlen(rep->Rpt2Fname) == 0 && rep->RptFile != NULL) {
     writecon(FMT17);
     writecon(rep->Rpt1Fname);
-    if (rep->Energyflag)
-      writeenergy(pr);
+    if (rep->Energyflag) writeenergy(pr);
     errcode = writeresults(pr);
   }
 
   /* A secondary report file was specified */
   else if (strlen(rep->Rpt2Fname) > 0) {
-
     /* If secondary report file has same name as either input */
     /* or primary report file then use primary report file.   */
-    if (strcomp(rep->Rpt2Fname, par->InpFname) || strcomp(rep->Rpt2Fname, rep->Rpt1Fname)) {
+    if (strcomp(rep->Rpt2Fname, par->InpFname) ||
+        strcomp(rep->Rpt2Fname, rep->Rpt1Fname)) {
       writecon(FMT17);
       writecon(rep->Rpt1Fname);
-      if (rep->Energyflag)
-        writeenergy(pr);
+      if (rep->Energyflag) writeenergy(pr);
       errcode = writeresults(pr);
     }
 
     /* Otherwise write report to secondary report file. */
     else {
-
       /* Try to open file */
       tfile = rep->RptFile;
       tflag = rep->Rptflag;
@@ -121,10 +118,8 @@ int writereport(EN_Project *pr)
         writecon(FMT17);
         writecon(rep->Rpt2Fname);
         writelogo(pr);
-        if (rep->Summaryflag)
-          writesummary(pr);
-        if (rep->Energyflag)
-          writeenergy(pr);
+        if (rep->Summaryflag) writesummary(pr);
+        if (rep->Energyflag) writeenergy(pr);
         errcode = writeresults(pr);
         fclose(rep->RptFile);
         rep->RptFile = tfile;
@@ -134,8 +129,7 @@ int writereport(EN_Project *pr)
   }
 
   /* Special error handler for write-to-file error */
-  if (rep->Fprinterr)
-    errmsg(pr,309);
+  if (rep->Fprinterr) errmsg(pr, 309);
   return (errcode);
 } /* End of writereport */
 
@@ -149,7 +143,7 @@ void writelogo(EN_Project *pr)
 */
 {
   report_options_t *rep = &pr->report;
-  
+
   int version;
   int major;
   int minor;
@@ -193,7 +187,7 @@ void writesummary(EN_Project *pr)
   parser_data_t *par = &pr->parser;
   time_options_t *time = &pr->time_options;
   time_options_t *ti = &pr->time_options;
-  
+
   char s[MAXFNAME + 1];
   int i;
   int nres = 0;
@@ -210,8 +204,7 @@ void writesummary(EN_Project *pr)
   sprintf(s, FMT20, net->Njuncs);
   writeline(pr, s);
   for (i = 1; i <= net->Ntanks; i++)
-    if (net->Tank[i].A == 0.0)
-      nres++;
+    if (net->Tank[i].A == 0.0) nres++;
   sprintf(s, FMT21a, nres);
   writeline(pr, s);
   sprintf(s, FMT21b, net->Ntanks - nres);
@@ -229,12 +222,12 @@ void writesummary(EN_Project *pr)
   sprintf(s, FMT27, hyd->Hacc);
   writeline(pr, s);
 
-  sprintf(s, FMT27a, hyd->CheckFreq); 
-  writeline(pr, s);                   
-  sprintf(s, FMT27b, hyd->MaxCheck);       
-  writeline(pr, s);                   
-  sprintf(s, FMT27c, hyd->DampLimit);      
-  writeline(pr, s);                   
+  sprintf(s, FMT27a, hyd->CheckFreq);
+  writeline(pr, s);
+  sprintf(s, FMT27b, hyd->MaxCheck);
+  writeline(pr, s);
+  sprintf(s, FMT27c, hyd->DampLimit);
+  writeline(pr, s);
 
   sprintf(s, FMT28, hyd->MaxIter);
   writeline(pr, s);
@@ -266,19 +259,13 @@ void writesummary(EN_Project *pr)
   if (rep->Rptflag) {
     sprintf(s, FMT40);
     writeline(pr, s);
-    if (rep->Nodeflag == 0)
-      writeline(pr, FMT41);
-    if (rep->Nodeflag == 1)
-      writeline(pr, FMT42);
-    if (rep->Nodeflag == 2)
-      writeline(pr, FMT43);
+    if (rep->Nodeflag == 0) writeline(pr, FMT41);
+    if (rep->Nodeflag == 1) writeline(pr, FMT42);
+    if (rep->Nodeflag == 2) writeline(pr, FMT43);
     writelimits(pr, DEMAND, QUALITY);
-    if (rep->Linkflag == 0)
-      writeline(pr, FMT44);
-    if (rep->Linkflag == 1)
-      writeline(pr, FMT45);
-    if (rep->Linkflag == 2)
-      writeline(pr, FMT46);
+    if (rep->Linkflag == 0) writeline(pr, FMT44);
+    if (rep->Linkflag == 1) writeline(pr, FMT45);
+    if (rep->Linkflag == 2) writeline(pr, FMT46);
     writelimits(pr, DIAM, HEADLOSS);
   }
   writeline(pr, " ");
@@ -300,11 +287,10 @@ void writehydstat(EN_Project *pr, int iter, double relerr)
   report_options_t *rep = &pr->report;
   time_options_t *time = &pr->time_options;
 
-  
   double *NodeDemand = hyd->NodeDemand;
   Stank *Tank = net->Tank;
   Slink *Link = net->Link;
-  
+
   int i, n;
   StatType newstat;
   char s1[MAXLINE + 1];
@@ -354,8 +340,8 @@ void writehydstat(EN_Project *pr, int iter, double relerr)
   for (i = 1; i <= net->Nlinks; i++) {
     if (hyd->LinkStatus[i] != hyd->OldStat[i]) {
       if (time->Htime == 0)
-        sprintf(s1, FMT52, atime, LinkTxt[(int)net->Link[i].Type], net->Link[i].ID,
-                StatTxt[(int)hyd->LinkStatus[i]]);
+        sprintf(s1, FMT52, atime, LinkTxt[(int)net->Link[i].Type],
+                net->Link[i].ID, StatTxt[(int)hyd->LinkStatus[i]]);
       else
         sprintf(s1, FMT53, atime, LinkTxt[Link[i].Type], net->Link[i].ID,
                 StatTxt[hyd->OldStat[i]], StatTxt[hyd->LinkStatus[i]]);
@@ -382,20 +368,17 @@ void writeenergy(EN_Project *pr)
   int j;
   double csum;
   char s[MAXLINE + 1];
-  if (net->Npumps == 0)
-    return;
+  if (net->Npumps == 0) return;
   writeline(pr, " ");
-  writeheader(pr,ENERHDR, 0);
+  writeheader(pr, ENERHDR, 0);
   csum = 0.0;
   for (j = 1; j <= net->Npumps; j++) {
     Spump *pump = &net->Pump[j];
     csum += pump->Energy[5];
-    if (rep->LineNum == (long)rep->PageSize)
-      writeheader(pr, ENERHDR, 1);
+    if (rep->LineNum == (long)rep->PageSize) writeheader(pr, ENERHDR, 1);
     sprintf(s, "%-8s  %6.2f %6.2f %9.2f %9.2f %9.2f %9.2f",
             net->Link[pump->Link].ID, pump->Energy[0], pump->Energy[1],
-            pump->Energy[2], pump->Energy[3], pump->Energy[4],
-            pump->Energy[5]);
+            pump->Energy[2], pump->Energy[3], pump->Energy[4], pump->Energy[5]);
     writeline(pr, s);
   }
   fillstr(s, '-', 63);
@@ -426,7 +409,6 @@ int writeresults(EN_Project *pr)
   time_options_t *time = &pr->time_options;
   FILE *outFile = out->OutFile;
 
-  
   Pfloat *x; /* Array of pointers to floats */
   int j, m, n, np, nnv, nlv;
   int errcode = 0;
@@ -442,8 +424,7 @@ int writeresults(EN_Project *pr)
   */
 
   /* Return if no output file */
-  if (outFile == NULL)
-    return (106);
+  if (outFile == NULL) return (106);
 
   /* Return if no nodes or links selected for reporting */
   /* or if no node or link report variables enabled.    */
@@ -469,14 +450,12 @@ int writeresults(EN_Project *pr)
   n = MAX((net->Nnodes + 1), (net->Nlinks + 1));
   x = (Pfloat *)calloc(m, sizeof(Pfloat));
   ERRCODE(MEMCHECK(x));
-  if (errcode)
-    return (errcode);
+  if (errcode) return (errcode);
   for (j = 0; j < m; j++) {
     x[j] = (REAL4 *)calloc(n, sizeof(REAL4));
     ERRCODE(MEMCHECK(x[j]));
   }
-  if (errcode)
-    return (errcode);
+  if (errcode) return (errcode);
 
   /* Re-position output file & initialize report time. */
   fseek(outFile, out->OutOffset2, SEEK_SET);
@@ -484,14 +463,13 @@ int writeresults(EN_Project *pr)
 
   /* For each reporting time: */
   for (np = 1; np <= rep->Nperiods; np++) {
-
     /* Read in node results & write node table. */
     /* (Remember to offset x[j] by 1 because array is zero-based). */
     for (j = DEMAND; j <= QUALITY; j++) {
       fread((x[j - DEMAND]) + 1, sizeof(REAL4), net->Nnodes, outFile);
     }
     if (nnv > 0 && rep->Nodeflag > 0) {
-      writenodetable(pr,x);
+      writenodetable(pr, x);
     }
 
     /* Read in link results & write link table. */
@@ -499,7 +477,7 @@ int writeresults(EN_Project *pr)
       fread((x[j - FLOW]) + 1, sizeof(REAL4), net->Nlinks, outFile);
     }
     if (nlv > 0 && rep->Linkflag > 0) {
-      writelinktable(pr,x);
+      writelinktable(pr, x);
     }
     time->Htime += time->Rstep;
   }
@@ -536,21 +514,18 @@ void writenodetable(EN_Project *pr, Pfloat *x)
     Snode *node = &net->Node[i];
     /* Place results for each node variable in y */
     y[ELEV] = node->El * pr->Ucf[ELEV];
-    for (j = DEMAND; j <= QUALITY; j++)
-      y[j] = *((x[j - DEMAND]) + i);
+    for (j = DEMAND; j <= QUALITY; j++) y[j] = *((x[j - DEMAND]) + i);
 
     /* Check if node gets reported on */
-    if ((rep->Nodeflag == 1 || node->Rpt) && checklimits(rep, y, ELEV, QUALITY)) {
-
+    if ((rep->Nodeflag == 1 || node->Rpt) &&
+        checklimits(rep, y, ELEV, QUALITY)) {
       /* Check if new page needed */
-      if (rep->LineNum == (long)rep->PageSize)
-        writeheader(pr, NODEHDR, 1);
+      if (rep->LineNum == (long)rep->PageSize) writeheader(pr, NODEHDR, 1);
 
       /* Add node ID and each reported field to string s */
       sprintf(s, "%-15s", node->ID);
       for (j = ELEV; j <= QUALITY; j++) {
         if (rep->Field[j].Enabled == TRUE) {
-
           /*** Updated 6/24/02 ***/
           if (fabs(y[j]) > 1.e6)
             sprintf(s1, "%10.2e", y[j]);
@@ -565,7 +540,7 @@ void writenodetable(EN_Project *pr, Pfloat *x)
       /* Note if node is a reservoir/tank */
       if (i > net->Njuncs) {
         strcat(s, "  ");
-        strcat(s, NodeTxt[getnodetype(net,i)]);
+        strcat(s, NodeTxt[getnodetype(net, i)]);
       }
 
       /* Write results for node */
@@ -589,29 +564,25 @@ void writelinktable(EN_Project *pr, Pfloat *x)
   Slink *Link = net->Link;
   double *Ucf = pr->Ucf;
 
-  
   int i, j, k;
   char s[MAXLINE + 1], s1[16];
   double y[MAXVAR];
 
   /* Write table header */
-  writeheader(pr,LINKHDR, 0);
+  writeheader(pr, LINKHDR, 0);
 
   /* For each link: */
   for (i = 1; i <= net->Nlinks; i++) {
-
     /* Place results for each link variable in y */
     y[LENGTH] = Link[i].Len * Ucf[LENGTH];
     y[DIAM] = Link[i].Diam * Ucf[DIAM];
-    for (j = FLOW; j <= FRICTION; j++)
-      y[j] = *((x[j - FLOW]) + i);
+    for (j = FLOW; j <= FRICTION; j++) y[j] = *((x[j - FLOW]) + i);
 
     /* Check if link gets reported on */
-    if ((rep->Linkflag == 1 || Link[i].Rpt) && checklimits(rep, y, DIAM, FRICTION)) {
-
+    if ((rep->Linkflag == 1 || Link[i].Rpt) &&
+        checklimits(rep, y, DIAM, FRICTION)) {
       /* Check if new page needed */
-      if (rep->LineNum == (long)rep->PageSize)
-        writeheader(pr,LINKHDR, 1);
+      if (rep->LineNum == (long)rep->PageSize) writeheader(pr, LINKHDR, 1);
 
       /* Add link ID and each reported field to string s */
       sprintf(s, "%-15s", Link[i].ID);
@@ -667,22 +638,20 @@ void writeheader(EN_Project *pr, int type, int contin)
   quality_t *qu = &pr->quality;
   parser_data_t *par = &pr->parser;
   time_options_t *time = &pr->time_options;
-  
+
   char s[MAXLINE + 1], s1[MAXLINE + 1], s2[MAXLINE + 1], s3[MAXLINE + 1];
   int i, n;
 
   /* Move to next page if < 11 lines remain on current page. */
   if (rep->Rptflag && rep->LineNum + 11 > (long)rep->PageSize) {
-    while (rep->LineNum < (long)rep->PageSize)
-      writeline(pr, " ");
+    while (rep->LineNum < (long)rep->PageSize) writeline(pr, " ");
   }
   writeline(pr, " ");
 
   /* Hydraulic Status Table */
   if (type == STATHDR) {
     sprintf(s, FMT49);
-    if (contin)
-      strcat(s, t_CONTINUED);
+    if (contin) strcat(s, t_CONTINUED);
     writeline(pr, s);
     fillstr(s, '-', 70);
     writeline(pr, s);
@@ -695,8 +664,7 @@ void writeheader(EN_Project *pr, int type, int contin)
     else
       strcpy(s1, t_perMGAL);
     sprintf(s, FMT71);
-    if (contin)
-      strcat(s, t_CONTINUED);
+    if (contin) strcat(s, t_CONTINUED);
     writeline(pr, s);
     fillstr(s, '-', 63);
     writeline(pr, s);
@@ -718,8 +686,7 @@ void writeheader(EN_Project *pr, int type, int contin)
       sprintf(s, FMT77);
     else
       sprintf(s, FMT78, clocktime(rep->Atime, time->Htime));
-    if (contin)
-      strcat(s, t_CONTINUED);
+    if (contin) strcat(s, t_CONTINUED);
     writeline(pr, s);
     n = 15;
     sprintf(s2, "%15s", "");
@@ -757,8 +724,7 @@ void writeheader(EN_Project *pr, int type, int contin)
       sprintf(s, FMT80);
     else
       sprintf(s, FMT81, clocktime(rep->Atime, time->Htime));
-    if (contin)
-      strcat(s, t_CONTINUED);
+    if (contin) strcat(s, t_CONTINUED);
     writeline(pr, s);
     n = 15;
     sprintf(s2, "%15s", "");
@@ -797,7 +763,8 @@ void writeline(EN_Project *pr, char *s)
   if (rpt->Rptflag) {
     if (rpt->LineNum == (long)rpt->PageSize) {
       rpt->PageNum++;
-      if (fprintf(rpt->RptFile, FMT82, (int)rpt->PageNum, pr->Title[0]) == EOF) {
+      if (fprintf(rpt->RptFile, FMT82, (int)rpt->PageNum, pr->Title[0]) ==
+          EOF) {
         rpt->Fprinterr = TRUE;
       }
       rpt->LineNum = 3;
@@ -821,7 +788,7 @@ void writerelerr(EN_Project *pr, int iter, double relerr)
 {
   report_options_t *rep = &pr->report;
   time_options_t *time = &pr->time_options;
-  
+
   if (iter == 0) {
     sprintf(pr->Msg, FMT64, clocktime(rep->Atime, time->Htime));
     writeline(pr, pr->Msg);
@@ -847,15 +814,14 @@ void writestatchange(EN_Project *pr, int k, char s1, char s2)
   Slink *Link = net->Link;
   double *Ucf = pr->Ucf;
   double *LinkSetting = hyd->LinkSetting;
-  
+
   int j1, j2;
   double setting;
 
   /* We have a pump/valve setting change instead of a status change */
   if (s1 == s2) {
-
     /*** Updated 10/25/00 ***/
-    setting = LinkSetting[k]; // Link[k].Kc;
+    setting = LinkSetting[k];  // Link[k].Kc;
 
     switch (Link[k].Type) {
       case EN_PRV:
@@ -909,21 +875,23 @@ void writecontrolaction(EN_Project *pr, int k, int i)
   Snode *Node = net->Node;
   Slink *Link = net->Link;
   Scontrol *Control = net->Control;
-  
+
   int n;
   switch (Control[i].Type) {
-  case LOWLEVEL:
-  case HILEVEL:
-    n = Control[i].Node;
-    sprintf(pr->Msg, FMT54, clocktime(rep->Atime, time->Htime), LinkTxt[Link[k].Type],
-            Link[k].ID, NodeTxt[getnodetype(net,n)], Node[n].ID);
-    break;
-  case TIMER:
-  case TIMEOFDAY:
-    sprintf(pr->Msg, FMT55, clocktime(rep->Atime, time->Htime), LinkTxt[Link[k].Type], Link[k].ID);
-    break;
-  default:
-    return;
+    case LOWLEVEL:
+    case HILEVEL:
+      n = Control[i].Node;
+      sprintf(pr->Msg, FMT54, clocktime(rep->Atime, time->Htime),
+              LinkTxt[Link[k].Type], Link[k].ID, NodeTxt[getnodetype(net, n)],
+              Node[n].ID);
+      break;
+    case TIMER:
+    case TIMEOFDAY:
+      sprintf(pr->Msg, FMT55, clocktime(rep->Atime, time->Htime),
+              LinkTxt[Link[k].Type], Link[k].ID);
+      break;
+    default:
+      return;
   }
   writeline(pr, pr->Msg);
 }
@@ -943,8 +911,8 @@ void writeruleaction(EN_Project *pr, int k, char *ruleID)
   time_options_t *time = &pr->time_options;
   Slink *Link = net->Link;
 
-  sprintf(pr->Msg, FMT63, clocktime(rep->Atime, time->Htime), LinkTxt[Link[k].Type],
-          Link[k].ID, ruleID);
+  sprintf(pr->Msg, FMT63, clocktime(rep->Atime, time->Htime),
+          LinkTxt[Link[k].Type], Link[k].ID, ruleID);
   writeline(pr, pr->Msg);
 }
 
@@ -969,12 +937,12 @@ int writehydwarn(EN_Project *pr, int iter, double relerr)
   hydraulics_t *hyd = &pr->hydraulics;
   report_options_t *rep = &pr->report;
   time_options_t *time = &pr->time_options;
-  
+
   Snode *Node = net->Node;
   Slink *Link = net->Link;
   Spump *Pump = net->Pump;
   Svalve *Valve = net->Valve;
-  
+
   const int Njuncs = net->Njuncs;
   double *NodeDemand = hyd->NodeDemand;
   double *LinkFlows = hyd->LinkFlows;
@@ -982,13 +950,12 @@ int writehydwarn(EN_Project *pr, int iter, double relerr)
 
   int i, j;
   char flag = 0;
-  char s; 
+  char s;
 
   /* Check if system unstable */
   if (iter > hyd->MaxIter && relerr <= hyd->Hacc) {
     sprintf(pr->Msg, WARN02, clocktime(rep->Atime, time->Htime));
-    if (rep->Messageflag)
-      writeline(pr, pr->Msg);
+    if (rep->Messageflag) writeline(pr, pr->Msg);
     flag = 2;
   }
 
@@ -1011,8 +978,7 @@ int writehydwarn(EN_Project *pr, int iter, double relerr)
     if (hyd->LinkStatus[j] >= XFCV) {
       sprintf(pr->Msg, WARN05, LinkTxt[Link[j].Type], Link[j].ID,
               StatTxt[hyd->LinkStatus[j]], clocktime(rep->Atime, time->Htime));
-      if (rep->Messageflag)
-        writeline(pr, pr->Msg);
+      if (rep->Messageflag) writeline(pr, pr->Msg);
       flag = 5;
     }
   }
@@ -1020,20 +986,15 @@ int writehydwarn(EN_Project *pr, int iter, double relerr)
   /* Check for abnormal pump condition */
   for (i = 1; i <= net->Npumps; i++) {
     j = Pump[i].Link;
-    s = hyd->LinkStatus[j];         
-    if (hyd->LinkStatus[j] >= OPEN) 
-    {                               
-      if (LinkFlows[j] > LinkSetting[j] * Pump[i].Qmax)
-        s = XFLOW; 
-      if (LinkFlows[j] < 0.0)
-        s = XHEAD;                
-    }                             
-    if (s == XHEAD || s == XFLOW) 
-    {
-      sprintf(pr->Msg, WARN04, Link[j].ID, StatTxt[s], 
+    s = hyd->LinkStatus[j];
+    if (hyd->LinkStatus[j] >= OPEN) {
+      if (LinkFlows[j] > LinkSetting[j] * Pump[i].Qmax) s = XFLOW;
+      if (LinkFlows[j] < 0.0) s = XHEAD;
+    }
+    if (s == XHEAD || s == XFLOW) {
+      sprintf(pr->Msg, WARN04, Link[j].ID, StatTxt[s],
               clocktime(rep->Atime, time->Htime));
-      if (rep->Messageflag)
-        writeline(pr, pr->Msg);
+      if (rep->Messageflag) writeline(pr, pr->Msg);
       flag = 4;
     }
   }
@@ -1041,10 +1002,8 @@ int writehydwarn(EN_Project *pr, int iter, double relerr)
   /* Check if system is unbalanced */
   if (iter > hyd->MaxIter && relerr > hyd->Hacc) {
     sprintf(pr->Msg, WARN01, clocktime(rep->Atime, time->Htime));
-    if (hyd->ExtraIter == -1)
-      strcat(pr->Msg, t_HALTED);
-    if (rep->Messageflag)
-      writeline(pr, pr->Msg);
+    if (hyd->ExtraIter == -1) strcat(pr->Msg, t_HALTED);
+    if (rep->Messageflag) writeline(pr, pr->Msg);
     flag = 1;
   }
 
@@ -1071,10 +1030,9 @@ void writehyderr(EN_Project *pr, int errnode)
   report_options_t *rep = &pr->report;
   time_options_t *time = &pr->time_options;
   Snode *Node = net->Node;
-  
+
   sprintf(pr->Msg, FMT62, clocktime(rep->Atime, time->Htime), Node[errnode].ID);
-  if (rep->Messageflag)
-    writeline(pr, pr->Msg);
+  if (rep->Messageflag) writeline(pr, pr->Msg);
   writehydstat(pr, 0, 0);
   disconnected(pr);
 } /* End of writehyderr */
@@ -1093,7 +1051,7 @@ int disconnected(EN_Project *pr)
   hydraulics_t *hyd = &pr->hydraulics;
   report_options_t *rep = &pr->report;
   time_options_t *time = &pr->time_options;
-  
+
   int i, j;
   int count, mcount;
   int errcode = 0;
@@ -1105,8 +1063,7 @@ int disconnected(EN_Project *pr)
   marked = (char *)calloc(net->Nnodes + 1, sizeof(char));
   ERRCODE(MEMCHECK(nodelist));
   ERRCODE(MEMCHECK(marked));
-  if (errcode)
-    return (0);
+  if (errcode) return (0);
 
   /* Place tanks on node list and marked list */
   for (i = 1; i <= net->Ntanks; i++) {
@@ -1146,7 +1103,8 @@ int disconnected(EN_Project *pr)
   /* on path from node j back to a tank.                  */
   if (count > 0 && rep->Messageflag) {
     if (count > MAXCOUNT) {
-      sprintf(pr->Msg, WARN03b, count - MAXCOUNT, clocktime(rep->Atime, time->Htime));
+      sprintf(pr->Msg, WARN03b, count - MAXCOUNT,
+              clocktime(rep->Atime, time->Htime));
       writeline(pr, pr->Msg);
     }
     getclosedlink(pr, j, marked);
@@ -1171,18 +1129,16 @@ void marknodes(EN_Project *pr, int m, int *nodelist, char *marked)
 {
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
-  
+
   int i, j, k, n;
   Padjlist alink;
 
   /* Scan each successive entry of node list */
   n = 1;
   while (n <= m) {
-
     /* Scan all nodes connected to current node */
     i = nodelist[n];
     for (alink = net->Adjlist[i]; alink != NULL; alink = alink->next) {
-
       /* Get indexes of connecting link and node */
       k = alink->link;
       j = alink->node;
@@ -1231,8 +1187,7 @@ void getclosedlink(EN_Project *pr, int i, char *marked)
   for (alink = net->Adjlist[i]; alink != NULL; alink = alink->next) {
     k = alink->link;
     j = alink->node;
-    if (marked[j] == 2)
-      continue;
+    if (marked[j] == 2) continue;
     if (marked[j] == 1) {
       sprintf(pr->Msg, WARN03c, net->Link[k].ID);
       writeline(pr, pr->Msg);
@@ -1253,7 +1208,7 @@ void writelimits(EN_Project *pr, int j1, int j2)
 */
 {
   report_options_t *rep = &pr->report;
-  
+
   int j;
   for (j = j1; j <= j2; j++) {
     if (rep->Field[j].RptLim[LOW] < BIG) {
@@ -1331,8 +1286,7 @@ char *fillstr(char *s, char ch, int n)
 */
 {
   int i;
-  for (i = 0; i <= n; i++)
-    s[i] = ch;
+  for (i = 0; i <= n; i++) s[i] = ch;
   s[n + 1] = '\0';
   return (s);
 }
@@ -1345,10 +1299,8 @@ int getnodetype(EN_Network *net, int i)
 **---------------------------------------------------------
 */
 {
-  if (i <= net->Njuncs)
-    return (0);
-  if (net->Tank[i - net->Njuncs].A == 0.0)
-    return (1);
+  if (i <= net->Njuncs) return (0);
+  if (net->Tank[i - net->Njuncs].A == 0.0) return (1);
   return (2);
 }
 

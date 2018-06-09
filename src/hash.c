@@ -27,8 +27,7 @@
 #include "hash.h"
 
 unsigned int _enHash(char *str);
-unsigned int _enHash(char *str)
-{
+unsigned int _enHash(char *str) {
   unsigned int hash = 5381;
   unsigned int retHash;
   int c;
@@ -36,33 +35,32 @@ unsigned int _enHash(char *str)
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
   }
   retHash = hash % ENHASHTABLEMAXSIZE;
-  
+
   return retHash;
 }
 
-ENHashTable *ENHashTableCreate()
-{
+ENHashTable *ENHashTableCreate() {
   int i;
-  ENHashTable *ht = (ENHashTable *) calloc(ENHASHTABLEMAXSIZE, sizeof(ENHashTable));
+  ENHashTable *ht =
+      (ENHashTable *)calloc(ENHASHTABLEMAXSIZE, sizeof(ENHashTable));
   if (ht != NULL) {
-    for (i=0; i<ENHASHTABLEMAXSIZE; i++) {
+    for (i = 0; i < ENHASHTABLEMAXSIZE; i++) {
       ht[i] = NULL;
     }
   }
-  return(ht);
+  return (ht);
 }
 
-int ENHashTableInsert(ENHashTable *ht, char *key, int data)
-{
+int ENHashTableInsert(ENHashTable *ht, char *key, int data) {
   size_t len;
   unsigned int i = _enHash(key);
   ENHashEntry *entry;
-  if ( i >= ENHASHTABLEMAXSIZE ) {
-    return(0);
+  if (i >= ENHASHTABLEMAXSIZE) {
+    return (0);
   }
-  entry = (ENHashEntry *) malloc(sizeof(ENHashEntry));
+  entry = (ENHashEntry *)malloc(sizeof(ENHashEntry));
   if (entry == NULL) {
-    return(0);
+    return (0);
   }
   len = strlen(key) + 1;
   entry->key = calloc(len, sizeof(char));
@@ -70,95 +68,86 @@ int ENHashTableInsert(ENHashTable *ht, char *key, int data)
   entry->data = data;
   entry->next = ht[i];
   ht[i] = entry;
-  return(1);
+  return (1);
 }
 
-/* Abel Heinsbroek: Added function to update the hash table value for a given key */
-int ENHashTableUpdate(ENHashTable *ht, char *key, int new_data)
-{
+/* Abel Heinsbroek: Added function to update the hash table value for a given
+ * key */
+int ENHashTableUpdate(ENHashTable *ht, char *key, int new_data) {
   unsigned int i = _enHash(key);
   ENHashEntry *entry;
-  if ( i >= ENHASHTABLEMAXSIZE ) {
-    return(NOTFOUND);
+  if (i >= ENHASHTABLEMAXSIZE) {
+    return (NOTFOUND);
   }
   entry = ht[i];
-  while (entry != NULL)
-  {
-    if ( strcmp(entry->key,key) == 0 ) {
+  while (entry != NULL) {
+    if (strcmp(entry->key, key) == 0) {
       entry->data = new_data;
-      return(1);
+      return (1);
     }
     entry = entry->next;
   }
-  return(NOTFOUND);
+  return (NOTFOUND);
 }
 
 int ENHashTableDelete(ENHashTable *ht, char *key) {
   unsigned int i = _enHash(key);
   ENHashEntry *entry;
-  if ( i >= ENHASHTABLEMAXSIZE ) {
-    return(NOTFOUND);
+  if (i >= ENHASHTABLEMAXSIZE) {
+    return (NOTFOUND);
   }
   entry = ht[i];
-  while (entry != NULL)
-  {
+  while (entry != NULL) {
     if (strcmp(entry->key, key) == 0) {
       entry->key = "";
-      return(1);
+      return (1);
     }
     entry = entry->next;
   }
 
-  return(NOTFOUND);
+  return (NOTFOUND);
 }
 
-int     ENHashTableFind(ENHashTable *ht, char *key)
-{
+int ENHashTableFind(ENHashTable *ht, char *key) {
   unsigned int i = _enHash(key);
 
   ENHashEntry *entry;
-  if ( i >= ENHASHTABLEMAXSIZE ) {
-    return(NOTFOUND);
+  if (i >= ENHASHTABLEMAXSIZE) {
+    return (NOTFOUND);
   }
 
   entry = ht[i];
-  while (entry != NULL)
-  {
-    if ( strcmp(entry->key,key) == 0 ) {
-      return(entry->data);
+  while (entry != NULL) {
+    if (strcmp(entry->key, key) == 0) {
+      return (entry->data);
     }
     entry = entry->next;
   }
-  return(NOTFOUND);
+  return (NOTFOUND);
 }
 
-char    *ENHashTableFindKey(ENHashTable *ht, char *key)
-{
+char *ENHashTableFindKey(ENHashTable *ht, char *key) {
   unsigned int i = _enHash(key);
   ENHashEntry *entry;
-  if ( i >= ENHASHTABLEMAXSIZE ) {
-    return(NULL);
+  if (i >= ENHASHTABLEMAXSIZE) {
+    return (NULL);
   }
   entry = ht[i];
-  while (entry != NULL)
-  {
-    if ( strcmp(entry->key,key) == 0 ) {
-      return(entry->key);
+  while (entry != NULL) {
+    if (strcmp(entry->key, key) == 0) {
+      return (entry->key);
     }
     entry = entry->next;
   }
-  return(NULL);
+  return (NULL);
 }
 
-void    ENHashTableFree(ENHashTable *ht)
-{
+void ENHashTableFree(ENHashTable *ht) {
   ENHashEntry *entry, *nextentry;
   int i;
-  for (i=0; i<ENHASHTABLEMAXSIZE; i++)
-  {
+  for (i = 0; i < ENHASHTABLEMAXSIZE; i++) {
     entry = ht[i];
-    while (entry != NULL)
-    {
+    while (entry != NULL) {
       nextentry = entry->next;
       free(entry->key);
       free(entry);

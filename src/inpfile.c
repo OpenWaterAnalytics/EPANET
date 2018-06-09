@@ -26,12 +26,12 @@ data describing a piping network to a file in EPANET's text format.
 #else
 #include <stdlib.h>
 #endif
+#include <math.h>
+#include "epanet2.h"
+#include "funcs.h"
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#include "epanet2.h"
-#include "funcs.h"
-#include <math.h>
 #define EXTERN extern
 #include "vars.h"
 
@@ -48,7 +48,7 @@ extern char *TstatTxt[];
 extern char *RptFlagTxt[];
 extern char *SectTxt[];
 
-void saveauxdata(parser_data_t *parser, FILE *f) 
+void saveauxdata(parser_data_t *parser, FILE *f)
 /*
 ------------------------------------------------------------
   Writes auxilary data from original input file to new file.
@@ -61,7 +61,7 @@ void saveauxdata(parser_data_t *parser, FILE *f)
   char s[MAXLINE + 1];
   FILE *InFile = parser->InFile;
   char Coordflag = parser->Coordflag;
-  
+
   sect = -1;
   if (InFile == NULL) {
     return;
@@ -75,20 +75,19 @@ void saveauxdata(parser_data_t *parser, FILE *f)
       newsect = findmatch(tok, SectTxt);
       if (newsect >= 0) {
         sect = newsect;
-        if (sect == _END)
-          break;
+        if (sect == _END) break;
         switch (sect) {
-        // case _RULES:
-        case _COORDS:
-          if (Coordflag == FALSE) {
+          // case _RULES:
+          case _COORDS:
+            if (Coordflag == FALSE) {
+              fprintf(f, "%s", line);
+            }
+            break;
+          case _VERTICES:
+          case _LABELS:
+          case _BACKDROP:
+          case _TAGS:
             fprintf(f, "%s", line);
-          }
-          break;
-        case _VERTICES:
-        case _LABELS:
-        case _BACKDROP:
-        case _TAGS:
-          fprintf(f, "%s", line); 
         }
         continue;
       } else
@@ -97,22 +96,22 @@ void saveauxdata(parser_data_t *parser, FILE *f)
 
     /* Write lines appearing in the section to file */
     switch (sect) {
-    // case _RULES:
-    case _COORDS:
-      if (Coordflag == FALSE) {
+      // case _RULES:
+      case _COORDS:
+        if (Coordflag == FALSE) {
+          fprintf(f, "%s", line);
+        }
+        break;
+      case _VERTICES:
+      case _LABELS:
+      case _BACKDROP:
+      case _TAGS:
         fprintf(f, "%s", line);
-      }
-      break;
-    case _VERTICES:
-    case _LABELS:
-    case _BACKDROP:
-    case _TAGS:
-      fprintf(f, "%s", line); 
     }
   }
 }
 
-////  This function was heavily modified.  //// 
+////  This function was heavily modified.  ////
 
 int saveinpfile(EN_Project *pr, char *fname)
 /*
@@ -121,7 +120,6 @@ int saveinpfile(EN_Project *pr, char *fname)
 -------------------------------------------------
 */
 {
-  
   EN_Network *net = &pr->network;
   parser_data_t *par = &pr->parser;
   report_options_t *rep = &pr->report;
@@ -129,7 +127,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   hydraulics_t *hyd = &pr->hydraulics;
   quality_t *qu = &pr->quality;
   time_options_t *time = &pr->time_options;
-  
+
   int i, j, n;
   int errcode;
   double d, kc, ke, km, ucf;
@@ -167,7 +165,8 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, s_JUNCTIONS);
   for (i = 1; i <= net->Njuncs; i++) {
     node = &net->Node[i];
-    fprintf(f, "\n %-31s %12.4f ;%s", node->ID, node->El * pr->Ucf[ELEV], node->Comment);
+    fprintf(f, "\n %-31s %12.4f ;%s", node->ID, node->El * pr->Ucf[ELEV],
+            node->Comment);
   }
   /* Write [RESERVOIRS] section */
 
@@ -180,8 +179,7 @@ int saveinpfile(EN_Project *pr, char *fname)
       sprintf(s, " %-31s %12.4f", node->ID, node->El * pr->Ucf[ELEV]);
       if ((j = tank->Pat) > 0) {
         sprintf(s1, " %-31s", net->Pattern[j].ID);
-      }
-      else {
+      } else {
         strcpy(s1, "");
       }
       fprintf(f, "\n%s %s ;%s", s, s1, node->Comment);
@@ -219,8 +217,7 @@ int saveinpfile(EN_Project *pr, char *fname)
     if (link->Type <= EN_PIPE) {
       d = link->Diam;
       kc = link->Kc;
-      if (hyd->Formflag == DW)
-        kc = kc * pr->Ucf[ELEV] * 1000.0;
+      if (hyd->Formflag == DW) kc = kc * pr->Ucf[ELEV] * 1000.0;
       km = link->Km * SQR(d) * SQR(d) / 0.02517;
       sprintf(s, " %-31s %-31s %-31s %12.4f %12.4f", link->ID,
               net->Node[link->N1].ID, net->Node[link->N2].ID,
@@ -247,11 +244,11 @@ int saveinpfile(EN_Project *pr, char *fname)
     n = net->Pump[i].Link;
     link = &net->Link[n];
     pump = &net->Pump[i];
-    sprintf(s, " %-31s %-31s %-31s", link->ID, net->Node[link->N1].ID, net->Node[link->N2].ID);
+    sprintf(s, " %-31s %-31s %-31s", link->ID, net->Node[link->N1].ID,
+            net->Node[link->N2].ID);
 
     /* Pump has constant power */
-    if (pump->Ptype == CONST_HP)
-      sprintf(s1, "  POWER %.4f", link->Km);
+    if (pump->Ptype == CONST_HP) sprintf(s1, "  POWER %.4f", link->Km);
 
     /* Pump has a head curve */
     else if ((j = pump->Hcurve) > 0)
@@ -261,8 +258,7 @@ int saveinpfile(EN_Project *pr, char *fname)
     else {
       fprintf(f, "\n%s %12.4f %12.4f %12.4f          0.0 %12.4f", s,
               -pump->H0 * pr->Ucf[HEAD],
-              (-pump->H0 - pump->R * pow(pump->Q0, pump->N)) *
-                  pr->Ucf[HEAD],
+              (-pump->H0 - pump->R * pow(pump->Q0, pump->N)) * pr->Ucf[HEAD],
               pump->Q0 * pr->Ucf[FLOW], pump->Qmax * pr->Ucf[FLOW]);
       continue;
     }
@@ -292,8 +288,7 @@ int saveinpfile(EN_Project *pr, char *fname)
     link = &net->Link[n];
     d = link->Diam;
     kc = link->Kc;
-    if (kc == MISSING)
-      kc = 0.0;
+    if (kc == MISSING) kc = 0.0;
     switch (link->Type) {
       case EN_FCV:
         kc *= pr->Ucf[FLOW];
@@ -309,8 +304,9 @@ int saveinpfile(EN_Project *pr, char *fname)
     }
     km = link->Km * SQR(d) * SQR(d) / 0.02517;
 
-    sprintf(s, " %-31s %-31s %-31s %12.4f %5s", link->ID, net->Node[link->N1].ID,
-            net->Node[link->N2].ID, d * pr->Ucf[DIAM], LinkTxt[link->Type]);
+    sprintf(s, " %-31s %-31s %-31s %12.4f %5s", link->ID,
+            net->Node[link->N1].ID, net->Node[link->N2].ID, d * pr->Ucf[DIAM],
+            LinkTxt[link->Type]);
 
     if (link->Type == EN_GPV && (j = ROUND(link->Kc)) > 0)
       sprintf(s1, "%-31s %12.4f", net->Curve[j].ID, km);
@@ -343,8 +339,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, s_EMITTERS);
   for (i = 1; i <= net->Njuncs; i++) {
     node = &net->Node[i];
-    if (node->Ke == 0.0)
-      continue;
+    if (node->Ke == 0.0) continue;
     ke = pr->Ucf[FLOW] / pow(pr->Ucf[PRESSURE] * node->Ke, (1.0 / hyd->Qexp));
     fprintf(f, "\n %-31s %14.6f", node->ID, ke);
   }
@@ -363,8 +358,7 @@ int saveinpfile(EN_Project *pr, char *fname)
       else if (link->Type == EN_PUMP) {
         n = findpump(net, i);
         pump = &net->Pump[n];
-        if (pump->Hcurve == 0 && pump->Ptype != CONST_HP &&
-            link->Kc != 1.0)
+        if (pump->Hcurve == 0 && pump->Ptype != CONST_HP && link->Kc != 1.0)
           fprintf(f, "\n %-31s %-.4f", link->ID, link->Kc);
       }
     }
@@ -385,8 +379,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, s_PATTERNS);
   for (i = 1; i <= net->Npats; i++) {
     for (j = 0; j < net->Pattern[i].Length; j++) {
-      if (j % 6 == 0)
-        fprintf(f, "\n %-31s", net->Pattern[i].ID);
+      if (j % 6 == 0) fprintf(f, "\n %-31s", net->Pattern[i].ID);
       fprintf(f, " %12.4f", net->Pattern[i].F[j]);
     }
   }
@@ -409,8 +402,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   for (i = 1; i <= net->Ncontrols; i++) {
     control = &net->Control[i];
     /* Check that controlled link exists */
-    if ((j = control->Link) <= 0)
-      continue;
+    if ((j = control->Link) <= 0) continue;
     link = &net->Link[j];
 
     /* Get text of control's link status/setting */
@@ -434,31 +426,31 @@ int saveinpfile(EN_Project *pr, char *fname)
     }
 
     switch (control->Type) {
-    /* Print level control */
-    case LOWLEVEL:
-    case HILEVEL:
-      n = control->Node;
+      /* Print level control */
+      case LOWLEVEL:
+      case HILEVEL:
+        n = control->Node;
         node = &net->Node[n];
-      kc = control->Grade - node->El;
-      if (n > net->Njuncs)
-        kc *= pr->Ucf[HEAD];
-      else
-        kc *= pr->Ucf[PRESSURE];
-      fprintf(f, "\n%s IF NODE %s %s %.4f", s, node->ID,
-              ControlTxt[control->Type], kc);
-      break;
+        kc = control->Grade - node->El;
+        if (n > net->Njuncs)
+          kc *= pr->Ucf[HEAD];
+        else
+          kc *= pr->Ucf[PRESSURE];
+        fprintf(f, "\n%s IF NODE %s %s %.4f", s, node->ID,
+                ControlTxt[control->Type], kc);
+        break;
 
-    /* Print timer control */
-    case TIMER:
-      fprintf(f, "\n%s AT %s %.4f HOURS", s, ControlTxt[TIMER],
-              control->Time / 3600.);
-      break;
+      /* Print timer control */
+      case TIMER:
+        fprintf(f, "\n%s AT %s %.4f HOURS", s, ControlTxt[TIMER],
+                control->Time / 3600.);
+        break;
 
-    /* Print time-of-day control */
-    case TIMEOFDAY:
-      fprintf(f, "\n%s AT %s %s", s, ControlTxt[TIMEOFDAY],
-              clocktime(rep->Atime, control->Time));
-      break;
+      /* Print time-of-day control */
+      case TIMEOFDAY:
+        fprintf(f, "\n%s AT %s %s", s, ControlTxt[TIMEOFDAY],
+                clocktime(rep->Atime, control->Time));
+        break;
     }
   }
 
@@ -479,8 +471,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, s_QUALITY);
   for (i = 1; i <= net->Nnodes; i++) {
     node = &net->Node[i];
-    if (node->C0 == 0.0)
-      continue;
+    if (node->C0 == 0.0) continue;
     fprintf(f, "\n %-31s %14.6f", node->ID, node->C0 * pr->Ucf[QUALITY]);
   }
 
@@ -491,9 +482,9 @@ int saveinpfile(EN_Project *pr, char *fname)
   for (i = 1; i <= net->Nnodes; i++) {
     node = &net->Node[i];
     source = node->S;
-    if (source == NULL)
-      continue;
-    sprintf(s, " %-31s %-8s %14.6f", node->ID, SourceTxt[source->Type], source->C0);
+    if (source == NULL) continue;
+    sprintf(s, " %-31s %-8s %14.6f", node->ID, SourceTxt[source->Type],
+            source->C0);
     if ((j = source->Pat) > 0)
       sprintf(s1, "%s", net->Pattern[j].ID);
     else
@@ -507,8 +498,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, s_MIXING);
   for (i = 1; i <= net->Ntanks; i++) {
     Stank *tank = &net->Tank[i];
-    if (tank->A == 0.0)
-      continue;
+    if (tank->A == 0.0) continue;
     fprintf(f, "\n %-31s %-8s %12.4f", net->Node[tank->Node].ID,
             MixTxt[tank->MixModel], (tank->V1max / tank->Vmax));
   }
@@ -528,8 +518,7 @@ int saveinpfile(EN_Project *pr, char *fname)
     fprintf(f, "\n ROUGHNESS CORRELATION  %-.6f", qu->Rfactor);
   for (i = 1; i <= net->Nlinks; i++) {
     link = &net->Link[i];
-    if (link->Type > EN_PIPE)
-      continue;
+    if (link->Type > EN_PIPE) continue;
     if (link->Kb != qu->Kbulk)
       fprintf(f, "\n BULK   %-31s %-.6f", link->ID, link->Kb * SECperDAY);
     if (link->Kw != qu->Kwall)
@@ -537,8 +526,7 @@ int saveinpfile(EN_Project *pr, char *fname)
   }
   for (i = 1; i <= net->Ntanks; i++) {
     tank = &net->Tank[i];
-    if (tank->A == 0.0)
-      continue;
+    if (tank->A == 0.0) continue;
     if (tank->Kb != qu->Kbulk)
       fprintf(f, "\n TANK   %-31s %-.6f", net->Node[tank->Node].ID,
               tank->Kb * SECperDAY);
@@ -548,8 +536,7 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   fprintf(f, "\n\n");
   fprintf(f, s_ENERGY);
-  if (hyd->Ecost != 0.0)
-    fprintf(f, "\n GLOBAL PRICE        %-.4f", hyd->Ecost);
+  if (hyd->Ecost != 0.0) fprintf(f, "\n GLOBAL PRICE        %-.4f", hyd->Ecost);
   if (hyd->Epat != 0)
     fprintf(f, "\n GLOBAL PATTERN      %s", net->Pattern[hyd->Epat].ID);
   fprintf(f, "\n GLOBAL EFFIC        %-.4f", hyd->Epump);
@@ -578,7 +565,8 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n REPORT START        %s", clocktime(rep->Atime, time->Rstart));
   fprintf(f, "\n PATTERN TIMESTEP    %s", clocktime(rep->Atime, time->Pstep));
   fprintf(f, "\n PATTERN START       %s", clocktime(rep->Atime, time->Pstart));
-  fprintf(f, "\n RULE TIMESTEP       %s", clocktime(rep->Atime, time->Rulestep));
+  fprintf(f, "\n RULE TIMESTEP       %s",
+          clocktime(rep->Atime, time->Rulestep));
   fprintf(f, "\n START CLOCKTIME     %s", clocktime(rep->Atime, time->Tstart));
   fprintf(f, "\n STATISTIC           %s", TstatTxt[rep->Tstatflag]);
 
@@ -595,18 +583,16 @@ int saveinpfile(EN_Project *pr, char *fname)
     fprintf(f, "\n HYDRAULICS USE      %s", out->HydFname);
   if (out->Hydflag == SAVE)
     fprintf(f, "\n HYDRAULICS SAVE     %s", out->HydFname);
-  if (hyd->ExtraIter == -1)
-    fprintf(f, "\n UNBALANCED          STOP");
+  if (hyd->ExtraIter == -1) fprintf(f, "\n UNBALANCED          STOP");
   if (hyd->ExtraIter >= 0)
     fprintf(f, "\n UNBALANCED          CONTINUE %d", hyd->ExtraIter);
   if (qu->Qualflag == CHEM)
     fprintf(f, "\n QUALITY             %s %s", qu->ChemName, qu->ChemUnits);
   if (qu->Qualflag == TRACE)
-    fprintf(f, "\n QUALITY             TRACE %-31s", net->Node[qu->TraceNode].ID);
-  if (qu->Qualflag == AGE)
-    fprintf(f, "\n QUALITY             AGE");
-  if (qu->Qualflag == NONE)
-    fprintf(f, "\n QUALITY             NONE");
+    fprintf(f, "\n QUALITY             TRACE %-31s",
+            net->Node[qu->TraceNode].ID);
+  if (qu->Qualflag == AGE) fprintf(f, "\n QUALITY             AGE");
+  if (qu->Qualflag == NONE) fprintf(f, "\n QUALITY             NONE");
   fprintf(f, "\n DEMAND MULTIPLIER   %-.4f", hyd->Dmult);
   fprintf(f, "\n EMITTER EXPONENT    %-.4f", 1.0 / hyd->Qexp);
   fprintf(f, "\n VISCOSITY           %-.6f", hyd->Viscos / VISCOS);
@@ -631,42 +617,40 @@ int saveinpfile(EN_Project *pr, char *fname)
   if (strlen(rep->Rpt2Fname) > 0)
     fprintf(f, "\n FILE                %s", rep->Rpt2Fname);
   switch (rep->Nodeflag) {
-  case 0:
-    fprintf(f, "\n NODES               NONE");
-    break;
-  case 1:
-    fprintf(f, "\n NODES               ALL");
-    break;
-  default:
-    j = 0;
-    for (i = 1; i <= net->Nnodes; i++) {
-      node = &net->Node[i];
-      if (node->Rpt == 1) {
-        if (j % 5 == 0)
-          fprintf(f, "\n NODES               ");
-        fprintf(f, "%s ", node->ID);
-        j++;
+    case 0:
+      fprintf(f, "\n NODES               NONE");
+      break;
+    case 1:
+      fprintf(f, "\n NODES               ALL");
+      break;
+    default:
+      j = 0;
+      for (i = 1; i <= net->Nnodes; i++) {
+        node = &net->Node[i];
+        if (node->Rpt == 1) {
+          if (j % 5 == 0) fprintf(f, "\n NODES               ");
+          fprintf(f, "%s ", node->ID);
+          j++;
+        }
       }
-    }
   }
   switch (rep->Linkflag) {
-  case 0:
-    fprintf(f, "\n LINKS               NONE");
-    break;
-  case 1:
-    fprintf(f, "\n LINKS               ALL");
-    break;
-  default:
-    j = 0;
-    for (i = 1; i <= net->Nlinks; i++) {
-      Slink *link = &net->Link[i];
-      if (link->Rpt == 1) {
-        if (j % 5 == 0)
-          fprintf(f, "\n LINKS               ");
-        fprintf(f, "%s ", link->ID);
-        j++;
+    case 0:
+      fprintf(f, "\n LINKS               NONE");
+      break;
+    case 1:
+      fprintf(f, "\n LINKS               ALL");
+      break;
+    default:
+      j = 0;
+      for (i = 1; i <= net->Nlinks; i++) {
+        Slink *link = &net->Link[i];
+        if (link->Rpt == 1) {
+          if (j % 5 == 0) fprintf(f, "\n LINKS               ");
+          fprintf(f, "%s ", link->ID);
+          j++;
+        }
       }
-    }
   }
   for (i = 0; i < FRICTION; i++) {
     SField *field = &rep->Field[i];
@@ -677,7 +661,7 @@ int saveinpfile(EN_Project *pr, char *fname)
       if (field->RptLim[HI] > -BIG)
         fprintf(f, "\n %-20sABOVE %.6f", field->Name, field->RptLim[HI]);
     } else
-      fprintf(f, "\n %-20sNO",field->Name);
+      fprintf(f, "\n %-20sNO", field->Name);
   }
   fprintf(f, "\n\n");
 
@@ -698,7 +682,7 @@ int saveinpfile(EN_Project *pr, char *fname)
 
   /* Save auxilary data to new input file */
 
-  saveauxdata(par,f);
+  saveauxdata(par, f);
 
   /* Close the new input file */
 

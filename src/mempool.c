@@ -26,36 +26,33 @@
 **  should be reasonably large otherwise you will be mallocing a lot.
 */
 
-#define ALLOC_BLOCK_SIZE   64000       /*(62*1024)*/
+#define ALLOC_BLOCK_SIZE 64000 /*(62*1024)*/
 
 /*
 **  alloc_hdr_t - Header for each block of memory.
 */
 
-typedef struct alloc_hdr_s
-{
-    struct alloc_hdr_s *next;   /* Next Block          */
-    char               *block,  /* Start of block      */
-                       *free,   /* Next free in block  */
-                       *end;    /* block + block size  */
-}  alloc_hdr_t;
+typedef struct alloc_hdr_s {
+  struct alloc_hdr_s *next; /* Next Block          */
+  char *block,              /* Start of block      */
+      *free,                /* Next free in block  */
+      *end;                 /* block + block size  */
+} alloc_hdr_t;
 
 /*
 **  alloc_root_t - Header for the whole pool.
 */
 
-typedef struct alloc_root_s
-{
-    alloc_hdr_t *first,    /* First header in pool */
-                *current;  /* Current header       */
-}  alloc_root_t;
+typedef struct alloc_root_s {
+  alloc_hdr_t *first, /* First header in pool */
+      *current;       /* Current header       */
+} alloc_root_t;
 
 /*
 **  root - Pointer to the current pool.
 */
 
 static alloc_root_t *root;
-
 
 /*
 **  AllocHdr()
@@ -64,24 +61,22 @@ static alloc_root_t *root;
 */
 
 static alloc_hdr_t *AllocHdr(void);
-                
-static alloc_hdr_t * AllocHdr()
-{
-    alloc_hdr_t     *hdr;
-    char            *block;
 
-    block = (char *) malloc(ALLOC_BLOCK_SIZE);
-    hdr   = (alloc_hdr_t *) malloc(sizeof(alloc_hdr_t));
+static alloc_hdr_t *AllocHdr() {
+  alloc_hdr_t *hdr;
+  char *block;
 
-    if (hdr == NULL || block == NULL) return(NULL);
-    hdr->block = block;
-    hdr->free  = block;
-    hdr->next  = NULL;
-    hdr->end   = block + ALLOC_BLOCK_SIZE;
+  block = (char *)malloc(ALLOC_BLOCK_SIZE);
+  hdr = (alloc_hdr_t *)malloc(sizeof(alloc_hdr_t));
 
-    return(hdr);
+  if (hdr == NULL || block == NULL) return (NULL);
+  hdr->block = block;
+  hdr->free = block;
+  hdr->next = NULL;
+  hdr->end = block + ALLOC_BLOCK_SIZE;
+
+  return (hdr);
 }
-
 
 /*
 **  AllocInit()
@@ -90,21 +85,19 @@ static alloc_hdr_t * AllocHdr()
 **  Returns pointer to the new pool.
 */
 
-DLLEXPORT alloc_handle_t * AllocInit()
-{
+DLLEXPORT alloc_handle_t *AllocInit() {
   alloc_handle_t *newpool;
-  root = (alloc_root_t *) malloc(sizeof(alloc_root_t));
-  if (root == NULL) { 
-    return(NULL);
+  root = (alloc_root_t *)malloc(sizeof(alloc_root_t));
+  if (root == NULL) {
+    return (NULL);
   }
-  if ( (root->first = AllocHdr()) == NULL) { 
-    return(NULL);
+  if ((root->first = AllocHdr()) == NULL) {
+    return (NULL);
   }
   root->current = root->first;
-  newpool = (alloc_handle_t *) root;
-  return(newpool);
+  newpool = (alloc_handle_t *)root;
+  return (newpool);
 }
-
 
 /*
 **  Alloc()
@@ -113,49 +106,43 @@ DLLEXPORT alloc_handle_t * AllocInit()
 **  memory from the current pool.
 */
 
-DLLEXPORT char *Alloc(long size)
-{
-    alloc_hdr_t  *hdr = root->current;
-    char         *ptr;
+DLLEXPORT char *Alloc(long size) {
+  alloc_hdr_t *hdr = root->current;
+  char *ptr;
 
-    /*
-    **  Align to 4 byte boundary - should be ok for most machines.
-    **  Change this if your machine has weird alignment requirements.
-    */
-    size = (size + 3) & 0xfffffffc;
+  /*
+  **  Align to 4 byte boundary - should be ok for most machines.
+  **  Change this if your machine has weird alignment requirements.
+  */
+  size = (size + 3) & 0xfffffffc;
 
-    ptr = hdr->free;
-    hdr->free += size;
+  ptr = hdr->free;
+  hdr->free += size;
 
-    /* Check if the current block is exhausted. */
+  /* Check if the current block is exhausted. */
 
-    if (hdr->free >= hdr->end)
-    {
-        /* Is the next block already allocated? */
+  if (hdr->free >= hdr->end) {
+    /* Is the next block already allocated? */
 
-        if (hdr->next != NULL)
-        {
-            /* re-use block */
-            hdr->next->free = hdr->next->block;
-            root->current = hdr->next;
-        }
-        else
-        {
-            /* extend the pool with a new block */
-            if ( (hdr->next = AllocHdr()) == NULL) return(NULL);
-            root->current = hdr->next;
-        }
-
-        /* set ptr to the first location in the next block */
-        ptr = root->current->free;
-        root->current->free += size;
+    if (hdr->next != NULL) {
+      /* re-use block */
+      hdr->next->free = hdr->next->block;
+      root->current = hdr->next;
+    } else {
+      /* extend the pool with a new block */
+      if ((hdr->next = AllocHdr()) == NULL) return (NULL);
+      root->current = hdr->next;
     }
 
-    /* Return pointer to allocated memory. */
+    /* set ptr to the first location in the next block */
+    ptr = root->current->free;
+    root->current->free += size;
+  }
 
-    return(ptr);
+  /* Return pointer to allocated memory. */
+
+  return (ptr);
 }
-
 
 /*
 **  AllocSetPool()
@@ -163,13 +150,11 @@ DLLEXPORT char *Alloc(long size)
 **  Change the current pool.  Return the old pool.
 */
 
-DLLEXPORT alloc_handle_t * AllocSetPool(alloc_handle_t *newpool)
-{
-    alloc_handle_t *old = (alloc_handle_t *) root;
-    root = (alloc_root_t *) newpool;
-    return(old);
+DLLEXPORT alloc_handle_t *AllocSetPool(alloc_handle_t *newpool) {
+  alloc_handle_t *old = (alloc_handle_t *)root;
+  root = (alloc_root_t *)newpool;
+  return (old);
 }
-
 
 /*
 **  AllocReset()
@@ -178,12 +163,10 @@ DLLEXPORT alloc_handle_t * AllocSetPool(alloc_handle_t *newpool)
 **  so this is very fast.
 */
 
-DLLEXPORT void AllocReset()
-{
-    root->current = root->first;
-    root->current->free = root->current->block;
+DLLEXPORT void AllocReset() {
+  root->current = root->first;
+  root->current->free = root->current->block;
 }
-
 
 /*
 **  AllocFreePool()
@@ -192,18 +175,15 @@ DLLEXPORT void AllocReset()
 **  Don't use where AllocReset() could be used.
 */
 
-DLLEXPORT void AllocFreePool()
-{
-    alloc_hdr_t  *tmp,
-                 *hdr = root->first;
+DLLEXPORT void AllocFreePool() {
+  alloc_hdr_t *tmp, *hdr = root->first;
 
-    while (hdr != NULL)
-    {
-        tmp = hdr->next;
-        free((char *) hdr->block);
-        free((char *) hdr);
-        hdr = tmp;
-    }
-    free((char *) root);
-    root = NULL;
+  while (hdr != NULL) {
+    tmp = hdr->next;
+    free((char *)hdr->block);
+    free((char *)hdr);
+    hdr = tmp;
+  }
+  free((char *)root);
+  root = NULL;
 }

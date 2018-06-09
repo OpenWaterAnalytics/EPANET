@@ -1,6 +1,6 @@
 /*
 ************************************************************************
-            Global Variables for EPANET Program                            
+            Global Variables for EPANET Program
 ************************************************************************
 */
 #ifndef VARS_H
@@ -9,8 +9,9 @@
 #include <stdio.h>
 #include "hash.h"
 
-// this single global variable is used only when the library is called in "legacy mode"
-// with the 2.1-style API. 
+// this single global variable is used only when the library is called in
+// "legacy mode"
+// with the 2.1-style API.
 EXTERN EN_Project *_defaultModel;
 
 #endif

@@ -54,12 +54,12 @@ AUTHOR:     L. Rossman
 #else
 #include <stdlib.h>
 #endif
+#include <math.h>
+#include "epanet2.h"
+#include "funcs.h"
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#include "epanet2.h"
-#include "funcs.h"
-#include <math.h>
 #define EXTERN extern
 #include "mempool.h"
 #include "vars.h"
@@ -68,9 +68,9 @@ AUTHOR:     L. Rossman
 ** Macros to identify upstream & downstream nodes of a link
 ** under the current flow and to compute link volume
 */
-#define UP_NODE(x)                                                             \
+#define UP_NODE(x) \
   ((qu->FlowDir[(x)] == POSITIVE) ? net->Link[(x)].N1 : net->Link[(x)].N2)
-#define DOWN_NODE(x)                                                           \
+#define DOWN_NODE(x) \
   ((qu->FlowDir[(x)] == POSITIVE) ? net->Link[(x)].N2 : net->Link[(x)].N1)
 #define LINKVOL(k) (0.785398 * net->Link[(k)].Len * SQR(net->Link[(k)].Diam))
 
@@ -91,9 +91,9 @@ int openqual(EN_Project *pr)
 
   /* Allocate memory pool for WQ segments */
   qu->OutOfMemory = FALSE;
-  qu->SegPool = AllocInit(); 
+  qu->SegPool = AllocInit();
   if (qu->SegPool == NULL) {
-    errcode = 101; 
+    errcode = 101;
   }
 
   /* Allocate scratch array & reaction rate array*/
@@ -157,15 +157,15 @@ void initqual(EN_Project *pr)
     net->Tank[i].V = net->Tank[i].V0;
   }
   for (i = 1; i <= net->Nnodes; i++) {
-    if (net->Node[i].S != NULL)
-      net->Node[i].S->Smass = 0.0;
+    if (net->Node[i].S != NULL) net->Node[i].S->Smass = 0.0;
   }
 
   qu->QTankVolumes =
       calloc(net->Ntanks,
-             sizeof(double)); // keep track of previous step's tank volumes.
-  qu->QLinkFlow = calloc(
-      net->Nlinks, sizeof(double)); // keep track of previous step's link flows.
+             sizeof(double));  // keep track of previous step's tank volumes.
+  qu->QLinkFlow =
+      calloc(net->Nlinks,
+             sizeof(double));  // keep track of previous step's link flows.
 
   /* Set WQ parameters */
   qu->Bucf = 1.0;
@@ -192,8 +192,8 @@ void initqual(EN_Project *pr)
 
     /* Reset memory pool */
     qu->FreeSeg = NULL;
-    AllocSetPool(qu->SegPool); 
-    AllocReset();              
+    AllocSetPool(qu->SegPool);
+    AllocReset();
   }
 
   /* Initialize avg. reaction rates */
@@ -243,7 +243,7 @@ int runqual(EN_Project *pr, long *t)
   /* Read hydraulic solution from hydraulics file */
   if (qu->Qtime == time->Htime) {
     errcode = gethyd(pr, &hydtime, &hydstep);
-    if (!hyd->OpenHflag) { // test for sequential vs stepwise
+    if (!hyd->OpenHflag) {  // test for sequential vs stepwise
       // sequential
       time->Htime = hydtime + hydstep;
     } else {
@@ -294,7 +294,7 @@ int nextqual(EN_Project *pr, long *tstep)
   quality_t *qu;
   time_options_t *time;
   save_options_t *sav;
-  
+
   /* Determine time step */
   *tstep = 0;
 
@@ -303,7 +303,7 @@ int nextqual(EN_Project *pr, long *tstep)
   qu = &pr->quality;
   time = &pr->time_options;
   sav = &pr->save_options;
-  
+
   // hydstep = time->Htime - qu->Qtime;
 
   if (time->Htime <= time->Dur) {
@@ -317,14 +317,14 @@ int nextqual(EN_Project *pr, long *tstep)
   if (hyd->OpenHflag) {
     tankVolumes = calloc(net->Ntanks, sizeof(double));
     for (i = 1; i <= net->Ntanks; ++i) {
-      if (net->Tank[i].A != 0) { // skip reservoirs
+      if (net->Tank[i].A != 0) {  // skip reservoirs
         tankVolumes[i - 1] = net->Tank[i].V;
       }
     }
 
     // restore the previous step's tank volumes
     for (i = 1; i <= net->Ntanks; i++) {
-      if (net->Tank[i].A != 0) { // skip reservoirs again
+      if (net->Tank[i].A != 0) {  // skip reservoirs again
         int n = net->Tank[i].Node;
         net->Tank[i].V = qu->QTankVolumes[i - 1];
         hyd->NodeHead[n] = tankgrade(pr, i, net->Tank[i].V);
@@ -340,24 +340,20 @@ int nextqual(EN_Project *pr, long *tstep)
   }
 
   /* Perform water quality routing over this time step */
-  if (qu->Qualflag != NONE && hydstep > 0)
-    transport(pr,hydstep);
+  if (qu->Qualflag != NONE && hydstep > 0) transport(pr, hydstep);
 
   /* Update current time */
-  if (qu->OutOfMemory)
-    errcode = 101;
-  if (!errcode)
-    *tstep = hydstep;
+  if (qu->OutOfMemory) errcode = 101;
+  if (!errcode) *tstep = hydstep;
   qu->Qtime += hydstep;
 
   /* Save final output if no more time steps */
-  if (!errcode && sav->Saveflag && *tstep == 0)
-    errcode = savefinaloutput(pr);
+  if (!errcode && sav->Saveflag && *tstep == 0) errcode = savefinaloutput(pr);
 
   // restore tank levels to post-runH state, if needed.
   if (hyd->OpenHflag) {
     for (i = 1; i <= net->Ntanks; i++) {
-      if (net->Tank[i].A != 0) { // skip reservoirs again
+      if (net->Tank[i].A != 0) {  // skip reservoirs again
         int n = net->Tank[i].Node;
         net->Tank[i].V = tankVolumes[i - 1];
         hyd->NodeHead[n] = tankgrade(pr, i, net->Tank[i].V);
@@ -399,14 +395,13 @@ int stepqual(EN_Project *pr, long *tleft)
     if (hstep < dt) {
       dt = hstep;
       if (qu->Qualflag != NONE) {
-        transport(pr,dt);
+        transport(pr, dt);
       }
       qu->Qtime += dt;
-      errcode = runqual(pr,&t);
+      errcode = runqual(pr, &t);
       qu->Qtime = t;
     } else {
-      if (qu->Qualflag != NONE)
-        transport(pr,dt);
+      if (qu->Qualflag != NONE) transport(pr, dt);
       qu->Qtime += dt;
     }
     tstep -= dt;
@@ -435,11 +430,10 @@ int closequal(EN_Project *pr)
   int errcode = 0;
 
   /* Free memory pool */
-  if (qu->SegPool)             
-  {                            
-    AllocSetPool(qu->SegPool); 
-    AllocFreePool();           
-  }                            
+  if (qu->SegPool) {
+    AllocSetPool(qu->SegPool);
+    AllocFreePool();
+  }
 
   free(qu->FirstSeg);
   free(qu->LastSeg);
@@ -470,7 +464,7 @@ int gethyd(EN_Project *pr, long *hydtime, long *hydstep)
 */
 {
   int errcode = 0;
-  
+
   hydraulics_t *hyd = &pr->hydraulics;
   report_options_t *rep = &pr->report;
   quality_t *qu = &pr->quality;
@@ -482,7 +476,7 @@ int gethyd(EN_Project *pr, long *hydtime, long *hydstep)
   // than reading from the temp file.
   if (!hyd->OpenHflag) {
     /* Read hydraulic results from file */
-    if (!readhyd(pr,hydtime)) {
+    if (!readhyd(pr, hydtime)) {
       return (307);
     }
     if (!readhydstep(pr->out_files.HydFile, hydstep)) {
@@ -502,7 +496,6 @@ int gethyd(EN_Project *pr, long *hydtime, long *hydstep)
 
   /* If simulating WQ: */
   if (qu->Qualflag != NONE && qu->Qtime < time->Dur) {
-
     /* Compute reaction rate coeffs. */
     if (qu->Reactflag && qu->Qualflag != AGE) {
       ratecoeffs(pr);
@@ -533,7 +526,7 @@ char setReactflag(EN_Project *pr)
 {
   EN_Network *net = &pr->network;
   quality_t *qu = &pr->quality;
-  
+
   int i;
   if (qu->Qualflag == TRACE) {
     return (0);
@@ -571,7 +564,7 @@ void transport(EN_Project *pr, long tstep)
 
   /* Repeat until elapsed time equals hydraulic time step */
 
-  AllocSetPool(qu->SegPool); 
+  AllocSetPool(qu->SegPool);
   qtime = 0;
   while (!qu->OutOfMemory && qtime < tstep) { /* Qstep is quality time step */
     dt = MIN(qu->Qstep, tstep - qtime);       /* Current time step */
@@ -604,7 +597,6 @@ void initsegs(EN_Project *pr)
 
   /* Examine each link */
   for (k = 1; k <= net->Nlinks; k++) {
-
     /* Establish flow direction */
     qu->FlowDir[k] = POSITIVE;
     if (hyd->LinkFlows[k] < 0.) {
@@ -629,10 +621,8 @@ void initsegs(EN_Project *pr)
 
   /* Initialize segments in tanks that use them */
   for (j = 1; j <= net->Ntanks; j++) {
-
     /* Skip reservoirs & complete mix tanks */
-    if (net->Tank[j].A == 0.0 || net->Tank[j].MixModel == MIX1)
-      continue;
+    if (net->Tank[j].A == 0.0 || net->Tank[j].MixModel == MIX1) continue;
 
     /* Tank segment pointers are stored after those for links */
     k = net->Nlinks + j;
@@ -674,7 +664,6 @@ void reorientsegs(EN_Project *pr)
 
   /* Examine each link */
   for (k = 1; k <= net->Nlinks; k++) {
-
     /* Find new flow direction */
     newdir = POSITIVE;
     if (hyd->LinkFlows[k] == 0.0) {
@@ -718,7 +707,6 @@ void updatesegs(EN_Project *pr, long dt)
 
   /* Examine each link in network */
   for (k = 1; k <= net->Nlinks; k++) {
-
     /* Skip zero-length links (pumps & valves) */
     rsum = 0.0;
     vsum = 0.0;
@@ -729,7 +717,6 @@ void updatesegs(EN_Project *pr, long dt)
     /* Examine each segment of the link */
     seg = qu->FirstSeg[k];
     while (seg != NULL) {
-
       /* React segment over time dt */
       cseg = seg->c;
       seg->c = pipereact(pr, k, seg->c, seg->v, dt);
@@ -859,24 +846,21 @@ void accumulate(EN_Project *pr, long dt)
   memset(qu->VolIn, 0, (net->Nnodes + 1) * sizeof(double));
   memset(qu->MassIn, 0, (net->Nnodes + 1) * sizeof(double));
   for (k = 1; k <= net->Nlinks; k++) {
-    i = UP_NODE(k);     /* Upstream node */
-    j = DOWN_NODE(k);   /* Downstream node */
+    i = UP_NODE(k);                  /* Upstream node */
+    j = DOWN_NODE(k);                /* Downstream node */
     v = ABS(hyd->LinkFlows[k]) * dt; /* Flow volume */
 
-    while (v > 0.0) 
-    {
+    while (v > 0.0) {
       /* Identify leading segment in pipe */
       seg = qu->FirstSeg[k];
-      if (seg == NULL)
-        break;
+      if (seg == NULL) break;
 
       /* Volume transported from this segment is */
       /* minimum of flow volume & segment volume */
       /* (unless leading segment is also last segment) */
       vseg = seg->v;
       vseg = MIN(vseg, v);
-      if (seg == qu->LastSeg[k])
-        vseg = v;
+      if (seg == qu->LastSeg[k]) vseg = v;
 
       /* Update volume & mass entering downstream node  */
       cseg = seg->c;
@@ -891,8 +875,7 @@ void accumulate(EN_Project *pr, long dt)
       /* (Note that the current seg is recycled for later use.) */
       if (v >= 0.0 && vseg >= seg->v) {
         qu->FirstSeg[k] = seg->prev;
-        if (qu->FirstSeg[k] == NULL)
-          qu->LastSeg[k] = NULL;
+        if (qu->FirstSeg[k] == NULL) qu->LastSeg[k] = NULL;
         seg->prev = qu->FreeSeg;
         qu->FreeSeg = seg;
       }
@@ -940,8 +923,7 @@ void updatenodes(EN_Project *pr, long dt)
   updatetanks(pr, dt);
 
   /* For flow tracing, set source node concen. to 100. */
-  if (qu->Qualflag == TRACE)
-    qu->NodeQual[qu->TraceNode] = 100.0;
+  if (qu->Qualflag == TRACE) qu->NodeQual[qu->TraceNode] = 100.0;
 }
 
 void sourceinput(EN_Project *pr, long dt)
@@ -969,18 +951,15 @@ void sourceinput(EN_Project *pr, long dt)
 
   /* Zero-out the work array TempQual */
   memset(qu->TempQual, 0, (net->Nnodes + 1) * sizeof(double));
-  if (qu->Qualflag != CHEM)
-    return;
+  if (qu->Qualflag != CHEM) return;
 
   /* Consider each node */
   for (n = 1; n <= net->Nnodes; n++) {
     double thisDemand = hyd->NodeDemand[n];
     /* Skip node if no WQ source */
     source = net->Node[n].S;
-    if (source == NULL)
-      continue;
-    if (source->C0 == 0.0)
-      continue;
+    if (source == NULL) continue;
+    if (source->C0 == 0.0) continue;
 
     /* Find total flow volume leaving node */
     if (n <= net->Njuncs) {
@@ -992,47 +971,45 @@ void sourceinput(EN_Project *pr, long dt)
 
     /* Evaluate source input only if node outflow > cutoff flow */
     if (qout > qcutoff) {
-
       /* Mass added depends on type of source */
-      s = sourcequal(pr,source);
+      s = sourcequal(pr, source);
       switch (source->Type) {
-      /* Concen. Source: */
-      /* Mass added = source concen. * -(demand) */
-      case CONCEN:
+        /* Concen. Source: */
+        /* Mass added = source concen. * -(demand) */
+        case CONCEN:
 
-        /* Only add source mass if demand is negative */
-        if (thisDemand < 0.0) {
-          massadded = -s * thisDemand * dt;
+          /* Only add source mass if demand is negative */
+          if (thisDemand < 0.0) {
+            massadded = -s * thisDemand * dt;
 
-          /* If node is a tank then set concen. to 0. */
-          /* (It will be re-set to true value in updatesourcenodes()) */
-          if (n > net->Njuncs)
-            qu->NodeQual[n] = 0.0;
-        } else
-          massadded = 0.0;
-        break;
+            /* If node is a tank then set concen. to 0. */
+            /* (It will be re-set to true value in updatesourcenodes()) */
+            if (n > net->Njuncs) qu->NodeQual[n] = 0.0;
+          } else
+            massadded = 0.0;
+          break;
 
-      /* Mass Inflow Booster Source: */
-      case MASS:
-        massadded = s * dt;
-        break;
+        /* Mass Inflow Booster Source: */
+        case MASS:
+          massadded = s * dt;
+          break;
 
-      /* Setpoint Booster Source: */
-      /* Mass added is difference between source */
-      /* & node concen. times outflow volume  */
-      case SETPOINT:
-        if (s > qu->NodeQual[n]) {
-          massadded = (s - qu->NodeQual[n]) * volout;
-        } else {
-          massadded = 0.0;
-        }
-        break;
+        /* Setpoint Booster Source: */
+        /* Mass added is difference between source */
+        /* & node concen. times outflow volume  */
+        case SETPOINT:
+          if (s > qu->NodeQual[n]) {
+            massadded = (s - qu->NodeQual[n]) * volout;
+          } else {
+            massadded = 0.0;
+          }
+          break;
 
-      /* Flow-Paced Booster Source: */
-      /* Mass added = source concen. times outflow volume */
-      case FLOWPACED:
-        massadded = s * volout;
-        break;
+        /* Flow-Paced Booster Source: */
+        /* Mass added = source concen. times outflow volume */
+        case FLOWPACED:
+          massadded = s * volout;
+          break;
       }
 
       /* Source concen. contribution = (mass added / outflow volume) */
@@ -1052,8 +1029,7 @@ void sourceinput(EN_Project *pr, long dt)
       if (net->Tank[j].A == 0.0) {
         n = net->Njuncs + j;
         volout = qu->VolIn[n] - hyd->NodeDemand[n] * dt;
-        if (volout > 0.0)
-          qu->Wsource += volout * qu->NodeQual[n];
+        if (volout > 0.0) qu->Wsource += volout * qu->NodeQual[n];
       }
     }
   }
@@ -1071,17 +1047,15 @@ void release(EN_Project *pr, long dt)
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   quality_t *qu = &pr->quality;
-  
+
   int k, n;
   double c, q, v;
   Pseg seg;
 
   /* Examine each link */
   for (k = 1; k <= net->Nlinks; k++) {
-
     /* Ignore links with no flow */
-    if (hyd->LinkFlows[k] == 0.0)
-      continue;
+    if (hyd->LinkFlows[k] == 0.0) continue;
 
     /* Find flow volume released to link from upstream node */
     /* (NOTE: Flow volume is allowed to be > link volume.) */
@@ -1097,7 +1071,7 @@ void release(EN_Project *pr, long dt)
     if ((seg = qu->LastSeg[k]) != NULL) {
       /* Quality of seg close to that of node */
       if (ABS(seg->c - c) < qu->Ctol) {
-        seg->c = (seg->c * seg->v + c * v) / (seg->v + v); 
+        seg->c = (seg->c * seg->v + c * v) / (seg->v + v);
         seg->v += v;
       }
 
@@ -1124,18 +1098,16 @@ void updatesourcenodes(EN_Project *pr, long dt)
 {
   EN_Network *net = &pr->network;
   quality_t *qu = &pr->quality;
-  
+
   int i, n;
   Psource source;
 
-  if (qu->Qualflag != CHEM)
-    return;
+  if (qu->Qualflag != CHEM) return;
 
   /* Examine each WQ source node */
   for (n = 1; n <= net->Nnodes; n++) {
     source = net->Node[n].S;
-    if (source == NULL)
-      continue;
+    if (source == NULL) continue;
 
     /* Add source to current node concen. */
     qu->NodeQual[n] += qu->TempQual[n];
@@ -1143,8 +1115,7 @@ void updatesourcenodes(EN_Project *pr, long dt)
     /* For tanks, node concen. = internal concen. */
     if (n > net->Njuncs) {
       i = n - net->Njuncs;
-      if (net->Tank[i].A > 0.0)
-        qu->NodeQual[n] = net->Tank[i].C;
+      if (net->Tank[i].A > 0.0) qu->NodeQual[n] = net->Tank[i].C;
     }
 
     /* Normalize mass added at source to time step */
@@ -1163,7 +1134,7 @@ void updatetanks(EN_Project *pr, long dt)
 {
   EN_Network *net = &pr->network;
   quality_t *qu = &pr->quality;
-  
+
   int i, n;
 
   /* Examine each reservoir & tank */
@@ -1176,24 +1147,24 @@ void updatetanks(EN_Project *pr, long dt)
     /* Update tank WQ based on mixing model */
     else {
       switch (net->Tank[i].MixModel) {
-      case MIX2:
-        tankmix2(pr, i, dt);
-        break;
-      case FIFO:
-        tankmix3(pr, i, dt);
-        break;
-      case LIFO:
-        tankmix4(pr, i, dt);
-        break;
-      default:
-        tankmix1(pr, i, dt);
-        break;
+        case MIX2:
+          tankmix2(pr, i, dt);
+          break;
+        case FIFO:
+          tankmix3(pr, i, dt);
+          break;
+        case LIFO:
+          tankmix4(pr, i, dt);
+          break;
+        default:
+          tankmix1(pr, i, dt);
+          break;
       }
     }
   }
 }
 
-////  New version of tankmix1  //// 
+////  New version of tankmix1  ////
 void tankmix1(EN_Project *pr, int i, long dt)
 /*
 **---------------------------------------------
@@ -1207,7 +1178,7 @@ void tankmix1(EN_Project *pr, int i, long dt)
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   quality_t *qu = &pr->quality;
-  
+
   int n;
   double cin;
   double c, cmax, vold, vin;
@@ -1231,8 +1202,7 @@ void tankmix1(EN_Project *pr, int i, long dt)
   cmax = MAX(c, cin);
 
   /* Mix inflow with tank contents */
-  if (vin > 0.0)
-    c = (c * vold + cin * vin) / (vold + vin);
+  if (vin > 0.0) c = (c * vold + cin * vin) / (vold + vin);
   c = MIN(c, cmax);
   c = MAX(c, 0.0);
   tank->C = c;
@@ -1240,7 +1210,7 @@ void tankmix1(EN_Project *pr, int i, long dt)
 }
 
 /*** Updated 10/25/00 ***/
-////  New version of tankmix2  //// 
+////  New version of tankmix2  ////
 void tankmix2(EN_Project *pr, int i, long dt)
 /*
 **------------------------------------------------
@@ -1256,7 +1226,7 @@ void tankmix2(EN_Project *pr, int i, long dt)
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   quality_t *qu = &pr->quality;
-  
+
   int k, n;
   double cin,      /* Inflow quality */
       vin,         /* Inflow volume */
@@ -1271,8 +1241,7 @@ void tankmix2(EN_Project *pr, int i, long dt)
   k = net->Nlinks + i;
   seg1 = qu->LastSeg[k];
   seg2 = qu->FirstSeg[k];
-  if (seg1 == NULL || seg2 == NULL)
-    return;
+  if (seg1 == NULL || seg2 == NULL) return;
 
   /* React contents of each compartment */
   seg1->c = tankreact(pr, seg1->c, seg1->v, tank->Kb, dt);
@@ -1347,15 +1316,14 @@ void tankmix3(EN_Project *pr, int i, long dt)
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   quality_t *qu = &pr->quality;
-  
+
   int k, n;
   double vin, vnet, vout, vseg;
   double cin, vsum, csum;
   Pseg seg;
   Stank *tank = &pr->network.Tank[i];
   k = net->Nlinks + i;
-  if (qu->LastSeg[k] == NULL || qu->FirstSeg[k] == NULL)
-    return;
+  if (qu->LastSeg[k] == NULL || qu->FirstSeg[k] == NULL) return;
 
   /* React contents of each compartment */
   if (qu->Reactflag) {
@@ -1376,30 +1344,27 @@ void tankmix3(EN_Project *pr, int i, long dt)
   else
     cin = 0.0;
   tank->V += vnet;
-  tank->V = MAX(0.0, tank->V); 
+  tank->V = MAX(0.0, tank->V);
 
   /* Withdraw flow from first segment */
   vsum = 0.0;
   csum = 0.0;
   while (vout > 0.0) {
     seg = qu->FirstSeg[k];
-    if (seg == NULL)
-      break;
+    if (seg == NULL) break;
     vseg = seg->v; /* Flow volume from leading seg */
     vseg = MIN(vseg, vout);
-    if (seg == qu->LastSeg[k])
-      vseg = vout;
+    if (seg == qu->LastSeg[k]) vseg = vout;
     vsum += vseg;
     csum += (seg->c) * vseg;
     vout -= vseg;                      /* Remaining flow volume */
     if (vout >= 0.0 && vseg >= seg->v) /* Seg used up */
     {
-      if (seg->prev) 
-      {              
+      if (seg->prev) {
         qu->FirstSeg[k] = seg->prev;
         seg->prev = qu->FreeSeg;
         qu->FreeSeg = seg;
-      }    
+      }
     } else /* Remaining volume in segment */
     {
       seg->v -= vseg;
@@ -1418,8 +1383,7 @@ void tankmix3(EN_Project *pr, int i, long dt)
   if (vin > 0.0) {
     if ((seg = qu->LastSeg[k]) != NULL) {
       /* Quality is the same, so just add flow volume to last seg */
-      if (ABS(seg->c - cin) < qu->Ctol)
-        seg->v += vin;
+      if (ABS(seg->c - cin) < qu->Ctol) seg->v += vin;
 
       /* Otherwise add a new seg to tank */
       else
@@ -1445,14 +1409,13 @@ void tankmix4(EN_Project *pr, int i, long dt)
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   quality_t *qu = &pr->quality;
-  
+
   int k, n;
   double vin, vnet, cin, vsum, csum, vseg;
   Pseg seg, tmpseg;
   Stank *tank = &pr->network.Tank[i];
   k = net->Nlinks + i;
-  if (qu->LastSeg[k] == NULL || qu->FirstSeg[k] == NULL)
-    return;
+  if (qu->LastSeg[k] == NULL || qu->FirstSeg[k] == NULL) return;
 
   /* React contents of each compartment */
   if (qu->Reactflag) {
@@ -1472,15 +1435,14 @@ void tankmix4(EN_Project *pr, int i, long dt)
   else
     cin = 0.0;
   tank->V += vnet;
-  tank->V = MAX(0.0, tank->V); 
+  tank->V = MAX(0.0, tank->V);
   tank->C = qu->LastSeg[k]->c;
 
   /* If tank filling, then create new last seg */
   if (vnet > 0.0) {
     if ((seg = qu->LastSeg[k]) != NULL) {
       /* Quality is the same, so just add flow volume to last seg */
-      if (ABS(seg->c - cin) < qu->Ctol)
-        seg->v += vnet;
+      if (ABS(seg->c - cin) < qu->Ctol) seg->v += vnet;
 
       /* Otherwise add a new last seg to tank */
       /* which points to old last seg */
@@ -1507,23 +1469,20 @@ void tankmix4(EN_Project *pr, int i, long dt)
     vnet = -vnet;
     while (vnet > 0.0) {
       seg = qu->LastSeg[k];
-      if (seg == NULL)
-        break;
+      if (seg == NULL) break;
       vseg = seg->v;
       vseg = MIN(vseg, vnet);
-      if (seg == qu->FirstSeg[k])
-        vseg = vnet;
+      if (seg == qu->FirstSeg[k]) vseg = vnet;
       vsum += vseg;
       csum += (seg->c) * vseg;
       vnet -= vseg;
       if (vnet >= 0.0 && vseg >= seg->v) /* Seg used up */
       {
-        if (seg->prev) 
-        {              
+        if (seg->prev) {
           qu->LastSeg[k] = seg->prev;
           seg->prev = qu->FreeSeg;
           qu->FreeSeg = seg;
-        }    
+        }
       } else /* Remaining volume in segment */
       {
         seg->v -= vseg;
@@ -1563,8 +1522,7 @@ double sourcequal(EN_Project *pr, Psource source)
 
   /* Apply time pattern if assigned */
   i = source->Pat;
-  if (i == 0)
-    return (c);
+  if (i == 0) return (c);
   k = ((qu->Qtime + time->Pstart) / time->Pstep) % (long)net->Pattern[i].Length;
   return (c * net->Pattern[i].F[k]);
 }
@@ -1583,8 +1541,7 @@ double avgqual(EN_Project *pr, int k)
   EN_Network *net = &pr->network;
   quality_t *qu = &pr->quality;
 
-  if (qu->Qualflag == NONE)
-    return (0.);
+  if (qu->Qualflag == NONE) return (0.);
   seg = qu->FirstSeg[k];
   while (seg != NULL) {
     vsum += seg->v;
@@ -1614,8 +1571,7 @@ void ratecoeffs(EN_Project *pr)
 
   for (k = 1; k <= net->Nlinks; k++) {
     kw = net->Link[k].Kw;
-    if (kw != 0.0)
-      kw = piperate(pr, k);
+    if (kw != 0.0) kw = piperate(pr, k);
     net->Link[k].Rc = kw;
     qu->PipeRateCoeff[k] = 0.0;
   }
@@ -1633,7 +1589,7 @@ double piperate(EN_Project *pr, int k)
 */
 {
   double a, d, u, kf, kw, y, Re, Sh;
-  
+
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   quality_t *qu = &pr->quality;
@@ -1655,8 +1611,7 @@ double piperate(EN_Project *pr, int k)
 
   /* Compute Sherwood No. for stagnant flow  */
   /* (mass transfer coeff. = Diffus./radius) */
-  if (Re < 1.0)
-    Sh = 2.0;
+  if (Re < 1.0) Sh = 2.0;
 
   /* Compute Sherwood No. for turbulent flow */
   /* using the Notter-Sleicher formula.      */
@@ -1674,11 +1629,10 @@ double piperate(EN_Project *pr, int k)
   kf = Sh * qu->Diffus / d;
 
   /* For zero-order reaction, return mass transfer coeff. */
-  if (qu->WallOrder == 0.0)
-    return (kf);
+  if (qu->WallOrder == 0.0) return (kf);
 
   /* For first-order reaction, return apparent wall coeff. */
-  kw = net->Link[k].Kw / pr->Ucf[ELEV];          /* Wall coeff, ft/sec */
+  kw = net->Link[k].Kw / pr->Ucf[ELEV];      /* Wall coeff, ft/sec */
   kw = (4.0 / d) * kw * kf / (kf + ABS(kw)); /* Wall coeff, 1/sec  */
   return (kw);
 } /* End of piperate */
@@ -1702,8 +1656,7 @@ double pipereact(EN_Project *pr, int k, double c, double v, long dt)
   time_options_t *time = &pr->time_options;
 
   /* For water age (hrs), update concentration by timestep */
-  if (qu->Qualflag == AGE)
-    return (c + (double)dt / 3600.0);
+  if (qu->Qualflag == AGE) return (c + (double)dt / 3600.0);
 
   /* Otherwise find bulk & wall reaction rates */
   rbulk = bulkrate(pr, c, net->Link[k].Kb, qu->BulkOrder) * qu->Bucf;
@@ -1785,14 +1738,12 @@ double bulkrate(EN_Project *pr, double c, double kb, double order)
   /* limiting potential & reaction order. */
 
   /* Zero-order kinetics: */
-  if (order == 0.0)
-    c = 1.0;
+  if (order == 0.0) c = 1.0;
 
   /* Michaelis-Menton kinetics: */
   else if (order < 0.0) {
     c1 = qu->Climit + SGN(kb) * c;
-    if (ABS(c1) < TINY)
-      c1 = SGN(c1) * TINY;
+    if (ABS(c1) < TINY) c1 = SGN(c1) * TINY;
     c = c / c1;
   }
 
@@ -1814,8 +1765,7 @@ double bulkrate(EN_Project *pr, double c, double kb, double order)
   }
 
   /* Reaction rate = bulk coeff. * potential) */
-  if (c < 0)
-    c = 0;
+  if (c < 0) c = 0;
   return (kb * c);
 }
 
