@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 #
-# setup.py 
-# 
+# setup.py
+#
 # Created:    9/20/2017
 # Author:     Michael E. Tryby
 #             US EPA - ORD/NRMRL
-# 
+#
 # Setup up script for en_outputapi python extension
 #
 # Requires:
-#   Platform C language compiler   
+#   Platform C language compiler
 #   Python packages: numpy
 #
 
@@ -21,7 +21,7 @@ except ImportError:
     from distutils.command.build_ext import build_ext
 
 setup(
-    name = "epanet-output", 
+    name = "epanet-output",
     version = "0.1.0-alpha",
     ext_modules = [
         Extension("_epanet_output",
@@ -32,9 +32,9 @@ setup(
             language = 'C'
         )
     ],
-    package_dir = {'':'src'},  
+    package_dir = {'':'src'},
     py_modules = ['epanet_output'],
-      
+
     install_requires = [
         'enum34'
     ]

@@ -43,8 +43,10 @@ project(EPANET)
 add_subdirectory(tools/epanet-output)
 
 IF (BUILD_TESTS)
-  add_subdirectory(tests)
-ENDIF (BUILD_TESTS)
+  add_subdirectory(tests/unit)
+ELSE()
+  message("NOT BUILDING UNIT TESTS")
+ENDIF()
 
 # Sets for output directory for executables and libraries.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -54,10 +56,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 # Sets the position independent code property for all targets
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-
 IF (APPLE)
-SET(INSTALL_NAME_DIR @executable_path/../lib)
-SET(CMAKE_MACOSX_RPATH 1)
+  SET(INSTALL_NAME_DIR @executable_path/../lib)
+  SET(CMAKE_MACOSX_RPATH 1)
 ENDIF (APPLE)
 
 IF (MSVC)
@@ -67,7 +68,6 @@ ENDIF (MSVC)
 
 
 #include_directories(include src)
-
 
 # configure file groups
 file(GLOB EPANET_SOURCES src/*.c)

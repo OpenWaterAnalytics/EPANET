@@ -1,0 +1,13 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+"fbc23b6" = {path = "./../../tools/epanet-output", editable = true}
+"bb4d601" = {path = "./../../tools/nrtest-epanet", editable = true}
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"

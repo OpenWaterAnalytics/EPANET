@@ -1,30 +1,28 @@
 language: python
 
-env: 
-  global: 
+env:
+  global:
     - EPANET_HOME=`pwd`
-    - BUILD_HOME=buildprod
+    - BUILD_HOME=buildproducts
     - TEST_HOME=nrtestsuite
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libboost-test-dev
-  - sudo apt-get install -y swig 
+  - sudo apt-get install -y libboost-test-dev swig
 
 #install:
 
 before_script:
   - mkdir -p $BUILD_HOME
   - cd $BUILD_HOME
-  - cmake ..
+  - cmake .. -DBUILD_TESTS=1
 
 script:
-  - cmake --build . 
+  - cmake --build .
   # run unit tests
-  - cd tests
+  - cd tests/unit
   - ctest
   # run regression tests
-  - cd $EPANET_HOME
-  - pip install -r tools/requirements.txt
-  - tools/before-test.sh $TEST_HOME $EPANET_HOME/$BUILD_HOME/bin $TRAVIS_COMMIT
-  - tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
+  - cd $EPANET_HOME/tests/regression
+  - pipenv install
+  - pipenv run python3 run_test.py $EPANET_HOME/$TEST_HOME 2012gcc 1.0.1 $TRAVIS_COMMIT $EPANET_HOME/$BUILD_HOME/bin/runepanet
