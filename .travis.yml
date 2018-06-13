@@ -23,4 +23,4 @@ before_script:
   - cd ..
 
 script:
-  - docker run -v .:/epanet openwateranalytics/epanet_builder:latest bash -c "mkdir $BUILD_HOME && cd $BUILD_HOME && cmake .. -DBUILD_TESTS=1 && make && cd ../tests/regression && pipenv install && pipenv run python3 run_test.py $TEST_HOME 2012gcc 1.0.1 $TRAVIS_COMMIT /epanet/$BUILD_HOME/bin/runepanet"
+  - docker run -v $EPANET_HOME:/epanet openwateranalytics/epanet_builder:latest bash -c "mkdir $BUILD_HOME && cd $BUILD_HOME && cmake .. -DBUILD_TESTS=1 && make && cd ../tests/regression && pipenv install && pipenv run python3 run_test.py $TEST_HOME 2012gcc 1.0.1 $TRAVIS_COMMIT /epanet/$BUILD_HOME/bin/runepanet"
