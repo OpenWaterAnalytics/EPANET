@@ -70,13 +70,13 @@ def run_tests(staging_path, compiler_name, benchmark_vers, this_build_sha, exe_p
     comparison_args = run_nrtest + ["compare", test_output_path, test_benchmark_path, "--rtol", str(rtol), "--atol", str(atol)]
 
     # generate results for this build
-    generated_fail = subprocess.call(generator_args)
-    if generated_fail:
+    generate = subprocess.call(generator_args)
+    if generate is not 0:
         return 1
 
     # compare this build with benchmark results
-    compare_fail = subprocess.call(comparison_args)
-    if not compare_fail:
+    compare = subprocess.call(comparison_args)
+    if compare is not 0:
         return 1
 
     return 0
@@ -92,4 +92,5 @@ if __name__ == '__main__':
     exe_path = sys.argv[5]
 
     ret = run_tests(staging_path, compiler_name, benchmark_vers, this_build_sha, exe_path)
+    print('run_tests module exited with code {}'.format(ret))
     sys.exit(ret)
