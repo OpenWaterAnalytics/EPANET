@@ -15,20 +15,20 @@ def result_compare(path_test, path_ref, comp_args):
     total = 0
     output = cStringIO.StringIO()
     eps =  np.finfo(float).eps
-    
+
     start = time.time()
-    
+
     test_reader = er.reader(path_test)
     ref_reader = er.reader(path_ref)
-    
-    for test, ref in it.izip(test_reader, ref_reader):
+
+    for test, ref in zip(test_reader, ref_reader):
         total += 1
         if total%100000 == 0:
             print(total)
-        
+
         if test.size != ref.size:
             raise ValueError('Inconsistent lengths')
-        
+
         # Skip results if they are zero or equal
         if np.array_equal(test, ref):
             equal += 1
@@ -37,19 +37,19 @@ def result_compare(path_test, path_ref, comp_args):
             try:
                 np.testing.assert_allclose(test, ref, 1.0e-06, 2*eps)
                 close += 1
-                
+
             except AssertionError as ae:
                 notclose += 1
                 output.write(str(ae))
                 output.write('\n\n')
-                continue       
-        
+                continue
+
     stop = time.time()
-    
+
     print(output.getvalue())
     output.close()
-    
-    print('equal: %d  close: %d  notclose: %d  total: %d  in %f (sec)\n' % 
+
+    print('equal: %d  close: %d  notclose: %d  total: %d  in %f (sec)\n' %
           (equal, close, notclose, total, (stop - start)))
 
     if notclose > 0:
@@ -63,7 +63,7 @@ def result_compare(path_test, path_ref, comp_args):
 from nrtest.testsuite import TestSuite
 from nrtest.compare import compare_testsuite, validate_testsuite
 
-def nrtest_compare(path_test, path_ref, (comp_args)): 
+def nrtest_compare(path_test, path_ref, (comp_args)):
 
     ts_new = TestSuite.read_benchmark(path_test)
     ts_old = TestSuite.read_benchmark(path_ref)
@@ -125,12 +125,12 @@ if __name__ == "__main__":
 #    test_path = "tests\\examples\\example1.json"
 #    output_path = "benchmarks\\test\\"
 #    nrtest_execute(app_path, test_path, output_path)
-    
+
 #    test_path = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2011a"
 #    ref_path  = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2012"
 #    print(nrtest_compare(test_path, ref_path, (0.001, 0.0)))
 
-    
+
     path_test = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2011a\\Example_3\\example3.out"
-    path_ref  = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2012\\Example_3\\example3.out"    
+    path_ref  = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2012\\Example_3\\example3.out"
     result_compare(path_test, path_ref, (0.001, 0.0))

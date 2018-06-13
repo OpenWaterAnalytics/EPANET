@@ -1,12 +1,12 @@
 /*
  *  epanet_output.i - SWIG interface description file for EPANET Output API
- * 
+ *
  *  Created:    9/20/2017
  *
  *  Author:     Michael E. Tryby
  *              US EPA - ORD/NRMRL
  *
-*/ 
+*/
 %module epanet_output
 %{
 #include "errormanager.h"
@@ -16,12 +16,18 @@
 #define SWIG_FILE_WITH_INIT
 %}
 
+%module char_to_bytes
+%begin %{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
+
 %include "typemaps.i"
 
 /* DEFINE AND TYPEDEF MUST BE INCLUDED */
 #define MAXMSG 53
 
 typedef void* ENR_Handle;
+
 
 typedef enum {
 	ENR_node = 1,
@@ -92,7 +98,7 @@ and return a (possibly) different pointer */
 {
  /* OUTPUT argout */
     %append_output(SWIG_NewPointerObj(SWIG_as_voidptr(retval$argnum), $1_descriptor, 0));
-} 
+}
 /* No need for special IN typemap for opaque pointers, it works anyway */
 
 
@@ -118,7 +124,7 @@ and return a (possibly) different pointer */
     if (*$1) {
         PyObject* o;
         o = PyUnicode_FromStringAndSize(*$1, *$2);
-        
+
         $result = SWIG_Python_AppendOutput($result, o);
         free(*$1);
     }
@@ -163,12 +169,12 @@ and return a (possibly) different pointer */
     if (PyObject_HasAttrString($input,"value")) {
         PyObject* o;
         o = PyObject_GetAttrString($input, "value");
-        ecode = SWIG_AsVal_int(o, &val); 
-    }   
+        ecode = SWIG_AsVal_int(o, &val);
+    }
     else {
-        SWIG_exception_fail(SWIG_ArgError(ecode), "in method '" "$symname" "', argument " "$argnum"" of type '" "$ltype""'"); 
-    }   
-    
+        SWIG_exception_fail(SWIG_ArgError(ecode), "in method '" "$symname" "', argument " "$argnum"" of type '" "$ltype""'");
+    }
+
     $1 = ($1_type)(val);
 }
 %apply EnumeratedType {ENR_ElementType, ENR_Units, ENR_Time, ENR_NodeAttribute, ENR_LinkAttribute}
@@ -189,7 +195,7 @@ and return a (possibly) different pointer */
     	SWIG_fail;
     }
 }
-/* INSERT EXCEPTION HANDLING FOR THESE FUNCTIONS */  
+/* INSERT EXCEPTION HANDLING FOR THESE FUNCTIONS */
 int DLLEXPORT ENR_open(ENR_Handle p_handle, const char* path);
 
 int DLLEXPORT ENR_getVersion(ENR_Handle p_handle, int* int_out);
@@ -207,10 +213,10 @@ int DLLEXPORT ENR_getNodeAttribute(ENR_Handle p_handle, int periodIndex,
         ENR_NodeAttribute t_enum, float** float_out, int* int_dim);
 int DLLEXPORT ENR_getLinkAttribute(ENR_Handle p_handle, int periodIndex,
         ENR_LinkAttribute t_enum, float** float_out, int* int_dim);
-%exception;        
+%exception;
 
-/* NO EXCEPTION HANDLING FOR THESE FUNCTIONS */        
-int DLLEXPORT ENR_init(ENR_Handle* p_handle_out);        
+/* NO EXCEPTION HANDLING FOR THESE FUNCTIONS */
+int DLLEXPORT ENR_init(ENR_Handle* p_handle_out);
 int DLLEXPORT ENR_close(ENR_Handle* p_handle_out);
 void DLLEXPORT ENR_free(void** array);
 
@@ -235,13 +241,13 @@ class Time(enum.Enum):
     REPORT_STEP  = ENR_reportStep
     SIM_DURATION = ENR_simDuration
     NUM_PERIODS  = ENR_numPeriods
-    
+
 class NodeAttribute(enum.Enum):
     DEMAND   = ENR_demand
     HEAD     = ENR_head
     PRESSURE = ENR_pressure
     QUALITY  = ENR_quality
-    
+
 class LinkAttribute(enum.Enum):
     FLOW        = ENR_flow
     VELOCITY    = ENR_velocity

@@ -35,7 +35,7 @@ def run_tests(staging_path, compiler_name, benchmark_vers, this_build_sha, exe_p
     print('Downloading: {}'.format(test_benchmark_url))
     test_benchmark_fn, headers = urllib.request.urlretrieve(url=test_benchmark_url)
     tar = tarfile.open(test_benchmark_fn)
-    tar.extractall(path=path.join(staging_path, 'testsuite'))
+    tar.extractall(path=path.join(staging_path, 'benchmark'))
     tar.close()
 
     test_config = {
@@ -52,7 +52,7 @@ def run_tests(staging_path, compiler_name, benchmark_vers, this_build_sha, exe_p
 
     test_cfg_path = path.join(staging_path, 'apps', 'epanet-{}.json'.format(this_build_sha))
     test_output_path = path.join(staging_path, 'benchmark', 'epanet-{}'.format(this_build_sha))
-    test_benchmark_path = path.join(staging_path, 'benchmark', 'epanet-{}-{}'.format(compiler_name, benchmark_vers))
+    test_benchmark_path = path.join(staging_path, 'benchmark', 'epanet-{}'.format(compiler_name))
 
     test_base = path.join(staging_path, 'testsuite', 'epanet-example-networks-{}'.format(benchmark_vers), 'epanet-tests')
     tests = [
@@ -70,13 +70,13 @@ def run_tests(staging_path, compiler_name, benchmark_vers, this_build_sha, exe_p
     comparison_args = run_nrtest + ["compare", test_output_path, test_benchmark_path, "--rtol", str(rtol), "--atol", str(atol)]
 
     # generate results for this build
-    generated = subprocess.call(generator_args)
-    if not generated:
+    generated_fail = subprocess.call(generator_args)
+    if generated_fail:
         return 1
 
     # compare this build with benchmark results
-    compare_success = subprocess.call(comparison_args)
-    if not compare_success:
+    compare_fail = subprocess.call(comparison_args)
+    if not compare_fail:
         return 1
 
     return 0
@@ -84,8 +84,6 @@ def run_tests(staging_path, compiler_name, benchmark_vers, this_build_sha, exe_p
 
 if __name__ == '__main__':
     # grab options from command line arguments
-    print("running tests in command-line mode")
-    print('options are: {}'.format(sys.argv))
     this_dir = path.dirname(path.abspath(__file__))
     staging_path = path.join(this_dir, sys.argv[1])
     compiler_name = sys.argv[2]
