@@ -14,7 +14,7 @@ before_install:
   - sudo apt-get install -y libboost-test-dev
   - sudo apt-get install libpcre3-dev bison
   - wget -O swig-rel-3.0.12.tar.gz https://github.com/swig/swig/archive/rel-3.0.12.tar.gz
-  - tar xf swig-rel-3.0.12.tar.gz
+  - tar -xf swig-rel-3.0.12.tar.gz
   - cd swig-3.0.12
   - ./autogen.sh && ./configure && make -j 4 && sudo make install
   - pip install pipenv
