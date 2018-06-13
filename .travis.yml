@@ -1,5 +1,8 @@
 language: python
 
+python:
+  - "3.5"
+
 env:
   global:
     - EPANET_HOME=`pwd`
