@@ -86,6 +86,7 @@ if __name__ == '__main__':
     # grab options from command line arguments
     print("running tests in command-line mode")
     print('options are: {}'.format(sys.argv))
+    this_dir = path.dirname(path.abspath(__file__))
     staging_path = path.join(this_dir, sys.argv[1])
     compiler_name = sys.argv[2]
     benchmark_vers = sys.argv[3]
