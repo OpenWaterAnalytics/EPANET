@@ -82,9 +82,11 @@ def run_tests(staging_path, compiler_name, benchmark_vers, this_build_sha, exe_p
     return 0
 
 
-if __name__ == "main":
+if __name__ == '__main__':
     # grab options from command line arguments
-    staging_path = path.join(__dirname, sys.argv[1])
+    print("running tests in command-line mode")
+    print('options are: {}'.format(sys.argv))
+    staging_path = path.join(this_dir, sys.argv[1])
     compiler_name = sys.argv[2]
     benchmark_vers = sys.argv[3]
     this_build_sha = sys.argv[4]

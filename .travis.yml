@@ -26,4 +26,4 @@ script:
   # run regression tests
   - cd $EPANET_HOME/tests/regression
   - pipenv install
-  - pipenv run python3 run_test.py $EPANET_HOME/$TEST_HOME 2012gcc 1.0.1 $TRAVIS_COMMIT $EPANET_HOME/$BUILD_HOME/bin/runepanet
+  - pipenv run python3 run_test.py $TEST_HOME 2012gcc 1.0.1 $TRAVIS_COMMIT $EPANET_HOME/$BUILD_HOME/bin/runepanet
