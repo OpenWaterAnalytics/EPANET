@@ -20,3 +20,5 @@ ret = run_tests(
 )
 
 print('run_tests returned {}'.format(ret))
+
+sys.exit(ret)
