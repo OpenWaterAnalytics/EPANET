@@ -47,7 +47,8 @@ install:
 before_build:
   - mkdir %BUILD_HOME%
   - cd %BUILD_HOME%
-  - cmake -G "%GENERATOR%" 
+  - cmake -G %GENERATOR% 
+    -DBUILD_TESTS=1
     -DBOOST_ROOT="%BOOST_ROOT%"
     -DBoost_USE_STATIC_LIBS="ON" ..
 

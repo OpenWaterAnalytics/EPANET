@@ -16,7 +16,7 @@ before_install:
 before_script:
   - mkdir -p $BUILD_HOME
   - cd $BUILD_HOME
-  - cmake ..
+  - cmake -DBUILD_TESTS=1 .. 
 
 script:
   - cmake --build . 
