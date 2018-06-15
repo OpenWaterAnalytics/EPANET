@@ -9,8 +9,23 @@
 
 version: 2.0.{build}
 
-image: 
-  - Visual Studio 2013
+matrix: 
+  allow_failures:
+  #GROUP: (SUPPORTED/EXPERIMENTAL)
+  #EXPERIMENTAL is allowed to fail under build matrix
+  - GROUP: "EXPERIMENTAL"
+
+environment: 
+  matrix:
+  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+    GENERATOR: "Visual Studio 10 2010"
+    GROUP: "SUPPORTED"
+    BOOST_ROOT: "C:/Libraries/boost"
+  # New build on Visual Studio 15 2017
+  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    GENERATOR: "Visual Studio 15 2017"
+    GROUP: "EXPERIMENTAL"
+    BOOST_ROOT: "C:/Libraries/boost_1_67_0"
 
 # called before repo cloning
 init: 
@@ -18,8 +33,11 @@ init:
   - set BUILD_HOME=buildprod
   - set TEST_HOME=nrtestsuite
   - set NRTEST_SCRIPT=C:\Python27\Scripts
-  - set GENERATOR="Visual Studio 10 2010"
-  - set BOOST_ROOT="C:\\Libraries\\boost"
+  # See values set
+  - echo %APPVEYOR_BUILD_WORKER_IMAGE%
+  - echo %BUILD_HOME%
+  - echo %GENERATOR%
+  - echo %BOOST_ROOT%
 
 # called after repo clone
 install: 
@@ -29,7 +47,7 @@ install:
 before_build:
   - mkdir %BUILD_HOME%
   - cd %BUILD_HOME%
-  - cmake -G %GENERATOR% 
+  - cmake -G "%GENERATOR%" 
     -DBUILD_TESTS=1
     -DBOOST_ROOT="%BOOST_ROOT%"
     -DBoost_USE_STATIC_LIBS="ON" ..

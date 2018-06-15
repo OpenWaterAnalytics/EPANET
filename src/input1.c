@@ -40,8 +40,7 @@ AUTHOR:     L. Rossman
   --------------------- Module Global Variables  ----------------------
 */
 
-#define MAXITER                                                                \
-  200 /* Default max. # hydraulic iterations    */ 
+#define MAXITER 200 /* Default max. # hydraulic iterations    */ 
 #define HACC 0.001  /* Default hydraulics convergence ratio   */
 #define HTOL 0.0005 /* Default hydraulic head tolerance (ft)  */
 
@@ -62,8 +61,7 @@ AUTHOR:     L. Rossman
 #define RQTOL 1E-7  /* Default low flow resistance tolerance  */
 #define CHECKFREQ 2 /* Default status check frequency         */
 #define MAXCHECK 10 /* Default # iterations for status checks */
-#define DAMPLIMIT                                                              \
-  0 /* Default damping threshold              */ 
+#define DAMPLIMIT 0 /* Default damping threshold              */ 
 
 extern char *Fldname[]; /* Defined in enumstxt.h in EPANET.C      */
 extern char *RptFlowUnitsTxt[];

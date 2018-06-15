@@ -70,7 +70,8 @@ int savenetdata(EN_Project *pr)
     ibuf[0] = MAGICNUMBER;
 
     /*** CODEVERSION replaces VERSION ***/ 
-    ibuf[1] = CODEVERSION;                 
+    //ibuf[1] = CODEVERSION;                 
+    ibuf[1] = 20012;  // keep version at 2.00.12 so that GUI will run 
 
     ibuf[2] = net->Nnodes;
     ibuf[3] = net->Ntanks;
