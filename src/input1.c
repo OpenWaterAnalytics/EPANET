@@ -40,9 +40,9 @@ AUTHOR:     L. Rossman
   --------------------- Module Global Variables  ----------------------
 */
 
-#define MAXITER 200 /* Default max. # hydraulic iterations    */ 
-#define HACC 0.001  /* Default hydraulics convergence ratio   */
-#define HTOL 0.0005 /* Default hydraulic head tolerance (ft)  */
+#define MAXITER  200 /* Default max. # hydraulic iterations    */ 
+#define HACC 0.001   /* Default hydraulics convergence ratio   */
+#define HTOL 0.0005  /* Default hydraulic head tolerance (ft)  */
 
 /*** Updated 11/19/01 ***/
 #define QTOL 0.0001 /* Default flow rate tolerance (cfs)      */
@@ -117,19 +117,23 @@ void setdefaults(EN_Project *pr)
   strncpy(qu->ChemUnits, u_MGperL, MAXID);
   strncpy(par->DefPatID, DEFPATID, MAXID);
   out->Hydflag = SCRATCH;  /* No external hydraulics file    */
-  qu->Qualflag = NONE;    /* No quality simulation          */
+  qu->Qualflag = NONE;     /* No quality simulation          */
   hyd->Formflag = HW;      /* Use Hazen-Williams formula     */
   par->Unitsflag = US;     /* US unit system                 */
   par->Flowflag = GPM;     /* Flow units are gpm             */
   par->Pressflag = PSI;    /* Pressure units are psi         */
   rep->Tstatflag = SERIES; /* Generate time series output    */
   pr->Warnflag = FALSE;    /* Warning flag is off            */
-  hyd->Htol = HTOL;          /* Default head tolerance         */
-  hyd->Qtol = QTOL;          /* Default flow tolerance         */
-  hyd->Hacc = HACC;          /* Default hydraulic accuracy     */
+  hyd->Htol = HTOL;        /* Default head tolerance         */
+  hyd->Qtol = QTOL;        /* Default flow tolerance         */
+  hyd->Hacc = HACC;        /* Default hydraulic accuracy     */
+
+  hyd->FlowChangeLimit = 0.0; /* Default flow change limit   */
+  hyd->HeadErrorLimit = 0.0;  /* Default head error limit    */
+
   qu->Ctol = MISSING;      /* No pre-set quality tolerance   */
-  hyd->MaxIter = MAXITER;    /* Default max. hydraulic trials  */
-  hyd->ExtraIter = -1;       /* Stop if network unbalanced     */
+  hyd->MaxIter = MAXITER;  /* Default max. hydraulic trials  */
+  hyd->ExtraIter = -1;     /* Stop if network unbalanced     */
   time->Dur = 0;           /* 0 sec duration (steady state)  */
   time->Tstart = 0;        /* Starting time of day           */
   time->Pstart = 0;        /* Starting pattern period        */
@@ -529,8 +533,8 @@ void initunits(EN_Project *pr)
   pr->Ucf[POWER] = wcf;
   pr->Ucf[VOLUME] = hcf * hcf * hcf;
   if (time->Hstep < 1800)             /* Report time in mins.    */
-  {                             /* if hydraulic time step  */
-    pr->Ucf[TIME] = 1.0 / 60.0; /* is less than 1/2 hour.  */
+  {                                   /* if hydraulic time step  */
+    pr->Ucf[TIME] = 1.0 / 60.0;       /* is less than 1/2 hour.  */
     strcpy(rep->Field[TIME].Units, u_MINUTES);
   } else {
     pr->Ucf[TIME] = 1.0 / 3600.0;
@@ -604,6 +608,10 @@ void convertunits(EN_Project *pr)
     tank->V1max *= tank->Vmax;
   }
 
+  /* Convert hydraulic convergence criteria */
+  hyd->FlowChangeLimit /= pr->Ucf[FLOW];
+  hyd->HeadErrorLimit  /= pr->Ucf[HEAD];
+
   /* Convert WQ option concentration units */
   qu->Climit /= pr->Ucf[QUALITY];
   qu->Ctol /= pr->Ucf[QUALITY];
@@ -676,8 +684,9 @@ void convertunits(EN_Project *pr)
       
     }
 
+//////  Moved to inithyd() in hydraul.c  ///////
     /* Compute flow resistances */
-    resistance(pr, k);
+    //resistance(pr, k);
   }
 
   /* Convert units on control settings */

@@ -71,11 +71,12 @@ This module calls the following functions that reside in other modules:
      runhyd()
      nexthyd()
      closehyd()
-     resistance()
      tankvolume()
      getenergy()
      setlinkstatus()
      setlinksetting()
+   HYDCOEFFS
+     resistcoeff()
    QUALITY.C
      openqual()
      initqual()
@@ -129,6 +130,7 @@ execute function x and set the error code equal to its return value.
 #include "text.h"
 #include "types.h"
 #define EXTERN
+////////////////////////////////////////////#include "epanet2.h"
 #include "vars.h"
 
 /****************************************************************
@@ -1341,6 +1343,14 @@ int DLLEXPORT EN_getoption(EN_Project *pr, EN_Option code,
   case EN_DEMANDMULT:
     v = hyd->Dmult;
     break;
+
+  case EN_HEADERROR:
+    v = hyd->HeadErrorLimit * Ucf[HEAD];
+    break;
+  case EN_FLOWCHANGE:
+    v = hyd->FlowChangeLimit * Ucf[FLOW];
+    break;
+
   default:
     return (251);
   }
@@ -2648,7 +2658,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project *p, int index, int code,
       r = Link[index].Diam / value;      /* Ratio of old to new diam */
       Link[index].Km *= SQR(r) * SQR(r); /* Adjust minor loss factor */
       Link[index].Diam = value;          /* Update diameter */
-      resistance(p, index);                 /* Update resistance factor */
+      resistcoeff(p, index);             /* Update resistance coeff. */
     }
     break;
 
@@ -2657,7 +2667,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project *p, int index, int code,
       if (value <= 0.0)
         return (202);
       Link[index].Len = value / Ucf[ELEV];
-      resistance(p, index);
+      resistcoeff(p, index);
     }
     break;
 
@@ -2668,7 +2678,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project *p, int index, int code,
       Link[index].Kc = value;
       if (hyd->Formflag == DW)
         Link[index].Kc /= (1000.0 * Ucf[ELEV]);
-      resistance(p, index);
+      resistcoeff(p, index);
     }
     break;
 
@@ -3171,6 +3181,18 @@ int DLLEXPORT EN_setoption(EN_Project *p, int code, EN_API_FLOAT_TYPE v)
       return (202);
     hyd->Dmult = value;
     break;
+
+  case EN_HEADERROR:
+    if (value < 0.0)
+        return (202);
+    hyd->HeadErrorLimit = value / Ucf[HEAD];
+    break;
+  case EN_FLOWCHANGE:
+      if (value < 0.0)
+          return (202);
+      hyd->FlowChangeLimit = value / Ucf[FLOW];
+      break;
+
   default:
     return (251);
   }
@@ -3419,7 +3441,7 @@ int openhydfile(EN_Project *p)
   out->HydFile = NULL;
   switch (out->Hydflag) {
   case SCRATCH:
-    getTmpName(out->HydFname); 
+    getTmpName(p, out->HydFname); 
     out->HydFile = fopen(out->HydFname, "w+b"); 
     break;
   case SAVE:
@@ -3512,7 +3534,7 @@ int openoutfile(EN_Project *p)
   // else if ( (OutFile = tmpfile()) == NULL) 
   else 
   {
-    getTmpName(out->OutFname);                           
+    getTmpName(p, out->OutFname);                           
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) 
     {
       writecon(FMT08);
@@ -3530,7 +3552,7 @@ int openoutfile(EN_Project *p)
   if (!errcode) {
     if (rep->Tstatflag != SERIES) {
       // if ( (TmpOutFile = tmpfile()) == NULL) errcode = 304; 
-      getTmpName(out->TmpFname);                
+      getTmpName(p, out->TmpFname);                
       out->TmpOutFile = fopen(out->TmpFname, "w+b"); 
       if (out->TmpOutFile == NULL)
         errcode = 304; 
@@ -3837,7 +3859,7 @@ void freedata(EN_Project *p)
 ----------------------------------------------------------------
 */
 
-char *getTmpName(char *fname)
+char *getTmpName(EN_Project *p, char *fname)
 //
 //  Input:   fname = file name string
 //  Output:  returns pointer to file name
@@ -3847,25 +3869,24 @@ char *getTmpName(char *fname)
 
 #ifdef _WIN32
 
-  char* name = NULL;
+    char* name = NULL;
 
-  // --- use Windows _tempnam function to get a pointer to an
-  //     unused file name that begins with "en"
-  name = _tempnam(NULL, "en");
-  if (name == NULL) return NULL;
+    // --- use Windows _tempnam function to get a pointer to an
+    //     unused file name that begins with "en"
+    name = _tempnam(NULL, "en");
+    if (name == NULL) return NULL;
 
-  // --- copy the file name to fname
-  if (strlen(name) < MAXFNAME) strncpy(fname, name, MAXFNAME);
-  else fname = NULL;
+    // --- copy the file name to fname
+    if (strlen(name) < MAXFNAME) strncpy(fname, name, MAXFNAME);
+    else fname = NULL;
 
-  // --- free the pointer returned by _tempnam
-  if (name) free(name);
+    // --- free the pointer returned by _tempnam
+    if (name) free(name);
 
 /*
 ///////////////////  DEPRECATED   /////////////////////////////////////
 // --- for Windows systems:
 #ifdef WINDOWS
-  out_file_t *out = &p->out_files;
   // --- use system function tmpnam() to create a temporary file name
   char name[MAXFNAME + 1];
   int n;

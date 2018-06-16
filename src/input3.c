@@ -1913,6 +1913,10 @@ int optionvalue(EN_Project *pr, int n)
 **    SPECIFIC GRAVITY    value
 **    TRIALS              value
 **    ACCURACY            value
+
+**    HEADLIMIT           value
+**    FLOWLIMIT           value
+
 **    TOLERANCE           value
 **    SEGMENTS            value  (not used)
 **  ------ Undocumented Options -----
@@ -1928,18 +1932,20 @@ int optionvalue(EN_Project *pr, int n)
   hydraulics_t *hyd = &pr->hydraulics;
   quality_t *qu = &pr->quality;
   parser_data_t *par = &pr->parser;
+  char* tok0 = par->Tok[0];
 
   
   int nvalue = 1; /* Index of token with numerical value */
   double y;
 
   /* Check for obsolete SEGMENTS keyword */
-  if (match(par->Tok[0], w_SEGMENTS))
-    return (0);
+  //if (match(par->Tok[0], w_SEGMENTS))
+  if (match(tok0, w_SEGMENTS))
+          return (0);
 
   /* Check for missing value (which is permissible) */
-  if (match(par->Tok[0], w_SPECGRAV) || match(par->Tok[0], w_EMITTER) ||
-      match(par->Tok[0], w_DEMAND))
+  if (match(tok0, w_SPECGRAV) || match(tok0, w_EMITTER) ||
+      match(tok0, w_DEMAND))
     nvalue = 2;
   if (n < nvalue)
     return (0);
@@ -1949,7 +1955,7 @@ int optionvalue(EN_Project *pr, int n)
     return (213);
 
   /* Check for WQ tolerance option (which can be 0) */
-  if (match(par->Tok[0], w_TOLERANCE)) {
+  if (match(tok0, w_TOLERANCE)) {
     if (y < 0.0)
       return (213);
     qu->Ctol = y; /* Quality tolerance*/
@@ -1957,7 +1963,7 @@ int optionvalue(EN_Project *pr, int n)
   }
 
   /* Check for Diffusivity option */
-  if (match(par->Tok[0], w_DIFFUSIVITY)) {
+  if (match(tok0, w_DIFFUSIVITY)) {
     if (y < 0.0)
       return (213);
     qu->Diffus = y;
@@ -1965,9 +1971,25 @@ int optionvalue(EN_Project *pr, int n)
   }
 
   /* Check for Damping Limit option */ 
-  if (match(par->Tok[0], w_DAMPLIMIT)) {
+  if (match(tok0, w_DAMPLIMIT)) {
     hyd->DampLimit = y;
     return (0);
+  }
+  
+  /* Check for flow change limit*/
+  else if (match(tok0, w_FLOWCHANGE))
+  {
+      if (y < 0.0) return 213;
+      hyd->FlowChangeLimit = y;
+      return 0;
+  }
+
+  /* Check for head error limit*/
+  else if (match(tok0, w_HEADERROR))
+  {
+      if (y < 0.0) return 213;
+      hyd->HeadErrorLimit = y;
+      return 0;
   }
 
   /* All other options must be > 0 */
@@ -1975,32 +1997,33 @@ int optionvalue(EN_Project *pr, int n)
     return (213);
 
   /* Assign value to specified option */
-  if (match(par->Tok[0], w_VISCOSITY))
+  if (match(tok0, w_VISCOSITY))
     hyd->Viscos = y; /* Viscosity */
-  else if (match(par->Tok[0], w_SPECGRAV))
+  else if (match(tok0, w_SPECGRAV))
     hyd->SpGrav = y; /* Spec. gravity */
-  else if (match(par->Tok[0], w_TRIALS))
+  else if (match(tok0, w_TRIALS))
     hyd->MaxIter = (int)y;                   /* Max. trials */
-  else if (match(par->Tok[0], w_ACCURACY)) /* Accuracy */
+  else if (match(tok0, w_ACCURACY)) /* Accuracy */
   {
     y = MAX(y, 1.e-5);
     y = MIN(y, 1.e-1);
     hyd->Hacc = y;
-  } else if (match(par->Tok[0], w_HTOL))
+  }
+  else if (match(tok0, w_HTOL))
     hyd->Htol = y;
-  else if (match(par->Tok[0], w_QTOL))
+  else if (match(tok0, w_QTOL))
     hyd->Qtol = y;
-  else if (match(par->Tok[0], w_RQTOL)) {
+  else if (match(tok0, w_RQTOL)) {
     if (y >= 1.0)
       return (213);
     hyd->RQtol = y;
-  } else if (match(par->Tok[0], w_CHECKFREQ))
+  } else if (match(tok0, w_CHECKFREQ))
     hyd->CheckFreq = (int)y;
-  else if (match(par->Tok[0], w_MAXCHECK))
+  else if (match(tok0, w_MAXCHECK))
     hyd->MaxCheck = (int)y;
-  else if (match(par->Tok[0], w_EMITTER))
+  else if (match(tok0, w_EMITTER))
     hyd->Qexp = 1.0 / y;
-  else if (match(par->Tok[0], w_DEMAND))
+  else if (match(tok0, w_DEMAND))
     hyd->Dmult = y;
   else
     return (201);
