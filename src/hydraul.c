@@ -636,7 +636,8 @@ int  controls(EN_Project *pr)
    double k1, k2;
    char  s1, s2;
    Slink *link;
-  
+   Scontrol *control;  
+
   EN_Network *net = &pr->network;
   time_options_t *top = &pr->time_options;
   hydraulics_t *hyd = &pr->hydraulics;
@@ -645,13 +646,13 @@ int  controls(EN_Project *pr)
    setsum = 0;
    for (i=1; i <= net->Ncontrols; i++)
    {
-     Scontrol *control = &net->Control[i];
+      control = &net->Control[i];
       /* Make sure that link is defined */
       reset = 0;
-     if ( (k = control->Link) <= 0) {
-       continue;
-     }
-     link = &net->Link[k];
+      if ( (k = control->Link) <= 0) {
+        continue;
+      }
+      link = &net->Link[k];
       /* Link is controlled by tank level */
       if ((n = control->Node) > 0 && n > net->Njuncs)
       {

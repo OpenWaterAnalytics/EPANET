@@ -192,11 +192,17 @@ void  linkcoeffs(EN_Project *pr)
     // Examine each link of network */
     for (k = 1; k <= net->Nlinks; k++)
     {
-        if (sol->P[k] == 0.0) continue;
+//        if (sol->P[k] == 0.0) continue;
         link = &net->Link[k];
+        switch (link->Type) {
+        case EN_PRV:
+        case EN_PSV:
+        case EN_FCV:
+            if (hyd->LinkSetting[k] != MISSING) continue;
+        }
+
         n1 = link->N1;           // Start node of link
         n2 = link->N2;           // End node of link
-
 
         // Update net nodal inflows (X), solution matrix (A) and RHS array (F)
         // (Use covention that flow out of node is (-), flow into node is (+))

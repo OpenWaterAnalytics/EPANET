@@ -101,11 +101,6 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
     nextcheck = hyd->CheckFreq;
     hyd->RelaxFactor = 1.0;
 
-    /* Compute initial head loss coefficients*/
-    for (i = 1; i <= net->Nlinks; i++) {
-        hlosscoeff(pr, i);
-    }
-
     /* Repeat iterations until convergence or trial limit is exceeded. */
     /* (hyd->ExtraIter used to increase trials in case of status cycling.)  */
     if (pr->report.Statflag == FULL) {
@@ -123,6 +118,9 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
         ** head loss gradients, & F = flow correction terms.
         ** Solution for H is returned in F from call to linsolve().
         */
+        for (i = 1; i <= net->Nlinks; i++) {
+            hlosscoeff(pr, i);
+        }
         matrixcoeffs(pr);
         errcode = linsolve(&hyd->solver, net->Njuncs);
 
@@ -147,16 +145,9 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
         newerr = newflows(pr, &hydbal);               /* Update flows */
         *relerr = newerr;
 
-        /* Check hydraulic balance & re-compute head loss coefficients */
-        checkhydbalance(pr, &hydbal);
-        for (i = 1; i <= net->Nlinks; i++) {
-            hlosscoeff(pr, i);
-        }
-
         /* Write convergence error to status report if called for */
         if (rep->Statflag == FULL) {
             writerelerr(pr, *iter, *relerr);
-            reporthydbal(pr, &hydbal);
         }
 
         /* Apply solution damping & check for change in valve status */
@@ -870,7 +861,7 @@ double newflows(EN_Project *pr, Hydbalance *hbal)
     dqsum = 0.0;
 
     hbal->maxflowchange = 0.0;
-    hbal->maxflowlink = -1;
+    hbal->maxflowlink = 1;
 
     /* Update flows in all links */
     for (k = 1; k <= net->Nlinks; k++)
@@ -988,8 +979,9 @@ void  checkhydbalance(EN_Project *pr, Hydbalance *hbal)
     solver_t     *sol = &hyd->solver;
     Slink *link;
     hbal->maxheaderror = 0.0;
-    hbal->maxheadlink = -1;
+    hbal->maxheadlink = 1;
     for (k = 1; k <= net->Nlinks; k++) {
+        hlosscoeff(pr, k);
         if (sol->P[k] == 0.0) continue;
         link = &net->Link[k];
         n1 = link->N1;
@@ -1019,6 +1011,10 @@ int  hasconverged(EN_Project *pr, double *relerr, Hydbalance *hbal)
     hydraulics_t *hyd = &pr->hydraulics;
 
     if (*relerr > hyd->Hacc) return 0;
+    checkhydbalance(pr, hbal);
+    if (pr->report.Statflag == FULL) {
+        reporthydbal(pr, hbal);
+    }
     if (hyd->HeadErrorLimit > 0.0 &&
     hbal->maxheaderror > hyd->HeadErrorLimit) return 0;
     if (hyd->FlowChangeLimit > 0.0 &&
