@@ -618,8 +618,12 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n CHECKFREQ           %-d", hyd->CheckFreq);
   fprintf(f, "\n MAXCHECK            %-d", hyd->MaxCheck);
   fprintf(f, "\n DAMPLIMIT           %-.8f", hyd->DampLimit);
-  fprintf(f, "\n HEADERROR           %-.8f", hyd->HeadErrorLimit * pr->Ucf[HEAD]);
-  fprintf(f, "\n FLOWCHANGE          %-.8f", hyd->FlowChangeLimit * pr->Ucf[FLOW]);
+  if (hyd->HeadErrorLimit > 0.0) {
+      fprintf(f, "\n HEADERROR           %-.8f", hyd->HeadErrorLimit * pr->Ucf[HEAD]);
+  }
+  if (hyd->FlowChangeLimit > 0.0) {
+      fprintf(f, "\n FLOWCHANGE          %-.8f", hyd->FlowChangeLimit * pr->Ucf[FLOW]);
+  }
 
   /* Write [REPORT] section */
 
