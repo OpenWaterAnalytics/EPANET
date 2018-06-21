@@ -981,6 +981,7 @@ void  checkhydbalance(EN_Project *pr, Hydbalance *hbal)
     hbal->maxheaderror = 0.0;
     hbal->maxheadlink = 1;
     for (k = 1; k <= net->Nlinks; k++) {
+        if (hyd->LinkStatus[k] <= CLOSED) continue;
         hlosscoeff(pr, k);
         if (sol->P[k] == 0.0) continue;
         link = &net->Link[k];

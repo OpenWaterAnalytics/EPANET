@@ -41,7 +41,7 @@ static void    emittercoeffs(EN_Project *pr);
 
 static void    pipecoeff(EN_Project *pr, int k);
 static void    DWpipecoeff(EN_Project *pr, int k);
-static double  frictionFactor(double q, double e, double s, double *dfdq);
+static double  frictionFactor(EN_Project *pr, int k, double *dfdq);
 
 static void    pumpcoeff(EN_Project *pr, int k);
 static void    curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r);
@@ -192,15 +192,8 @@ void  linkcoeffs(EN_Project *pr)
     // Examine each link of network */
     for (k = 1; k <= net->Nlinks; k++)
     {
-//        if (sol->P[k] == 0.0) continue;
+        if (sol->P[k] == 0.0) continue;
         link = &net->Link[k];
-        switch (link->Type) {
-        case EN_PRV:
-        case EN_PSV:
-        case EN_FCV:
-            if (hyd->LinkSetting[k] != MISSING) continue;
-        }
-
         n1 = link->N1;           // Start node of link
         n2 = link->N2;           // End node of link
 
@@ -437,88 +430,103 @@ void DWpipecoeff(EN_Project *pr, int k)
     solver_t     *sol = &hyd->solver;
     Slink *link = &pr->network.Link[k];
 
-    double s = hyd->Viscos * link->Diam;
     double q = ABS(hyd->LinkFlows[k]);
     double dfdq = 0.0;
-    double e;      // relative roughness height
-    double r;      // total resistance coeff.
-    double f;      // friction factor
-    double hloss;  // head loss
-    double hgrad;  // head loss gradient
+    double r, r1, f, ml, p, hloss;
 
-    // ... use Hagen-Poiseuille formula for laminar flow (Re <= 2000)
-    if (q <= A2 * s)
+    ml = link->Km;                       // Minor loss coeff. 
+    r = link->R;                         // Resistance coeff. 
+    f =  frictionFactor(pr,k,&dfdq);     // D-W friction factor
+    r1 = f*r+ml;
+ 
+    // Use large P coefficient for small flow resistance product
+    if (r1*q < hyd->RQtol)
     {
-        r = 16.0 * PI * s * link->R;
-        hloss = q * (r + link->Km * q);
-        hgrad = r + 2.0 * link->Km * q;
+        sol->P[k] = 1.0/hyd->RQtol;
+        sol->Y[k] = hyd->LinkFlows[k]/hyd->Hexp;
+        return;
     }
 
-    // ... use Colebrook formula for turbulent flow
-    else
-    {
-        e = link->Kc / link->Diam;
-        f = frictionFactor(q, e, s, &dfdq);
-        r = f * link->R + link->Km;
-        hloss = r * q * hyd->LinkFlows[k];
-        hgrad = (2.0 * r * q) + (dfdq * link->R * q * q);
-    }
-
-    // ... head loss has same sign as flow
-    hloss *= SGN(hyd->LinkFlows[k]);
-
-    // ... compute P and Y coeffs.
-    sol->P[k] = 1.0 / hgrad;
-    sol->Y[k] = hloss / hgrad;
+    // Compute P and Y coefficients
+    hloss = r1*SQR(q);                   // Total head loss
+    p = 2.0*r1*q;                        // |dHloss/dQ|
+    // + dfdq*r*q*q;                     // Ignore df/dQ term 
+    p = 1.0 / p;
+    sol->P[k] = p;
+    sol->Y[k] = SGN(hyd->LinkFlows[k]) * hloss * p;
 }
 
 
-double frictionFactor(double q, double e, double s, double *dfdq)
+double frictionFactor(EN_Project *pr, int k, double *dfdq)
 /*
 **--------------------------------------------------------------
-**   Input:   q = flow rate (cfs)
-**            e = pipe roughness / diameter
-**            s = viscosity * diameter
-**   Output:  f = friction factor
-**            dfdq = derivative of f w.r.t. flow
+**   Input:   k = link index
+**   Output:  returns friction factor and
+**            replaces dfdq (derivative of f w.r.t. flow)
 **   Purpose: computes Darcy-Weisbach friction factor and its
 **            derivative as a function of Reynolds Number (Re).
+**
+**   Note:    Current formulas for dfdq need to be corrected
+**            so dfdq returned as 0.
 **--------------------------------------------------------------
 */
 {
-    double f;
-    double x1, x2, x3, x4,
-        y1, y2, y3,
-        fa, fb, r;
-    double w = q / s;        // Re*Pi/4
+   double q,             // Abs. value of flow
+          f;             // Friction factor 
+   double x1,x2,x3,x4,
+          y1,y2,y3,
+          fa,fb,r;
+   double s,w;
+  
+  hydraulics_t *hyd = &pr->hydraulics;
+  Slink *link = &pr->network.Link[k];
 
-                             // ... For Re >= 4000 use Colebrook Formula
-    if (w >= A1)
-    {
-        y1 = A8 / pow(w, 0.9);
-        y2 = e / 3.7 + y1;
-        y3 = A9 * log(y2);
-        f = 1.0 / (y3*y3);
-        *dfdq = 1.8 * f * y1 * A9 / y2 / y3 / q;
-    }
+   *dfdq = 0.0;
+   if (link->Type > EN_PIPE)
+     return(1.0);                 // Only apply to pipes
+   q = ABS(hyd->LinkFlows[k]);
+   s = hyd->Viscos * link->Diam;
+   w = q/s;                       // w = Re(Pi/4)
+   
+   // For Re >= 4000 use Colebrook Formula
+   if (w >= A1)                   
+   {
+      y1 = A8/pow(w,0.9);
+      y2 = link->Kc/(3.7*link->Diam) + y1;
+      y3 = A9*log(y2);
+      f = 1.0/SQR(y3);
+      /*  *dfdq = (2.0+AA*y1/(y2*y3))*f; */   /* df/dq */
+   }
+   
+   // For Re > 2000 use Interpolation Formula
+   else if (w > A2)              
+   {
+      y2 = link->Kc/(3.7*link->Diam) + AB;
+      y3 = A9*log(y2);
+      fa = 1.0/SQR(y3);
+      fb = (2.0+AC/(y2*y3))*fa;
+      r = w/A2;
+      x1 = 7.0*fa - fb;
+      x2 = 0.128 - 17.0*fa + 2.5*fb;
+      x3 = -0.128 + 13.0*fa - (fb+fb);
+      x4 = r*(0.032 - 3.0*fa + 0.5*fb);
+      f = x1 + r*(x2 + r*(x3+x4));
+      /*  *dfdq = (x1 + x1 + r*(3.0*x2 + r*(4.0*x3 + 5.0*x4)));  */
+   }
+   
+   // For Re > 8 (Laminar Flow) use Hagen-Poiseuille Formula
+   else if (w > A4)
+   {
+      f = A3*s/q;  // 16 * PI * Viscos * Diam / Flow
+      /*  *dfdq = A3*s; */
+   }
+   else
+   {
+      f = 8.0;
+      *dfdq = 0.0;
+   }
+   return(f);
 
-    // ... Use interpolating polynomials developed by
-    //     E. Dunlop for transition flow from 2000 < Re < 4000.
-    else
-    {
-        y2 = e / 3.7 + AB;
-        y3 = A9 * log(y2);
-        fa = 1.0 / (y3*y3);
-        fb = (2.0 + AC / (y2*y3)) * fa;
-        r = w / A2;
-        x1 = 7.0 * fa - fb;
-        x2 = 0.128 - 17.0 * fa + 2.5 * fb;
-        x3 = -0.128 + 13.0 * fa - (fb + fb);
-        x4 = r * (0.032 - 3.0 * fa + 0.5 *fb);
-        f = x1 + r * (x2 + r * (x3 + x4));
-        *dfdq = (x2 + 2.0 * r * (x3 + x4)) / s / A2;
-    }
-    return f;
 }
 
 
