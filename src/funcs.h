@@ -31,27 +31,28 @@ AUTHOR:     L. Rossman
 
 #include "types.h"
 
-void    initpointers(EN_Project *p);                /* Initializes pointers       */
-int     allocdata(EN_Project *p);                   /* Allocates memory           */
-void    freeTmplist(STmplist *);                    /* Frees items in linked list */
-void    freeFloatlist(SFloatlist *);                /* Frees list of floats       */
-void    freedata(EN_Project *p);                    /* Frees allocated memory     */
-int     openfiles(EN_Project *p, char *,char *,char *);  /* Opens input & report files */
-int     openhydfile(EN_Project *p);                 /* Opens hydraulics file      */
-int     openoutfile(EN_Project *p);                 /* Opens binary output file   */
-int     strcomp(char *, char *);                    /* Compares two strings       */
-char*   getTmpName(char* fname);                    /* Gets temporary file name   */     
-double  interp(int, double *,double *, double);     /* Interpolates a data curve  */
+void    initpointers(EN_Project *pr);              /* Initializes pointers       */
+int     allocdata(EN_Project *pr);                 /* Allocates memory           */
+void    freeTmplist(STmplist *);                   /* Frees items in linked list */
+void    freeFloatlist(SFloatlist *);               /* Frees list of floats       */
+void    freedata(EN_Project *pr);                  /* Frees allocated memory     */
+int     openfiles(EN_Project *pr, char *,char *,char *);  /* Opens input & report files */
+int     openhydfile(EN_Project *pr);               /* Opens hydraulics file      */
+int     openoutfile(EN_Project *pr);               /* Opens binary output file   */
+int     strcomp(char *, char *);                   /* Compares two strings       */
+char*   getTmpName(EN_Project *p, char* fname);    /* Gets temporary file name   */     
+double  interp(int n, double x[], double y[],
+        double xx);                                /* Interpolates a data curve  */
                
-int     findnode(EN_Network *n, char *);            /* Finds node's index from ID */
-int     findlink(EN_Network *n, char *);            /* Finds link's index from ID */
-int     findtank(EN_Network *n, int);               /* Find tank index from node index */  // (AH)
-int     findvalve(EN_Network *n, int);              /* Find valve index from node index */ // (AH)
-int     findpump(EN_Network *n, int);               /* Find pump index from node index */  // (AH)
-char   *geterrmsg(int errcode, char *msg);          /* Gets text of error message */
-void    errmsg(EN_Project *p, int);                 /* Reports program error      */
-void    writecon(char *);                           /* Writes text to console     */
-void    writewin(void (*vp)(char *), char *);                 /* Passes text to calling app */
+int     findnode(EN_Network *n, char *);           /* Finds node's index from ID */
+int     findlink(EN_Network *n, char *);           /* Finds link's index from ID */
+int     findtank(EN_Network *n, int);              /* Find tank index from node index */  // (AH)
+int     findvalve(EN_Network *n, int);             /* Find valve index from node index */ // (AH)
+int     findpump(EN_Network *n, int);              /* Find pump index from node index */  // (AH)
+char   *geterrmsg(int errcode, char *msg);         /* Gets text of error message */
+void    errmsg(EN_Project *p, int);                /* Reports program error      */
+void    writecon(char *);                          /* Writes text to console     */
+void    writewin(void (*vp)(char *), char *);      /* Passes text to calling app */
 
 /* ------- INPUT1.C --------------------*/
 int     getdata(EN_Project *pr);                    /* Gets network data          */
@@ -77,8 +78,9 @@ int     getpatterns(EN_Project *pr);                /* Gets pattern data from li
 int     getcurves(EN_Project *pr);                  /* Gets curve data from list  */
 int     findmatch(char *, char *[]);                /* Finds keyword in line      */
 int     match(const char *, const char *);          /* Checks for word match      */
-int     gettokens(char *s, char** Tok, int maxToks, char *comment); /* Tokenizes input line       */
-int     getfloat(char *, double *);                 /* Converts string to double   */
+int     gettokens(char *s, char** Tok, int maxToks,
+                  char *comment);                   /* Tokenizes input line       */
+int     getfloat(char *, double *);                 /* Converts string to double  */
 double  hour(char *, char *);                       /* Converts time to hours     */
 int     setreport(EN_Project *pr, char *);          /* Processes reporting command*/
 void    inperrmsg(EN_Project *pr, int,int,char *);  /* Input error message        */
@@ -111,7 +113,8 @@ int     powercurve(double, double, double,          /* Coeffs. of power pump cur
                    double, double, double *,
                    double *, double *);
 int     valvecheck(EN_Project *pr, int, int, int);  /* Checks valve placement     */
-void    changestatus(EN_Network *net, int, StatType, double);  /* Changes status of a link   */
+void    changestatus(EN_Network *net, int, StatType,
+                     double);                       /* Changes status of a link   */
 
 /* -------------- RULES.C --------------*/
 void    initrules(rules_t *rules);                  /* Initializes rule base      */
@@ -136,13 +139,14 @@ void    writerelerr(EN_Project *pr, int, double);   /* Writes convergence error 
 void    writestatchange(EN_Project *pr, int,char,char);   /* Writes link status change  */
 void    writecontrolaction(EN_Project *pr, int, int);     /* Writes control action taken*/
 void    writeruleaction(EN_Project *pr, int, char *);     /* Writes rule action taken   */
-int     writehydwarn(EN_Project *pr, int,double);          /* Writes hydraulic warnings  */
+int     writehydwarn(EN_Project *pr, int,double);         /* Writes hydraulic warnings  */
 void    writehyderr(EN_Project *pr, int);                 /* Writes hydraulic error msg.*/
 int     disconnected(EN_Project *pr);                     /* Checks for disconnections  */
 void    marknodes(EN_Project *pr, int, int *, char *);    /* Identifies connected nodes */
 void    getclosedlink(EN_Project *pr, int, char *);       /* Finds a disconnecting link */
 void    writelimits(EN_Project *pr, int,int);             /* Writes reporting limits    */
-int     checklimits(report_options_t *rep, double *,int,int);     /* Checks variable limits     */
+int     checklimits(report_options_t *rep, double *,
+                    int,int);                             /* Checks variable limits     */
 void    writetime(EN_Project *pr, char *);                /* Writes current clock time  */
 char    *clocktime(char *, long);                         /* Converts time to hrs:min   */
 char    *fillstr(char *, char, int);                      /* Fills string with character*/
@@ -150,10 +154,7 @@ int     getnodetype(EN_Network *net, int);                /* Determines node typ
 
 /* --------- HYDRAUL.C -----------------*/
 int     openhyd(EN_Project *pr);                    /* Opens hydraulics solver    */
-
-/*** Updated 3/1/01 ***/
 void    inithyd(EN_Project *pr, int initFlags);     /* Re-sets initial conditions */
-
 int     runhyd(EN_Project *pr, long *);             /* Solves 1-period hydraulics */
 int     nexthyd(EN_Project *pr, long *);            /* Moves to next time period  */
 void    closehyd(EN_Project *pr);                   /* Closes hydraulics solver   */
@@ -164,64 +165,31 @@ void    initlinkflow(EN_Project *pr, int, char,
 void    setlinkflow(EN_Project *pr, int, double);   /* Sets link flow via headloss*/
 void    setlinkstatus(EN_Project *pr, int, char,
                       StatType *, double *);        /* Sets link status           */
-                      
 void    setlinksetting(EN_Project *pr, int, double,
                        StatType *, double *);       /* Sets pump/valve setting    */
                        
-void    resistance(EN_Project *pr, int);            /* Computes resistance coeff. */
 void    demands(EN_Project *pr);                    /* Computes current demands   */
 int     controls(EN_Project *pr);                   /* Controls link settings     */
 long    timestep(EN_Project *pr);                   /* Computes new time step     */
 int     tanktimestep(EN_Project *pr, long *);       /* Time till tanks fill/drain */
 void    controltimestep(EN_Project *pr, long *);    /* Time till control action   */
 void    ruletimestep(EN_Project *pr, long *);       /* Time till rule action      */
+
 void    addenergy(EN_Project *pr, long);            /* Accumulates energy usage   */
 void    getenergy(EN_Project *pr, int, double *,
                   double *);                        /* Computes link energy use   */
+
 void    tanklevels(EN_Project *pr, long);           /* Computes new tank levels   */
 double  tankvolume(EN_Project *pr, int,double);     /* Finds tank vol. from grade */
 double  tankgrade(EN_Project *pr, int,double);      /* Finds tank grade from vol. */
-int     netsolve(EN_Project *pr, int *,double *);   /* Solves network equations   */
-int     badvalve(EN_Project *pr, int);              /* Checks for bad valve       */
-int     valvestatus(EN_Project *pr);                /* Updates valve status       */
-int     linkstatus(EN_Project *pr);                 /* Updates link status        */
-StatType    cvstatus(EN_Project *pr, StatType,
-                     double,double);                /* Updates CV status          */
-StatType    pumpstatus(EN_Project *pr, int,double); /* Updates pump status        */
-StatType    prvstatus(EN_Project *pr, int,StatType,
-                      double,double,double);        /* Updates PRV status         */
-                  
-StatType    psvstatus(EN_Project *pr, int,StatType,
-                      double,double,double);        /* Updates PSV status         */
-                  
-StatType    fcvstatus(EN_Project *pr, int,StatType,
-                      double,double);               /* Updates FCV status         */
-                  
-void    tankstatus(EN_Project *pr, int,int,int);    /* Checks if tank full/empty  */
-int     pswitch(EN_Project *pr);                    /* Pressure switch controls   */
-double  newflows(EN_Project *pr);                   /* Updates link flows         */
-void    newcoeffs(EN_Project *pr);                  /* Computes matrix coeffs.    */
-void    linkcoeffs(EN_Project *pr);                 /* Computes link coeffs.      */
-void    nodecoeffs(EN_Project *pr);                 /* Computes node coeffs.      */
-void    valvecoeffs(EN_Project *pr);                /* Computes valve coeffs.     */
-void    pipecoeff(EN_Project *pr, int);             /* Computes pipe coeff.       */
-double  DWcoeff(EN_Project *pr, int, double *);     /* Computes D-W coeff.        */
-void    pumpcoeff(EN_Project *pr, int);             /* Computes pump coeff.       */
 
-/*** Updated 10/25/00 ***/
-/*** Updated 12/29/00 ***/
-void    curvecoeff(EN_Project *pr, int,double,
-                   double *,double *);              /* Computes curve coeffs.     */
-                             
+/* ----------- HYDSOLVER.C -  ----------*/
+int     hydsolve(EN_Project *pr, int *,double *);   /* Solves network equations   */
 
-void    gpvcoeff(EN_Project *pr, int iLink);        /* Computes GPV coeff.        */
-void    pbvcoeff(EN_Project *pr, int iLink);        /* Computes PBV coeff.        */
-void    tcvcoeff(EN_Project *pr, int iLink);        /* Computes TCV coeff.        */
-void    prvcoeff(EN_Project *pr, int iLink, int n1, int n2);  /* Computes PRV coeff.        */
-void    psvcoeff(EN_Project *pr, int iLink, int n1, int n2);  /* Computes PSV coeff.        */
-void    fcvcoeff(EN_Project *pr, int iLink, int n1, int n2);  /* Computes FCV coeff.        */
-void    emittercoeffs(EN_Project *pr);              /* Computes emitter coeffs.   */
-double  emitflowchange(EN_Project *pr, int);        /* Computes new emitter flow  */
+/* ----------- HYDCOEFFS.C --------------*/
+void    resistcoeff(EN_Project *pr, int k);         /* Finds pipe flow resistance */
+void    hlosscoeff(EN_Project *pr, int k);          /* Finds link head loss coeff */
+void    matrixcoeffs(EN_Project *pr);               /* Finds hyd. matrix coeffs.  */
 
 /* ----------- SMATRIX.C ---------------*/
 int     createsparse(EN_Project *pr);               /* Creates sparse matrix      */
@@ -242,7 +210,7 @@ int     storesparse(EN_Project *pr, int);           /* Stores sparse matrix     
 int     ordersparse(hydraulics_t *h, int);          /* Orders matrix storage      */
 void    transpose(int,int *,int *,                  /* Transposes sparse matrix   */
         int *,int *,int *,int *,int *);
-int     linsolve(solver_t *s, int);                 /* Solves set of linear eqns. */
+int     linsolve(solver_t *s, int);                 /* Solves set of inear eqns.  */
 
 /* ----------- QUALITY.C ---------------*/
 int     openqual(EN_Project *pr);                   /* Opens WQ solver system     */
@@ -278,10 +246,9 @@ double  pipereact(EN_Project *pr, int,double,
 double  tankreact(EN_Project *pr, double,double,
                   double,long);                     /* Reacts water in a tank     */
 double  bulkrate(EN_Project *pr, double,double,
-                 double);                           /* Finds bulk reaction rate   */
+                double);                            /* Finds bulk reaction rate   */
 double  wallrate(EN_Project *pr, double,double,
                  double,double);                    /* Finds wall reaction rate   */
-
 
 /* ------------ OUTPUT.C ---------------*/
 int     savenetdata(EN_Project *pr);                /* Saves basic data to file   */
