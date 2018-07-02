@@ -122,7 +122,7 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
             hlosscoeff(pr, i);
         }
         matrixcoeffs(pr);
-        errcode = linsolve(&hyd->solver, net->Njuncs);
+        errcode = linsolve(pr, net->Njuncs);
 
         /* Take action depending on error code */
         if (errcode < 0) {

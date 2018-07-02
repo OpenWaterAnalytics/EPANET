@@ -193,24 +193,8 @@ void    matrixcoeffs(EN_Project *pr);               /* Finds hyd. matrix coeffs.
 
 /* ----------- SMATRIX.C ---------------*/
 int     createsparse(EN_Project *pr);               /* Creates sparse matrix      */
-int     allocsparse(EN_Project *pr);                /* Allocates matrix memory    */
 void    freesparse(EN_Project *pr);                 /* Frees matrix memory        */
-int     buildlists(EN_Project *pr, int);            /* Builds adjacency lists     */
-int     paralink(EN_Project *pr, int, int, int);    /* Checks for parallel links  */
-void    xparalinks(EN_Project *pr);                 /* Removes parallel links     */
-void    freelists(EN_Project *pr);                  /* Frees adjacency lists      */
-void    countdegree(EN_Project *pr);                /* Counts links at each node  */
-int     reordernodes(EN_Project *pr);               /* Finds a node re-ordering   */
-int     mindegree(solver_t *s, int, int);           /* Finds min. degree node     */
-int     growlist(EN_Project *pr, int);              /* Augments adjacency list    */
-int     newlink(EN_Project *pr, Padjlist);          /* Adds fill-ins for a node   */
-int     linked(EN_Network *net, int, int);          /* Checks if 2 nodes linked   */
-int     addlink(EN_Network *net, int, int, int);    /* Creates new fill-in        */
-int     storesparse(EN_Project *pr, int);           /* Stores sparse matrix       */
-int     ordersparse(hydraulics_t *h, int);          /* Orders matrix storage      */
-void    transpose(int,int *,int *,                  /* Transposes sparse matrix   */
-        int *,int *,int *,int *,int *);
-int     linsolve(solver_t *s, int);                 /* Solves set of inear eqns.  */
+int     linsolve(EN_Project *pr, int);              /* Solves set of linear eqns. */
 
 /* ----------- QUALITY.C ---------------*/
 int     openqual(EN_Project *pr);                   /* Opens WQ solver system     */
