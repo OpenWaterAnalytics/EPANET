@@ -52,6 +52,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+
 # Sets the position independent code property for all targets
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -69,8 +70,6 @@ ENDIF (MSVC)
 
 # configure file groups
 file(GLOB EPANET_SOURCES src/*.c)
-
-
 file(GLOB EPANET_LIB_ALL src/*)
 source_group("Library" FILES ${EPANET_LIB_ALL})
 
