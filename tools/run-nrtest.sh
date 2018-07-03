@@ -9,7 +9,7 @@
 #                US EPA - ORD/NRMRL
 #
 #  Arguments:
-#   1 - test suite path
+#   1 - relative path to location there test suite is staged
 #   2 - version/build identifier 
 # 
 
@@ -19,14 +19,16 @@ run-nrtest()
 return_value=0
 
 test_suite_path=$1
+benchmark_ver="2012vs10"
+
 
 nrtest_execute_cmd="nrtest execute"
 test_app_path="apps/epanet-$2.json"
-tests="tests/examples"
+tests="tests/examples tests/exeter tests/large tests/network_one tests/small tests/tanks tests/valves"
 test_output_path="benchmark/epanet-$2"
 
 nrtest_compare_cmd="nrtest compare"
-ref_output_path="benchmark/epanet-2012"
+ref_output_path="benchmark/epanet-${benchmark_ver}"
 rtol_value=0.1
 atol_value=0.0
 

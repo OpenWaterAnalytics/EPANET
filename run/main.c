@@ -5,9 +5,9 @@
 #define   MAXMSG         255       /* Max. # characters in message text      */
 #define   MAXWARNCODE    99      
 /* text copied here, no more need of include "text.h" */
-#define FMT01  "\nEPANET Version %d.%d.%d\n"
+#define FMT01  "\nEPANET Version %d.%d.%d"
 #define FMT03  "\n Correct syntax is:\n %s <input file> <output file>\n"
-#define FMT09  "\nEPANET completed.\n"
+#define FMT09  "\n\nEPANET completed."
 #define FMT10  "\nEPANET completed. There are warnings."
 #define FMT11  "\nEPANET completed. There are errors."
 
@@ -87,7 +87,8 @@ int   main(int argc, char *argv[])
   /* Call the main control function */
   if (strlen(f2)> 0) {
      /* use stdout for progress messages */
-     errcode = ENepanet(f1,f2,f3,writeConsole);
+     //errcode = ENepanet(f1,f2,f3,writeConsole);
+     errcode = ENepanet(f1, f2, f3, NULL);
   }
   else {
      /* use stdout for reporting, no progress messages */
@@ -101,20 +102,20 @@ int   main(int argc, char *argv[])
      return(0);
   }
   else {
+     if (errcode > MAXWARNCODE) printf("\n    Fatal Error: ");
      ENgeterror(errcode, errmsg, MAXMSG);
      writeConsole(errmsg);
      if (errcode > MAXWARNCODE) {
-     	/* error */
+     	// error //
         writeConsole(FMT11);
         return(errcode);
      }
      else {
-     	  /* warning */
+     	  // warning //
         writeConsole(FMT10);
         return(0);
      }
   }
-
 
 }                                       /* End of main */
 

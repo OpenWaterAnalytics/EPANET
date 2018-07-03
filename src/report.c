@@ -229,6 +229,15 @@ void writesummary(EN_Project *pr)
   sprintf(s, FMT27, hyd->Hacc);
   writeline(pr, s);
 
+  if (hyd->HeadErrorLimit > 0.0) {
+      sprintf(s, FMT27d, hyd->HeadErrorLimit*pr->Ucf[HEAD], rep->Field[HEAD].Units);
+      writeline(pr, s);
+  }
+  if (hyd->FlowChangeLimit > 0.0) {
+      sprintf(s, FMT27e, hyd->FlowChangeLimit*pr->Ucf[FLOW], rep->Field[FLOW].Units);
+      writeline(pr, s);
+  }
+
   sprintf(s, FMT27a, hyd->CheckFreq); 
   writeline(pr, s);                   
   sprintf(s, FMT27b, hyd->MaxCheck);       
@@ -378,6 +387,7 @@ void writeenergy(EN_Project *pr)
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   report_options_t *rep = &pr->report;
+  Spump *pump;
 
   int j;
   double csum;
@@ -388,14 +398,14 @@ void writeenergy(EN_Project *pr)
   writeheader(pr,ENERHDR, 0);
   csum = 0.0;
   for (j = 1; j <= net->Npumps; j++) {
-    Spump *pump = &net->Pump[j];
-    csum += pump->Energy[5];
+    pump = &net->Pump[j];
+    csum += pump->Energy[TOTAL_COST];
     if (rep->LineNum == (long)rep->PageSize)
       writeheader(pr, ENERHDR, 1);
     sprintf(s, "%-8s  %6.2f %6.2f %9.2f %9.2f %9.2f %9.2f",
-            net->Link[pump->Link].ID, pump->Energy[0], pump->Energy[1],
-            pump->Energy[2], pump->Energy[3], pump->Energy[4],
-            pump->Energy[5]);
+            net->Link[pump->Link].ID, pump->Energy[PCNT_ONLINE], pump->Energy[PCNT_EFFIC],
+            pump->Energy[KWH_PER_FLOW], pump->Energy[TOTAL_KWH], pump->Energy[MAX_KW],
+            pump->Energy[TOTAL_COST]);
     writeline(pr, s);
   }
   fillstr(s, '-', 63);

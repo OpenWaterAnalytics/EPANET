@@ -11,6 +11,7 @@
 #  $ pip install --src build/packages -r tools/requirements.txt
 #
 
--e  git+https://github.com/OpenWaterAnalytics/nrtest.git@master#egg=nrtest 
+#-e  git+https://github.com/OpenWaterAnalytics/nrtest.git@master#egg=nrtest 
+nrtest>=0.2.3
 -e ./tools/epanet-output
 -e ./tools/nrtest-epanet

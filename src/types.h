@@ -47,7 +47,7 @@ typedef  int          INT4;
 #define   EOFMARK            0x1A  /* Use 0x04 for UNIX systems */
 #define   MAXTITLE  3        /* Max. # title lines                     */
 #define   MAXID     31       /* Max. # characters in ID name           */      
-#define   MAXMSG    79      /* Max. # characters in message text      */
+#define   MAXMSG    79       /* Max. # characters in message text      */
 #define   MAXLINE   255      /* Max. # characters read from input line */
 #define   MAXFNAME  259      /* Max. # characters in file name         */
 #define   MAXTOKS   40       /* Max. items per line of input           */
@@ -58,6 +58,9 @@ typedef  int          INT4;
 #define   BIG       1.E10
 #define   TINY      1.E-6
 #define   MISSING   -1.E10
+
+#define   CBIG      1.e8     /* Big coefficient         */
+#define   CSMALL    1.e-6    /* Small coefficient       */
 
 #ifdef M_PI
   #define   PI        M_PI
@@ -135,21 +138,21 @@ typedef enum {
   USE,           /*    use from previous run            */
   SAVE,          /*    save after current run           */
   SCRATCH
-} Hydtype;      /*    use temporary file               */
+} Hydtype;       /*    use temporary file               */
 
 typedef enum {
   NONE,          /*    no quality analysis              */
   CHEM,          /*    analyze a chemical               */
   AGE,           /*    analyze water age                */
   TRACE
-} QualType;        /*    trace % of flow from a source    */
+} QualType;      /*    trace % of flow from a source    */
 
 typedef enum {
-  V_CURVE,     /*    volume curve                      */
-  P_CURVE,     /*    pump curve                        */
-  E_CURVE,     /*    efficiency curve                  */
+  V_CURVE,       /*    volume curve                      */
+  P_CURVE,       /*    pump curve                        */
+  E_CURVE,       /*    efficiency curve                  */
   H_CURVE
-} CurveType;    /*    head loss curve                   */
+} CurveType;     /*    head loss curve                   */
 
 typedef enum {
   CONST_HP,      /*    constant horsepower              */
@@ -169,8 +172,8 @@ typedef enum {
   LOWLEVEL,      /*    act when grade below set level   */
   HILEVEL,       /*    act when grade above set level   */
   TIMER,         /*    act when set time reached        */
-  TIMEOFDAY
-} ControlType;    /*    act when time of day occurs      */
+  TIMEOFDAY      /*    act when time of day occurs      */
+} ControlType;    
 
 typedef enum {
   XHEAD,        /*   pump cannot deliver head (closed) */
@@ -183,18 +186,18 @@ typedef enum {
   XPRESSURE,    /*   valve cannot supply pressure      */
   FILLING,      /*   tank filling                      */
   EMPTYING
-} StatType;    /*   tank emptying                     */
+} StatType;     /*   tank emptying                     */
 
 typedef enum {
   HW,           /*   Hazen-Williams                    */
   DW,           /*   Darcy-Weisbach                    */
-  CM
-} FormType;          /*   Chezy-Manning                     */
+  CM            /*   Chezy-Manning                     */
+} FormType;    
 
 typedef enum {
   US,           /*   US                                */
-  SI
-} UnitsType;          /*   SI (metric)                       */
+  SI            /*   SI (metric)                       */
+} UnitsType;          
 
 typedef enum {
   CFS,          /*   cubic feet per second             */
@@ -206,40 +209,41 @@ typedef enum {
   LPM,          /*   liters per minute                 */
   MLD,          /*   megaliters per day                */
   CMH,          /*   cubic meters per hour             */
-  CMD
-} FlowUnitsType;         /*   cubic meters per day              */
+  CMD           /*   cubic meters per day              */
+} FlowUnitsType;         
 
 typedef enum {
   PSI,          /*   pounds per square inch            */
   KPA,          /*   kiloPascals                       */
-  METERS
-} PressUnitsType;      /*   meters                            */
+  METERS        /*   meters                            */
 
+} PressUnitsType;      
 typedef enum {
   LOW,          /*   lower limit                       */
   HI,           /*   upper limit                       */
-  PREC
-} RangeType;        /*   precision                         */
+  PREC          /*   precision                         */
 
+} RangeType;        
 typedef enum {
   MIX1,         /*   1-compartment model               */
   MIX2,         /*   2-compartment model               */
   FIFO,         /*   First in, first out model         */
-  LIFO
-} MixType;        /*   Last in, first out model          */
+  LIFO          /*   Last in, first out model          */
+} MixType;       
 
 typedef enum {
   SERIES,       /*   none                              */
   AVG,          /*   time-averages                     */
   MIN,          /*   minimum values                    */
   MAX,          /*   maximum values                    */
-  RANGE
-} TstatType;       /*   max - min values                  */
+  RANGE         /*   max - min values                  */
+} TstatType;
 
-#define MAXVAR   21             /* Max. # types of network variables   */
-/* (equals # items enumed below)       */
+
+#define MAXVAR   21 /* Max. # types of network variables */        
+                    /* (equals # items enumed below)   */
 typedef enum {
-  ELEV = 0,         /*   nodal elevation                   */
+  ELEV = 0,     /*   nodal elevation                   */
   DEMAND,       /*   nodal demand flow                 */
   HEAD,         /*   nodal hydraulic head              */
   PRESSURE,     /*   nodal pressure                    */
@@ -273,16 +277,26 @@ typedef enum {
 } SectType;
 
 typedef enum {
-  STATHDR,      /*  Hydraulic Status       */
-  ENERHDR,      /*  Energy Usage           */
-  NODEHDR,      /*  Node Results           */
-  LINKHDR
-} HdrType;     /*  Link Results           */
+  STATHDR,      /*  Hydraulic Status header  */
+  ENERHDR,      /*  Energy Usage header      */
+  NODEHDR,      /*  Node Results header      */
+  LINKHDR       /*  Link Results header      */
+} HdrType;    
 
 typedef enum {
   POSITIVE,
   NEGATIVE
 } FlowDirection;
+
+typedef enum {
+    PCNT_ONLINE,
+    PCNT_EFFIC,
+    KWH_PER_FLOW,
+    TOTAL_KWH,
+    MAX_KW,
+    TOTAL_COST,
+    MAX_ENERGY_STATS
+} EnergyStats;
 
 /*
 ------------------------------------------------------
@@ -343,6 +357,16 @@ struct Sdemand            /* DEMAND CATEGORY OBJECT */
    struct Sdemand *next;   /* Next record      */
 };
 typedef struct Sdemand *Pdemand; /* Pointer to demand object */
+
+typedef struct
+{
+    double hrsOnLine;        // hours pump is online
+    double efficiency;       // total time wtd. efficiency
+    double kwHrsPerCFS;      // total kw-hrs per cfs of flow
+    double kwHrs;            // total kw-hrs consumed
+    double maxKwatts;        // max. kw consumed
+    double totalCost;        // total pumping cost
+} Senergy;
 
 struct Ssource     /* WQ SOURCE OBJECT */
 {
@@ -422,13 +446,7 @@ typedef struct     /* PUMP OBJECT */
    int    Upat;     /* Utilization pattern index   */
    int    Epat;     /* Energy cost pattern index   */
    double Ecost;    /* Unit energy cost            */
-   double Energy[6];  /* Energy usage statistics:  */
-                     /* 0 = pump utilization      */
-                     /* 1 = avg. efficiency       */
-                     /* 2 = avg. kW/flow          */
-                     /* 3 = avg. kwatts           */
-                     /* 4 = peak kwatts           */
-                     /* 5 = cost/day              */
+   double Energy[MAX_ENERGY_STATS];  /* Energy usage statistics     */
 }  Spump;
 
 typedef struct     /* VALVE OBJECT */
@@ -474,7 +492,7 @@ typedef struct            /* FIELD OBJECT of report table */
    double RptLim[2];       /* Lower/upper report limits  */
 } SField;
 
-typedef struct s_Premise         /* Rule Premise Clause */
+typedef struct s_Premise    /* Rule Premise Clause */
 {
    int      logop;          /* Logical operator */
    int      object;         /* Node or link */
@@ -486,7 +504,7 @@ typedef struct s_Premise         /* Rule Premise Clause */
    struct   s_Premise *next;
 } Premise;
 
-typedef struct s_Action           /* Rule Action Clause */
+typedef struct s_Action     /* Rule Action Clause */
 {
    int     link;            /* Link index */
    int     status;          /* Link's status */
@@ -494,19 +512,19 @@ typedef struct s_Action           /* Rule Action Clause */
    struct  s_Action *next;
 } Action;
 
-typedef struct s_aRule           /* Control Rule Structure */
+typedef struct s_aRule      /* Control Rule Structure */
 {
-   char     label[MAXID+1];    /* Rule character label */
-   double   priority;          /* Priority level */
-   Premise  *Pchain;  /* Linked list of premises */
-   Action   *Tchain;  /* Linked list of actions if true */
-   Action   *Fchain;  /* Linked list of actions if false */
+   char     label[MAXID+1]; /* Rule character label */
+   double   priority;       /* Priority level */
+   Premise  *Pchain;        /* Linked list of premises */
+   Action   *Tchain;        /* Linked list of actions if true */
+   Action   *Fchain;        /* Linked list of actions if false */
    struct   s_aRule    *next;
 } aRule;
 
-typedef struct s_ActItem              /* Action list item */
+typedef struct s_ActItem        /* Action list item */
 {
-   int      ruleindex;        /* Index of rule action belongs to */
+   int      ruleindex;          /* Index of rule action belongs to */
    struct   s_Action   *action; /* An action structure */
    struct   s_ActItem  *next;     
 } ActItem;
@@ -542,6 +560,7 @@ typedef struct {
   Climit,    /// Limiting potential quality   
   *NodeQual, /// Node quality state
   *TempQual, /// General purpose array for water quality
+  *QTempVolumes,
   *QTankVolumes,
   *QLinkFlow,
   *PipeRateCoeff;
@@ -551,12 +570,12 @@ typedef struct {
   Qtime; /// Current quality time (sec)
   
   char      OutOfMemory;          /* Out of memory indicator                 */
-  alloc_handle_t *SegPool; // Memory pool for water quality segments   
+  alloc_handle_t *SegPool;        // Memory pool for water quality segments   
   
   Pseg      FreeSeg;              /* Pointer to unused segment               */
   Pseg      *FirstSeg,            /* First (downstream) segment in each pipe */
-  *LastSeg;             /* Last (upstream) segment in each pipe    */
-  FlowDirection      *FlowDir;             /* Flow direction for each pipe            */
+            *LastSeg;             /* Last (upstream) segment in each pipe    */
+  FlowDirection *FlowDir;         /* Flow direction for each pipe            */
   double    *VolIn;               /* Total volume inflow to node             */
   double    *MassIn;              /* Total mass inflow to node               */
   double    Sc;                   /* Schmidt Number                          */
@@ -613,15 +632,15 @@ typedef struct {
   *Patlist,              /* Temporary time pattern list  */ 
   *Curvelist;            /* Temporary list of curves     */
   
-  double *X; // temporary array for curve data
+  double *X;             // temporary array for curve data
   int 
-  Ntokens,        /* Number of tokens in input line    */
-  Ntitle;         /* Number of title lines             */
+  Ntokens,               /* Number of tokens in input line */
+  Ntitle;                /* Number of title lines          */
   
-  char *Tok[MAXTOKS]; /* Array of token strings            */
+  char *Tok[MAXTOKS];    /* Array of token strings         */
   char Comment[MAXMSG+1];
-  STmplist *PrevPat;   /* Pointer to pattern list element   */
-  STmplist *PrevCurve; /* Pointer to curve list element     */
+  STmplist *PrevPat;     /* Pointer to pattern list element */
+  STmplist *PrevCurve;   /* Pointer to curve list element   */
   
 } parser_data_t;
 
@@ -646,7 +665,7 @@ typedef struct {
   Rpt1Fname[MAXFNAME+1], /* Primary report file name     */
   Rpt2Fname[MAXFNAME+1]; /* Secondary report file name   */
   
-  SField   Field[MAXVAR];         /* Output reporting fields      */
+  SField   Field[MAXVAR];   /* Output reporting fields      */
   
   long      LineNum;        /* Current line number     */
   long      PageNum;        /* Current page number     */
@@ -693,12 +712,11 @@ typedef struct {
   
   aRule *Rule;        /* Array of rules */
   ActItem *ActList;   /* Linked list of action items */
-  int RuleState;          /* State of rule interpreter */
-  long Time1;              /* Start of rule evaluation time interval (sec) */
+  int RuleState;      /* State of rule interpreter */
+  long Time1;         /* Start of rule evaluation time interval (sec) */
   Premise *Plast;     /* Previous premise clause */
   Action *Tlast;      /* Previous true action */
   Action *Flast;      /* Previous false action */
-  
 } rules_t;
 
 /*
@@ -753,6 +771,10 @@ typedef struct {
   Qexp,                  /* Exponent in orifice formula  */
   Dmult,                 /* Demand multiplier            */
   Hacc,                  /* Hydraulics solution accuracy */
+
+  FlowChangeLimit,       /* Hydraulics flow change limit */
+  HeadErrorLimit,        /* Hydraulics head error limit  */
+
   DampLimit,             /* Solution damping threshold   */
   Viscos,                /* Kin. viscosity (sq ft/sec)   */
   SpGrav,                /* Specific gravity             */
@@ -796,7 +818,7 @@ typedef struct {
 } hydraulics_t;
 
 typedef struct {
-  int Nnodes,                /* Number of network nodes      */
+  int Nnodes,            /* Number of network nodes      */
   Ntanks,                /* Number of tanks              */
   Njuncs,                /* Number of junction nodes     */
   Nlinks,                /* Number of network links      */
@@ -809,17 +831,18 @@ typedef struct {
   Ncurves,               /* Number of data curves        */
   Ncoords;               /* Number of Coords             */
   
-  Snode    *Node;                 /* Node data                    */
-  Slink    *Link;                 /* Link data                    */
-  Stank    *Tank;                 /* Tank data                    */
-  Spump    *Pump;                 /* Pump data                    */
-  Svalve   *Valve;                /* Valve data                   */
-  Spattern *Pattern;              /* Time patterns                */
-  Scurve   *Curve;                /* Curve data                   */
-  Scoord   *Coord;                /* Coordinate data              */
-  Scontrol *Control;              /* Control data                 */
-  ENHashTable  *NodeHashTable, *LinkHashTable;            /* Hash tables for ID labels    */
-  Padjlist *Adjlist;              /* Node adjacency lists         */
+  Snode    *Node;        /* Node data                    */
+  Slink    *Link;        /* Link data                    */
+  Stank    *Tank;        /* Tank data                    */
+  Spump    *Pump;        /* Pump data                    */
+  Svalve   *Valve;       /* Valve data                   */
+  Spattern *Pattern;     /* Time patterns                */
+  Scurve   *Curve;       /* Curve data                   */
+  Scoord   *Coord;       /* Coordinate data              */
+  Scontrol *Control;     /* Control data                 */
+  ENHashTable *NodeHashTable,
+              *LinkHashTable; /* Hash tables for ID labels    */
+  Padjlist *Adjlist;          /* Node adjacency lists         */
   
 } EN_Network;
 
@@ -850,6 +873,5 @@ typedef struct EN_Project {
   void (* viewprog) (char *);     /* Pointer to progress viewing function */   
   
 } EN_Project;
-
 
 #endif

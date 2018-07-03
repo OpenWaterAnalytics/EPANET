@@ -70,7 +70,8 @@ int savenetdata(EN_Project *pr)
     ibuf[0] = MAGICNUMBER;
 
     /*** CODEVERSION replaces VERSION ***/ 
-    ibuf[1] = CODEVERSION;                 
+    //ibuf[1] = CODEVERSION;                 
+    ibuf[1] = 20012;  // keep version at 2.00.12 so that GUI will run 
 
     ibuf[2] = net->Nnodes;
     ibuf[3] = net->Ntanks;
@@ -251,60 +252,75 @@ int saveenergy(EN_Project *pr)
 */
 {
   
-  EN_Network *net = &pr->network;
-  hydraulics_t *hyd = &pr->hydraulics;
-  out_file_t *out = &pr->out_files;
-  parser_data_t *par = &pr->parser;
+  EN_Network     *net = &pr->network;
+  hydraulics_t   *hyd = &pr->hydraulics;
+  out_file_t     *out = &pr->out_files;
+  parser_data_t  *par = &pr->parser;
   time_options_t *time = &pr->time_options;
-  FILE *outFile = out->OutFile;
+  FILE           *outFile = out->OutFile;
+  Spump *pump;
   
   int i, j;
   INT4 index;
-  REAL4 x[6];        /* work array */
-  double hdur, /* total time->Duration in hours */
-      t;             /* pumping time->Duration */
+  REAL4 x[MAX_ENERGY_STATS]; // work array
+  double hdur,               // total simulation duration in hours
+         t;                  // total pumping time duration
 
   hdur = time->Dur / 3600.0;
   for (i = 1; i <= net->Npumps; i++) {
-    Spump *pump = &net->Pump[i];
+    pump = &net->Pump[i];
     if (hdur == 0.0) {
-      for (j = 0; j < 5; j++)
-        x[j] = (REAL4)pump->Energy[j];
-      x[5] = (REAL4)(pump->Energy[5] * 24.0);
-    } else {
-      t = pump->Energy[0];
-      x[0] = (REAL4)(t / hdur);
-      x[1] = 0.0f;
-      x[2] = 0.0f;
-      x[3] = 0.0f;
-      x[4] = 0.0f;
-      if (t > 0.0) {
-        x[1] = (REAL4)(pump->Energy[1] / t);
-        x[2] = (REAL4)(pump->Energy[2] / t);
-        x[3] = (REAL4)(pump->Energy[3] / t);
-      }
-      x[4] = (REAL4)pump->Energy[4];
-      x[5] = (REAL4)(pump->Energy[5] * 24.0 / hdur);
+        pump->Energy[TOTAL_COST] *= 24.0;
     }
-    x[0] *= 100.0f;
-    x[1] *= 100.0f;
-    /* Compute Kw-hr per MilGal (or per cubic meter) */
-    if (par->Unitsflag == SI)
-      x[2] *= (REAL4)(1000.0 / LPSperCFS / 3600.0);
-    else
-      x[2] *= (REAL4)(1.0e6 / GPMperCFS / 60.0);
-    for (j = 0; j < 6; j++)
-      pump->Energy[j] = x[j];
+    else {
+        // ... convert total hrs. online to fraction of total time online
+        t = pump->Energy[PCNT_ONLINE];  //currently holds total hrs. online
+        pump->Energy[PCNT_ONLINE] = t / hdur;
+
+        // ... convert cumulative values to time-averaged ones
+        if (t > 0.0) {
+            pump->Energy[PCNT_EFFIC]   /= t;
+            pump->Energy[KWH_PER_FLOW] /= t;
+            pump->Energy[TOTAL_KWH]    /= t;
+        }
+
+        // ... convert total cost to cost per day
+        pump->Energy[TOTAL_COST] *= 24.0 / hdur;
+    }
+
+    // ... express time online and avg. efficiency as percentages
+    pump->Energy[PCNT_ONLINE] *= 100.0;
+    pump->Energy[PCNT_EFFIC] *= 100.0;
+
+    // ... compute KWH per Million Gallons or per Cubic Meter
+    if (par->Unitsflag == SI) {
+        pump->Energy[KWH_PER_FLOW] *= (1000. / LPSperCFS / 3600.);
+    }
+    else {
+        pump->Energy[KWH_PER_FLOW] *= (1.0e6 / GPMperCFS / 60.);
+    }
+
+    // ... save energy stats to REAL4 work array
+    for (j = 0; j < MAX_ENERGY_STATS; j++) {
+        x[j] = (REAL4)pump->Energy[j];
+    }
+
+    // ... save energy results to output file
     index = pump->Link;
-    if (fwrite(&index, sizeof(INT4), 1, outFile) < 1)
+    if (fwrite(&index, sizeof(INT4), 1, outFile) < 1) {
       return (308);
-    if (fwrite(x, sizeof(REAL4), 6, outFile) < 6)
+    }
+    if (fwrite(x, sizeof(REAL4), MAX_ENERGY_STATS, outFile) < MAX_ENERGY_STATS) {
       return (308);
+    }
   }
+
+  // ... compute and save demand charge
   hyd->Emax = hyd->Emax * hyd->Dcost;
   x[0] = (REAL4)hyd->Emax;
-  if (fwrite(&x[0], sizeof(REAL4), 1, outFile) < 1)
+  if (fwrite(&x[0], sizeof(REAL4), 1, outFile) < 1) {
     return (308);
+  }
   return (0);
 }
 

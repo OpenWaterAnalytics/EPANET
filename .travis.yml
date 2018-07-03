@@ -3,23 +3,28 @@ language: python
 env: 
   global: 
     - EPANET_HOME=`pwd`
-    - BUILD_HOME=buildproducts
-    - TEST_HOME=tests/epanet-nrtestsuite
+    - BUILD_HOME=buildprod
+    - TEST_HOME=nrtestsuite
 
 before_install:
   - sudo apt-get -qq update
+  - sudo apt-get install -y libboost-test-dev
   - sudo apt-get install -y swig 
 
-install:
-  - pip install --src build/packages -r tools/requirements.txt
+#install:
 
 before_script:
   - mkdir -p $BUILD_HOME
   - cd $BUILD_HOME
-  - cmake ..
+  - cmake -DBUILD_TESTS=1 .. 
 
 script:
-  - make
+  - cmake --build . 
+  # run unit tests
+  - cd tests
+  - ctest
+  # run regression tests
   - cd $EPANET_HOME
-  - tools/gen-config.sh $EPANET_HOME/$BUILD_HOME/bin > $TEST_HOME/apps/epanet-$TRAVIS_COMMIT.json
+  - pip install -r tools/requirements.txt
+  - tools/before-test.sh $TEST_HOME $EPANET_HOME/$BUILD_HOME/bin $TRAVIS_COMMIT
   - tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
