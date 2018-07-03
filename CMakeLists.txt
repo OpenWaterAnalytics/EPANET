@@ -73,7 +73,6 @@ file(GLOB EPANET_SOURCES src/*.c)
 
 file(GLOB EPANET_LIB_ALL src/*)
 source_group("Library" FILES ${EPANET_LIB_ALL})
-source_group("CLI" REGULAR_EXPRESSION "run/.*")
 
 
 # the shared library
