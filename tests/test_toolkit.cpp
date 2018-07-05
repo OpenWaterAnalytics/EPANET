@@ -16,10 +16,12 @@
 #include "epanet2.h"
 
 // NOTE: Project Home needs to be updated to run unit test
-#define PROJECT_HOME "C:/Users/mtryby/Workspace/GitRepo/michaeltryby/epanet"
-#define DATA_PATH "/tests/network_tests/net1"
+#define DATA_PATH_INP "./net1.inp"
+#define DATA_PATH_RPT "./test.rpt"
+#define DATA_PATH_OUT "./test.out"
 
 using namespace std;
+
 
 BOOST_AUTO_TEST_SUITE (test_toolkit)
 
@@ -39,7 +41,65 @@ BOOST_AUTO_TEST_CASE (test_alloc_free)
    BOOST_CHECK(ph == NULL);
 }
 
-BOOST_AUTO_TEST_SUITE_END( )
+BOOST_AUTO_TEST_CASE (test_open_close)
+{
+	EN_ProjectHandle ph = NULL;
+	EN_alloc(&ph);
+
+	std::string path_inp = std::string(DATA_PATH_INP);
+	std::string path_rpt = std::string(DATA_PATH_RPT);
+	std::string path_out = std::string(DATA_PATH_OUT);
+
+	int error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+	BOOST_REQUIRE(error == 0);
+
+	error = EN_close(ph);
+	BOOST_REQUIRE(error == 0);
+
+	EN_free(&ph);
+}
+
+BOOST_AUTO_TEST_CASE(test_epanet)
+{
+	std::string path_inp = std::string(DATA_PATH_INP);
+	std::string path_rpt = std::string(DATA_PATH_RPT);
+	std::string path_out = std::string(DATA_PATH_OUT);
+
+	int error = ENepanet(path_inp.c_str(), path_rpt.c_str(), path_out.c_str(), NULL);
+	BOOST_REQUIRE(error == 0);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
+struct Fixture{
+	Fixture() {
+
+		path_inp = std::string(DATA_PATH_INP);
+		path_rpt = std::string(DATA_PATH_RPT);
+		path_out = std::string(DATA_PATH_OUT);
+
+		EN_alloc(&ph);
+		error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+
+	}
+
+	~Fixture() {
+		error = EN_close(&ph);
+		EN_free(&ph);
+	}
+
+	std::string path_inp;
+	std::string path_rpt;
+	std::string path_out;
+
+	int error;
+	EN_ProjectHandle ph;
+
+};
+
+
+
 
 // int main(int argc, char *argv[])
 // {

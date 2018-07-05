@@ -156,7 +156,7 @@ execute function x and set the error code equal to its return value.
  **  needed then the argument should be NULL.
  **-------------------------------------------------------------------------
  */
-int DLLEXPORT ENepanet(char *f1, char *f2, char *f3, void (*pviewprog)(char *))
+int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
 {
   int errcode = 0;
   EN_Project *_p;

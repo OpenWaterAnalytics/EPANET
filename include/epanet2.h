@@ -287,7 +287,8 @@ extern "C" {
    as it carries out its computations. If this feature is not
    needed then the argument should be NULL.
    */
-  int  DLLEXPORT ENepanet(char *inpFile, char *rptFile, char *binOutFile, void (*callback) (char *));
+  int  DLLEXPORT ENepanet(const char *inpFile, const char *rptFile, 
+    const char *binOutFile, void (*callback) (char *));
   
   /**
    @brief Initializes an EPANET session
