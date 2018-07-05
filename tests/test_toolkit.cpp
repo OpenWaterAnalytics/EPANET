@@ -84,7 +84,7 @@ struct Fixture{
     }
 
     ~Fixture() {
-      error = EN_close(&ph);
+      error = EN_close(ph);
       EN_free(&ph);
   }
 
@@ -97,31 +97,42 @@ struct Fixture{
 
 };
 
+BOOST_AUTO_TEST_SUITE(test_epanet_fixture)
 
+BOOST_FIXTURE_TEST_CASE(test_epanet, Fixture)
+{
+    error = EN_solveH(ph);
+    BOOST_REQUIRE(error == 0);
 
+    error = EN_solveQ(ph);
+    BOOST_REQUIRE(error == 0);
 
-// int main(int argc, char *argv[])
-// {
-//     int error = 0;
-//     EN_ProjectHandle project = NULL;
+    error = EN_report(ph);
+    BOOST_REQUIRE(error == 0);
+}
 
-//     std::string data_path = std::string(PROJECT_HOME) + std::string(DATA_PATH);
-//     std::string inputFile(data_path);
-//     inputFile.append(std::string("/net1.inp"));
-//     std::string reportFile(data_path);
-//     reportFile.append(std::string("/net1.rpt"));
-//     std::string outputFile(data_path);
-//     outputFile.append(std::string("/net1.out"));
+BOOST_FIXTURE_TEST_CASE(test_hyd_step, Fixture)
+{
+    int flag = 00;
+    long t, tstep;
 
-//     error = EN_alloc(&project);
-//     error = EN_open(project, inputFile.c_str(), reportFile.c_str(), outputFile.c_str());
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
 
-//     error = EN_solveH(project);
-//     error = EN_solveQ(project);
-//     error = EN_report(project);
+    error = EN_initH(ph, flag);
+    BOOST_REQUIRE(error == 0);
 
-//     error = EN_close(project);
-//     error = EN_free(&project);
+    for (int i = 0; i <= 24; i++)
+    {
+        error = EN_runH(ph, &t);
+        BOOST_REQUIRE(error == 0);
 
-//     return error;
-// }
+        error = EN_nextH(ph, &tstep);
+        BOOST_REQUIRE(error == 0);
+    }
+    
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
