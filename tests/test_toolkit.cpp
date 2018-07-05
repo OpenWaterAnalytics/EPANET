@@ -27,74 +27,73 @@ BOOST_AUTO_TEST_SUITE (test_toolkit)
 
 BOOST_AUTO_TEST_CASE (test_alloc_free)
 {
-   int error = 0;
-   EN_ProjectHandle ph = NULL;
+    int error = 0;
+    EN_ProjectHandle ph = NULL;
 
-   error = EN_alloc(&ph);
+    error = EN_alloc(&ph);
 
-   BOOST_REQUIRE(error == 0);
-   BOOST_CHECK(ph != NULL);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(ph != NULL);
 
-   error = EN_free(&ph);
+    error = EN_free(&ph);
 
-   BOOST_REQUIRE(error == 0);
-   BOOST_CHECK(ph == NULL);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(ph == NULL);
 }
 
 BOOST_AUTO_TEST_CASE (test_open_close)
 {
-	EN_ProjectHandle ph = NULL;
-	EN_alloc(&ph);
+    EN_ProjectHandle ph = NULL;
+    EN_alloc(&ph);
 
-	std::string path_inp = std::string(DATA_PATH_INP);
-	std::string path_rpt = std::string(DATA_PATH_RPT);
-	std::string path_out = std::string(DATA_PATH_OUT);
+    std::string path_inp = std::string(DATA_PATH_INP);
+    std::string path_rpt = std::string(DATA_PATH_RPT);
+    std::string path_out = std::string(DATA_PATH_OUT);
 
-	int error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
-	BOOST_REQUIRE(error == 0);
+    int error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+    BOOST_REQUIRE(error == 0);
 
-	error = EN_close(ph);
-	BOOST_REQUIRE(error == 0);
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
 
-	EN_free(&ph);
+    EN_free(&ph);
 }
 
 BOOST_AUTO_TEST_CASE(test_epanet)
 {
-	std::string path_inp = std::string(DATA_PATH_INP);
-	std::string path_rpt = std::string(DATA_PATH_RPT);
-	std::string path_out = std::string(DATA_PATH_OUT);
+    std::string path_inp = std::string(DATA_PATH_INP);
+    std::string path_rpt = std::string(DATA_PATH_RPT);
+    std::string path_out = std::string(DATA_PATH_OUT);
 
-	int error = ENepanet(path_inp.c_str(), path_rpt.c_str(), path_out.c_str(), NULL);
-	BOOST_REQUIRE(error == 0);
+    int error = ENepanet(path_inp.c_str(), path_rpt.c_str(), path_out.c_str(), NULL);
+    BOOST_REQUIRE(error == 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
 
 struct Fixture{
-	Fixture() {
+    Fixture() {
+        path_inp = std::string(DATA_PATH_INP);
+        path_rpt = std::string(DATA_PATH_RPT);
+        path_out = std::string(DATA_PATH_OUT);
 
-		path_inp = std::string(DATA_PATH_INP);
-		path_rpt = std::string(DATA_PATH_RPT);
-		path_out = std::string(DATA_PATH_OUT);
+        EN_alloc(&ph);
+        error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
 
-		EN_alloc(&ph);
-		error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+    }
 
-	}
+    ~Fixture() {
+      error = EN_close(&ph);
+      EN_free(&ph);
+  }
 
-	~Fixture() {
-		error = EN_close(&ph);
-		EN_free(&ph);
-	}
+  std::string path_inp;
+  std::string path_rpt;
+  std::string path_out;
 
-	std::string path_inp;
-	std::string path_rpt;
-	std::string path_out;
-
-	int error;
-	EN_ProjectHandle ph;
+  int error;
+  EN_ProjectHandle ph;
 
 };
 
