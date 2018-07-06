@@ -113,7 +113,7 @@ BOOST_FIXTURE_TEST_CASE(test_epanet, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(test_hyd_step, Fixture)
 {
-    int flag = 00;
+    int flag = EN_NOSAVE;
     long t, tstep;
 
     error = EN_openH(ph);
@@ -180,8 +180,6 @@ BOOST_FIXTURE_TEST_CASE(test_hyd_qual_step, Fixture)
     BOOST_REQUIRE(error == 0);
 
     do {
-
-
         error = EN_runH(ph, &t);
         BOOST_REQUIRE(error == 0);
 
