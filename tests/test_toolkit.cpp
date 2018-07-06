@@ -122,14 +122,14 @@ BOOST_FIXTURE_TEST_CASE(test_hyd_step, Fixture)
     error = EN_initH(ph, flag);
     BOOST_REQUIRE(error == 0);
 
-    for (int i = 0; i <= 24; i++)
-    {
+    do {
         error = EN_runH(ph, &t);
         BOOST_REQUIRE(error == 0);
 
         error = EN_nextH(ph, &tstep);
         BOOST_REQUIRE(error == 0);
-    }
+
+    } while (tstep > 0);
     
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
@@ -155,10 +155,53 @@ BOOST_FIXTURE_TEST_CASE(test_qual_step, Fixture)
 
         error = EN_nextQ(ph, &tstep);
         BOOST_REQUIRE(error == 0);
+
     } while (tstep > 0);
     
     error = EN_closeQ(ph);
     BOOST_REQUIRE(error == 0);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_hyd_qual_step, Fixture)
+{
+    int flag = EN_NOSAVE;
+    long t, tstep_h, tstep_q;
+
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_initH(ph, flag);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_openQ(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_initQ(ph, flag);
+    BOOST_REQUIRE(error == 0);
+
+    do {
+
+
+        error = EN_runH(ph, &t);
+        BOOST_REQUIRE(error == 0);
+
+        error = EN_runQ(ph, &t);
+        BOOST_REQUIRE(error == 0);
+
+        error = EN_nextH(ph, &tstep_h);
+        BOOST_REQUIRE(error == 0);
+
+        error = EN_nextQ(ph, &tstep_q);
+        BOOST_REQUIRE(error == 0);
+
+    } while (tstep_h > 0);
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_closeQ(ph);
+    BOOST_REQUIRE(error == 0);
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
