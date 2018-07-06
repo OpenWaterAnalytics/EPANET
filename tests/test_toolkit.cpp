@@ -135,4 +135,30 @@ BOOST_FIXTURE_TEST_CASE(test_hyd_step, Fixture)
     BOOST_REQUIRE(error == 0);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_qual_step, Fixture)
+{
+    int flag = 0;
+    long t, tstep;
+
+    error = EN_solveH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_openQ(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_initQ(ph, flag);
+    BOOST_REQUIRE(error == 0);
+
+    do {
+        error = EN_runQ(ph, &t);
+        BOOST_REQUIRE(error == 0);
+
+        error = EN_nextQ(ph, &tstep);
+        BOOST_REQUIRE(error == 0);
+    } while (tstep > 0);
+    
+    error = EN_closeQ(ph);
+    BOOST_REQUIRE(error == 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
