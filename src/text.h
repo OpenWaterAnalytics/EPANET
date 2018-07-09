@@ -140,7 +140,10 @@ AUTHOR:     L. Rossman
 #define   w_RQTOL       "RQTOL"
 #define   w_CHECKFREQ   "CHECKFREQ"
 #define   w_MAXCHECK    "MAXCHECK"
-#define   w_DAMPLIMIT   "DAMPLIMIT"                                            
+#define   w_DAMPLIMIT   "DAMPLIMIT"
+
+#define   w_FLOWCHANGE  "FLOWCHANGE"
+#define   w_HEADERROR   "HEADERROR"
 
 #define   w_SECONDS     "SEC"
 #define   w_MINUTES     "MIN"
@@ -364,7 +367,10 @@ AUTHOR:     L. Rossman
 
 #define FMT27a "    Status Check Frequency ............ %-d"                   
 #define FMT27b "    Maximum Trials Checked ............ %-d"                   
-#define FMT27c "    Damping Limit Threshold ........... %-.6f"                 
+#define FMT27c "    Damping Limit Threshold ........... %-.6f"
+
+#define FMT27d "    Headloss Error Limit .............. %-.6f %s"
+#define FMT27e "    Flow Change Limit ................. %-.6f %s"
 
 #define FMT28  "    Maximum Trials .................... %-d"
 #define FMT29  "    Quality Analysis .................. None"
@@ -409,9 +415,12 @@ AUTHOR:     L. Rossman
 #define FMT61  "%10s: Valve %s caused ill-conditioning"
 #define FMT62  "%10s: System ill-conditioned at node %s"
 #define FMT63  "%10s: %s %s changed by rule %s"
-#define FMT64  "%10s: Balancing the network:"
+#define FMT64  "%10s: Balancing the network:\n"
 #define FMT65  "            Trial %2d: relative flow change = %-.6f"
 /*** End of update ***/
+
+#define FMT66  "                      maximum  flow change = %.4f for Link %s"
+#define FMT67  "                      maximum  head error  = %.4f for Link %s\n"
 
 /* -------------------- Energy Report Table ------------------- */
 #define FMT71  "Energy Usage:"

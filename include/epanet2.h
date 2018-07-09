@@ -212,7 +212,9 @@ typedef enum {
   EN_ACCURACY     = 1,
   EN_TOLERANCE    = 2,
   EN_EMITEXPON    = 3,
-  EN_DEMANDMULT   = 4
+  EN_DEMANDMULT   = 4,
+  EN_HEADERROR    = 5,
+  EN_FLOWCHANGE   = 6
 } EN_Option;
 
 typedef enum {

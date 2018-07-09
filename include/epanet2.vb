@@ -121,6 +121,8 @@ Public Const EN_ACCURACY = 1
 Public Const EN_TOLERANCE = 2
 Public Const EN_EMITEXPON = 3
 Public Const EN_DEMANDMULT = 4
+Public Const EN_HEADERROR = 5
+Public Const EN_FLOWCHANGE = 6
 
 Public Const EN_LOWLEVEL = 0     ' Control types
 Public Const EN_HILEVEL = 1
