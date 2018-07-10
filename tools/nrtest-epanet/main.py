@@ -4,7 +4,9 @@ import time
 import cStringIO
 import itertools as it
 
-import epanet_reader as er
+# project import
+import nrtest_epanet.output_reader as er
+
 
 def result_compare(path_test, path_ref, comp_args):
 
@@ -15,29 +17,36 @@ def result_compare(path_test, path_ref, comp_args):
     total = 0
     output = cStringIO.StringIO()
     eps =  np.finfo(float).eps
+    min_cdd = 100.0
     
     start = time.time()
     
-    test_reader = er.reader(path_test)
-    ref_reader = er.reader(path_ref)
+    test_reader = er.output_generator(path_test)
+    ref_reader = er.output_generator(path_ref)
     
     for test, ref in it.izip(test_reader, ref_reader):
         total += 1
         if total%100000 == 0:
             print(total)
         
-        if test.size != ref.size:
+        if len(test[0]) != len(ref[0]):
             raise ValueError('Inconsistent lengths')
         
         # Skip results if they are zero or equal
-        if np.array_equal(test, ref):
-            equal += 1
-            continue
+        #if np.array_equal(test, ref):
+        #    equal += 1
+        #    continue
         else:
             try:
-                np.testing.assert_allclose(test, ref, 1.0e-06, 2*eps)
-                close += 1
+                diff = np.fabs(np.subtract(test[0], ref[0]))
+                idx = np.unravel_index(np.argmax(diff), diff.shape)
                 
+                if diff[idx] != 0.0:
+                    tmp = - np.log10(diff[idx])
+                    
+                    if tmp < min_cdd:
+                        min_cdd = tmp;
+                        
             except AssertionError as ae:
                 notclose += 1
                 output.write(str(ae))
@@ -49,8 +58,9 @@ def result_compare(path_test, path_ref, comp_args):
     print(output.getvalue())
     output.close()
     
-    print('equal: %d  close: %d  notclose: %d  total: %d  in %f (sec)\n' % 
-          (equal, close, notclose, total, (stop - start)))
+    print('mincdd: %d in %f (sec)' % (np.floor(min_cdd), (stop - start)))
+    #print('equal: %d  close: %d  notclose: %d  total: %d  in %f (sec)\n' % 
+    #      (equal, close, notclose, total, (stop - start)))
 
     if notclose > 0:
         print('%d differences found\n' % notclose)
@@ -130,7 +140,8 @@ if __name__ == "__main__":
 #    ref_path  = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2012"
 #    print(nrtest_compare(test_path, ref_path, (0.001, 0.0)))
 
-    
-    path_test = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2011a\\Example_3\\example3.out"
-    path_ref  = "C:\\Users\\mtryby\\Workspace\\GitRepo\\Local\\epanet-testsuite\\benchmarks\\v2012\\Example_3\\example3.out"    
+    benchmark_path = "C:\\Users\\mtryby\\Workspace\\GitRepo\\michaeltryby\\epanet-lr\\nrtestsuite\\benchmarks\\"
+    path_test = benchmark_path + "epanet-220dev\\example1\\example1.out"
+    path_ref  = benchmark_path + "epanet-2012\\example1\\example1.out"
+
     result_compare(path_test, path_ref, (0.001, 0.0))
