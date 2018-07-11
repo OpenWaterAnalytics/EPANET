@@ -28,7 +28,7 @@ __copyright__ = "None"
 __credits__ = "Colleen Barr, Maurizio Cingi, Mark Gray, David Hall, Bryant McDonnell"
 __license__ = "CC0 1.0 Universal"
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __date__ = "September 6, 2017"
 
 __maintainer__ = "Michael Tryby"

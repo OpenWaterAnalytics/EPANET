@@ -25,7 +25,7 @@ entry_points = {
 
 setup(
     name='nrtest-epanet',
-    version='0.4.0',
+    version='0.5.0',
     description="EPANET extension for nrtest",
     
     author="Michael E. Tryby",
