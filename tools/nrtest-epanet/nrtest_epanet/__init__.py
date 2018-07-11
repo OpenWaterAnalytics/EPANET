@@ -118,7 +118,7 @@ def epanet_mincdd_compare(path_test, path_ref, rtol, atol):
             idx = np.unravel_index(np.argmax(diff), diff.shape)
 
             if diff[idx] != 0.0:
-                tmp =  - np.log10(diff[idx])
+                tmp = - np.log10(diff[idx])
 
                 if tmp < min_cdd:
                     min_cdd = tmp;

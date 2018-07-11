@@ -130,6 +130,8 @@ def nrtest_execute(app_path, test_path, output_path):
     exit(not success)
 
 
+import report_diff as rd
+
 if __name__ == "__main__":
 #    app_path = "apps\\swmm-5.1.11.json"
 #    test_path = "tests\\examples\\example1.json"
@@ -141,7 +143,9 @@ if __name__ == "__main__":
 #    print(nrtest_compare(test_path, ref_path, (0.001, 0.0)))
 
     benchmark_path = "C:\\Users\\mtryby\\Workspace\\GitRepo\\michaeltryby\\epanet-lr\\nrtestsuite\\benchmarks\\"
-    path_test = benchmark_path + "epanet-220dev\\example1\\example1.out"
-    path_ref  = benchmark_path + "epanet-2012\\example1\\example1.out"
+    path_test = benchmark_path + "epanet-220dev\\example2\\example2.out"
+    path_ref  = benchmark_path + "epanet-2012\\example2\\example2.out"
 
-    result_compare(path_test, path_ref, (0.001, 0.0))
+    #result_compare(path_test, path_ref, (0.001, 0.0))
+    rd.report_diff(path_test, path_ref, 2)
+    
