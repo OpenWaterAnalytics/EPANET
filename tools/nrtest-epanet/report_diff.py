@@ -47,8 +47,7 @@ def log_relative_error(q, c):
     
     Reference:
     McCullough, B. D. "Assessing the Reliability of Statistical Software: Part I."
-    The American Statistician, vol. 52, no. 4, 1998, pp. 358�366. 
-    JSTOR, JSTOR, www.jstor.org/stable/2685442.
+    The American Statistician, vol. 52, no. 4, 1998, pp. 358-366. 
     '''
     diff = np.subtract(q, c)
     tmp_c = np.copy(c)
