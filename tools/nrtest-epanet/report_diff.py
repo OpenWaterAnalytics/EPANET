@@ -17,6 +17,8 @@ import numpy as np
 
 # project imports
 import nrtest_epanet.output_reader as ordr
+from numpy.f2py.auxfuncs import hasinitvalue
+from numpy.tests.test_numpy_version import test_valid_numpy_version
 
 
 def report_diff(path_test, path_ref, min_cdd):
@@ -52,7 +54,7 @@ def log_relative_error(q, c):
     diff = np.subtract(q, c)
     tmp_c = np.copy(c)
     # If ref value is small compute absolute error
-    tmp_c[np.fabs(tmp_c) <= 1.0e-6] = 1.0
+    tmp_c[np.fabs(tmp_c) < 1.0e-6] = 1.0
     
     re = np.fabs(diff)/np.fabs(tmp_c)
     # If re is tiny set lre to number of digits
@@ -64,5 +66,13 @@ def log_relative_error(q, c):
     
     
 def print_diff(idx, lre, test, ref):
-    print("LRE: %f\nIdx: %s\nSut: %f\nRef: %f\n" 
-          % ((lre[idx]),(idx[0], ref[1]),(test[0][idx[0]]),(ref[0][idx[0]])))
+    
+    idx_val = (idx[0], ref[1])
+    test_val = (test[0][idx[0]])
+    ref_val = (ref[0][idx[0]])
+    diff_val = (test_val - ref_val)
+    lre_val = (lre[idx[0]])
+    
+    print("Idx: %s\nSut: %f  Ref: %f  Diff: %f  LRE: %f\n" 
+          % (idx_val, test_val, ref_val, diff_val, lre_val))
+    
