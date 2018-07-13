@@ -133,6 +133,10 @@ execute function x and set the error code equal to its return value.
 ////////////////////////////////////////////#include "epanet2.h"
 #include "vars.h"
 
+
+// Local functions
+void errorLookup(int errcode, char *errmsg, int len);
+
 /****************************************************************
 
  LEGACY (v <= 2.1) API: uses global project variable
@@ -159,24 +163,14 @@ execute function x and set the error code equal to its return value.
 int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
 {
   int errcode = 0;
-  EN_Project *_p;
 
   ERRCODE(EN_alloc(&_defaultModel));
-  ERRCODE(EN_open(_defaultModel, f1, f2, f3));
   
-  _p = (EN_Project*)_defaultModel;
+  ERRCODE(EN_epanet(_defaultModel, f1, f2, f3, pviewprog));
+  
+  ERRCODE(EN_free(&_defaultModel));
 
-  _p->viewprog = pviewprog;
-  if (_p->out_files.Hydflag != USE) {
-    ERRCODE(EN_solveH(_defaultModel));
-  }
-
-  ERRCODE(EN_solveQ(_defaultModel));
-  ERRCODE(EN_report(_defaultModel));
-  EN_close(_defaultModel);
-  EN_free(&_defaultModel);
-
-  return (errcode);
+  return errcode;
 }
 
 int DLLEXPORT ENopen(char *f1, char *f2, char *f3) {
@@ -548,21 +542,55 @@ int DLLEXPORT ENdeletenode(int index) {
 /// allocate a project pointer
 int DLLEXPORT EN_alloc(EN_ProjectHandle *ph)
 {
+  int errorcode = 0;
   EN_Project *project = calloc(1, sizeof(EN_Project));
-  *ph = project;
 
-  return 0;
+  if (project != NULL){
+      project->error_handle = new_errormanager(&errorLookup);
+      *ph = project;
+  }
+  else
+      errorcode = -1;
+
+  return errorcode;
 }
 
 int DLLEXPORT EN_free(EN_ProjectHandle *ph)
 {
-  EN_Project *p = (EN_Project*)(*ph);
+    int errorcode = 0;
+    EN_Project *p = (EN_Project*)(*ph);
 
-  free(p);
+    if (p == NULL)
+        errorcode = -1;
+    else
+    {
+        dst_errormanager(p->error_handle);
+        free(p);
 
-  *ph = NULL;
+        *ph = NULL;
+    }
 
-  return 0;
+    return 0;
+}
+
+int DLLEXPORT EN_epanet(EN_ProjectHandle ph, const char *f1, const char *f2, 
+	const char *f3, void(*pviewprog)(char *))
+{
+	int errcode = 0;
+	EN_Project *_p = (EN_Project*)ph;
+
+	ERRCODE(EN_open(ph, f1, f2, f3));
+
+	_p->viewprog = pviewprog;
+	if (_p->out_files.Hydflag != USE) {
+		ERRCODE(EN_solveH(ph));
+	}
+
+	ERRCODE(EN_solveQ(ph));
+	ERRCODE(EN_report(ph));
+	EN_close(ph);
+
+	return set_error(_p->error_handle, errcode);
 }
 
 int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
@@ -1724,10 +1752,12 @@ int DLLEXPORT EN_getqualtype(EN_ProjectHandle ph, int *qualcode, int *tracenode)
 }
 
 
-int DLLEXPORT EN_getqualinfo(EN_Project *p, int *qualcode, char *chemname, 
+int DLLEXPORT EN_getqualinfo(EN_ProjectHandle ph, int *qualcode, char *chemname,
                              char *chemunits, int *tracenode) {
 
-  EN_getqualtype(p, qualcode, tracenode);
+  EN_Project *p = (EN_Project*)ph;
+
+  EN_getqualtype(ph, qualcode, tracenode);
 
   if (p->quality.Qualflag == TRACE) {
     strncpy(chemname, "", MAXID);
@@ -1737,6 +1767,63 @@ int DLLEXPORT EN_getqualinfo(EN_Project *p, int *qualcode, char *chemname,
     strncpy(chemunits, p->quality.ChemUnits, MAXID);
   }
   return 0;
+}
+
+void errorLookup(int errcode, char *dest_msg, int dest_len)
+// Purpose: takes error code returns error message
+{
+    char *msg = NULL;
+
+    switch (errcode)
+    {
+    case 1: msg = WARN1;
+    break;
+    case 2: msg = WARN2;
+    break;
+    case 3: msg = WARN3;
+    break;
+    case 4: msg = WARN4;
+    break;
+    case 5: msg = WARN5;
+    break;
+    case 6: msg = WARN6;
+    break;
+    default:
+        msg = geterrmsg(errcode, msg);
+    }
+    strncpy(dest_msg, msg, MAXMSG);
+}
+
+void DLLEXPORT EN_clearError(EN_ProjectHandle ph)
+{
+    EN_Project *p = (EN_Project*)ph;
+
+    clear_error(p->error_handle);
+}
+
+int DLLEXPORT EN_checkError(EN_ProjectHandle ph, char** msg_buffer)
+//
+// Purpose: Returns the error message or NULL.
+//
+// Note: Caller must free memory allocated by EN_check_error
+//
+{
+    int errorcode = 0;
+    char *temp = NULL;
+    EN_Project *p = (EN_Project*)ph;
+
+
+    if (p == NULL) return -1;
+    else
+    {
+        errorcode = p->error_handle->error_status;
+        if (errorcode)
+            temp = check_error(p->error_handle);
+
+        *msg_buffer = temp;
+    }
+
+    return errorcode;
 }
 
 int DLLEXPORT EN_geterror(int errcode, char *errmsg, int n) {
@@ -4247,11 +4334,11 @@ char *geterrmsg(int errcode, char *msg)
 */
 {
   switch (errcode) { /* Warnings */
-#define DAT(code,enumer,string) case code: strcpy(msg, string); break;
+#define DAT(code,enumer,string) case code: msg = string; break;
 #include "errors.dat"
 #undef DAT
     default:
-      strcpy(msg, "");
+      msg = "";
   }
   return (msg);
 }

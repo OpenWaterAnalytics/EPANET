@@ -294,8 +294,9 @@ typedef struct EN_Curve EN_Curve;
    needed then the argument should be NULL.
  */
 int DLLEXPORT ENepanet(const char *inpFile, const char *rptFile,
-        const char *binOutFile, void (*callback) (char *));
-
+       const char *binOutFile, void (*callback) (char *));
+int DLLEXPORT EN_epanet(EN_ProjectHandle ph, const char *inpFile, 
+       const char *rptFile, const char *binOutFile, void(*callback) (char *));
 
 // OPENING A CLOSING THE EPANET TOOLKIT SYSTEM
 /**
@@ -1261,6 +1262,8 @@ int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int linkIndex);
 int DLLEXPORT EN_alloc(EN_ProjectHandle *ph);
 int DLLEXPORT EN_free(EN_ProjectHandle *ph);
 
+void DLLEXPORT EN_clearError(EN_ProjectHandle ph);
+int DLLEXPORT EN_checkError(EN_ProjectHandle ph, char **msg_buffer);
 
 
 int DLLEXPORT EN_getqualtype(EN_ProjectHandle ph, int *qualcode, int *tracenode);

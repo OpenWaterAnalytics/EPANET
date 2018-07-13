@@ -69,6 +69,27 @@ BOOST_AUTO_TEST_CASE(test_epanet)
     BOOST_REQUIRE(error == 0);
 }
 
+BOOST_AUTO_TEST_CASE(test_errormanager)
+{
+    char *error_msg;
+    EN_ProjectHandle ph = NULL;
+
+    std::string path_inp = std::string(DATA_PATH_INP);
+    std::string path_rpt = std::string(DATA_PATH_RPT);
+    std::string path_out = std::string(DATA_PATH_RPT);
+
+
+    EN_alloc(&ph);
+
+    EN_clearError(ph);
+    int error = EN_epanet(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str(), NULL);
+    EN_checkError(ph, &error_msg);
+
+    EN_free(&ph);
+
+    free(error_msg);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 
