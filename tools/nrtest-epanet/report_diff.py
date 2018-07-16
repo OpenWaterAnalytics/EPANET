@@ -17,11 +17,9 @@ import numpy as np
 
 # project imports
 import nrtest_epanet.output_reader as ordr
-from numpy.f2py.auxfuncs import hasinitvalue
-from numpy.tests.test_numpy_version import test_valid_numpy_version
 
 
-def report_diff(path_test, path_ref, min_cdd):
+def _binary_diff(path_test, path_ref, min_cdd):
     for (test, ref) in it.izip(ordr.output_generator(path_test), 
                                ordr.output_generator(path_ref)):
         
@@ -32,16 +30,16 @@ def report_diff(path_test, path_ref, min_cdd):
         if np.array_equal(test[0], ref[0]):
             continue
         else:
-            lre = log_relative_error(test[0], ref[0])
+            lre = _log_relative_error(test[0], ref[0])
             idx = np.unravel_index(np.argmin(lre), lre.shape)
 
             if lre[idx] < min_cdd: 
-                print_diff(idx, lre, test, ref)
+                _print_diff(idx, lre, test, ref)
 
     return 
 
 
-def log_relative_error(q, c):
+def _log_relative_error(q, c):
     '''
     Computes log relative error, a measure of numerical accuracy. 
     
@@ -65,7 +63,7 @@ def log_relative_error(q, c):
     return np.negative(np.log10(re))
     
     
-def print_diff(idx, lre, test, ref):
+def _print_diff(idx, lre, test, ref):
     
     idx_val = (idx[0], ref[1])
     test_val = (test[0][idx[0]])
@@ -75,4 +73,24 @@ def print_diff(idx, lre, test, ref):
     
     print("Idx: %s\nSut: %f  Ref: %f  Diff: %f  LRE: %f\n" 
           % (idx_val, test_val, ref_val, diff_val, lre_val))
+
+
+def report(args):
+    _binary_diff(args.test, args.ref, args.mincdd)
+
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+    
+    parser = ArgumentParser(description='EPANET benchmark difference reporting')
+    parser.set_defaults(func=report)
+    parser.add_argument('-t', '--test', default=None, 
+                        help='Path to test benchmark')
+    parser.add_argument('-r', '--ref', default=None, 
+                        help='Path to reference benchmark')
+    parser.add_argument('-mc', '--mincdd', type=int, default=3, 
+                        help='Minimum correct decimal digits')
+    
+    args = parser.parse_args()
+    args.func(args)
     
