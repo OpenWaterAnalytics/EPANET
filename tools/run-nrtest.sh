@@ -19,7 +19,7 @@ run-nrtest()
 return_value=0
 
 test_suite_path=$1
-benchmark_ver="2012vs10"
+benchmark_ver="220dev1"
 
 
 nrtest_execute_cmd="nrtest execute"
