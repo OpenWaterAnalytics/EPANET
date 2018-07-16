@@ -23,7 +23,7 @@ SCRIPT_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TEST_HOME=$1
 
 EXAMPLES_VER="1.0.2-dev.1"
-BENCHMARK_VER="2020dev1"
+BENCHMARK_VER="220dev1"
 
 TEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/v${EXAMPLES_VER}.tar.gz"
 BENCH_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/v${EXAMPLES_VER}/epanet-benchmark-${BENCHMARK_VER}.tar.gz"
