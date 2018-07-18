@@ -143,6 +143,20 @@ void errorLookup(int errcode, char *errmsg, int len);
 
 *****************************************************************/
 
+int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3,
+        void (*pviewprog)(char *))
+{
+  int errcode = 0;
+
+  ERRCODE(EN_alloc(&_defaultModel));
+  ERRCODE(EN_epanet(_defaultModel, f1, f2, f3, pviewprog));
+  ERRCODE(EN_free(&_defaultModel));
+
+  return errcode;
+}
+
+int DLLEXPORT EN_epanet(EN_ProjectHandle ph, const char *f1, const char *f2,
+    const char *f3, void(*pviewprog)(char *))
 /*------------------------------------------------------------------------
  **   Input:   f1 = pointer to name of input file
  **            f2 = pointer to name of report file
@@ -160,31 +174,2011 @@ void errorLookup(int errcode, char *errmsg, int len);
  **  needed then the argument should be NULL.
  **-------------------------------------------------------------------------
  */
-int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
+{
+    int errcode = 0;
+    EN_Project *_p = (EN_Project*)ph;
+
+    ERRCODE(EN_open(ph, f1, f2, f3));
+
+    _p->viewprog = pviewprog;
+    if (_p->out_files.Hydflag != USE) {
+        ERRCODE(EN_solveH(ph));
+    }
+
+    ERRCODE(EN_solveQ(ph));
+    ERRCODE(EN_report(ph));
+    EN_close(ph);
+
+    return set_error(_p->error_handle, errcode);
+}
+
+int DLLEXPORT ENopen(char *f1, char *f2, char *f3)
 {
   int errcode = 0;
 
   ERRCODE(EN_alloc(&_defaultModel));
-  
-  ERRCODE(EN_epanet(_defaultModel, f1, f2, f3, pviewprog));
-  
-  ERRCODE(EN_free(&_defaultModel));
+  EN_open(_defaultModel, f1, f2, f3);
 
-  return errcode;
+  return (errcode);
 }
 
-int DLLEXPORT ENopen(char *f1, char *f2, char *f3) {
+int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const char *f3)
+/*----------------------------------------------------------------
+ **  Input:   f1 = pointer to name of input file
+ **           f2 = pointer to name of report file
+ **           f3 = pointer to name of binary output file
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: opens EPANET input file & reads in network data
+ **----------------------------------------------------------------
+ */
+{
   int errcode = 0;
-  ERRCODE(EN_alloc(&_defaultModel));
-  EN_open(_defaultModel, f1, f2, f3);
-  return (errcode);
+
+/*** Updated 9/7/00 ***/
+/* Reset math coprocessor */
+#ifdef DLL
+  _fpreset();
+#endif
+
+  EN_Project *p = (EN_Project*)ph;
+
+  /* Set system flags */
+  p->Openflag = FALSE;
+  p->hydraulics.OpenHflag = FALSE;
+  p->quality.OpenQflag = FALSE;
+  p->save_options.SaveHflag = FALSE;
+  p->save_options.SaveQflag = FALSE;
+  p->Warnflag = FALSE;
+  p->parser.Coordflag = TRUE;
+
+  /*** Updated 9/7/00 ***/
+  p->report.Messageflag = TRUE;
+  p->report.Rptflag = 1;
+
+  /* Initialize global pointers to NULL. */
+  initpointers(p);
+
+  /* Open input & report files */
+  ERRCODE(openfiles(p, f1, f2, f3));
+  if (errcode > 0) {
+    errmsg(p, errcode);
+    return set_error(p->error_handle, errcode);
+  }
+  writelogo(p);
+
+  /* Find network size & allocate memory for data */
+  writecon(FMT02);
+  writewin(p->viewprog, FMT100);
+  ERRCODE(netsize(p));
+  ERRCODE(allocdata(p));
+
+  /* Retrieve input data */
+  ERRCODE(getdata(p));
+
+  /* Free temporary linked lists used for Patterns & Curves */
+  freeTmplist(p->parser.Patlist);
+  freeTmplist(p->parser.Curvelist);
+
+  /* If using previously saved hydraulics then open its file */
+  if (p->out_files.Hydflag == USE) {
+    ERRCODE(openhydfile(p));
+  }
+
+  /* Write input summary to report file */
+  if (!errcode) {
+    if (p->report.Summaryflag) {
+      writesummary(p);
+    }
+    writetime(p, FMT104);
+    p->Openflag = TRUE;
+  } else
+    errmsg(p, errcode);
+
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENclose() { return EN_close(_defaultModel); }
+
+int DLLEXPORT EN_close(EN_ProjectHandle ph)
+/*----------------------------------------------------------------
+ **  Input:   none
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: frees all memory & files used by EPANET
+ **----------------------------------------------------------------
+ */
+{
+  out_file_t *out;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  if (p->Openflag) {
+    writetime(p, FMT105);
+  }
+  freedata(p);
+
+  out = &p->out_files;
+
+  if (out->TmpOutFile != out->OutFile) {
+    if (out->TmpOutFile != NULL) {
+      fclose(out->TmpOutFile);
+    }
+    remove(out->TmpFname);
+  }
+  out->TmpOutFile = NULL;
+
+  if (p->parser.InFile != NULL) {
+    fclose(p->parser.InFile);
+    p->parser.InFile = NULL;
+  }
+  if (p->report.RptFile != NULL && p->report.RptFile != stdout) {
+    fclose(p->report.RptFile);
+    p->report.RptFile = NULL;
+  }
+  if (out->HydFile != NULL) {
+    fclose(out->HydFile);
+    out->HydFile = NULL;
+  }
+  if (out->OutFile != NULL) {
+    fclose(out->OutFile);
+    out->OutFile = NULL;
+  }
+
+  if (out->Hydflag == SCRATCH)
+    remove(out->HydFname);
+  if (out->Outflag == SCRATCH)
+    remove(out->OutFname);
+
+  p->Openflag = FALSE;
+  p->hydraulics.OpenHflag = FALSE;
+  p->save_options.SaveHflag = FALSE;
+  p->quality.OpenQflag = FALSE;
+  p->save_options.SaveQflag = FALSE;
+
+  return set_error(p->error_handle, 0);
+}
+
+
+int DLLEXPORT ENgetnodeindex(char *id, int *index) {
+  return EN_getnodeindex(_defaultModel, id, index);
+}
+
+int DLLEXPORT EN_getnodeindex(EN_ProjectHandle ph, char *id, int *index) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *index = 0;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  *index = findnode(&p->network,id);
+  if (*index == 0)
+    return set_error(p->error_handle, 203);
+  else
+    return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENgetnodeid(int index, char *id) {
+  return EN_getnodeid(_defaultModel, index, id);
+}
+
+int DLLEXPORT EN_getnodeid(EN_ProjectHandle ph, int index, char *id) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  strcpy(id, "");
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index < 1 || index > p->network.Nnodes)
+    return set_error(p->error_handle, 203);
+  strcpy(id, p->network.Node[index].ID);
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENgetnodetype(int index, int *code) {
+  return EN_getnodetype(_defaultModel, index, code);
+}
+
+int DLLEXPORT EN_getnodetype(EN_ProjectHandle ph, int index, int *code) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *code = -1;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index < 1 || index > p->network.Nnodes)
+    return set_error(p->error_handle, 203);
+  if (index <= p->network.Njuncs)
+    *code = EN_JUNCTION;
+  else {
+    if (p->network.Tank[index - p->network.Njuncs].A == 0.0)
+      *code = EN_RESERVOIR;
+    else
+      *code = EN_TANK;
+  }
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value) {
+  return EN_getnodevalue(_defaultModel, index, code, value);
+}
+
+int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code,
+                              EN_API_FLOAT_TYPE *value) {
+  double v = 0.0;
+  Pdemand demand;
+  Psource source;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  EN_Network *net = &p->network;
+  hydraulics_t *hyd = &p->hydraulics;
+  quality_t *qu = &p->quality;
+
+  Snode *Node = net->Node;
+  Stank *Tank = net->Tank;
+
+  const int Nnodes = net->Nnodes;
+  const int Njuncs = net->Njuncs;
+
+  double *Ucf = p->Ucf;
+  double *NodeDemand = hyd->NodeDemand;
+  double *NodeQual = qu->NodeQual;
+
+
+  /* Check for valid arguments */
+  *value = 0.0;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index <= 0 || index > Nnodes)
+    return set_error(p->error_handle, 203);
+
+  /* Retrieve called-for parameter */
+  switch (code) {
+  case EN_ELEVATION:
+    v = Node[index].El * Ucf[ELEV];
+    break;
+
+  case EN_BASEDEMAND:
+    v = 0.0;
+    /* NOTE: primary demand category is last on demand list */
+    if (index <= Njuncs)
+      for (demand = Node[index].D; demand != NULL; demand = demand->next)
+        v = (demand->Base);
+    v *= Ucf[FLOW];
+    break;
+
+  case EN_PATTERN:
+    v = 0.0;
+    /* NOTE: primary demand category is last on demand list */
+    if (index <= Njuncs) {
+      for (demand = Node[index].D; demand != NULL; demand = demand->next)
+        v = (double)(demand->Pat);
+    } else
+      v = (double)(Tank[index - Njuncs].Pat);
+    break;
+
+  case EN_EMITTER:
+    v = 0.0;
+    if (Node[index].Ke > 0.0)
+      v = Ucf[FLOW] / pow((Ucf[PRESSURE] * Node[index].Ke), (1.0 / hyd->Qexp));
+    break;
+
+  case EN_INITQUAL:
+    v = Node[index].C0 * Ucf[QUALITY];
+    break;
+
+    /*** Additional parameters added for retrieval ***/
+  case EN_SOURCEQUAL:
+  case EN_SOURCETYPE:
+  case EN_SOURCEMASS:
+  case EN_SOURCEPAT:
+    source = Node[index].S;
+    if (source == NULL)
+      return set_error(p->error_handle, 240);
+    if (code == EN_SOURCEQUAL)
+      v = source->C0;
+    else if (code == EN_SOURCEMASS)
+      v = source->Smass * 60.0;
+    else if (code == EN_SOURCEPAT)
+      v = source->Pat;
+    else
+      v = source->Type;
+    break;
+
+  case EN_TANKLEVEL:
+    if (index <= Njuncs)
+      return set_error(p->error_handle, 251);
+    v = (Tank[index - Njuncs].H0 - Node[index].El) * Ucf[ELEV];
+    break;
+
+    /*** New parameter added for retrieval ***/
+  case EN_INITVOLUME:
+    v = 0.0;
+    if (index > Njuncs)
+      v = Tank[index - Njuncs].V0 * Ucf[VOLUME];
+    break;
+
+    /*** New parameter added for retrieval ***/
+  case EN_MIXMODEL:
+    v = MIX1;
+    if (index > Njuncs)
+      v = Tank[index - Njuncs].MixModel;
+    break;
+
+    /*** New parameter added for retrieval ***/
+  case EN_MIXZONEVOL:
+    v = 0.0;
+    if (index > Njuncs)
+      v = Tank[index - Njuncs].V1max * Ucf[VOLUME];
+    break;
+
+  case EN_DEMAND:
+    v = NodeDemand[index] * Ucf[FLOW];
+    break;
+
+  case EN_HEAD:
+    v = hyd->NodeHead[index] * Ucf[HEAD];
+    break;
+
+  case EN_PRESSURE:
+    v = (hyd->NodeHead[index] - Node[index].El) * Ucf[PRESSURE];
+    break;
+
+  case EN_QUALITY:
+    v = NodeQual[index] * Ucf[QUALITY];
+    break;
+
+  /*** New parameters added for retrieval begins here   ***/
+  /*** (Thanks to Nicolas Basile of Ecole Polytechnique ***/
+  /***  de Montreal for suggesting some of these.)      ***/
+
+  case EN_TANKDIAM:
+    v = 0.0;
+    if (index > Njuncs) {
+      v = sqrt(4.0 / PI * Tank[index - Njuncs].A) * Ucf[ELEV];
+    }
+    break;
+
+  case EN_MINVOLUME:
+    v = 0.0;
+    if (index > Njuncs)
+      v = Tank[index - Njuncs].Vmin * Ucf[VOLUME];
+    break;
+
+  case EN_MAXVOLUME: // !sph
+    v = 0.0;
+    if (index > Njuncs)
+      v = Tank[index - Njuncs].Vmax * Ucf[VOLUME];
+    break;
+
+  case EN_VOLCURVE:
+    v = 0.0;
+    if (index > Njuncs)
+      v = Tank[index - Njuncs].Vcurve;
+    break;
+
+  case EN_MINLEVEL:
+    v = 0.0;
+    if (index > Njuncs) {
+      v = (Tank[index - Njuncs].Hmin - Node[index].El) * Ucf[ELEV];
+    }
+    break;
+
+  case EN_MAXLEVEL:
+    v = 0.0;
+    if (index > Njuncs) {
+      v = (Tank[index - Njuncs].Hmax - Node[index].El) * Ucf[ELEV];
+    }
+    break;
+
+  case EN_MIXFRACTION:
+    v = 1.0;
+    if (index > Njuncs && Tank[index - Njuncs].Vmax > 0.0) {
+      v = Tank[index - Njuncs].V1max / Tank[index - Njuncs].Vmax;
+    }
+    break;
+
+  case EN_TANK_KBULK:
+    v = 0.0;
+    if (index > Njuncs)
+      v = Tank[index - Njuncs].Kb * SECperDAY;
+    break;
+
+    /***  New parameter additions ends here. ***/
+
+  case EN_TANKVOLUME:
+    if (index <= Njuncs)
+      return set_error(p->error_handle, 251);
+    v = tankvolume(p, index - Njuncs, hyd->NodeHead[index]) * Ucf[VOLUME];
+    break;
+
+  default:
+    return set_error(p->error_handle, 251);
+  }
+  *value = (EN_API_FLOAT_TYPE)v;
+  return set_error(p->error_handle, 0);
+}
+
+
+/*
+ ----------------------------------------------------------------
+ Functions for retrieving link data
+ ----------------------------------------------------------------
+ */
+
+int DLLEXPORT ENgetlinkindex(char *id, int *index) {
+  return EN_getlinkindex(_defaultModel, id, index);
+}
+
+int DLLEXPORT EN_getlinkindex(EN_ProjectHandle ph, char *id, int *index) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *index = 0;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  *index = findlink(&p->network,id);
+  if (*index == 0)
+    return set_error(p->error_handle, 204);
+  else
+    return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENgetlinkid(int index, char *id) {
+  return EN_getlinkid(_defaultModel, index, id);
+}
+
+int DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  strcpy(id, "");
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index < 1 || index > p->network.Nlinks)
+    return set_error(p->error_handle, 204);
+  strcpy(id, p->network.Link[index].ID);
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENgetlinktype(int index, EN_LinkType *code) {
+  return EN_getlinktype(_defaultModel, index, code);
+}
+
+
+int DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, EN_LinkType *code) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *code = -1;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index < 1 || index > p->network.Nlinks)
+    return set_error(p->error_handle, 204);
+  *code = p->network.Link[index].Type;
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2) {
+  return EN_getlinknodes(_defaultModel, index, node1, node2);
+}
+
+int DLLEXPORT EN_getlinknodes(EN_ProjectHandle ph, int index, int *node1,
+                              int *node2) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *node1 = 0;
+  *node2 = 0;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index < 1 || index > p->network.Nlinks)
+    return set_error(p->error_handle, 204);
+  *node1 = p->network.Link[index].N1;
+  *node2 = p->network.Link[index].N2;
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value) {
+  return EN_getlinkvalue(_defaultModel, index, (EN_LinkProperty)code, value);
+}
+
+int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index,
+        EN_LinkProperty code, EN_API_FLOAT_TYPE *value)
+{
+  double a, h, q, v = 0.0;
+  int returnValue = 0;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  EN_Network *net = &p->network;
+  hydraulics_t *hyd = &p->hydraulics;
+
+  Slink *Link = net->Link;
+  Spump *Pump = net->Pump;
+
+  const int Nlinks = net->Nlinks;
+
+  double *Ucf = p->Ucf;
+  double *LinkFlows = hyd->LinkFlows;
+  double *LinkSetting = hyd->LinkSetting;
+
+
+
+  /* Check for valid arguments */
+  *value = 0.0;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index <= 0 || index > Nlinks)
+    return set_error(p->error_handle, 204);
+
+  /* Retrieve called-for parameter */
+  switch (code) {
+    case EN_DIAMETER:
+      if (Link[index].Type == EN_PUMP)
+        v = 0.0;
+      else
+        v = Link[index].Diam * Ucf[DIAM];
+      break;
+
+    case EN_LENGTH:
+      v = Link[index].Len * Ucf[ELEV];
+      break;
+
+    case EN_ROUGHNESS:
+      if (Link[index].Type <= EN_PIPE) {
+        if (hyd->Formflag == DW)
+          v = Link[index].Kc * (1000.0 * Ucf[ELEV]);
+        else
+          v = Link[index].Kc;
+      } else
+        v = 0.0;
+      break;
+
+    case EN_MINORLOSS:
+      if (Link[index].Type != EN_PUMP) {
+        v = Link[index].Km;
+        v *= (SQR(Link[index].Diam) * SQR(Link[index].Diam) / 0.02517);
+      } else
+        v = 0.0;
+      break;
+
+    case EN_INITSTATUS:
+      if (Link[index].Stat <= CLOSED)
+        v = 0.0;
+      else
+        v = 1.0;
+      break;
+
+    case EN_INITSETTING:
+      if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
+        return (ENgetlinkvalue(index, EN_ROUGHNESS, value));
+      v = Link[index].Kc;
+      switch (Link[index].Type) {
+        case EN_PRV:
+        case EN_PSV:
+        case EN_PBV:
+          v *= Ucf[PRESSURE];
+          break;
+        case EN_FCV:
+          v *= Ucf[FLOW];
+        default:
+          break;
+      }
+      break;
+
+    case EN_KBULK:
+      v = Link[index].Kb * SECperDAY;
+      break;
+
+    case EN_KWALL:
+      v = Link[index].Kw * SECperDAY;
+      break;
+
+    case EN_FLOW:
+
+      /*** Updated 10/25/00 ***/
+      if (hyd->LinkStatus[index] <= CLOSED)
+        v = 0.0;
+      else
+        v = LinkFlows[index] * Ucf[FLOW];
+      break;
+
+    case EN_VELOCITY:
+      if (Link[index].Type == EN_PUMP) {
+        v = 0.0;
+      }
+
+      /*** Updated 11/19/01 ***/
+      else if (hyd->LinkStatus[index] <= CLOSED)
+        v = 0.0;
+
+      else {
+        q = ABS(LinkFlows[index]);
+        a = PI * SQR(Link[index].Diam) / 4.0;
+        v = q / a * Ucf[VELOCITY];
+      }
+      break;
+
+    case EN_HEADLOSS:
+
+      /*** Updated 11/19/01 ***/
+      if (hyd->LinkStatus[index] <= CLOSED)
+        v = 0.0;
+
+      else {
+        h = hyd->NodeHead[Link[index].N1] - hyd->NodeHead[Link[index].N2];
+        if (Link[index].Type != EN_PUMP)
+          h = ABS(h);
+        v = h * Ucf[HEADLOSS];
+      }
+      break;
+
+    case EN_STATUS:
+      if (hyd->LinkStatus[index] <= CLOSED)
+        v = 0.0;
+      else
+        v = 1.0;
+      break;
+
+    case EN_SETTING:
+      if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE) {
+        return (ENgetlinkvalue(index, EN_ROUGHNESS, value));
+      }
+      if (LinkSetting[index] == MISSING) {
+        v = 0.0;
+      } else {
+        v = LinkSetting[index];
+      }
+      switch (Link[index].Type) {
+        case EN_PRV:
+        case EN_PSV:
+        case EN_PBV:
+          v *= Ucf[PRESSURE];
+          break;
+        case EN_FCV:
+          v *= Ucf[FLOW];
+        default:
+          break;
+      }
+      break;
+
+    case EN_ENERGY:
+      getenergy(p, index, &v, &a);
+      break;
+
+    case EN_LINKQUAL:
+      v = avgqual(p, index) * Ucf[LINKQUAL];
+      break;
+
+    case EN_LINKPATTERN:
+      if (Link[index].Type == EN_PUMP)
+        v = (double)Pump[findpump(&p->network, index)].Upat;
+      break;
+
+    case EN_EFFICIENCY:
+      getenergy(p, index, &a, &v);
+      break;
+
+    case EN_PRICEPATTERN:
+      if (Link[index].Type == EN_PUMP)
+        v = (double)Pump[findpump(&p->network, index)].Epat;
+      break;
+
+    case EN_HEADCURVE:
+      if (Link[index].Type == EN_PUMP) {
+        v = (double)Pump[findpump(&p->network, index)].Hcurve;
+        if (v == 0) {
+          returnValue = 226;
+        }
+      }
+      else {
+        v = 0;
+        returnValue = 211;
+      }
+      break;
+
+    case EN_EFFICIENCYCURVE:
+      if (Link[index].Type == EN_PUMP) {
+        v = (double)Pump[findpump(&p->network, index)].Ecurve;
+        if (v == 0) {
+          returnValue = 268;
+        }
+      }
+      else {
+        v = 0;
+        returnValue = 211;
+      }
+
+    default:
+      v = 0;
+      returnValue = 251;
+  }
+  *value = (EN_API_FLOAT_TYPE)v;
+
+  return set_error(p->error_handle, returnValue);
+}
+
+
+int DLLEXPORT ENgetpatternindex(char *id, int *index) {
+  return EN_getpatternindex(_defaultModel, id, index);
+}
+
+int DLLEXPORT EN_getpatternindex(EN_ProjectHandle ph, char *id, int *index) {
+  int i;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *index = 0;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  for (i = 1; i <= p->network.Npats; i++) {
+    if (strcmp(id, p->network.Pattern[i].ID) == 0) {
+      *index = i;
+      return set_error(p->error_handle, 0);
+    }
+  }
+  *index = 0;
+  return set_error(p->error_handle, 205);
+}
+
+int DLLEXPORT ENgetpatternid(int index, char *id) {
+  return EN_getpatternid(_defaultModel, index, id);
+}
+
+int DLLEXPORT EN_getpatternid(EN_ProjectHandle ph, int index, char *id) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  strcpy(id, "");
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index < 1 || index > p->network.Npats)
+    return set_error(p->error_handle, 205);
+  strcpy(id, p->network.Pattern[index].ID);
+  return set_error(p->error_handle, 0);
+}
+
+
+int DLLEXPORT ENgetpatternlen(int index, int *len) {
+  return EN_getpatternlen(_defaultModel, index, len);
+}
+
+int DLLEXPORT EN_getpatternlen(EN_ProjectHandle ph, int index, int *len) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index < 1 || index > p->network.Npats)
+    return set_error(p->error_handle, 205);
+  *len = p->network.Pattern[index].Length;
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENgetpatternvalue(int index, int period,
+        EN_API_FLOAT_TYPE *value) {
+  return EN_getpatternvalue(_defaultModel, index, period, value);
+}
+
+int DLLEXPORT EN_getpatternvalue(EN_ProjectHandle ph, int index, int period,
+                                 EN_API_FLOAT_TYPE *value) {
+
+  int errorcode = 0;
+  EN_Project *p = (EN_Project*)ph;
+  *value = 0.0;
+
+  if (!p->Openflag)
+    errorcode = 102;
+  else if (index < 1 || index > p->network.Npats)
+    errorcode = 205;
+  else if (period < 1 || period > p->network.Pattern[index].Length)
+    errorcode = 251;
+  else
+    *value = (EN_API_FLOAT_TYPE)p->network.Pattern[index].F[period - 1];
+
+  return set_error(p->error_handle, errorcode);
+}
+
+/*
+ ----------------------------------------------------------------
+ Functions for retrieving network information
+ ----------------------------------------------------------------
+ */
+int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex,
+        EN_API_FLOAT_TYPE *setting, int *nindex, EN_API_FLOAT_TYPE *level) {
+  return EN_getcontrol(_defaultModel, cindex, ctype, lindex, setting, nindex, level);
+}
+
+int DLLEXPORT EN_getcontrol(EN_ProjectHandle ph, int cindex, int *ctype, int *lindex,
+        EN_API_FLOAT_TYPE *setting, int *nindex, EN_API_FLOAT_TYPE *level) {
+  double s, lvl;
+
+  EN_Project *pr = (EN_Project*)ph;
+
+  EN_Network *net = &pr->network;
+
+  Scontrol *Control = net->Control;
+  Snode *Node = net->Node;
+  Slink *Link = net->Link;
+
+  const int Njuncs = net->Njuncs;
+  double *Ucf = pr->Ucf;
+
+  s = 0.0;
+  lvl = 0.0;
+  *ctype = 0;
+  *lindex = 0;
+  *nindex = 0;
+  if (!pr->Openflag)
+    return set_error(pr->error_handle, 102);
+  if (cindex < 1 || cindex > net->Ncontrols)
+    return set_error(pr->error_handle, 241);
+  *ctype = Control[cindex].Type;
+  *lindex = Control[cindex].Link;
+  s = Control[cindex].Setting;
+  if (Control[cindex].Setting != MISSING) {
+    switch (Link[*lindex].Type) {
+      case EN_PRV:
+      case EN_PSV:
+      case EN_PBV:
+        s *= Ucf[PRESSURE];
+        break;
+      case EN_FCV:
+        s *= Ucf[FLOW];
+      default:
+        break;
+    }
+  } else if (Control[cindex].Status == OPEN) {
+    s = 1.0;
+  }
+
+  /*** Updated 3/1/01 ***/
+  else
+    s = 0.0;
+
+  *nindex = Control[cindex].Node;
+  if (*nindex > Njuncs)
+    lvl = (Control[cindex].Grade - Node[*nindex].El) * Ucf[ELEV];
+  else if (*nindex > 0)
+    lvl = (Control[cindex].Grade - Node[*nindex].El) * Ucf[PRESSURE];
+  else
+    lvl = (EN_API_FLOAT_TYPE)Control[cindex].Time;
+  *setting = (EN_API_FLOAT_TYPE)s;
+  *level = (EN_API_FLOAT_TYPE)lvl;
+
+  return set_error(pr->error_handle, 0);
+}
+
+int DLLEXPORT ENgetcount(int code, int *count) {
+  return EN_getcount(_defaultModel, (EN_CountType)code, count);
+}
+
+int DLLEXPORT EN_getcount(EN_ProjectHandle ph, EN_CountType code, int *count) {
+
+  EN_Project *pr = (EN_Project*)ph;
+
+  EN_Network *net = &pr->network;
+
+  *count = 0;
+  if (!pr->Openflag)
+    return set_error(pr->error_handle, 102);
+  switch (code) {
+  case EN_NODECOUNT:
+    *count = net->Nnodes;
+    break;
+  case EN_TANKCOUNT:
+    *count = net->Ntanks;
+    break;
+  case EN_LINKCOUNT:
+    *count = net->Nlinks;
+    break;
+  case EN_PATCOUNT:
+    *count = net->Npats;
+    break;
+  case EN_CURVECOUNT:
+    *count = net->Ncurves;
+    break;
+  case EN_CONTROLCOUNT:
+    *count = net->Ncontrols;
+    break;
+  case EN_RULECOUNT:
+    *count = net->Nrules;
+    break;
+  default:
+    return set_error(pr->error_handle, 251);
+  }
+  return set_error(pr->error_handle, 0);
+}
+
+int DLLEXPORT ENgetflowunits(int *code) {
+  return EN_getflowunits(_defaultModel, code);
+}
+
+int DLLEXPORT EN_getflowunits(EN_ProjectHandle ph, int *code) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *code = -1;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  *code = p->parser.Flowflag;
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENgettimeparam(int code, long *value) {
+  return EN_gettimeparam(_defaultModel, code, value);
+}
+
+int DLLEXPORT EN_gettimeparam(EN_ProjectHandle ph, int code, long *value) {
+  int i;
+
+  EN_Project *pr = (EN_Project*)ph;
+
+  report_options_t *rep = &pr->report;
+  quality_t *qu = &pr->quality;
+  time_options_t *time = &pr->time_options;
+
+
+  *value = 0;
+  if (!pr->Openflag)
+    return set_error(pr->error_handle, 102);
+  if (code < EN_DURATION || code > EN_NEXTEVENTIDX)
+    return set_error(pr->error_handle, 251);
+  switch (code) {
+  case EN_DURATION:
+    *value = time->Dur;
+    break;
+  case EN_HYDSTEP:
+    *value = time->Hstep;
+    break;
+  case EN_QUALSTEP:
+    *value = qu->Qstep;
+    break;
+  case EN_PATTERNSTEP:
+    *value = time->Pstep;
+    break;
+  case EN_PATTERNSTART:
+    *value = time->Pstart;
+    break;
+  case EN_REPORTSTEP:
+    *value = time->Rstep;
+    break;
+  case EN_REPORTSTART:
+    *value = time->Rstart;
+    break;
+  case EN_STATISTIC:
+    *value = rep->Tstatflag;
+    break;
+  case EN_RULESTEP:
+    *value = time->Rulestep;
+    break;
+  case EN_PERIODS:
+    *value = rep->Nperiods;
+    break;
+  case EN_STARTTIME:
+    *value = time->Tstart;
+    break; /* Added TNT 10/2/2009 */
+  case EN_HTIME:
+    *value = time->Htime;
+    break;
+  case EN_NEXTEVENT:
+    *value = time->Hstep; // find the lesser of the hydraulic time step length, or the
+                    // time to next fill/empty
+    tanktimestep(pr,value);
+    break;
+  case EN_NEXTEVENTIDX:
+      *value = time->Hstep;
+      i = tanktimestep(pr, value);
+      *value = i;
+      break;
+  }
+  return set_error(pr->error_handle, 0);
+}
+
+
+int DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value) {
+  return EN_getoption(_defaultModel, (EN_Option)code, value);
+}
+
+int DLLEXPORT EN_getoption(EN_ProjectHandle ph, EN_Option code,
+        EN_API_FLOAT_TYPE *value) {
+
+  EN_Project *pr = (EN_Project*)ph;
+
+  hydraulics_t *hyd = &pr->hydraulics;
+  quality_t *qu = &pr->quality;
+  double *Ucf = pr->Ucf;
+
+  double v = 0.0;
+  *value = 0.0;
+  if (!pr->Openflag)
+    return set_error(pr->error_handle,102);
+  switch (code) {
+  case EN_TRIALS:
+    v = (double)hyd->MaxIter;
+    break;
+  case EN_ACCURACY:
+    v = hyd->Hacc;
+    break;
+  case EN_TOLERANCE:
+    v = qu->Ctol * Ucf[QUALITY];
+    break;
+  case EN_EMITEXPON:
+    if (hyd->Qexp > 0.0)
+      v = 1.0 / hyd->Qexp;
+    break;
+  case EN_DEMANDMULT:
+    v = hyd->Dmult;
+    break;
+
+  case EN_HEADERROR:
+    v = hyd->HeadErrorLimit * Ucf[HEAD];
+    break;
+  case EN_FLOWCHANGE:
+    v = hyd->FlowChangeLimit * Ucf[FLOW];
+    break;
+
+  default:
+    return set_error(pr->error_handle, 251);
+  }
+  *value = (EN_API_FLOAT_TYPE)v;
+
+  return set_error(pr->error_handle, 0);
+}
+
+int DLLEXPORT ENgetversion(int *v) { return EN_getversion(v); }
+
+int DLLEXPORT EN_getversion(int *v)
+/*----------------------------------------------------------------
+ **  Input:    none
+ **  Output:   *v = version number of the source code
+ **  Returns:  error code (should always be 0)
+ **  Purpose:  retrieves a number assigned to the most recent
+ **            update of the source code. This number, set by the
+ **            constant CODEVERSION found in TYPES.H, is to be
+ **            interpreted with implied decimals, i.e., "20100" == "2(.)01(.)00"
+ **----------------------------------------------------------------
+ */
+{
+  *v = CODEVERSION;
+  return (0);
+}
+
+
+/*
+ ----------------------------------------------------------------
+ Functions for changing network data
+ ----------------------------------------------------------------
+ */
+int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
+        EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level) {
+  return EN_setcontrol(_defaultModel, cindex, ctype, lindex, setting, nindex, level);
+}
+
+int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lindex,
+        EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level) {
+
+  char status = ACTIVE;
+  long t = 0;
+  double s = setting, lvl = level;
+  EN_Network *net;
+  Snode *Node;
+  Slink *Link;
+  Scontrol *Control;
+
+  int Nnodes;
+  int Njuncs;
+  int Nlinks;
+  double *Ucf;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  /* Check that input file opened */
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+
+  /* Check that control exists */
+  if (cindex < 1 || cindex > p->network.Ncontrols)
+    return set_error(p->error_handle, 241);
+
+
+  net = &p->network;
+
+  Node = net->Node;
+  Link = net->Link;
+  Control = net->Control;
+
+  Nnodes = net->Nnodes;
+  Njuncs = net->Njuncs;
+  Nlinks = net->Nlinks;
+
+  Ucf = p->Ucf;
+
+  /* Check that controlled link exists */
+  if (lindex == 0) {
+    Control[cindex].Link = 0;
+    return set_error(p->error_handle, 0);
+  }
+  if (lindex < 0 || lindex > Nlinks)
+    return set_error(p->error_handle, 204);
+
+  /* Cannot control check valve. */
+  if (Link[lindex].Type == EN_CVPIPE)
+    return set_error(p->error_handle, 207);
+
+  /* Check for valid parameters */
+  if (ctype < 0 || ctype > EN_TIMEOFDAY)
+    return set_error(p->error_handle, 251);
+  if (ctype == EN_LOWLEVEL || ctype == EN_HILEVEL) {
+    if (nindex < 1 || nindex > Nnodes)
+      return set_error(p->error_handle, 203);
+  } else
+    nindex = 0;
+  if (s < 0.0 || lvl < 0.0)
+    return set_error(p->error_handle, 202);
+
+  /* Adjust units of control parameters */
+  switch (Link[lindex].Type) {
+    case EN_PRV:
+    case EN_PSV:
+    case EN_PBV:
+      s /= Ucf[PRESSURE];
+      break;
+    case EN_FCV:
+      s /= Ucf[FLOW];
+      break;
+
+      /*** Updated 9/7/00 ***/
+    case EN_GPV:
+      if (s == 0.0)
+        status = CLOSED;
+      else if (s == 1.0)
+        status = OPEN;
+      else
+        return set_error(p->error_handle, 202);
+      s = Link[lindex].Kc;
+      break;
+
+    case EN_PIPE:
+    case EN_PUMP:
+      status = OPEN;
+      if (s == 0.0)
+        status = CLOSED;
+    default:
+      break;
+  }
+  if (ctype == LOWLEVEL || ctype == HILEVEL) {
+    if (nindex > Njuncs)
+      lvl = Node[nindex].El + level / Ucf[ELEV];
+    else
+      lvl = Node[nindex].El + level / Ucf[PRESSURE];
+  }
+  if (ctype == TIMER)
+    t = (long)ROUND(lvl);
+  if (ctype == TIMEOFDAY)
+    t = (long)ROUND(lvl) % SECperDAY;
+
+  /* Reset control's parameters */
+  Control[cindex].Type = (char)ctype;
+  Control[cindex].Link = lindex;
+  Control[cindex].Node = nindex;
+  Control[cindex].Status = status;
+  Control[cindex].Setting = s;
+  Control[cindex].Grade = lvl;
+  Control[cindex].Time = t;
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v) {
+  return EN_setnodevalue(_defaultModel, index, code, v);
+}
+
+int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v)
+/*----------------------------------------------------------------
+ **  Input:   index = node index
+ **           code  = node parameter code (see EPANET2.H)
+ **           value = parameter value
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: sets input parameter value for a node
+ **----------------------------------------------------------------
+ */
+{
+  EN_Project *p = (EN_Project*)ph;
+
+  EN_Network *net = &p->network;
+  hydraulics_t *hyd = &p->hydraulics;
+  quality_t *qu = &p->quality;
+
+  Snode *Node = net->Node;
+  Stank *Tank = net->Tank;
+
+  const int Nnodes = net->Nnodes;
+  const int Njuncs = net->Njuncs;
+  const int Npats = net->Npats;
+
+  double *Ucf = p->Ucf;
+
+  int j;
+  Pdemand demand;
+  Psource source;
+  double Htmp;
+  double value = v;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index <= 0 || index > Nnodes)
+    return set_error(p->error_handle, 203);
+  switch (code) {
+  case EN_ELEVATION:
+    if (index <= Njuncs)
+      Node[index].El = value / Ucf[ELEV];
+    else {
+      value = (value / Ucf[ELEV]) - Node[index].El;
+      j = index - Njuncs;
+      Tank[j].H0 += value;
+      Tank[j].Hmin += value;
+      Tank[j].Hmax += value;
+      Node[index].El += value;
+      hyd->NodeHead[index] += value;
+    }
+    break;
+
+  case EN_BASEDEMAND:
+    /* NOTE: primary demand category is last on demand list */
+    if (index <= Njuncs) {
+      for (demand = Node[index].D; demand != NULL; demand = demand->next) {
+        if (demand->next == NULL)
+          demand->Base = value / Ucf[FLOW];
+      }
+    }
+    break;
+
+  case EN_PATTERN:
+    /* NOTE: primary demand category is last on demand list */
+    j = ROUND(value);
+    if (j < 0 || j > Npats)
+      return (205);
+    if (index <= Njuncs) {
+      for (demand = Node[index].D; demand != NULL; demand = demand->next) {
+        if (demand->next == NULL)
+          demand->Pat = j;
+      }
+    } else
+      Tank[index - Njuncs].Pat = j;
+    break;
+
+  case EN_EMITTER:
+    if (index > Njuncs)
+      return set_error(p->error_handle, 203);
+    if (value < 0.0)
+      return set_error(p->error_handle, 202);
+    if (value > 0.0)
+      value = pow((Ucf[FLOW] / value), hyd->Qexp) / Ucf[PRESSURE];
+    Node[index].Ke = value;
+    break;
+
+  case EN_INITQUAL:
+    if (value < 0.0)
+      return set_error(p->error_handle, 202);
+    Node[index].C0 = value / Ucf[QUALITY];
+    if (index > Njuncs)
+      Tank[index - Njuncs].C = Node[index].C0;
+    break;
+
+  case EN_SOURCEQUAL:
+  case EN_SOURCETYPE:
+  case EN_SOURCEPAT:
+    if (value < 0.0)
+      return set_error(p->error_handle, 202);
+    source = Node[index].S;
+    if (source == NULL) {
+      source = (struct Ssource *)malloc(sizeof(struct Ssource));
+      if (source == NULL)
+        return set_error(p->error_handle, 101);
+      source->Type = CONCEN;
+      source->C0 = 0.0;
+      source->Pat = 0;
+      Node[index].S = source;
+    }
+    if (code == EN_SOURCEQUAL) {
+      source->C0 = value;
+    } else if (code == EN_SOURCEPAT) {
+      j = ROUND(value);
+      if (j < 0 || j > Npats)
+        return set_error(p->error_handle, 205);
+      source->Pat = j;
+    } else // code == EN_SOURCETYPE
+    {
+      j = ROUND(value);
+      if (j < CONCEN || j > FLOWPACED)
+        return set_error(p->error_handle, 251);
+      else
+        source->Type = (char)j;
+    }
+    return (0);
+
+  case EN_TANKLEVEL:
+    if (index <= Njuncs)
+      return set_error(p->error_handle, 251);
+    j = index - Njuncs;
+    if (Tank[j].A == 0.0) /* Tank is a reservoir */
+    {
+      Tank[j].H0 = value / Ucf[ELEV];
+      Tank[j].Hmin = Tank[j].H0;
+      Tank[j].Hmax = Tank[j].H0;
+      Node[index].El = Tank[j].H0;
+      hyd->NodeHead[index] = Tank[j].H0;
+    } else {
+      value = Node[index].El + value / Ucf[ELEV];
+      if (value > Tank[j].Hmax || value < Tank[j].Hmin)
+        return set_error(p->error_handle, 202);
+      Tank[j].H0 = value;
+      Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
+      // Resetting Volume in addition to initial volume
+      Tank[j].V = Tank[j].V0;
+      hyd->NodeHead[index] = Tank[j].H0;
+    }
+    break;
+
+    /*** New parameters added for retrieval begins here   ***/
+  /*** (Thanks to Nicolas Basile of Ecole Polytechnique ***/
+  /***  de Montreal for suggesting some of these.)      ***/
+
+  case EN_TANKDIAM:
+    if (value <= 0.0)
+      return set_error(p->error_handle, 202);
+    if (index <= Njuncs)
+      return set_error(p->error_handle, 251);
+    j = index - Njuncs;
+    if (j > 0 && Tank[j].A > 0.0) {
+      value /= Ucf[ELEV];
+      Tank[j].A = PI * SQR(value) / 4.0;
+      Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
+      Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
+      Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
+    } else {
+      return set_error(p->error_handle, 251);
+    }
+    break;
+
+  case EN_MINVOLUME:
+    if (value < 0.0)
+      return set_error(p->error_handle, 202);
+    if (index <= Njuncs)
+      return set_error(p->error_handle, 251);
+    j = index - Njuncs;
+    if (j > 0 && Tank[j].A > 0.0) {
+      Tank[j].Vmin = value / Ucf[VOLUME];
+      Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
+      Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
+    } else {
+      return set_error(p->error_handle, 251);
+    }
+    break;
+
+  case EN_MINLEVEL:
+    if (value < 0.0)
+      return set_error(p->error_handle, 202);
+    if (index <= Njuncs)
+      return set_error(p->error_handle, 251); // not a tank or reservoir
+    j = index - Njuncs;
+    if (Tank[j].A == 0.0)
+      return set_error(p->error_handle, 251); // node is a reservoir
+    Htmp = value / Ucf[ELEV] + Node[index].El;
+    if (Htmp < Tank[j].Hmax && Htmp <= Tank[j].H0) {
+      if (Tank[j].Vcurve > 0)
+        return set_error(p->error_handle, 202);
+      Tank[j].Hmin = Htmp;
+      Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
+    } else {
+      return set_error(p->error_handle, 251);
+    }
+    break;
+
+  case EN_MAXLEVEL:
+    if (value < 0.0)
+      return set_error(p->error_handle, 202);
+    if (index <= Njuncs)
+      return set_error(p->error_handle, 251); // not a tank or reservoir
+    j = index - Njuncs;
+    if (Tank[j].A == 0.0)
+      return set_error(p->error_handle, 251); // node is a reservoir
+    Htmp = value / Ucf[ELEV] + Node[index].El;
+    if (Htmp > Tank[j].Hmin && Htmp >= Tank[j].H0) {
+      if (Tank[j].Vcurve > 0)
+        return set_error(p->error_handle, 202);
+      Tank[j].Hmax = Htmp;
+      Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
+    } else {
+      return set_error(p->error_handle, 251);
+    }
+    break;
+
+  case EN_MIXMODEL:
+    j = ROUND(value);
+    if (index <= Njuncs)
+      return set_error(p->error_handle, 251);
+    if (j < MIX1 || j > LIFO)
+      return set_error(p->error_handle, 202);
+    if (index > Njuncs && Tank[index - Njuncs].A > 0.0) {
+      Tank[index - Njuncs].MixModel = (char)j;
+    } else {
+      return set_error(p->error_handle, 251);
+    }
+    break;
+
+  case EN_MIXFRACTION:
+    if (value < 0.0 || value > 1.0)
+      return set_error(p->error_handle, 202);
+    if (index <= Njuncs)
+      return set_error(p->error_handle, 251);
+    j = index - Njuncs;
+    if (j > 0 && Tank[j].A > 0.0) {
+      Tank[j].V1max = value * Tank[j].Vmax;
+    }
+    break;
+
+  case EN_TANK_KBULK:
+    if (index <= Njuncs)
+      return set_error(p->error_handle, 251);
+    j = index - Njuncs;
+    if (j > 0 && Tank[j].A > 0.0) {
+      Tank[j].Kb = value / SECperDAY;
+      qu->Reactflag = 1;
+    } else {
+      return set_error(p->error_handle, 251);
+    }
+    break;
+
+    /***  New parameter additions ends here. ***/
+
+  default:
+    return set_error(p->error_handle, 251);
+  }
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v) {
+  return EN_setlinkvalue(_defaultModel, index, code, v);
+}
+
+int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
+        EN_API_FLOAT_TYPE v)
+/*----------------------------------------------------------------
+ **  Input:   index = link index
+ **           code  = link parameter code (see EPANET2.H)
+ **           v = parameter value
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: sets input parameter value for a link
+ **----------------------------------------------------------------
+ */
+{
+  EN_Project *p = (EN_Project*)ph;
+
+  EN_Network *net = &p->network;
+  hydraulics_t *hyd = &p->hydraulics;
+  quality_t *qu = &p->quality;
+
+  Slink *Link = net->Link;
+
+  const int Nlinks = net->Nlinks;
+
+  double *Ucf = p->Ucf;
+  double *LinkSetting = hyd->LinkSetting;
+
+  char s;
+  double r, value = v;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index <= 0 || index > Nlinks)
+    return set_error(p->error_handle, 204);
+  switch (code) {
+  case EN_DIAMETER:
+    if (Link[index].Type != EN_PUMP) {
+      if (value <= 0.0)
+        return set_error(p->error_handle, 202);
+      value /= Ucf[DIAM];                /* Convert to feet */
+      r = Link[index].Diam / value;      /* Ratio of old to new diam */
+      Link[index].Km *= SQR(r) * SQR(r); /* Adjust minor loss factor */
+      Link[index].Diam = value;          /* Update diameter */
+      resistcoeff(p, index);             /* Update resistance coeff. */
+    }
+    break;
+
+  case EN_LENGTH:
+    if (Link[index].Type <= EN_PIPE) {
+      if (value <= 0.0)
+        return set_error(p->error_handle, 202);
+      Link[index].Len = value / Ucf[ELEV];
+      resistcoeff(p, index);
+    }
+    break;
+
+  case EN_ROUGHNESS:
+    if (Link[index].Type <= EN_PIPE) {
+      if (value <= 0.0)
+        return set_error(p->error_handle, 202);
+      Link[index].Kc = value;
+      if (hyd->Formflag == DW)
+        Link[index].Kc /= (1000.0 * Ucf[ELEV]);
+      resistcoeff(p, index);
+    }
+    break;
+
+  case EN_MINORLOSS:
+    if (Link[index].Type != EN_PUMP) {
+      if (value <= 0.0)
+        return set_error(p->error_handle, 202);
+      Link[index].Km =
+          0.02517 * value / SQR(Link[index].Diam) / SQR(Link[index].Diam);
+    }
+    break;
+
+  case EN_INITSTATUS:
+  case EN_STATUS:
+    /* Cannot set status for a check valve */
+    if (Link[index].Type == EN_CVPIPE)
+      return set_error(p->error_handle, 207);
+    s = (char)ROUND(value);
+    if (s < 0 || s > 1)
+      return set_error(p->error_handle, 251);
+    if (code == EN_INITSTATUS)
+      setlinkstatus(p, index, s, &Link[index].Stat, &Link[index].Kc);
+    else
+      setlinkstatus(p, index, s, &hyd->LinkStatus[index], &LinkSetting[index]);
+    break;
+
+  case EN_INITSETTING:
+  case EN_SETTING:
+    if (value < 0.0)
+      return set_error(p->error_handle, 202);
+    if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
+      return (ENsetlinkvalue(index, EN_ROUGHNESS, v));
+    else {
+      switch (Link[index].Type) {
+      case EN_PUMP:
+        break;
+      case EN_PRV:
+      case EN_PSV:
+      case EN_PBV:
+        value /= Ucf[PRESSURE];
+        break;
+      case EN_FCV:
+        value /= Ucf[FLOW];
+        break;
+      case EN_TCV:
+        break;
+
+      /***  Updated 9/7/00  ***/
+      case EN_GPV:
+        return set_error(p->error_handle, 202); /* Cannot modify setting for GPV */
+
+      default:
+        return set_error(p->error_handle, 251);
+      }
+      if (code == EN_INITSETTING)
+        setlinksetting(p, index, value, &Link[index].Stat, &Link[index].Kc);
+      else
+        setlinksetting(p, index, value, &hyd->LinkStatus[index],
+                       &LinkSetting[index]);
+    }
+    break;
+
+  case EN_KBULK:
+    if (Link[index].Type <= EN_PIPE) {
+      Link[index].Kb = value / SECperDAY;
+      qu->Reactflag = 1;
+    }
+    break;
+
+  case EN_KWALL:
+    if (Link[index].Type <= EN_PIPE) {
+      Link[index].Kw = value / SECperDAY;
+      qu->Reactflag = 1;
+    }
+    break;
+
+  default:
+    return set_error(p->error_handle, 251);
+  }
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n) {
+  return EN_setpattern(_defaultModel, index, f, n);
+}
+
+int DLLEXPORT EN_setpattern(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *f, int n) {
+  int j;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  EN_Network *net = &p->network;
+  Spattern *Pattern = net->Pattern;
+  const int Npats = net->Npats;
+
+
+  /* Check for valid arguments */
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index <= 0 || index > Npats)
+    return set_error(p->error_handle, 205);
+  if (n <= 0)
+    return set_error(p->error_handle, 202);
+
+  /* Re-set number of time periods & reallocate memory for multipliers */
+  Pattern[index].Length = n;
+  Pattern[index].F = (double *)realloc(Pattern[index].F, n * sizeof(double));
+  if (Pattern[index].F == NULL)
+    return set_error(p->error_handle, 101);
+
+  /* Load multipliers into pattern */
+  for (j = 0; j < n; j++)
+    Pattern[index].F[j] = f[j];
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value) {
+  return EN_setpatternvalue(_defaultModel, index, period, value);
+}
+
+int DLLEXPORT EN_setpatternvalue(EN_ProjectHandle ph, int index, int period,
+        EN_API_FLOAT_TYPE value) {
+  int errorcode = 0;
+
+  EN_Project *p = (EN_Project*)ph;
+  EN_Network *net = &p->network;
+
+  Spattern *Pattern = net->Pattern;
+  const int Npats = net->Npats;
+
+
+  if (!p->Openflag)
+    errorcode = 102;
+  else if (index <= 0 || index > Npats)
+    errorcode = 205;
+  else if (period <= 0 || period > Pattern[index].Length)
+    errorcode = 251;
+  else
+      Pattern[index].F[period - 1] = value;
+
+  return set_error(p->error_handle, errorcode);
+}
+
+int DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode) {
+  return EN_setqualtype(_defaultModel, qualcode, chemname, chemunits, tracenode);
+}
+
+int DLLEXPORT EN_setqualtype(EN_ProjectHandle ph, int qualcode, char *chemname,
+        char *chemunits, char *tracenode) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  EN_Network *net = &p->network;
+  report_options_t *rep = &p->report;
+  quality_t *qu = &p->quality;
+
+  double *Ucf = p->Ucf;
+  int i;
+
+  /*** Updated 3/1/01 ***/
+  double ccf = 1.0;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (qualcode < EN_NONE || qualcode > EN_TRACE)
+    return set_error(p->error_handle, 251);
+  qu->Qualflag = (char)qualcode;
+  qu->Ctol *= Ucf[QUALITY];
+  if (qu->Qualflag == CHEM) /* Chemical constituent */
+  {
+    strncpy(qu->ChemName, chemname, MAXID);
+    strncpy(qu->ChemUnits, chemunits, MAXID);
+
+    /*** Updated 3/1/01 ***/
+    strncpy(rep->Field[QUALITY].Units, qu->ChemUnits, MAXID);
+    strncpy(rep->Field[REACTRATE].Units, qu->ChemUnits, MAXID);
+    strcat(rep->Field[REACTRATE].Units, t_PERDAY);
+    ccf = 1.0 / LperFT3;
+  }
+  if (qu->Qualflag == TRACE) /* Source tracing option */
+  {
+    qu->TraceNode = findnode(net,tracenode);
+    if (qu->TraceNode == 0)
+      return set_error(p->error_handle, 203);
+    strncpy(qu->ChemName, u_PERCENT, MAXID);
+    strncpy(qu->ChemUnits, tracenode, MAXID);
+
+    /*** Updated 3/1/01 ***/
+    strcpy(rep->Field[QUALITY].Units, u_PERCENT);
+  }
+  if (qu->Qualflag == AGE) /* Water age analysis */
+  {
+    strncpy(qu->ChemName, w_AGE, MAXID);
+    strncpy(qu->ChemUnits, u_HOURS, MAXID);
+
+    /*** Updated 3/1/01 ***/
+    strcpy(rep->Field[QUALITY].Units, u_HOURS);
+  }
+
+  /* when changing from CHEM to AGE or TRACE, nodes initial quality values must be returned to their original ones */
+  if ((qu->Qualflag == AGE || qu->Qualflag == TRACE) & (Ucf[QUALITY] != 1)) {
+    for (i=1; i<=p->network.Nnodes; i++) {
+      p->network.Node[i].C0 *= Ucf[QUALITY];
+    }
+  }
+
+  /*** Updated 3/1/01 ***/
+  Ucf[QUALITY] = ccf;
+  Ucf[LINKQUAL] = ccf;
+  Ucf[REACTRATE] = ccf;
+  qu->Ctol /= Ucf[QUALITY];
+
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENsettimeparam(int code, long value) {
+  return EN_settimeparam(_defaultModel, code, value);
+}
+
+int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value)
+{
+  EN_Project *p = (EN_Project*)ph;
+
+  report_options_t *rep = &p->report;
+  quality_t *qu = &p->quality;
+  time_options_t *time = &p->time_options;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (p->hydraulics.OpenHflag || p->quality.OpenQflag) {
+    // --> there's nothing wrong with changing certain time parameters during a
+    // simulation run, or before the run has started.
+    // todo -- how to tell?
+    /*
+     if (code == EN_DURATION || code == EN_HTIME || code == EN_REPORTSTEP ||
+     code == EN_DURATION || Htime == 0) {
+     // it's ok
+     }
+     else {
+     return(109);
+     }
+     */
+  }
+  if (value < 0)
+    return set_error(p->error_handle, 202);
+  switch (code) {
+  case EN_DURATION:
+    time->Dur = value;
+    if (time->Rstart > time->Dur)
+      time->Rstart = 0;
+    break;
+
+  case EN_HYDSTEP:
+    if (value == 0)
+      return set_error(p->error_handle, 202);
+    time->Hstep = value;
+    time->Hstep = MIN(time->Pstep, time->Hstep);
+    time->Hstep = MIN(time->Rstep, time->Hstep);
+    qu->Qstep = MIN(qu->Qstep, time->Hstep);
+    break;
+
+  case EN_QUALSTEP:
+    if (value == 0)
+      return set_error(p->error_handle, 202);
+    qu->Qstep = value;
+    qu->Qstep = MIN(qu->Qstep, time->Hstep);
+    break;
+
+  case EN_PATTERNSTEP:
+    if (value == 0)
+      return set_error(p->error_handle, 202);
+    time->Pstep = value;
+    if (time->Hstep > time->Pstep)
+      time->Hstep = time->Pstep;
+    break;
+
+  case EN_PATTERNSTART:
+    time->Pstart = value;
+    break;
+
+  case EN_REPORTSTEP:
+    if (value == 0)
+      return set_error(p->error_handle, 202);
+    time->Rstep = value;
+    if (time->Hstep > time->Rstep)
+      time->Hstep = time->Rstep;
+    break;
+
+  case EN_REPORTSTART:
+    if (time->Rstart > time->Dur)
+      return set_error(p->error_handle, 202);
+    time->Rstart = value;
+    break;
+
+  case EN_RULESTEP:
+    if (value == 0)
+      return set_error(p->error_handle, 202);
+    time->Rulestep = value;
+    time->Rulestep = MIN(time->Rulestep, time->Hstep);
+    break;
+
+  case EN_STATISTIC:
+    if (value > RANGE)
+      return set_error(p->error_handle, 202);
+    rep->Tstatflag = (char)value;
+    break;
+
+  case EN_HTIME:
+    time->Htime = value;
+    break;
+
+  case EN_QTIME:
+    qu->Qtime = value;
+    break;
+
+  default:
+    return set_error(p->error_handle, 251);
+  }
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v) {
+  return EN_setoption(_defaultModel, code, v);
+}
+
+int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
+/*----------------------------------------------------------------
+ **  Input:   code  = option code (see EPANET2.H)
+ **           v = option value
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: sets value for an analysis option
+ **----------------------------------------------------------------
+ */
+{
+  EN_Project *p = (EN_Project*)ph;
+
+  EN_Network *net = &p->network;
+  hydraulics_t *hyd = &p->hydraulics;
+  quality_t *qu = &p->quality;
+
+  Snode *Node = net->Node;
+  const int Njuncs = net->Njuncs;
+
+  double *Ucf = p->Ucf;
+
+  int i, j;
+  double Ke, n, ucf, value = v;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  switch (code) {
+  case EN_TRIALS:
+    if (value < 1.0)
+      return set_error(p->error_handle, 202);
+    hyd->MaxIter = (int)value;
+    break;
+  case EN_ACCURACY:
+    if (value < 1.e-5 || value > 1.e-1)
+      return set_error(p->error_handle, 202);
+    hyd->Hacc = value;
+    break;
+  case EN_TOLERANCE:
+    if (value < 0.0)
+      return set_error(p->error_handle, 202);
+    qu->Ctol = value / Ucf[QUALITY];
+    break;
+  case EN_EMITEXPON:
+    if (value <= 0.0)
+      return set_error(p->error_handle, 202);
+    n = 1.0 / value;
+    ucf = pow(Ucf[FLOW], n) / Ucf[PRESSURE];
+    for (i = 1; i <= Njuncs; i++) {
+      j = ENgetnodevalue(i, EN_EMITTER, &v);
+      Ke = v;
+      if (j == 0 && Ke > 0.0)
+        Node[i].Ke = ucf / pow(Ke, n);
+    }
+    hyd->Qexp = n;
+    break;
+  case EN_DEMANDMULT:
+    if (value <= 0.0)
+      return set_error(p->error_handle, 202);
+    hyd->Dmult = value;
+    break;
+
+  case EN_HEADERROR:
+    if (value < 0.0)
+        return set_error(p->error_handle, 202);
+    hyd->HeadErrorLimit = value / Ucf[HEAD];
+    break;
+  case EN_FLOWCHANGE:
+      if (value < 0.0)
+          return set_error(p->error_handle, 202);
+      hyd->FlowChangeLimit = value / Ucf[FLOW];
+      break;
+
+  default:
+    return set_error(p->error_handle, 251);
+  }
+  return set_error(p->error_handle, 0);
+}
+
+
+int DLLEXPORT ENsavehydfile(char *filename) {
+  return EN_savehydfile(_defaultModel, filename);
+}
+
+int DLLEXPORT EN_savehydfile(EN_ProjectHandle ph, char *filename) {
+  FILE *f;
+  int c;
+  FILE *HydFile;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  /* Check that hydraulics results exist */
+  if (p->out_files.HydFile == NULL || !p->save_options.SaveHflag)
+    return set_error(p->error_handle, 104);
+
+  /* Open file */
+  if ((f = fopen(filename, "w+b")) == NULL)
+    return set_error(p->error_handle, 305);
+
+  /* Copy from HydFile to f */
+  HydFile = p->out_files.HydFile;
+  fseek(HydFile, 0, SEEK_SET);
+  while ((c = fgetc(HydFile)) != EOF) {
+    fputc(c, f);
+  }
+  fclose(f);
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENusehydfile(char *filename) {
+  return EN_usehydfile(_defaultModel, filename);
+}
+
+int DLLEXPORT EN_usehydfile(EN_ProjectHandle ph, char *filename) {
+  int errcode;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  /* Check that input data exists & hydraulics system closed */
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (p->hydraulics.OpenHflag)
+    return set_error(p->error_handle, 108);
+
+  /* Try to open hydraulics file */
+  strncpy(p->out_files.HydFname, filename, MAXFNAME);
+  p->out_files.Hydflag = USE;
+  p->save_options.SaveHflag = TRUE;
+  errcode = openhydfile(p);
+
+  /* If error, then reset flags */
+  if (errcode) {
+    strcpy(p->out_files.HydFname, "");
+    p->out_files.Hydflag = SCRATCH;
+    p->save_options.SaveHflag = FALSE;
+  }
+  return set_error(p->error_handle, errcode);
+}
+
+
+int DLLEXPORT ENaddpattern(char *id) {
+  return EN_addpattern(_defaultModel, id);
 }
 
 int DLLEXPORT ENsaveinpfile(char *filename) {
   return EN_saveinpfile(_defaultModel, filename);
 }
 
-int DLLEXPORT ENclose() { return EN_close(_defaultModel); }
+
 
 int DLLEXPORT ENsolveH() { return EN_solveH(_defaultModel); }
 
@@ -200,13 +2194,7 @@ int DLLEXPORT ENnextH(long *tstep) { return EN_nextH(_defaultModel, tstep); }
 
 int DLLEXPORT ENcloseH() { return EN_closeH(_defaultModel); }
 
-int DLLEXPORT ENsavehydfile(char *filename) {
-  return EN_savehydfile(_defaultModel, filename);
-}
 
-int DLLEXPORT ENusehydfile(char *filename) {
-  return EN_usehydfile(_defaultModel, filename);
-}
 
 int DLLEXPORT ENsolveQ() { return EN_solveQ(_defaultModel); }
 
@@ -234,51 +2222,14 @@ int DLLEXPORT ENresetreport() { return EN_resetreport(_defaultModel); }
 
 int DLLEXPORT ENsetreport(char *s) { return EN_setreport(_defaultModel, s); }
 
-int DLLEXPORT ENgetversion(int *v) { return EN_getversion(v); }
 
-int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex,
-                           EN_API_FLOAT_TYPE *setting, int *nindex,
-                           EN_API_FLOAT_TYPE *level) {
-  return EN_getcontrol(_defaultModel, cindex, ctype, lindex, setting, nindex,
-                       level);
-}
 
-int DLLEXPORT ENgetcount(int code, int *count) {
-  return EN_getcount(_defaultModel, (EN_CountType)code, count);
-}
-
-int DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value) {
-  return EN_getoption(_defaultModel, (EN_Option)code, value);
-}
-
-int DLLEXPORT ENgettimeparam(int code, long *value) {
-  return EN_gettimeparam(_defaultModel, code, value);
-}
-
-int DLLEXPORT ENgetflowunits(int *code) {
-  return EN_getflowunits(_defaultModel, code);
-}
 
 int DLLEXPORT ENsetflowunits(int code) {
   return EN_setflowunits(_defaultModel, code);
 }
 
-int DLLEXPORT ENgetpatternindex(char *id, int *index) {
-  return EN_getpatternindex(_defaultModel, id, index);
-}
 
-int DLLEXPORT ENgetpatternid(int index, char *id) {
-  return EN_getpatternid(_defaultModel, index, id);
-}
-
-int DLLEXPORT ENgetpatternlen(int index, int *len) {
-  return EN_getpatternlen(_defaultModel, index, len);
-}
-
-int DLLEXPORT ENgetpatternvalue(int index, int period,
-                                EN_API_FLOAT_TYPE *value) {
-  return EN_getpatternvalue(_defaultModel, index, period, value);
-}
 
 int DLLEXPORT ENgetcurveindex(char *id, int *index) {
   return EN_getcurveindex(_defaultModel, id, index);
@@ -315,17 +2266,7 @@ int DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE *value) {
   return EN_getstatistic(_defaultModel, code, value);
 }
 
-int DLLEXPORT ENgetnodeindex(char *id, int *index) {
-  return EN_getnodeindex(_defaultModel, id, index);
-}
 
-int DLLEXPORT ENgetnodeid(int index, char *id) {
-  return EN_getnodeid(_defaultModel, index, id);
-}
-
-int DLLEXPORT ENgetnodetype(int index, int *code) {
-  return EN_getnodetype(_defaultModel, index, code);
-}
 
 int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x,
                          EN_API_FLOAT_TYPE *y) {
@@ -336,29 +2277,6 @@ int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y) {
   return EN_setcoord(_defaultModel, index, x, y);
 }
 
-int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value) {
-  return EN_getnodevalue(_defaultModel, index, code, value);
-}
-
-int DLLEXPORT ENgetlinkindex(char *id, int *index) {
-  return EN_getlinkindex(_defaultModel, id, index);
-}
-
-int DLLEXPORT ENgetlinkid(int index, char *id) {
-  return EN_getlinkid(_defaultModel, index, id);
-}
-
-int DLLEXPORT ENgetlinktype(int index, EN_LinkType *code) {
-  return EN_getlinktype(_defaultModel, index, code);
-}
-
-int DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2) {
-  return EN_getlinknodes(_defaultModel, index, node1, node2);
-}
-
-int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value) {
-  return EN_getlinkvalue(_defaultModel, index, (EN_LinkProperty)code, value);
-}
 
 int DLLEXPORT ENgetcurve(int curveIndex, char *id, int *nValues,
                          EN_API_FLOAT_TYPE **xValues,
@@ -366,33 +2284,9 @@ int DLLEXPORT ENgetcurve(int curveIndex, char *id, int *nValues,
   return EN_getcurve(_defaultModel, curveIndex, id, nValues, xValues, yValues);
 }
 
-int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
-                           EN_API_FLOAT_TYPE setting, int nindex,
-                           EN_API_FLOAT_TYPE level) {
-  return EN_setcontrol(_defaultModel, cindex, ctype, lindex, setting, nindex,
-                       level);
-}
 
-int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v) {
-  return EN_setnodevalue(_defaultModel, index, code, v);
-}
 
-int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v) {
-  return EN_setlinkvalue(_defaultModel, index, code, v);
-}
 
-int DLLEXPORT ENaddpattern(char *id) {
-  return EN_addpattern(_defaultModel, id);
-}
-
-int DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n) {
-  return EN_setpattern(_defaultModel, index, f, n);
-}
-
-int DLLEXPORT ENsetpatternvalue(int index, int period,
-                                EN_API_FLOAT_TYPE value) {
-  return EN_setpatternvalue(_defaultModel, index, period, value);
-}
 
 int DLLEXPORT ENaddcurve(char *id) { return EN_addcurve(_defaultModel, id); }
 
@@ -406,23 +2300,15 @@ int DLLEXPORT ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x,
   return EN_setcurvevalue(_defaultModel, index, pnt, x, y);
 }
 
-int DLLEXPORT ENsettimeparam(int code, long value) {
-  return EN_settimeparam(_defaultModel, code, value);
-}
 
-int DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v) {
-  return EN_setoption(_defaultModel, code, v);
-}
+
+
 
 int DLLEXPORT ENsetstatusreport(int code) {
   return EN_setstatusreport(_defaultModel, code);
 }
 
-int DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits,
-                            char *tracenode) {
-  return EN_setqualtype(_defaultModel, qualcode, chemname, chemunits,
-                        tracenode);
-}
+
 
 int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex) {
   return EN_getheadcurveindex(_defaultModel, index, curveindex);
@@ -573,25 +2459,7 @@ int DLLEXPORT EN_free(EN_ProjectHandle *ph)
     return 0;
 }
 
-int DLLEXPORT EN_epanet(EN_ProjectHandle ph, const char *f1, const char *f2, 
-	const char *f3, void(*pviewprog)(char *))
-{
-	int errcode = 0;
-	EN_Project *_p = (EN_Project*)ph;
 
-	ERRCODE(EN_open(ph, f1, f2, f3));
-
-	_p->viewprog = pviewprog;
-	if (_p->out_files.Hydflag != USE) {
-		ERRCODE(EN_solveH(ph));
-	}
-
-	ERRCODE(EN_solveQ(ph));
-	ERRCODE(EN_report(ph));
-	EN_close(ph);
-
-	return set_error(_p->error_handle, errcode);
-}
 
 int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
                       EN_FlowUnits UnitsType, EN_FormType HeadlossFormula)
@@ -655,80 +2523,7 @@ int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
   return (errcode);
 }
 
-int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const char *f3)
-/*----------------------------------------------------------------
- **  Input:   f1 = pointer to name of input file
- **           f2 = pointer to name of report file
- **           f3 = pointer to name of binary output file
- **  Output:  none
- **  Returns: error code
- **  Purpose: opens EPANET input file & reads in network data
- **----------------------------------------------------------------
- */
-{
-  int errcode = 0;
 
-/*** Updated 9/7/00 ***/
-/* Reset math coprocessor */
-#ifdef DLL
-  _fpreset();
-#endif
-
-  EN_Project *p = (EN_Project*)ph;
-
-  /* Set system flags */
-  p->Openflag = FALSE;
-  p->hydraulics.OpenHflag = FALSE;
-  p->quality.OpenQflag = FALSE;
-  p->save_options.SaveHflag = FALSE;
-  p->save_options.SaveQflag = FALSE;
-  p->Warnflag = FALSE;
-  p->parser.Coordflag = TRUE;
-
-  /*** Updated 9/7/00 ***/
-  p->report.Messageflag = TRUE;
-  p->report.Rptflag = 1;
-
-  /* Initialize global pointers to NULL. */
-  initpointers(p);
-
-  /* Open input & report files */
-  ERRCODE(openfiles(p, f1, f2, f3));
-  if (errcode > 0) {
-    errmsg(p, errcode);
-    return (errcode);
-  }
-  writelogo(p);
-
-  /* Find network size & allocate memory for data */
-  writecon(FMT02);
-  writewin(p->viewprog, FMT100);
-  ERRCODE(netsize(p));
-  ERRCODE(allocdata(p));
-
-  /* Retrieve input data */
-  ERRCODE(getdata(p));
-
-  /* Free temporary linked lists used for Patterns & Curves */
-  freeTmplist(p->parser.Patlist);
-  freeTmplist(p->parser.Curvelist);
-
-  /* If using previously saved hydraulics then open its file */
-  if (p->out_files.Hydflag == USE) {
-    ERRCODE(openhydfile(p));
-  }
-
-  /* Write input summary to report file */
-  if (!errcode) {
-    if (p->report.Summaryflag) {
-      writesummary(p);
-    }
-    writetime(p, FMT104);
-    p->Openflag = TRUE;
-  } else
-    errmsg(p, errcode);
-  return (errcode);
-}
 
 int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, char *filename)
 /*----------------------------------------------------------------
@@ -746,63 +2541,7 @@ int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, char *filename)
   return (saveinpfile(p, filename));
 }
 
-int DLLEXPORT EN_close(EN_ProjectHandle ph)
-/*----------------------------------------------------------------
- **  Input:   none
- **  Output:  none
- **  Returns: error code
- **  Purpose: frees all memory & files used by EPANET
- **----------------------------------------------------------------
- */
-{
-  out_file_t *out;
 
-  EN_Project *p = (EN_Project*)ph;
-  
-  if (p->Openflag) {
-    writetime(p, FMT105);
-  }
-  freedata(p);
-
-  out = &p->out_files;
-
-  if (out->TmpOutFile != out->OutFile) {
-    if (out->TmpOutFile != NULL) {
-      fclose(out->TmpOutFile);
-    }
-    remove(out->TmpFname);
-  }
-  out->TmpOutFile = NULL;
-
-  if (p->parser.InFile != NULL) {
-    fclose(p->parser.InFile);
-    p->parser.InFile = NULL;
-  }
-  if (p->report.RptFile != NULL && p->report.RptFile != stdout) {
-    fclose(p->report.RptFile);
-    p->report.RptFile = NULL;
-  }
-  if (out->HydFile != NULL) {
-    fclose(out->HydFile);
-    out->HydFile = NULL;
-  }
-  if (out->OutFile != NULL) {
-    fclose(out->OutFile);
-    out->OutFile = NULL;
-  }
-
-  if (out->Hydflag == SCRATCH)
-    remove(out->HydFname);
-  if (out->Outflag == SCRATCH)
-    remove(out->OutFname);
-
-  p->Openflag = FALSE;
-  p->hydraulics.OpenHflag = FALSE;
-  p->save_options.SaveHflag = FALSE;
-  p->quality.OpenQflag = FALSE;
-  p->save_options.SaveQflag = FALSE;
-  return (0);
-}
 
 /*
  ----------------------------------------------------------------
@@ -1029,56 +2768,7 @@ int DLLEXPORT EN_closeH(EN_ProjectHandle ph)
   return (0);
 }
 
-int DLLEXPORT EN_savehydfile(EN_ProjectHandle ph, char *filename) {
-  FILE *f;
-  int c;
-  FILE *HydFile;
-  
-  EN_Project *p = (EN_Project*)ph;
 
-  /* Check that hydraulics results exist */
-  if (p->out_files.HydFile == NULL || !p->save_options.SaveHflag)
-    return (104);
-
-  /* Open file */
-  if ((f = fopen(filename, "w+b")) == NULL)
-    return (305);
-
-  /* Copy from HydFile to f */
-  HydFile = p->out_files.HydFile;
-  fseek(HydFile, 0, SEEK_SET);
-  while ((c = fgetc(HydFile)) != EOF) {
-    fputc(c, f);
-  }
-  fclose(f);
-  return (0);
-}
-
-int DLLEXPORT EN_usehydfile(EN_ProjectHandle ph, char *filename) {
-  int errcode;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  /* Check that input data exists & hydraulics system closed */
-  if (!p->Openflag)
-    return (102);
-  if (p->hydraulics.OpenHflag)
-    return (108);
-
-  /* Try to open hydraulics file */
-  strncpy(p->out_files.HydFname, filename, MAXFNAME);
-  p->out_files.Hydflag = USE;
-  p->save_options.SaveHflag = TRUE;
-  errcode = openhydfile(p);
-
-  /* If error, then reset flags */
-  if (errcode) {
-    strcpy(p->out_files.HydFname, "");
-    p->out_files.Hydflag = SCRATCH;
-    p->save_options.SaveHflag = FALSE;
-  }
-  return (errcode);
-}
 
 /*
  ----------------------------------------------------------------
@@ -1299,247 +2989,11 @@ int DLLEXPORT EN_setreport(EN_ProjectHandle ph, char *s) {
     return (0);
 }
 
-/*
- ----------------------------------------------------------------
- Functions for retrieving network information
- ----------------------------------------------------------------
- */
-
-/*** Updated 10/25/00 ***/
-int DLLEXPORT EN_getversion(int *v)
-/*----------------------------------------------------------------
- **  Input:    none
- **  Output:   *v = version number of the source code
- **  Returns:  error code (should always be 0)
- **  Purpose:  retrieves a number assigned to the most recent
- **            update of the source code. This number, set by the
- **            constant CODEVERSION found in TYPES.H, is to be
- **            interpreted with implied decimals, i.e., "20100" == "2(.)01(.)00"
- **----------------------------------------------------------------
- */
-{
-  *v = CODEVERSION;
-  return (0);
-}
-
-int DLLEXPORT EN_getcontrol(EN_ProjectHandle ph, int cindex, int *ctype, int *lindex,
-                            EN_API_FLOAT_TYPE *setting, int *nindex,
-                            EN_API_FLOAT_TYPE *level) {
-  double s, lvl;
-
-  EN_Project *pr = (EN_Project*)ph;
-
-  EN_Network *net = &pr->network;
-
-  Scontrol *Control = net->Control;
-  Snode *Node = net->Node;
-  Slink *Link = net->Link;
-
-  const int Njuncs = net->Njuncs;
-  double *Ucf = pr->Ucf;
-  
-  s = 0.0;
-  lvl = 0.0;
-  *ctype = 0;
-  *lindex = 0;
-  *nindex = 0;
-  if (!pr->Openflag)
-    return (102);
-  if (cindex < 1 || cindex > net->Ncontrols)
-    return (241);
-  *ctype = Control[cindex].Type;
-  *lindex = Control[cindex].Link;
-  s = Control[cindex].Setting;
-  if (Control[cindex].Setting != MISSING) {
-    switch (Link[*lindex].Type) {
-      case EN_PRV:
-      case EN_PSV:
-      case EN_PBV:
-        s *= Ucf[PRESSURE];
-        break;
-      case EN_FCV:
-        s *= Ucf[FLOW];
-      default:
-        break;
-    }
-  } else if (Control[cindex].Status == OPEN) {
-    s = 1.0;
-  }
-
-  /*** Updated 3/1/01 ***/
-  else
-    s = 0.0;
-
-  *nindex = Control[cindex].Node;
-  if (*nindex > Njuncs)
-    lvl = (Control[cindex].Grade - Node[*nindex].El) * Ucf[ELEV];
-  else if (*nindex > 0)
-    lvl = (Control[cindex].Grade - Node[*nindex].El) * Ucf[PRESSURE];
-  else
-    lvl = (EN_API_FLOAT_TYPE)Control[cindex].Time;
-  *setting = (EN_API_FLOAT_TYPE)s;
-  *level = (EN_API_FLOAT_TYPE)lvl;
-  return (0);
-}
-
-int DLLEXPORT EN_getcount(EN_ProjectHandle ph, EN_CountType code, int *count) {
-
-  EN_Project *pr = (EN_Project*)ph;
-
-  EN_Network *net = &pr->network;
-
-  *count = 0;
-  if (!pr->Openflag)
-    return (102);
-  switch (code) {
-  case EN_NODECOUNT:
-    *count = net->Nnodes;
-    break;
-  case EN_TANKCOUNT:
-    *count = net->Ntanks;
-    break;
-  case EN_LINKCOUNT:
-    *count = net->Nlinks;
-    break;
-  case EN_PATCOUNT:
-    *count = net->Npats;
-    break;
-  case EN_CURVECOUNT:
-    *count = net->Ncurves;
-    break;
-  case EN_CONTROLCOUNT:
-    *count = net->Ncontrols;
-    break;
-  case EN_RULECOUNT:
-    *count = net->Nrules;
-    break;
-  default:
-    return (251);
-  }
-  return (0);
-}
-
-int DLLEXPORT EN_getoption(EN_ProjectHandle ph, EN_Option code,
-                           EN_API_FLOAT_TYPE *value) {
-
-  EN_Project *pr = (EN_Project*)ph;
-
-  hydraulics_t *hyd = &pr->hydraulics;
-  quality_t *qu = &pr->quality;
-  double *Ucf = pr->Ucf;
-
-  double v = 0.0;
-  *value = 0.0;
-  if (!pr->Openflag)
-    return (102);
-  switch (code) {
-  case EN_TRIALS:
-    v = (double)hyd->MaxIter;
-    break;
-  case EN_ACCURACY:
-    v = hyd->Hacc;
-    break;
-  case EN_TOLERANCE:
-    v = qu->Ctol * Ucf[QUALITY];
-    break;
-  case EN_EMITEXPON:
-    if (hyd->Qexp > 0.0)
-      v = 1.0 / hyd->Qexp;
-    break;
-  case EN_DEMANDMULT:
-    v = hyd->Dmult;
-    break;
-
-  case EN_HEADERROR:
-    v = hyd->HeadErrorLimit * Ucf[HEAD];
-    break;
-  case EN_FLOWCHANGE:
-    v = hyd->FlowChangeLimit * Ucf[FLOW];
-    break;
-
-  default:
-    return (251);
-  }
-  *value = (EN_API_FLOAT_TYPE)v;
-  return (0);
-}
-
-int DLLEXPORT EN_gettimeparam(EN_ProjectHandle ph, int code, long *value) {
-  int i;
-
-  EN_Project *pr = (EN_Project*)ph;
-
-  report_options_t *rep = &pr->report;
-  quality_t *qu = &pr->quality;
-  time_options_t *time = &pr->time_options;
 
 
-  *value = 0;
-  if (!pr->Openflag)
-    return (102);
-  if (code < EN_DURATION || code > EN_NEXTEVENTIDX)
-    return (251);
-  switch (code) {
-  case EN_DURATION:
-    *value = time->Dur;
-    break;
-  case EN_HYDSTEP:
-    *value = time->Hstep;
-    break;
-  case EN_QUALSTEP:
-    *value = qu->Qstep;
-    break;
-  case EN_PATTERNSTEP:
-    *value = time->Pstep;
-    break;
-  case EN_PATTERNSTART:
-    *value = time->Pstart;
-    break;
-  case EN_REPORTSTEP:
-    *value = time->Rstep;
-    break;
-  case EN_REPORTSTART:
-    *value = time->Rstart;
-    break;
-  case EN_STATISTIC:
-    *value = rep->Tstatflag;
-    break;
-  case EN_RULESTEP:
-    *value = time->Rulestep;
-    break;
-  case EN_PERIODS:
-    *value = rep->Nperiods;
-    break;
-  case EN_STARTTIME:
-    *value = time->Tstart;
-    break; /* Added TNT 10/2/2009 */
-  case EN_HTIME:
-    *value = time->Htime;
-    break;
-  case EN_NEXTEVENT:
-    *value = time->Hstep; // find the lesser of the hydraulic time step length, or the
-                    // time to next fill/empty
-    tanktimestep(pr,value);
-    break;
-  case EN_NEXTEVENTIDX:
-      *value = time->Hstep;
-      i = tanktimestep(pr, value);
-      *value = i;
-      break;
-  }
-  return (0);
-}
 
-int DLLEXPORT EN_getflowunits(EN_ProjectHandle ph, int *code) {
 
-  EN_Project *p = (EN_Project*)ph;
 
-  *code = -1;
-  if (!p->Openflag)
-    return (102);
-  *code = p->parser.Flowflag;
-  return (0);
-}
 
 int DLLEXPORT EN_setflowunits(EN_ProjectHandle ph, int code) {
   int i, j;
@@ -1618,64 +3072,6 @@ int DLLEXPORT EN_setflowunits(EN_ProjectHandle ph, int code) {
   return(0);
 }
 
-int DLLEXPORT EN_getpatternindex(EN_ProjectHandle ph, char *id, int *index) {
-  int i;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *index = 0;
-  if (!p->Openflag)
-    return (102);
-  for (i = 1; i <= p->network.Npats; i++) {
-    if (strcmp(id, p->network.Pattern[i].ID) == 0) {
-      *index = i;
-      return (0);
-    }
-  }
-  *index = 0;
-  return (205);
-}
-
-int DLLEXPORT EN_getpatternid(EN_ProjectHandle ph, int index, char *id) {
-
-  EN_Project *p = (EN_Project*)ph;
-
-  strcpy(id, "");
-  if (!p->Openflag)
-    return (102);
-  if (index < 1 || index > p->network.Npats)
-    return (205);
-  strcpy(id, p->network.Pattern[index].ID);
-  return (0);
-}
-
-int DLLEXPORT EN_getpatternlen(EN_ProjectHandle ph, int index, int *len) {
-
-  EN_Project *p = (EN_Project*)ph;
-
-  if (!p->Openflag)
-    return (102);
-  if (index < 1 || index > p->network.Npats)
-    return (205);
-  *len = p->network.Pattern[index].Length;
-  return (0);
-}
-
-int DLLEXPORT EN_getpatternvalue(EN_ProjectHandle ph, int index, int period,
-                                 EN_API_FLOAT_TYPE *value) {
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *value = 0.0;
-  if (!p->Openflag)
-    return (102);
-  if (index < 1 || index > p->network.Npats)
-    return (205);
-  if (period < 1 || period > p->network.Pattern[index].Length)
-    return (251);
-  *value = (EN_API_FLOAT_TYPE)p->network.Pattern[index].F[period - 1];
-  return (0);
-}
 
 int DLLEXPORT EN_getcurveindex(EN_ProjectHandle ph, char *id, int *index) {
   int i;
@@ -1881,52 +3277,7 @@ int DLLEXPORT EN_getstatistic(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE *
  ----------------------------------------------------------------
  */
 
-int DLLEXPORT EN_getnodeindex(EN_ProjectHandle ph, char *id, int *index) {
 
-  EN_Project *p = (EN_Project*)ph;
-
-  *index = 0;
-  if (!p->Openflag)
-    return (102);
-  *index = findnode(&p->network,id);
-  if (*index == 0)
-    return (203);
-  else
-    return (0);
-}
-
-int DLLEXPORT EN_getnodeid(EN_ProjectHandle ph, int index, char *id) {
-
-  EN_Project *p = (EN_Project*)ph;
-
-  strcpy(id, "");
-  if (!p->Openflag)
-    return (102);
-  if (index < 1 || index > p->network.Nnodes)
-    return (203);
-  strcpy(id, p->network.Node[index].ID);
-  return (0);
-}
-
-int DLLEXPORT EN_getnodetype(EN_ProjectHandle ph, int index, int *code) {
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *code = -1;
-  if (!p->Openflag)
-    return (102);
-  if (index < 1 || index > p->network.Nnodes)
-    return (203);
-  if (index <= p->network.Njuncs)
-    *code = EN_JUNCTION;
-  else {
-    if (p->network.Tank[index - p->network.Njuncs].A == 0.0)
-      *code = EN_RESERVOIR;
-    else
-      *code = EN_TANK;
-  }
-  return (0);
-}
 
 int DLLEXPORT EN_getcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x,
                           EN_API_FLOAT_TYPE *y) {
@@ -1968,478 +3319,8 @@ int DLLEXPORT EN_setcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE x,
   return 0;
 }
 
-int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code,
-                              EN_API_FLOAT_TYPE *value) {
-  double v = 0.0;
-  Pdemand demand;
-  Psource source;
 
-  EN_Project *p = (EN_Project*)ph;
-  
-  EN_Network *net = &p->network;
-  hydraulics_t *hyd = &p->hydraulics;
-  quality_t *qu = &p->quality;
-  
-  Snode *Node = net->Node;
-  Stank *Tank = net->Tank;
-  
-  const int Nnodes = net->Nnodes;
-  const int Njuncs = net->Njuncs;
-  
-  double *Ucf = p->Ucf;
-  double *NodeDemand = hyd->NodeDemand;
-  double *NodeQual = qu->NodeQual;
-  
-  
-  /* Check for valid arguments */
-  *value = 0.0;
-  if (!p->Openflag)
-    return (102);
-  if (index <= 0 || index > Nnodes)
-    return (203);
 
-  /* Retrieve called-for parameter */
-  switch (code) {
-  case EN_ELEVATION:
-    v = Node[index].El * Ucf[ELEV];
-    break;
-
-  case EN_BASEDEMAND:
-    v = 0.0;
-    /* NOTE: primary demand category is last on demand list */
-    if (index <= Njuncs)
-      for (demand = Node[index].D; demand != NULL; demand = demand->next)
-        v = (demand->Base);
-    v *= Ucf[FLOW];
-    break;
-
-  case EN_PATTERN:
-    v = 0.0;
-    /* NOTE: primary demand category is last on demand list */
-    if (index <= Njuncs) {
-      for (demand = Node[index].D; demand != NULL; demand = demand->next)
-        v = (double)(demand->Pat);
-    } else
-      v = (double)(Tank[index - Njuncs].Pat);
-    break;
-
-  case EN_EMITTER:
-    v = 0.0;
-    if (Node[index].Ke > 0.0)
-      v = Ucf[FLOW] / pow((Ucf[PRESSURE] * Node[index].Ke), (1.0 / hyd->Qexp));
-    break;
-
-  case EN_INITQUAL:
-    v = Node[index].C0 * Ucf[QUALITY];
-    break;
-
-    /*** Additional parameters added for retrieval ***/ 
-  case EN_SOURCEQUAL:
-  case EN_SOURCETYPE:
-  case EN_SOURCEMASS:
-  case EN_SOURCEPAT:
-    source = Node[index].S;
-    if (source == NULL)
-      return (240);
-    if (code == EN_SOURCEQUAL)
-      v = source->C0;
-    else if (code == EN_SOURCEMASS)
-      v = source->Smass * 60.0;
-    else if (code == EN_SOURCEPAT)
-      v = source->Pat;
-    else
-      v = source->Type;
-    break;
-
-  case EN_TANKLEVEL:
-    if (index <= Njuncs)
-      return (251);
-    v = (Tank[index - Njuncs].H0 - Node[index].El) * Ucf[ELEV];
-    break;
-
-    /*** New parameter added for retrieval ***/ 
-  case EN_INITVOLUME:                           
-    v = 0.0;                                    
-    if (index > Njuncs)
-      v = Tank[index - Njuncs].V0 * Ucf[VOLUME]; 
-    break;                                       
-
-    /*** New parameter added for retrieval ***/ 
-  case EN_MIXMODEL:                             
-    v = MIX1;                                   
-    if (index > Njuncs)
-      v = Tank[index - Njuncs].MixModel; 
-    break;                               
-
-    /*** New parameter added for retrieval ***/ 
-  case EN_MIXZONEVOL:                           
-    v = 0.0;                                    
-    if (index > Njuncs)
-      v = Tank[index - Njuncs].V1max * Ucf[VOLUME]; 
-    break;                                          
-
-  case EN_DEMAND:
-    v = NodeDemand[index] * Ucf[FLOW];
-    break;
-
-  case EN_HEAD:
-    v = hyd->NodeHead[index] * Ucf[HEAD];
-    break;
-
-  case EN_PRESSURE:
-    v = (hyd->NodeHead[index] - Node[index].El) * Ucf[PRESSURE];
-    break;
-
-  case EN_QUALITY:
-    v = NodeQual[index] * Ucf[QUALITY];
-    break;
-
-    /*** New parameters added for retrieval begins here   ***/ 
-  /*** (Thanks to Nicolas Basile of Ecole Polytechnique ***/
-  /***  de Montreal for suggesting some of these.)      ***/
-
-  case EN_TANKDIAM:
-    v = 0.0;
-    if (index > Njuncs) {
-      v = sqrt(4.0 / PI * Tank[index - Njuncs].A) * Ucf[ELEV];
-    }
-    break;
-
-  case EN_MINVOLUME:
-    v = 0.0;
-    if (index > Njuncs)
-      v = Tank[index - Njuncs].Vmin * Ucf[VOLUME];
-    break;
-
-  case EN_MAXVOLUME: // !sph
-    v = 0.0;
-    if (index > Njuncs)
-      v = Tank[index - Njuncs].Vmax * Ucf[VOLUME];
-    break;
-
-  case EN_VOLCURVE:
-    v = 0.0;
-    if (index > Njuncs)
-      v = Tank[index - Njuncs].Vcurve;
-    break;
-
-  case EN_MINLEVEL:
-    v = 0.0;
-    if (index > Njuncs) {
-      v = (Tank[index - Njuncs].Hmin - Node[index].El) * Ucf[ELEV];
-    }
-    break;
-
-  case EN_MAXLEVEL:
-    v = 0.0;
-    if (index > Njuncs) {
-      v = (Tank[index - Njuncs].Hmax - Node[index].El) * Ucf[ELEV];
-    }
-    break;
-
-  case EN_MIXFRACTION:
-    v = 1.0;
-    if (index > Njuncs && Tank[index - Njuncs].Vmax > 0.0) {
-      v = Tank[index - Njuncs].V1max / Tank[index - Njuncs].Vmax;
-    }
-    break;
-
-  case EN_TANK_KBULK:
-    v = 0.0;
-    if (index > Njuncs)
-      v = Tank[index - Njuncs].Kb * SECperDAY;
-    break;
-
-    /***  New parameter additions ends here. ***/ 
-
-  case EN_TANKVOLUME:
-    if (index <= Njuncs)
-      return (251);
-    v = tankvolume(p, index - Njuncs, hyd->NodeHead[index]) * Ucf[VOLUME];
-    break;
-
-  default:
-    return (251);
-  }
-  *value = (EN_API_FLOAT_TYPE)v;
-  return (0);
-}
-
-/*
- ----------------------------------------------------------------
- Functions for retrieving link data
- ----------------------------------------------------------------
- */
-
-int DLLEXPORT EN_getlinkindex(EN_ProjectHandle ph, char *id, int *index) {
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *index = 0;
-  if (!p->Openflag)
-    return (102);
-  *index = findlink(&p->network,id);
-  if (*index == 0)
-    return (204);
-  else
-    return (0);
-}
-
-int DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id) {
-
-  EN_Project *p = (EN_Project*)ph;
-
-  strcpy(id, "");
-  if (!p->Openflag)
-    return (102);
-  if (index < 1 || index > p->network.Nlinks)
-    return (204);
-  strcpy(id, p->network.Link[index].ID);
-  return (0);
-}
-
-int DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, EN_LinkType *code) {
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *code = -1;
-  if (!p->Openflag)
-    return (102);
-  if (index < 1 || index > p->network.Nlinks)
-    return (204);
-  *code = p->network.Link[index].Type;
-  return (0);
-}
-
-int DLLEXPORT EN_getlinknodes(EN_ProjectHandle ph, int index, int *node1,
-                              int *node2) {
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *node1 = 0;
-  *node2 = 0;
-  if (!p->Openflag)
-    return (102);
-  if (index < 1 || index > p->network.Nlinks)
-    return (204);
-  *node1 = p->network.Link[index].N1;
-  *node2 = p->network.Link[index].N2;
-  return (0);
-}
-
-int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty code,
-                                                        EN_API_FLOAT_TYPE *value) {
-  double a, h, q, v = 0.0;
-  int returnValue = 0;
-  
-  EN_Project *p = (EN_Project*)ph;
-
-  EN_Network *net = &p->network;
-  hydraulics_t *hyd = &p->hydraulics;
-  
-  Slink *Link = net->Link;
-  Spump *Pump = net->Pump;
-  
-  const int Nlinks = net->Nlinks;
-  
-  double *Ucf = p->Ucf;
-  double *LinkFlows = hyd->LinkFlows;
-  double *LinkSetting = hyd->LinkSetting;
-
-  
-  
-  /* Check for valid arguments */
-  *value = 0.0;
-  if (!p->Openflag)
-    return (102);
-  if (index <= 0 || index > Nlinks)
-    return (204);
-
-  /* Retrieve called-for parameter */
-  switch (code) {
-    case EN_DIAMETER:
-      if (Link[index].Type == EN_PUMP)
-        v = 0.0;
-      else
-        v = Link[index].Diam * Ucf[DIAM];
-      break;
-      
-    case EN_LENGTH:
-      v = Link[index].Len * Ucf[ELEV];
-      break;
-      
-    case EN_ROUGHNESS:
-      if (Link[index].Type <= EN_PIPE) {
-        if (hyd->Formflag == DW)
-          v = Link[index].Kc * (1000.0 * Ucf[ELEV]);
-        else
-          v = Link[index].Kc;
-      } else
-        v = 0.0;
-      break;
-      
-    case EN_MINORLOSS:
-      if (Link[index].Type != EN_PUMP) {
-        v = Link[index].Km;
-        v *= (SQR(Link[index].Diam) * SQR(Link[index].Diam) / 0.02517);
-      } else
-        v = 0.0;
-      break;
-      
-    case EN_INITSTATUS:
-      if (Link[index].Stat <= CLOSED)
-        v = 0.0;
-      else
-        v = 1.0;
-      break;
-      
-    case EN_INITSETTING:
-      if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
-        return (ENgetlinkvalue(index, EN_ROUGHNESS, value));
-      v = Link[index].Kc;
-      switch (Link[index].Type) {
-        case EN_PRV:
-        case EN_PSV:
-        case EN_PBV:
-          v *= Ucf[PRESSURE];
-          break;
-        case EN_FCV:
-          v *= Ucf[FLOW];
-        default:
-          break;
-      }
-      break;
-      
-    case EN_KBULK:
-      v = Link[index].Kb * SECperDAY;
-      break;
-      
-    case EN_KWALL:
-      v = Link[index].Kw * SECperDAY;
-      break;
-      
-    case EN_FLOW:
-      
-      /*** Updated 10/25/00 ***/
-      if (hyd->LinkStatus[index] <= CLOSED)
-        v = 0.0;
-      else
-        v = LinkFlows[index] * Ucf[FLOW];
-      break;
-      
-    case EN_VELOCITY:
-      if (Link[index].Type == EN_PUMP) {
-        v = 0.0;
-      }
-      
-      /*** Updated 11/19/01 ***/
-      else if (hyd->LinkStatus[index] <= CLOSED)
-        v = 0.0;
-      
-      else {
-        q = ABS(LinkFlows[index]);
-        a = PI * SQR(Link[index].Diam) / 4.0;
-        v = q / a * Ucf[VELOCITY];
-      }
-      break;
-      
-    case EN_HEADLOSS:
-      
-      /*** Updated 11/19/01 ***/
-      if (hyd->LinkStatus[index] <= CLOSED)
-        v = 0.0;
-      
-      else {
-        h = hyd->NodeHead[Link[index].N1] - hyd->NodeHead[Link[index].N2];
-        if (Link[index].Type != EN_PUMP)
-          h = ABS(h);
-        v = h * Ucf[HEADLOSS];
-      }
-      break;
-      
-    case EN_STATUS:
-      if (hyd->LinkStatus[index] <= CLOSED)
-        v = 0.0;
-      else
-        v = 1.0;
-      break;
-      
-    case EN_SETTING:
-      if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE) {
-        return (ENgetlinkvalue(index, EN_ROUGHNESS, value));
-      }
-      if (LinkSetting[index] == MISSING) {
-        v = 0.0;
-      } else {
-        v = LinkSetting[index];
-      }
-      switch (Link[index].Type) {
-        case EN_PRV:
-        case EN_PSV:
-        case EN_PBV:
-          v *= Ucf[PRESSURE];
-          break;
-        case EN_FCV:
-          v *= Ucf[FLOW];
-        default:
-          break;
-      }
-      break;
-      
-    case EN_ENERGY:
-      getenergy(p, index, &v, &a);
-      break;
-      
-    case EN_LINKQUAL:
-      v = avgqual(p, index) * Ucf[LINKQUAL];
-      break;
-      
-    case EN_LINKPATTERN:
-      if (Link[index].Type == EN_PUMP)
-        v = (double)Pump[findpump(&p->network, index)].Upat;
-      break;
-      
-    case EN_EFFICIENCY:
-      getenergy(p, index, &a, &v);
-      break;
-      
-    case EN_PRICEPATTERN:
-      if (Link[index].Type == EN_PUMP)
-        v = (double)Pump[findpump(&p->network, index)].Epat;
-      break;
-      
-    case EN_HEADCURVE:
-      if (Link[index].Type == EN_PUMP) {
-        v = (double)Pump[findpump(&p->network, index)].Hcurve;
-        if (v == 0) {
-          returnValue = 226;
-        }
-      }
-      else {
-        v = 0;
-        returnValue = 211;
-      }
-      break;
-      
-    case EN_EFFICIENCYCURVE:
-      if (Link[index].Type == EN_PUMP) {
-        v = (double)Pump[findpump(&p->network, index)].Ecurve;
-        if (v == 0) {
-          returnValue = 268;
-        }
-      }
-      else {
-        v = 0;
-        returnValue = 211;
-      }
-      
-    default:
-      v = 0;
-      returnValue = 251;
-  }
-  *value = (EN_API_FLOAT_TYPE)v;
-  return returnValue;
-}
 
 int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char *id, int *nValues,
                           EN_API_FLOAT_TYPE **xValues,
@@ -2476,536 +3357,10 @@ int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char *id, int *nV
   return (0);
 }
 
-/*
- ----------------------------------------------------------------
- Functions for changing network data
- ----------------------------------------------------------------
- */
 
-int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lindex,
-                            EN_API_FLOAT_TYPE setting, int nindex,
-                            EN_API_FLOAT_TYPE level) {
-  char status = ACTIVE;
-  long t = 0;
-  double s = setting, lvl = level;
-  EN_Network *net;
-  Snode *Node;
-  Slink *Link;
-  Scontrol *Control;
-  
-  int Nnodes;
-  int Njuncs;
-  int Nlinks;
-  double *Ucf;
 
-  EN_Project *p = (EN_Project*)ph;
 
-  /* Check that input file opened */
-  if (!p->Openflag)
-    return (102);
 
-  /* Check that control exists */
-  if (cindex < 1 || cindex > p->network.Ncontrols)
-    return (241);
-
-  
-  net = &p->network;
-  
-  Node = net->Node;
-  Link = net->Link;
-  Control = net->Control;
-  
-  Nnodes = net->Nnodes;
-  Njuncs = net->Njuncs;
-  Nlinks = net->Nlinks;
-  
-  Ucf = p->Ucf;
-    
-  /* Check that controlled link exists */
-  if (lindex == 0) {
-    Control[cindex].Link = 0;
-    return (0);
-  }
-  if (lindex < 0 || lindex > Nlinks)
-    return (204);
-
-  /* Cannot control check valve. */
-  if (Link[lindex].Type == EN_CVPIPE)
-    return (207);
-
-  /* Check for valid parameters */
-  if (ctype < 0 || ctype > EN_TIMEOFDAY)
-    return (251);
-  if (ctype == EN_LOWLEVEL || ctype == EN_HILEVEL) {
-    if (nindex < 1 || nindex > Nnodes)
-      return (203);
-  } else
-    nindex = 0;
-  if (s < 0.0 || lvl < 0.0)
-    return (202);
-
-  /* Adjust units of control parameters */
-  switch (Link[lindex].Type) {
-    case EN_PRV:
-    case EN_PSV:
-    case EN_PBV:
-      s /= Ucf[PRESSURE];
-      break;
-    case EN_FCV:
-      s /= Ucf[FLOW];
-      break;
-      
-      /*** Updated 9/7/00 ***/
-    case EN_GPV:
-      if (s == 0.0)
-        status = CLOSED;
-      else if (s == 1.0)
-        status = OPEN;
-      else
-        return (202);
-      s = Link[lindex].Kc;
-      break;
-      
-    case EN_PIPE:
-    case EN_PUMP:
-      status = OPEN;
-      if (s == 0.0)
-        status = CLOSED;
-    default:
-      break;
-  }
-  if (ctype == LOWLEVEL || ctype == HILEVEL) {
-    if (nindex > Njuncs)
-      lvl = Node[nindex].El + level / Ucf[ELEV];
-    else
-      lvl = Node[nindex].El + level / Ucf[PRESSURE];
-  }
-  if (ctype == TIMER)
-    t = (long)ROUND(lvl);
-  if (ctype == TIMEOFDAY)
-    t = (long)ROUND(lvl) % SECperDAY;
-
-  /* Reset control's parameters */
-  Control[cindex].Type = (char)ctype;
-  Control[cindex].Link = lindex;
-  Control[cindex].Node = nindex;
-  Control[cindex].Status = status;
-  Control[cindex].Setting = s;
-  Control[cindex].Grade = lvl;
-  Control[cindex].Time = t;
-  return (0);
-}
-
-int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v)
-/*----------------------------------------------------------------
- **  Input:   index = node index
- **           code  = node parameter code (see EPANET2.H)
- **           value = parameter value
- **  Output:  none
- **  Returns: error code
- **  Purpose: sets input parameter value for a node
- **----------------------------------------------------------------
- */
-{
-  EN_Project *p = (EN_Project*)ph;
-
-  EN_Network *net = &p->network;
-  hydraulics_t *hyd = &p->hydraulics;
-  quality_t *qu = &p->quality;
-  
-  Snode *Node = net->Node;
-  Stank *Tank = net->Tank;
-  
-  const int Nnodes = net->Nnodes;
-  const int Njuncs = net->Njuncs;
-  const int Npats = net->Npats;
-  
-  double *Ucf = p->Ucf;
-  
-  int j;
-  Pdemand demand;
-  Psource source;
-  double Htmp;
-  double value = v;
-
-  if (!p->Openflag)
-    return (102);
-  if (index <= 0 || index > Nnodes)
-    return (203);
-  switch (code) {
-  case EN_ELEVATION:
-    if (index <= Njuncs)
-      Node[index].El = value / Ucf[ELEV];
-    else {
-      value = (value / Ucf[ELEV]) - Node[index].El;
-      j = index - Njuncs;
-      Tank[j].H0 += value;
-      Tank[j].Hmin += value;
-      Tank[j].Hmax += value;
-      Node[index].El += value;
-      hyd->NodeHead[index] += value;
-    }
-    break;
-
-  case EN_BASEDEMAND:
-    /* NOTE: primary demand category is last on demand list */
-    if (index <= Njuncs) {
-      for (demand = Node[index].D; demand != NULL; demand = demand->next) {
-        if (demand->next == NULL)
-          demand->Base = value / Ucf[FLOW];
-      }
-    }
-    break;
-
-  case EN_PATTERN:
-    /* NOTE: primary demand category is last on demand list */
-    j = ROUND(value);
-    if (j < 0 || j > Npats)
-      return (205);
-    if (index <= Njuncs) {
-      for (demand = Node[index].D; demand != NULL; demand = demand->next) {
-        if (demand->next == NULL)
-          demand->Pat = j;
-      }
-    } else
-      Tank[index - Njuncs].Pat = j;
-    break;
-
-  case EN_EMITTER:
-    if (index > Njuncs)
-      return (203);
-    if (value < 0.0)
-      return (202);
-    if (value > 0.0)
-      value = pow((Ucf[FLOW] / value), hyd->Qexp) / Ucf[PRESSURE];
-    Node[index].Ke = value;
-    break;
-
-  case EN_INITQUAL:
-    if (value < 0.0)
-      return (202);
-    Node[index].C0 = value / Ucf[QUALITY];
-    if (index > Njuncs)
-      Tank[index - Njuncs].C = Node[index].C0;
-    break;
-
-  case EN_SOURCEQUAL:
-  case EN_SOURCETYPE:
-  case EN_SOURCEPAT:
-    if (value < 0.0)
-      return (202);
-    source = Node[index].S;
-    if (source == NULL) {
-      source = (struct Ssource *)malloc(sizeof(struct Ssource));
-      if (source == NULL)
-        return (101);
-      source->Type = CONCEN;
-      source->C0 = 0.0;
-      source->Pat = 0;
-      Node[index].S = source;
-    }
-    if (code == EN_SOURCEQUAL) {
-      source->C0 = value;
-    } else if (code == EN_SOURCEPAT) {
-      j = ROUND(value);
-      if (j < 0 || j > Npats)
-        return (205);
-      source->Pat = j;
-    } else // code == EN_SOURCETYPE
-    {
-      j = ROUND(value);
-      if (j < CONCEN || j > FLOWPACED)
-        return (251);
-      else
-        source->Type = (char)j;
-    }
-    return (0);
-
-  case EN_TANKLEVEL:
-    if (index <= Njuncs)
-      return (251);
-    j = index - Njuncs;
-    if (Tank[j].A == 0.0) /* Tank is a reservoir */
-    {
-      Tank[j].H0 = value / Ucf[ELEV];
-      Tank[j].Hmin = Tank[j].H0;
-      Tank[j].Hmax = Tank[j].H0;
-      Node[index].El = Tank[j].H0;
-      hyd->NodeHead[index] = Tank[j].H0;
-    } else {
-      value = Node[index].El + value / Ucf[ELEV];
-      if (value > Tank[j].Hmax || value < Tank[j].Hmin)
-        return (202);
-      Tank[j].H0 = value;
-      Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
-      // Resetting Volume in addition to initial volume
-      Tank[j].V = Tank[j].V0;
-      hyd->NodeHead[index] = Tank[j].H0;
-    }
-    break;
-
-    /*** New parameters added for retrieval begins here   ***/ 
-  /*** (Thanks to Nicolas Basile of Ecole Polytechnique ***/
-  /***  de Montreal for suggesting some of these.)      ***/
-
-  case EN_TANKDIAM:
-    if (value <= 0.0)
-      return (202);
-    if (index <= Njuncs)
-      return (251);
-    j = index - Njuncs;
-    if (j > 0 && Tank[j].A > 0.0) {
-      value /= Ucf[ELEV];
-      Tank[j].A = PI * SQR(value) / 4.0;
-      Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
-      Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
-      Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
-    } else {
-      return (251);
-    }
-    break;
-
-  case EN_MINVOLUME:
-    if (value < 0.0)
-      return (202);
-    if (index <= Njuncs)
-      return (251);
-    j = index - Njuncs;
-    if (j > 0 && Tank[j].A > 0.0) {
-      Tank[j].Vmin = value / Ucf[VOLUME];
-      Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
-      Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
-    } else {
-      return (251);
-    }
-    break;
-
-  case EN_MINLEVEL:
-    if (value < 0.0)
-      return (202);
-    if (index <= Njuncs)
-      return (251); // not a tank or reservoir
-    j = index - Njuncs;
-    if (Tank[j].A == 0.0)
-      return (251); // node is a reservoir
-    Htmp = value / Ucf[ELEV] + Node[index].El;
-    if (Htmp < Tank[j].Hmax && Htmp <= Tank[j].H0) {
-      if (Tank[j].Vcurve > 0)
-        return (202);
-      Tank[j].Hmin = Htmp;
-      Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
-    } else {
-      return (251);
-    }
-    break;
-
-  case EN_MAXLEVEL:
-    if (value < 0.0)
-      return (202);
-    if (index <= Njuncs)
-      return (251); // not a tank or reservoir
-    j = index - Njuncs;
-    if (Tank[j].A == 0.0)
-      return (251); // node is a reservoir
-    Htmp = value / Ucf[ELEV] + Node[index].El;
-    if (Htmp > Tank[j].Hmin && Htmp >= Tank[j].H0) {
-      if (Tank[j].Vcurve > 0)
-        return (202);
-      Tank[j].Hmax = Htmp;
-      Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
-    } else {
-      return (251);
-    }
-    break;
-
-  case EN_MIXMODEL:
-    j = ROUND(value);
-    if (index <= Njuncs)
-      return (251);
-    if (j < MIX1 || j > LIFO)
-      return (202);
-    if (index > Njuncs && Tank[index - Njuncs].A > 0.0) {
-      Tank[index - Njuncs].MixModel = (char)j;
-    } else {
-      return (251);
-    }
-    break;
-
-  case EN_MIXFRACTION:
-    if (value < 0.0 || value > 1.0)
-      return (202);
-    if (index <= Njuncs)
-      return (251);
-    j = index - Njuncs;
-    if (j > 0 && Tank[j].A > 0.0) {
-      Tank[j].V1max = value * Tank[j].Vmax;
-    }
-    break;
-
-  case EN_TANK_KBULK:
-    if (index <= Njuncs)
-      return (251);
-    j = index - Njuncs;
-    if (j > 0 && Tank[j].A > 0.0) {
-      Tank[j].Kb = value / SECperDAY;
-      qu->Reactflag = 1;
-    } else {
-      return (251);
-    }
-    break;
-
-    /***  New parameter additions ends here. ***/ 
-
-  default:
-    return (251);
-  }
-  return (0);
-}
-
-int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
-                              EN_API_FLOAT_TYPE v)
-
-/*----------------------------------------------------------------
- **  Input:   index = link index
- **           code  = link parameter code (see EPANET2.H)
- **           v = parameter value
- **  Output:  none
- **  Returns: error code
- **  Purpose: sets input parameter value for a link
- **----------------------------------------------------------------
- */
-{
-  EN_Project *p = (EN_Project*)ph;
-
-  EN_Network *net = &p->network;
-  hydraulics_t *hyd = &p->hydraulics;
-  quality_t *qu = &p->quality;
-  
-  Slink *Link = net->Link;
-  
-  const int Nlinks = net->Nlinks;
-  
-  double *Ucf = p->Ucf;
-  double *LinkSetting = hyd->LinkSetting;
-  
-  char s;
-  double r, value = v;
-
-  if (!p->Openflag)
-    return (102);
-  if (index <= 0 || index > Nlinks)
-    return (204);
-  switch (code) {
-  case EN_DIAMETER:
-    if (Link[index].Type != EN_PUMP) {
-      if (value <= 0.0)
-        return (202);
-      value /= Ucf[DIAM];                /* Convert to feet */
-      r = Link[index].Diam / value;      /* Ratio of old to new diam */
-      Link[index].Km *= SQR(r) * SQR(r); /* Adjust minor loss factor */
-      Link[index].Diam = value;          /* Update diameter */
-      resistcoeff(p, index);             /* Update resistance coeff. */
-    }
-    break;
-
-  case EN_LENGTH:
-    if (Link[index].Type <= EN_PIPE) {
-      if (value <= 0.0)
-        return (202);
-      Link[index].Len = value / Ucf[ELEV];
-      resistcoeff(p, index);
-    }
-    break;
-
-  case EN_ROUGHNESS:
-    if (Link[index].Type <= EN_PIPE) {
-      if (value <= 0.0)
-        return (202);
-      Link[index].Kc = value;
-      if (hyd->Formflag == DW)
-        Link[index].Kc /= (1000.0 * Ucf[ELEV]);
-      resistcoeff(p, index);
-    }
-    break;
-
-  case EN_MINORLOSS:
-    if (Link[index].Type != EN_PUMP) {
-      if (value <= 0.0)
-        return (202);
-      Link[index].Km =
-          0.02517 * value / SQR(Link[index].Diam) / SQR(Link[index].Diam);
-    }
-    break;
-
-  case EN_INITSTATUS:
-  case EN_STATUS:
-    /* Cannot set status for a check valve */
-    if (Link[index].Type == EN_CVPIPE)
-      return (207);
-    s = (char)ROUND(value);
-    if (s < 0 || s > 1)
-      return (251);
-    if (code == EN_INITSTATUS)
-      setlinkstatus(p, index, s, &Link[index].Stat, &Link[index].Kc);
-    else
-      setlinkstatus(p, index, s, &hyd->LinkStatus[index], &LinkSetting[index]);
-    break;
-
-  case EN_INITSETTING:
-  case EN_SETTING:
-    if (value < 0.0)
-      return (202);
-    if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
-      return (ENsetlinkvalue(index, EN_ROUGHNESS, v));
-    else {
-      switch (Link[index].Type) {
-      case EN_PUMP:
-        break;
-      case EN_PRV:
-      case EN_PSV:
-      case EN_PBV:
-        value /= Ucf[PRESSURE];
-        break;
-      case EN_FCV:
-        value /= Ucf[FLOW];
-        break;
-      case EN_TCV:
-        break;
-
-      /***  Updated 9/7/00  ***/
-      case EN_GPV:
-        return (202); /* Cannot modify setting for GPV */
-
-      default:
-        return (251);
-      }
-      if (code == EN_INITSETTING)
-        setlinksetting(p, index, value, &Link[index].Stat, &Link[index].Kc);
-      else
-        setlinksetting(p, index, value, &hyd->LinkStatus[index],
-                       &LinkSetting[index]);
-    }
-    break;
-
-  case EN_KBULK:
-    if (Link[index].Type <= EN_PIPE) {
-      Link[index].Kb = value / SECperDAY;
-      qu->Reactflag = 1; 
-    }
-    break;
-
-  case EN_KWALL:
-    if (Link[index].Type <= EN_PIPE) {
-      Link[index].Kw = value / SECperDAY;
-      qu->Reactflag = 1; 
-    }
-    break;
-
-  default:
-    return (251);
-  }
-  return (0);
-}
 
 int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
   int i, j, n, err = 0;
@@ -3084,56 +3439,8 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
   return 0;
 }
 
-int DLLEXPORT EN_setpattern(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *f, int n) {
-  int j;
 
-  EN_Project *p = (EN_Project*)ph;
 
-  EN_Network *net = &p->network;
-  Spattern *Pattern = net->Pattern;
-  const int Npats = net->Npats;
-  
-  
-  /* Check for valid arguments */
-  if (!p->Openflag)
-    return (102);
-  if (index <= 0 || index > Npats)
-    return (205);
-  if (n <= 0)
-    return (202);
-
-  /* Re-set number of time periods & reallocate memory for multipliers */
-  Pattern[index].Length = n;
-  Pattern[index].F = (double *)realloc(Pattern[index].F, n * sizeof(double));
-  if (Pattern[index].F == NULL)
-    return (101);
-
-  /* Load multipliers into pattern */
-  for (j = 0; j < n; j++)
-    Pattern[index].F[j] = f[j];
-  return (0);
-}
-
-int DLLEXPORT EN_setpatternvalue(EN_ProjectHandle ph, int index, int period, EN_API_FLOAT_TYPE value) {
-  
-  EN_Project *p = (EN_Project*)ph;
-
-  EN_Network *net = &p->network;
-  
-  Spattern *Pattern = net->Pattern;
-  
-  const int Npats = net->Npats;
-  
-  
-  if (!p->Openflag)
-    return (102);
-  if (index <= 0 || index > Npats)
-    return (205);
-  if (period <= 0 || period > Pattern[index].Length)
-    return (251);
-  Pattern[index].F[period - 1] = value;
-  return (0);
-}
 
 int DLLEXPORT EN_addcurve(EN_ProjectHandle ph, char *id) {
   
@@ -3282,184 +3589,9 @@ int DLLEXPORT EN_setcurvevalue(EN_ProjectHandle ph, int index, int pnt, EN_API_F
   return (0);
 }
 
-int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value)
-{
-  EN_Project *p = (EN_Project*)ph;
 
-  report_options_t *rep = &p->report;
-  quality_t *qu = &p->quality;
-  time_options_t *time = &p->time_options;
-  
-  if (!p->Openflag)
-    return (102);
-  if (p->hydraulics.OpenHflag || p->quality.OpenQflag) {
-    // --> there's nothing wrong with changing certain time parameters during a
-    // simulation run, or before the run has started.
-    // todo -- how to tell?
-    /*
-     if (code == EN_DURATION || code == EN_HTIME || code == EN_REPORTSTEP ||
-     code == EN_DURATION || Htime == 0) {
-     // it's ok
-     }
-     else {
-     return(109);
-     }
-     */
-  }
-  if (value < 0)
-    return (202);
-  switch (code) {
-  case EN_DURATION:
-    time->Dur = value;
-    if (time->Rstart > time->Dur)
-      time->Rstart = 0;
-    break;
 
-  case EN_HYDSTEP:
-    if (value == 0)
-      return (202);
-    time->Hstep = value;
-    time->Hstep = MIN(time->Pstep, time->Hstep);
-    time->Hstep = MIN(time->Rstep, time->Hstep);
-    qu->Qstep = MIN(qu->Qstep, time->Hstep);
-    break;
 
-  case EN_QUALSTEP:
-    if (value == 0)
-      return (202);
-    qu->Qstep = value;
-    qu->Qstep = MIN(qu->Qstep, time->Hstep);
-    break;
-
-  case EN_PATTERNSTEP:
-    if (value == 0)
-      return (202);
-    time->Pstep = value;
-    if (time->Hstep > time->Pstep)
-      time->Hstep = time->Pstep;
-    break;
-
-  case EN_PATTERNSTART:
-    time->Pstart = value;
-    break;
-
-  case EN_REPORTSTEP:
-    if (value == 0)
-      return (202);
-    time->Rstep = value;
-    if (time->Hstep > time->Rstep)
-      time->Hstep = time->Rstep;
-    break;
-
-  case EN_REPORTSTART:
-    if (time->Rstart > time->Dur)
-      return (202);
-    time->Rstart = value;
-    break;
-
-  case EN_RULESTEP:
-    if (value == 0)
-      return (202);
-    time->Rulestep = value;
-    time->Rulestep = MIN(time->Rulestep, time->Hstep);
-    break;
-
-  case EN_STATISTIC:
-    if (value > RANGE)
-      return (202);
-    rep->Tstatflag = (char)value;
-    break;
-
-  case EN_HTIME:
-    time->Htime = value;
-    break;
-
-  case EN_QTIME:
-    qu->Qtime = value;
-    break;
-
-  default:
-    return (251);
-  }
-  return (0);
-}
-
-int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
-/*----------------------------------------------------------------
- **  Input:   code  = option code (see EPANET2.H)
- **           v = option value
- **  Output:  none
- **  Returns: error code
- **  Purpose: sets value for an analysis option
- **----------------------------------------------------------------
- */
-{
-  EN_Project *p = (EN_Project*)ph;
-
-  EN_Network *net = &p->network;
-  hydraulics_t *hyd = &p->hydraulics;
-  quality_t *qu = &p->quality;
-  
-  Snode *Node = net->Node;
-  const int Njuncs = net->Njuncs;
-  
-  double *Ucf = p->Ucf;
-  
-  int i, j;
-  double Ke, n, ucf, value = v;
-  if (!p->Openflag)
-    return (102);
-  switch (code) {
-  case EN_TRIALS:
-    if (value < 1.0)
-      return (202);
-    hyd->MaxIter = (int)value;
-    break;
-  case EN_ACCURACY:
-    if (value < 1.e-5 || value > 1.e-1)
-      return (202);
-    hyd->Hacc = value;
-    break;
-  case EN_TOLERANCE:
-    if (value < 0.0)
-      return (202);
-    qu->Ctol = value / Ucf[QUALITY];
-    break;
-  case EN_EMITEXPON:
-    if (value <= 0.0)
-      return (202);
-    n = 1.0 / value;
-    ucf = pow(Ucf[FLOW], n) / Ucf[PRESSURE];
-    for (i = 1; i <= Njuncs; i++) {
-      j = ENgetnodevalue(i, EN_EMITTER, &v);
-      Ke = v;
-      if (j == 0 && Ke > 0.0)
-        Node[i].Ke = ucf / pow(Ke, n);
-    }
-    hyd->Qexp = n;
-    break;
-  case EN_DEMANDMULT:
-    if (value <= 0.0)
-      return (202);
-    hyd->Dmult = value;
-    break;
-
-  case EN_HEADERROR:
-    if (value < 0.0)
-        return (202);
-    hyd->HeadErrorLimit = value / Ucf[HEAD];
-    break;
-  case EN_FLOWCHANGE:
-      if (value < 0.0)
-          return (202);
-      hyd->FlowChangeLimit = value / Ucf[FLOW];
-      break;
-
-  default:
-    return (251);
-  }
-  return (0);
-}
 
 int DLLEXPORT EN_setstatusreport(EN_ProjectHandle ph, int code) {
   int errcode = 0;
@@ -3473,72 +3605,7 @@ int DLLEXPORT EN_setstatusreport(EN_ProjectHandle ph, int code) {
   return (errcode);
 }
 
-int DLLEXPORT EN_setqualtype(EN_ProjectHandle ph, int qualcode, char *chemname, char *chemunits, char *tracenode) {
-  
-  EN_Project *p = (EN_Project*)ph;
 
-  EN_Network *net = &p->network;
-  report_options_t *rep = &p->report;
-  quality_t *qu = &p->quality;
-  
-  double *Ucf = p->Ucf;
-  int i;
-  
-  /*** Updated 3/1/01 ***/
-  double ccf = 1.0;
-
-  if (!p->Openflag)
-    return (102);
-  if (qualcode < EN_NONE || qualcode > EN_TRACE)
-    return (251);
-  qu->Qualflag = (char)qualcode;
-  qu->Ctol *= Ucf[QUALITY];
-  if (qu->Qualflag == CHEM) /* Chemical constituent */
-  {
-    strncpy(qu->ChemName, chemname, MAXID);
-    strncpy(qu->ChemUnits, chemunits, MAXID);
-
-    /*** Updated 3/1/01 ***/
-    strncpy(rep->Field[QUALITY].Units, qu->ChemUnits, MAXID);
-    strncpy(rep->Field[REACTRATE].Units, qu->ChemUnits, MAXID);
-    strcat(rep->Field[REACTRATE].Units, t_PERDAY);
-    ccf = 1.0 / LperFT3;
-  }
-  if (qu->Qualflag == TRACE) /* Source tracing option */
-  {
-    qu->TraceNode = findnode(net,tracenode);
-    if (qu->TraceNode == 0)
-      return (203);
-    strncpy(qu->ChemName, u_PERCENT, MAXID);
-    strncpy(qu->ChemUnits, tracenode, MAXID);
-
-    /*** Updated 3/1/01 ***/
-    strcpy(rep->Field[QUALITY].Units, u_PERCENT);
-  }
-  if (qu->Qualflag == AGE) /* Water age analysis */
-  {
-    strncpy(qu->ChemName, w_AGE, MAXID);
-    strncpy(qu->ChemUnits, u_HOURS, MAXID);
-
-    /*** Updated 3/1/01 ***/
-    strcpy(rep->Field[QUALITY].Units, u_HOURS);
-  }
-  
-  /* when changing from CHEM to AGE or TRACE, nodes initial quality values must be returned to their original ones */
-  if ((qu->Qualflag == AGE || qu->Qualflag == TRACE) & (Ucf[QUALITY] != 1)) {
-    for (i=1; i<=p->network.Nnodes; i++) {
-      p->network.Node[i].C0 *= Ucf[QUALITY];
-    }
-  }
-
-  /*** Updated 3/1/01 ***/
-  Ucf[QUALITY] = ccf;
-  Ucf[LINKQUAL] = ccf;
-  Ucf[REACTRATE] = ccf;
-  qu->Ctol /= Ucf[QUALITY];
-
-  return (0);
-}
 
 int DLLEXPORT EN_getheadcurveindex(EN_ProjectHandle ph, int index, int *curveindex) {
   
