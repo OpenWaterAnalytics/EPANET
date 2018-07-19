@@ -137,11 +137,10 @@ execute function x and set the error code equal to its return value.
 // Local functions
 void errorLookup(int errcode, char *errmsg, int len);
 
-/****************************************************************
 
- LEGACY (v <= 2.1) API: uses global project variable
-
-*****************************************************************/
+////////////////////////////////////////////////////////////////////////////////
+//-------------------- CANONICAL API - ORGANIZED BY TASK ---------------------//
+////////////////////////////////////////////////////////////////////////////////
 
 int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3,
         void (*pviewprog)(char *))
@@ -2170,57 +2169,549 @@ int DLLEXPORT EN_usehydfile(EN_ProjectHandle ph, char *filename) {
 }
 
 
-int DLLEXPORT ENaddpattern(char *id) {
-  return EN_addpattern(_defaultModel, id);
+/*
+ ----------------------------------------------------------------
+ Functions for running a hydraulic analysis
+ ----------------------------------------------------------------
+ */
+int DLLEXPORT ENsolveH() { return EN_solveH(_defaultModel); }
+
+int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
+/*----------------------------------------------------------------
+ **  Input:   none
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: solves for network hydraulics in all time periods
+ **----------------------------------------------------------------
+ */
+{
+  int errcode;
+  long t, tstep;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  /* Open hydraulics solver */
+  errcode = EN_openH(ph);
+  if (!errcode) {
+    /* Initialize hydraulics */
+    errcode = EN_initH(ph, EN_SAVE);
+    writecon(FMT14);
+
+    /* Analyze each hydraulic period */
+    if (!errcode)
+      do {
+
+        /* Display progress message */
+
+        /*** Updated 6/24/02 ***/
+        sprintf(p->Msg, "%-10s",
+                clocktime(p->report.Atime, p->time_options.Htime));
+
+        writecon(p->Msg);
+        sprintf(p->Msg, FMT101, p->report.Atime);
+        writewin(p->viewprog, p->Msg);
+
+        /* Solve for hydraulics & advance to next time period */
+        tstep = 0;
+        ERRCODE(EN_runH(ph, &t));
+        ERRCODE(EN_nextH(ph, &tstep));
+        /*** Updated 6/24/02 ***/
+        writecon("\b\b\b\b\b\b\b\b\b\b");
+      } while (tstep > 0);
+  }
+
+  /* Close hydraulics solver */
+
+  /*** Updated 6/24/02 ***/
+  writecon("\b\b\b\b\b\b\b\b                     ");
+
+  EN_closeH(ph);
+  errcode = MAX(errcode, p->Warnflag);
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENopenH() { return EN_openH(_defaultModel); }
+
+int DLLEXPORT EN_openH(EN_ProjectHandle ph)
+/*----------------------------------------------------------------
+ **  Input:   none
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: sets up data structures for hydraulic analysis
+ **----------------------------------------------------------------
+ */
+{
+  int errcode = 0;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  /* Check that input data exists */
+  p->hydraulics.OpenHflag = FALSE;
+  p->save_options.SaveHflag = FALSE;
+  if (!p->Openflag) {
+    return set_error(p->error_handle, 102);
+  }
+
+  /* Check that previously saved hydraulics file not in use */
+  if (p->out_files.Hydflag == USE) {
+    return set_error(p->error_handle, 107);
+  }
+
+  /* Open hydraulics solver */
+  ERRCODE(openhyd(p));
+  if (!errcode)
+    p->hydraulics.OpenHflag = TRUE;
+  else
+    errmsg(p, errcode);
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENinitH(int flag) { return EN_initH(_defaultModel, flag); }
+
+int DLLEXPORT EN_initH(EN_ProjectHandle ph, int flag)
+/*----------------------------------------------------------------
+ **  Input:   flag = 2-digit flag where 1st (left) digit indicates
+ **                  if link flows should be re-initialized (1) or
+ **                  not (0) and 2nd digit indicates if hydraulic
+ **                  results should be saved to file (1) or not (0)
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: initializes hydraulic analysis
+ **----------------------------------------------------------------
+ */
+{
+  int errcode = 0;
+  int sflag, fflag;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  /* Reset status flags */
+  p->save_options.SaveHflag = FALSE;
+  p->Warnflag = FALSE;
+
+  /* Get values of save-to-file flag and reinitialize-flows flag */
+  fflag = flag / EN_INITFLOW;
+  sflag = flag - fflag * EN_INITFLOW;
+
+  /* Check that hydraulics solver was opened */
+  if (!p->hydraulics.OpenHflag)
+    return set_error(p->error_handle, 103);
+
+  /* Open hydraulics file */
+  p->save_options.Saveflag = FALSE;
+  if (sflag > 0) {
+    errcode = openhydfile(p);
+    if (!errcode)
+      p->save_options.Saveflag = TRUE;
+    else {
+      errmsg(p, errcode);
+      return errcode;
+      }
+  }
+
+  /* Initialize hydraulics */
+  inithyd(p, fflag);
+  if (p->report.Statflag > 0)
+    writeheader(p, STATHDR, 0);
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENrunH(long *t) { return EN_runH(_defaultModel, t); }
+
+int DLLEXPORT EN_runH(EN_ProjectHandle ph, long *t) {
+  int errcode;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *t = 0;
+  if (!p->hydraulics.OpenHflag)
+    return set_error(p->error_handle, 103);
+  errcode = runhyd(p, t);
+  if (errcode)
+    errmsg(p, errcode);
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENnextH(long *tstep) { return EN_nextH(_defaultModel, tstep); }
+
+int DLLEXPORT EN_nextH(EN_ProjectHandle ph, long *tstep) {
+  int errcode;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *tstep = 0;
+  if (!p->hydraulics.OpenHflag)
+    return set_error(p->error_handle, 103);
+  errcode = nexthyd(p, tstep);
+  if (errcode)
+    errmsg(p, errcode);
+  else if (p->save_options.Saveflag && *tstep == 0)
+    p->save_options.SaveHflag = TRUE;
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENcloseH() { return EN_closeH(_defaultModel); }
+
+int DLLEXPORT EN_closeH(EN_ProjectHandle ph)
+{
+  EN_Project *p = (EN_Project*)ph;
+
+  if (!p->Openflag) {
+    return set_error(p->error_handle, 102);
+  }
+  if (p->hydraulics.OpenHflag) {
+    closehyd(p);
+  }
+  p->hydraulics.OpenHflag = FALSE;
+  return set_error(p->error_handle, 0);
+}
+
+
+/*
+ ----------------------------------------------------------------
+ Functions for running a WQ analysis
+ ----------------------------------------------------------------
+ */
+int DLLEXPORT ENsolveQ() { return EN_solveQ(_defaultModel); }
+
+int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
+  int errcode;
+  long t, tstep;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  /* Open WQ solver */
+  errcode = EN_openQ(ph);
+  if (!errcode) {
+    /* Initialize WQ */
+    errcode = EN_initQ(ph, EN_SAVE);
+    if (p->quality.Qualflag)
+      writecon(FMT15);
+    else {
+      writecon(FMT16);
+      writewin(p->viewprog, FMT103);
+    }
+
+    /* Analyze each hydraulic period */
+    if (!errcode)
+      do {
+
+        /* Display progress message */
+
+        /*** Updated 6/24/02 ***/
+        sprintf(p->Msg, "%-10s",
+                clocktime(p->report.Atime, p->time_options.Htime));
+
+        writecon(p->Msg);
+        if (p->quality.Qualflag) {
+          sprintf(p->Msg, FMT102, p->report.Atime);
+          writewin(p->viewprog, p->Msg);
+        }
+
+        /* Retrieve current network solution & update WQ to next time period */
+        tstep = 0;
+        ERRCODE(EN_runQ(ph, &t));
+        ERRCODE(EN_nextQ(ph, &tstep));
+
+        /*** Updated 6/24/02 ***/
+        writecon("\b\b\b\b\b\b\b\b\b\b");
+
+      } while (tstep > 0);
+  }
+
+  /* Close WQ solver */
+
+  /*** Updated 6/24/02 ***/
+  writecon("\b\b\b\b\b\b\b\b                     ");
+  EN_closeQ(ph);
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENopenQ() { return EN_openQ(_defaultModel); }
+
+int DLLEXPORT EN_openQ(EN_ProjectHandle ph) {
+  int errcode = 0;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  /* Check that hydraulics results exist */
+  p->quality.OpenQflag = FALSE;
+  p->save_options.SaveQflag = FALSE;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  // !LT! todo - check for p->save_options.SaveHflag / set sequential/step mode
+  // if (!p->save_options.SaveHflag) return(104);
+
+  /* Open WQ solver */
+  ERRCODE(openqual(p));
+  if (!errcode)
+    p->quality.OpenQflag = TRUE;
+  else
+    errmsg(p, errcode);
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENinitQ(int saveflag) { return EN_initQ(_defaultModel, saveflag); }
+
+int DLLEXPORT EN_initQ(EN_ProjectHandle ph, int saveflag) {
+  int errcode = 0;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  if (!p->quality.OpenQflag)
+    return set_error(p->error_handle, 105);
+  initqual(p);
+  p->save_options.SaveQflag = FALSE;
+  p->save_options.Saveflag = FALSE;
+  if (saveflag) {
+    errcode = openoutfile(p);
+    if (!errcode)
+      p->save_options.Saveflag = TRUE;
+  }
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENrunQ(long *t) { return EN_runQ(_defaultModel, t); }
+
+int DLLEXPORT EN_runQ(EN_ProjectHandle ph, long *t) {
+  int errcode;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *t = 0;
+  if (!p->quality.OpenQflag)
+    return set_error(p->error_handle, 105);
+  errcode = runqual(p, t);
+  if (errcode)
+    errmsg(p, errcode);
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENnextQ(long *tstep) { return EN_nextQ(_defaultModel, tstep); }
+
+int DLLEXPORT EN_nextQ(EN_ProjectHandle ph, long *tstep) {
+  int errcode;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *tstep = 0;
+  if (!p->quality.OpenQflag)
+    return set_error(p->error_handle, 105);
+  errcode = nextqual(p, tstep);
+  if (!errcode && p->save_options.Saveflag && *tstep == 0) {
+    p->save_options.SaveQflag = TRUE;
+  }
+  if (errcode)
+    errmsg(p, errcode);
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENstepQ(long *tleft) { return EN_stepQ(_defaultModel, tleft); }
+
+int DLLEXPORT EN_stepQ(EN_ProjectHandle ph, long *tleft) {
+  int errcode;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *tleft = 0;
+  if (!p->quality.OpenQflag)
+    return set_error(p->error_handle, 105);
+  errcode = stepqual(p, tleft);
+  if (!errcode && p->save_options.Saveflag && *tleft == 0) {
+    p->save_options.SaveQflag = TRUE;
+  }
+  if (errcode)
+    errmsg(p, errcode);
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENcloseQ() { return EN_closeQ(_defaultModel); }
+
+int DLLEXPORT EN_closeQ(EN_ProjectHandle ph) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  closequal(p);
+  p->quality.OpenQflag = FALSE;
+  return set_error(p->error_handle, 0);
+}
+
+
+/*
+ * Functions for generating output reports
+ */
+int DLLEXPORT ENsaveH() { return EN_saveH(_defaultModel); }
+
+int DLLEXPORT EN_saveH(EN_ProjectHandle ph)
+/*----------------------------------------------------------------
+ **  Input:   none
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: saves hydraulic results to binary file.
+ **
+ **  Must be called before ENreport() if no WQ simulation made.
+ **  Should not be called if ENsolveQ() will be used.
+ **----------------------------------------------------------------
+ */
+{
+  char tmpflag;
+  int errcode;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  /* Check if hydraulic results exist */
+  if (!p->save_options.SaveHflag)
+    return set_error(p->error_handle, 104);
+
+  /* Temporarily turn off WQ analysis */
+  tmpflag = p->quality.Qualflag;
+  p->quality.Qualflag = NONE;
+
+  /* Call WQ solver to simply transfer results */
+  /* from Hydraulics file to Output file at    */
+  /* fixed length reporting time intervals.    */
+  errcode = EN_solveQ(p);
+
+  /* Restore WQ analysis option */
+  p->quality.Qualflag = tmpflag;
+  if (errcode) {
+    errmsg(p, errcode);
+  }
+  return set_error(p->error_handle, errcode);
 }
 
 int DLLEXPORT ENsaveinpfile(char *filename) {
   return EN_saveinpfile(_defaultModel, filename);
 }
 
+int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, char *filename)
+/*----------------------------------------------------------------
+ **  Input:   filename = name of INP file
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: saves current data base to file
+ **----------------------------------------------------------------
+ */
+{
+  int errcode = 0;
+  EN_Project *p = (EN_Project*)ph;
 
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  errcode = saveinpfile(p, filename);
 
-int DLLEXPORT ENsolveH() { return EN_solveH(_defaultModel); }
-
-int DLLEXPORT ENsaveH() { return EN_saveH(_defaultModel); }
-
-int DLLEXPORT ENopenH() { return EN_openH(_defaultModel); }
-
-int DLLEXPORT ENinitH(int flag) { return EN_initH(_defaultModel, flag); }
-
-int DLLEXPORT ENrunH(long *t) { return EN_runH(_defaultModel, t); }
-
-int DLLEXPORT ENnextH(long *tstep) { return EN_nextH(_defaultModel, tstep); }
-
-int DLLEXPORT ENcloseH() { return EN_closeH(_defaultModel); }
-
-
-
-int DLLEXPORT ENsolveQ() { return EN_solveQ(_defaultModel); }
-
-int DLLEXPORT ENopenQ() { return EN_openQ(_defaultModel); }
-
-int DLLEXPORT ENinitQ(int saveflag) {
-  return EN_initQ(_defaultModel, saveflag);
+  return set_error(p->error_handle, errcode);
 }
 
-int DLLEXPORT ENrunQ(long *t) { return EN_runQ(_defaultModel, t); }
+int DLLEXPORT ENreport() { return EN_report(_defaultModel); }
 
-int DLLEXPORT ENnextQ(long *tstep) { return EN_nextQ(_defaultModel, tstep); }
+int DLLEXPORT EN_report(EN_ProjectHandle ph) {
+  int errcode;
 
-int DLLEXPORT ENstepQ(long *tleft) { return EN_stepQ(_defaultModel, tleft); }
+  EN_Project *p = (EN_Project*)ph;
 
-int DLLEXPORT ENcloseQ() { return EN_closeQ(_defaultModel); }
+  /* Check if results saved to binary output file */
+  if (!p->save_options.SaveQflag)
+    return set_error(p->error_handle, 106);
+  errcode = writereport(p);
+  if (errcode)
+    errmsg(p, errcode);
+  return set_error(p->error_handle, errcode);
+}
+
+int DLLEXPORT ENresetreport() { return EN_resetreport(_defaultModel); }
+
+int DLLEXPORT EN_resetreport(EN_ProjectHandle ph) {
+  int i;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  initreport(&p->report);
+  for (i = 1; i <= p->network.Nnodes; i++)
+    p->network.Node[i].Rpt = 0;
+  for (i = 1; i <= p->network.Nlinks; i++)
+    p->network.Link[i].Rpt = 0;
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENsetreport(char *s) { return EN_setreport(_defaultModel, s); }
+
+int DLLEXPORT EN_setreport(EN_ProjectHandle ph, char *s) {
+  char s1[MAXLINE + 1];
+
+  EN_Project *p = (EN_Project*)ph;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (strlen(s) > MAXLINE)
+    return set_error(p->error_handle, 250);
+  strcpy(s1, s);
+  if (setreport(p, s1) > 0)
+    return set_error(p->error_handle, 250);
+  else
+    return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT ENgeterror(int errcode, char *errmsg, int n) {
+  return EN_geterror(errcode, errmsg, n);
+}
+
+int DLLEXPORT EN_geterror(int errcode, char *errmsg, int n) {
+  char newMsg[MAXMSG+1];
+
+  switch (errcode) {
+  case 1:
+    strncpy(errmsg, WARN1, n);
+    break;
+  case 2:
+    strncpy(errmsg, WARN2, n);
+    break;
+  case 3:
+    strncpy(errmsg, WARN3, n);
+    break;
+  case 4:
+    strncpy(errmsg, WARN4, n);
+    break;
+  case 5:
+    strncpy(errmsg, WARN5, n);
+    break;
+  case 6:
+    strncpy(errmsg, WARN6, n);
+    break;
+  default:
+    geterrmsg(errcode, newMsg);
+    strncpy(errmsg, newMsg, n);
+  }
+  if (strlen(errmsg) == 0)
+    return (251);
+  else
+    return (0);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//-------------------------------- NEW API -----------------------------------//
+////////////////////////////////////////////////////////////////////////////////
+
+int DLLEXPORT ENaddpattern(char *id) {
+  return EN_addpattern(_defaultModel, id);
+}
+
+
+
+
 
 int DLLEXPORT ENwriteline(char *line) {
   return EN_writeline(_defaultModel, line);
 }
 
-int DLLEXPORT ENreport() { return EN_report(_defaultModel); }
 
-int DLLEXPORT ENresetreport() { return EN_resetreport(_defaultModel); }
 
-int DLLEXPORT ENsetreport(char *s) { return EN_setreport(_defaultModel, s); }
+
 
 
 
@@ -2258,9 +2749,7 @@ int DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits,
                         tracenode);
 }
 
-int DLLEXPORT ENgeterror(int errcode, char *errmsg, int n) {
-  return EN_geterror(errcode, errmsg, n);
-}
+
 
 int DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE *value) {
   return EN_getstatistic(_defaultModel, code, value);
@@ -2525,408 +3014,9 @@ int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
 
 
 
-int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, char *filename)
-/*----------------------------------------------------------------
- **  Input:   filename = name of INP file
- **  Output:  none
- **  Returns: error code
- **  Purpose: saves current data base to file
- **----------------------------------------------------------------
- */
-{
-  EN_Project *p = (EN_Project*)ph;
 
-  if (!p->Openflag)
-    return (102);
-  return (saveinpfile(p, filename));
-}
 
 
-
-/*
- ----------------------------------------------------------------
- Functions for running a hydraulic analysis
- ----------------------------------------------------------------
- */
-
-int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
-/*----------------------------------------------------------------
- **  Input:   none
- **  Output:  none
- **  Returns: error code
- **  Purpose: solves for network hydraulics in all time periods
- **----------------------------------------------------------------
- */
-{
-  int errcode;
-  long t, tstep;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  /* Open hydraulics solver */
-  errcode = EN_openH(ph);
-  if (!errcode) {
-    /* Initialize hydraulics */
-    errcode = EN_initH(ph, EN_SAVE);
-    writecon(FMT14);
-
-    /* Analyze each hydraulic period */
-    if (!errcode)
-      do {
-
-        /* Display progress message */
-
-        /*** Updated 6/24/02 ***/
-        sprintf(p->Msg, "%-10s",
-                clocktime(p->report.Atime, p->time_options.Htime));
-
-        writecon(p->Msg);
-        sprintf(p->Msg, FMT101, p->report.Atime);
-        writewin(p->viewprog, p->Msg);
-
-        /* Solve for hydraulics & advance to next time period */
-        tstep = 0;
-        ERRCODE(EN_runH(ph, &t));
-        ERRCODE(EN_nextH(ph, &tstep));
-        /*** Updated 6/24/02 ***/
-        writecon("\b\b\b\b\b\b\b\b\b\b");
-      } while (tstep > 0);
-  }
-
-  /* Close hydraulics solver */
-
-  /*** Updated 6/24/02 ***/
-  writecon("\b\b\b\b\b\b\b\b                     ");
-
-  EN_closeH(ph);
-  errcode = MAX(errcode, p->Warnflag);
-  return (errcode);
-}
-
-int DLLEXPORT EN_saveH(EN_ProjectHandle ph)
-/*----------------------------------------------------------------
- **  Input:   none
- **  Output:  none
- **  Returns: error code
- **  Purpose: saves hydraulic results to binary file.
- **
- **  Must be called before ENreport() if no WQ simulation made.
- **  Should not be called if ENsolveQ() will be used.
- **----------------------------------------------------------------
- */
-{
-  char tmpflag;
-  int errcode;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  /* Check if hydraulic results exist */
-  if (!p->save_options.SaveHflag)
-    return (104);
-
-  /* Temporarily turn off WQ analysis */
-  tmpflag = p->quality.Qualflag;
-  p->quality.Qualflag = NONE;
-
-  /* Call WQ solver to simply transfer results */
-  /* from Hydraulics file to Output file at    */
-  /* fixed length reporting time intervals.    */
-  errcode = EN_solveQ(p);
-
-  /* Restore WQ analysis option */
-  p->quality.Qualflag = tmpflag;
-  if (errcode) {
-    errmsg(p, errcode);
-  }
-  return (errcode);
-}
-
-int DLLEXPORT EN_openH(EN_ProjectHandle ph)
-/*----------------------------------------------------------------
- **  Input:   none
- **  Output:  none
- **  Returns: error code
- **  Purpose: sets up data structures for hydraulic analysis
- **----------------------------------------------------------------
- */
-{
-  int errcode = 0;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  /* Check that input data exists */
-  p->hydraulics.OpenHflag = FALSE;
-  p->save_options.SaveHflag = FALSE;
-  if (!p->Openflag) {
-    return (102);
-  }
-
-  /* Check that previously saved hydraulics file not in use */
-  if (p->out_files.Hydflag == USE) {
-    return (107);
-  }
-
-  /* Open hydraulics solver */
-  ERRCODE(openhyd(p));
-  if (!errcode)
-    p->hydraulics.OpenHflag = TRUE;
-  else
-    errmsg(p, errcode);
-  return (errcode);
-}
-
-/*** Updated 3/1/01 ***/
-int DLLEXPORT EN_initH(EN_ProjectHandle ph, int flag)
-/*----------------------------------------------------------------
- **  Input:   flag = 2-digit flag where 1st (left) digit indicates
- **                  if link flows should be re-initialized (1) or
- **                  not (0) and 2nd digit indicates if hydraulic
- **                  results should be saved to file (1) or not (0)
- **  Output:  none
- **  Returns: error code
- **  Purpose: initializes hydraulic analysis
- **----------------------------------------------------------------
- */
-{
-  int errcode = 0;
-  int sflag, fflag;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  /* Reset status flags */
-  p->save_options.SaveHflag = FALSE;
-  p->Warnflag = FALSE;
-
-  /* Get values of save-to-file flag and reinitialize-flows flag */
-  fflag = flag / EN_INITFLOW;
-  sflag = flag - fflag * EN_INITFLOW;
-
-  /* Check that hydraulics solver was opened */
-  if (!p->hydraulics.OpenHflag)
-    return (103);
-
-  /* Open hydraulics file */
-  p->save_options.Saveflag = FALSE;
-  if (sflag > 0) {
-    errcode = openhydfile(p);
-    if (!errcode)
-      p->save_options.Saveflag = TRUE;
-    else {
-      errmsg(p, errcode);
-      return errcode;
-      }
-  }
-
-  /* Initialize hydraulics */
-  inithyd(p, fflag);
-  if (p->report.Statflag > 0)
-    writeheader(p, STATHDR, 0);
-  return (errcode);
-}
-
-int DLLEXPORT EN_runH(EN_ProjectHandle ph, long *t) {
-  int errcode;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *t = 0;
-  if (!p->hydraulics.OpenHflag)
-    return (103);
-  errcode = runhyd(p, t);
-  if (errcode)
-    errmsg(p, errcode);
-  return (errcode);
-}
-
-int DLLEXPORT EN_nextH(EN_ProjectHandle ph, long *tstep) {
-  int errcode;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *tstep = 0;
-  if (!p->hydraulics.OpenHflag)
-    return (103);
-  errcode = nexthyd(p, tstep);
-  if (errcode)
-    errmsg(p, errcode);
-  else if (p->save_options.Saveflag && *tstep == 0)
-    p->save_options.SaveHflag = TRUE;
-  return (errcode);
-}
-
-int DLLEXPORT EN_closeH(EN_ProjectHandle ph)
-{
-  EN_Project *p = (EN_Project*)ph;
-
-  if (!p->Openflag) {
-    return (102);
-  }
-  if (p->hydraulics.OpenHflag) {
-    closehyd(p);
-  }
-  p->hydraulics.OpenHflag = FALSE;
-  return (0);
-}
-
-
-
-/*
- ----------------------------------------------------------------
- Functions for running a WQ analysis
- ----------------------------------------------------------------
- */
-
-int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
-  int errcode;
-  long t, tstep;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  /* Open WQ solver */
-  errcode = EN_openQ(ph);
-  if (!errcode) {
-    /* Initialize WQ */
-    errcode = EN_initQ(ph, EN_SAVE);
-    if (p->quality.Qualflag)
-      writecon(FMT15);
-    else {
-      writecon(FMT16);
-      writewin(p->viewprog, FMT103);
-    }
-
-    /* Analyze each hydraulic period */
-    if (!errcode)
-      do {
-
-        /* Display progress message */
-
-        /*** Updated 6/24/02 ***/
-        sprintf(p->Msg, "%-10s",
-                clocktime(p->report.Atime, p->time_options.Htime));
-
-        writecon(p->Msg);
-        if (p->quality.Qualflag) {
-          sprintf(p->Msg, FMT102, p->report.Atime);
-          writewin(p->viewprog, p->Msg);
-        }
-
-        /* Retrieve current network solution & update WQ to next time period */
-        tstep = 0;
-        ERRCODE(EN_runQ(ph, &t));
-        ERRCODE(EN_nextQ(ph, &tstep));
-
-        /*** Updated 6/24/02 ***/
-        writecon("\b\b\b\b\b\b\b\b\b\b");
-
-      } while (tstep > 0);
-  }
-
-  /* Close WQ solver */
-
-  /*** Updated 6/24/02 ***/
-  writecon("\b\b\b\b\b\b\b\b                     ");
-  EN_closeQ(ph);
-  return (errcode);
-}
-
-int DLLEXPORT EN_openQ(EN_ProjectHandle ph) {
-  int errcode = 0;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  /* Check that hydraulics results exist */
-  p->quality.OpenQflag = FALSE;
-  p->save_options.SaveQflag = FALSE;
-  if (!p->Openflag)
-    return (102);
-  // !LT! todo - check for p->save_options.SaveHflag / set sequential/step mode
-  // if (!p->save_options.SaveHflag) return(104);
-
-  /* Open WQ solver */
-  ERRCODE(openqual(p));
-  if (!errcode)
-    p->quality.OpenQflag = TRUE;
-  else
-    errmsg(p, errcode);
-  return (errcode);
-}
-
-int DLLEXPORT EN_initQ(EN_ProjectHandle ph, int saveflag) {
-  int errcode = 0;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  if (!p->quality.OpenQflag)
-    return (105);
-  initqual(p);
-  p->save_options.SaveQflag = FALSE;
-  p->save_options.Saveflag = FALSE;
-  if (saveflag) {
-    errcode = openoutfile(p);
-    if (!errcode)
-      p->save_options.Saveflag = TRUE;
-  }
-  return (errcode);
-}
-
-int DLLEXPORT EN_runQ(EN_ProjectHandle ph, long *t) {
-  int errcode;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *t = 0;
-  if (!p->quality.OpenQflag)
-    return (105);
-  errcode = runqual(p, t);
-  if (errcode)
-    errmsg(p, errcode);
-  return (errcode);
-}
-
-int DLLEXPORT EN_nextQ(EN_ProjectHandle ph, long *tstep) {
-  int errcode;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *tstep = 0;
-  if (!p->quality.OpenQflag)
-    return (105);
-  errcode = nextqual(p, tstep);
-  if (!errcode && p->save_options.Saveflag && *tstep == 0) {
-    p->save_options.SaveQflag = TRUE;
-  }
-  if (errcode)
-    errmsg(p, errcode);
-  return (errcode);
-}
-
-int DLLEXPORT EN_stepQ(EN_ProjectHandle ph, long *tleft) {
-  int errcode;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  *tleft = 0;
-  if (!p->quality.OpenQflag)
-    return (105);
-  errcode = stepqual(p, tleft);
-  if (!errcode && p->save_options.Saveflag && *tleft == 0) {
-    p->save_options.SaveQflag = TRUE;
-  }
-  if (errcode)
-    errmsg(p, errcode);
-  return (errcode);
-}
-
-int DLLEXPORT EN_closeQ(EN_ProjectHandle ph) {
-
-  EN_Project *p = (EN_Project*)ph;
-
-  if (!p->Openflag)
-    return (102);
-  closequal(p);
-  p->quality.OpenQflag = FALSE;
-  return (0);
-}
 
 /*
  ----------------------------------------------------------------
@@ -2944,50 +3034,8 @@ int DLLEXPORT EN_writeline(EN_ProjectHandle ph, char *line) {
   return (0);
 }
 
-int DLLEXPORT EN_report(EN_ProjectHandle ph) {
-  int errcode;
 
-  EN_Project *p = (EN_Project*)ph;
 
-  /* Check if results saved to binary output file */
-  if (!p->save_options.SaveQflag)
-    return (106);
-  errcode = writereport(p);
-  if (errcode)
-    errmsg(p, errcode);
-  return (errcode);
-}
-
-int DLLEXPORT EN_resetreport(EN_ProjectHandle ph) {
-  int i;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  if (!p->Openflag)
-    return (102);
-  initreport(&p->report);
-  for (i = 1; i <= p->network.Nnodes; i++)
-    p->network.Node[i].Rpt = 0;
-  for (i = 1; i <= p->network.Nlinks; i++)
-    p->network.Link[i].Rpt = 0;
-  return (0);
-}
-
-int DLLEXPORT EN_setreport(EN_ProjectHandle ph, char *s) {
-  char s1[MAXLINE + 1];
-
-  EN_Project *p = (EN_Project*)ph;
-
-  if (!p->Openflag)
-    return (102);
-  if (strlen(s) > MAXLINE)
-    return (250);
-  strcpy(s1, s);
-  if (setreport(p, s1) > 0)
-    return (250);
-  else
-    return (0);
-}
 
 
 
@@ -3222,37 +3270,7 @@ int DLLEXPORT EN_checkError(EN_ProjectHandle ph, char** msg_buffer)
     return errorcode;
 }
 
-int DLLEXPORT EN_geterror(int errcode, char *errmsg, int n) {
-  char newMsg[MAXMSG+1];
-  
-  switch (errcode) {
-  case 1:
-    strncpy(errmsg, WARN1, n);
-    break;
-  case 2:
-    strncpy(errmsg, WARN2, n);
-    break;
-  case 3:
-    strncpy(errmsg, WARN3, n);
-    break;
-  case 4:
-    strncpy(errmsg, WARN4, n);
-    break;
-  case 5:
-    strncpy(errmsg, WARN5, n);
-    break;
-  case 6:
-    strncpy(errmsg, WARN6, n);
-    break;
-  default:
-    geterrmsg(errcode, newMsg);
-    strncpy(errmsg, newMsg, n);
-  }
-  if (strlen(errmsg) == 0)
-    return (251);
-  else
-    return (0);
-}
+
 
 int DLLEXPORT EN_getstatistic(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE *value) {
 
