@@ -173,6 +173,7 @@ int DLLEXPORT ENepanet(char *f1, char *f2, char *f3, void (*pviewprog) (char *))
 **-------------------------------------------------------------------------
 */
 {
+	\\cambio de prueba
     int  errcode = 0;
     viewprog = pviewprog;
     ERRCODE(ENopen(f1,f2,f3));
