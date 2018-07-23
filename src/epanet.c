@@ -157,7 +157,8 @@ execute function x and set the error code equal to its return value.
  **-------------------------------------------------------------------------
  */
 int DLLEXPORT ENepanet(char *f1, char *f2, char *f3,
-                       void (*pviewprog)(char *)) {
+                       void (*pviewprog)(char *))
+ {
   int errcode = 0;
   ERRCODE(EN_alloc(&_defaultModel));
   ERRCODE(EN_open(_defaultModel, f1, f2, f3));
