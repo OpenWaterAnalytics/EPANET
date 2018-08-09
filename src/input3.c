@@ -32,12 +32,11 @@ All functions in this module are called from newline() in INPUT2.C.
 #include "text.h"
 #include "types.h"
 #include <math.h>
-#define EXTERN extern
-#include "vars.h"
 
 /* Defined in enumstxt.h in EPANET.C */
 extern char *MixTxt[];
 extern char *Fldname[];
+extern char *DemandModelTxt[];
 
 /* Defined in INPUT2.C */
 
@@ -1763,6 +1762,7 @@ int optionchoice(EN_Project *pr, int n)
 **    VERIFY              filename
 **    UNBALANCED          STOP/CONTINUE {Niter}
 **    PATTERN             id
+**    DEMAND MODEL        DDA/PDA/PPA
 **--------------------------------------------------------------
 */
 {
@@ -1771,131 +1771,125 @@ int optionchoice(EN_Project *pr, int n)
   quality_t *qu = &pr->quality;
   parser_data_t *par = &pr->parser;
   out_file_t *out = &pr->out_files;
-
+  int choice;
   
   /* Check if 1st token matches a parameter name and */
   /* process the input for the matched parameter     */
-  if (n < 0)
-    return (201);
-  if (match(par->Tok[0], w_UNITS)) {
-    if (n < 1)
-      return (0);
-    else if (match(par->Tok[1], w_CFS))
-      par->Flowflag = CFS;
-    else if (match(par->Tok[1], w_GPM))
-      par->Flowflag = GPM;
-    else if (match(par->Tok[1], w_AFD))
-      par->Flowflag = AFD;
-    else if (match(par->Tok[1], w_MGD))
-      par->Flowflag = MGD;
-    else if (match(par->Tok[1], w_IMGD))
-      par->Flowflag = IMGD;
-    else if (match(par->Tok[1], w_LPS))
-      par->Flowflag = LPS;
-    else if (match(par->Tok[1], w_LPM))
-      par->Flowflag = LPM;
-    else if (match(par->Tok[1], w_CMH))
-      par->Flowflag = CMH;
-    else if (match(par->Tok[1], w_CMD))
-      par->Flowflag = CMD;
-    else if (match(par->Tok[1], w_MLD))
-      par->Flowflag = MLD;
-    else if (match(par->Tok[1], w_SI))
-      par->Flowflag = LPS;
-    else
-      return (201);
-  } else if (match(par->Tok[0], w_PRESSURE)) {
-    if (n < 1)
-      return (0);
-    else if (match(par->Tok[1], w_PSI))
-      par->Pressflag = PSI;
-    else if (match(par->Tok[1], w_KPA))
-      par->Pressflag = KPA;
-    else if (match(par->Tok[1], w_METERS))
-      par->Pressflag = METERS;
-    else
-      return (201);
-  } else if (match(par->Tok[0], w_HEADLOSS)) {
-    if (n < 1)
-      return (0);
-    else if (match(par->Tok[1], w_HW))
-      hyd->Formflag = HW;
-    else if (match(par->Tok[1], w_DW))
-      hyd->Formflag = DW;
-    else if (match(par->Tok[1], w_CM))
-      hyd->Formflag = CM;
-    else
-      return (201);
-  } else if (match(par->Tok[0], w_HYDRAULIC)) {
-    if (n < 2)
-      return (0);
-    else if (match(par->Tok[1], w_USE))
-      out->Hydflag = USE;
-    else if (match(par->Tok[1], w_SAVE))
-      out->Hydflag = SAVE;
-    else
-      return (201);
+  if (n < 0) return (201);
+  if (match(par->Tok[0], w_UNITS))
+  {
+    if (n < 1) return (0);
+    else if (match(par->Tok[1], w_CFS))   par->Flowflag = CFS;
+    else if (match(par->Tok[1], w_GPM))   par->Flowflag = GPM;
+    else if (match(par->Tok[1], w_AFD))   par->Flowflag = AFD;
+    else if (match(par->Tok[1], w_MGD))   par->Flowflag = MGD;
+    else if (match(par->Tok[1], w_IMGD))  par->Flowflag = IMGD;
+    else if (match(par->Tok[1], w_LPS))   par->Flowflag = LPS;
+    else if (match(par->Tok[1], w_LPM))   par->Flowflag = LPM;
+    else if (match(par->Tok[1], w_CMH))   par->Flowflag = CMH;
+    else if (match(par->Tok[1], w_CMD))   par->Flowflag = CMD;
+    else if (match(par->Tok[1], w_MLD))   par->Flowflag = MLD;
+    else if (match(par->Tok[1], w_SI))    par->Flowflag = LPS;
+    else return (201);
+  }
+
+  else if (match(par->Tok[0], w_PRESSURE))
+  {
+    if (n < 1) return (0);
+    else if (match(par->Tok[1], w_EXPONENT)) return -1;
+    else if (match(par->Tok[1], w_PSI))    par->Pressflag = PSI;
+    else if (match(par->Tok[1], w_KPA))    par->Pressflag = KPA;
+    else if (match(par->Tok[1], w_METERS)) par->Pressflag = METERS;
+    else return (201);
+  }
+  
+  else if (match(par->Tok[0], w_HEADLOSS))
+  {
+    if (n < 1)  return (0);
+    else if (match(par->Tok[1], w_HW))   hyd->Formflag = HW;
+    else if (match(par->Tok[1], w_DW))   hyd->Formflag = DW;
+    else if (match(par->Tok[1], w_CM))   hyd->Formflag = CM;
+    else return (201);
+  }
+  
+  else if (match(par->Tok[0], w_HYDRAULIC))
+  {
+    if (n < 2) return (0);
+    else if (match(par->Tok[1], w_USE))  out->Hydflag = USE;
+    else if (match(par->Tok[1], w_SAVE)) out->Hydflag = SAVE;
+    else return (201);
     strncpy(out->HydFname, par->Tok[2], MAXFNAME);
-  } else if (match(par->Tok[0], w_QUALITY)) {
-    if (n < 1)
-      return (0);
-    else if (match(par->Tok[1], w_NONE))
-      qu->Qualflag = NONE;
-    else if (match(par->Tok[1], w_CHEM))
-      qu->Qualflag = CHEM;
-    else if (match(par->Tok[1], w_AGE))
-      qu->Qualflag = AGE;
-    else if (match(par->Tok[1], w_TRACE))
-      qu->Qualflag = TRACE;
-    else {
-      qu->Qualflag = CHEM;
-      strncpy(qu->ChemName, par->Tok[1], MAXID);
-      if (n >= 2)
-        strncpy(qu->ChemUnits, par->Tok[2], MAXID);
+  }
+
+  else if (match(par->Tok[0], w_QUALITY))
+  {
+    if (n < 1) return (0);
+    else if (match(par->Tok[1], w_NONE))  qu->Qualflag = NONE;
+    else if (match(par->Tok[1], w_CHEM))  qu->Qualflag = CHEM;
+    else if (match(par->Tok[1], w_AGE))   qu->Qualflag = AGE;
+    else if (match(par->Tok[1], w_TRACE)) qu->Qualflag = TRACE;
+    else
+    {
+        qu->Qualflag = CHEM;
+        strncpy(qu->ChemName, par->Tok[1], MAXID);
+        if (n >= 2) strncpy(qu->ChemUnits, par->Tok[2], MAXID);
     }
     if (qu->Qualflag == TRACE) /* Source tracing option */
     {
       /* Copy Trace Node ID to par->Tok[0] for error reporting */
       strcpy(par->Tok[0], "");
-      if (n < 2)
-        return (212);
+      if (n < 2) return (212);
       strcpy(par->Tok[0], par->Tok[2]);
       qu->TraceNode = findnode(net,par->Tok[2]);
-      if (qu->TraceNode == 0)
-        return (212);
+      if (qu->TraceNode == 0)  return (212);
       strncpy(qu->ChemName, u_PERCENT, MAXID);
       strncpy(qu->ChemUnits, par->Tok[2], MAXID);
     }
-    if (qu->Qualflag == AGE) {
+    if (qu->Qualflag == AGE)
+    {
       strncpy(qu->ChemName, w_AGE, MAXID);
       strncpy(qu->ChemUnits, u_HOURS, MAXID);
     }
-  } else if (match(par->Tok[0], w_MAP)) {
-    if (n < 1)
-      return (0);
+  }
+  
+  else if (match(par->Tok[0], w_MAP))
+  {
+    if (n < 1) return (0);
     strncpy(pr->MapFname, par->Tok[1], MAXFNAME); /* Map file name */
-  } else if (match(par->Tok[0], w_VERIFY)) {
+  }
+  
+  else if (match(par->Tok[0], w_VERIFY))
+  {
     /* Backward compatibility for verification file */
-  } else if (match(par->Tok[0], w_UNBALANCED)) /* Unbalanced option */
+  }
+  
+  else if (match(par->Tok[0], w_UNBALANCED)) /* Unbalanced option */
   {
-    if (n < 1)
-      return (0);
-    if (match(par->Tok[1], w_STOP))
-      hyd->ExtraIter = -1;
-    else if (match(par->Tok[1], w_CONTINUE)) {
-      if (n >= 2)
-        hyd->ExtraIter = atoi(par->Tok[2]);
-      else
-        hyd->ExtraIter = 0;
-    } else
-      return (201);
-  } else if (match(par->Tok[0], w_PATTERN)) /* Pattern option */
+    if (n < 1) return (0);
+    if (match(par->Tok[1], w_STOP)) hyd->ExtraIter = -1;
+    else if (match(par->Tok[1], w_CONTINUE))
+    {
+      if (n >= 2)  hyd->ExtraIter = atoi(par->Tok[2]);
+      else         hyd->ExtraIter = 0;
+    }
+    else return (201);
+  }
+  
+  else if (match(par->Tok[0], w_PATTERN)) /* Pattern option */
   {
-    if (n < 1)
-      return (0);
+    if (n < 1) return (0);
     strncpy(par->DefPatID, par->Tok[1], MAXID);
-  } else
-    return (-1);
+  }
+
+  else if (match(par->Tok[0], w_DEMAND))
+  {
+      if (n < 2) return 0;
+      if (!match(par->Tok[1], w_MODEL)) return -1;
+      choice = findmatch(par->Tok[2], DemandModelTxt);
+      if (choice < 0) return 201;
+      hyd->DemandModel = choice;
+  }
+  else return (-1);
   return (0);
 } /* end of optionchoice */
 
@@ -1916,6 +1910,9 @@ int optionvalue(EN_Project *pr, int n)
 
 **    HEADLIMIT           value
 **    FLOWLIMIT           value
+**    MINIMUM PRESSURE    value
+**    REQUIRED PRESSURE   value
+**    PRESSURE EXPONENT   value
 
 **    TOLERANCE           value
 **    SEGMENTS            value  (not used)
@@ -1939,39 +1936,40 @@ int optionvalue(EN_Project *pr, int n)
   double y;
 
   /* Check for obsolete SEGMENTS keyword */
-  //if (match(par->Tok[0], w_SEGMENTS))
-  if (match(tok0, w_SEGMENTS))
-          return (0);
+  if (match(tok0, w_SEGMENTS)) return (0);
 
   /* Check for missing value (which is permissible) */
   if (match(tok0, w_SPECGRAV) || match(tok0, w_EMITTER) ||
-      match(tok0, w_DEMAND))
+      match(tok0, w_DEMAND)   || match(tok0, w_MINIMUM) ||
+      match(tok0, w_REQUIRED) || match(tok0, w_PRESSURE) ||
+      match(tok0, w_PRECISION))
+  {
     nvalue = 2;
-  if (n < nvalue)
-    return (0);
+  }
+  if (n < nvalue) return (0);
 
   /* Check for valid numerical input */
-  if (!getfloat(par->Tok[nvalue], &y))
-    return (213);
+  if (!getfloat(par->Tok[nvalue], &y)) return (213);
 
   /* Check for WQ tolerance option (which can be 0) */
-  if (match(tok0, w_TOLERANCE)) {
-    if (y < 0.0)
-      return (213);
+  if (match(tok0, w_TOLERANCE))
+  {
+    if (y < 0.0) return (213);
     qu->Ctol = y; /* Quality tolerance*/
     return (0);
   }
 
   /* Check for Diffusivity option */
-  if (match(tok0, w_DIFFUSIVITY)) {
-    if (y < 0.0)
-      return (213);
+  if (match(tok0, w_DIFFUSIVITY))
+  {
+    if (y < 0.0) return (213);
     qu->Diffus = y;
     return (0);
   }
 
   /* Check for Damping Limit option */ 
-  if (match(tok0, w_DAMPLIMIT)) {
+  if (match(tok0, w_DAMPLIMIT))
+  {
     hyd->DampLimit = y;
     return (0);
   }
@@ -1992,41 +1990,51 @@ int optionvalue(EN_Project *pr, int n)
       return 0;
   }
 
+  /* Check for pressure dependent demand params */
+  else if (match(tok0, w_MINIMUM))
+  {
+      if (y < 0.0) return 213;
+      hyd->Pmin = y;
+      return 0;
+  }
+  else if (match(tok0, w_REQUIRED))
+  {
+      if (y < 0.0) return 213;
+      hyd->Preq = y;
+      return 0;
+  }
+  else if (match(tok0, w_PRESSURE))
+  {
+      if (y < 0.0) return 213;
+      hyd->Pexp = y;
+      return 0;
+  }
+
   /* All other options must be > 0 */
-  if (y <= 0.0)
-    return (213);
+  if (y <= 0.0) return (213);
 
   /* Assign value to specified option */
-  if (match(tok0, w_VISCOSITY))
-    hyd->Viscos = y; /* Viscosity */
-  else if (match(tok0, w_SPECGRAV))
-    hyd->SpGrav = y; /* Spec. gravity */
-  else if (match(tok0, w_TRIALS))
-    hyd->MaxIter = (int)y;                   /* Max. trials */
+  if (match(tok0, w_VISCOSITY))     hyd->Viscos = y; /* Viscosity */
+  else if (match(tok0, w_SPECGRAV)) hyd->SpGrav = y; /* Spec. gravity */
+  else if (match(tok0, w_TRIALS))   hyd->MaxIter = (int)y;  /* Max. trials */
   else if (match(tok0, w_ACCURACY)) /* Accuracy */
   {
     y = MAX(y, 1.e-5);
     y = MIN(y, 1.e-1);
     hyd->Hacc = y;
   }
-  else if (match(tok0, w_HTOL))
-    hyd->Htol = y;
-  else if (match(tok0, w_QTOL))
-    hyd->Qtol = y;
-  else if (match(tok0, w_RQTOL)) {
-    if (y >= 1.0)
-      return (213);
+  else if (match(tok0, w_HTOL))  hyd->Htol = y;
+  else if (match(tok0, w_QTOL))  hyd->Qtol = y;
+  else if (match(tok0, w_RQTOL))
+  {
+    if (y >= 1.0) return (213);
     hyd->RQtol = y;
-  } else if (match(tok0, w_CHECKFREQ))
-    hyd->CheckFreq = (int)y;
-  else if (match(tok0, w_MAXCHECK))
-    hyd->MaxCheck = (int)y;
-  else if (match(tok0, w_EMITTER))
-    hyd->Qexp = 1.0 / y;
-  else if (match(tok0, w_DEMAND))
-    hyd->Dmult = y;
-  else
-    return (201);
+  }
+  else if (match(tok0, w_CHECKFREQ))  hyd->CheckFreq = (int)y;
+  else if (match(tok0, w_MAXCHECK))   hyd->MaxCheck = (int)y;
+  else if (match(tok0, w_EMITTER))    hyd->Qexp = 1.0 / y;
+  else if (match(tok0, w_DEMAND))     hyd->Dmult = y;
+  else return (201);
   return (0);
 } /* end of optionvalue */
 
@@ -2091,7 +2099,8 @@ int getpumpcurve(EN_Project *pr, int n)
   return (0);
 }
 
-int powercurve(double h0, double h1, double h2, double q1, double q2, double *a, double *b, double *c)
+int powercurve(double h0, double h1, double h2, double q1, double q2,
+               double *a, double *b, double *c)
 /*
 **---------------------------------------------------------
 **  Input:   h0 = shutoff head

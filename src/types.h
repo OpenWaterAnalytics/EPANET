@@ -298,6 +298,11 @@ typedef enum {
     MAX_ENERGY_STATS
 } EnergyStats;
 
+typedef enum {
+    DDA,        // Demand Driven Analysis    
+    PDA         // Pressure Driven Analysis
+} DemandModelType;
+
 /*
 ------------------------------------------------------
    Global Data Structures                             
@@ -759,7 +764,8 @@ typedef struct {
 
 typedef struct {
   double  
-  *NodeDemand,           /* Node actual demand           */
+  *NodeDemand,           // Node actual total outflow
+  *DemandFlows,          // Demand outflows
   *EmitterFlows,         /* Emitter flows                */
   *LinkSetting,          /* Link settings                */
   *LinkFlows,            /* Link flows                   */
@@ -768,10 +774,13 @@ typedef struct {
   Qtol,                  /* Flow rate tolerance          */
   RQtol,                 /* Flow resistance tolerance    */
   Hexp,                  /* Exponent in headloss formula */
-  Qexp,                  /* Exponent in orifice formula  */
+  Qexp,                  /* Exponent in emitter formula  */
+  Pexp,                  // Exponent in demand formula
+  Pmin,                  // Pressure needed for any demand
+  Preq,                  // Pressure needed for full demand
   Dmult,                 /* Demand multiplier            */
-  Hacc,                  /* Hydraulics solution accuracy */
 
+  Hacc,                  /* Hydraulics solution accuracy */
   FlowChangeLimit,       /* Hydraulics flow change limit */
   HeadErrorLimit,        /* Hydraulics head error limit  */
 
@@ -787,7 +796,8 @@ typedef struct {
   
   int
   DefPat,                /* Default demand pattern       */
-  Epat;                  /* Energy cost time pattern     */
+  Epat,                  /* Energy cost time pattern     */
+  DemandModel;           // Fixed or pressure dependent
 
   StatType  
   *LinkStatus,           /* Link status                  */
@@ -805,8 +815,10 @@ typedef struct {
   Formflag;              /* Hydraulic formula flag       */
   
   /* Info about hydraulic solution */
-  double relativeError;
-  int iterations;
+  double RelativeError;
+  double MaxHeadError;
+  double MaxFlowChange;
+  int    Iterations;
   
   /* Flag used to halt taking further time steps */
   int Haltflag;

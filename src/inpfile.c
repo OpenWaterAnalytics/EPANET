@@ -26,14 +26,14 @@ data describing a piping network to a file in EPANET's text format.
 #else
 #include <stdlib.h>
 #endif
+
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#include "epanet2.h"
 #include "funcs.h"
 #include <math.h>
-#define EXTERN extern
-#include "vars.h"
+//#define EXTERN extern
+//#include "vars.h"
 
 /* Defined in enumstxt.h in EPANET.C */
 extern char *LinkTxt[];
@@ -618,11 +618,15 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n CHECKFREQ           %-d", hyd->CheckFreq);
   fprintf(f, "\n MAXCHECK            %-d", hyd->MaxCheck);
   fprintf(f, "\n DAMPLIMIT           %-.8f", hyd->DampLimit);
-  if (hyd->HeadErrorLimit > 0.0) {
-      fprintf(f, "\n HEADERROR           %-.8f", hyd->HeadErrorLimit * pr->Ucf[HEAD]);
-  }
-  if (hyd->FlowChangeLimit > 0.0) {
-      fprintf(f, "\n FLOWCHANGE          %-.8f", hyd->FlowChangeLimit * pr->Ucf[FLOW]);
+  fprintf(f, "\n HEADERROR           %-.8f", hyd->HeadErrorLimit * pr->Ucf[HEAD]);
+  fprintf(f, "\n FLOWCHANGE          %-.8f", hyd->FlowChangeLimit * pr->Ucf[FLOW]);
+
+  if (hyd->DemandModel == PDA)
+  {
+    fprintf(f, "\n DEMAND MODEL        PDA");
+    fprintf(f, "\n MINIMUM PRESSURE    %-.4f", hyd->Pmin * pr->Ucf[PRESSURE]);
+    fprintf(f, "\n REQUIRED PRESSURE   %-.4f", hyd->Preq * pr->Ucf[PRESSURE]);
+    fprintf(f, "\n PRESSURE EXPONENT   %-.4f", hyd->Pexp);
   }
 
   /* Write [REPORT] section */
