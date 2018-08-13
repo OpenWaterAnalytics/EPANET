@@ -75,6 +75,8 @@ Public Const EN_NEXTEVENT = 14
 
 Public Const EN_ITERATIONS = 0
 Public Const EN_RELATIVEERROR = 1
+Public Const EN_MAXHEADERROR  = 2
+Public Const EN_MAXFLOWCHANGE = 3
 
 Public Const EN_NODECOUNT = 0     'Component counts
 Public Const EN_TANKCOUNT = 1
@@ -122,6 +124,9 @@ Public Const EN_LPM = 6
 Public Const EN_MLD = 7
 Public Const EN_CMH = 8
 Public Const EN_CMD = 9
+
+Public Const EN_DDA = 0           ' Demand driven analysis
+Public Const EN_PDA = 1           ' Pressure driven analysis
 
 Public Const EN_TRIALS = 0       ' Misc. options
 Public Const EN_ACCURACY = 1
@@ -222,6 +227,9 @@ Public Const EN_CUSTOM = 2        ' user-defined custom curve
 
  Declare Function ENgetversion Lib "epanet2.dll" (value As Long) As Long
 
+ Declare Function ENgetdemandmodel Lib "epanet2.dll" (type as long, pmin as Single, preq as Single, pexp as Single) As Long
+ Declare Function ENsetdemandmodel Lib "epanet2.dll" (ByVal type as long, ByVal pmin as Single, ByVal preq as Single, ByVal pexp as Single) As Long
+ 
  Declare Function ENsetflowunits Lib "epanet2.dll" (ByVal code As Long) As Long
  Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal Cindex As Long, ByVal Ctype As Long, ByVal Lindex As Long, ByVal setting As Single, ByVal Nindex As Long, ByVal Level As Single) As Long
  Declare Function ENsetnodevalue Lib "epanet2.dll" (ByVal index As Long, ByVal code As Long, ByVal value As Single) As Long
