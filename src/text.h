@@ -430,7 +430,8 @@ AUTHOR:     L. Rossman
 /*** End of update ***/
 
 #define FMT66  "                      maximum  flow change = %.4f for Link %s"
-#define FMT67  "                      maximum  head error  = %.4f for Link %s\n"
+#define FMT67  "                      maximum  flow change = %.4f for Node %s"
+#define FMT68  "                      maximum  head error  = %.4f for Link %s\n"
 
 /* -------------------- Energy Report Table ------------------- */
 #define FMT71  "Energy Usage:"

@@ -650,15 +650,21 @@ void  reporthydbal(EN_Project *pr, Hydbalance *hbal)
     double qchange = hbal->maxflowchange * pr->Ucf[FLOW];
     double herror = hbal->maxheaderror * pr->Ucf[HEAD];
     int    qlink = hbal->maxflowlink;
+    int    qnode = hbal->maxflownode;
     int    hlink = hbal->maxheadlink;
     if (qlink >= 1)
     {
         sprintf(pr->Msg, FMT66, qchange, pr->network.Link[qlink].ID);
         writeline(pr, pr->Msg);
     }
+    else if (qnode >= 1)
+    {
+        sprintf(pr->Msg, FMT67, qchange, pr->network.Node[qnode].ID);
+        writeline(pr, pr->Msg);
+    }
     if (hlink >= 1)
     {
-        sprintf(pr->Msg, FMT67, herror, pr->network.Link[hlink].ID);
+        sprintf(pr->Msg, FMT68, herror, pr->network.Link[hlink].ID);
         writeline(pr, pr->Msg);
     }
 }
