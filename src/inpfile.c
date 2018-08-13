@@ -618,6 +618,15 @@ int saveinpfile(EN_Project *pr, char *fname)
   fprintf(f, "\n CHECKFREQ           %-d", hyd->CheckFreq);
   fprintf(f, "\n MAXCHECK            %-d", hyd->MaxCheck);
   fprintf(f, "\n DAMPLIMIT           %-.8f", hyd->DampLimit);
+<<<<<<< HEAD
+=======
+  if (hyd->HeadErrorLimit > 0.0) {
+      fprintf(f, "\n HEADERROR           %-.8f", hyd->HeadErrorLimit * pr->Ucf[HEAD]);
+  }
+  if (hyd->FlowChangeLimit > 0.0) {
+      fprintf(f, "\n FLOWCHANGE          %-.8f", hyd->FlowChangeLimit * pr->Ucf[FLOW]);
+  }
+>>>>>>> 5d6d0ca93336194ba194dc8959339d795684890e
 
   // New v.2.2 options - only add if not at default values
   if (hyd->HeadErrorLimit > 0.0)
