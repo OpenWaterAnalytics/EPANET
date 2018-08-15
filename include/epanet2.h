@@ -248,9 +248,9 @@ typedef enum {
 typedef enum {
   EN_CONST_HP    = 0,   /* constant horsepower       */
   EN_POWER_FUNC  = 1,   /* power function            */
-  EN_CUSTOM      = 2    /* user-defined custom curve */
-} EN_CurveType;
-
+  EN_CUSTOM      = 2,   /* user-defined custom curve */
+  EN_NOCURVE     = 3    /* no curve                  */
+} EN_PumpType;
 
 typedef enum {
   EN_V_CURVE     = 0,   /*    volume curve                      */
