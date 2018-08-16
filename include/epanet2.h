@@ -224,16 +224,12 @@ typedef enum {
   EN_TIMEOFDAY   = 3
 } EN_ControlType;
 
-
-
 typedef enum {
   EN_AVERAGE     = 1,   /* Time statistic types.    */
   EN_MINIMUM     = 2,   /* See TstatType in TYPES.H */
   EN_MAXIMUM     = 3,
   EN_RANGE       = 4
 } EN_StatisticType;
-
-
 
 typedef enum {
   EN_MIX1        = 0,   /* Tank mixing models */
@@ -242,8 +238,6 @@ typedef enum {
   EN_LIFO        = 3
 } EN_MixingModel;
 
-
-
 typedef enum {
   EN_NOSAVE        = 0,
   EN_SAVE          = 1,
@@ -251,15 +245,20 @@ typedef enum {
   EN_SAVE_AND_INIT = 11
 } EN_SaveOption;
 
-
-
 typedef enum {
   EN_CONST_HP    = 0,   /* constant horsepower       */
   EN_POWER_FUNC  = 1,   /* power function            */
-  EN_CUSTOM      = 2    /* user-defined custom curve */
+  EN_CUSTOM      = 2,   /* user-defined custom curve */
+  EN_NOCURVE     = 3    /* no curve                  */
+} EN_PumpType;
+
+typedef enum {
+  EN_V_CURVE     = 0,   /*    volume curve                      */
+  EN_P_CURVE     = 1,   /*    pump curve                        */
+  EN_E_CURVE     = 2,   /*    efficiency curve                  */
+  EN_H_CURVE     = 3,   /*    head loss curve                   */
+  EN_G_CURVE     = 4    /*    General\default curve             */
 } EN_CurveType;
-
-
 
 // --- Declare the EPANET toolkit functions
 #if defined(__cplusplus)

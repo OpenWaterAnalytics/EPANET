@@ -2933,7 +2933,7 @@ int DLLEXPORT EN_addcurve(EN_Project *p, char *id) {
 
   strcpy(tmpCur[n].ID, id);
   tmpCur[n].Npts = 1;
-  tmpCur[n].Type = -1;
+  tmpCur[n].Type = G_CURVE;
   tmpCur[n].X = (double *)calloc(tmpCur[n].Npts, sizeof(double));
   tmpCur[n].Y = (double *)calloc(tmpCur[n].Npts, sizeof(double));
   if (tmpCur[n].X == NULL)
@@ -2974,9 +2974,7 @@ int DLLEXPORT EN_addcurve(EN_Project *p, char *id) {
 int DLLEXPORT EN_setcurve(EN_Project *p, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int n) {
   
   EN_Network *net = &p->network;  
-  Scurve *Curve = net->Curve;
-  
-  
+  Scurve *Curve = net->Curve;  
   int j;
 
   /* Check for valid arguments */
@@ -3007,11 +3005,8 @@ int DLLEXPORT EN_setcurve(EN_Project *p, int index, EN_API_FLOAT_TYPE *x, EN_API
 int DLLEXPORT EN_setcurvevalue(EN_Project *p, int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y) {
   
   EN_Network *net = &p->network;
-  
   Scurve *Curve = net->Curve;
-  
   const int Ncurves = net->Ncurves;
-  
   
   if (!p->Openflag)
     return (102);
@@ -3713,7 +3708,7 @@ int allocdata(EN_Project *p)
     }
     for (n = 0; n <= par->MaxCurves; n++) {
       net->Curve[n].Npts = 0;
-      net->Curve[n].Type = -1;
+      net->Curve[n].Type = G_CURVE;
       net->Curve[n].X = NULL;
       net->Curve[n].Y = NULL;
     }

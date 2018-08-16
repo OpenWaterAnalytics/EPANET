@@ -154,6 +154,13 @@ Public Const EN_INITFLOW = 10    ' Re-initialize flow flag
 Public Const EN_CONST_HP = 0      ' constant horsepower
 Public Const EN_POWER_FUNC = 1    ' power function
 Public Const EN_CUSTOM = 2        ' user-defined custom curve
+Public Const EN_NOCURVE = 3       ' no curve
+
+Public Const EN_V_CURVE = 0       ' volume curve
+Public Const EN_P_CURVE = 1       ' pump curve
+Public Const EN_E_CURVE = 2       ' efficiency curve
+Public Const EN_H_CURVE = 3       ' head loss curve
+Public Const EN_G_CURVE = 4       ' General\default curve
 
 'These are the external functions that comprise the DLL
 
