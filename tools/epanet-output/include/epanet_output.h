@@ -25,7 +25,7 @@ typedef enum {
 typedef enum {
     ENR_flowUnits   = 1,
     ENR_pressUnits  = 2,
-    ENR_chemUnits   = 3
+    ENR_qualUnits   = 3
 } ENR_Units;
 
 typedef enum {
@@ -43,7 +43,7 @@ typedef enum {
 
 typedef enum {
 	ENR_PSI         = 0,
-	ENR_MTRS        = 1,
+	ENR_MTR         = 1,
 	ENR_KPA         = 2
 } ENR_PressUnits;
 
@@ -53,7 +53,7 @@ typedef enum {
     ENR_UGL         = 2,
     ENR_HOURS       = 3,
     ENR_PRCNT       = 4
-} ENR_ChemUnits;
+} ENR_QualUnits;
 
 typedef enum {
     ENR_reportStart = 1,

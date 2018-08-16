@@ -327,7 +327,7 @@ int DLLEXPORT ENR_getUnits(ENR_Handle p_handle, ENR_Units code, int* unitFlag)
             fread(unitFlag, WORDSIZE, 1, p_data->file);
             break;
 
-        case ENR_chemUnits:
+        case ENR_qualUnits:
             offset = 7*WORDSIZE;
             _fseek(p_data->file, offset, SEEK_SET);
             fread(unitFlag, WORDSIZE, 1, p_data->file);
@@ -846,7 +846,7 @@ void errorLookup(int errcode, char* dest_msg, int dest_len)
     default:  msg = ERRERR;
     }
 
-    strncpy(dest_msg, msg, MSGMAXLEN);
+    strncpy(dest_msg, msg, MSG_MAXLEN);
 }
 
 int validateFile(ENR_Handle p_handle)

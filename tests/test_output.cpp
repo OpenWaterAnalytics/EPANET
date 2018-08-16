@@ -145,7 +145,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNetSize, Fixture)
 BOOST_FIXTURE_TEST_CASE(test_getUnits, Fixture) {
     int flag;
 
-    error = ENR_getUnits(p_handle, ENR_chemUnits, &flag);
+    error = ENR_getUnits(p_handle, ENR_qualUnits, &flag);
 	BOOST_REQUIRE(error == 0);
 
 	BOOST_CHECK_EQUAL(flag, ENR_MGL);
