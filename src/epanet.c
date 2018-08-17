@@ -1994,6 +1994,7 @@ int DLLEXPORT EN_getlinknodes(EN_Project *p, int index, int *node1,
 int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value) {
   double a, h, q, v = 0.0;
   int returnValue = 0;
+  int pmp;
   
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
@@ -2007,8 +2008,6 @@ int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, EN_LinkProperty code, EN
   double *LinkFlows = hyd->LinkFlows;
   double *LinkSetting = hyd->LinkSetting;
 
-  
-  
   /* Check for valid arguments */
   *value = 0.0;
   if (!p->Openflag)
@@ -2123,6 +2122,20 @@ int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, EN_LinkProperty code, EN
         v = 0.0;
       else
         v = 1.0;
+      break;
+
+    case EN_STATE:
+      v = hyd->LinkStatus[index];
+      
+      if (Link[index].Type == EN_PUMP) {
+         pmp = findpump(net, index);
+         if (hyd->LinkStatus[index] >= OPEN) {
+            if (hyd->LinkFlows[index] > hyd->LinkSetting[index] * Pump[pmp].Qmax)
+               v = XFLOW;
+            if (hyd->LinkFlows[index] < 0.0)
+               v = XHEAD;
+         }
+      }
       break;
       
     case EN_SETTING:
