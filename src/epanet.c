@@ -2043,7 +2043,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, EN_LinkProperty code, EN
         v = Link[index].Km;
         v *= (SQR(Link[index].Diam) * SQR(Link[index].Diam) / 0.02517);
       } else
-        v = 0.0;
+        v = Link[index].Km*Ucf[POWER]; /*return power*/
       break;
       
     case EN_INITSTATUS:
