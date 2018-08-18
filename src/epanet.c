@@ -2137,6 +2137,24 @@ int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, EN_LinkProperty code, EN
          }
       }
       break;
+
+    case EN_CONST_POWER:
+      v = 0;
+      if (Link[index].Type == EN_PUMP) {
+         pmp = findpump(net, index);
+         if (Pump[pmp].Ptype == CONST_HP) {
+             v = Link[index].Km; // Power in HP
+         }
+      }
+      break;
+
+    case EN_SPEED:
+      v = 0;
+      if (Link[index].Type == EN_PUMP) {
+         pmp = findpump(net, index);
+         v = Link[index].Kc;
+      }
+      break;
       
     case EN_SETTING:
       if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE) {

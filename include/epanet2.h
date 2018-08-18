@@ -116,7 +116,9 @@ typedef enum {
   EN_HEADCURVE    = 17,
   EN_EFFICIENCYCURVE = 18,
   EN_PRICEPATTERN = 19,
-  EN_STATE        = 20
+  EN_STATE        = 20,
+  EN_CONST_POWER  = 21,
+  EN_SPEED        = 22
 } EN_LinkProperty;
 
 /// Time parameter codes
