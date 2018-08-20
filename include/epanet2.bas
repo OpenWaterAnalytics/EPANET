@@ -56,6 +56,9 @@ Public Const EN_EFFICIENCY = 16
 Public Const EN_HEADCURVE = 17
 Public Const EN_EFFICIENCYCURVE = 18
 Public Const EN_PRICEPATTERN = 19
+Public Const EN_STATE = 20
+Public Const EN_CONST_POWER = 21
+Public Const EN_SPEED = 22
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
