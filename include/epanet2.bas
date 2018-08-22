@@ -229,6 +229,7 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENgetcurve Lib "epanet2.dll" (ByVal curveIndex As Long, ByVal CurveID As String, nValues As Long, xValues As Any, yValues As Any) As Long
  Declare Function ENgetheadcurveindex Lib "epanet2.dll" (ByVal pumpIndex As Long, curveIndex As Long) As Long
  Declare Function ENgetpumptype Lib "epanet2.dll" (ByVal index As Long, PumpType As Long) As Long
+ Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal curveindex As Long, CurveType As Long) As Long
 
  Declare Function ENgetversion Lib "epanet2.dll" (value As Long) As Long
 

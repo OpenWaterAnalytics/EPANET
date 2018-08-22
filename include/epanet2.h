@@ -763,10 +763,19 @@ extern "C" {
    @param linkIndex The index of the pump element
    @param[out] outType The integer-typed pump curve type signifier (output parameter)
    @return Error code
-   @see EN_CurveType
+   @see EN_PumpType
    */
   int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
-  
+
+  /**
+   @brief Get the type of a curve
+   @param curveIndex The index of the curve element
+   @param[out] outType The integer-typed curve curve type signifier (output parameter)
+   @return Error code
+   @see EN_CurveType
+   */
+  int  DLLEXPORT ENgetcurvetype(int curveIndex, int *outType);
+    
   /**
    @brief Get the version number. This number is to be interpreted with implied decimals, i.e., "20100" == "2(.)01(.)00"
    @param[out] version The version of EPANET
@@ -1189,6 +1198,7 @@ extern "C" {
   int DLLEXPORT EN_getheadcurveindex(EN_Project *p, int pumpIndex, int *curveIndex);
   int DLLEXPORT EN_setheadcurveindex(EN_Project *p, int pumpIndex, int curveIndex);
   int DLLEXPORT EN_getpumptype(EN_Project *p, int linkIndex, int *outType);
+  int DLLEXPORT EN_getcurvetype(EN_Project *p, int curveIndex, int *outType);
   int DLLEXPORT EN_getversion(int *version);
   int DLLEXPORT EN_setcontrol(EN_Project *p, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
   int DLLEXPORT EN_setnodevalue(EN_Project *p, int index, int code, EN_API_FLOAT_TYPE v);

@@ -435,6 +435,10 @@ int DLLEXPORT ENgetpumptype(int index, int *type) {
   return EN_getpumptype(_defaultModel, index, type);
 }
 
+int DLLEXPORT ENgetcurvetype(int curveindex, int *type) {
+  return EN_getcurvetype(_defaultModel, curveindex, type);
+}
+
 int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands) {
   return EN_getnumdemands(_defaultModel, nodeIndex, numDemands);
 }
@@ -3349,7 +3353,8 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project *p, int index, int curveindex) {
   pump->Q0 /= Ucf[FLOW];
   pump->Qmax /= Ucf[FLOW];
   pump->Hmax /= Ucf[HEAD];
-
+  
+  p->network.Curve[curveindex].Type = P_CURVE;
   return (0);
 }
 
@@ -3367,6 +3372,18 @@ int DLLEXPORT EN_getpumptype(EN_Project *p, int index, int *type) {
   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type)
     return (204);
   *type = Pump[findpump(&p->network, index)].Ptype;
+  return (0);
+}
+
+int DLLEXPORT EN_getcurvetype(EN_Project *p, int curveindex, int *type) {
+  
+  EN_Network *net = &p->network;
+    
+  if (!p->Openflag)
+    return (102);
+  if (curveindex < 1 || curveindex > net->Ncurves)
+    return (206);
+  *type = net->Curve[curveindex].Type;
   return (0);
 }
 
