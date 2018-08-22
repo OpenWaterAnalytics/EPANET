@@ -30,37 +30,40 @@
   #define EN_API_FLOAT_TYPE float
 #endif
 
-// // --- define WINDOWS
-// #undef WINDOWS
-// #ifdef _WIN32
-//   #define WINDOWS
-// #endif
-// #ifdef __WIN32__
-//   #define WINDOWS
-// #endif
+#ifdef GEN_X
+  #include "epanet_export.h"
+#else 
+  // --- define WINDOWS
+  #undef WINDOWS
+  #ifdef _WIN32
+    #define WINDOWS
+  #endif
+  #ifdef __WIN32__
+    #define WINDOWS
+  #endif
 
-// // --- define DLLEXPORT
-// #ifndef DLLEXPORT
-//   #ifdef WINDOWS
-//     #ifdef __cplusplus
-//       #define DLLEXPORT __declspec(dllexport)
-//     #else
-//       #define DLLEXPORT __declspec(dllexport) __stdcall
-//     #endif // __cplusplus
-//   #elif defined(CYGWIN)
-//     #define DLLEXPORT __stdcall
-//   #elif defined(__APPLE__)
-//     #ifdef __cplusplus
-//       #define DLLEXPORT
-//     #else
-//       #define DLLEXPORT
-//     #endif
-//   #else
-//     #define DLLEXPORT
-//   #endif
-// #endif
+  // --- define DLLEXPORT
+  #ifndef DLLEXPORT
+    #ifdef WINDOWS
+      #ifdef __cplusplus
+        #define DLLEXPORT __declspec(dllexport)
+      #else
+        #define DLLEXPORT __declspec(dllexport) __stdcall
+      #endif // __cplusplus
+    #elif defined(CYGWIN)
+      #define DLLEXPORT __stdcall
+    #elif defined(__APPLE__)
+      #ifdef __cplusplus
+        #define DLLEXPORT
+      #else
+        #define DLLEXPORT
+      #endif
+    #else
+      #define DLLEXPORT
+    #endif
+  #endif
+#endif
 
-#include "epanet_export.h"
 
 // --- Define the EPANET toolkit constants
 
