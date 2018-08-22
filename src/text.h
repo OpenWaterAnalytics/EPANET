@@ -340,7 +340,7 @@ AUTHOR:     L. Rossman
 "******************************************************************"
 #define FMT01  "\n... EPANET Version %d.%d\n"
 #define FMT02  "\n  o Retrieving network data"
-#define FMT03  "\n Correct syntax is:\n %s <input file> <output file>\n"
+#define FMT03 "\n Correct syntax is:\n\n\t %s <input file> <report file> <binary output file (optional)>\n"
 #define FMT04  "\n    Cannot use duplicate file names."
 #define FMT05  "\n    Cannot open input file "
 #define FMT06  "\n    Cannot open report file "

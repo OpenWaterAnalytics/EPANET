@@ -6,7 +6,7 @@
 #define   MAXWARNCODE    99      
 /* text copied here, no more need of include "text.h" */
 #define FMT01  "\nEPANET Version %d.%d.%d"
-#define FMT03  "\n Correct syntax is:\n %s <input file> <output file>\n"
+#define FMT03 "\n Correct syntax is:\n\n\t %s <input file> <report file> <binary output file (optional)>\n"
 #define FMT09  "\n\nEPANET completed."
 #define FMT10  "\nEPANET completed. There are warnings."
 #define FMT11  "\nEPANET completed. There are errors."
