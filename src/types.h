@@ -102,7 +102,7 @@ typedef  int          INT4;
 ---------------------------------------------------------------------
 */
 #define  MEMCHECK(x)  (((x) == NULL) ? 101 : 0 )
-#define  FREE(x)      (free((x)))
+#define  FREE(x)      if ((x)) free((x))
 
 /*
 ---------------------------------------------------------------------
@@ -153,8 +153,9 @@ typedef enum {
   V_CURVE,       /*    volume curve                      */
   P_CURVE,       /*    pump curve                        */
   E_CURVE,       /*    efficiency curve                  */
-  H_CURVE
-} CurveType;     /*    head loss curve                   */
+  H_CURVE,       /*    head loss curve                   */
+  G_CURVE        /*    General\default curve             */
+} CurveType;
 
 typedef enum {
   CONST_HP,      /*    constant horsepower              */

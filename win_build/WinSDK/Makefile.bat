@@ -21,9 +21,9 @@ Find /i "x86" < checkOS.tmp > StringCheck.tmp
 If %ERRORLEVEL% == 1 (
 	CALL "%SDK_PATH%bin\"SetEnv.cmd /x64 /release
 	rem : create EPANET2.DLL
-	cl -o epanet2.dll epanet.c hash.c hydraul.c hydcoeffs.c hydsolver.c inpfile.c input1.c input2.c input3.c mempool.c output.c quality.c report.c rules.c smatrix.c /I ..\include /I ..\run /link /DLL 
+	cl -o epanet2.dll epanet.c hash.c hydraul.c hydcoeffs.c hydsolver.c inpfile.c input1.c input2.c input3.c mempool.c output.c quality.c report.c rules.c smatrix.c genmmd.c /I ..\include /I ..\run /link /DLL 
 	rem : create EPANET2.EXE
-	cl -o epanet2.exe epanet.c ..\run\main.c hash.c hydraul.c hydcoeffs.c hydsolver.c inpfile.c input1.c input2.c input3.c mempool.c output.c quality.c report.c rules.c smatrix.c /I ..\include /I ..\run /I ..\src /link
+	cl -o epanet2.exe epanet.c ..\run\main.c hash.c hydraul.c hydcoeffs.c hydsolver.c inpfile.c input1.c input2.c input3.c mempool.c output.c quality.c report.c rules.c smatrix.c genmmd.c /I ..\include /I ..\run /I ..\src /link
 	md "%Build_PATH%"\64bit
 	move /y "%SRC_PATH%"\*.dll "%Build_PATH%"\64bit
 	move /y "%SRC_PATH%"\*.exe "%Build_PATH%"\64bit
@@ -35,9 +35,9 @@ rem : 32 bit with DEF
 CALL "%SDK_PATH%bin\"SetEnv.cmd /x86 /release
 echo "32 bit with epanet2.def mapping"
 rem : create EPANET2.DLL
-cl -o epanet2.dll epanet.c hash.c hydraul.c hydcoeffs.c hydsolver.c inpfile.c input1.c input2.c input3.c mempool.c output.c quality.c report.c rules.c smatrix.c /I ..\include /I ..\run /link /DLL /def:..\win_build\WinSDK\epanet2.def /MAP
+cl -o epanet2.dll epanet.c hash.c hydraul.c hydcoeffs.c hydsolver.c inpfile.c input1.c input2.c input3.c mempool.c output.c quality.c report.c rules.c smatrix.c genmmd.c /I ..\include /I ..\run /link /DLL /def:..\win_build\WinSDK\epanet2.def /MAP
 rem : create EPANET2.EXE
-cl -o epanet2.exe epanet.c ..\run\main.c hash.c hydraul.c hydcoeffs.c hydsolver.c inpfile.c input1.c input2.c input3.c mempool.c output.c quality.c report.c rules.c smatrix.c /I ..\include /I ..\run /I ..\src /link
+cl -o epanet2.exe epanet.c ..\run\main.c hash.c hydraul.c hydcoeffs.c hydsolver.c inpfile.c input1.c input2.c input3.c mempool.c output.c quality.c report.c rules.c smatrix.c genmmd.c /I ..\include /I ..\run /I ..\src /link
 md "%Build_PATH%"\32bit
 move /y "%SRC_PATH%"\*.dll "%Build_PATH%"\32bit
 move /y "%SRC_PATH%"\*.exe "%Build_PATH%"\32bit

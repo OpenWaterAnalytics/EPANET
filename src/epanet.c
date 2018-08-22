@@ -436,6 +436,10 @@ int DLLEXPORT ENgetpumptype(int index, int *type) {
   return EN_getpumptype(_defaultModel, index, type);
 }
 
+int DLLEXPORT ENgetcurvetype(int curveindex, int *type) {
+  return EN_getcurvetype(_defaultModel, curveindex, type);
+}
+
 int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands) {
   return EN_getnumdemands(_defaultModel, nodeIndex, numDemands);
 }
@@ -2231,6 +2235,7 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
                                                         EN_API_FLOAT_TYPE *value) {
   double a, h, q, v = 0.0;
   int returnValue = 0;
+  int pmp;
   
   EN_Project *p = (EN_Project*)ph;
 
@@ -2246,8 +2251,6 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
   double *LinkFlows = hyd->LinkFlows;
   double *LinkSetting = hyd->LinkSetting;
 
-  
-  
   /* Check for valid arguments */
   *value = 0.0;
   if (!p->Openflag)
@@ -2362,6 +2365,38 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
         v = 0.0;
       else
         v = 1.0;
+      break;
+
+    case EN_STATE:
+      v = hyd->LinkStatus[index];
+      
+      if (Link[index].Type == EN_PUMP) {
+         pmp = findpump(net, index);
+         if (hyd->LinkStatus[index] >= OPEN) {
+            if (hyd->LinkFlows[index] > hyd->LinkSetting[index] * Pump[pmp].Qmax)
+               v = XFLOW;
+            if (hyd->LinkFlows[index] < 0.0)
+               v = XHEAD;
+         }
+      }
+      break;
+
+    case EN_CONST_POWER:
+      v = 0;
+      if (Link[index].Type == EN_PUMP) {
+         pmp = findpump(net, index);
+         if (Pump[pmp].Ptype == CONST_HP) {
+             v = Link[index].Km; // Power in HP
+         }
+      }
+      break;
+
+    case EN_SPEED:
+      v = 0;
+      if (Link[index].Type == EN_PUMP) {
+         pmp = findpump(net, index);
+         v = Link[index].Kc;
+      }
       break;
       
     case EN_SETTING:
@@ -3187,7 +3222,7 @@ int DLLEXPORT EN_addcurve(EN_ProjectHandle ph, char *id) {
 
   strcpy(tmpCur[n].ID, id);
   tmpCur[n].Npts = 1;
-  tmpCur[n].Type = -1;
+  tmpCur[n].Type = G_CURVE;
   tmpCur[n].X = (double *)calloc(tmpCur[n].Npts, sizeof(double));
   tmpCur[n].Y = (double *)calloc(tmpCur[n].Npts, sizeof(double));
   if (tmpCur[n].X == NULL)
@@ -3230,9 +3265,7 @@ int DLLEXPORT EN_setcurve(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x, 
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;  
-  Scurve *Curve = net->Curve;
-  
-  
+  Scurve *Curve = net->Curve;  
   int j;
 
   /* Check for valid arguments */
@@ -3265,11 +3298,8 @@ int DLLEXPORT EN_setcurvevalue(EN_ProjectHandle ph, int index, int pnt, EN_API_F
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
-  
   Scurve *Curve = net->Curve;
-  
   const int Ncurves = net->Ncurves;
-  
   
   if (!p->Openflag)
     return (102);
@@ -3594,7 +3624,8 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   pump->Q0 /= Ucf[FLOW];
   pump->Qmax /= Ucf[FLOW];
   pump->Hmax /= Ucf[HEAD];
-
+  
+  p->network.Curve[curveindex].Type = P_CURVE;
   return (0);
 }
 
@@ -3614,6 +3645,18 @@ int DLLEXPORT EN_getpumptype(EN_ProjectHandle ph, int index, int *type) {
   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type)
     return (204);
   *type = Pump[findpump(&p->network, index)].Ptype;
+  return (0);
+}
+
+int DLLEXPORT EN_getcurvetype(EN_Project *p, int curveindex, int *type) {
+  
+  EN_Network *net = &p->network;
+    
+  if (!p->Openflag)
+    return (102);
+  if (curveindex < 1 || curveindex > net->Ncurves)
+    return (206);
+  *type = net->Curve[curveindex].Type;
   return (0);
 }
 
@@ -3986,7 +4029,7 @@ int allocdata(EN_Project *p)
     }
     for (n = 0; n <= par->MaxCurves; n++) {
       net->Curve[n].Npts = 0;
-      net->Curve[n].Type = -1;
+      net->Curve[n].Type = G_CURVE;
       net->Curve[n].X = NULL;
       net->Curve[n].Y = NULL;
     }

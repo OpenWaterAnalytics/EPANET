@@ -115,7 +115,10 @@ typedef enum {
   EN_EFFICIENCY   = 16,
   EN_HEADCURVE    = 17,
   EN_EFFICIENCYCURVE = 18,
-  EN_PRICEPATTERN = 19
+  EN_PRICEPATTERN = 19,
+  EN_STATE        = 20,
+  EN_CONST_POWER  = 21,
+  EN_SPEED        = 22
 } EN_LinkProperty;
 
 /// Time parameter codes
@@ -224,16 +227,12 @@ typedef enum {
   EN_TIMEOFDAY   = 3
 } EN_ControlType;
 
-
-
 typedef enum {
   EN_AVERAGE     = 1,   /* Time statistic types.    */
   EN_MINIMUM     = 2,   /* See TstatType in TYPES.H */
   EN_MAXIMUM     = 3,
   EN_RANGE       = 4
 } EN_StatisticType;
-
-
 
 typedef enum {
   EN_MIX1        = 0,   /* Tank mixing models */
@@ -242,8 +241,6 @@ typedef enum {
   EN_LIFO        = 3
 } EN_MixingModel;
 
-
-
 typedef enum {
   EN_NOSAVE        = 0,
   EN_SAVE          = 1,
@@ -251,15 +248,20 @@ typedef enum {
   EN_SAVE_AND_INIT = 11
 } EN_SaveOption;
 
-
-
 typedef enum {
   EN_CONST_HP    = 0,   /* constant horsepower       */
   EN_POWER_FUNC  = 1,   /* power function            */
-  EN_CUSTOM      = 2    /* user-defined custom curve */
+  EN_CUSTOM      = 2,   /* user-defined custom curve */
+  EN_NOCURVE     = 3    /* no curve                  */
+} EN_PumpType;
+
+typedef enum {
+  EN_V_CURVE     = 0,   /*    volume curve                      */
+  EN_P_CURVE     = 1,   /*    pump curve                        */
+  EN_E_CURVE     = 2,   /*    efficiency curve                  */
+  EN_H_CURVE     = 3,   /*    head loss curve                   */
+  EN_G_CURVE     = 4    /*    General\default curve             */
 } EN_CurveType;
-
-
 
 // --- Declare the EPANET toolkit functions
 #if defined(__cplusplus)
@@ -763,10 +765,19 @@ extern "C" {
    @param linkIndex The index of the pump element
    @param[out] outType The integer-typed pump curve type signifier (output parameter)
    @return Error code
-   @see EN_CurveType
+   @see EN_PumpType
    */
   int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
-  
+
+  /**
+   @brief Get the type of a curve
+   @param curveIndex The index of the curve element
+   @param[out] outType The integer-typed curve curve type signifier (output parameter)
+   @return Error code
+   @see EN_CurveType
+   */
+  int  DLLEXPORT ENgetcurvetype(int curveIndex, int *outType);
+    
   /**
    @brief Get the version number. This number is to be interpreted with implied decimals, i.e., "20100" == "2(.)01(.)00"
    @param[out] version The version of EPANET
@@ -1184,26 +1195,28 @@ extern "C" {
   int DLLEXPORT EN_getqualtype(EN_ProjectHandle ph, int *qualcode, int *tracenode);
   int DLLEXPORT EN_geterror(int errcode, char *errmsg, int maxLen);
 
-  int DLLEXPORT EN_getstatistic(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE* value);
-  int DLLEXPORT EN_getnodeindex(EN_ProjectHandle ph, char *id, int *index);
-  int DLLEXPORT EN_getnodeid(EN_ProjectHandle ph, int index, char *id);
-  int DLLEXPORT EN_getnodetype(EN_ProjectHandle ph, int index, int *code);
-  int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_getcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
-  int DLLEXPORT EN_setcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
-  int DLLEXPORT EN_getnumdemands(EN_ProjectHandle ph, int nodeIndex, int *numDemands);
-  int DLLEXPORT EN_getbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
-  int DLLEXPORT EN_getdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIndex, int *pattIndex);
-  int DLLEXPORT EN_getlinkindex(EN_ProjectHandle ph, char *id, int *index);
-  int DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id);
-  int DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, EN_LinkType *code);
-  int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType type);
-  int DLLEXPORT EN_getlinknodes(EN_ProjectHandle ph, int index, int *node1, int *node2);
-  int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
-  int DLLEXPORT EN_getheadcurveindex(EN_ProjectHandle ph, int pumpIndex, int *curveIndex);
-  int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int pumpIndex, int curveIndex);
-  int DLLEXPORT EN_getpumptype(EN_ProjectHandle ph, int linkIndex, int *outType);
+  int DLLEXPORT EN_getstatistic(EN_Project *p, int code, EN_API_FLOAT_TYPE* value);
+  int DLLEXPORT EN_getnodeindex(EN_Project *p, char *id, int *index);
+  int DLLEXPORT EN_getnodeid(EN_Project *p, int index, char *id);
+  int DLLEXPORT EN_getnodetype(EN_Project *p, int index, int *code);
+  int DLLEXPORT EN_getnodevalue(EN_Project *p, int index, int code, EN_API_FLOAT_TYPE *value);
+  int DLLEXPORT EN_getcoord(EN_Project *p, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+  int DLLEXPORT EN_setcoord(EN_Project *p, int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
+  int DLLEXPORT EN_getnumdemands(EN_Project *p, int nodeIndex, int *numDemands);
+  int DLLEXPORT EN_getbasedemand(EN_Project *p, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
+  int DLLEXPORT EN_getdemandpattern(EN_Project *p, int nodeIndex, int demandIndex, int *pattIndex);
+  int DLLEXPORT EN_getlinkindex(EN_Project *p, char *id, int *index);
+  int DLLEXPORT EN_getlinkid(EN_Project *p, int index, char *id);
+  int DLLEXPORT EN_getlinktype(EN_Project *p, int index, EN_LinkType *code);
+  int DLLEXPORT EN_setlinktype(EN_Project *p, char *id, EN_LinkType type);
+  int DLLEXPORT EN_getlinknodes(EN_Project *p, int index, int *node1, int *node2);
+  int DLLEXPORT EN_getlinkvalue(EN_Project *p, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value);
+  int DLLEXPORT EN_getcurve(EN_Project *p, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
+  int DLLEXPORT EN_getheadcurveindex(EN_Project *p, int pumpIndex, int *curveIndex);
+  int DLLEXPORT EN_setheadcurveindex(EN_Project *p, int pumpIndex, int curveIndex);
+  int DLLEXPORT EN_getpumptype(EN_Project *p, int linkIndex, int *outType);
+  int DLLEXPORT EN_getcurvetype(EN_Project *p, int curveIndex, int *outType);
+
   int DLLEXPORT EN_getversion(int *version);
   int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
   int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v);
