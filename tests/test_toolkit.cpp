@@ -183,7 +183,7 @@ BOOST_FIXTURE_TEST_CASE(test_qual_step, Fixture)
     BOOST_REQUIRE(error == 0);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_hyd_qual_step, Fixture)
+BOOST_FIXTURE_TEST_CASE(test_progressive_stepping, Fixture)
 {
     int flag = EN_NOSAVE;
     long t, tstep_h, tstep_q;
