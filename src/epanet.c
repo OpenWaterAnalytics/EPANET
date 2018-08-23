@@ -3648,7 +3648,7 @@ int DLLEXPORT EN_getpumptype(EN_ProjectHandle ph, int index, int *type) {
   return (0);
 }
 
-int DLLEXPORT EN_getcurvetype(EN_Project *p, int curveindex, int *type) {
+int DLLEXPORT EN_getcurvetype(EN_ProjectHandle ph, int curveindex, int *type) {
   
   EN_Network *net = &p->network;
     
