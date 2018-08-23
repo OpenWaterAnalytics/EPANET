@@ -19,6 +19,7 @@ source_group("CLI" FILES ${EPANET_CLI_SOURCES})
 
 
 # Creates the EPANET command line executable
+add_definitions(-D WITH_GENX)
 add_executable(runepanet ${EPANET_CLI_SOURCES})
 if(NOT WIN32)
     target_link_libraries(runepanet LINK_PUBLIC epanet m)

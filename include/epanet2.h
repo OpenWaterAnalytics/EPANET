@@ -30,7 +30,7 @@
   #define EN_API_FLOAT_TYPE float
 #endif
 
-#ifdef GEN_X
+#ifdef WITH_GENX
   #include "epanet_export.h"
 #else 
   // --- define WINDOWS
