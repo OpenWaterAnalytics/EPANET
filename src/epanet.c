@@ -3650,6 +3650,8 @@ int DLLEXPORT EN_getpumptype(EN_ProjectHandle ph, int index, int *type) {
 
 int DLLEXPORT EN_getcurvetype(EN_ProjectHandle ph, int curveindex, int *type) {
   
+  EN_Project *p = (EN_Project*)ph;
+
   EN_Network *net = &p->network;
     
   if (!p->Openflag)
