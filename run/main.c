@@ -1,15 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include <text.h>
 #include "epanet2.h"
 
 #define   MAXMSG         255       /* Max. # characters in message text      */
 #define   MAXWARNCODE    99      
-/* text copied here, no more need of include "text.h" */
-#define FMT01  "\nEPANET Version %d.%d.%d"
-#define FMT03  "\n Correct syntax is:\n %s <input file> <output file>\n"
-#define FMT09  "\n\nEPANET completed."
-#define FMT10  "\nEPANET completed. There are warnings."
-#define FMT11  "\nEPANET completed. There are errors."
 
 
 void  writeConsole(char *s);
