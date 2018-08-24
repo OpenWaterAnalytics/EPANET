@@ -23,7 +23,8 @@ def output_generator(path_ref):
     yield element attributes. It is useful for comparing contents of binary 
     files for numerical regression testing. 
     
-    The generator yields a Python list containing element attributes. 
+    The generator yields a Python tuple containing an array of element 
+    attributes and a tuple containing the element type, period, and attribute. 
     
     Arguments: 
         path_ref - path to result file
@@ -38,7 +39,8 @@ def output_generator(path_ref):
             for element_type in oapi.ElementType:
                 for attribute in br.elementAttributes[element_type]:
         
-                    yield br.element_attribute(element_type, period_index, attribute)
+                    yield (br.element_attribute(element_type, period_index, attribute), 
+                           (element_type, period_index, attribute))
 
 
 class OutputReader():    

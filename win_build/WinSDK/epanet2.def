@@ -95,3 +95,5 @@ EXPORTS
     ENsetlinktype                 = _ENsetlinktype@8
     ENgetdemandmodel              = _ENgetdemandmodel@16
     ENsetdemandmodel              = _ENsetdemandmodel@16
+    ENgetcurvetype                = _ENgetcurvetype@8
+
