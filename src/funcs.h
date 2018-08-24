@@ -158,28 +158,13 @@ void    inithyd(EN_Project *pr, int initFlags);     /* Re-sets initial condition
 int     runhyd(EN_Project *pr, long *);             /* Solves 1-period hydraulics */
 int     nexthyd(EN_Project *pr, long *);            /* Moves to next time period  */
 void    closehyd(EN_Project *pr);                   /* Closes hydraulics solver   */
-int     allocmatrix(EN_Project *pr);                /* Allocates matrix coeffs.   */
-void    freematrix(EN_Project *pr);                 /* Frees matrix coeffs.       */
-void    initlinkflow(EN_Project *pr, int, char,
-                     double);                       /* Initializes link flow      */
-void    setlinkflow(EN_Project *pr, int, double);   /* Sets link flow via headloss*/
 void    setlinkstatus(EN_Project *pr, int, char,
                       StatType *, double *);        /* Sets link status           */
 void    setlinksetting(EN_Project *pr, int, double,
                        StatType *, double *);       /* Sets pump/valve setting    */
-                       
-void    demands(EN_Project *pr);                    /* Computes current demands   */
-int     controls(EN_Project *pr);                   /* Controls link settings     */
-long    timestep(EN_Project *pr);                   /* Computes new time step     */
 int     tanktimestep(EN_Project *pr, long *);       /* Time till tanks fill/drain */
-void    controltimestep(EN_Project *pr, long *);    /* Time till control action   */
-void    ruletimestep(EN_Project *pr, long *);       /* Time till rule action      */
-
-void    addenergy(EN_Project *pr, long);            /* Accumulates energy usage   */
 void    getenergy(EN_Project *pr, int, double *,
                   double *);                        /* Computes link energy use   */
-
-void    tanklevels(EN_Project *pr, long);           /* Computes new tank levels   */
 double  tankvolume(EN_Project *pr, int,double);     /* Finds tank vol. from grade */
 double  tankgrade(EN_Project *pr, int,double);      /* Finds tank grade from vol. */
 
@@ -188,8 +173,13 @@ int     hydsolve(EN_Project *pr, int *,double *);   /* Solves network equations 
 
 /* ----------- HYDCOEFFS.C --------------*/
 void    resistcoeff(EN_Project *pr, int k);         /* Finds pipe flow resistance */
-void    hlosscoeff(EN_Project *pr, int k);          /* Finds link head loss coeff */
+void    headlosscoeffs(EN_Project *pr);             // Finds link head loss coeffs.
 void    matrixcoeffs(EN_Project *pr);               /* Finds hyd. matrix coeffs.  */
+double  emitflowchange(EN_Project *pr, int i);      /* Change in emitter outflow  */
+double  demandflowchange(EN_Project *pr, int i,     // Change in demand outflow
+                         double dp, double n);
+void    demandparams(EN_Project *pr, double *dp,    // PDA function parameters
+                     double *n); 
 
 /* ----------- SMATRIX.C ---------------*/
 int     createsparse(EN_Project *pr);               /* Creates sparse matrix      */

@@ -141,10 +141,11 @@ typedef enum {
   EN_NEXTEVENTIDX = 15
 } EN_TimeProperty;
 
-
 typedef enum {
   EN_ITERATIONS    = 0,
-  EN_RELATIVEERROR = 1
+  EN_RELATIVEERROR = 1,
+  EN_MAXHEADERROR  = 2,
+  EN_MAXFLOWCHANGE = 3
 } EN_AnalysisStatistic;
 
 typedef enum {
@@ -153,7 +154,7 @@ typedef enum {
   EN_LINKCOUNT    = 2,   /**< Number of Links (Pipes + Pumps + Valves) */
   EN_PATCOUNT     = 3,   /**< Number of Time Patterns */
   EN_CURVECOUNT   = 4,   /**< Number of Curves */
-  EN_CONTROLCOUNT = 5,    /**< Number of Control Statements */
+  EN_CONTROLCOUNT = 5,   /**< Number of Control Statements */
   EN_RULECOUNT	  = 6    /**< Number of Rule-based Control Statements */
 } EN_CountType;
 
@@ -208,6 +209,10 @@ typedef enum {
   EN_CMD         = 9
 } EN_FlowUnits;
 
+typedef enum {           /* Demand model types. */
+  EN_DDA         = 0,   /**< Demand driven analysis */
+  EN_PDA         = 1    /**< Pressure driven analysis */
+} EN_DemandModel;
 
 /// Simulation Option codes
 typedef enum {
@@ -272,8 +277,6 @@ extern "C" {
    @brief The EPANET Project wrapper object
    */
   typedef struct EN_Project EN_Project;
-  typedef struct EN_Pattern EN_Pattern;
-  typedef struct EN_Curve EN_Curve;
   
   /**
    @brief runs a complete EPANET simulation
@@ -524,7 +527,29 @@ extern "C" {
    @return Error code
    */
   int  DLLEXPORT ENsetflowunits(int code);
-  
+
+  /**
+   @brief Retrieves the type of demand model in use and its parameters
+   @param[out] type  Type of demand model (EN_DDA or EN_PDA)
+   @param[out] pmin  Pressure below which there is no demand
+   @param[out] preq  Pressure required to deliver full demand
+   @param[out] pexp  Pressure exponent in demand function
+   @return Error code
+  */
+  int DLLEXPORT ENgetdemandmodel(int *type, EN_API_FLOAT_TYPE *pmin,
+      EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp);
+
+  /**
+  @brief Sets the type of demand model to use and its parameters
+  @param type  Type of demand model (EN_DDA or EN_PDA)
+  @param pmin  Pressure below which there is no demand
+  @param preq  Pressure required to deliver full demand
+  @param pexp  Pressure exponent in demand function
+  @return Error code
+  */
+  int DLLEXPORT ENsetdemandmodel(int type, EN_API_FLOAT_TYPE pmin,
+      EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
+
   /**
    @brief Retrieves the index of the time pattern with specified ID
    @param id String ID of the time pattern
@@ -806,7 +831,7 @@ extern "C" {
   int  DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
   
   /**
-   @brief Set a proprty value for a link.
+   @brief Set a property value for a link.
    @param index The index of a link. First link is index 1.
    @param code The code for the property to set.
    @param v The value to set for this link and property.
@@ -1131,15 +1156,14 @@ extern "C" {
   int DLLEXPORT ENdeletelink(int linkIndex);
   
   
-  
-  
   /***************************************************
    
    Threadsafe versions of all epanet functions
    
    ***************************************************/
-  int DLLEXPORT EN_alloc(EN_Project **p);
-  int DLLEXPORT EN_free(EN_Project *p);
+  int  DLLEXPORT EN_createproject(EN_Project **p);
+  int  DLLEXPORT EN_deleteproject(EN_Project *p);
+
   int DLLEXPORT EN_epanet(char *inpFile, char *rptFile, char *binOutFile, void (*callback) (char *));
   int DLLEXPORT EN_init(EN_Project *p, char *rptFile, char *binOutFile, EN_FlowUnits UnitsType, EN_FormType HeadlossFormula);
   int DLLEXPORT EN_open(EN_Project *p, char *inpFile, char *rptFile, char *binOutFile);
@@ -1171,6 +1195,10 @@ extern "C" {
   int DLLEXPORT EN_gettimeparam(EN_Project *p, int code, long *value);
   int DLLEXPORT EN_getflowunits(EN_Project *p, int *code);
   int DLLEXPORT EN_setflowunits(EN_Project *p, int code);
+  int DLLEXPORT EN_getdemandmodel(EN_Project *p, int *type, EN_API_FLOAT_TYPE *pmin, EN_API_FLOAT_TYPE *preq,
+                                  EN_API_FLOAT_TYPE *pexp);
+  int DLLEXPORT EN_setdemandmodel(EN_Project *p, int type, EN_API_FLOAT_TYPE pmin, EN_API_FLOAT_TYPE preq,
+                                  EN_API_FLOAT_TYPE pexp);
   int DLLEXPORT EN_getpatternindex(EN_Project *p, char *id, int *index);
   int DLLEXPORT EN_getpatternid(EN_Project *p, int index, char *id);
   int DLLEXPORT EN_getpatternlen(EN_Project *p, int index, int *len);
@@ -1235,11 +1263,6 @@ extern "C" {
   int DLLEXPORT EN_addlink(EN_Project *p, char *id, EN_LinkType linkType, char *fromNode, char *toNode);
   int DLLEXPORT EN_deletenode(EN_Project *p, int nodeIndex);
   int DLLEXPORT EN_deletelink(EN_Project *p, int linkIndex);
-  
-  
-  
-  
-  
   
 #if defined(__cplusplus)
 }

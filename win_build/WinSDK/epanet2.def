@@ -93,4 +93,7 @@ EXPORTS
     ENdeletelink                  = _ENdeletelink@4
     ENdeletenode                  = _ENdeletenode@4
     ENsetlinktype                 = _ENsetlinktype@8
+    ENgetdemandmodel              = _ENgetdemandmodel@16
+    ENsetdemandmodel              = _ENsetdemandmodel@16
     ENgetcurvetype                = _ENgetcurvetype@8
+

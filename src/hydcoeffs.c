@@ -29,15 +29,21 @@ const double AB = 3.28895476345e-03;   // 5.74/(4000^.9)
 const double AC = -5.14214965799e-03;  // AA*AB
 
 // External functions
-//void  resistcoeff(EN_Project *pr, int k);
-//void  hlosscoeff(EN_Project *pr, int k);
-//void  matrixcoeffs(EN_Project *pr);
+//void   resistcoeff(EN_Project *pr, int k);
+//void   headlosscoeffs(EN_Project *pr);
+//void   matrixcoeffs(EN_Project *pr);
+//double emitflowchange(EN_Project *pr, int i);
+//double demandflowchange(EN_Project *pr, int i, double dp, double n);
+//void   demandparams(EN_Project *pr, double *dp, double *n);
 
 // Local functions
 static void    linkcoeffs(EN_Project *pr);
 static void    nodecoeffs(EN_Project *pr);
 static void    valvecoeffs(EN_Project *pr);
 static void    emittercoeffs(EN_Project *pr);
+static void    demandcoeffs(EN_Project *pr);
+static void    demandheadloss(double d, double dfull, double dp,
+               double n, double *hloss, double *hgrad);
 
 static void    pipecoeff(EN_Project *pr, int k);
 static void    DWpipecoeff(EN_Project *pr, int k);
@@ -53,7 +59,6 @@ static void    tcvcoeff(EN_Project *pr, int k);
 static void    prvcoeff(EN_Project *pr, int k, int n1, int n2);
 static void    psvcoeff(EN_Project *pr, int k, int n1, int n2);
 static void    fcvcoeff(EN_Project *pr, int k, int n1, int n2);
-
 
 
 void  resistcoeff(EN_Project *pr, int k)
@@ -83,13 +88,14 @@ void  resistcoeff(EN_Project *pr, int k)
         switch (hyd->Formflag)
         {
         case HW:
-            link->R = 4.727*L / pow(e, hyd->Hexp) / pow(d, 4.871);
+            link->R = 4.727 * L / pow(e, hyd->Hexp) / pow(d, 4.871);
             break;
         case DW:
-            link->R = L / 2.0 / 32.2 / d / SQR(PI*SQR(d) / 4.0);
+            link->R = L / 2.0 / 32.2 / d / SQR(PI * SQR(d) / 4.0);
             break;
         case CM:
-            link->R = SQR(4.0*e / (1.49*PI*d*d)) * pow((d / 4.0), -1.333)*L;
+            link->R = SQR(4.0 * e / (1.49 * PI * SQR(d))) *
+                      pow((d / 4.0), -1.333) * L;
         }
         break;
 
@@ -106,45 +112,46 @@ void  resistcoeff(EN_Project *pr, int k)
 }
 
 
-void  hlosscoeff(EN_Project *pr, int k)
+void headlosscoeffs(EN_Project *pr)
 /*
 **--------------------------------------------------------------
-**   Input:   k = link index
+**   Input:   none
 **   Output:  none
-**   Purpose: computes P and Y coefficients for a link
+**   Purpose: computes coefficients P (1 / head loss gradient)
+**            and Y (head loss / gradient) for all links.
 **--------------------------------------------------------------
 */
 {
+    int k;
     EN_Network   *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
-    Slink        *link = &net->Link[k];
 
-    switch (link->Type)
+    for (k = 1; k <= net->Nlinks; k++)
     {
-    case EN_CVPIPE:
-    case EN_PIPE:
-        pipecoeff(pr, k);
-        break;
-    case EN_PUMP:
-        pumpcoeff(pr, k);
-        break;
-    case EN_PBV:
-        pbvcoeff(pr, k);
-        break;
-    case EN_TCV:
-        tcvcoeff(pr, k);
-        break;
-    case EN_GPV:
-        gpvcoeff(pr, k);
-        break;
-    case EN_FCV:
-    case EN_PRV:
-    case EN_PSV:
-        if (hyd->LinkSetting[k] == MISSING) {
-            valvecoeff(pr, k);
+        switch (net->Link[k].Type)
+        {
+        case EN_CVPIPE:
+        case EN_PIPE:
+            pipecoeff(pr, k);
+            break;
+        case EN_PUMP:
+            pumpcoeff(pr, k);
+            break;
+        case EN_PBV:
+            pbvcoeff(pr, k);
+            break;
+        case EN_TCV:
+            tcvcoeff(pr, k);
+            break;
+        case EN_GPV:
+            gpvcoeff(pr, k);
+            break;
+        case EN_FCV:
+        case EN_PRV:
+        case EN_PSV:
+            if (hyd->LinkSetting[k] == MISSING) valvecoeff(pr, k);
+            else hyd->solver.P[k] = 0.0;
         }
-        else sol->P[k] = 0.0;
     }
 }
 
@@ -162,13 +169,23 @@ void   matrixcoeffs(EN_Project *pr)
     solver_t     *sol = &hyd->solver;
     EN_Network   *net = &pr->network;
 
+    // Reset values of all diagonal coeffs. (Aii), off-diagonal
+    // coeffs. (Aij), r.h.s. coeffs. (F) and node flow balance (X_tmp)
     memset(sol->Aii, 0, (net->Nnodes + 1) * sizeof(double));
     memset(sol->Aij, 0, (hyd->Ncoeffs + 1) * sizeof(double));
     memset(sol->F, 0, (net->Nnodes + 1) * sizeof(double));
     memset(hyd->X_tmp, 0, (net->Nnodes + 1) * sizeof(double));
+
+    // Compute matrix coeffs. from links, emitters, and nodal demands
     linkcoeffs(pr);
     emittercoeffs(pr);
+    demandcoeffs(pr);
+
+    // Update nodal flow balances with demands and add onto r.h.s. coeffs.
     nodecoeffs(pr);
+
+    // Finally, find coeffs. for PRV/PSV/FCV control valves whose
+    // status is not fixed to OPEN/CLOSED
     valvecoeffs(pr);
 }
 
@@ -189,7 +206,7 @@ void  linkcoeffs(EN_Project *pr)
     solver_t     *sol = &hyd->solver;
     Slink *link;
 
-    // Examine each link of network */
+    // Examine each link of network
     for (k = 1; k <= net->Nlinks; k++)
     {
         if (sol->P[k] == 0.0) continue;
@@ -197,7 +214,7 @@ void  linkcoeffs(EN_Project *pr)
         n1 = link->N1;           // Start node of link
         n2 = link->N2;           // End node of link
 
-        // Update net nodal inflows (X), solution matrix (A) and RHS array (F)
+        // Update net nodal inflows (X_tmp), solution matrix (A) and RHS array (F)
         // (Use covention that flow out of node is (-), flow into node is (+))
         hyd->X_tmp[n1] -= hyd->LinkFlows[k];
         hyd->X_tmp[n2] += hyd->LinkFlows[k];
@@ -212,21 +229,18 @@ void  linkcoeffs(EN_Project *pr)
             sol->F[sol->Row[n1]] += sol->Y[k];     // RHS coeff.
         }
 
-        // Node n1 is a tank
-        else {
-            sol->F[sol->Row[n2]] += (sol->P[k] * hyd->NodeHead[n1]); 
-        }
+        // Node n1 is a tank/reservoir
+        else sol->F[sol->Row[n2]] += (sol->P[k] * hyd->NodeHead[n1]); 
 
         // Node n2 is junction
-        if (n2 <= net->Njuncs) {
+        if (n2 <= net->Njuncs)
+        {
             sol->Aii[sol->Row[n2]] += sol->P[k];   // Diagonal coeff.
             sol->F[sol->Row[n2]] -= sol->Y[k];     // RHS coeff.
         }
 
-        // Node n2 is a tank
-        else {
-            sol->F[sol->Row[n1]] += (sol->P[k] * hyd->NodeHead[n2]); 
-        }
+        // Node n2 is a tank/reservoir
+        else sol->F[sol->Row[n1]] += (sol->P[k] * hyd->NodeHead[n2]); 
     }
 }
 
@@ -236,7 +250,7 @@ void  nodecoeffs(EN_Project *pr)
 **----------------------------------------------------------------
 **  Input:   none
 **  Output:  none
-**  Purpose: completes calculation of nodal flow imbalance (X)
+**  Purpose: completes calculation of nodal flow imbalance (X_tmp)
 **           & flow correction (F) arrays
 **----------------------------------------------------------------
 */
@@ -250,7 +264,7 @@ void  nodecoeffs(EN_Project *pr)
     // flow imbalance & add imbalance to RHS array F.
     for (i = 1; i <= net->Njuncs; i++)
     {
-        hyd->X_tmp[i] -= hyd->NodeDemand[i];
+        hyd->X_tmp[i] -= hyd->DemandFlows[i];
         sol->F[sol->Row[i]] += hyd->X_tmp[i];
     }
 }
@@ -276,15 +290,20 @@ void  valvecoeffs(EN_Project *pr)
     // Examine each valve
     for (i = 1; i <= net->Nvalves; i++)
     {
+        // Find valve's link index
         valve = &net->Valve[i];
-        k = valve->Link;                         // Link index of valve
+        k = valve->Link;
+
+        // Coeffs. for fixed status valves have already been computed
+        if (hyd->LinkSetting[k] == MISSING) continue;
+
+        // Start & end nodes of valve's link        
         link = &net->Link[k];
-        if (hyd->LinkSetting[k] == MISSING) {
-            continue;                            // Valve status fixed
-        }
-        n1 = link->N1;                           // Start & end nodes
+        n1 = link->N1;
         n2 = link->N2;
-        switch (link->Type)                      // Call valve-specific function 
+
+        // Call valve-specific function
+        switch (link->Type) 
         {
         case EN_PRV:
             prvcoeff(pr, k, n1, n2);
@@ -330,23 +349,190 @@ void  emittercoeffs(EN_Project *pr)
     for (i = 1; i <= net->Njuncs; i++)
     {
         node = &net->Node[i];
-        if (node->Ke == 0.0) {
-            continue;
-        }
+        if (node->Ke == 0.0) continue;
         ke = MAX(CSMALL, node->Ke);              // emitter coeff.
         q = hyd->EmitterFlows[i];                // emitter flow
         z = ke * pow(ABS(q), hyd->Qexp);         // emitter head loss
         p = hyd->Qexp * z / ABS(q);              // head loss gradient
-        if (p < hyd->RQtol) {
+        if (p < hyd->RQtol)
+        {
             p = 1.0 / hyd->RQtol;
         }
-        else {
+        else
+        {
             p = 1.0 / p;                         // inverse head loss gradient
         }
         y = SGN(q)*z*p;                          // head loss / gradient
         sol->Aii[sol->Row[i]] += p;              // addition to main diagonal
         sol->F[sol->Row[i]] += y + p * node->El; // addition to r.h.s.
         hyd->X_tmp[i] -= q;                      // addition to net node inflow
+    }
+}
+
+
+double emitflowchange(EN_Project *pr, int i)
+/*
+**--------------------------------------------------------------
+**   Input:   i = node index
+**   Output:  returns change in flow at an emitter node
+**   Purpose: computes flow change at an emitter node
+**--------------------------------------------------------------
+*/
+{
+    double ke, p;
+    hydraulics_t *hyd = &pr->hydraulics;
+    Snode *node = &pr->network.Node[i];
+
+    ke = MAX(CSMALL, node->Ke);
+    p = hyd->Qexp * ke * pow(ABS(hyd->EmitterFlows[i]), (hyd->Qexp - 1.0));
+    if (p < hyd->RQtol) p = 1 / hyd->RQtol;
+    else                p = 1.0 / p;
+    return(hyd->EmitterFlows[i] / hyd->Qexp - p * (hyd->NodeHead[i] - node->El));
+}
+
+
+void demandparams(EN_Project *pr, double *dp, double *n)
+/*
+**--------------------------------------------------------------
+**   Input:   none
+**   Output:  dp = pressure range over which demands can vary
+**            n = exponent in head loss v. demand function
+**   Purpose: retrieves parameters that define a pressure dependent
+**            demand function.
+**--------------------------------------------------------------
+*/
+{
+    hydraulics_t *hyd = &pr->hydraulics;
+
+    // If required pressure equals minimum pressure, use a linear demand
+    // curve with a 0.01 PSI pressure range to approximate an all or
+    // nothing demand solution
+    if (hyd->Preq == hyd->Pmin)
+    {
+        *dp = 0.01 / PSIperFT;
+        *n = 1.0;
+    }
+
+    // Otherwise use the user-supplied demand curve parameters
+    else
+    {
+        *dp = hyd->Preq - hyd->Pmin;
+        *n = 1.0 / hyd->Pexp;
+    }
+}
+
+
+void  demandcoeffs(EN_Project *pr)
+/*
+**--------------------------------------------------------------
+**   Input:   none
+**   Output:  none
+**   Purpose: computes matrix coeffs. for pressure dependent demands
+**
+**   Note: Pressure dependent demands are modelled like emitters
+**         with Hloss = Pserv * (D / Dfull)^(1/Pexp)
+**         where D (actual demand) is zero for negative pressure
+**         and is Dfull above pressure Pserv.
+**--------------------------------------------------------------
+*/
+{
+    int i, row;
+    double  dp,         // pressure range over which demand can vary (ft)
+            n,          // exponent in head loss v. demand function
+            hloss,      // head loss in supplying demand (ft)
+            hgrad;      // gradient of demand head loss (ft/cfs)    
+
+    hydraulics_t *hyd = &pr->hydraulics;
+    solver_t     *sol = &hyd->solver;
+    EN_Network   *net = &pr->network;
+
+    // Get demand function parameters
+    if (hyd->DemandModel == DDA) return;
+    demandparams(pr, &dp, &n);
+
+    // Examine each junction node
+    for (i = 1; i <= net->Njuncs; i++)
+    {
+        // Skip junctions with non-positive demands
+        if (hyd->NodeDemand[i] <= 0.0) continue;
+
+        // Find head loss for demand outflow at node's elevation
+        demandheadloss(hyd->DemandFlows[i], hyd->NodeDemand[i], dp, n,
+                    &hloss, &hgrad);
+
+        // Update row of solution matrix A & its r.h.s. F
+        row = sol->Row[i];
+        sol->Aii[row] += 1.0 / hgrad;
+        sol->F[row] += (hloss + net->Node[i].El + hyd->Pmin) / hgrad;
+    }
+}
+
+
+double demandflowchange(EN_Project *pr, int i, double dp, double n)
+/*
+**--------------------------------------------------------------
+**   Input:   i  = node index
+**            dp = pressure range fro demand funtion (ft)
+**            n  = exponent in head v. demand function
+**   Output:  returns change in pressure dependent demand flow
+**   Purpose: computes change in outflow at at a node subject to
+**            pressure dependent demands
+**--------------------------------------------------------------
+*/
+{
+    double hloss, hgrad;
+    hydraulics_t *hyd = &pr->hydraulics;
+
+    demandheadloss(hyd->DemandFlows[i], hyd->NodeDemand[i], dp, n, &hloss, &hgrad);
+    return (hloss - hyd->NodeHead[i] + pr->network.Node[i].El + hyd->Pmin) / hgrad;
+}
+
+
+void demandheadloss(double d, double dfull, double dp, double n,
+    double *hloss, double *hgrad)
+    /*
+    **--------------------------------------------------------------
+    **   Input:   d     = actual junction demand (cfs)
+    **            dfull = full junction demand required (cfs)
+    **            dp    = pressure range for demand function (ft)
+    **            n     = exponent in head v. demand function
+    **   Output:  hloss = head loss delivering demand d (ft)
+    **            hgrad = gradient of head loss (ft/cfs)
+    **  Purpose:  computes head loss and its gradient for delivering
+    **            a pressure dependent demand flow.
+    **--------------------------------------------------------------
+    */
+{
+    const double RB = 1.0e9;
+    const double EPS = 0.001;
+    double r = d / dfull;
+
+    // Use upper barrier function for excess demand above full value
+    if (r > 1.0)
+    {
+        *hgrad = RB;
+        *hloss = dp + RB * (d - dfull);
+    }
+
+    // Use lower barrier function for negative demand
+    else if (r < 0)
+    {
+        *hgrad = RB;
+        *hloss = RB * d;
+    }
+
+    // Use linear head loss function for near zero demand
+    else if (r < EPS)
+    {
+        *hgrad = dp * pow(EPS, n - 1.0) / dfull;
+        *hloss = (*hgrad) * d;
+    }
+
+    // Otherwise use power head loss function
+    else
+    {
+        *hgrad = n * dp * pow(r, n - 1.0) / dfull;
+        *hloss = (*hgrad) * d / n;
     }
 }
 
@@ -382,8 +568,9 @@ void  pipecoeff(EN_Project *pr, int k)
         return;
     }
 
-    // ... head loss formula is Darcy-Weisbach
-    if (hyd->Formflag == DW) {
+    // Use custom function for Darcy-Weisbach formula
+    if (hyd->Formflag == DW)
+    {
         DWpipecoeff(pr, k);
         return;
     }
@@ -550,7 +737,8 @@ void  pumpcoeff(EN_Project *pr, int k)
     Spump *pump;
 
     // Use high resistance pipe if pump closed or cannot deliver head
-    if (hyd->LinkStatus[k] <= CLOSED || setting == 0.0) {
+    if (hyd->LinkStatus[k] <= CLOSED || setting == 0.0)
+    {
         sol->P[k] = 1.0 / CBIG;
         sol->Y[k] = hyd->LinkFlows[k];
         return;
@@ -580,9 +768,7 @@ void  pumpcoeff(EN_Project *pr, int k)
     h0 = SQR(setting) * pump->H0;
     n = pump->N;
     r = pump->R * pow(setting, 2.0 - n);
-    if (n != 1.0) {
-        r = n * r * pow(q, n - 1.0);
-    }
+    if (n != 1.0) r = n * r * pow(q, n - 1.0);
 
     // Compute inverse headloss gradient (P) and flow correction factor (Y)
     sol->P[k] = 1.0 / MAX(r, hyd->RQtol);
@@ -615,15 +801,9 @@ void  curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r)
 
     // Find linear segment of curve that brackets flow q
     k2 = 0;
-    while (k2 < npts && x[k2] < q)
-        k2++;
-
-    if (k2 == 0)
-        k2++;
-
-    else if (k2 == npts)
-        k2--;
-
+    while (k2 < npts && x[k2] < q) k2++;
+    if (k2 == 0) k2++;
+    else if (k2 == npts)  k2--;
     k1 = k2 - 1;
 
     // Compute slope and intercept of this segment
@@ -653,13 +833,12 @@ void  gpvcoeff(EN_Project *pr, int k)
     solver_t     *sol = &hyd->solver;
 
     // Treat as a pipe if valve closed
-    if (hyd->LinkStatus[k] == CLOSED) {
-        valvecoeff(pr, k);                          
-    }
+    if (hyd->LinkStatus[k] == CLOSED) valvecoeff(pr, k);                          
 
     // Otherwise utilize headloss curve
     // whose index is stored in K
-    else {
+    else
+    {
         // Find slope & intercept of headloss curve.
         q = ABS(hyd->LinkFlows[k]);
         q = MAX(q, TINY);
@@ -687,18 +866,22 @@ void  pbvcoeff(EN_Project *pr, int k)
     Slink *link = &pr->network.Link[k];
 
     // If valve fixed OPEN or CLOSED then treat as a pipe
-    if (hyd->LinkSetting[k] == MISSING || hyd->LinkSetting[k] == 0.0) {
+    if (hyd->LinkSetting[k] == MISSING || hyd->LinkSetting[k] == 0.0)
+    {
         valvecoeff(pr, k);         
     }
 
     // If valve is active
-    else {
+    else
+    {
         // Treat as a pipe if minor loss > valve setting
-        if (link->Km * SQR(hyd->LinkFlows[k]) > hyd->LinkSetting[k]) {
+        if (link->Km * SQR(hyd->LinkFlows[k]) > hyd->LinkSetting[k])
+        {
             valvecoeff(pr, k);        
         }
         // Otherwise force headloss across valve to be equal to setting
-        else {
+        else
+        {
             sol->P[k] = CBIG;
             sol->Y[k] = hyd->LinkSetting[k] * CBIG;
         }
@@ -723,7 +906,8 @@ void  tcvcoeff(EN_Project *pr, int k)
     km = link->Km;
 
     // If valve not fixed OPEN or CLOSED, compute its loss coeff.
-    if (hyd->LinkSetting[k] != MISSING) {
+    if (hyd->LinkSetting[k] != MISSING)
+    {
         link->Km = 0.02517 * hyd->LinkSetting[k] / (SQR(link->Diam)*SQR(link->Diam));
     }
 
@@ -768,7 +952,8 @@ void  prvcoeff(EN_Project *pr, int k, int n1, int n2)
         sol->Y[k] = hyd->LinkFlows[k] + hyd->X_tmp[n2];    // Force flow balance
         sol->F[j] += (hset * CBIG);                        // Force head = hset
         sol->Aii[j] += CBIG;                               // at downstream node
-        if (hyd->X_tmp[n2] < 0.0) {
+        if (hyd->X_tmp[n2] < 0.0)
+        {
             sol->F[i] += hyd->X_tmp[n2];
         }
         return;
@@ -818,7 +1003,8 @@ void  psvcoeff(EN_Project *pr, int k, int n1, int n2)
         sol->Y[k] = hyd->LinkFlows[k] - hyd->X_tmp[n1];    // Force flow balance
         sol->F[i] += (hset * CBIG);                        // Force head = hset
         sol->Aii[i] += CBIG;                               // at upstream node
-        if (hyd->X_tmp[n1] > 0.0) {
+        if (hyd->X_tmp[n1] > 0.0)
+        {
             sol->F[j] += hyd->X_tmp[n1];
         }
         return;
@@ -919,9 +1105,7 @@ void valvecoeff(EN_Project *pr, int k)
     if (link->Km > 0.0)
     {
         p = 2.0 * link->Km * fabs(flow);
-        if (p < hyd->RQtol) {
-            p = hyd->RQtol;
-        }
+        if (p < hyd->RQtol) p = hyd->RQtol;
         sol->P[k] = 1.0 / p;
         sol->Y[k] = flow / 2.0;
     }
