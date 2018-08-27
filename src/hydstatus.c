@@ -13,6 +13,7 @@ HYDSTATUS.C --  Hydraulic status updating for the EPANET Program
 // External functions
 int  valvestatus(EN_Project *pr);
 int  linkstatus(EN_Project *pr);
+int  tankstatus(EN_Project *pr);
 
 // Local functions
 static StatType cvstatus(EN_Project *pr, StatType, double, double);
@@ -20,7 +21,8 @@ static StatType pumpstatus(EN_Project *pr, int, double);
 static StatType prvstatus(EN_Project *pr, int, StatType, double, double, double);
 static StatType psvstatus(EN_Project *pr, int, StatType, double, double, double);
 static StatType fcvstatus(EN_Project *pr, int, StatType, double, double);
-static void     tankstatus(EN_Project *pr, int, int, int);
+static void     tanklinkstatus(EN_Project *pr, int, int, int);
+static void     tank2linkstatus(EN_Project *pr, int, int, int);
 
 
 int  valvestatus(EN_Project *pr)
@@ -150,7 +152,7 @@ int  linkstatus(EN_Project *pr)
         // Check for flow into (out of) full (empty) tanks
         if (n1 > net->Njuncs || n2 > net->Njuncs)
         {
-            tankstatus(pr, k, n1, n2);
+            tanklinkstatus(pr, k, n1, n2);
         }
 
         // Note any change in link status; do not revise link flow
@@ -384,7 +386,75 @@ StatType  fcvstatus(EN_Project *pr, int k, StatType s, double h1, double h2)
 }
 
 
-void  tankstatus(EN_Project *pr, int k, int n1, int n2)
+int tankstatus(EN_Project *pr)
+/*
+**-----------------------------------------------------------
+**  Input:   none
+**  Output:  returns TRUE if a tank changes its fixed grade status
+**  Purpose: updates the fixed grade status of all tanks.
+**-----------------------------------------------------------
+*/
+{
+    int i, j, emptying, filling, empty, full, fixedgrade;
+    int change = FALSE;
+
+    hydraulics_t *hyd = &pr->hydraulics;
+    EN_Network   *net = &pr->network;
+    Stank *tank;
+
+    // Only apply to implicit tank analysis after time 0
+    if (hyd->TankDynamics != IMPLICIT) return FALSE;
+    if (pr->time_options.Htime == 0) return FALSE;
+
+    // Examine each tank
+    for (j = 1; j <= net->Ntanks; j++)
+    {
+        // Skip reservoirs
+        tank = &net->Tank[j];
+        if (tank->A == 0.0) continue;
+
+        // Determine current state of tank and its net inflow
+        i = tank->Node;
+        empty = (hyd->NodeHead[i] <= tank->Hmin + hyd->Htol);
+        full = (hyd->NodeHead[i] >= tank->Hmax - hyd->Htol);
+        emptying = (hyd->NodeDemand[i] < -hyd->Qtol);
+        filling = (hyd->NodeDemand[i] > hyd->Qtol);
+        fixedgrade = hyd->Xtank[j].FixedGrade;
+
+        // See if a fixed grade tank becomes variable level
+        if (fixedgrade)
+        {
+            if ((empty && filling) ||
+                (full && emptying)) fixedgrade = FALSE;
+        }
+
+        // See if a variable level tank becomes fixed grade
+        else
+        {
+            if (empty && emptying)
+            {
+                fixedgrade = TRUE;
+                hyd->NodeHead[i] = tank->Hmin;
+            }
+            else if (full && filling)
+            {
+                fixedgrade = TRUE;
+                hyd->NodeHead[i] = tank->Hmax;
+            }
+        }
+
+        // Update tank's fixed grade status
+        if (fixedgrade != hyd->Xtank[j].FixedGrade)
+        {
+            hyd->Xtank[j].FixedGrade = fixedgrade;
+            change = TRUE;
+        }
+    }
+    return change;
+}
+
+
+void  tanklinkstatus(EN_Project *pr, int k, int n1, int n2)
 /*
 **----------------------------------------------------------------
 **  Input:   k  = link index
@@ -400,11 +470,18 @@ void  tankstatus(EN_Project *pr, int k, int n1, int n2)
     Stank *tank;
 
     hydraulics_t *hyd = &pr->hydraulics;
-    EN_Network *net = &pr->network;
-    Slink *link = &net->Link[k];
+    EN_Network   *net = &pr->network;
+    Slink        *link = &net->Link[k];
 
     // Return if link is closed
     if (hyd->LinkStatus[k] <= CLOSED) return;
+
+    // Special case of link connecting two tanks
+    if (n1 > net->Njuncs && n2 > net->Njuncs)
+    {
+        tank2linkstatus(pr, k, n1, n2);
+        return;
+    }
 
     // Make node n1 be the tank, reversing flow (q) if need be
     q = hyd->LinkFlows[k];
@@ -459,4 +536,54 @@ void  tankstatus(EN_Project *pr, int k, int n1, int n2)
             hyd->LinkStatus[k] = TEMPCLOSED;
         }
     }
+}
+
+
+void tank2linkstatus(EN_Project *pr, int k, int n1, int n2)
+/*
+**----------------------------------------------------------------
+**  Input:   k  = link index
+**           n1 = start node of link
+**           n2 = end node of link
+**  Output:  none
+**  Purpose: closes a link between two tanks if one is empty
+**           and has outflow or one is full and has inflow.
+**----------------------------------------------------------------
+*/
+{
+    int    j1, j2, closetank = FALSE;
+    double h1, h2;
+
+    hydraulics_t *hyd = &pr->hydraulics;
+    EN_Network *net = &pr->network;
+    Stank *tank1, *tank2;
+
+    // Find current heads at each tank
+    h1 = hyd->NodeHead[n1];
+    h2 = hyd->NodeHead[n2];
+    j1 = n1 - net->Njuncs;
+    j2 = n2 - net->Njuncs;
+    tank1 = &net->Tank[j1];
+    tank2 = &net->Tank[j2];
+
+    // If first tank not a reservoir see if it must be closed off
+    if (tank1->A > 0.0)
+    {
+        // close tank if full and second tank sends flow to it
+        if (h1 >= tank1->Hmax - hyd->Htol && h2 >= h1) closetank = TRUE;
+        // close tank if empty and sends flow to second tank
+        else if (h1 <= tank1->Hmin + hyd->Htol && h1 >= h2) closetank = TRUE;
+    }
+
+    // First tank not closed - see if second tank should be
+    if (tank2->A > 0.0 && !closetank)
+    {
+        // close tank if full and first tank sends flow to it
+        if (h2 >= tank2->Hmax - hyd->Htol && h1 >= h2) closetank = TRUE;
+        // close tank if empty and sends flow to first tank
+        else if (h2 <= tank2->Hmin + hyd->Htol && h2 >= h1) closetank = TRUE;
+    }
+
+    // Temporarily close the link connected to a closed tank
+    if (closetank) hyd->LinkStatus[k] = TEMPCLOSED;
 }

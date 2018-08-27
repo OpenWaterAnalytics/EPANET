@@ -132,6 +132,7 @@ void setdefaults(EN_Project *pr)
   hyd->Pmin = 0.0;            // Minimum demand pressure (ft)
   hyd->Preq = 0.0;            // Required demand pressure (ft)
   hyd->Pexp = 0.5;            // Pressure function exponent
+  hyd->TankDynamics = EXPLICIT;  // Use explicit Euler method
 
   qu->Ctol = MISSING;      /* No pre-set quality tolerance   */
   hyd->MaxIter = MAXITER;  /* Default max. hydraulic trials  */

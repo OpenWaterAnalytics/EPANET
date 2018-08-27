@@ -1372,6 +1372,9 @@ int DLLEXPORT EN_getoption(EN_Project *pr, EN_Option code,
   case EN_FLOWCHANGE:
     v = hyd->FlowChangeLimit * Ucf[FLOW];
     break;
+  case EN_TANKDYNAMICS:
+    v = hyd->TankDynamics;
+    break;
 
   default:
     return (251);
@@ -3244,6 +3247,12 @@ int DLLEXPORT EN_setoption(EN_Project *p, int code, EN_API_FLOAT_TYPE v)
           return (202);
       hyd->FlowChangeLimit = value / Ucf[FLOW];
       break;
+  case EN_TANKDYNAMICS:
+    // Can't change tank dynamics while hydraulics solver is open
+    if (p->hydraulics.OpenHflag) return 111;
+    if (value < EN_EXPLICIT || value > EN_IMPLICIT) return 202;
+    hyd->TankDynamics = (int)v;
+    break;
 
   default:
     return (251);
@@ -4024,6 +4033,45 @@ double interp(int n, double x[], double y[], double xx)
   }
   return (y[m]); /* xx off high end of curve */
 } /* End of interp */
+
+
+void getcurvesegment(int n, double x[], double y[], double xx,
+                     double *slope, double *y0)
+/*----------------------------------------------------------------
+**  Input:   n  = number of data pairs defining a curve
+**           x  = x-data values of curve (0-based)
+**           y  = y-data values of curve (0-based)
+**           xx = specified x-value
+**  Output:  slope = slope of curve segment
+**           y0    = y-intercept of curve segment
+**  Returns: nothing
+**  Purpose: finds the slope and y-intercept of the curve
+**           segment that brackets a particular x-value.
+**----------------------------------------------------------------
+*/
+{
+    int k1, k2;
+    double dx;
+
+    // Check for single point curve
+    *slope = 0.0;
+    *y0 = 0.0;
+    if (n <= 1) return;
+
+    // Find linear segment of curve that brackets xx
+    k2 = 0;
+    while (k2 < n && x[k2] < xx) k2++;
+    if (k2 == 0) k2++;
+    else if (k2 == n)  k2--;
+    k1 = k2 - 1;
+
+    // Compute slope and intercept of this segment
+    dx =  x[k2] - x[k1];
+    if (dx == 0.0) return;
+    *slope = (y[k2] - y[k1]) / dx;
+    *y0 = y[k1] - (*slope) * x[k1];
+}
+
 
 int findnode(EN_Network *n, char *id)
 /*----------------------------------------------------------------

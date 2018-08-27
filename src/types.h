@@ -185,8 +185,8 @@ typedef enum {
   XFCV,         /*   FCV cannot supply flow            */
   XPRESSURE,    /*   valve cannot supply pressure      */
   FILLING,      /*   tank filling                      */
-  EMPTYING
-} StatType;     /*   tank emptying                     */
+  EMPTYING      /*   tank emptying                     */
+} StatType;     
 
 typedef enum {
   HW,           /*   Hazen-Williams                    */
@@ -302,6 +302,11 @@ typedef enum {
     DDA,        // Demand Driven Analysis    
     PDA         // Pressure Driven Analysis
 } DemandModelType;
+
+typedef enum {
+    EXPLICIT,   // Explicit Euler method
+    IMPLICIT    // Implicit Euler method
+} TankDynamicsTypes;
 
 /*
 ------------------------------------------------------
@@ -434,6 +439,13 @@ typedef struct     /* TANK OBJECT */
                     /* (see MixType below)      */
    double V1max;    /* Mixing compartment size  */
 }  Stank;
+
+typedef struct      // Extended Tank Info
+{
+    int    FixedGrade;
+    double PastArea;
+    double PastHead;
+} Sxtank;
 
 typedef struct     /* PUMP OBJECT */
 {
@@ -589,20 +601,19 @@ typedef struct {
   
 } quality_t;
 
-typedef struct {
+typedef struct {         /* All times are in seconds     */
   long     
-  Tstart,                /* Starting time of day (sec)   */
-  Hstep,                 /* Nominal hyd. time step (sec) */
-  Pstep,                 /* Time pattern time step (sec) */
-  Pstart,                /* Starting pattern time (sec)  */
-  Rstep,                 /* Reporting time step (sec)    */
+  Tstart,                /* Starting time of day         */
+  Hstep,                 /* Nominal hyd. time step       */
+  Pstep,                 /* Time pattern time step       */
+  Pstart,                /* Starting pattern time        */
+  Rstep,                 /* Reporting time step          */
   Rstart,                /* Time when reporting starts   */
   Rtime,                 /* Next reporting time          */
-  Htime,                 /* Current hyd. time (sec)      */
-  Hydstep,               /* Actual hydraulic time step   */
+  Htime,                 /* Current hyd. time            */
+  Hydstep,               /* Actual hyd. time step        */
   Rulestep,              /* Rule evaluation time step    */
-  Dur;                   /* Duration of simulation (sec) */
-  
+  Dur;                   /* Duration of simulation       */
 } time_options_t;
 
 
@@ -689,7 +700,6 @@ typedef struct {
   TmpDir[MAXFNAME+1],    /* Temporary directory name     */
   Outflag,               /* Output file flag             */
   Hydflag;               /* Hydraulics flag              */
-  
   
   long     
   HydOffset,             /* Hydraulics file byte offset  */
@@ -797,7 +807,10 @@ typedef struct {
   int
   DefPat,                /* Default demand pattern       */
   Epat,                  /* Energy cost time pattern     */
-  DemandModel;           // Fixed or pressure dependent
+  DemandModel,           // Demand or pressure driven
+  TankDynamics;          // Method for modeling tank dynamics
+
+  Sxtank *Xtank;         // Info used for tank dynamics
 
   StatType  
   *LinkStatus,           /* Link status                  */

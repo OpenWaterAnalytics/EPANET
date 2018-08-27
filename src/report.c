@@ -55,6 +55,7 @@ extern char *StatTxt[];
 extern char *TstatTxt[];
 extern char *RptFormTxt[];
 extern char *DemandModelTxt[];
+extern char *TankDynamicsTxt[];
 
 typedef REAL4 *Pfloat;
 void writenodetable(EN_Project *pr, Pfloat *);
@@ -224,6 +225,8 @@ void writesummary(EN_Project *pr)
   sprintf(s, FMT25, RptFormTxt[hyd->Formflag]);
   writeline(pr, s);
   sprintf(s, FMT25a, DemandModelTxt[hyd->DemandModel]);
+  writeline(pr, s);
+  sprintf(s, FMT25b, TankDynamicsTxt[hyd->TankDynamics]);
   writeline(pr, s);
   sprintf(s, FMT26, time->Hstep * pr->Ucf[TIME], rep->Field[TIME].Units);
   writeline(pr, s);

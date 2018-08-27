@@ -187,7 +187,7 @@ typedef enum {
   EN_FLOWPACED   = 3
 } EN_SourceType;
 
-typedef enum {          /* Head loss formula:                  */
+typedef enum {           /* Head loss formula:                  */
   EN_HW          = 0,    /*   Hazen-Williams                    */
   EN_DW          = 1,    /*   Darcy-Weisbach                    */
   EN_CM          = 2     /*   Chezy-Manning                     */
@@ -206,10 +206,15 @@ typedef enum {
   EN_CMD         = 9
 } EN_FlowUnits;
 
-typedef enum {           /* Demand model types. */
-  EN_DDA         = 0,   /**< Demand driven analysis */
+typedef enum {          /* Demand model types.        */
+  EN_DDA         = 0,   /**< Demand driven analysis   */
   EN_PDA         = 1    /**< Pressure driven analysis */
 } EN_DemandModel;
+
+typedef enum {          /* Methods for modeling tank dynamics */
+    EN_EXPLICIT  = 0,   /**< Explicit forward Euler method    */
+    EN_IMPLICIT  = 1    /**< Implicit backward Euler method   */
+} EN_TankDynamics;
 
 /// Simulation Option codes
 typedef enum {
@@ -219,7 +224,8 @@ typedef enum {
   EN_EMITEXPON    = 3,
   EN_DEMANDMULT   = 4,
   EN_HEADERROR    = 5,
-  EN_FLOWCHANGE   = 6
+  EN_FLOWCHANGE   = 6,
+  EN_TANKDYNAMICS = 7
 } EN_Option;
 
 typedef enum {
@@ -253,9 +259,17 @@ typedef enum {
 typedef enum {
   EN_CONST_HP    = 0,   /* constant horsepower       */
   EN_POWER_FUNC  = 1,   /* power function            */
-  EN_CUSTOM      = 2    /* user-defined custom curve */
-} EN_CurveType;
+  EN_CUSTOM      = 2,   /* user-defined custom curve */
+  EN_NOCURVE = 3        /* no curve                  */
+} EN_PumpType;
 
+typedef enum {
+    EN_VOLUME_CURVE  = 0,   /* volume curve          */
+    EN_PUMP_CURVE    = 1,   /* pump curve            */
+    EN_EFFIC_CURVE   = 2,   /* efficiency curve      */
+    EN_HEAD_CURVE    = 3,   /* head loss curve       */
+    EN_GENERAL_CURVE = 4    /* general\default curve */
+} EN_CurveType;
 
 // --- Declare the EPANET toolkit functions
 #if defined(__cplusplus)
@@ -777,7 +791,7 @@ extern "C" {
    @param linkIndex The index of the pump element
    @param[out] outType The integer-typed pump curve type signifier (output parameter)
    @return Error code
-   @see EN_CurveType
+   @see EN_PumpType
    */
   int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
   

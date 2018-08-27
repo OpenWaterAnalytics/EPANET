@@ -43,6 +43,10 @@ int     strcomp(char *, char *);                   /* Compares two strings      
 char*   getTmpName(EN_Project *p, char* fname);    /* Gets temporary file name   */     
 double  interp(int n, double x[], double y[],
         double xx);                                /* Interpolates a data curve  */
+void    getcurvesegment(int n, double x[],         // Gets curve segment slope
+        double y[], double xx, double *slope,      //    and intercept
+        double *y0);
+
                
 int     findnode(EN_Network *n, char *);           /* Finds node's index from ID */
 int     findlink(EN_Network *n, char *);           /* Finds link's index from ID */
