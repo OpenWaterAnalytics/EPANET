@@ -4414,7 +4414,7 @@ int DLLEXPORT EN_addnode(EN_Project *p, char *id, EN_NodeType nodeType) {
       }
     }
   } else {
-    nIdx = net->Nnodes++;
+    nIdx = net->Nnodes+1;
     node = &net->Node[nIdx];
     coord = &net->Coord[nIdx];
     net->Ntanks++;
