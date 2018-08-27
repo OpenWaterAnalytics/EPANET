@@ -116,6 +116,9 @@ typedef enum {
   EN_HEADCURVE    = 17,
   EN_EFFICIENCYCURVE = 18,
   EN_PRICEPATTERN = 19
+  EN_STATE        = 20,
+  EN_CONST_POWER  = 21,
+  EN_SPEED        = 22  
 } EN_LinkProperty;
 
 /// Time parameter codes
@@ -264,11 +267,11 @@ typedef enum {
 } EN_PumpType;
 
 typedef enum {
-    EN_VOLUME_CURVE  = 0,   /* volume curve          */
-    EN_PUMP_CURVE    = 1,   /* pump curve            */
-    EN_EFFIC_CURVE   = 2,   /* efficiency curve      */
-    EN_HEAD_CURVE    = 3,   /* head loss curve       */
-    EN_GENERAL_CURVE = 4    /* general\default curve */
+  EN_V_CURVE     = 0,   /*    volume curve                      */
+  EN_P_CURVE     = 1,   /*    pump curve                        */
+  EN_E_CURVE     = 2,   /*    efficiency curve                  */
+  EN_H_CURVE     = 3,   /*    head loss curve                   */
+  EN_G_CURVE     = 4    /*    general\default curve             */
 } EN_CurveType;
 
 // --- Declare the EPANET toolkit functions
@@ -796,6 +799,15 @@ extern "C" {
   int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
   
   /**
+   @brief Get the type of a curve
+   @param curveIndex The index of the curve element
+   @param[out] outType The integer-typed curve curve type signifier (output parameter)
+   @return Error code
+   @see EN_CurveType
+   */
+  int  DLLEXPORT ENgetcurvetype(int curveIndex, int *outType);
+  
+  /**
    @brief Get the version number. This number is to be interpreted with implied decimals, i.e., "20100" == "2(.)01(.)00"
    @param[out] version The version of EPANET
    @return Error code.
@@ -1220,6 +1232,7 @@ extern "C" {
   int DLLEXPORT EN_getheadcurveindex(EN_Project *p, int pumpIndex, int *curveIndex);
   int DLLEXPORT EN_setheadcurveindex(EN_Project *p, int pumpIndex, int curveIndex);
   int DLLEXPORT EN_getpumptype(EN_Project *p, int linkIndex, int *outType);
+  int DLLEXPORT EN_getcurvetype(EN_Project *p, int curveIndex, int *outType);  
   int DLLEXPORT EN_getversion(int *version);
   int DLLEXPORT EN_setcontrol(EN_Project *p, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
   int DLLEXPORT EN_setnodevalue(EN_Project *p, int index, int code, EN_API_FLOAT_TYPE v);

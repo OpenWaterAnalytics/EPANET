@@ -56,6 +56,9 @@ Public Const EN_EFFICIENCY = 16
 Public Const EN_HEADCURVE = 17
 Public Const EN_EFFICIENCYCURVE = 18
 Public Const EN_PRICEPATTERN = 19
+Public Const EN_STATE = 20
+Public Const EN_CONST_POWER = 21
+Public Const EN_SPEED = 22
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
@@ -159,6 +162,13 @@ Public Const EN_INITFLOW = 10    ' Re-initialize flow flag
 Public Const EN_CONST_HP = 0      ' constant horsepower
 Public Const EN_POWER_FUNC = 1    ' power function
 Public Const EN_CUSTOM = 2        ' user-defined custom curve
+Public Const EN_NOCURVE = 3       ' no curve
+
+Public Const EN_V_CURVE = 0       ' volume curve
+Public Const EN_P_CURVE = 1       ' pump curve
+Public Const EN_E_CURVE = 2       ' efficiency curve
+Public Const EN_H_CURVE = 3       ' head loss curve
+Public Const EN_G_CURVE = 4       ' General\default curve
 
 'These are the external functions that comprise the DLL
 
@@ -224,6 +234,7 @@ Public Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENgetcurve Lib "epanet2.dll" (ByVal curveIndex As Long, ByVal CurveID As String, nValues As Long, xValues As Any, yValues As Any) As Long
  Declare Function ENgetheadcurveindex Lib "epanet2.dll" (ByVal pumpIndex As Long, curveIndex As Long) As Long
  Declare Function ENgetpumptype Lib "epanet2.dll" (ByVal index As Long, PumpType As Long) As Long
+ Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal curveindex As Long, CurveType As Long) As Long
 
  Declare Function ENgetversion Lib "epanet2.dll" (value As Long) As Long
 
