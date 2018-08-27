@@ -473,7 +473,7 @@ int DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx,
   return EN_setbasedemand(_defaultModel, nodeIndex, demandIdx, baseDemand);
 }
 
-int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, int 								   patIndex) {
+int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, int patIndex) {
   return EN_setdemandpattern(_defaultModel, nodeIndex, demandIdx, patIndex);
 }
 
