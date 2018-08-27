@@ -145,6 +145,12 @@ AUTHOR:     L. Rossman
 #define   w_FLOWCHANGE  "FLOWCHANGE"
 #define   w_HEADERROR   "HEADERROR"
 
+#define   w_MODEL       "MODEL"
+#define   w_DDA         "DDA"
+#define   w_PDA         "PDA"
+#define   w_REQUIRED    "REQ"
+#define   w_EXPONENT    "EXP"
+
 #define   w_SECONDS     "SEC"
 #define   w_MINUTES     "MIN"
 #define   w_HOURS       "HOU"
@@ -323,6 +329,9 @@ AUTHOR:     L. Rossman
 #define   t_perM3       "  /m3"
 #define   t_perMGAL     "/Mgal"
 #define   t_DIFFER      "DIFFERENTIAL"
+#define   t_FIXED       "Fixed Demands"
+#define   t_POWER       "Power Function"
+#define   t_ORIFICE     "Orifice Flow"
 
 
 /* ------------------ Format Messages ------------------*/
@@ -362,6 +371,7 @@ AUTHOR:     L. Rossman
 #define FMT23  "    Number of Pumps ................... %-d"
 #define FMT24  "    Number of Valves .................. %-d"
 #define FMT25  "    Headloss Formula .................. %s"
+#define FMT25a "    Nodal Demand Model ................ %s"
 #define FMT26  "    Hydraulic Timestep ................ %-.2f %s"
 #define FMT27  "    Hydraulic Accuracy ................ %-.6f"
 
@@ -420,7 +430,8 @@ AUTHOR:     L. Rossman
 /*** End of update ***/
 
 #define FMT66  "                      maximum  flow change = %.4f for Link %s"
-#define FMT67  "                      maximum  head error  = %.4f for Link %s\n"
+#define FMT67  "                      maximum  flow change = %.4f for Node %s"
+#define FMT68  "                      maximum  head error  = %.4f for Link %s\n"
 
 /* -------------------- Energy Report Table ------------------- */
 #define FMT71  "Energy Usage:"

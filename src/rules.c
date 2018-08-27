@@ -29,13 +29,11 @@ AUTHOR:     L. Rossman
 #else
 #include <stdlib.h>
 #endif
-#include "epanet2.h"
+
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#define EXTERN extern
-#include "vars.h"
 
 enum Rulewords {
   r_RULE,

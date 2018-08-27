@@ -54,15 +54,13 @@ AUTHOR:     L. Rossman
 #else
 #include <stdlib.h>
 #endif
+
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#include "epanet2.h"
 #include "funcs.h"
 #include <math.h>
-#define EXTERN extern
 #include "mempool.h"
-#include "vars.h"
 
 /*
 ** Macros to identify upstream & downstream nodes of a link

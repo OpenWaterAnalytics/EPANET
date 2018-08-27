@@ -18,12 +18,12 @@ setlocal
 set NRTEST_SCRIPT_PATH=%~1
 set TEST_SUITE_PATH=%~2
 
-set BENCHMARK_VER=220dev1
+set BENCHMARK_VER=220dev2
 
 
 set NRTEST_EXECUTE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest execute
 set TEST_APP_PATH=apps\epanet-%3.json
-set TESTS=tests\examples tests\exeter tests\large tests\network_one tests\small tests\tanks tests\valves
+set TESTS=tests\examples tests\exeter tests\large tests\network_one tests\press_depend tests\small tests\tanks tests\valves
 set TEST_OUTPUT_PATH=benchmark\epanet-%3
 
 set NRTEST_COMPARE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest compare

@@ -33,8 +33,6 @@ AUTHOR:     L. Rossman
 #include "epanet2.h"
 #include "funcs.h"
 #include <math.h>
-#define EXTERN extern
-#include "vars.h"
 
 /*
   --------------------- Module Global Variables  ----------------------
@@ -128,8 +126,12 @@ void setdefaults(EN_Project *pr)
   hyd->Qtol = QTOL;        /* Default flow tolerance         */
   hyd->Hacc = HACC;        /* Default hydraulic accuracy     */
 
-  hyd->FlowChangeLimit = 0.0; /* Default flow change limit   */
-  hyd->HeadErrorLimit = 0.0;  /* Default head error limit    */
+  hyd->FlowChangeLimit = 0.0; // Default flow change limit
+  hyd->HeadErrorLimit = 0.0;  // Default head error limit
+  hyd->DemandModel = DDA;     // Demand driven analysis
+  hyd->Pmin = 0.0;            // Minimum demand pressure (ft)
+  hyd->Preq = 0.0;            // Required demand pressure (ft)
+  hyd->Pexp = 0.5;            // Pressure function exponent
 
   qu->Ctol = MISSING;      /* No pre-set quality tolerance   */
   hyd->MaxIter = MAXITER;  /* Default max. hydraulic trials  */
@@ -581,6 +583,8 @@ void convertunits(EN_Project *pr)
       demand->Base /= pr->Ucf[DEMAND];
     }
   }
+  hyd->Pmin /= pr->Ucf[PRESSURE];
+  hyd->Preq /= pr->Ucf[PRESSURE];
 
   /* Convert emitter discharge coeffs. to head loss coeff. */
   ucf = pow(pr->Ucf[FLOW], hyd->Qexp) / pr->Ucf[PRESSURE];

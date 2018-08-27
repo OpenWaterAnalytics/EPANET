@@ -30,12 +30,12 @@ BOOST_AUTO_TEST_CASE (test_alloc_free)
     int error = 0;
     EN_ProjectHandle ph = NULL;
 
-    error = EN_alloc(&ph);
+    error = EN_createproject(&ph);
 
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ph != NULL);
 
-    error = EN_free(&ph);
+    error = EN_deleteproject(&ph);
 
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ph == NULL);
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE (test_alloc_free)
 BOOST_AUTO_TEST_CASE (test_open_close)
 {
     EN_ProjectHandle ph = NULL;
-    EN_alloc(&ph);
+    EN_createproject(&ph);
 
     std::string path_inp = std::string(DATA_PATH_INP);
     std::string path_rpt = std::string(DATA_PATH_RPT);
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE (test_open_close)
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
 
-    EN_free(&ph);
+    EN_deleteproject(&ph);
 }
 
 BOOST_AUTO_TEST_CASE(test_epanet)
@@ -69,27 +69,6 @@ BOOST_AUTO_TEST_CASE(test_epanet)
     BOOST_REQUIRE(error == 0);
 }
 
-BOOST_AUTO_TEST_CASE(test_errormanager)
-{
-    char *error_msg;
-    EN_ProjectHandle ph = NULL;
-
-    std::string path_inp = std::string(DATA_PATH_INP);
-    std::string path_rpt = std::string(DATA_PATH_RPT);
-    std::string path_out = std::string(DATA_PATH_RPT);
-
-
-    EN_alloc(&ph);
-
-    EN_clearError(ph);
-    int error = EN_epanet(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str(), NULL);
-    EN_checkError(ph, &error_msg);
-
-    EN_free(&ph);
-
-    free(error_msg);
-}
-
 BOOST_AUTO_TEST_SUITE_END()
 
 
@@ -99,14 +78,14 @@ struct Fixture{
         path_rpt = std::string(DATA_PATH_RPT);
         path_out = std::string(DATA_PATH_OUT);
 
-        EN_alloc(&ph);
+        EN_createproject(&ph);
         error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
 
     }
 
     ~Fixture() {
       error = EN_close(ph);
-      EN_free(&ph);
+      EN_deleteproject(&ph);
   }
 
   std::string path_inp;

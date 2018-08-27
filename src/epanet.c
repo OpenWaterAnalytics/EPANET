@@ -129,9 +129,10 @@ execute function x and set the error code equal to its return value.
 #include "funcs.h"
 #include "text.h"
 #include "types.h"
-#define EXTERN
-////////////////////////////////////////////#include "epanet2.h"
-#include "vars.h"
+
+// This single global variable is used only when the library is called
+// in "legacy mode" with the 2.1-style API. 
+EN_Project *_defaultModel;
 
 
 // Local functions
@@ -164,18 +165,26 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
 {
   int errcode = 0;
 
-  ERRCODE(EN_alloc(&_defaultModel));
-  
-  ERRCODE(EN_epanet(_defaultModel, f1, f2, f3, pviewprog));
-  
-  ERRCODE(EN_free(&_defaultModel));
+  ERRCODE(EN_createproject(&_defaultModel));
+  ERRCODE(EN_open(_defaultModel, f1, f2, f3));
+  _defaultModel->viewprog = pviewprog;
 
-  return errcode;
+  if (_defaultModel->out_files.Hydflag != USE) {
+    ERRCODE(EN_solveH(_defaultModel));
+  }
+
+  ERRCODE(EN_solveQ(_defaultModel));
+  ERRCODE(EN_report(_defaultModel));
+
+  EN_close(_defaultModel);
+  EN_deleteproject(&_defaultModel);
+
+  return (errcode);
 }
 
 int DLLEXPORT ENopen(char *f1, char *f2, char *f3) {
   int errcode = 0;
-  ERRCODE(EN_alloc(&_defaultModel));
+  ERRCODE(EN_createproject(&_defaultModel));
   EN_open(_defaultModel, f1, f2, f3);
   return (errcode);
 }
@@ -261,6 +270,16 @@ int DLLEXPORT ENgetflowunits(int *code) {
 
 int DLLEXPORT ENsetflowunits(int code) {
   return EN_setflowunits(_defaultModel, code);
+}
+
+int DLLEXPORT ENgetdemandmodel(int *type, EN_API_FLOAT_TYPE *pmin, EN_API_FLOAT_TYPE *preq,
+                               EN_API_FLOAT_TYPE *pexp) {
+    return EN_getdemandmodel(_defaultModel, type, pmin, preq, pexp);
+}
+
+int DLLEXPORT ENsetdemandmodel(int type, EN_API_FLOAT_TYPE pmin, EN_API_FLOAT_TYPE preq,
+                               EN_API_FLOAT_TYPE pexp) {
+    return EN_setdemandmodel(_defaultModel, type, pmin, preq, pexp);
 }
 
 int DLLEXPORT ENgetpatternindex(char *id, int *index) {
@@ -537,6 +556,12 @@ int DLLEXPORT ENdeletenode(int index) {
   return EN_deletenode(_defaultModel, index);
 }
 
+
+// int DLLEXPORT EN_epanet(char *inpFile, char *rptFile, char *binOutFile, void(*callback) (char *))
+// {
+//     return ENepanet(inpFile, rptFile, binOutFile, callback);
+// }
+
 /*
 ----------------------------------------------------------------
    Functions for opening & closing the EPANET system
@@ -544,7 +569,7 @@ int DLLEXPORT ENdeletenode(int index) {
 */
 
 /// allocate a project pointer
-int DLLEXPORT EN_alloc(EN_ProjectHandle *ph)
+int DLLEXPORT EN_createproject(EN_ProjectHandle *ph)
 {
   int errorcode = 0;
   EN_Project *project = calloc(1, sizeof(EN_Project));
@@ -559,7 +584,7 @@ int DLLEXPORT EN_alloc(EN_ProjectHandle *ph)
   return errorcode;
 }
 
-int DLLEXPORT EN_free(EN_ProjectHandle *ph)
+int DLLEXPORT EN_deleteproject(EN_ProjectHandle *ph)
 {
     int errorcode = 0;
     EN_Project *p = (EN_Project*)(*ph);
@@ -577,25 +602,43 @@ int DLLEXPORT EN_free(EN_ProjectHandle *ph)
     return 0;
 }
 
-int DLLEXPORT EN_epanet(EN_ProjectHandle ph, const char *f1, const char *f2, 
-	const char *f3, void(*pviewprog)(char *))
-{
-	int errcode = 0;
-	EN_Project *_p = (EN_Project*)ph;
+// int DLLEXPORT EN_epanet(EN_ProjectHandle ph, const char *f1, const char *f2, 
+// 	const char *f3, void(*pviewprog)(char *))
+// {
+// 	int errcode = 0;
+// 	EN_Project *_p = (EN_Project*)ph;
 
-	ERRCODE(EN_open(ph, f1, f2, f3));
+// 	ERRCODE(EN_open(ph, f1, f2, f3));
 
-	_p->viewprog = pviewprog;
-	if (_p->out_files.Hydflag != USE) {
-		ERRCODE(EN_solveH(ph));
-	}
+// 	_p->viewprog = pviewprog;
+// 	if (_p->out_files.Hydflag != USE) {
+// 		ERRCODE(EN_solveH(ph));
+// 	}
 
-	ERRCODE(EN_solveQ(ph));
-	ERRCODE(EN_report(ph));
-	EN_close(ph);
+// 	ERRCODE(EN_solveQ(ph));
+// 	ERRCODE(EN_report(ph));
+// 	EN_close(ph);
 
-	return set_error(_p->error_handle, errcode);
-}
+// 	return set_error(_p->error_handle, errcode);
+// =======
+
+/// Create an EPANET project
+// int DLLEXPORT EN_createproject(EN_Project **p)
+// {
+//     EN_Project *project = calloc(1, sizeof(EN_Project));
+//     if (project == NULL) return 101;
+//     *p = project;
+//     return 0;
+// }
+
+// /// Delete an EPANET project
+// int DLLEXPORT EN_deleteproject(EN_Project *p) 
+// {
+//   if (p) free(p);
+//   p = NULL;
+//   return 0;
+// >>>>>>> c4b7c90634c73c1f800b2a18ea01f4be5b6711c1
+// }
 
 int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
                       EN_FlowUnits UnitsType, EN_FormType HeadlossFormula)
@@ -603,9 +646,8 @@ int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
  **  Input:
  **           f2               = pointer to name of report file
  **           f3               = pointer to name of binary output file
- UnitsType        = flow units flag
- HeadlossFormula  = headloss formula flag
-
+ **           UnitsType        = flow units flag
+ **           HeadlossFormula  = headloss formula flag
  **  Output:  none
  **  Returns: error code
  **  Purpose: opens EPANET
@@ -1622,7 +1664,39 @@ int DLLEXPORT EN_setflowunits(EN_ProjectHandle ph, int code) {
   return(0);
 }
 
+// <<<<<<< HEAD
+// int DLLEXPORT EN_getpatternindex(EN_ProjectHandle ph, char *id, int *index) {
+// =======
+
+int DLLEXPORT EN_getdemandmodel(EN_ProjectHandle ph, int *type, EN_API_FLOAT_TYPE *pmin,
+              EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp)
+{
+    EN_Project *p = (EN_Project*)ph;
+
+    *type = p->hydraulics.DemandModel;
+    *pmin = (EN_API_FLOAT_TYPE)(p->hydraulics.Pmin * p->Ucf[PRESSURE]);
+    *preq = (EN_API_FLOAT_TYPE)(p->hydraulics.Preq * p->Ucf[PRESSURE]);
+    *pexp = (EN_API_FLOAT_TYPE)(p->hydraulics.Pexp);
+    return 0;
+}
+
+int DLLEXPORT EN_setdemandmodel(EN_ProjectHandle ph, int type, EN_API_FLOAT_TYPE pmin,
+              EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp)
+{
+    EN_Project *p = (EN_Project*)ph;
+
+    if (type < 0 || type > EN_PDA) return 251;
+    if (pmin > preq || pexp <= 0.0) return 202;
+    p->hydraulics.DemandModel = type;
+    p->hydraulics.Pmin = pmin / p->Ucf[PRESSURE];
+    p->hydraulics.Preq = preq / p->Ucf[PRESSURE];
+    p->hydraulics.Pexp = pexp;
+    return 0;
+}
+
+
 int DLLEXPORT EN_getpatternindex(EN_ProjectHandle ph, char *id, int *index) {
+//>>>>>>> c4b7c90634c73c1f800b2a18ea01f4be5b6711c1
   int i;
 
   EN_Project *p = (EN_Project*)ph;
@@ -1868,11 +1942,17 @@ int DLLEXPORT EN_getstatistic(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE *
 
   switch (code) {
   case EN_ITERATIONS:
-    *value = (EN_API_FLOAT_TYPE)p->hydraulics.iterations;
+    *value = (EN_API_FLOAT_TYPE)p->hydraulics.Iterations;
     break;
   case EN_RELATIVEERROR:
-    *value = (EN_API_FLOAT_TYPE)p->hydraulics.relativeError;
+    *value = (EN_API_FLOAT_TYPE)p->hydraulics.RelativeError;
     break;
+  case EN_MAXHEADERROR:
+      *value = (EN_API_FLOAT_TYPE)(p->hydraulics.MaxHeadError * p->Ucf[HEAD]);
+      break;
+  case EN_MAXFLOWCHANGE:
+      *value = (EN_API_FLOAT_TYPE)(p->hydraulics.MaxFlowChange * p->Ucf[FLOW]);
+      break;
   default:
     break;
   }
@@ -1950,7 +2030,10 @@ int DLLEXPORT EN_getcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x,
 
   *x = (EN_API_FLOAT_TYPE)p->network.Coord[index].X;
   *y = (EN_API_FLOAT_TYPE)p->network.Coord[index].Y;
+// <<<<<<< HEAD
 
+// =======
+// >>>>>>> c4b7c90634c73c1f800b2a18ea01f4be5b6711c1
   return 0;
 }
 
