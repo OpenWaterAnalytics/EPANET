@@ -75,7 +75,7 @@ source_group("Library" FILES ${EPANET_LIB_ALL})
 
 
 # the shared library
-add_library(epanet SHARED ${EPANET_SOURCES})  #${EPANET_API_HEADER})
+add_library(epanet SHARED ${EPANET_LIB_ALL})  #${EPANET_API_HEADER})
 target_include_directories(epanet PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 
