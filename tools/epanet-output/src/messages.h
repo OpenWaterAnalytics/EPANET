@@ -10,7 +10,7 @@
 #ifndef MESSAGES_H_
 #define MESSAGES_H_
 /*------------------- Error Messages --------------------*/
-#define MAXMSG 53
+#define MSG_MAXLEN 53
 
 #define WARN10 "Warning: model run issued warnings"
 

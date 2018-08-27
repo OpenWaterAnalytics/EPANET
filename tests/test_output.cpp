@@ -22,8 +22,7 @@
 
 #include "epanet_output.h"
 
-
-#define DATA_PATH "./net1.out"
+#define DATA_PATH "./example1.out"
 
 using namespace std; 
 
@@ -117,7 +116,6 @@ struct Fixture{
 
     float* array;
     int array_dim;
-
 };
 
 BOOST_AUTO_TEST_SUITE(test_output_fixture)
@@ -142,6 +140,15 @@ BOOST_FIXTURE_TEST_CASE(test_getNetSize, Fixture)
     BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
 
     ENR_free((void**)&i_array);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_getUnits, Fixture) {
+    int flag;
+
+    error = ENR_getUnits(p_handle, ENR_qualUnits, &flag);
+	BOOST_REQUIRE(error == 0);
+
+	BOOST_CHECK_EQUAL(flag, ENR_MGL);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getElementName, Fixture) {
@@ -178,7 +185,6 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeAttribute, Fixture) {
 
     std::vector<float> ref_vec;
     ref_vec.assign(ref_array, ref_array + ref_dim);
-
 
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);

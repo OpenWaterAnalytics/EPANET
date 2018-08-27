@@ -37,8 +37,7 @@ foreach(testSrc ${TEST_SRCS})
         #link to Boost libraries AND your targets and dependencies
         target_link_libraries(${testName} ${Boost_LIBRARIES} epanet epanet-output)
 
-
-        #Finally add it to test execution - 
+        #Finally add it to test execution
         #Notice the WORKING_DIRECTORY and COMMAND
         add_test(NAME ${testName}
                  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${testName}  

@@ -36,10 +36,11 @@ int     allocdata(EN_Project *pr);                 /* Allocates memory          
 void    freeTmplist(STmplist *);                   /* Frees items in linked list */
 void    freeFloatlist(SFloatlist *);               /* Frees list of floats       */
 void    freedata(EN_Project *pr);                  /* Frees allocated memory     */
-int     openfiles(EN_Project *pr, char *,char *,char *);  /* Opens input & report files */
+int     openfiles(EN_Project *pr, const char *, 
+        const char *,const char *);                /* Opens input & report files */
 int     openhydfile(EN_Project *pr);               /* Opens hydraulics file      */
 int     openoutfile(EN_Project *pr);               /* Opens binary output file   */
-int     strcomp(char *, char *);                   /* Compares two strings       */
+int     strcomp(const char *, const char *);       /* Compares two strings       */
 char*   getTmpName(EN_Project *p, char* fname);    /* Gets temporary file name   */     
 double  interp(int n, double x[], double y[],
         double xx);                                /* Interpolates a data curve  */
@@ -51,7 +52,7 @@ int     findvalve(EN_Network *n, int);             /* Find valve index from node
 int     findpump(EN_Network *n, int);              /* Find pump index from node index */  // (AH)
 char   *geterrmsg(int errcode, char *msg);         /* Gets text of error message */
 void    errmsg(EN_Project *p, int);                /* Reports program error      */
-void    writecon(char *);                          /* Writes text to console     */
+void    writecon(const char *);                    /* Writes text to console     */
 void    writewin(void (*vp)(char *), char *);      /* Passes text to calling app */
 
 /* ------- INPUT1.C --------------------*/
@@ -125,6 +126,8 @@ int     checkrules(EN_Project *pr, long);           /* Checks all rules         
 void    freerules(EN_Project *pr);                  /* Frees rule base memory     */  
 int     writeRuleinInp(EN_Project *pr, FILE *f,     /* Writes rule to an INP file */
                       int RuleIdx);
+
+int     writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx);
 
 /* ------------- REPORT.C --------------*/
 int     writereport(EN_Project *pr);                /* Writes formatted report    */

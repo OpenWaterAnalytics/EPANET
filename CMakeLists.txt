@@ -40,6 +40,7 @@
 cmake_minimum_required (VERSION 2.8.8)
 
 project(EPANET)
+add_subdirectory(run)
 add_subdirectory(tools/epanet-output)
 
 IF (BUILD_TESTS)
@@ -50,6 +51,7 @@ ENDIF (BUILD_TESTS)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
 
 # Sets the position independent code property for all targets
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -66,40 +68,25 @@ IF (MSVC)
 ENDIF (MSVC)
 
 
-#include_directories(include src)
-
-
 # configure file groups
-file(GLOB EPANET_SOURCES src/*.c)
-#set(EPANET_API_HEADER include/epanet2.h)
-set(EPANET_CLI_SOURCES run/main.c)
-
-file(GLOB EPANET_LIB_ALL src/*)
+file(GLOB EPANET_SOURCES src/*.c src/util/*.c)
+file(GLOB EPANET_LIB_ALL src/* src/util/*)
 source_group("Library" FILES ${EPANET_LIB_ALL})
-source_group("CLI" REGULAR_EXPRESSION "run/.*")
 
 
 # the shared library
 add_library(epanet SHARED ${EPANET_SOURCES})  #${EPANET_API_HEADER})
 target_include_directories(epanet PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
+
 # create export lib so we can link against dll using Visual Studio
-#include(GenerateExportHeader)
-#GENERATE_EXPORT_HEADER(epanet
-#    BASE_NAME epanet
-#    EXPORT_MACRO_NAME DLLEXPORT
-#    EXPORT_FILE_NAME epanet_export.h
-#    STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC)
-#
-#file(COPY ${CMAKE_CURRENT_BINARY_DIR}/epanet_export.h
-#    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_definitions(-D WITH_GENX)
+include(GenerateExportHeader)
+GENERATE_EXPORT_HEADER(epanet
+    BASE_NAME epanet
+    EXPORT_MACRO_NAME DLLEXPORT
+    EXPORT_FILE_NAME epanet_export.h
+    STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC)
 
-
-# the standalone executable
-add_executable(runepanet ${EPANET_CLI_SOURCES})
-
-if(NOT MSVC)
-    target_link_libraries(runepanet LINK_PUBLIC epanet m)
-else(NOT MSVC)
-	target_link_libraries(runepanet LINK_PUBLIC epanet)
-endif(NOT MSVC)
+file(COPY ${CMAKE_CURRENT_BINARY_DIR}/epanet_export.h
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include)
