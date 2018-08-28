@@ -19,14 +19,12 @@ AUTHOR:     L. Rossman
 #else
 #include <stdlib.h>
 #endif
-#include "epanet2.h"
+
 #include "funcs.h"
 #include "text.h"
 #include "types.h"
 #include <math.h>
-#define EXTERN extern
 #include "hash.h"
-#include "vars.h"
 
 /* write x[1] to x[n] to file */
 size_t f_save(REAL4 *x, int n, FILE *file) {

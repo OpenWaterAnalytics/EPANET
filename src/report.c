@@ -32,15 +32,13 @@ formatted string S to the report file.
 #else
 #include <stdlib.h>
 #endif
-#include "epanet2.h"
+
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
 #include "types.h"
 #include <math.h>
 #include <time.h>
-#define EXTERN extern
-#include "vars.h"
 
 #undef WINDOWS
 #ifdef _WIN32
@@ -50,12 +48,13 @@ formatted string S to the report file.
 
 #define MAXCOUNT 10 /* Max. # of disconnected nodes listed */
 
-/* Defined in enumstxt.h in EPANET.C */
+/* Defined in enumstxt.h */
 extern char *NodeTxt[];
 extern char *LinkTxt[];
 extern char *StatTxt[];
 extern char *TstatTxt[];
 extern char *RptFormTxt[];
+extern char *DemandModelTxt[];
 
 typedef REAL4 *Pfloat;
 void writenodetable(EN_Project *pr, Pfloat *);
@@ -223,6 +222,8 @@ void writesummary(EN_Project *pr)
   sprintf(s, FMT24, net->Nvalves);
   writeline(pr, s);
   sprintf(s, FMT25, RptFormTxt[hyd->Formflag]);
+  writeline(pr, s);
+  sprintf(s, FMT25a, DemandModelTxt[hyd->DemandModel]);
   writeline(pr, s);
   sprintf(s, FMT26, time->Hstep * pr->Ucf[TIME], rep->Field[TIME].Units);
   writeline(pr, s);

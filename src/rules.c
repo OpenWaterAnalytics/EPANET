@@ -29,13 +29,11 @@ AUTHOR:     L. Rossman
 #else
 #include <stdlib.h>
 #endif
-#include "epanet2.h"
+
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#define EXTERN extern
-#include "vars.h"
 
 enum Rulewords {
   r_RULE,
@@ -114,7 +112,7 @@ int takeactions(EN_Project *pr);
 void clearactlist(rules_t *rules);
 void clearrules(EN_Project *pr);
 void ruleerrmsg(EN_Project *pr, int);
-int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx);
+//int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx);
 
 void initrules(rules_t *rules)
 /*

@@ -23,6 +23,8 @@ AUTHOR:     L. Rossman
 #include "epanet2.h"
 #include "hash.h"
 #include "mempool.h"
+#include "util/errormanager.h"
+
 
 /*********************************************************/
 /* All floats have been re-declared as doubles (7/3/07). */
@@ -298,6 +300,11 @@ typedef enum {
     TOTAL_COST,
     MAX_ENERGY_STATS
 } EnergyStats;
+
+typedef enum {
+    DDA,        // Demand Driven Analysis    
+    PDA         // Pressure Driven Analysis
+} DemandModelType;
 
 /*
 ------------------------------------------------------
@@ -760,7 +767,8 @@ typedef struct {
 
 typedef struct {
   double  
-  *NodeDemand,           /* Node actual demand           */
+  *NodeDemand,           // Node actual total outflow
+  *DemandFlows,          // Demand outflows
   *EmitterFlows,         /* Emitter flows                */
   *LinkSetting,          /* Link settings                */
   *LinkFlows,            /* Link flows                   */
@@ -769,10 +777,13 @@ typedef struct {
   Qtol,                  /* Flow rate tolerance          */
   RQtol,                 /* Flow resistance tolerance    */
   Hexp,                  /* Exponent in headloss formula */
-  Qexp,                  /* Exponent in orifice formula  */
+  Qexp,                  /* Exponent in emitter formula  */
+  Pexp,                  // Exponent in demand formula
+  Pmin,                  // Pressure needed for any demand
+  Preq,                  // Pressure needed for full demand
   Dmult,                 /* Demand multiplier            */
-  Hacc,                  /* Hydraulics solution accuracy */
 
+  Hacc,                  /* Hydraulics solution accuracy */
   FlowChangeLimit,       /* Hydraulics flow change limit */
   HeadErrorLimit,        /* Hydraulics head error limit  */
 
@@ -788,7 +799,8 @@ typedef struct {
   
   int
   DefPat,                /* Default demand pattern       */
-  Epat;                  /* Energy cost time pattern     */
+  Epat,                  /* Energy cost time pattern     */
+  DemandModel;           // Fixed or pressure dependent
 
   StatType  
   *LinkStatus,           /* Link status                  */
@@ -806,8 +818,10 @@ typedef struct {
   Formflag;              /* Hydraulic formula flag       */
   
   /* Info about hydraulic solution */
-  double relativeError;
-  int iterations;
+  double RelativeError;
+  double MaxHeadError;
+  double MaxFlowChange;
+  int    Iterations;
   
   /* Flag used to halt taking further time steps */
   int Haltflag;
@@ -849,7 +863,7 @@ typedef struct {
 
 
 /* project wrapper */
-struct EN_Project {
+typedef struct EN_Project {
   
   EN_Network network; /// the network description struct
   hydraulics_t hydraulics;
@@ -871,8 +885,10 @@ struct EN_Project {
   Title[MAXTITLE][MAXMSG+1],  /// Problem title
   MapFname[MAXFNAME+1];       /// Map file name
   
+  error_handle_t* error_handle; //Simple error manager
+
   void (* viewprog) (char *);     /* Pointer to progress viewing function */   
   
-};
+} EN_Project;
 
 #endif

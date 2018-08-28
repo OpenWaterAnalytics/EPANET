@@ -145,6 +145,12 @@ AUTHOR:     L. Rossman
 #define   w_FLOWCHANGE  "FLOWCHANGE"
 #define   w_HEADERROR   "HEADERROR"
 
+#define   w_MODEL       "MODEL"
+#define   w_DDA         "DDA"
+#define   w_PDA         "PDA"
+#define   w_REQUIRED    "REQ"
+#define   w_EXPONENT    "EXP"
+
 #define   w_SECONDS     "SEC"
 #define   w_MINUTES     "MIN"
 #define   w_HOURS       "HOU"
@@ -323,6 +329,9 @@ AUTHOR:     L. Rossman
 #define   t_perM3       "  /m3"
 #define   t_perMGAL     "/Mgal"
 #define   t_DIFFER      "DIFFERENTIAL"
+#define   t_FIXED       "Fixed Demands"
+#define   t_POWER       "Power Function"
+#define   t_ORIFICE     "Orifice Flow"
 
 
 /* ------------------ Format Messages ------------------*/
@@ -338,17 +347,12 @@ AUTHOR:     L. Rossman
 "*                         Version %d.%d                            *"
 #define LOGO6  \
 "******************************************************************"
-#define FMT01  "\n... EPANET Version %d.%d\n"
 #define FMT02  "\n  o Retrieving network data"
-#define FMT03  "\n Correct syntax is:\n %s <input file> <output file>\n"
 #define FMT04  "\n    Cannot use duplicate file names."
 #define FMT05  "\n    Cannot open input file "
 #define FMT06  "\n    Cannot open report file "
 #define FMT07  "\n    Cannot open output file "
 #define FMT08  "\n    Cannot open temporary output file"
-#define FMT09  "\n\n... EPANET completed.\n"
-#define FMT10  "\n\n... EPANET completed. There are warnings.\n"
-#define FMT11  "\n\n... EPANET completed. There are errors.\n"
 #define FMT14  "\n  o Computing hydraulics at hour "
 #define FMT15  "\n  o Computing water quality at hour "
 #define FMT16  "\n  o Transferring results to file"
@@ -362,6 +366,7 @@ AUTHOR:     L. Rossman
 #define FMT23  "    Number of Pumps ................... %-d"
 #define FMT24  "    Number of Valves .................. %-d"
 #define FMT25  "    Headloss Formula .................. %s"
+#define FMT25a "    Nodal Demand Model ................ %s"
 #define FMT26  "    Hydraulic Timestep ................ %-.2f %s"
 #define FMT27  "    Hydraulic Accuracy ................ %-.6f"
 
@@ -420,7 +425,8 @@ AUTHOR:     L. Rossman
 /*** End of update ***/
 
 #define FMT66  "                      maximum  flow change = %.4f for Link %s"
-#define FMT67  "                      maximum  head error  = %.4f for Link %s\n"
+#define FMT67  "                      maximum  flow change = %.4f for Node %s"
+#define FMT68  "                      maximum  head error  = %.4f for Link %s\n"
 
 /* -------------------- Energy Report Table ------------------- */
 #define FMT71  "Energy Usage:"

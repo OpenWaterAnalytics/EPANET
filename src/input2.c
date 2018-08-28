@@ -37,8 +37,6 @@ The following utility functions are all called from INPUT3.C
 #include "epanet2.h"
 #include "funcs.h"
 #include <math.h>
-#define EXTERN extern
-#include "vars.h"
 
 #define MAXERRS 10 /* Max. input errors reported        */
 
@@ -822,9 +820,10 @@ int match(const char *str, const char *substr)
       break;
 
   /* Check if substr matches remainder of str. */
-  for (i = i, j = 0; substr[j]; i++, j++)
+  for (j = 0; substr[j]; i++, j++)
     if (!str[i] || UCHAR(str[i]) != UCHAR(substr[j]))
       return (0);
+
   return (1);
 } /* end of match */
 

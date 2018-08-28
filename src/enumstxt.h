@@ -74,6 +74,10 @@ char *PressUnitsTxt[]   = {w_PSI,
                            w_KPA,
                            w_METERS};
 
+char *DemandModelTxt[] = { w_DDA,
+                           w_PDA,
+                           NULL };
+
 char *QualTxt[]         = {w_NONE,
                            w_CHEM,
                            w_AGE,

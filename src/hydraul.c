@@ -60,6 +60,20 @@ AUTHOR:     L. Rossman
 
 #define   QZERO  1.e-6  /* Equivalent to zero flow */
 
+// Local functions
+int     allocmatrix(EN_Project *pr);
+void    freematrix(EN_Project *pr);
+void    initlinkflow(EN_Project *pr, int, char, double);
+void    setlinkflow(EN_Project *pr, int, double);
+void    demands(EN_Project *pr);
+int     controls(EN_Project *pr);
+long    timestep(EN_Project *pr);
+void    controltimestep(EN_Project *pr, long *);
+void    ruletimestep(EN_Project *pr, long *);
+void    addenergy(EN_Project *pr, long);
+void    tanklevels(EN_Project *pr, long);
+
+
 int  openhyd(EN_Project *pr)
 /*
  *--------------------------------------------------------------
@@ -194,15 +208,12 @@ int   runhyd(EN_Project *pr, long *t)
 
     /* Solve network hydraulic equations */
     errcode = hydsolve(pr,&iter,&relerr);
+
     if (!errcode) {
         /* Report new status & save results */
         if (rep->Statflag) {
             writehydstat(pr,iter,relerr);
         }
-
-        /* solution info */
-        hyd->relativeError = relerr;
-        hyd->iterations = iter;
      
 /*** Updated 3/1/01 ***/
         /* If system unbalanced and no extra trials */
@@ -316,6 +327,7 @@ int  allocmatrix(EN_Project *pr)
    s->Aii = (double *) calloc(net->Nnodes+1,sizeof(double));
    s->Aij = (double *) calloc(hyd->Ncoeffs+1,sizeof(double));
    s->F   = (double *) calloc(net->Nnodes+1,sizeof(double));
+   hyd->DemandFlows = (double *)calloc(net->Nnodes + 1, sizeof(double));
    hyd->EmitterFlows   = (double *) calloc(net->Nnodes+1,sizeof(double));
    s->P   = (double *) calloc(net->Nlinks+1,sizeof(double));
    s->Y   = (double *) calloc(net->Nlinks+1,sizeof(double));
@@ -324,6 +336,7 @@ int  allocmatrix(EN_Project *pr)
    ERRCODE(MEMCHECK(s->Aii));
    ERRCODE(MEMCHECK(s->Aij));
    ERRCODE(MEMCHECK(s->F));
+   ERRCODE(MEMCHECK(hyd->DemandFlows));
    ERRCODE(MEMCHECK(hyd->EmitterFlows));
    ERRCODE(MEMCHECK(s->P));
    ERRCODE(MEMCHECK(s->Y));
@@ -348,6 +361,7 @@ void  freematrix(EN_Project *pr)
    free(s->Aii);
    free(s->Aij);
    free(s->F);
+   free(hyd->DemandFlows);
    free(hyd->EmitterFlows);
    free(s->P);
    free(s->Y);
@@ -551,7 +565,6 @@ void  setlinksetting(EN_Project *pr, int index, double value, StatType *s, doubl
 } 
 
 
-
 void  demands(EN_Project *pr)
 /*
 **--------------------------------------------------------------------
@@ -591,6 +604,9 @@ void  demands(EN_Project *pr)
          sum += djunc;
       }
       hyd->NodeDemand[i] = sum;
+
+      // Initialize pressure dependent demand
+      hyd->DemandFlows[i] = sum;
    }
 
    /* Update head at fixed grade nodes with time patterns. */

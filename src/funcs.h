@@ -36,10 +36,11 @@ int     allocdata(EN_Project *pr);                 /* Allocates memory          
 void    freeTmplist(STmplist *);                   /* Frees items in linked list */
 void    freeFloatlist(SFloatlist *);               /* Frees list of floats       */
 void    freedata(EN_Project *pr);                  /* Frees allocated memory     */
-int     openfiles(EN_Project *pr, char *,char *,char *);  /* Opens input & report files */
+int     openfiles(EN_Project *pr, const char *, 
+        const char *,const char *);                /* Opens input & report files */
 int     openhydfile(EN_Project *pr);               /* Opens hydraulics file      */
 int     openoutfile(EN_Project *pr);               /* Opens binary output file   */
-int     strcomp(char *, char *);                   /* Compares two strings       */
+int     strcomp(const char *, const char *);       /* Compares two strings       */
 char*   getTmpName(EN_Project *p, char* fname);    /* Gets temporary file name   */     
 double  interp(int n, double x[], double y[],
         double xx);                                /* Interpolates a data curve  */
@@ -51,7 +52,7 @@ int     findvalve(EN_Network *n, int);             /* Find valve index from node
 int     findpump(EN_Network *n, int);              /* Find pump index from node index */  // (AH)
 char   *geterrmsg(int errcode, char *msg);         /* Gets text of error message */
 void    errmsg(EN_Project *p, int);                /* Reports program error      */
-void    writecon(char *);                          /* Writes text to console     */
+void    writecon(const char *);                    /* Writes text to console     */
 void    writewin(void (*vp)(char *), char *);      /* Passes text to calling app */
 
 /* ------- INPUT1.C --------------------*/
@@ -126,6 +127,8 @@ void    freerules(EN_Project *pr);                  /* Frees rule base memory   
 int     writeRuleinInp(EN_Project *pr, FILE *f,     /* Writes rule to an INP file */
                       int RuleIdx);
 
+int     writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx);
+
 /* ------------- REPORT.C --------------*/
 int     writereport(EN_Project *pr);                /* Writes formatted report    */
 void    writelogo(EN_Project *pr);                  /* Writes program logo        */
@@ -158,28 +161,13 @@ void    inithyd(EN_Project *pr, int initFlags);     /* Re-sets initial condition
 int     runhyd(EN_Project *pr, long *);             /* Solves 1-period hydraulics */
 int     nexthyd(EN_Project *pr, long *);            /* Moves to next time period  */
 void    closehyd(EN_Project *pr);                   /* Closes hydraulics solver   */
-int     allocmatrix(EN_Project *pr);                /* Allocates matrix coeffs.   */
-void    freematrix(EN_Project *pr);                 /* Frees matrix coeffs.       */
-void    initlinkflow(EN_Project *pr, int, char,
-                     double);                       /* Initializes link flow      */
-void    setlinkflow(EN_Project *pr, int, double);   /* Sets link flow via headloss*/
 void    setlinkstatus(EN_Project *pr, int, char,
                       StatType *, double *);        /* Sets link status           */
 void    setlinksetting(EN_Project *pr, int, double,
                        StatType *, double *);       /* Sets pump/valve setting    */
-                       
-void    demands(EN_Project *pr);                    /* Computes current demands   */
-int     controls(EN_Project *pr);                   /* Controls link settings     */
-long    timestep(EN_Project *pr);                   /* Computes new time step     */
 int     tanktimestep(EN_Project *pr, long *);       /* Time till tanks fill/drain */
-void    controltimestep(EN_Project *pr, long *);    /* Time till control action   */
-void    ruletimestep(EN_Project *pr, long *);       /* Time till rule action      */
-
-void    addenergy(EN_Project *pr, long);            /* Accumulates energy usage   */
 void    getenergy(EN_Project *pr, int, double *,
                   double *);                        /* Computes link energy use   */
-
-void    tanklevels(EN_Project *pr, long);           /* Computes new tank levels   */
 double  tankvolume(EN_Project *pr, int,double);     /* Finds tank vol. from grade */
 double  tankgrade(EN_Project *pr, int,double);      /* Finds tank grade from vol. */
 
@@ -188,8 +176,13 @@ int     hydsolve(EN_Project *pr, int *,double *);   /* Solves network equations 
 
 /* ----------- HYDCOEFFS.C --------------*/
 void    resistcoeff(EN_Project *pr, int k);         /* Finds pipe flow resistance */
-void    hlosscoeff(EN_Project *pr, int k);          /* Finds link head loss coeff */
+void    headlosscoeffs(EN_Project *pr);             // Finds link head loss coeffs.
 void    matrixcoeffs(EN_Project *pr);               /* Finds hyd. matrix coeffs.  */
+double  emitflowchange(EN_Project *pr, int i);      /* Change in emitter outflow  */
+double  demandflowchange(EN_Project *pr, int i,     // Change in demand outflow
+                         double dp, double n);
+void    demandparams(EN_Project *pr, double *dp,    // PDA function parameters
+                     double *n); 
 
 /* ----------- SMATRIX.C ---------------*/
 int     createsparse(EN_Project *pr);               /* Creates sparse matrix      */
