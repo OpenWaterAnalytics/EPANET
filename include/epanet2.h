@@ -30,9 +30,7 @@
   #define EN_API_FLOAT_TYPE float
 #endif
 
-#ifdef WITH_GENX
-  #include "epanet_export.h"
-#else 
+#ifdef NO_GENX
   // --- define WINDOWS
   #undef WINDOWS
   #ifdef _WIN32
@@ -62,6 +60,8 @@
       #define DLLEXPORT
     #endif
   #endif
+#else 
+  #include "epanet_export.h"
 #endif
 
 
