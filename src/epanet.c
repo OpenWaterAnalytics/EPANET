@@ -164,11 +164,12 @@ void errorLookup(int errcode, char *errmsg, int len);
 int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
 {
   int errcode = 0;
+  EN_Project *p = NULL;
 
   ERRCODE(EN_createproject(&_defaultModel));
   ERRCODE(EN_open(_defaultModel, f1, f2, f3));
 
-  EN_Project *p = (EN_Project*)(_defaultModel);
+  p = (EN_Project*)(_defaultModel);
   p->viewprog = pviewprog;
 
   if (p->out_files.Hydflag != USE) {
