@@ -1763,7 +1763,6 @@ int optionchoice(EN_Project *pr, int n)
 **    UNBALANCED          STOP/CONTINUE {Niter}
 **    PATTERN             id
 **    DEMAND MODEL        DDA/PDA
-**    EPS METHOD          EXPLICIT/IMPLICIT
 **--------------------------------------------------------------
 */
 {
@@ -1889,14 +1888,6 @@ int optionchoice(EN_Project *pr, int n)
       choice = findmatch(par->Tok[2], DemandModelTxt);
       if (choice < 0) return 201;
       hyd->DemandModel = choice;
-  }
-
-  else if (match(par->Tok[0], w_TANK))
-  {
-      if (n < 2) return 0;
-      if      (match(par->Tok[2], w_EXPLICIT)) hyd->TankDynamics = EXPLICIT;
-      else if (match(par->Tok[2], w_IMPLICIT)) hyd->TankDynamics = IMPLICIT;
-      else return 201;
   }
 
   else return (-1);

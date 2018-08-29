@@ -78,9 +78,6 @@ char *DemandModelTxt[] = { w_DDA,
                            w_PDA,
                            NULL };
 
-char *TankDynamicsTxt[] = {w_EXPLICIT,
-                           w_IMPLICIT};
-
 char *QualTxt[]         = {w_NONE,
                            w_CHEM,
                            w_AGE,

@@ -1376,9 +1376,6 @@ int DLLEXPORT EN_getoption(EN_Project *pr, EN_Option code,
   case EN_FLOWCHANGE:
     v = hyd->FlowChangeLimit * Ucf[FLOW];
     break;
-  case EN_TANKDYNAMICS:
-    v = hyd->TankDynamics;
-    break;
 
   default:
     return (251);
@@ -3277,13 +3274,6 @@ int DLLEXPORT EN_setoption(EN_Project *p, int code, EN_API_FLOAT_TYPE v)
           return (202);
       hyd->FlowChangeLimit = value / Ucf[FLOW];
       break;
-  case EN_TANKDYNAMICS:
-    // Can't change tank dynamics while hydraulics solver is open
-    if (p->hydraulics.OpenHflag) return 111;
-    if (value < EN_EXPLICIT || value > EN_IMPLICIT) return 202;
-    hyd->TankDynamics = (int)v;
-    break;
-
   default:
     return (251);
   }

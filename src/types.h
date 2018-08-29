@@ -304,11 +304,6 @@ typedef enum {
     PDA         // Pressure Driven Analysis
 } DemandModelType;
 
-typedef enum {
-    EXPLICIT,   // Explicit Euler method
-    IMPLICIT    // Implicit Euler method
-} TankDynamicsTypes;
-
 /*
 ------------------------------------------------------
    Global Data Structures                             
@@ -437,16 +432,11 @@ typedef struct     /* TANK OBJECT */
    int    Pat;      /* Fixed grade time pattern */
    int    Vcurve;   /* Vol.- elev. curve index  */
    MixType MixModel;/* Type of mixing model     */
-                    /* (see MixType below)      */
    double V1max;    /* Mixing compartment size  */
+   int    FixedGrade; // Fixed grade flag
+   double PastArea;   // Previous surface area
+   double PastHead;   // Previous head
 }  Stank;
-
-typedef struct      // Extended Tank Info
-{
-    int    FixedGrade;
-    double PastArea;
-    double PastHead;
-} Sxtank;
 
 typedef struct     /* PUMP OBJECT */
 {
@@ -808,10 +798,7 @@ typedef struct {
   int
   DefPat,                /* Default demand pattern       */
   Epat,                  /* Energy cost time pattern     */
-  DemandModel,           // Demand or pressure driven
-  TankDynamics;          // Method for modeling tank dynamics
-
-  Sxtank *Xtank;         // Info used for tank dynamics
+  DemandModel;           // Demand or pressure driven
 
   StatType  
   *LinkStatus,           /* Link status                  */

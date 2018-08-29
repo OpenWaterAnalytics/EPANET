@@ -151,9 +151,6 @@ AUTHOR:     L. Rossman
 #define   w_REQUIRED    "REQ"
 #define   w_EXPONENT    "EXP"
 
-#define   w_EXPLICIT    "EXPLICIT"
-#define   w_IMPLICIT    "IMPLICIT"
-
 #define   w_SECONDS     "SEC"
 #define   w_MINUTES     "MIN"
 #define   w_HOURS       "HOU"
@@ -375,7 +372,6 @@ AUTHOR:     L. Rossman
 #define FMT24  "    Number of Valves .................. %-d"
 #define FMT25  "    Headloss Formula .................. %s"
 #define FMT25a "    Nodal Demand Model ................ %s"
-#define FMT25b "    Tank Dynamics ..................... %s"
 #define FMT26  "    Hydraulic Timestep ................ %-.2f %s"
 #define FMT27  "    Hydraulic Accuracy ................ %-.6f"
 

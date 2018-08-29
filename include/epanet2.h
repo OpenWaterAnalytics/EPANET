@@ -214,11 +214,6 @@ typedef enum {          /* Demand model types.        */
   EN_PDA         = 1    /**< Pressure driven analysis */
 } EN_DemandModel;
 
-typedef enum {          /* Methods for modeling tank dynamics */
-    EN_EXPLICIT  = 0,   /**< Explicit forward Euler method    */
-    EN_IMPLICIT  = 1    /**< Implicit backward Euler method   */
-} EN_TankDynamics;
-
 /// Simulation Option codes
 typedef enum {
   EN_TRIALS       = 0,
@@ -227,8 +222,7 @@ typedef enum {
   EN_EMITEXPON    = 3,
   EN_DEMANDMULT   = 4,
   EN_HEADERROR    = 5,
-  EN_FLOWCHANGE   = 6,
-  EN_TANKDYNAMICS = 7
+  EN_FLOWCHANGE   = 6
 } EN_Option;
 
 typedef enum {

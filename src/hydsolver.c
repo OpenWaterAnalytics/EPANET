@@ -107,8 +107,7 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
     hyd->RelaxFactor = 1.0;
 
     // Set number of rows in matrix used to find nodal heads
-    nrows = net->Njuncs;
-    if (hyd->TankDynamics == IMPLICIT) nrows = net->Nnodes;
+    nrows = net->Nnodes;
 
     // Repeat iterations until convergence or trial limit is exceeded.
     // (ExtraIter used to increase trials in case of status cycling.)

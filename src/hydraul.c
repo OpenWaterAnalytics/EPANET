@@ -98,7 +98,6 @@ int  openhyd(EN_Project *pr)
 }
 
 
-/*** Updated 3/1/01 ***/
 void inithyd(EN_Project *pr, int initflag)
 /*
 **--------------------------------------------------------------
@@ -111,77 +110,77 @@ void inithyd(EN_Project *pr, int initflag)
 {
     int i,j;
 
-   time_options_t *time = &pr->time_options;
-   EN_Network *net = &pr->network;
-   hydraulics_t *hyd = &pr->hydraulics;
-   out_file_t *out = &pr->out_files;
-   Stank *tank;
-   Slink *link;
-   Spump *pump;
+    time_options_t *time = &pr->time_options;
+    EN_Network     *net = &pr->network;
+    hydraulics_t   *hyd = &pr->hydraulics;
+    out_file_t     *out = &pr->out_files;
+
+    Stank *tank;
+    Slink *link;
+    Spump *pump;
   
-    /* Initialize tanks */
-    for (i=1; i <= net->Ntanks; i++) {
+    // Initialize tanks
+    for (i = 1; i <= net->Ntanks; i++)
+    {
         tank = &net->Tank[i];
         tank->V = tank->V0;
+        tank->FixedGrade = TRUE;
+        tank->PastHead = tank->H0;
+        tank->PastArea = tankarea(pr, i, tank->H0);
         hyd->NodeHead[tank->Node] = tank->H0;
         hyd->NodeDemand[tank->Node] = 0.0;
         hyd->OldStat[net->Nlinks+i] = TEMPCLOSED;
-        hyd->Xtank[i].FixedGrade = TRUE;
-        hyd->Xtank[i].PastHead = tank->H0;
-        hyd->Xtank[i].PastArea = tankarea(pr, i, tank->H0);
     }
 
-    /* Initialize emitter flows */
+    // Initialize emitter flows
     memset(hyd->EmitterFlows,0,(net->Nnodes+1)*sizeof(double));
-    for (i=1; i <= net->Njuncs; i++) {
-        if (net->Node[i].Ke > 0.0) { 
-            hyd->EmitterFlows[i] = 1.0;
-        }
+    for (i = 1; i <= net->Njuncs; i++)
+    {
+        if (net->Node[i].Ke > 0.0) hyd->EmitterFlows[i] = 1.0;
     }
 
-    /* Initialize links */
-    for (i=1; i <= net->Nlinks; i++) {
+    // Initialize links
+    for (i = 1; i <= net->Nlinks; i++)
+    {
         link = &net->Link[i];
         
-        /* Initialize status and setting */
+        // Initialize status and setting
         hyd->LinkStatus[i] = link->Stat;
         hyd->LinkSetting[i] = link->Kc;
 
-        /* Compute flow resistance */
+        // Compute flow resistance
         resistcoeff(pr, i);
 
-        /* Start active control valves in ACTIVE position */                     
-        if (
-            (link->Type == EN_PRV || link->Type == EN_PSV
+        // Start active control valves in ACTIVE position
+        if (  (link->Type == EN_PRV || link->Type == EN_PSV
             || link->Type == EN_FCV) && (link->Kc != MISSING)
         ) hyd->LinkStatus[i] = ACTIVE;                                                      
 
-/*** Updated 3/1/01 ***/
-       /* Initialize flows if necessary */
-       if (hyd->LinkStatus[i] <= CLOSED) hyd->LinkFlows[i] = QZERO;
-       else if (ABS(hyd->LinkFlows[i]) <= QZERO || initflag > 0)
+        // Initialize flows if necessary
+        if (hyd->LinkStatus[i] <= CLOSED) hyd->LinkFlows[i] = QZERO;
+        else if (ABS(hyd->LinkFlows[i]) <= QZERO || initflag > 0)
+        {
            initlinkflow(pr, i, hyd->LinkStatus[i], hyd->LinkSetting[i]);
+        }
 
-       /* Save initial status */
-       hyd->OldStat[i] = hyd->LinkStatus[i];
+        // Save initial status
+        hyd->OldStat[i] = hyd->LinkStatus[i];
     }
 
-    /* Initialize pump energy usage */
-    for (i=1; i <= net->Npumps; i++)
+    // Initialize pump energy usage
+    for (i = 1; i <= net->Npumps; i++)
     {
         pump = &net->Pump[i];
-        for (j = 0; j < MAX_ENERGY_STATS; j++) {
-            pump->Energy[j] = 0.0;
-        }
+        for (j = 0; j < MAX_ENERGY_STATS; j++) pump->Energy[j] = 0.0;
     }
 
-    /* Re-position hydraulics file */
-    if (pr->save_options.Saveflag) { 
+    // Re-position hydraulics file
+    if (pr->save_options.Saveflag)
+    {
         fseek(out->HydFile,out->HydOffset,SEEK_SET);
     }
 
-/*** Updated 3/1/01 ***/
-    /* Initialize current time */
+    // Initialize current time
     hyd->Haltflag = 0;
     time->Htime = 0;
     time->Hydstep = 0;
@@ -199,42 +198,42 @@ int   runhyd(EN_Project *pr, long *t)
 **--------------------------------------------------------------
 */
 {
-    int   iter;                          /* Iteration count   */
-    int   errcode;                       /* Error code        */
-    double relerr;                       /* Solution accuracy */
+    int   iter;              // Iteration count
+    int   errcode;           // Error code
+    double relerr;           // Solution accuracy
   
-   hydraulics_t     *hyd = &pr->hydraulics;
-   time_options_t   *time = &pr->time_options;
-   report_options_t *rep = &pr->report;
+    hydraulics_t     *hyd = &pr->hydraulics;
+    time_options_t   *time = &pr->time_options;
+    report_options_t *rep = &pr->report;
 
-    /* Find new demands & control actions */
+    // Find new demands & control actions
     *t = time->Htime;
     demands(pr);
     controls(pr);
 
-    /* Solve network hydraulic equations */
+    // Solve network hydraulic equations
     errcode = hydsolve(pr,&iter,&relerr);
 
-    if (!errcode) {
-        /* Report new status & save results */
-        if (rep->Statflag) {
-            writehydstat(pr,iter,relerr);
-        }
+    if (!errcode)
+    {
+        // Report new status & save results
+        if (rep->Statflag) writehydstat(pr,iter,relerr);
      
-/*** Updated 3/1/01 ***/
-        /* If system unbalanced and no extra trials */
-        /* allowed, then activate the Haltflag.     */
-        if (relerr > hyd->Hacc && hyd->ExtraIter == -1) {
+        // If system unbalanced and no extra trials
+        // allowed, then activate the Haltflag
+        if (relerr > hyd->Hacc && hyd->ExtraIter == -1)
+        {
             hyd->Haltflag = 1;
         }
 
-        /* Report any warning conditions */
-        if (!errcode) {
+        // Report any warning conditions
+        if (!errcode)
+        {
             errcode = writehydwarn(pr,iter,relerr);
         }
    }
-   return(errcode);
-}                               /* end of runhyd */
+   return errcode;
+}
 
 
 int  nexthyd(EN_Project *pr, long *tstep)
@@ -284,7 +283,7 @@ int  nexthyd(EN_Project *pr, long *tstep)
     {
         top->Htime++; 
         if (pr->quality.OpenQflag) pr->quality.Qtime++;
-   }
+    }
     top->Hydstep = hydstep;
     *tstep = hydstep;
     return errcode;
@@ -328,7 +327,6 @@ int  allocmatrix(EN_Project *pr)
    s->Y   = (double *) calloc(net->Nlinks+1,sizeof(double));
    hyd->X_tmp   = (double *) calloc(MAX((net->Nnodes+1),(net->Nlinks+1)),sizeof(double));
    hyd->OldStat = (StatType *) calloc(net->Nlinks+net->Ntanks+1, sizeof(StatType));
-   hyd->Xtank = (Sxtank *)calloc(net->Ntanks + 1, sizeof(Sxtank));
    ERRCODE(MEMCHECK(s->Aii));
    ERRCODE(MEMCHECK(s->Aij));
    ERRCODE(MEMCHECK(s->F));
@@ -338,7 +336,6 @@ int  allocmatrix(EN_Project *pr)
    ERRCODE(MEMCHECK(s->Y));
    ERRCODE(MEMCHECK(hyd->X_tmp));
    ERRCODE(MEMCHECK(hyd->OldStat));
-   ERRCODE(MEMCHECK(hyd->Xtank));
    return(errcode);
 }                               /* end of allocmatrix */
 
@@ -364,7 +361,6 @@ void  freematrix(EN_Project *pr)
    free(s->Y);
    free(hyd->X_tmp);
    free(hyd->OldStat);
-   free(hyd->Xtank);
 }                               /* end of freematrix */
 
 
@@ -720,42 +716,38 @@ long  timestep(EN_Project *pr)
 **----------------------------------------------------------------
 */
 {
-  EN_Network *net = &pr->network;
-  time_options_t *time = &pr->time_options;
+    long   n, t, tstep;
+
+    EN_Network     *net = &pr->network;
+    time_options_t *time = &pr->time_options;
   
+    // Normal time step is hydraulic time step
+    tstep = time->Hstep;
   
-  long   n,t,tstep;
+    // Revise time step based on time until next demand period
+    n = ((time->Htime + time->Pstart) / time->Pstep) + 1; // Next pattern period
+    t = n * time->Pstep - time->Htime;                    // Time till next period
+    if (t > 0 && t < tstep) tstep = t;
   
-  /* Normal time step is hydraulic time step */
-  tstep = time->Hstep;
+    // Revise time step based on time until next reporting period
+    t = time->Rtime - time->Htime;
+    if (t > 0 && t < tstep) tstep = t;
   
-  /* Revise time step based on time until next demand period */
-  n = ((time->Htime + time->Pstart) / time->Pstep) + 1;   /* Next pattern period   */
-  t = n * time->Pstep - time->Htime;              /* Time till next period */
-  if (t > 0 && t < tstep) {
-    tstep = t;
-  }
+//// DEPRECATED DUE TO SWITCH TO IMPLICIT METHOD FOR UPDATING TANK LEVELS  ////
+    // Revise time step based on smallest time to fill or drain a tank
+    //tanktimestep(pr,&tstep);
   
-  /* Revise time step based on time until next reporting period */
-  t = time->Rtime - time->Htime;
-  if (t > 0 && t < tstep) {
-    tstep = t;
-  }
+    // Revise time step based on smallest time to activate a simple control
+    controltimestep(pr,&tstep);
   
-  /* Revise time step based on smallest time to fill or drain a tank */
-  tanktimestep(pr,&tstep);
-  
-  /* Revise time step based on smallest time to activate a control */
-  controltimestep(pr,&tstep);
-  
-  /* Evaluate rule-based controls (which will also update tank levels) */
-  if (net->Nrules > 0) {
-    ruletimestep(pr,&tstep);
-  }
-  else {
-    tanklevels(pr,tstep);
-  }
-  return(tstep);
+    // Revise time step based on smallest time to activate a rule-based control
+    // (which will also update tank volumes)
+    if (net->Nrules > 0) ruletimestep(pr, &tstep);
+
+    // If no rules, then just update tank volumes
+    else tanklevels(pr, tstep);
+
+    return tstep;
 }
 
 
@@ -1166,19 +1158,20 @@ void  savetankinfo(EN_Project *pr)
 {
     int i, n;
     double head;
+
+    EN_Network   *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
 
-    if (hyd->TankDynamics != IMPLICIT) return;
-    for (i = 1; i <= pr->network.Ntanks; i++)
+    for (i = 1; i <= net->Ntanks; i++)
     {
         // Update only non-reservoir tanks
-        if (pr->network.Tank[i].A > 0.0)
+        if (net->Tank[i].A > 0.0)
         {
-            hyd->Xtank[i].FixedGrade = FALSE;
+            net->Tank[i].FixedGrade = FALSE;
             n = pr->network.Tank[i].Node;
             head = hyd->NodeHead[n];
-            hyd->Xtank[i].PastHead = head;
-            hyd->Xtank[i].PastArea = tankarea(pr, i, head);
+            net->Tank[i].PastHead = head;
+            net->Tank[i].PastArea = tankarea(pr, i, head);
         }
     }
 }

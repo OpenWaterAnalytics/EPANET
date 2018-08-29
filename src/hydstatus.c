@@ -402,8 +402,7 @@ int tankstatus(EN_Project *pr)
     EN_Network   *net = &pr->network;
     Stank *tank;
 
-    // Only apply to implicit tank analysis after time 0
-    if (hyd->TankDynamics != IMPLICIT) return FALSE;
+    // Only apply after time 0
     if (pr->time_options.Htime == 0) return FALSE;
 
     // Examine each tank
@@ -419,7 +418,7 @@ int tankstatus(EN_Project *pr)
         full = (hyd->NodeHead[i] >= tank->Hmax - hyd->Htol);
         emptying = (hyd->NodeDemand[i] < -hyd->Qtol);
         filling = (hyd->NodeDemand[i] > hyd->Qtol);
-        fixedgrade = hyd->Xtank[j].FixedGrade;
+        fixedgrade = net->Tank[j].FixedGrade;
 
         // See if a fixed grade tank becomes variable level
         if (fixedgrade)
@@ -444,9 +443,9 @@ int tankstatus(EN_Project *pr)
         }
 
         // Update tank's fixed grade status
-        if (fixedgrade != hyd->Xtank[j].FixedGrade)
+        if (fixedgrade != net->Tank[j].FixedGrade)
         {
-            hyd->Xtank[j].FixedGrade = fixedgrade;
+            net->Tank[j].FixedGrade = fixedgrade;
             change = TRUE;
         }
     }

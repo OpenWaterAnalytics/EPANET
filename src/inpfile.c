@@ -631,10 +631,6 @@ int saveinpfile(EN_Project *pr, char *fname)
     fprintf(f, "\n REQUIRED PRESSURE   %-.4f", hyd->Preq * pr->Ucf[PRESSURE]);
     fprintf(f, "\n PRESSURE EXPONENT   %-.4f", hyd->Pexp);
   }
-  if (hyd->TankDynamics == IMPLICIT)
-  {
-    fprintf(f, "\n TANK DYNAMICS       IMPLICIT");
-  }
 
   /* Write [REPORT] section */
 

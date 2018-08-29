@@ -10,7 +10,6 @@ DAT(107,ENERR_HYD_EXT_FILE,"hydraulics supplied from external file")
 DAT(108,ENERR_CANT_USE_EXT_FILE,"cannot use external file while hydraulics solver is active")
 DAT(109,ENERR_CANT_CHANGE_TIME_PARAM,"cannot change time parameter when solver is active")
 DAT(110,ENERR_CANT_SOLVE_HYD,"cannot solve network hydraulic equations")
-DAT(111,ENERR_CANT_CHANGE_TANK_DYNAMICS, "cannot change tank dynamics while solver is active")
 DAT(120,ENERR_CANT_SOLVE_WQ,"cannot solve water quality transport equations")
 
 DAT(200,ENERR_INP_ERR,"one or more errors in input file")

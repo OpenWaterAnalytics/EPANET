@@ -127,9 +127,7 @@ int  createsparse(EN_Project *pr)
     }                      // (= # of adjacent links)
 
     // Number of rows in solution matrix
-    // (IMPLICIT tank dynamics treats tanks heads as variables)
-    nrows = net->Njuncs;
-    if (hyd->TankDynamics == IMPLICIT) nrows = net->Nnodes;
+    nrows = net->Nnodes;
 
     // Re-order nodes to minimize number of non-zero coeffs. 
     // in factorized solution matrix. 
