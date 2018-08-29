@@ -3103,7 +3103,7 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
 
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
-  if (ENgetpatternindex(id, &i) == 0)
+  if (EN_getpatternindex(ph, id, &i) == 0)
     return set_error(p->error_handle, 215);
 
   /* Check that id name is not too long */
@@ -3156,7 +3156,7 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
   for (i = 0; i <= Npats; i++)
     free(Pattern[i].F);
   free(Pattern);
-  Pattern = tmpPat;
+  net->Pattern = tmpPat;
   net->Npats = n;
   par->MaxPats = n;
   return set_error(p->error_handle, 0);
