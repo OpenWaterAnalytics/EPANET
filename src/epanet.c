@@ -185,6 +185,14 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
   return (errcode);
 }
 
+int DLLEXPORT ENinit(char *f2, char *f3, int UnitsType,
+                     int HeadlossFormula) {
+  int errcode = 0;
+  ERRCODE(EN_createproject(&_defaultModel));
+  ERRCODE(EN_init(_defaultModel, f2, f3, UnitsType, HeadlossFormula));
+  return (errcode);
+}
+
 int DLLEXPORT ENopen(char *f1, char *f2, char *f3) {
   int errcode = 0;
   ERRCODE(EN_createproject(&_defaultModel));
@@ -602,7 +610,7 @@ int DLLEXPORT EN_deleteproject(EN_ProjectHandle *ph)
 }
 
 
-int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
+int DLLEXPORT EN_init(EN_ProjectHandle ph, char *f2, char *f3,
                       EN_FlowUnits UnitsType, EN_FormType HeadlossFormula)
 /*----------------------------------------------------------------
  **  Input:
@@ -623,7 +631,7 @@ int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
   _fpreset();
 #endif
 
-  EN_Project *pr = (EN_Project*)*ph;
+  EN_Project *pr = (EN_Project*)ph;
 
   /* Set system flags */
   pr->Openflag = TRUE;
@@ -3643,7 +3651,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   double *Ucf = p->Ucf;
   int pIdx;
   Spump *pump;
-  
+
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) {
