@@ -57,7 +57,8 @@
 
 #define MINNREC       14   // Minimum allowable number of records
 #define PROLOGUE     884   // Preliminary fixed length section of header
-#define MAXID_P1      32   // Max. # characters in ID name
+#define MAXID_P1      32   // EPANET max characters in ID name PLUS 1
+#define MAXMSG_P1     80   // EPANET max characters in message text PLUS 1
 
 #define NELEMENTTYPES  5   // Number of element types
 #define NENERGYRESULTS 6   // Number of energy results
@@ -303,6 +304,8 @@ int DLLEXPORT ENR_getUnits(ENR_Handle p_handle, ENR_Units code, int* unitFlag)
  */
 {
     int errorcode = 0;
+    F_OFF offset;
+    char temp[MAXID_P1];
     data_t* p_data;
 
     *unitFlag = -1;
@@ -315,13 +318,35 @@ int DLLEXPORT ENR_getUnits(ENR_Handle p_handle, ENR_Units code, int* unitFlag)
         switch (code)
         {
         case ENR_flowUnits:
-            fseek(p_data->file, 9*WORDSIZE, SEEK_SET);
+            _fseek(p_data->file, 9*WORDSIZE, SEEK_SET);
             fread(unitFlag, WORDSIZE, 1, p_data->file);
             break;
 
         case ENR_pressUnits:
-            fseek(p_data->file, 10*WORDSIZE, SEEK_SET);
+            _fseek(p_data->file, 10*WORDSIZE, SEEK_SET);
             fread(unitFlag, WORDSIZE, 1, p_data->file);
+            break;
+
+        case ENR_qualUnits:
+            offset = 7*WORDSIZE;
+            _fseek(p_data->file, offset, SEEK_SET);
+            fread(unitFlag, WORDSIZE, 1, p_data->file);
+
+            if (*unitFlag == 0) *unitFlag = ENR_NONE;
+
+            else if (*unitFlag == 1) {
+                offset = 15*WORDSIZE + 3*MAXMSG_P1 + 2*(MAXFNAME+1) + MAXID_P1;
+                _fseek(p_data->file, offset, SEEK_SET);
+                fread(temp, MAXID_P1, 1, p_data->file);
+
+                if (!strcmp(temp, "mg/L")) *unitFlag = ENR_MGL;
+                else *unitFlag = ENR_UGL;
+            }
+
+            else if (*unitFlag == 2) *unitFlag = ENR_HOURS;
+
+            else *unitFlag = ENR_PRCNT;
+
             break;
 
         default: errorcode = 421;
@@ -376,6 +401,12 @@ int DLLEXPORT ENR_getTimes(ENR_Handle p_handle, ENR_Time code, int* time)
         }
     }
     return set_error(p_data->error_handle, errorcode);
+}
+
+int DLLEXPORT ENR_getChemData(ENR_Handle p_handle, char** name, int* length)
+
+{
+    return 0;
 }
 
 int DLLEXPORT ENR_getElementName(ENR_Handle p_handle, ENR_ElementType type,
@@ -815,7 +846,7 @@ void errorLookup(int errcode, char* dest_msg, int dest_len)
     default:  msg = ERRERR;
     }
 
-    strncpy(dest_msg, msg, MAXMSG);
+    strncpy(dest_msg, msg, MSG_MAXLEN);
 }
 
 int validateFile(ENR_Handle p_handle)

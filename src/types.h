@@ -23,6 +23,8 @@ AUTHOR:     L. Rossman
 #include "epanet2.h"
 #include "hash.h"
 #include "mempool.h"
+#include "util/errormanager.h"
+
 
 /*********************************************************/
 /* All floats have been re-declared as doubles (7/3/07). */
@@ -861,7 +863,7 @@ typedef struct {
 
 
 /* project wrapper */
-struct EN_Project {
+typedef struct EN_Project {
   
   EN_Network network; /// the network description struct
   hydraulics_t hydraulics;
@@ -883,8 +885,10 @@ struct EN_Project {
   Title[MAXTITLE][MAXMSG+1],  /// Problem title
   MapFname[MAXFNAME+1];       /// Map file name
   
+  error_handle_t* error_handle; //Simple error manager
+
   void (* viewprog) (char *);     /* Pointer to progress viewing function */   
   
-};
+} EN_Project;
 
 #endif
