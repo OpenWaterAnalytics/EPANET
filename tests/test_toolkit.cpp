@@ -236,6 +236,28 @@ BOOST_FIXTURE_TEST_CASE(test_setdemandpattern, Fixture)
 			BOOST_REQUIRE(pat_index == pat_index_2);
 		}
 	}
+
+BOOST_FIXTURE_TEST_CASE(test_addpattern, Fixture)
+{
+    int pat_index, n_patterns_1, n_patterns_2;
+    char newpat[] = "new_pattern";
+    
+    // get the number of current patterns
+    error = EN_getcount(ph, EN_PATCOUNT, &n_patterns_1);
+    BOOST_REQUIRE(error == 0);
+    
+    // add a new pattern
+    error = EN_addpattern(ph, newpat);
+    BOOST_REQUIRE(error == 0);
+
+    // get the new patterns count, shoul dbe the old one + 1
+    error = EN_getcount(ph, EN_PATCOUNT, &n_patterns_2);
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(n_patterns_1 + 1 == n_patterns_2);
+    
+    // gwt the new patterns index, should be as the number of patterns
+    error = EN_getpatternindex(ph, newpat, &pat_index);
+    BOOST_REQUIRE(pat_index == n_patterns_2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

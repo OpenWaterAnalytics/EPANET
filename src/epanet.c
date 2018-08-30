@@ -132,7 +132,7 @@ execute function x and set the error code equal to its return value.
 
 // This single global variable is used only when the library is called
 // in "legacy mode" with the 2.1-style API. 
-EN_Project *_defaultModel;
+void *_defaultModel;
 
 
 // Local functions
@@ -164,12 +164,15 @@ void errorLookup(int errcode, char *errmsg, int len);
 int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
 {
   int errcode = 0;
+  EN_Project *p = NULL;
 
   ERRCODE(EN_createproject(&_defaultModel));
   ERRCODE(EN_open(_defaultModel, f1, f2, f3));
-  _defaultModel->viewprog = pviewprog;
 
-  if (_defaultModel->out_files.Hydflag != USE) {
+  p = (EN_Project*)(_defaultModel);
+  p->viewprog = pviewprog;
+
+  if (p->out_files.Hydflag != USE) {
     ERRCODE(EN_solveH(_defaultModel));
   }
 
@@ -179,6 +182,14 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
   EN_close(_defaultModel);
   EN_deleteproject(&_defaultModel);
 
+  return (errcode);
+}
+
+int DLLEXPORT ENinit(char *f2, char *f3, int UnitsType,
+                     int HeadlossFormula) {
+  int errcode = 0;
+  ERRCODE(EN_createproject(&_defaultModel));
+  ERRCODE(EN_init(_defaultModel, f2, f3, UnitsType, HeadlossFormula));
   return (errcode);
 }
 
@@ -603,7 +614,7 @@ int DLLEXPORT EN_deleteproject(EN_ProjectHandle *ph)
 }
 
 
-int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
+int DLLEXPORT EN_init(EN_ProjectHandle ph, char *f2, char *f3,
                       EN_FlowUnits UnitsType, EN_FormType HeadlossFormula)
 /*----------------------------------------------------------------
  **  Input:
@@ -624,7 +635,7 @@ int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
   _fpreset();
 #endif
 
-  EN_Project *pr = (EN_Project*)*ph;
+  EN_Project *pr = (EN_Project*)ph;
 
   /* Set system flags */
   pr->Openflag = TRUE;
@@ -3104,7 +3115,7 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
 
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
-  if (ENgetpatternindex(id, &i) == 0)
+  if (EN_getpatternindex(ph, id, &i) == 0)
     return set_error(p->error_handle, 215);
 
   /* Check that id name is not too long */
@@ -3157,7 +3168,7 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
   for (i = 0; i <= Npats; i++)
     free(Pattern[i].F);
   free(Pattern);
-  Pattern = tmpPat;
+  net->Pattern = tmpPat;
   net->Npats = n;
   par->MaxPats = n;
   return set_error(p->error_handle, 0);
@@ -3644,7 +3655,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   double *Ucf = p->Ucf;
   int pIdx;
   Spump *pump;
-  
+
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) {
@@ -4829,6 +4840,7 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
   link->Type = linkType;
   link->N1 = N1;
   link->N2 = N2;
+  link->Stat = OPEN;
 
   if (linkType == EN_PUMP) {
     link->Kc = 1.0; // Speed factor
@@ -4844,22 +4856,13 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
     link->Kc = 0.0; // Valve setting.
     link->Km = 0.0; // Loss coeff
     link->Len = 0.0;
+    link->Stat = ACTIVE;
   }
-  // link->Len = 0.0;
-  // link->Kc  = 0.01;
-  // link->Km  = 0;
   link->Kb = 0;
   link->Kw = 0;
   link->R = 0;
   link->Rc = 0;
   link->Rpt = 0;
-  
-  if (linkType == EN_CVPIPE) {
-    link->Stat = OPEN;
-  }
-  else {
-    link->Stat = CLOSED;
-  }
   
   ENHashTableInsert(net->LinkHashTable, link->ID, n);
   return set_error(p->error_handle, 0);
