@@ -236,7 +236,7 @@ BOOST_FIXTURE_TEST_CASE(test_setdemandpattern, Fixture)
 			BOOST_REQUIRE(pat_index == pat_index_2);
 		}
 	}
-
+}
 BOOST_FIXTURE_TEST_CASE(test_addpattern, Fixture)
 {
     int pat_index, n_patterns_1, n_patterns_2;
