@@ -1,3 +1,12 @@
+/*
+ *   test_reent.cpp
+ *
+ *   Created: 8/30/2018
+ *   Author: Michael E. Tryby
+ *           US EPA - ORD/NRMRL
+ *
+ *   Unit testing for EPANET Output API.
+*/
 
 #include <string>
 #include <stdio.h>
