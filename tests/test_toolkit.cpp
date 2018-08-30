@@ -204,4 +204,38 @@ BOOST_FIXTURE_TEST_CASE(test_progressive_stepping, Fixture)
 
 }
 
+BOOST_FIXTURE_TEST_CASE(test_setdemandpattern, Fixture)
+{
+    int i, j, pat_index, pat_index_2, numDemands, nnodes;
+	char newpat[] = "new_pattern";
+
+	// get the number of nodes
+    error = EN_getcount(ph, EN_NODECOUNT, &nnodes);
+    BOOST_REQUIRE(error == 0);
+	
+	// add a new pattern
+    error = EN_addpattern(ph, newpat);
+	BOOST_REQUIRE(error == 0);
+
+	// get the new patterns index, should be as the number of patterns
+    error = EN_getpatternindex(ph, newpat, &pat_index);
+	BOOST_REQUIRE(error == 0);
+	
+	for (i = 1; i <= nnodes; i++) {
+		// get the number of demand categories
+		error = EN_getnumdemands(ph, i, &numDemands);
+		BOOST_REQUIRE(error == 0);
+		
+		for (j = 1; j <= numDemands; j++) {
+			// set demand patterns
+			error = EN_setdemandpattern(ph, i, j, pat_index); 
+			BOOST_REQUIRE(error == 0);
+			// get demand patterns should be the same with set
+			error = EN_getdemandpattern(ph, i, j, &pat_index_2); 
+			BOOST_REQUIRE(error == 0);
+			BOOST_REQUIRE(pat_index == pat_index_2);
+		}
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()
