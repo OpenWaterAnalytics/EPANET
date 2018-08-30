@@ -1176,8 +1176,8 @@ extern "C" {
 
   int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2,
 	  const char *f3, void(*pviewprog)(char *));
-  
-  int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *rptFile, char *binOutFile,
+
+  int DLLEXPORT EN_init(EN_ProjectHandle ph, char *rptFile, char *binOutFile,
           EN_FlowUnits UnitsType, EN_FormType HeadlossFormula);
 
   int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *inpFile,

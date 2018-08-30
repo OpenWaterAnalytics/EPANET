@@ -185,29 +185,6 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
   return (errcode);
 }
 
-int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2, 
-  const char *f3, void (*pviewprog)(char *))
-{
-  int errcode = 0;
-  EN_Project *p = NULL;
-
-  ERRCODE(EN_open(ph, f1, f2, f3));
-
-  p = (EN_Project*)(ph);
-  p->viewprog = pviewprog;
-
-  if (p->out_files.Hydflag != USE) {
-    ERRCODE(EN_solveH(ph));
-  }
-
-  ERRCODE(EN_solveQ(ph));
-  ERRCODE(EN_report(ph));
-
-  EN_close(ph);
-
-  return errcode;
-}
-
 int DLLEXPORT ENinit(char *f2, char *f3, int UnitsType,
                      int HeadlossFormula) {
   int errcode = 0;
@@ -632,6 +609,28 @@ int DLLEXPORT EN_deleteproject(EN_ProjectHandle *ph)
     return 0;
 }
 
+int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2, 
+  const char *f3, void (*pviewprog)(char *))
+{
+  int errcode = 0;
+  EN_Project *p = NULL;
+
+  ERRCODE(EN_open(ph, f1, f2, f3));
+
+  p = (EN_Project*)(ph);
+  p->viewprog = pviewprog;
+
+  if (p->out_files.Hydflag != USE) {
+    ERRCODE(EN_solveH(ph));
+  }
+
+  ERRCODE(EN_solveQ(ph));
+  ERRCODE(EN_report(ph));
+
+  EN_close(ph);
+
+  return errcode;
+}
 
 int DLLEXPORT EN_init(EN_ProjectHandle ph, char *f2, char *f3,
                       EN_FlowUnits UnitsType, EN_FormType HeadlossFormula)
