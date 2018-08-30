@@ -4468,7 +4468,7 @@ int DLLEXPORT EN_getnumdemands(EN_ProjectHandle ph, int nodeIndex, int *numDeman
 
 int DLLEXPORT EN_getbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand) {
   Pdemand d;
-  int n = 1;
+  int n = 1, numDemands;
 
   EN_Project *p = (EN_Project*)ph;
 
@@ -4478,10 +4478,10 @@ int DLLEXPORT EN_getbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx
   if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes)
     return set_error(p->error_handle, 203);
   if (nodeIndex <= p->network.Njuncs) {
-    for (d = p->network.Node[nodeIndex].D; n < demandIdx && d != NULL; d = d->next) {
-      n++;
-    }
-    if (n != demandIdx) {
+	for (d = p->network.Node[nodeIndex].D; n < demandIdx && d != NULL; d = d->next) 
+		n++;
+	EN_getnumdemands(ph, nodeIndex, &numDemands);
+    if (n < demandIdx || demandIdx <= 0 || n > numDemands) {
       return set_error(p->error_handle, 253);
     }
     *baseDemand = (EN_API_FLOAT_TYPE)(d->Base * p->Ucf[FLOW]);
@@ -4504,7 +4504,8 @@ int DLLEXPORT EN_setbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx
   double *Ucf = pr->Ucf;
   
   Pdemand d;
-  int n = 1;
+  int n = 1, numDemands;
+  
   /* Check for valid arguments */
   if (!pr->Openflag)
     return set_error(pr->error_handle, 102);
@@ -4513,8 +4514,10 @@ int DLLEXPORT EN_setbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx
   if (nodeIndex <= Njuncs) {
     for (d = Node[nodeIndex].D; n < demandIdx && d != NULL; d = d->next)
       n++;
-    if (n != demandIdx)
+	EN_getnumdemands(ph, nodeIndex, &numDemands);
+    if (n < demandIdx || demandIdx <= 0 || n > numDemands) {
       return set_error(pr->error_handle, 253);
+    }
     d->Base = baseDemand / Ucf[FLOW];
   }
   return set_error(pr->error_handle, 0);
@@ -4532,7 +4535,8 @@ int  DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int deman
   const int Npats = net->Npats;
     
   Pdemand d;
-  int n = 1;
+  int n = 1, numDemands;
+  
   /* Check for valid arguments */
   if (!pr->Openflag)
     return set_error(pr->error_handle, 102);
@@ -4543,8 +4547,10 @@ int  DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int deman
   if (nodeIndex <= Njuncs) {
     for (d = Node[nodeIndex].D; n < demandIdx && d != NULL; d = d->next)
       n++;
-    if (n != demandIdx)
+	EN_getnumdemands(ph, nodeIndex, &numDemands);
+    if (n < demandIdx || demandIdx <= 0 || n > numDemands) {
       return set_error(pr->error_handle, 253);
+    }
   d->Pat = patIndex;
   }
   return set_error(pr->error_handle, 0);
@@ -4559,7 +4565,8 @@ int DLLEXPORT EN_getdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demand
   const int Nnodes = net->Nnodes;
   
   Pdemand d;
-  int n = 1;
+  int n = 1, numDemands;
+  
   /* Check for valid arguments */
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
@@ -4567,7 +4574,8 @@ int DLLEXPORT EN_getdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demand
     return set_error(p->error_handle, 203);
   for (d = Node[nodeIndex].D; n < demandIdx && d != NULL; d = d->next)
     n++;
-  if (n != demandIdx)
+  EN_getnumdemands(ph, nodeIndex, &numDemands);
+  if (n < demandIdx || demandIdx <= 0 || n > numDemands)
     return set_error(p->error_handle, 253);
   *pattIdx = d->Pat;
   return set_error(p->error_handle, 0);
