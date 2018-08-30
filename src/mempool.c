@@ -21,6 +21,12 @@
 #endif
 #include "mempool.h"
 
+#ifdef _MSC_VER
+#define THREAD_LOCAL __declspec(thread)
+#else
+#define THREAD_LOCAL __thread
+#endif
+
 /*
 **  ALLOC_BLOCK_SIZE - adjust this size to suit your installation - it
 **  should be reasonably large otherwise you will be mallocing a lot.
@@ -54,7 +60,7 @@ typedef struct alloc_root_s
 **  root - Pointer to the current pool.
 */
 
-static alloc_root_t *root;
+THREAD_LOCAL alloc_root_t *root;
 
 
 /*
