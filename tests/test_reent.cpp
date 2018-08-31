@@ -5,7 +5,7 @@
  *   Author: Michael E. Tryby
  *           US EPA - ORD/NRMRL
  *
- *   Unit testing for EPANET Output API.
+ *   Multi-threading / reentrancy test for EPANET Toolkit API.
 */
 
 #include <string>

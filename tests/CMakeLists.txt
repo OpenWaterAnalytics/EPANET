@@ -42,7 +42,6 @@ file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test_*.cpp)
 MESSAGE( STATUS "Thread found: " ${Boost_THREAD_FOUND})
 if(NOT ${Boost_THREAD_FOUND})
     list(REMOVE_ITEM TEST_SRCS test_reent.cpp)
-    MESSAGE("${TEST_SRCS}")
 endif()
 
 
