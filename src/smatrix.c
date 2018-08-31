@@ -63,8 +63,8 @@ static int     paralink(EN_Project *pr, int, int, int);
 static void    xparalinks(EN_Project *pr);
 static void    freelists(EN_Project *pr);
 static void    countdegree(EN_Project *pr);
-static int     reordernodes(EN_Project *pr);
-static int     factorize(EN_Project *pr);
+static int     reordernodes(EN_Project *pr, int);
+static int     factorize(EN_Project *pr, int);
 static int     growlist(EN_Project *pr, int);
 static int     newlink(EN_Project *pr, Padjlist);
 static int     linked(EN_Network *net, int, int);
@@ -78,10 +78,10 @@ static void    transpose(int, int *, int *, int *, int *,
 /*************************************************************************
 * Timer macros
 **************************************************************************/
- //#define cleartimer(tmr) (tmr = 0.0)
- //#define starttimer(tmr) (tmr -= ((double) clock()/CLOCKS_PER_SEC));
- //#define stoptimer(tmr)  (tmr += ((double) clock()/CLOCKS_PER_SEC));
- //#define gettimer(tmr)   (tmr)
+// #define cleartimer(tmr) (tmr = 0.0)
+// #define starttimer(tmr) (tmr -= ((double) clock()/CLOCKS_PER_SEC));
+// #define stoptimer(tmr)  (tmr += ((double) clock()/CLOCKS_PER_SEC));
+// #define gettimer(tmr)   (tmr)
 
 
 /*************************************************************************
@@ -101,6 +101,7 @@ int  createsparse(EN_Project *pr)
 */
 {
     int errcode = 0;
+    int nrows;
   
     EN_Network   *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
@@ -110,14 +111,12 @@ int  createsparse(EN_Project *pr)
 //    starttimer(SmatrixTimer);
 
 
-    /* Allocate data structures */
+    // Allocate data structures
     ERRCODE(allocsparse(pr));
   
-    if (errcode) {
-        return(errcode);
-    }
+    if (errcode) return errcode;
 
-    /* Build node-link adjacency lists with parallel links removed. */
+    // Build node-link adjacency lists with parallel links removed
     solver->Degree = (int *) calloc(net->Nnodes+1, sizeof(int));
     ERRCODE(MEMCHECK(solver->Degree));
     ERRCODE(buildlists(pr, TRUE));
@@ -127,34 +126,35 @@ int  createsparse(EN_Project *pr)
         countdegree(pr);   // Find degree of each junction
     }                      // (= # of adjacent links)
 
+    // Number of rows in solution matrix
+    nrows = net->Nnodes;
+
     // Re-order nodes to minimize number of non-zero coeffs. 
     // in factorized solution matrix. 
     hyd->Ncoeffs = net->Nlinks;
-    ERRCODE(reordernodes(pr));
+    ERRCODE(reordernodes(pr, nrows));
 
     // Factorize solution matrix by updating adjacency lists
     // with non-zero connections due to fill-ins.
-    ERRCODE(factorize(pr));
+    ERRCODE(factorize(pr, nrows));
 
     // Allocate memory for sparse storage of positions of non-zero
     // coeffs. and store these positions in vector NZSUB.
-    ERRCODE(storesparse(pr, net->Njuncs));
+    ERRCODE(storesparse(pr, nrows));
 
     // Free memory used for adjacency lists and sort
     // row indexes in NZSUB to optimize linsolve().
-    if (!errcode) {
-        freelists(pr);
-    }
-    ERRCODE(sortsparse(pr, net->Njuncs));
+    if (!errcode) freelists(pr);
+    ERRCODE(sortsparse(pr, nrows));
 
     // Re-build adjacency lists without removing parallel
     // links for use in future connectivity checking.
-    ERRCODE(buildlists(pr,FALSE));
+    ERRCODE(buildlists(pr, FALSE));
 
     // Free allocated memory
     free(solver->Degree);
-    return(errcode);
-}                        /* End of createsparse */
+    return errcode;
+}
 
 
 int  allocsparse(EN_Project *pr)
@@ -385,17 +385,17 @@ void  countdegree(EN_Project *pr)
 }
 
 
-int   reordernodes(EN_Project *pr)
+int   reordernodes(EN_Project *pr, int nrows)
 /*
 **--------------------------------------------------------------
-** Input:   none                                                
+** Input:   nrows = number of rows in solution matrix
 ** Output:  returns 1 if successful, 0 if not                   
 ** Purpose: re-orders nodes to minimize # of non-zeros that     
 **          will appear in factorized solution matrix           
 **--------------------------------------------------------------
 */
 {
-    int k, knode, m, njuncs, nlinks;
+    int k, knode, m, nlinks;
     int delta = -1;
     int nofsub = 0;
     int maxint = INT_MAX;   //defined in limits.h
@@ -421,27 +421,26 @@ int   reordernodes(EN_Project *pr)
         solver->Row[k] = k;
         solver->Order[k] = k;
     }
-    njuncs = net->Njuncs;
     nlinks = net->Nlinks;
 
     // Allocate memory
     adjncy = (int *) calloc(2*nlinks+1, sizeof(int));
-    xadj   = (int *) calloc(njuncs+2, sizeof(int));
-    dhead  = (int *) calloc(njuncs+1, sizeof(int));
-    qsize  = (int *) calloc(njuncs + 1, sizeof(int));
-    llist  = (int *) calloc(njuncs + 1, sizeof(int));
-    marker = (int *) calloc(njuncs + 1, sizeof(int));
+    xadj   = (int *) calloc(nrows+2, sizeof(int));
+    dhead  = (int *) calloc(nrows+1, sizeof(int));
+    qsize  = (int *) calloc(nrows + 1, sizeof(int));
+    llist  = (int *) calloc(nrows + 1, sizeof(int));
+    marker = (int *) calloc(nrows + 1, sizeof(int));
     if (adjncy && xadj && dhead && qsize && llist && marker)
     {
         // Create local versions of node adjacency lists
         xadj[1] = 1;
         m = 1;
-        for (k = 1; k <= njuncs; k++)
+        for (k = 1; k <= nrows; k++)
         {
             for (alink = net->Adjlist[k]; alink != NULL; alink = alink->next)
             {
                 knode = alink->node;
-                if (knode <= njuncs)
+                if (knode <= nrows)
                 {
                     adjncy[m] = knode;
                     m++;
@@ -451,7 +450,7 @@ int   reordernodes(EN_Project *pr)
         }
 
         // Generate a multiple minimum degree node re-ordering
-        genmmd(&njuncs, xadj, adjncy, solver->Row, solver->Order, &delta,
+        genmmd(&nrows, xadj, adjncy, solver->Row, solver->Order, &delta,
                dhead, qsize, llist, marker, &maxint, &nofsub);
         errcode = 0;
     }
@@ -468,10 +467,10 @@ int   reordernodes(EN_Project *pr)
 }                        /* End of reordernodes */
 
 
-int factorize(EN_Project *pr)
+int factorize(EN_Project *pr, int nrows)
 /*
 **--------------------------------------------------------------
-** Input:   none
+** Input:   nrows = number of rows in solution matrix
 ** Output:  returns error code
 ** Purpose: symbolically factorizes the solution matrix in
 **          terms of its adjacency lists
@@ -486,7 +485,7 @@ int factorize(EN_Project *pr)
     // Augment each junction's adjacency list to account for
     // new connections created when solution matrix is solved.
     // NOTE: Only junctions (indexes <= Njuncs) appear in solution matrix.
-    for (k = 1; k <= net->Njuncs; k++)              // Examine each junction
+    for (k = 1; k <= nrows; k++)              // Examine each row
     {
         knode = solver->Order[k];                   // Re-ordered index
         if (!growlist(pr, knode))                   // Augment adjacency list
@@ -828,14 +827,14 @@ int  linsolve(EN_Project *pr, int n)
          if (istop >= istrt)
          {
 
-	     /* Before modification, update vectors 'first' */
-	     /* and 'link' for future modification steps.   */
+         /* Before modification, update vectors 'first' */
+         /* and 'link' for future modification steps.   */
             first[k] = istrt;
             isub = NZSUB[istrt];
             link[k] = link[isub];
             link[isub] = k;
 
-	    /* The actual mod is saved in vector 'temp'. */
+            /* The actual mod is saved in vector 'temp'. */
             for (i=istrt; i<=istop; i++)
             {
                isub = NZSUB[i];

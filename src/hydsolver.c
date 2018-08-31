@@ -39,6 +39,7 @@ typedef struct {
 
 extern int  valvestatus(EN_Project *pr);    //(see HYDSTATUS.C)
 extern int  linkstatus(EN_Project *pr);     //(see HYDSTATUS.C)
+extern int  tankstatus(EN_Project *pr);
 
 // Local functions
 static int      badvalve(EN_Project *pr, int);
@@ -87,6 +88,7 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
 */
 {
     int    i;                     // Node index
+    int    nrows;                 // Number of rows in solution matrix
     int    errcode = 0;           // Node causing solution error
     int    nextcheck;             // Next status check trial
     int    maxtrials;             // Max. trials for convergence
@@ -103,6 +105,9 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
     // Initialize status checking & relaxation factor
     nextcheck = hyd->CheckFreq;
     hyd->RelaxFactor = 1.0;
+
+    // Set number of rows in matrix used to find nodal heads
+    nrows = net->Nnodes;
 
     // Repeat iterations until convergence or trial limit is exceeded.
     // (ExtraIter used to increase trials in case of status cycling.)
@@ -126,7 +131,7 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
         */
         headlosscoeffs(pr);
         matrixcoeffs(pr);
-        errcode = linsolve(pr, net->Njuncs);
+        errcode = linsolve(pr, nrows);
 
         // Quit if memory allocation error
         if (errcode < 0) break;
@@ -141,7 +146,7 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
 
         // Update current solution.
         // (Row[i] = row of solution matrix corresponding to node i)
-        for (i = 1; i <= net->Njuncs; i++)
+        for (i = 1; i <= nrows; i++)
         {
             hyd->NodeHead[i] = sol->F[sol->Row[i]];   // Update heads
         }
@@ -179,6 +184,7 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
             // Quit if no status changes occur
             statChange = FALSE;
             if (valveChange)    statChange = TRUE;
+            if (tankstatus(pr)) statChange = TRUE;
             if (linkstatus(pr)) statChange = TRUE;
             if (pswitch(pr))    statChange = TRUE;
             if (!statChange)    break;

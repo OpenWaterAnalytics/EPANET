@@ -1,6 +1,4 @@
 ﻿
-
-
 Release Notes for EPANET 2.2 (Draft)
 ============================
 
@@ -49,15 +47,18 @@ These new parameters augment the current `EN_ACCURACY` option which always remai
 ## Improved Linear Solver Routine
 EPANET's hydraulic solver requires solving a system of linear equations over a series of iterations until a set of convergence criteria are met. The coefficient matrix of this linear system is square and symmetric. It has a row for each network node and a non-zero off-diagonal coefficient for each link. The numerical effort needed to solve the linear system can be reduced if the nodes are re-ordered so that the non-zero coefficients cluster more tightly around the diagonal.
 
-EPANET's original node re-ordering scheme has been replaced by the more powerful **Multiple Minimum Degree (MMD)** algorithm. On a series of eight networks ranging in size from 7,700 to 100,000 nodes **MMD** reduced the solution time for a single period (steady state) hydraulic analysis by an average of more than 50%.
+EPANET's original node re-ordering scheme has been replaced by the more powerful **Multiple Minimum Degree (MMD)** algorithm. On a series of eight networks ranging in size from 7,700 to 100,000 nodes **MMD** reduced the solution time for a single period (steady state) hydraulic analysis by an average of 58%.
 
 ## Pressure Dependent Demands
 EPANET has always employed a Demand Driven Analysis (**DDA**) when modeling network hydraulics. Under this approach nodal demands at a given point in time are fixed values that must be delivered no matter what nodal heads and link flows are produced by a hydraulic solution. This can result in situations where required demands are satisfied at nodes that have negative pressures - a physical impossibility. 
 
 To address this issue EPANET has been extended to use a Pressure Driven Analysis (**PDA**) if so desired. Under **PDA**, the demand *D* delivered at a node depends on the node's available pressure *P* according to:
-$$D =D_f\left(\frac{P-P_{min}}{P_{req}-P_{min}}\right)^{P_{exp}} for P_{0}<=P<=P_{req}$$where *D<sub>f</sub>* is the full demand required, *P<sub>min</sub>* is the pressure below which demand is zero, *P<sub>req</sub>* is the pressure required to deliver the full required demand and *P<sub>exp</sub>* is an exponent. When *P < P<sub>min</sub>* demand is 0 and when *P > P<sub>req</sub>* demand equals *D<sub>f</sub>*.
 
-To implement pressure dependent analysis four new parameters have been added to the [OPTIONS] section of the EPANET input file:
+*D = D<sub>f</sub> [ (P - P<sub>min</sub>) / (P<sub>req</sub> - P<sub>min</sub>) ]<sup>P<sub>exp</sub></sup>*
+
+where *D<sub>f</sub>* is the full demand required, *P<sub>min</sub>* is the pressure below which demand is zero, *P<sub>req</sub>* is the pressure required to deliver the full required demand and *P<sub>exp</sub>* is an exponent. When *P < P<sub>min</sub>* demand is 0 and when *P > P<sub>req</sub>* demand equals *D<sub>f</sub>*.
+
+To implement pressure driven analysis four new parameters have been added to the [OPTIONS] section of the EPANET input file:
 
 
 | Parameter | Description  | Default |
@@ -81,7 +82,13 @@ for the thread-safe API. Some additional points regarding the new **PDA** option
 
  - If no DEMAND  MODEL and its parameters are specified then the analysis defaults to being demand driven (**DDA**).
  - This implementation of **PDA** assumes that the same parameters apply to all nodes in the network. Extending the framework to allow different parameters for specific nodes is straightforward to do but is left as a future feature to implement.
- - *P<sub>0</sub>* is allowed to equal to *P<sub>req</sub>*. This condition can be used to find a solution that results in the smallest amount of demand reductions needed to insure that no node delivers positive demand at a pressure below *P<sub>min</min>*.
+ - *P<sub>min</sub>* is allowed to equal to *P<sub>req</sub>*. This condition can be used to find a solution that results in the smallest amount of demand reductions needed to insure that no node delivers positive demand at a pressure below *P<sub>min</min>*.
+
+## More Stable Tank Dynamics
+EPANET's original explicit Euler method for updating storage tank levels  during an extended period simulation has been replaced with an **implicit** Euler method based on the work of [Todini (2011)](https://iwaponline.com/jh/article-abstract/13/2/167/31084/Extending-the-global-gradient-algorithm-to?redirectedFrom=fulltext) and [Avasani et al. (2012)](https://iwaponline.com/jh/article-abstract/14/4/960/3200/The-extension-of-EPANET-source-code-to-simulate?redirectedFrom=fulltext). It can greatly reduce or even eliminate the instabilities in tank dynamics that could sometimes occur with the original explicit method. Below is a comparison of the two methods for one of the tanks in Example 1 from Todini (2011).
+![](https://lh3.googleusercontent.com/B5LbWijtA1lMvzZ8WUervulWni61Qd9904faSe0cqHUBIt7M9L_c644xXL2IpmYcdxf8aNEQiRk)
+However even for networks that had stable tank trajectories under the old explicit method,  users can expect to see somewhat different results with the new implicit method. The figure below illustrates this point for the Net3 example included in the original EPANET distribution.
+![enter image description here](https://lh3.googleusercontent.com/vlIp17Eq6hvwFY9cjRgRdUGe9OLVBfRGGfOh7G81oV5y_iqV62RY6ljThjeZFfxNfGALSFyNQ1k)
 
 ## Code Changes
 

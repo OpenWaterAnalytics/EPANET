@@ -200,6 +200,7 @@ void  linkcoeffs(EN_Project *pr)
 */
 {
     int   k, n1, n2;
+    int   fg1, fg2;
 
     EN_Network   *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
@@ -214,32 +215,36 @@ void  linkcoeffs(EN_Project *pr)
         n1 = link->N1;           // Start node of link
         n2 = link->N2;           // End node of link
 
+        // Determine if each end node is fixed grade or not
+        fg1 = (n1 > net->Njuncs && net->Tank[n1 - net->Njuncs].FixedGrade);
+        fg2 = (n2 > net->Njuncs && net->Tank[n2 - net->Njuncs].FixedGrade);
+
         // Update net nodal inflows (X_tmp), solution matrix (A) and RHS array (F)
         // (Use covention that flow out of node is (-), flow into node is (+))
         hyd->X_tmp[n1] -= hyd->LinkFlows[k];
         hyd->X_tmp[n2] += hyd->LinkFlows[k];
 
         // Off-diagonal coeff.
-        sol->Aij[sol->Ndx[k]] -= sol->P[k];
+        if (!fg1 && !fg2) sol->Aij[sol->Ndx[k]] -= sol->P[k];
 
-        // Node n1 is junction
-        if (n1 <= net->Njuncs)                     
+        // Node n1 not fixed grade
+        if (!fg1)                     
         {
             sol->Aii[sol->Row[n1]] += sol->P[k];   // Diagonal coeff.
             sol->F[sol->Row[n1]] += sol->Y[k];     // RHS coeff.
         }
 
-        // Node n1 is a tank/reservoir
+        // Node n1 is fixed grade
         else sol->F[sol->Row[n2]] += (sol->P[k] * hyd->NodeHead[n1]); 
 
-        // Node n2 is junction
-        if (n2 <= net->Njuncs)
+        // Node n2 is not fixed grade
+        if (!fg2)
         {
             sol->Aii[sol->Row[n2]] += sol->P[k];   // Diagonal coeff.
             sol->F[sol->Row[n2]] -= sol->Y[k];     // RHS coeff.
         }
 
-        // Node n2 is a tank/reservoir
+        // Node n2 is fixed grade
         else sol->F[sol->Row[n1]] += (sol->P[k] * hyd->NodeHead[n2]); 
     }
 }
@@ -250,12 +255,16 @@ void  nodecoeffs(EN_Project *pr)
 **----------------------------------------------------------------
 **  Input:   none
 **  Output:  none
-**  Purpose: completes calculation of nodal flow imbalance (X_tmp)
-**           & flow correction (F) arrays
+**  Purpose: completes calculation of flow imbalance (X_tmp) and
+**           matrix coeffs. for tanks.
+**           
 **----------------------------------------------------------------
 */
 {
-    int   i;
+    int   i, j, k;
+    long   tstep;
+    double a;
+
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
     EN_Network   *net = &pr->network;
@@ -266,6 +275,30 @@ void  nodecoeffs(EN_Project *pr)
     {
         hyd->X_tmp[i] -= hyd->DemandFlows[i];
         sol->F[sol->Row[i]] += hyd->X_tmp[i];
+    }
+
+    // Set diagonal coeffs. Aii and RHS array F for tanks
+    tstep = pr->time_options.Hydstep;
+    for (j = 1; j <= net->Ntanks; j++)
+    {
+        // Matrix row corresponding to tank j
+        i = net->Tank[j].Node;
+        k = sol->Row[i];
+
+        // Tank is fixed grade - force solution to produce it
+        if (net->Tank[j].FixedGrade)
+        {
+            sol->Aii[k] = 1.0;
+            sol->F[k] = hyd->NodeHead[i];
+        }
+
+        // Tank is dynamic - add area terms into row coeffs.
+        else
+        {
+            a = net->Tank[j].PastArea / tstep;
+            sol->Aii[k] += a;
+            sol->F[k] += a * net->Tank[j].PastHead + hyd->X_tmp[i];
+        }
     }
 }
 

@@ -72,6 +72,9 @@ void    controltimestep(EN_Project *pr, long *);
 void    ruletimestep(EN_Project *pr, long *);
 void    addenergy(EN_Project *pr, long);
 void    tanklevels(EN_Project *pr, long);
+void    savetankinfo(EN_Project *pr);
+double  tankarea(EN_Project *pr, int i, double h);
+
 
 
 int  openhyd(EN_Project *pr)
@@ -95,7 +98,6 @@ int  openhyd(EN_Project *pr)
 }
 
 
-/*** Updated 3/1/01 ***/
 void inithyd(EN_Project *pr, int initflag)
 /*
 **--------------------------------------------------------------
@@ -108,74 +110,77 @@ void inithyd(EN_Project *pr, int initflag)
 {
     int i,j;
 
-   time_options_t *time = &pr->time_options;
-   EN_Network *net = &pr->network;
-   hydraulics_t *hyd = &pr->hydraulics;
-   out_file_t *out = &pr->out_files;
-   Stank *tank;
-   Slink *link;
-   Spump *pump;
+    time_options_t *time = &pr->time_options;
+    EN_Network     *net = &pr->network;
+    hydraulics_t   *hyd = &pr->hydraulics;
+    out_file_t     *out = &pr->out_files;
+
+    Stank *tank;
+    Slink *link;
+    Spump *pump;
   
-    /* Initialize tanks */
-    for (i=1; i <= net->Ntanks; i++) {
+    // Initialize tanks
+    for (i = 1; i <= net->Ntanks; i++)
+    {
         tank = &net->Tank[i];
         tank->V = tank->V0;
+        tank->FixedGrade = TRUE;
+        tank->PastHead = tank->H0;
+        tank->PastArea = tankarea(pr, i, tank->H0);
         hyd->NodeHead[tank->Node] = tank->H0;
         hyd->NodeDemand[tank->Node] = 0.0;
         hyd->OldStat[net->Nlinks+i] = TEMPCLOSED;
     }
 
-    /* Initialize emitter flows */
+    // Initialize emitter flows
     memset(hyd->EmitterFlows,0,(net->Nnodes+1)*sizeof(double));
-    for (i=1; i <= net->Njuncs; i++) {
-        if (net->Node[i].Ke > 0.0) { 
-            hyd->EmitterFlows[i] = 1.0;
-        }
+    for (i = 1; i <= net->Njuncs; i++)
+    {
+        if (net->Node[i].Ke > 0.0) hyd->EmitterFlows[i] = 1.0;
     }
 
-    /* Initialize links */
-    for (i=1; i <= net->Nlinks; i++) {
+    // Initialize links
+    for (i = 1; i <= net->Nlinks; i++)
+    {
         link = &net->Link[i];
         
-        /* Initialize status and setting */
+        // Initialize status and setting
         hyd->LinkStatus[i] = link->Stat;
         hyd->LinkSetting[i] = link->Kc;
 
-        /* Compute flow resistance */
+        // Compute flow resistance
         resistcoeff(pr, i);
 
-        /* Start active control valves in ACTIVE position */                     
-        if (
-            (link->Type == EN_PRV || link->Type == EN_PSV
+        // Start active control valves in ACTIVE position
+        if (  (link->Type == EN_PRV || link->Type == EN_PSV
             || link->Type == EN_FCV) && (link->Kc != MISSING)
         ) hyd->LinkStatus[i] = ACTIVE;                                                      
 
-/*** Updated 3/1/01 ***/
-       /* Initialize flows if necessary */
-       if (hyd->LinkStatus[i] <= CLOSED) hyd->LinkFlows[i] = QZERO;
-       else if (ABS(hyd->LinkFlows[i]) <= QZERO || initflag > 0)
+        // Initialize flows if necessary
+        if (hyd->LinkStatus[i] <= CLOSED) hyd->LinkFlows[i] = QZERO;
+        else if (ABS(hyd->LinkFlows[i]) <= QZERO || initflag > 0)
+        {
            initlinkflow(pr, i, hyd->LinkStatus[i], hyd->LinkSetting[i]);
+        }
 
-       /* Save initial status */
-       hyd->OldStat[i] = hyd->LinkStatus[i];
+        // Save initial status
+        hyd->OldStat[i] = hyd->LinkStatus[i];
     }
 
-    /* Initialize pump energy usage */
-    for (i=1; i <= net->Npumps; i++)
+    // Initialize pump energy usage
+    for (i = 1; i <= net->Npumps; i++)
     {
         pump = &net->Pump[i];
-        for (j = 0; j < MAX_ENERGY_STATS; j++) {
-            pump->Energy[j] = 0.0;
-        }
+        for (j = 0; j < MAX_ENERGY_STATS; j++) pump->Energy[j] = 0.0;
     }
 
-    /* Re-position hydraulics file */
-    if (pr->save_options.Saveflag) { 
+    // Re-position hydraulics file
+    if (pr->save_options.Saveflag)
+    {
         fseek(out->HydFile,out->HydOffset,SEEK_SET);
     }
 
-/*** Updated 3/1/01 ***/
-    /* Initialize current time */
+    // Initialize current time
     hyd->Haltflag = 0;
     time->Htime = 0;
     time->Hydstep = 0;
@@ -193,42 +198,42 @@ int   runhyd(EN_Project *pr, long *t)
 **--------------------------------------------------------------
 */
 {
-    int   iter;                          /* Iteration count   */
-    int   errcode;                       /* Error code        */
-    double relerr;                       /* Solution accuracy */
+    int   iter;              // Iteration count
+    int   errcode;           // Error code
+    double relerr;           // Solution accuracy
   
-   hydraulics_t     *hyd = &pr->hydraulics;
-   time_options_t   *time = &pr->time_options;
-   report_options_t *rep = &pr->report;
+    hydraulics_t     *hyd = &pr->hydraulics;
+    time_options_t   *time = &pr->time_options;
+    report_options_t *rep = &pr->report;
 
-    /* Find new demands & control actions */
+    // Find new demands & control actions
     *t = time->Htime;
     demands(pr);
     controls(pr);
 
-    /* Solve network hydraulic equations */
+    // Solve network hydraulic equations
     errcode = hydsolve(pr,&iter,&relerr);
 
-    if (!errcode) {
-        /* Report new status & save results */
-        if (rep->Statflag) {
-            writehydstat(pr,iter,relerr);
-        }
+    if (!errcode)
+    {
+        // Report new status & save results
+        if (rep->Statflag) writehydstat(pr,iter,relerr);
      
-/*** Updated 3/1/01 ***/
-        /* If system unbalanced and no extra trials */
-        /* allowed, then activate the Haltflag.     */
-        if (relerr > hyd->Hacc && hyd->ExtraIter == -1) {
+        // If system unbalanced and no extra trials
+        // allowed, then activate the Haltflag
+        if (relerr > hyd->Hacc && hyd->ExtraIter == -1)
+        {
             hyd->Haltflag = 1;
         }
 
-        /* Report any warning conditions */
-        if (!errcode) {
+        // Report any warning conditions
+        if (!errcode)
+        {
             errcode = writehydwarn(pr,iter,relerr);
         }
    }
-   return(errcode);
-}                               /* end of runhyd */
+   return errcode;
+}
 
 
 int  nexthyd(EN_Project *pr, long *tstep)
@@ -242,57 +247,46 @@ int  nexthyd(EN_Project *pr, long *tstep)
 **--------------------------------------------------------------
 */
 {
-   long  hydstep;         /* Actual time step  */
-   int   errcode = 0;     /* Error code        */
+    long  hydstep;         // Actual time step
+    int   errcode = 0;     // Error code
   
-  hydraulics_t *hyd = &pr->hydraulics;
-  time_options_t *top = &pr->time_options;
+    hydraulics_t   *hyd = &pr->hydraulics;
+    time_options_t *top = &pr->time_options;
 
-/*** Updated 3/1/01 ***/
-   /* Save current results to hydraulics file and */
-   /* force end of simulation if Haltflag is active */
-  if (pr->save_options.Saveflag) {
-     errcode = savehyd(pr,&top->Htime);
-  }
-  if (hyd->Haltflag) {
-    top->Htime = top->Dur;
-  }
+    // Save current results to hydraulics file and
+    // force end of simulation if Haltflag is active
+    if (pr->save_options.Saveflag) errcode = savehyd(pr, &top->Htime);
+    if (hyd->Haltflag) top->Htime = top->Dur;
 
-   /* Compute next time step & update tank levels */
-   *tstep = 0;
-   hydstep = 0;
-  if (top->Htime < top->Dur) {
-     hydstep = timestep(pr);
-  }
-  if (pr->save_options.Saveflag) {
-     errcode = savehydstep(pr,&hydstep);
-  }
+    // Save current state info for tanks
+    savetankinfo(pr);
 
-   /* Compute pumping energy */
-  if (top->Dur == 0) {
-     addenergy(pr,0);
-  }
-  else if (top->Htime < top->Dur) {
-     addenergy(pr,hydstep);
-  }
+    // Compute next time step & update tank levels
+    *tstep = 0;
+    hydstep = 0;
+    if (top->Htime < top->Dur) hydstep = timestep(pr);
+    if (pr->save_options.Saveflag) errcode = savehydstep(pr, &hydstep);
 
-   /* Update current time. */
-   if (top->Htime < top->Dur)  /* More time remains */
-   {
-      top->Htime += hydstep;
-     if (top->Htime >= top->Rtime) {
-        top->Rtime += top->Rstep;
-     }
-   }
-   else
-   {
-      top->Htime++;          /* Force completion of analysis */
-      if (pr->quality.OpenQflag) {
-        pr->quality.Qtime++; // force completion of wq analysis too
-      }
-   }
-   *tstep = hydstep;
-   return(errcode);
+    // Compute pumping energy
+    if (top->Dur == 0) addenergy(pr, 0);
+    else if (top->Htime < top->Dur) addenergy(pr, hydstep);
+
+    // If more time remains update elapsed & reporting time
+    if (top->Htime < top->Dur)
+    {
+        top->Htime += hydstep;
+        if (top->Htime >= top->Rtime) top->Rtime += top->Rstep;
+    }
+    
+    // Otherwise force completion of hydraulic & WQ analysis
+    else
+    {
+        top->Htime++; 
+        if (pr->quality.OpenQflag) pr->quality.Qtime++;
+    }
+    top->Hydstep = hydstep;
+    *tstep = hydstep;
+    return errcode;
 }
   
 
@@ -646,83 +640,71 @@ int  controls(EN_Project *pr)
 **---------------------------------------------------------------------
 */
 {
-   int   i, k, n, reset, setsum;
-   double h, vplus;
-   double v1, v2;
-   double k1, k2;
-   char  s1, s2;
-   Slink *link;
-   Scontrol *control;  
+    int   i, k, n, reset, setsum;
+    double h, vplus;
+    double v1, v2;
+    double k1, k2;
+    char  s1, s2;
+    Slink *link;
+    Scontrol *control;  
 
-  EN_Network *net = &pr->network;
-  time_options_t *top = &pr->time_options;
-  hydraulics_t *hyd = &pr->hydraulics;
+    EN_Network     *net = &pr->network;
+    time_options_t *top = &pr->time_options;
+    hydraulics_t   *hyd = &pr->hydraulics;
 
-   /* Examine each control statement */
-   setsum = 0;
-   for (i=1; i <= net->Ncontrols; i++)
-   {
-      control = &net->Control[i];
-      /* Make sure that link is defined */
-      reset = 0;
-      if ( (k = control->Link) <= 0) {
-        continue;
-      }
-      link = &net->Link[k];
-      /* Link is controlled by tank level */
-      if ((n = control->Node) > 0 && n > net->Njuncs)
-      {
-         h = hyd->NodeHead[n];
-         vplus = ABS(hyd->NodeDemand[n]);
-         v1 = tankvolume(pr,n - net->Njuncs,h);
-         v2 = tankvolume(pr,n - net->Njuncs, control->Grade);
-         if (control->Type == LOWLEVEL && v1 <= v2 + vplus)
-            reset = 1;
-         if (control->Type == HILEVEL && v1 >= v2 - vplus)
-            reset = 1;
-      }
-
-      /* Link is time-controlled */
-      if (control->Type == TIMER)
-      {
-          if (control->Time == top->Htime) reset = 1;
-      }
-
-      /* Link is time-of-day controlled */
-      if (control->Type == TIMEOFDAY)
-      {
-        if ((top->Htime + top->Tstart) % SECperDAY == control->Time) {
-          reset = 1;
+    // Examine each control statement
+    setsum = 0;
+    for (i = 1; i <= net->Ncontrols; i++)
+    {
+        // Make sure that link is defined
+        control = &net->Control[i];
+        reset = 0;
+        if ( (k = control->Link) <= 0) continue;
+        link = &net->Link[k];
+      
+        // Link is controlled by tank level
+        if ((n = control->Node) > 0 && n > net->Njuncs)
+        {
+            h = hyd->NodeHead[n];
+            vplus = ABS(hyd->NodeDemand[n]);
+            v1 = tankvolume(pr, n - net->Njuncs, h);
+            v2 = tankvolume(pr, n - net->Njuncs, control->Grade);
+            if (control->Type == LOWLEVEL && v1 <= v2 + vplus) reset = 1;
+            if (control->Type == HILEVEL && v1 >= v2 - vplus)  reset = 1;
         }
-      }
 
-      /* Update link status & pump speed or valve setting */
-      if (reset == 1)
-      {
-        if (hyd->LinkStatus[k] <= CLOSED) {
-          s1 = CLOSED;
+        // Link is time-controlled
+        if (control->Type == TIMER)
+        {
+            if (control->Time == top->Htime) reset = 1;
         }
-        else {
-          s1 = OPEN;
+
+        // Link is time-of-day controlled
+        if (control->Type == TIMEOFDAY)
+        {
+            if ((top->Htime + top->Tstart) % SECperDAY == control->Time) reset = 1;
         }
-         s2 = control->Status;
-         k1 = hyd->LinkSetting[k];
-         k2 = k1;
-         if (link->Type > EN_PIPE) {
-           k2 = control->Setting;
-         }
-         if (s1 != s2 || k1 != k2) {
-            hyd->LinkStatus[k] = s2;
-            hyd->LinkSetting[k] = k2;
-           if (pr->report.Statflag) {
-              writecontrolaction(pr,k,i);
-           }
-            setsum++;
-         }
-      }   
-   }
-   return(setsum);
-}                        /* End of controls */
+
+        // Update link status & pump speed or valve setting
+        if (reset == 1)
+        {
+            if (hyd->LinkStatus[k] == CLOSED) s1 = CLOSED;
+            else s1 = OPEN;
+            s2 = control->Status;
+            k1 = hyd->LinkSetting[k];
+            k2 = k1;
+            if (link->Type > EN_PIPE) k2 = control->Setting;
+            if (s1 != s2 || k1 != k2)
+            {
+                hyd->LinkStatus[k] = s2;
+                hyd->LinkSetting[k] = k2;
+                if (pr->report.Statflag) writecontrolaction(pr,k,i);
+                setsum++;
+            }   
+        }
+    }
+    return setsum;
+}
 
 
 long  timestep(EN_Project *pr)
@@ -734,42 +716,38 @@ long  timestep(EN_Project *pr)
 **----------------------------------------------------------------
 */
 {
-  EN_Network *net = &pr->network;
-  time_options_t *time = &pr->time_options;
+    long   n, t, tstep;
+
+    EN_Network     *net = &pr->network;
+    time_options_t *time = &pr->time_options;
   
+    // Normal time step is hydraulic time step
+    tstep = time->Hstep;
   
-  long   n,t,tstep;
+    // Revise time step based on time until next demand period
+    n = ((time->Htime + time->Pstart) / time->Pstep) + 1; // Next pattern period
+    t = n * time->Pstep - time->Htime;                    // Time till next period
+    if (t > 0 && t < tstep) tstep = t;
   
-  /* Normal time step is hydraulic time step */
-  tstep = time->Hstep;
+    // Revise time step based on time until next reporting period
+    t = time->Rtime - time->Htime;
+    if (t > 0 && t < tstep) tstep = t;
   
-  /* Revise time step based on time until next demand period */
-  n = ((time->Htime + time->Pstart) / time->Pstep) + 1;   /* Next pattern period   */
-  t = n * time->Pstep - time->Htime;              /* Time till next period */
-  if (t > 0 && t < tstep) {
-    tstep = t;
-  }
+//// DEPRECATED DUE TO SWITCH TO IMPLICIT METHOD FOR UPDATING TANK LEVELS  ////
+    // Revise time step based on smallest time to fill or drain a tank
+    //tanktimestep(pr,&tstep);
   
-  /* Revise time step based on time until next reporting period */
-  t = time->Rtime - time->Htime;
-  if (t > 0 && t < tstep) {
-    tstep = t;
-  }
+    // Revise time step based on smallest time to activate a simple control
+    controltimestep(pr,&tstep);
   
-  /* Revise time step based on smallest time to fill or drain a tank */
-  tanktimestep(pr,&tstep);
-  
-  /* Revise time step based on smallest time to activate a control */
-  controltimestep(pr,&tstep);
-  
-  /* Evaluate rule-based controls (which will also update tank levels) */
-  if (net->Nrules > 0) {
-    ruletimestep(pr,&tstep);
-  }
-  else {
-    tanklevels(pr,tstep);
-  }
-  return(tstep);
+    // Revise time step based on smallest time to activate a rule-based control
+    // (which will also update tank volumes)
+    if (net->Nrules > 0) ruletimestep(pr, &tstep);
+
+    // If no rules, then just update tank volumes
+    else tanklevels(pr, tstep);
+
+    return tstep;
 }
 
 
@@ -1168,6 +1146,69 @@ void  tanklevels(EN_Project *pr, long tstep)
 }                       /* End of tanklevels */
 
 
+void  savetankinfo(EN_Project *pr)
+/*
+**----------------------------------------------------------------
+**  Input:   none
+**  Output:  none
+**  Purpose: saves previous tank surface area and head for
+**           extended period simulations.
+**----------------------------------------------------------------
+*/
+{
+    int i, n;
+    double head;
+
+    EN_Network   *net = &pr->network;
+    hydraulics_t *hyd = &pr->hydraulics;
+
+    for (i = 1; i <= net->Ntanks; i++)
+    {
+        // Update only non-reservoir tanks
+        if (net->Tank[i].A > 0.0)
+        {
+            net->Tank[i].FixedGrade = FALSE;
+            n = pr->network.Tank[i].Node;
+            head = hyd->NodeHead[n];
+            net->Tank[i].PastHead = head;
+            net->Tank[i].PastArea = tankarea(pr, i, head);
+        }
+    }
+}
+
+
+double tankarea(EN_Project *pr, int i, double h)
+/*
+**-------------------------------------------------------------------
+**  Input:   i = tank index
+**           h = tank head
+**  Output:  returns tank's surface area
+**  Purpose: finds surface area in tank i at surface elevation h.
+**-------------------------------------------------------------------
+*/
+{
+    int j;
+    double depth, slope, y0;
+
+    EN_Network *net = &pr->network;
+    Stank *tank = &net->Tank[i];
+    Scurve *curve;
+
+    // Use tank's constant area if no volume curve
+    j = tank->Vcurve;
+    if (j == 0) return tank->A;
+
+    // If curve exists, area is slope of volume curve at depth h - elev
+    else
+    {
+        curve = &net->Curve[j];
+        depth = (h - net->Node[tank->Node].El) * pr->Ucf[HEAD];
+        getcurvesegment(curve->Npts, curve->X, curve->Y, depth, &slope, &y0);
+        return slope *  pr->Ucf[HEAD] / pr->Ucf[VOLUME];
+    }
+}
+
+
 double  tankvolume(EN_Project *pr, int i, double h)
 /*
 **--------------------------------------------------------------------
@@ -1211,24 +1252,23 @@ double  tankgrade(EN_Project *pr, int i, double v)
 **-------------------------------------------------------------------
 */
 {
-  int j;
-  EN_Network *net = &pr->network;
-  Stank *tank = &net->Tank[i];
-  /* Use area if no volume curve */
-  j = tank->Vcurve;
-  if (j == 0) {
-    return(tank->Hmin + (v - tank->Vmin) / tank->A);
-  }
-  
-  /* If curve exists, interpolate on volume (originally the Y-variable */
-  /* but used here as the X-variable) to find new level above bottom.  */
-  /* Remember that volume curve is stored in original units.           */
-  else {
-    Scurve *curve = &net->Curve[j];
-    return(net->Node[tank->Node].El + interp(curve->Npts, curve->Y, curve->X, v * pr->Ucf[VOLUME]) / pr->Ucf[HEAD]);
-  }
-  
-}                        /* End of tankgrade */
+    int j;
+    double y;
 
-
-/****************  END OF HYDRAUL.C  ***************/
+    EN_Network *net = &pr->network;
+    Stank *tank = &net->Tank[i];
+  
+    // Find water level from constant area if no volume curve
+    j = tank->Vcurve;
+    if (j == 0) return(tank->Hmin + (v - tank->Vmin) / tank->A);
+  
+    // If curve exists, interpolate on volume (originally the Y-variable
+    // but used here as the X-variable) to find new level above bottom.
+    // Remember that volume curve is stored in original units.
+    else
+    {
+        Scurve *curve = &net->Curve[j];
+        y = interp(curve->Npts, curve->Y, curve->X, v * pr->Ucf[VOLUME]);
+        return(net->Node[tank->Node].El + y / pr->Ucf[HEAD]);
+    }
+}

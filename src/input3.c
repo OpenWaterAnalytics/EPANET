@@ -1762,7 +1762,7 @@ int optionchoice(EN_Project *pr, int n)
 **    VERIFY              filename
 **    UNBALANCED          STOP/CONTINUE {Niter}
 **    PATTERN             id
-**    DEMAND MODEL        DDA/PDA/PPA
+**    DEMAND MODEL        DDA/PDA
 **--------------------------------------------------------------
 */
 {
@@ -1889,6 +1889,7 @@ int optionchoice(EN_Project *pr, int n)
       if (choice < 0) return 201;
       hyd->DemandModel = choice;
   }
+
   else return (-1);
   return (0);
 } /* end of optionchoice */

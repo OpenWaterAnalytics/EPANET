@@ -121,7 +121,7 @@ typedef enum {
   EN_PRICEPATTERN = 19,
   EN_STATE        = 20,
   EN_CONST_POWER  = 21,
-  EN_SPEED        = 22
+  EN_SPEED        = 22  
 } EN_LinkProperty;
 
 /// Time parameter codes
@@ -193,7 +193,7 @@ typedef enum {
   EN_FLOWPACED   = 3
 } EN_SourceType;
 
-typedef enum {          /* Head loss formula:                  */
+typedef enum {           /* Head loss formula:                  */
   EN_HW          = 0,    /*   Hazen-Williams                    */
   EN_DW          = 1,    /*   Darcy-Weisbach                    */
   EN_CM          = 2     /*   Chezy-Manning                     */
@@ -212,8 +212,8 @@ typedef enum {
   EN_CMD         = 9
 } EN_FlowUnits;
 
-typedef enum {           /* Demand model types. */
-  EN_DDA         = 0,   /**< Demand driven analysis */
+typedef enum {          /* Demand model types.        */
+  EN_DDA         = 0,   /**< Demand driven analysis   */
   EN_PDA         = 1    /**< Pressure driven analysis */
 } EN_DemandModel;
 
@@ -260,7 +260,7 @@ typedef enum {
   EN_CONST_HP    = 0,   /* constant horsepower       */
   EN_POWER_FUNC  = 1,   /* power function            */
   EN_CUSTOM      = 2,   /* user-defined custom curve */
-  EN_NOCURVE     = 3    /* no curve                  */
+  EN_NOCURVE = 3        /* no curve                  */
 } EN_PumpType;
 
 typedef enum {
@@ -268,7 +268,7 @@ typedef enum {
   EN_P_CURVE     = 1,   /*    pump curve                        */
   EN_E_CURVE     = 2,   /*    efficiency curve                  */
   EN_H_CURVE     = 3,   /*    head loss curve                   */
-  EN_G_CURVE     = 4    /*    General\default curve             */
+  EN_G_CURVE     = 4    /*    general\default curve             */
 } EN_CurveType;
 
 // --- Declare the EPANET toolkit functions
@@ -798,7 +798,7 @@ extern "C" {
    @see EN_PumpType
    */
   int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
-
+  
   /**
    @brief Get the type of a curve
    @param curveIndex The index of the curve element
@@ -807,7 +807,7 @@ extern "C" {
    @see EN_CurveType
    */
   int  DLLEXPORT ENgetcurvetype(int curveIndex, int *outType);
-    
+  
   /**
    @brief Get the version number. This number is to be interpreted with implied decimals, i.e., "20100" == "2(.)01(.)00"
    @param[out] version The version of EPANET

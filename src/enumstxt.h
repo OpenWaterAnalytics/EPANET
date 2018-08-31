@@ -83,7 +83,6 @@ char *QualTxt[]         = {w_NONE,
                            w_AGE,
                            w_TRACE};  
 
-
 char *SourceTxt[]       = {w_CONCEN,
                            w_MASS,
                            w_SETPOINT,
