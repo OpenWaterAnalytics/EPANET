@@ -403,6 +403,13 @@ int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex,
                        level);
 }
 
+int DLLEXPORT ENaddcontrol(int *cindex, int ctype, int lindex,
+                           EN_API_FLOAT_TYPE setting, int nindex,
+                           EN_API_FLOAT_TYPE level) {
+  return EN_addcontrol(_defaultModel, cindex, ctype, lindex, setting, nindex,
+                       level);
+}
+
 int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v) {
   return EN_setnodevalue(_defaultModel, index, code, v);
 }
@@ -2571,6 +2578,16 @@ int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char *id, int *nV
  Functions for changing network data
  ----------------------------------------------------------------
  */
+
+int DLLEXPORT EN_addcontrol(EN_ProjectHandle ph, int *cindex, int ctype, int lindex,
+                            EN_API_FLOAT_TYPE setting, int nindex,
+                            EN_API_FLOAT_TYPE level) {
+  
+  EN_Project *p = (EN_Project*)ph;
+  
+
+  return set_error(p->error_handle, 0);
+}
 
 int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lindex,
                             EN_API_FLOAT_TYPE setting, int nindex,

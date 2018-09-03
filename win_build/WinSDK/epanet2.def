@@ -41,6 +41,7 @@ EXPORTS
     ENsaveH                       = _ENsaveH@0                          
     ENsavehydfile                 = _ENsavehydfile@4                    
     ENsaveinpfile                 = _ENsaveinpfile@4                    
+    ENaddcontrol                  = _ENaddcontrol@24                    
     ENsetcontrol                  = _ENsetcontrol@24                    
     ENsetlinkvalue                = _ENsetlinkvalue@12                  
     ENsetnodevalue                = _ENsetnodevalue@12                  
