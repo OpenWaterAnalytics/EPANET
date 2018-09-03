@@ -260,4 +260,61 @@ BOOST_FIXTURE_TEST_CASE(test_addpattern, Fixture)
     BOOST_REQUIRE(pat_index == n_patterns_2);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_add_control, Fixture)
+{
+    int flag = 00;
+    long t, tstep;
+    float h1, h2;
+
+    // run with original controls
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_initH(ph, flag);
+    BOOST_REQUIRE(error == 0);
+    do {
+        error = EN_runH(ph, &t);
+        BOOST_REQUIRE(error == 0);
+        error = EN_getnodevalue(ph, 11, EN_HEAD, h1); // get the tank head
+        BOOST_REQUIRE(error == 0);
+        error = EN_nextH(ph, &tstep);
+        BOOST_REQUIRE(error == 0);
+    } while (tstep > 0);
+    
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+    
+    // disable current controls 
+    error = ENsetcontrol(ph, 1, EN_LOWLEVEL, 0, 0, 0, 0);
+    BOOST_REQUIRE(error == 0);
+    error = ENsetcontrol(ph, 2, EN_HILEVEL, 0, 0, 0, 0);
+    BOOST_REQUIRE(error == 0);
+    
+    // add new controls
+    error = ENaddcontrol(ph, Cindex, EN_LOWLEVEL, Lindex, 1, Nindex, 110);
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(Cindex == 3);
+    error = ENaddcontrol(ph, Cindex, EN_HILEVEL, Lindex, 0, Nindex, 140);
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(Cindex == 4);
+
+    // run with new controls
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_initH(ph, flag);
+    BOOST_REQUIRE(error == 0);
+    do {
+        error = EN_runH(ph, &t);
+        BOOST_REQUIRE(error == 0);
+        error = EN_getnodevalue(ph, 11, EN_HEAD, h2); // get the tank head
+        BOOST_REQUIRE(error == 0);
+        error = EN_nextH(ph, &tstep);
+        BOOST_REQUIRE(error == 0);
+    } while (tstep > 0);
+    
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+    
+    BOOST_REQUIRE(h1 == h2); // end head should be the same with new controls
+}
+
 BOOST_AUTO_TEST_SUITE_END()
