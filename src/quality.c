@@ -29,9 +29,9 @@ AUTHOR:     L. Rossman
     closequal()  -- called from ENcloseQ() in EPANET.C
 
   Calls are made to:
-    AllocInit()
-    Alloc()
-    AllocFree()
+    mempool_create()
+    mempool_alloc()
+    mempool_delete()
   in MEMPOOL.C to utilize a memory pool to prevent excessive malloc'ing
   when constantly creating and destroying pipe sub-segments during
   the water quality transport calculations.
@@ -89,7 +89,7 @@ int openqual(EN_Project *pr)
 
   /* Allocate memory pool for WQ segments */
   qu->OutOfMemory = FALSE;
-  qu->SegPool = AllocInit(); 
+  qu->SegPool = mempool_create();
   if (qu->SegPool == NULL) {
     errcode = 101; 
   }
@@ -193,8 +193,7 @@ void initqual(EN_Project *pr)
 
     /* Reset memory pool */
     qu->FreeSeg = NULL;
-    AllocSetPool(qu->SegPool); 
-    AllocReset();              
+    mempool_reset(qu->SegPool);
   }
 
   /* Initialize avg. reaction rates */
@@ -438,8 +437,7 @@ int closequal(EN_Project *pr)
   /* Free memory pool */
   if (qu->SegPool)             
   {                            
-    AllocSetPool(qu->SegPool); 
-    AllocFreePool();           
+      mempool_delete(qu->SegPool);
   }                            
 
   free(qu->FirstSeg);
@@ -573,7 +571,6 @@ void transport(EN_Project *pr, long tstep)
 
   /* Repeat until elapsed time equals hydraulic time step */
 
-  AllocSetPool(qu->SegPool); 
   qtime = 0;
   while (!qu->OutOfMemory && qtime < tstep) { /* Qstep is quality time step */
     dt = MIN(qu->Qstep, tstep - qtime);       /* Current time step */
@@ -793,7 +790,7 @@ void addseg(EN_Project *pr, int k, double v, double c)
     seg = qu->FreeSeg;
     qu->FreeSeg = seg->prev;
   } else {
-    seg = (struct Sseg *)Alloc(sizeof(struct Sseg));
+    seg = (struct Sseg *) mempool_alloc(qu->SegPool, sizeof(struct Sseg));
     if (seg == NULL) {
       qu->OutOfMemory = TRUE;
       return;

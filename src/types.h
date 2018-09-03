@@ -22,7 +22,6 @@ AUTHOR:     L. Rossman
 
 #include "epanet2.h"
 #include "hash.h"
-#include "mempool.h"
 #include "util/errormanager.h"
 
 
@@ -538,6 +537,8 @@ typedef struct s_ActItem        /* Action list item */
 } ActItem;
 
 
+// Forward declaration of the Mempool structure defined in mempool.h
+struct Mempool;
 
 typedef struct {
   char
@@ -578,7 +579,7 @@ typedef struct {
   Qtime; /// Current quality time (sec)
   
   char      OutOfMemory;          /* Out of memory indicator                 */
-  alloc_handle_t *SegPool;        // Memory pool for water quality segments   
+  struct Mempool *SegPool;        // Memory pool for water quality segments   
   
   Pseg      FreeSeg;              /* Pointer to unused segment               */
   Pseg      *FirstSeg,            /* First (downstream) segment in each pipe */
