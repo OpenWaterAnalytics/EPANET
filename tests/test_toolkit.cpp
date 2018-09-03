@@ -290,10 +290,10 @@ BOOST_FIXTURE_TEST_CASE(test_add_control, Fixture)
     BOOST_REQUIRE(error == 0);
     
     // add new controls
-    error = ENaddcontrol(ph, Cindex, EN_LOWLEVEL, Lindex, 1, Nindex, 110);
+    error = ENaddcontrol(ph, Cindex, EN_LOWLEVEL, 13, 1, 11, 110);
     BOOST_REQUIRE(error == 0);
     BOOST_REQUIRE(Cindex == 3);
-    error = ENaddcontrol(ph, Cindex, EN_HILEVEL, Lindex, 0, Nindex, 140);
+    error = ENaddcontrol(ph, Cindex, EN_HILEVEL, 13, 0, 11, 140);
     BOOST_REQUIRE(error == 0);
     BOOST_REQUIRE(Cindex == 4);
 
