@@ -2582,9 +2582,133 @@ int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char *id, int *nV
 int DLLEXPORT EN_addcontrol(EN_ProjectHandle ph, int *cindex, int ctype, int lindex,
                             EN_API_FLOAT_TYPE setting, int nindex,
                             EN_API_FLOAT_TYPE level) {
+  char status = ACTIVE;
+  int i, n;
+  long t = 0, nControls;
+  double s = setting, lvl = level;
+  EN_Network *net;
+  Snode *Node;
+  Slink *Link;
+  Scontrol *Control;
+  Scontrol *tmpControl;
   
+  int Nnodes;
+  int Njuncs;
+  int Nlinks;
+  double *Ucf;
+    
   EN_Project *p = (EN_Project*)ph;
+  parser_data_t *par = &p->parser;
+
+  /* Check that input file opened */
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
   
+  net = &p->network;
+  Node = net->Node;
+  Link = net->Link;
+  Control = net->Control;
+  
+  Nnodes = net->Nnodes;
+  Njuncs = net->Njuncs;
+  Nlinks = net->Nlinks;
+  nControls = net->Ncontrols;
+  
+  Ucf = p->Ucf;
+    
+  /* Check that controlled link exists */
+  if (lindex < 0 || lindex > Nlinks)
+    return set_error(p->error_handle, 204);
+
+  /* Cannot control check valve. */
+  if (Link[lindex].Type == EN_CVPIPE)
+    return set_error(p->error_handle, 207);
+
+  /* Check for valid parameters */
+  if (ctype < 0 || ctype > EN_TIMEOFDAY)
+    return set_error(p->error_handle, 251);
+  if (ctype == EN_LOWLEVEL || ctype == EN_HILEVEL) {
+    if (nindex < 1 || nindex > Nnodes)
+      return set_error(p->error_handle, 203);
+  } else
+    nindex = 0;
+  if (s < 0.0 || lvl < 0.0)
+    return set_error(p->error_handle, 202);
+  
+  /* Adjust units of control parameters */
+  switch (Link[lindex].Type) {
+    case EN_PRV:
+    case EN_PSV:
+    case EN_PBV:
+      s /= Ucf[PRESSURE];
+      break;
+    case EN_FCV:
+      s /= Ucf[FLOW];
+      break;
+    case EN_GPV:
+      if (s == 0.0)
+        status = CLOSED;
+      else if (s == 1.0)
+        status = OPEN;
+      else
+        return set_error(p->error_handle, 202);
+      s = Link[lindex].Kc;
+      break;      
+    case EN_PIPE:
+    case EN_PUMP:
+      status = OPEN;
+      if (s == 0.0)
+        status = CLOSED;
+    default:
+      break;
+  }
+
+  if (ctype == LOWLEVEL || ctype == HILEVEL) {
+    if (nindex > Njuncs)
+      lvl = Node[nindex].El + level / Ucf[ELEV];
+    else
+      lvl = Node[nindex].El + level / Ucf[PRESSURE];
+  }
+  if (ctype == TIMER)
+    t = (long)ROUND(lvl);
+  if (ctype == TIMEOFDAY)
+    t = (long)ROUND(lvl) % SECperDAY;
+
+  //new control is good
+  /* Allocate memory for a new array of controls */
+  n = nControls + 1;
+  tmpControl = (Scontrol *)calloc(n + 1, sizeof(Scontrol));
+  if (tmpControl == NULL)
+    return set_error(p->error_handle, 101);
+
+  /* Copy contents of old controls array to new one */
+  for (i = 0; i <= nControls; i++) {
+    tmpControl[i].Type = Control[i].Type;
+    tmpControl[i].Link = Control[i].Link;
+    tmpControl[i].Node = Control[i].Node;
+    tmpControl[i].Status = Control[i].Status;
+    tmpControl[i].Setting = Control[i].Setting;
+    tmpControl[i].Grade = Control[i].Grade;
+    tmpControl[i].Time = Control[i].Time;
+  }
+
+  /* Add the new control to the new array of controls */
+  tmpControl[n].Type = (char)ctype;
+  tmpControl[n].Link = lindex;
+  tmpControl[n].Node = nindex;
+  tmpControl[n].Status = status;
+  tmpControl[n].Setting = s;
+  tmpControl[n].Grade = lvl;
+  tmpControl[n].Time = t;
+
+  // Replace old control array with new one
+  free(Control);
+  net->Control = tmpControl;
+  net->Ncontrols = n;
+  par->MaxControls = n;
+
+  // return the new control index
+  *cindex = n;
 
   return set_error(p->error_handle, 0);
 }
@@ -2614,7 +2738,6 @@ int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lind
   /* Check that control exists */
   if (cindex < 1 || cindex > p->network.Ncontrols)
     return set_error(p->error_handle, 241);
-
   
   net = &p->network;
   
