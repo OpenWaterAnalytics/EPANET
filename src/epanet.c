@@ -4680,6 +4680,10 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   Stank *tank;
   Snode *node;
   Scoord *coord;
+  Scontrol *control;
+  rules_t *rule;
+  Premise *pchain, *pnext;
+  
   
   /* Check if a node with same id already exists */
   if (!p->Openflag)
@@ -4730,6 +4734,53 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
         net->Link[index].N2 += 1;
       }
     }
+    
+    // shift indices of Controls,
+    // for high-index nodes (tanks/reservoirs)
+    for (index = 1; index <= net->Ncontrols; ++index) {
+      control = &net->Control[index];
+      if (control->Node > net->Njuncs - 1) {
+        control->Node += 1;
+      }
+    }
+    
+    // shift indices of Rules for tanks/reservoirs
+    for (index = 1; index <= net->Nrules; ++index) {
+      pchain = (&p->rules)->Rule[i].Pchain;
+      while (pchain != NULL) {
+        pnext = pchain->next;
+        // object types are: (duplicated here from rules.c --> TODO: move these to external definition?
+//        enum Objects {
+//          r_JUNC,
+//          r_RESERV,
+//          r_TANK,
+//          r_PIPE,
+//          r_PUMP,
+//          r_VALVE,
+//          r_NODE,
+//          r_LINK,
+//          r_SYSTEM
+//        };
+        
+        // if object is a node
+        switch (pchain->object) {
+          case 0: // junc
+          case 1: // reservoir
+          case 2: // tank
+          case 6: // node
+            // if the junction needs to be re-indexed:
+            if (pchain->index > net->Njuncs) {
+              pchain->index += 1;
+            }
+            break;
+          default:
+            break;
+        }
+        // next premise in the chain
+        pchain = pnext;
+      }
+    }
+    
   } else {
     nIdx = net->Nnodes+1;
     node = &net->Node[nIdx];
@@ -4966,6 +5017,8 @@ int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int index) {
 
   EN_getnodetype(p, index, &nodeType);
 
+  // TODO: check for existing controls/rules that reference this node? 
+  
   // remove from hash table
   ENHashTableDelete(net->NodeHashTable, net->Node[index].ID);
 
