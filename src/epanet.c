@@ -279,6 +279,10 @@ int DLLEXPORT ENgetflowunits(int *code) {
   return EN_getflowunits(_defaultModel, code);
 }
 
+int DLLEXPORT ENgetheadlossformula(int *code) {
+  return EN_getheadlossformula(_defaultModel, code);
+}
+
 int DLLEXPORT ENsetflowunits(int code) {
   return EN_setflowunits(_defaultModel, code);
 }
@@ -1561,6 +1565,17 @@ int DLLEXPORT EN_getflowunits(EN_ProjectHandle ph, int *code) {
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
   *code = p->parser.Flowflag;
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT EN_getheadlossformula(EN_ProjectHandle ph, int *code) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  *code = -1;
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  *code = p->hydraulics.Formflag;
   return set_error(p->error_handle, 0);
 }
 
