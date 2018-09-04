@@ -1179,6 +1179,8 @@ extern "C" {
    ***************************************************/
   int DLLEXPORT EN_createproject(EN_ProjectHandle *ph);
   int DLLEXPORT EN_deleteproject(EN_ProjectHandle *ph);
+  int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2, 
+          const char *f3, void (*pviewprog)(char *));
 
   void DLLEXPORT EN_clearError(EN_ProjectHandle ph);
   int DLLEXPORT EN_checkError(EN_ProjectHandle ph, char** msg_buffer);
