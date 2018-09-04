@@ -182,6 +182,7 @@ Public Const EN_CUSTOM = 2        ' user-defined custom curve
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal Code As Int32, ByRef Value As Single) As Int32
  Declare Function ENgettimeparam Lib "epanet2.dll" (ByVal Code As Int32, ByRef Value As Int32) As Int32
  Declare Function ENgetflowunits Lib "epanet2.dll" (ByRef Code As Int32) As Int32
+ Declare Function ENgetheadlossformula Lib "epanet2.dll" (ByRef Code As Int32) As Int32
  Declare Function ENgetpatternindex Lib "epanet2.dll" (ByVal ID As String, ByRef Index As Int32) As Int32
  Declare Function ENgetpatternid Lib "epanet2.dll" (ByVal Index As Int32, ByVal ID As StringBuilder) As Int32
  Declare Function ENgetpatternlen Lib "epanet2.dll" (ByVal Index As Int32, ByRef L As Int32) As Int32
