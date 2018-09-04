@@ -132,7 +132,7 @@ execute function x and set the error code equal to its return value.
 
 // This single global variable is used only when the library is called
 // in "legacy mode" with the 2.1-style API. 
-EN_Project *_defaultModel;
+void *_defaultModel;
 
 
 // Local functions
@@ -164,12 +164,15 @@ void errorLookup(int errcode, char *errmsg, int len);
 int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
 {
   int errcode = 0;
+  EN_Project *p = NULL;
 
   ERRCODE(EN_createproject(&_defaultModel));
   ERRCODE(EN_open(_defaultModel, f1, f2, f3));
-  _defaultModel->viewprog = pviewprog;
 
-  if (_defaultModel->out_files.Hydflag != USE) {
+  p = (EN_Project*)(_defaultModel);
+  p->viewprog = pviewprog;
+
+  if (p->out_files.Hydflag != USE) {
     ERRCODE(EN_solveH(_defaultModel));
   }
 
@@ -179,6 +182,14 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
   EN_close(_defaultModel);
   EN_deleteproject(&_defaultModel);
 
+  return (errcode);
+}
+
+int DLLEXPORT ENinit(char *f2, char *f3, int UnitsType,
+                     int HeadlossFormula) {
+  int errcode = 0;
+  ERRCODE(EN_createproject(&_defaultModel));
+  ERRCODE(EN_init(_defaultModel, f2, f3, UnitsType, HeadlossFormula));
   return (errcode);
 }
 
@@ -473,6 +484,10 @@ int DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx,
   return EN_setbasedemand(_defaultModel, nodeIndex, demandIdx, baseDemand);
 }
 
+int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, int patIndex) {
+  return EN_setdemandpattern(_defaultModel, nodeIndex, demandIdx, patIndex);
+}
+
 int DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx) {
   return EN_getdemandpattern(_defaultModel, nodeIndex, demandIdx, pattIdx);
 }
@@ -598,8 +613,29 @@ int DLLEXPORT EN_deleteproject(EN_ProjectHandle *ph)
     return 0;
 }
 
+int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2, 
+  const char *f3, void (*pviewprog)(char *))
+{
+    int errcode = 0;
+    EN_Project *p = NULL;
 
-int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
+    ERRCODE(EN_open(ph, f1, f2, f3));
+    p = (EN_Project*)(ph);
+    p->viewprog = pviewprog;
+  
+    if (p->out_files.Hydflag != USE) {
+      ERRCODE(EN_solveH(ph));
+    }
+  
+    ERRCODE(EN_solveQ(ph));
+    ERRCODE(EN_report(ph));
+  
+    EN_close(ph);
+  
+    return errcode;
+}
+
+int DLLEXPORT EN_init(EN_ProjectHandle ph, char *f2, char *f3,
                       EN_FlowUnits UnitsType, EN_FormType HeadlossFormula)
 /*----------------------------------------------------------------
  **  Input:
@@ -620,7 +656,7 @@ int DLLEXPORT EN_init(EN_ProjectHandle *ph, char *f2, char *f3,
   _fpreset();
 #endif
 
-  EN_Project *pr = (EN_Project*)*ph;
+  EN_Project *pr = (EN_Project*)ph;
 
   /* Set system flags */
   pr->Openflag = TRUE;
@@ -3100,7 +3136,7 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
 
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
-  if (ENgetpatternindex(id, &i) == 0)
+  if (EN_getpatternindex(ph, id, &i) == 0)
     return set_error(p->error_handle, 215);
 
   /* Check that id name is not too long */
@@ -3153,7 +3189,7 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
   for (i = 0; i <= Npats; i++)
     free(Pattern[i].F);
   free(Pattern);
-  Pattern = tmpPat;
+  net->Pattern = tmpPat;
   net->Npats = n;
   par->MaxPats = n;
   return set_error(p->error_handle, 0);
@@ -3640,7 +3676,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   double *Ucf = p->Ucf;
   int pIdx;
   Spump *pump;
-  
+
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) {
@@ -4474,7 +4510,7 @@ int DLLEXPORT EN_getbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx
   if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes)
     return set_error(p->error_handle, 203);
   if (nodeIndex <= p->network.Njuncs) {
-    for (d = p->network.Node[nodeIndex].D; n < demandIdx && d != NULL; d = d->next) {
+    for (d = p->network.Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next) {
       n++;
     }
     if (n != demandIdx) {
@@ -4507,11 +4543,41 @@ int DLLEXPORT EN_setbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx
   if (nodeIndex <= 0 || nodeIndex > Nnodes)
     return set_error(pr->error_handle, 203);
   if (nodeIndex <= Njuncs) {
-    for (d = Node[nodeIndex].D; n < demandIdx && d != NULL; d = d->next)
+    for (d = Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next)
       n++;
     if (n != demandIdx)
       return set_error(pr->error_handle, 253);
     d->Base = baseDemand / Ucf[FLOW];
+  }
+  return set_error(pr->error_handle, 0);
+}
+
+int  DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIdx, int patIndex) {
+	
+  EN_Project *pr = (EN_Project*)ph;
+
+  EN_Network *net = &pr->network;
+  Snode *Node = net->Node;
+  
+  const int Nnodes = net->Nnodes;
+  const int Njuncs = net->Njuncs;
+  const int Npats = net->Npats;
+    
+  Pdemand d;
+  int n = 1;
+  /* Check for valid arguments */
+  if (!pr->Openflag)
+    return set_error(pr->error_handle, 102);
+  if (nodeIndex <= 0 || nodeIndex > Nnodes)
+    return set_error(pr->error_handle, 203);
+  if (patIndex < 1 || patIndex > Npats) 
+    return(205);
+  if (nodeIndex <= Njuncs) {
+    for (d = Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next)
+      n++;
+    if (n != demandIdx)
+      return set_error(pr->error_handle, 253);
+  d->Pat = patIndex;
   }
   return set_error(pr->error_handle, 0);
 }
@@ -4531,7 +4597,7 @@ int DLLEXPORT EN_getdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demand
     return set_error(p->error_handle, 102);
   if (nodeIndex <= 0 || nodeIndex > Nnodes)
     return set_error(p->error_handle, 203);
-  for (d = Node[nodeIndex].D; n < demandIdx && d != NULL; d = d->next)
+  for (d = Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next)
     n++;
   if (n != demandIdx)
     return set_error(p->error_handle, 253);
@@ -4846,6 +4912,7 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
   link->Type = linkType;
   link->N1 = N1;
   link->N2 = N2;
+  link->Stat = OPEN;
 
   if (linkType == EN_PUMP) {
     link->Kc = 1.0; // Speed factor
@@ -4861,22 +4928,13 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
     link->Kc = 0.0; // Valve setting.
     link->Km = 0.0; // Loss coeff
     link->Len = 0.0;
+    link->Stat = ACTIVE;
   }
-  // link->Len = 0.0;
-  // link->Kc  = 0.01;
-  // link->Km  = 0;
   link->Kb = 0;
   link->Kw = 0;
   link->R = 0;
   link->Rc = 0;
   link->Rpt = 0;
-  
-  if (linkType == EN_CVPIPE) {
-    link->Stat = OPEN;
-  }
-  else {
-    link->Stat = CLOSED;
-  }
   
   ENHashTableInsert(net->LinkHashTable, link->ID, n);
   return set_error(p->error_handle, 0);

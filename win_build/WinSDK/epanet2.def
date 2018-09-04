@@ -65,8 +65,10 @@ EXPORTS
     ENsetcoord                    = _ENsetcoord@12
     ENgetqualinfo                 = _ENgetqualinfo@16
     ENsetbasedemand               = _ENsetbasedemand@12
+    ENsetdemandpattern            = _ENsetdemandpattern@12
     ENgetaveragepatternvalue      = _ENgetaveragepatternvalue@8
     ENgetheadcurveindex           = _ENgetheadcurveindex@8
+    ENsetheadcurveindex           = _ENsetheadcurveindex@8
     ENgetpumptype                 = _ENgetpumptype@8
     ENgetcurveindex               = _ENgetcurveindex@8                
     ENgetcurveid                  = _ENgetcurveid@8                   
@@ -96,4 +98,4 @@ EXPORTS
     ENgetdemandmodel              = _ENgetdemandmodel@16
     ENsetdemandmodel              = _ENsetdemandmodel@16
     ENgetcurvetype                = _ENgetcurvetype@8
-
+    ENinit                        = _ENinit@16

@@ -16,9 +16,18 @@ enable_testing()
 # Sets for output directory for executables and libraries. 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+if(UNIX)
+    set(CMAKE_CXX_FLAGS "-std=c++11")
+endif(UNIX)
 
 #Prep ourselves for compiling boost
-find_package(Boost REQUIRED)
+if(MSVC)
+    set(Boost_DEBUG                 OFF)
+    set(Boost_DETAILED_FAILURE_MSG  OFF)
+    set(Boost_USE_STATIC_LIBS       ON)
+endif(MSVC)
+set(Boost_THREAD_FOUND              OFF)    
+find_package(Boost COMPONENTS thread)
 include_directories (${Boost_INCLUDE_DIRS})
 
 
