@@ -80,6 +80,7 @@ target_include_directories(epanet PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 
 # create export lib so we can link against dll using Visual Studio
+add_definitions(-DWITH_GENX)
 include(GenerateExportHeader)
 GENERATE_EXPORT_HEADER(epanet
     BASE_NAME epanet

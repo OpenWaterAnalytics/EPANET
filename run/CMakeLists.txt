@@ -17,6 +17,7 @@ include_directories(include)
 
 source_group("CLI" FILES ${EPANET_CLI_SOURCES})
 
+add_definitions(-DWITH_GENX)
 
 # Creates the EPANET command line executable
 add_executable(runepanet ${EPANET_CLI_SOURCES})
