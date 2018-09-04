@@ -3541,7 +3541,12 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
           return set_error(p->error_handle, 202);
       hyd->FlowChangeLimit = value / Ucf[FLOW];
       break;
-
+  case EN_HEADLOSSFORM:
+	  if (value < 0.0 || value > 3.0)
+	      return set_error(p->error_handle, 202);
+      p->hydraulics.Formflag = value;
+	break;
+	
   default:
     return set_error(p->error_handle, 251);
   }
