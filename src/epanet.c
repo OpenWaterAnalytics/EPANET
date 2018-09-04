@@ -4893,6 +4893,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   node->C0 = 0;
   node->Ke = 0;
   node->Rpt = 0;
+  strcpy(node->Comment, "");
 
   coord->HaveCoords = FALSE;
   coord->X = 0;
@@ -5003,6 +5004,7 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
   link->R = 0;
   link->Rc = 0;
   link->Rpt = 0;
+  strcpy(link->Comment, "");
   
   ENHashTableInsert(net->LinkHashTable, link->ID, n);
   return set_error(p->error_handle, 0);
