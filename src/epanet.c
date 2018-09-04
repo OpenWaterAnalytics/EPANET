@@ -2360,7 +2360,7 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
       
     case EN_INITSETTING:
       if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
-        return set_error(p->error_handle, ENgetlinkvalue(index, EN_ROUGHNESS, value));
+        return set_error(p->error_handle, EN_getlinkvalue(p, index, EN_ROUGHNESS, value));
       v = Link[index].Kc;
       switch (Link[index].Type) {
         case EN_PRV:
@@ -2463,7 +2463,7 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
       
     case EN_SETTING:
       if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE) {
-        return set_error(p->error_handle, ENgetlinkvalue(index, EN_ROUGHNESS, value));
+        return set_error(p->error_handle, EN_getlinkvalue(p, index, EN_ROUGHNESS, value));
       }
       if (LinkSetting[index] == MISSING) {
         v = 0.0;
@@ -3186,7 +3186,7 @@ int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
     if (value < 0.0)
       return set_error(p->error_handle, 202);
     if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
-      return set_error(p->error_handle, ENsetlinkvalue(index, EN_ROUGHNESS, v));
+      return set_error(p->error_handle, EN_setlinkvalue(p, index, EN_ROUGHNESS, v));
     else {
       switch (Link[index].Type) {
       case EN_PUMP:
@@ -3380,7 +3380,7 @@ int DLLEXPORT EN_addcurve(EN_ProjectHandle ph, char *id) {
 
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
-  if (ENgetcurveindex(id, &i) == 0)
+  if (EN_getcurveindex(p, id, &i) == 0)
     return set_error(p->error_handle, 215);
 
   /* Check that id name is not too long */
@@ -3656,7 +3656,7 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
     n = 1.0 / value;
     ucf = pow(Ucf[FLOW], n) / Ucf[PRESSURE];
     for (i = 1; i <= Njuncs; i++) {
-      j = ENgetnodevalue(i, EN_EMITTER, &v);
+      j = EN_getnodevalue(p, i, EN_EMITTER, &v);
       Ke = v;
       if (j == 0 && Ke > 0.0)
         Node[i].Ke = ucf / pow(Ke, n);
@@ -4763,7 +4763,7 @@ int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType toType) 
     return set_error(p->error_handle, 215);
 
   /* Get the current type of the link */
-  ENgetlinktype(i, &fromType);
+  EN_getlinktype(p, i, &fromType);
   if (fromType == toType)
     return set_error(p->error_handle, 0);
 
@@ -4803,7 +4803,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   /* Check if a node with same id already exists */
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
-  if (ENgetnodeindex(id, &i) == 0)
+  if (EN_getnodeindex(p, id, &i) == 0)
     return set_error(p->error_handle, 215);
 
   /* Check that id name is not too long */
@@ -4918,7 +4918,7 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
   /* Check if a link with same id already exists */
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
-  if (ENgetlinkindex(id, &i) == 0)
+  if (EN_getlinkindex(p, id, &i) == 0)
     return set_error(p->error_handle, 215);
 
   /* Lookup the from and to nodes */
