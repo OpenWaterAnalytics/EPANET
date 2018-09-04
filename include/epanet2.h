@@ -529,13 +529,6 @@ extern "C" {
   int  DLLEXPORT ENgetflowunits(int *code);
   
   /**
-   @brief Retrieves the headloss formula code
-   @param[out] code Code of headloss formula in use
-   @return Error code
-   */
-  int  DLLEXPORT ENgetheadlossformula(int *code);
-  
-  /**
    @brief Sets the flow units
    @param code Code of flow units to use
    @return Error code
@@ -1230,7 +1223,6 @@ extern "C" {
   int DLLEXPORT EN_getoption(EN_ProjectHandle ph, EN_Option opt, EN_API_FLOAT_TYPE *value);
   int DLLEXPORT EN_gettimeparam(EN_ProjectHandle ph, int code, long *value);
   int DLLEXPORT EN_getflowunits(EN_ProjectHandle ph, int *code);
-  int DLLEXPORT EN_getheadlossformula(EN_ProjectHandle ph, int *code);
   int DLLEXPORT EN_setflowunits(EN_ProjectHandle ph, int code);
   int DLLEXPORT EN_getpatternindex(EN_ProjectHandle ph, char *id, int *index);
   int DLLEXPORT EN_getpatternid(EN_ProjectHandle ph, int index, char *id);

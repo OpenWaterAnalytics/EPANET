@@ -99,4 +99,3 @@ EXPORTS
     ENsetdemandmodel              = _ENsetdemandmodel@16
     ENgetcurvetype                = _ENgetcurvetype@8
     ENinit                        = _ENinit@16
-	ENgetheadlossformula          = _ENgetheadlossformula@4                   

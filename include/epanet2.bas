@@ -205,7 +205,6 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal code As Long, value As Single) As Long
  Declare Function ENgettimeparam Lib "epanet2.dll" (ByVal code As Long, value As Long) As Long
  Declare Function ENgetflowunits Lib "epanet2.dll" (code As Long) As Long
- Declare Function ENgetheadlossformula Lib "epanet2.dll" (code As Long) As Long
  Declare Function ENgetpatternindex Lib "epanet2.dll" (ByVal id As String, index As Long) As Long
  Declare Function ENgetpatternid Lib "epanet2.dll" (ByVal index As Long, ByVal id As String) As Long
  Declare Function ENgetpatternlen Lib "epanet2.dll" (ByVal index As Long, L As Long) As Long
