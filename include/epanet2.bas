@@ -138,6 +138,7 @@ Public Const EN_EMITEXPON = 3
 Public Const EN_DEMANDMULT = 4
 Public Const EN_HEADERROR = 5
 Public Const EN_FLOWCHANGE = 6
+Public Const EN_HEADLOSSFORM = 7
 
 Public Const EN_LOWLEVEL = 0     ' Control types
 Public Const EN_HILEVEL = 1
