@@ -78,7 +78,7 @@ Public Const EN_NEXTEVENT = 14
 
 Public Const EN_ITERATIONS = 0
 Public Const EN_RELATIVEERROR = 1
-Public Const EN_MAXHEADERROR  = 2
+Public Const EN_MAXHEADERROR = 2
 Public Const EN_MAXFLOWCHANGE = 3
 
 Public Const EN_NODECOUNT = 0     'Component counts
@@ -234,14 +234,15 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENgetcurve Lib "epanet2.dll" (ByVal curveIndex As Long, ByVal CurveID As String, nValues As Long, xValues As Any, yValues As Any) As Long
  Declare Function ENgetheadcurveindex Lib "epanet2.dll" (ByVal pumpIndex As Long, curveIndex As Long) As Long
  Declare Function ENgetpumptype Lib "epanet2.dll" (ByVal index As Long, PumpType As Long) As Long
- Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal curveindex As Long, CurveType As Long) As Long
+ Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal curveIndex As Long, CurveType As Long) As Long
 
  Declare Function ENgetversion Lib "epanet2.dll" (value As Long) As Long
 
- Declare Function ENgetdemandmodel Lib "epanet2.dll" (type as long, pmin as Single, preq as Single, pexp as Single) As Long
- Declare Function ENsetdemandmodel Lib "epanet2.dll" (ByVal type as long, ByVal pmin as Single, ByVal preq as Single, ByVal pexp as Single) As Long
+ Declare Function ENgetdemandmodel Lib "epanet2.dll" (mtype As Long, pmin As Single, preq As Single, pexp As Single) As Long
+ Declare Function ENsetdemandmodel Lib "epanet2.dll" (ByVal mtype As Long, ByVal pmin As Single, ByVal preq As Single, ByVal pexp As Single) As Long
  
  Declare Function ENsetflowunits Lib "epanet2.dll" (ByVal code As Long) As Long
+ Declare Function ENaddcontrol Lib "epanet2.dll" (Cindex As Long, ByVal Ctype As Long, ByVal Lindex As Long, ByVal setting As Single, ByVal Nindex As Long, ByVal Level As Single) As Long
  Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal Cindex As Long, ByVal Ctype As Long, ByVal Lindex As Long, ByVal setting As Single, ByVal Nindex As Long, ByVal Level As Single) As Long
  Declare Function ENsetnodevalue Lib "epanet2.dll" (ByVal index As Long, ByVal code As Long, ByVal value As Single) As Long
  Declare Function ENsetlinkvalue Lib "epanet2.dll" (ByVal index As Long, ByVal code As Long, ByVal value As Single) As Long
@@ -254,7 +255,7 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENsetqualtype Lib "epanet2.dll" (ByVal QualCode As Long, ByVal ChemName As String, ByVal ChemUnits As String, ByVal TraceNode As String) As Long
  Declare Function ENgetqualinfo Lib "epanet2.dll" (QualCode As Long, ByVal ChemName As String, ByVal ChemUnits As String, TraceNode As Long) As Long
  Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal nodeIndex As Long, ByVal DemandIndex As Long, ByVal BaseDemand As Single) As Long
- Declare Function ENsetdemandpattern Lib "epanet2.dll" (ByVal Index As Long, ByVal DemandIndex As Long, ByVal PatIndex As Long) As Long
+ Declare Function ENsetdemandpattern Lib "epanet2.dll" (ByVal index As Long, ByVal DemandIndex As Long, ByVal PatIndex As Long) As Long
 
  Declare Function ENgetcurveindex Lib "epanet2.dll" (ByVal id As String, index As Long) As Long
  Declare Function ENgetcurveid Lib "epanet2.dll" (ByVal index As Long, ByVal id As String) As Long
