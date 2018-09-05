@@ -249,7 +249,7 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     BOOST_REQUIRE(h_orig == h_build_loaded);
 
     // compare the original to the build without saving
-    //BOOST_REQUIRE(h_orig == h_build); // this seems to fail :(
+    BOOST_REQUIRE(h_orig == h_build); // this seems to fail :(
 
 }
 
