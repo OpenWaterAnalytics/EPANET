@@ -3044,7 +3044,7 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
       if (Tank[j].Vcurve > 0)
         return set_error(p->error_handle, 202);
       Tank[j].Hmin = Htmp;
-      Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
+      Tank[j].Vmin = (Tank[j].Hmin - Node[index].El) * Tank[j].A;
     } else {
       return set_error(p->error_handle, 251);
     }
