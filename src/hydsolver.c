@@ -494,30 +494,34 @@ void newemitterflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
 **----------------------------------------------------------------
 */
 {
-    double  dq;
-    int     k;
+    int     i;
+    double  hloss, hgrad, dh, dq;
     EN_Network   *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
 
     // Examine each network junction
-    for (k = 1; k <= net->Njuncs; k++)
+    for (i = 1; i <= net->Njuncs; i++)
     {
         // Skip junction if it does not have an emitter
-        if (net->Node[k].Ke == 0.0) continue;
+        if (net->Node[i].Ke == 0.0) continue;
 
-        // Find emitter flow change (see hydcoeffs.c)
-        dq = emitflowchange(pr, k);
-        hyd->EmitterFlows[k] -= dq;
+        // Find emitter head loss and gradient 
+        emitheadloss(pr, i, &hloss, &hgrad);
+
+        // Find emitter flow change
+        dh = hyd->NodeHead[i] - net->Node[i].El;
+        dq = (hloss - dh) / hgrad;
+        hyd->EmitterFlows[i] -= dq;
 
         // Update system flow summation
-        *qsum += ABS(hyd->EmitterFlows[k]);
+        *qsum += ABS(hyd->EmitterFlows[i]);
         *dqsum += ABS(dq);
 
         // Update identity of element with max. flow change
         if (ABS(dq) > hbal->maxflowchange)
         {
             hbal->maxflowchange = ABS(dq);
-            hbal->maxflownode = k;
+            hbal->maxflownode = i;
             hbal->maxflowlink = -1;
         }
     }

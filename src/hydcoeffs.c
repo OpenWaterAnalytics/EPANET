@@ -18,21 +18,24 @@ HYDCOEFFS.C --  hydraulic coefficients for the EPANET Program
 #include "funcs.h"
 
 // Constants used for computing Darcy-Weisbach friction factor
-const double A1 = 0.314159265359e04;   // 1000*PI
-const double A2 = 0.157079632679e04;   // 500*PI
-const double A3 = 0.502654824574e02;   // 16*PI
-const double A4 = 6.283185307;         // 2*PI
-const double A8 = 4.61841319859;       // 5.74*(PI/4)^.9
-const double A9 = -8.685889638e-01;    // -2/ln(10)
-const double AA = -1.5634601348;       // -2*.9*2/ln(10)
-const double AB = 3.28895476345e-03;   // 5.74/(4000^.9)
-const double AC = -5.14214965799e-03;  // AA*AB
+const double A1 = 3.14159265358979323850e+03;   // 1000*PI
+const double A2 = 1.57079632679489661930e+03;   // 500*PI
+const double A3 = 5.02654824574366918160e+01;   // 16*PI
+const double A4 = 6.28318530717958647700e+00;   // 2*PI
+const double A8 = 4.61841319859066668690e+00;   // 5.74*(PI/4)^.9
+const double A9 = -8.68588963806503655300e-01;  // -2/ln(10)
+const double AA = -1.5634601348517065795e+00;   // -2*.9*2/ln(10)
+const double AB = 3.28895476345399058690e-03;   // 5.74/(4000^.9)
+const double AC = -5.14214965799093883760e-03;  // AA*AB
+
+// Cutoff flow for using linear head loss relation
+const double Q_CUTOFF = 1.0e-5;
 
 // External functions
 //void   resistcoeff(EN_Project *pr, int k);
 //void   headlosscoeffs(EN_Project *pr);
 //void   matrixcoeffs(EN_Project *pr);
-//double emitflowchange(EN_Project *pr, int i);
+//void   emitheadloss(EN_Project *pr, int i, double *hloss, double *dhdq);
 //double demandflowchange(EN_Project *pr, int i, double dp, double n);
 //void   demandparams(EN_Project *pr, double *dp, double *n);
 
@@ -47,7 +50,7 @@ static void    demandheadloss(double d, double dfull, double dp,
 
 static void    pipecoeff(EN_Project *pr, int k);
 static void    DWpipecoeff(EN_Project *pr, int k);
-static double  frictionFactor(EN_Project *pr, int k, double *dfdq);
+static double  frictionFactor(double q, double e, double s, double *dfdq);
 
 static void    pumpcoeff(EN_Project *pr, int k);
 static void    curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r);
@@ -195,7 +198,8 @@ void  linkcoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 **   Input:   none
 **   Output:  none
-**   Purpose: computes matrix coefficients for links
+**   Purpose: computes coefficients contributed by links to the
+**            linearized system of hydraulic equations.
 **--------------------------------------------------------------
 */
 {
@@ -214,32 +218,34 @@ void  linkcoeffs(EN_Project *pr)
         n1 = link->N1;           // Start node of link
         n2 = link->N2;           // End node of link
 
-        // Update net nodal inflows (X_tmp), solution matrix (A) and RHS array (F)
-        // (Use covention that flow out of node is (-), flow into node is (+))
+        // Update nodal flow balance (X_tmp)
+        // (Flow out of node is (-), flow into node is (+))
         hyd->X_tmp[n1] -= hyd->LinkFlows[k];
         hyd->X_tmp[n2] += hyd->LinkFlows[k];
 
-        // Off-diagonal coeff.
+        // Add to off-diagonal coeff. of linear system matrix
         sol->Aij[sol->Ndx[k]] -= sol->P[k];
 
-        // Node n1 is junction
+        // Update linear system coeffs. associated with start node n1
+        // ... node n1 is junction
         if (n1 <= net->Njuncs)                     
         {
             sol->Aii[sol->Row[n1]] += sol->P[k];   // Diagonal coeff.
             sol->F[sol->Row[n1]] += sol->Y[k];     // RHS coeff.
         }
 
-        // Node n1 is a tank/reservoir
+        // ... node n1 is a tank/reservoir
         else sol->F[sol->Row[n2]] += (sol->P[k] * hyd->NodeHead[n1]); 
 
-        // Node n2 is junction
+        // Update linear system coeffs. associated with end node n2
+        // ... node n2 is junction
         if (n2 <= net->Njuncs)
         {
             sol->Aii[sol->Row[n2]] += sol->P[k];   // Diagonal coeff.
             sol->F[sol->Row[n2]] -= sol->Y[k];     // RHS coeff.
         }
 
-        // Node n2 is a tank/reservoir
+        // ... node n2 is a tank/reservoir
         else sol->F[sol->Row[n1]] += (sol->P[k] * hyd->NodeHead[n2]); 
     }
 }
@@ -250,8 +256,8 @@ void  nodecoeffs(EN_Project *pr)
 **----------------------------------------------------------------
 **  Input:   none
 **  Output:  none
-**  Purpose: completes calculation of nodal flow imbalance (X_tmp)
-**           & flow correction (F) arrays
+**  Purpose: completes calculation of nodal flow balance array
+**           (X_tmp) & r.h.s. (F) of linearized hydraulic eqns.
 **----------------------------------------------------------------
 */
 {
@@ -261,7 +267,7 @@ void  nodecoeffs(EN_Project *pr)
     EN_Network   *net = &pr->network;
 
     // For junction nodes, subtract demand flow from net
-    // flow imbalance & add imbalance to RHS array F.
+    // flow balance & add flow balance to RHS array F
     for (i = 1; i <= net->Njuncs; i++)
     {
         hyd->X_tmp[i] -= hyd->DemandFlows[i];
@@ -275,8 +281,9 @@ void  valvecoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 **   Input:   none
 **   Output:  none
-**   Purpose: computes matrix coeffs. for PRVs, PSVs & FCVs
-**            whose status is not fixed to OPEN/CLOSED
+**   Purpose: computes coeffs. of the linearized hydraulic eqns.
+**            contributed by PRVs, PSVs & FCVs whose status is
+**            not fixed to OPEN/CLOSED
 **--------------------------------------------------------------
 */
 {
@@ -325,7 +332,8 @@ void  emittercoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 **   Input:   none
 **   Output:  none
-**   Purpose: computes matrix coeffs. for emitters
+**   Purpose: computes coeffs. of the linearized hydraulic eqns.
+**            contributed by emitters.
 **
 **   Note: Emitters consist of a fictitious pipe connected to
 **         a fictitious reservoir whose elevation equals that
@@ -334,12 +342,8 @@ void  emittercoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
-    int   i;
-    double  ke;
-    double  p;
-    double  q;
-    double  y;
-    double  z;
+    int     i, row;
+    double  hloss, hgrad;
 
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
@@ -348,46 +352,57 @@ void  emittercoeffs(EN_Project *pr)
 
     for (i = 1; i <= net->Njuncs; i++)
     {
+        // Skip junctions without emitters
         node = &net->Node[i];
         if (node->Ke == 0.0) continue;
-        ke = MAX(CSMALL, node->Ke);              // emitter coeff.
-        q = hyd->EmitterFlows[i];                // emitter flow
-        z = ke * pow(ABS(q), hyd->Qexp);         // emitter head loss
-        p = hyd->Qexp * z / ABS(q);              // head loss gradient
-        if (p < hyd->RQtol)
-        {
-            p = 1.0 / hyd->RQtol;
-        }
-        else
-        {
-            p = 1.0 / p;                         // inverse head loss gradient
-        }
-        y = SGN(q)*z*p;                          // head loss / gradient
-        sol->Aii[sol->Row[i]] += p;              // addition to main diagonal
-        sol->F[sol->Row[i]] += y + p * node->El; // addition to r.h.s.
-        hyd->X_tmp[i] -= q;                      // addition to net node inflow
+
+        // Find emitter head loss and gradient
+        emitheadloss(pr, i, &hloss, &hgrad);
+
+        // Row of solution matrix
+        row = sol->Row[i];
+
+        // Addition to matrix diagonal & r.h.s
+        sol->Aii[row] += 1.0 / hgrad;
+        sol->F[row] += (hloss + node->El) / hgrad;
+
+        // Update to node flow balance
+        hyd->X_tmp[i] -= hyd->EmitterFlows[i];
     }
 }
 
 
-double emitflowchange(EN_Project *pr, int i)
+void emitheadloss(EN_Project *pr, int i, double *hloss, double *hgrad)
 /*
-**--------------------------------------------------------------
+**-------------------------------------------------------------
 **   Input:   i = node index
-**   Output:  returns change in flow at an emitter node
-**   Purpose: computes flow change at an emitter node
-**--------------------------------------------------------------
+**   Output:  hloss = head loss across node's emitter
+**            hgrad = head loss gradient
+**   Purpose: computes an emitters's head loss and gradient.
+**-------------------------------------------------------------
 */
 {
-    double ke, p;
+    double  ke;
+    double  q;
     hydraulics_t *hyd = &pr->hydraulics;
-    Snode *node = &pr->network.Node[i];
 
-    ke = MAX(CSMALL, node->Ke);
-    p = hyd->Qexp * ke * pow(ABS(hyd->EmitterFlows[i]), (hyd->Qexp - 1.0));
-    if (p < hyd->RQtol) p = 1 / hyd->RQtol;
-    else                p = 1.0 / p;
-    return(hyd->EmitterFlows[i] / hyd->Qexp - p * (hyd->NodeHead[i] - node->El));
+    // Set adjusted emitter coeff.
+    ke = MAX(CSMALL, pr->network.Node[i].Ke);
+
+    // Use linear head loss relation for small flow
+    q = hyd->EmitterFlows[i];
+    if (fabs(q) <= Q_CUTOFF)
+    {
+        *hgrad = hyd->Qexp * ke * pow(Q_CUTOFF, hyd->Qexp - 1.0);
+        *hloss = (*hgrad) * q;
+    }
+
+    // Otherwise use normal emitter function
+    else
+    {
+        *hgrad = hyd->Qexp * ke * pow(fabs(q), hyd->Qexp - 1.0);
+        *hloss = (*hgrad) * q / hyd->Qexp;
+    }
 }
 
 
@@ -397,8 +412,8 @@ void demandparams(EN_Project *pr, double *dp, double *n)
 **   Input:   none
 **   Output:  dp = pressure range over which demands can vary
 **            n = exponent in head loss v. demand function
-**   Purpose: retrieves parameters that define a pressure dependent
-**            demand function.
+**   Purpose: retrieves parameters that define a pressure
+**            dependent demand function.
 **--------------------------------------------------------------
 */
 {
@@ -427,12 +442,13 @@ void  demandcoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 **   Input:   none
 **   Output:  none
-**   Purpose: computes matrix coeffs. for pressure dependent demands
+**   Purpose: computes coeffs. of the linearized hydraulic eqns.
+**            contributed by pressure dependent demands.
 **
 **   Note: Pressure dependent demands are modelled like emitters
-**         with Hloss = Pserv * (D / Dfull)^(1/Pexp)
+**         with Hloss = Preq * (D / Dfull)^(1/Pexp)
 **         where D (actual demand) is zero for negative pressure
-**         and is Dfull above pressure Pserv.
+**         and is Dfull above pressure Preq.
 **--------------------------------------------------------------
 */
 {
@@ -542,25 +558,23 @@ void  pipecoeff(EN_Project *pr, int k)
 **--------------------------------------------------------------
 **   Input:   k = link index
 **   Output:  none
-**  Purpose:  computes P & Y coefficients for pipe k
+**   Purpose:  computes P & Y coefficients for pipe k.
 **
-**    P = inverse head loss gradient = 1/(dh/dQ)
-**    Y = flow correction term = h*P
+**    P = inverse head loss gradient = 1/hgrad
+**    Y = flow correction term = hloss / hgrad
 **--------------------------------------------------------------
 */
 {
-    double  hpipe,     // Normal head loss
-            hml,       // Minor head loss
+    double  hloss,     // Head loss
+            hgrad,     // Head loss gradient
             ml,        // Minor loss coeff.
-            p,         // q*(dh/dq)
             q,         // Abs. value of flow
             r;         // Resistance coeff.
 
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
-    Slink *link = &pr->network.Link[k];
 
-    // For closed pipe use headloss formula: h = CBIG*q
+    // For closed pipe use headloss formula: hloss = CBIG*q
     if (hyd->LinkStatus[k] <= CLOSED)
     {
         sol->P[k] = 1.0 / CBIG;
@@ -575,31 +589,35 @@ void  pipecoeff(EN_Project *pr, int k)
         return;
     }
 
-    // Evaluate headloss coefficients
-    q = ABS(hyd->LinkFlows[k]);                  // Absolute flow
-    ml = link->Km;                               // Minor loss coeff.
-    r = link->R;                                 // Resistance coeff.
+    q = ABS(hyd->LinkFlows[k]);
+    ml = pr->network.Link[k].Km;
+    r = pr->network.Link[k].R;
 
-    // Use large P coefficient for small flow resistance product
-    if ( (r+ml)*q < hyd->RQtol)
+    // Friction head loss
+    if (q <= Q_CUTOFF)
     {
-        sol->P[k] = 1.0 / hyd->RQtol;
-        sol->Y[k] = hyd->LinkFlows[k] / hyd->Hexp;
-        return;
+        hgrad = hyd->Hexp * r * pow(Q_CUTOFF, hyd->Hexp-1.0);
+        hloss = q * hgrad;
+    }
+    else
+    {
+        hgrad = hyd->Hexp * r * pow(q, hyd->Hexp - 1.0);
+        hloss = hgrad * q / hyd->Hexp;
     }
 
-    // Compute P and Y coefficients
-    hpipe = r*pow(q, hyd->Hexp);             // Friction head loss
-    p = hyd->Hexp*hpipe;                     // Q*dh(friction)/dQ 
+    // Contribution of minor head loss
     if (ml > 0.0)
     {
-        hml = ml*q*q;                        // Minor head loss
-        p += 2.0*hml;                        // Q*dh(Total)/dQ
+        hloss += ml * q * q;
+        hgrad += 2.0 * ml * q;
     }
-    else  hml = 0.0;
-    p = hyd->LinkFlows[k] / p;               // 1 / (dh/dQ)
-    sol->P[k] = ABS(p);
-    sol->Y[k] = p*(hpipe + hml);
+
+    // Adjust head loss sign for flow direction
+    hloss *= SGN(hyd->LinkFlows[k]);
+
+    // P and Y coeffs.
+    sol->P[k] = 1.0 / hgrad;
+    sol->Y[k] = hloss / hgrad;
 }
 
 
@@ -618,102 +636,85 @@ void DWpipecoeff(EN_Project *pr, int k)
     Slink *link = &pr->network.Link[k];
 
     double q = ABS(hyd->LinkFlows[k]);
-    double dfdq = 0.0;
-    double r, r1, f, ml, p, hloss;
-
-    ml = link->Km;                       // Minor loss coeff. 
-    r = link->R;                         // Resistance coeff. 
-    f =  frictionFactor(pr,k,&dfdq);     // D-W friction factor
-    r1 = f*r+ml;
- 
-    // Use large P coefficient for small flow resistance product
-    if (r1*q < hyd->RQtol)
+    double r = link->R;                         // Resistance coeff. 
+    double ml = link->Km;                       // Minor loss coeff. 
+    double e = link->Kc / link->Diam;           // Relative roughness
+    double s = hyd->Viscos * link->Diam;        // Viscosity / diameter
+    
+    double hloss, hgrad, f, dfdq, r1;
+    
+    // Compute head loss and its derivative
+    // ... use Hagen-Poiseuille formula for laminar flow (Re <= 2000)
+    if (q <= A2 * s)
     {
-        sol->P[k] = 1.0/hyd->RQtol;
-        sol->Y[k] = hyd->LinkFlows[k]/hyd->Hexp;
-        return;
+        r = 16.0 * PI * s * r;
+        hloss = hyd->LinkFlows[k] * (r + ml * q);
+        hgrad  = r + 2.0 * ml * q;
     }
-
+    
+    // ... otherwise use Darcy-Weisbach formula with friction factor
+    else
+    {
+        dfdq = 0.0;
+        f = frictionFactor(q, e, s, &dfdq);
+        r1 = f * r + ml;
+        hloss = r1 * q * hyd->LinkFlows[k];
+        hgrad = (2.0 * r1 * q) + (dfdq * r * q * q);
+    }
+    
     // Compute P and Y coefficients
-    hloss = r1*SQR(q);                   // Total head loss
-    p = 2.0*r1*q;                        // |dHloss/dQ|
-    // + dfdq*r*q*q;                     // Ignore df/dQ term 
-    p = 1.0 / p;
-    sol->P[k] = p;
-    sol->Y[k] = SGN(hyd->LinkFlows[k]) * hloss * p;
+    sol->P[k] = 1.0 / hgrad;
+    sol->Y[k] = hloss / hgrad;
 }
 
 
-double frictionFactor(EN_Project *pr, int k, double *dfdq)
+double frictionFactor(double q, double e, double s, double *dfdq)
 /*
 **--------------------------------------------------------------
-**   Input:   k = link index
-**   Output:  returns friction factor and
-**            replaces dfdq (derivative of f w.r.t. flow)
+**   Input:   q = |pipe flow|
+**            e = pipe roughness  / diameter
+**            s = viscosity * pipe diameter
+**   Output:  dfdq = derivative of friction factor w.r.t. flow
+**   Returns: pipe's friction factor
 **   Purpose: computes Darcy-Weisbach friction factor and its
 **            derivative as a function of Reynolds Number (Re).
-**
-**   Note:    Current formulas for dfdq need to be corrected
-**            so dfdq returned as 0.
 **--------------------------------------------------------------
 */
 {
-   double q,             // Abs. value of flow
-          f;             // Friction factor 
-   double x1,x2,x3,x4,
-          y1,y2,y3,
-          fa,fb,r;
-   double s,w;
-  
-  hydraulics_t *hyd = &pr->hydraulics;
-  Slink *link = &pr->network.Link[k];
+    double f;                // friction factor
+    double x1, x2, x3, x4,
+           y1, y2, y3,
+           fa, fb, r;
+    double w = q / s;        // Re*Pi/4
 
-   *dfdq = 0.0;
-   if (link->Type > EN_PIPE)
-     return(1.0);                 // Only apply to pipes
-   q = ABS(hyd->LinkFlows[k]);
-   s = hyd->Viscos * link->Diam;
-   w = q/s;                       // w = Re(Pi/4)
-   
-   // For Re >= 4000 use Colebrook Formula
-   if (w >= A1)                   
-   {
-      y1 = A8/pow(w,0.9);
-      y2 = link->Kc/(3.7*link->Diam) + y1;
-      y3 = A9*log(y2);
-      f = 1.0/SQR(y3);
-      /*  *dfdq = (2.0+AA*y1/(y2*y3))*f; */   /* df/dq */
-   }
-   
-   // For Re > 2000 use Interpolation Formula
-   else if (w > A2)              
-   {
-      y2 = link->Kc/(3.7*link->Diam) + AB;
-      y3 = A9*log(y2);
-      fa = 1.0/SQR(y3);
-      fb = (2.0+AC/(y2*y3))*fa;
-      r = w/A2;
-      x1 = 7.0*fa - fb;
-      x2 = 0.128 - 17.0*fa + 2.5*fb;
-      x3 = -0.128 + 13.0*fa - (fb+fb);
-      x4 = r*(0.032 - 3.0*fa + 0.5*fb);
-      f = x1 + r*(x2 + r*(x3+x4));
-      /*  *dfdq = (x1 + x1 + r*(3.0*x2 + r*(4.0*x3 + 5.0*x4)));  */
-   }
-   
-   // For Re > 8 (Laminar Flow) use Hagen-Poiseuille Formula
-   else if (w > A4)
-   {
-      f = A3*s/q;  // 16 * PI * Viscos * Diam / Flow
-      /*  *dfdq = A3*s; */
-   }
-   else
-   {
-      f = 8.0;
-      *dfdq = 0.0;
-   }
-   return(f);
+    //   For Re >= 4000 use Swamee & Jain approximation
+    //   of the Colebrook-White Formula
+    if ( w >= A1 )
+    {
+        y1 = A8 / pow(w, 0.9);
+        y2 = e / 3.7 + y1;
+        y3 = A9 * log(y2);
+        f = 1.0 / (y3*y3);
+        *dfdq = 1.8 * f * y1 * A9 / y2 / y3 / q;
+    }
 
+    //   Use interpolating polynomials developed by
+    //   E. Dunlop for transition flow from 2000 < Re < 4000.
+    else
+    {
+        y2 = e / 3.7 + AB;
+        y3 = A9 * log(y2);
+        fa = 1.0 / (y3*y3);
+        fb = (2.0 + AC / (y2*y3)) * fa;
+        r = w / A2;
+        x1 = 7.0 * fa - fb;
+        x2 = 0.128 - 17.0 * fa + 2.5 * fb;
+        x3 = -0.128 + 13.0 * fa - (fb + fb);
+        x4 = 0.032 - 3.0 * fa + 0.5 *fb;
+        f = x1 + r * (x2 + r * (x3 + r * x4));
+        *dfdq = (x2 + r * (2.0 * x3 + r * 3.0 * x4)) / s / A2;
+    }
+    return f;
 }
 
 
@@ -730,13 +731,17 @@ void  pumpcoeff(EN_Project *pr, int k)
     double h0,               // Shutoff head
            q,                // Abs. value of flow 
            r,                // Flow resistance coeff.
-           n;                // Flow exponent coeff.
+           n,                // Flow exponent coeff.
+           setting,          // Pump speed setting
+           hloss,            // Head loss across pump
+           hgrad;            // Head loss gradient
+
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
-    double setting = hyd->LinkSetting[k];
-    Spump *pump;
+    Spump        *pump;
 
     // Use high resistance pipe if pump closed or cannot deliver head
+    setting = hyd->LinkSetting[k];
     if (hyd->LinkStatus[k] <= CLOSED || setting == 0.0)
     {
         sol->P[k] = 1.0 / CBIG;
@@ -744,35 +749,54 @@ void  pumpcoeff(EN_Project *pr, int k)
         return;
     }
 
+    // Obtain reference to pump object & its speed setting
     q = ABS(hyd->LinkFlows[k]);
-    q = MAX(q, TINY);
-
-    // Obtain reference to pump object
     p = findpump(&pr->network, k);
     pump = &pr->network.Pump[p];
 
-    // Get pump curve coefficients for custom pump curve.
+    // Get pump curve coefficients for custom pump curve
+    // (Other pump types have pre-determined coeffs.)
     if (pump->Ptype == CUSTOM)
     {
         // Find intercept (h0) & slope (r) of pump curve
         // line segment which contains speed-adjusted flow.
         curvecoeff(pr, pump->Hcurve, q / setting, &h0, &r);
 
-        // Determine head loss coefficients.
+        // Determine head loss coefficients (negative sign
+        // converts from pump curve's head gain to head loss)
         pump->H0 = -h0;
         pump->R = -r;
         pump->N = 1.0;
+
+        // Compute head loss and its gradient
+        hgrad = pump->R * setting ;
+        hloss = pump->H0 * SQR(setting) + hgrad * hyd->LinkFlows[k];
+    }
+    else
+    {
+        // Adjust head loss coefficients for pump speed
+        h0 = SQR(setting) * pump->H0;
+        n = pump->N;
+        r = pump->R * pow(setting, 2.0 - n);
+
+        // Compute head loss and its gradient
+        // ... use linear approx. to pump curve for small flows
+        if (q <= Q_CUTOFF)
+        {
+            hgrad = r * pow(Q_CUTOFF, n - 1.0);
+            hloss = h0 + hgrad * hyd->LinkFlows[k];
+        }
+        // ... use original pump curve for normal flows
+        else
+        {
+            hgrad = n * r * pow(q, n - 1.0);
+            hloss = h0 + hgrad * hyd->LinkFlows[k] / n;
+        }
     }
 
-    // Adjust head loss coefficients for pump speed.
-    h0 = SQR(setting) * pump->H0;
-    n = pump->N;
-    r = pump->R * pow(setting, 2.0 - n);
-    if (n != 1.0) r = n * r * pow(q, n - 1.0);
-
-    // Compute inverse headloss gradient (P) and flow correction factor (Y)
-    sol->P[k] = 1.0 / MAX(r, hyd->RQtol);
-    sol->Y[k] = hyd->LinkFlows[k] / n + sol->P[k] * h0;
+    // P and Y coeffs.
+    sol->P[k] = 1.0 / hgrad;
+    sol->Y[k] = hloss / hgrad;
 }
 
 
@@ -825,9 +849,10 @@ void  gpvcoeff(EN_Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    double h0,        // Headloss curve intercept
-           q,         // Abs. value of flow
-           r;         // Flow resistance coeff.
+    int    i;
+    double h0,        // Intercept of head loss curve segment
+           r,         // Slope of head loss curve segment
+           q;         // Abs. value of flow
 
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
@@ -835,19 +860,25 @@ void  gpvcoeff(EN_Project *pr, int k)
     // Treat as a pipe if valve closed
     if (hyd->LinkStatus[k] == CLOSED) valvecoeff(pr, k);                          
 
-    // Otherwise utilize headloss curve
-    // whose index is stored in K
+    // Otherwise utilize segment of head loss curve
+    // bracketing current flow (curve index is stored
+    // in valve's setting)
     else
     {
-        // Find slope & intercept of headloss curve.
+        // Index of valve's head loss curve
+        i = (int)ROUND(hyd->LinkSetting[k]);
+
+        // Adjusted flow rate
         q = ABS(hyd->LinkFlows[k]);
         q = MAX(q, TINY);
-        curvecoeff(pr, (int)ROUND(hyd->LinkSetting[k]), q, &h0, &r);
 
-        // Compute inverse headloss gradient (P)
-        // and flow correction factor (Y).
-        sol->P[k] = 1.0 / MAX(r, hyd->RQtol);
-        sol->Y[k] = sol->P[k] * (h0 + r*q) * SGN(hyd->LinkFlows[k]);
+        // Intercept and slope of curve segment containing q
+        curvecoeff(pr, i, q, &h0, &r);
+        r = MAX(r, TINY);
+
+        // Resulting P and Y coeffs.
+        sol->P[k] = 1.0 / r;
+        sol->Y[k] = (h0 / r + q) * SGN(hyd->LinkFlows[k]);
     }
 }
 
@@ -1084,14 +1115,14 @@ void valvecoeff(EN_Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    double p;
+    double flow, q, dhdq;
 
     EN_Network   *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
     Slink *link = &net->Link[k];
 
-    double flow = hyd->LinkFlows[k];
+    flow = hyd->LinkFlows[k];
 
     // Valve is closed. Use a very small matrix coeff.
     if (hyd->LinkStatus[k] <= CLOSED)
@@ -1104,14 +1135,26 @@ void valvecoeff(EN_Project *pr, int k)
     // Account for any minor headloss through the valve
     if (link->Km > 0.0)
     {
-        p = 2.0 * link->Km * fabs(flow);
-        if (p < hyd->RQtol) p = hyd->RQtol;
-        sol->P[k] = 1.0 / p;
-        sol->Y[k] = flow / 2.0;
+        // Adjust for very small flow
+        q = MAX(fabs(flow), Q_CUTOFF);
+
+        // Gradient of minor head loss formula
+        dhdq = 2.0 * link->Km * q;
+        sol->P[k] = 1.0 / dhdq;
+
+        // Y = head loss / gradient
+        // Use linear head loss relation for low flow
+        if (q == Q_CUTOFF) sol->Y[k] = flow;
+
+        // Otherwise use normal minor loss formula
+        else sol->Y[k] = flow / 2.0;
     }
+
+    // If no minor loss coeff. specified use a
+    // low resistance linear head loss relation
     else
     {
-        sol->P[k] = 1.0 / hyd->RQtol;
+        sol->P[k] = 1.0 / CSMALL;
         sol->Y[k] = flow;
     }
 }
