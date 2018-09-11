@@ -178,12 +178,11 @@ int     hydsolve(EN_Project *pr, int *,double *);   /* Solves network equations 
 void    resistcoeff(EN_Project *pr, int k);         /* Finds pipe flow resistance */
 void    headlosscoeffs(EN_Project *pr);             // Finds link head loss coeffs.
 void    matrixcoeffs(EN_Project *pr);               /* Finds hyd. matrix coeffs.  */
-void    emitheadloss(EN_Project *pr, int,           // Finds emitter head loss
-                     double *, double *);           
-double  demandflowchange(EN_Project *pr, int,       // Change in demand outflow
-                         double, double);
-void    demandparams(EN_Project *pr, double *,      // PDA function parameters
-                     double *); 
+double  emitflowchange(EN_Project *pr, int i);      /* Change in emitter outflow  */
+double  demandflowchange(EN_Project *pr, int i,     // Change in demand outflow
+                         double dp, double n);
+void    demandparams(EN_Project *pr, double *dp,    // PDA function parameters
+                     double *n); 
 
 /* ----------- SMATRIX.C ---------------*/
 int     createsparse(EN_Project *pr);               /* Creates sparse matrix      */
