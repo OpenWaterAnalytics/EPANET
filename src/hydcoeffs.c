@@ -28,9 +28,6 @@ const double AA = -1.5634601348517065795e+00;   // -2*.9*2/ln(10)
 const double AB = 3.28895476345399058690e-03;   // 5.74/(4000^.9)
 const double AC = -5.14214965799093883760e-03;  // AA*AB
 
-// Cutoff flow for using linear head loss relation
-const double Q_CUTOFF = 1.0e-5;
-
 // External functions
 //void   resistcoeff(EN_Project *pr, int k);
 //void   headlosscoeffs(EN_Project *pr);
@@ -74,10 +71,12 @@ void  resistcoeff(EN_Project *pr, int k)
 */
 {
     double e, d, L;
-    EN_Network *net = &pr->network;
+
+    EN_Network   *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     Slink *link = &net->Link[k];
     
+    link->Qa = 0.0;
     switch (link->Type) {
 
     // ... Link is a pipe. Compute resistance based on headloss formula.
@@ -91,14 +90,20 @@ void  resistcoeff(EN_Project *pr, int k)
         switch (hyd->Formflag)
         {
         case HW:
+            // ... resistance coeff.
             link->R = 4.727 * L / pow(e, hyd->Hexp) / pow(d, 4.871);
+            // ... flow below which linear head loss applies
+            link->Qa = pow(hyd->RQtol / hyd->Hexp / link->R, 1.17371);
             break;
         case DW:
             link->R = L / 2.0 / 32.2 / d / SQR(PI * SQR(d) / 4.0);
             break;
         case CM:
+            // ... resistance coeff.
             link->R = SQR(4.0 * e / (1.49 * PI * SQR(d))) *
                       pow((d / 4.0), -1.333) * L;
+            // ... flow below which linear head loss applies
+            link->Qa = hyd->RQtol / 2.0 / link->R;
         }
         break;
 
@@ -384,16 +389,20 @@ void emitheadloss(EN_Project *pr, int i, double *hloss, double *hgrad)
 {
     double  ke;
     double  q;
+    double  qa;
     hydraulics_t *hyd = &pr->hydraulics;
 
     // Set adjusted emitter coeff.
     ke = MAX(CSMALL, pr->network.Node[i].Ke);
 
+    // Find flow below which head loss is linear
+    qa = pow(hyd->RQtol / ke / hyd->Qexp, 1.0 / (hyd->Qexp - 1.0));
+
     // Use linear head loss relation for small flow
     q = hyd->EmitterFlows[i];
-    if (fabs(q) <= Q_CUTOFF)
+    if (fabs(q) <= qa)
     {
-        *hgrad = ke * pow(Q_CUTOFF, hyd->Qexp) / Q_CUTOFF;
+        *hgrad = hyd->RQtol;
         *hloss = (*hgrad) * q;
     }
 
@@ -595,9 +604,9 @@ void  pipecoeff(EN_Project *pr, int k)
 
     // Friction head loss
     // ... use linear relation for small flows
-    if (q <= Q_CUTOFF)
+    if (q <= pr->network.Link[k].Qa)
     {
-        hgrad = r * pow(Q_CUTOFF, hyd->Hexp) / Q_CUTOFF;
+        hgrad = hyd->RQtol;
         hloss = hgrad * q;
     }
     // ... use original formula for other flows
@@ -735,6 +744,7 @@ void  pumpcoeff(EN_Project *pr, int k)
            r,                // Flow resistance coeff.
            n,                // Flow exponent coeff.
            setting,          // Pump speed setting
+           qa,               // Flow limit for linear head loss
            hloss,            // Head loss across pump
            hgrad;            // Head loss gradient
 
@@ -783,9 +793,10 @@ void  pumpcoeff(EN_Project *pr, int k)
 
         // Compute head loss and its gradient
         // ... use linear approx. to pump curve for small flows
-        if (q <= Q_CUTOFF)
+        qa = pow(hyd->RQtol / n / r, 1.0 / (n - 1.0));
+        if (q <= qa)
         {
-            hgrad = r * pow(Q_CUTOFF, n) / Q_CUTOFF;
+            hgrad = hyd->RQtol;
             hloss = h0 + hgrad * hyd->LinkFlows[k];
         }
         // ... use original pump curve for normal flows
@@ -1117,8 +1128,8 @@ void valvecoeff(EN_Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    double flow, q, y, hgrad;
-
+    double flow, q, y, qa, hgrad;
+    
     EN_Network   *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
@@ -1139,9 +1150,10 @@ void valvecoeff(EN_Project *pr, int k)
     {
         // Adjust for very small flow
         q = fabs(flow);
-        if (q <= Q_CUTOFF)
+        qa = hyd->RQtol / 2.0 / link->Km;
+        if (q <= qa)
         {
-            hgrad = link->Km * Q_CUTOFF;
+            hgrad = hyd->RQtol;
             y = flow;
         }
         else

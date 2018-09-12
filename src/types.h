@@ -410,7 +410,8 @@ typedef struct            /* LINK OBJECT */
    double  Kb;             /* Bulk react. coeff */
    double  Kw;             /* Wall react. coeff */
    double  R;              /* Flow resistance   */
-   double  Rc;             /* Reaction cal      */
+   double  Rc;             /* Reaction coeff.   */
+   double  Qa;             // Low flow limit
    EN_LinkType Type;       /* Link type         */
    StatType Stat;          /* Initial status    */
    char Rpt;            /* Reporting flag    */
