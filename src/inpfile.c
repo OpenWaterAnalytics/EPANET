@@ -114,7 +114,7 @@ void saveauxdata(parser_data_t *parser, FILE *f)
 
 ////  This function was heavily modified.  //// 
 
-int saveinpfile(EN_Project *pr, char *fname)
+int saveinpfile(EN_Project *pr, const char *fname)
 /*
 -------------------------------------------------
   Writes network data to text file.

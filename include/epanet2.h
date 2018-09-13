@@ -308,7 +308,8 @@ extern "C" {
    @param HeadlossFormula headloss formula flag
    @return error code
    */
-  int  DLLEXPORT ENinit(char *rptFile, char *binOutFile, int UnitsType, int HeadlossFormula);
+  int  DLLEXPORT ENinit(const char *rptFile, const char *binOutFile, 
+    int UnitsType, int HeadlossFormula);
   
   /**
    @brief Opens EPANET input file & reads in network data
@@ -317,14 +318,14 @@ extern "C" {
    @param binOutFile pointer to name of binary output file (to be created)
    @return error code
    */
-  int  DLLEXPORT ENopen(char *inpFile, char *rptFile, char *binOutFile);
+  int  DLLEXPORT ENopen(const char *inpFile, const char *rptFile, const char *binOutFile);
   
   /**
    @brief Saves current data to "INP" formatted text file.
    @param filename The file path to create
    @return Error code
    */
-  int  DLLEXPORT ENsaveinpfile(char *filename);
+  int  DLLEXPORT ENsaveinpfile(const char *filename);
   
   /**
    @brief Frees all memory and files used by EPANET
@@ -1200,13 +1201,13 @@ extern "C" {
 
   //int DLLEXPORT EN_epanet(EN_ProjectHandle ph, const char *f1, const char *f2,
 	//  const char *f3, void(*pviewprog)(char *));
-  int DLLEXPORT EN_init(EN_ProjectHandle ph, char *rptFile, char *binOutFile,
+  int DLLEXPORT EN_init(EN_ProjectHandle ph, const char *rptFile, const char *binOutFile,
           EN_FlowUnits UnitsType, EN_FormType HeadlossFormula);
 
   int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *inpFile,
           const char *rptFile, const char *binOutFile);
 
-  int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, char *filename);
+  int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, const char *filename);
 
   int DLLEXPORT EN_close(EN_ProjectHandle ph);
   int DLLEXPORT EN_solveH(EN_ProjectHandle ph);

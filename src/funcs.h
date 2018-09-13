@@ -248,6 +248,6 @@ int     saveepilog(EN_Project *pr);                 /* Saves output file epilog 
 
 
 /* ------------ INPFILE.C --------------*/
-int     saveinpfile(EN_Project *pr, char *);        /* Saves network to text file  */
+int     saveinpfile(EN_Project *pr, const char *);  /* Saves network to text file  */
 
 #endif
