@@ -25,8 +25,8 @@ set SCRIPT_HOME=%~dp0
 set TEST_HOME=%~1
 
 
-set EXAMPLES_VER=1.0.2-dev.2
-set BENCHMARK_VER=220dev2
+set EXAMPLES_VER=1.0.2-dev.3
+set BENCHMARK_VER=220dev3
 
 
 set TESTFILES_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/v%EXAMPLES_VER%.zip
