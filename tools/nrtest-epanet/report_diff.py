@@ -51,16 +51,22 @@ def _log_relative_error(q, c):
     '''
     diff = np.subtract(q, c)
     tmp_c = np.copy(c)
+
     # If ref value is small compute absolute error
-    tmp_c[np.fabs(tmp_c) < 1.0e-6] = 1.0
-    
+    tmp_c[np.fabs(tmp_c) < 1.0e-6] = 1.0    
     re = np.fabs(diff)/np.fabs(tmp_c)
+
     # If re is tiny set lre to number of digits
     re[re < 1.0e-7] = 1.0e-7
     # If re is very large set lre to zero
     re[re > 2.0] = 1.0
 
-    return np.negative(np.log10(re))
+    lre = np.negative(np.log10(re))
+
+    # If lre is negative set to zero
+    lre[lre < 1.0] = 0.0
+
+    return lre
     
     
 def _print_diff(idx, lre, test, ref):
@@ -71,7 +77,7 @@ def _print_diff(idx, lre, test, ref):
     diff_val = (test_val - ref_val)
     lre_val = (lre[idx[0]])
     
-    print("Idx: %s\nSut: %f  Ref: %f  Diff: %f  LRE: %f\n" 
+    print("Idx: %s\nSut: %e  Ref: %e  Diff: %e  LRE: %.2f\n" 
           % (idx_val, test_val, ref_val, diff_val, lre_val))
 
 

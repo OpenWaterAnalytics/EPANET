@@ -18,7 +18,7 @@ setlocal
 set NRTEST_SCRIPT_PATH=%~1
 set TEST_SUITE_PATH=%~2
 
-set BENCHMARK_VER=220dev2
+set BENCHMARK_VER=220dev3
 
 
 set NRTEST_EXECUTE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest execute
