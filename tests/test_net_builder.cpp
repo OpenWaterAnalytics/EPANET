@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
     BOOST_REQUIRE(error == 0);
 
-    error = EN_getnodeindex(ph, "2", &Nindex);
+    error = EN_getnodeindex(ph, (const char *)"2", &Nindex);
     BOOST_REQUIRE(error == 0);
 
     error = EN_openH(ph);
@@ -89,8 +89,8 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     float P[12] = { 1, 1.2, 1.4, 1.6, 1.4, 1.2, 1, 0.8, 0.6, 0.4, 0.6, 0.8 };
 
     error = EN_createproject(&ph);
-    error = EN_init(ph, "net.rpt", "net.out", EN_GPM, EN_HW);
-    error = EN_addpattern(ph, "1");
+    error = EN_init(ph, (const char *)"net.rpt", (const char *)"net.out", EN_GPM, EN_HW);
+    error = EN_addpattern(ph, (const char *)"1");
     BOOST_REQUIRE(error == 0);
     error = EN_setpattern(ph, 1, P, 12);
     BOOST_REQUIRE(error == 0);
@@ -107,14 +107,14 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
       error = EN_setdemandpattern(ph, i + 1, 1, 1);
       BOOST_REQUIRE(error == 0);
     }
-    error = EN_addnode(ph, "9", EN_RESERVOIR);
+    error = EN_addnode(ph, (const char *)"9", EN_RESERVOIR);
     BOOST_REQUIRE(error == 0);
     error = EN_setcoord(ph, 10, 10, 70);
     BOOST_REQUIRE(error == 0);
     error = EN_setnodevalue(ph, 10, EN_ELEVATION, 800);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_addnode(ph, "2", EN_TANK);
+    error = EN_addnode(ph, (const char *)"2", EN_TANK);
     BOOST_REQUIRE(error == 0);
     error = EN_setcoord(ph, 11, 50, 90);
     BOOST_REQUIRE(error == 0);
@@ -131,29 +131,29 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     error = EN_setnodevalue(ph, 11, EN_MIXFRACTION, 1);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_addlink(ph, "10", EN_PIPE, "10", "11");
+    error = EN_addlink(ph, (const char *)"10", EN_PIPE, (const char *)"10", (const char *)"11");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "11", EN_PIPE, "11", "12");
+    error = EN_addlink(ph, (const char *)"11", EN_PIPE, (const char *)"11", (const char *)"12");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "12", EN_PIPE, "12", "13");
+    error = EN_addlink(ph, (const char *)"12", EN_PIPE, (const char *)"12", (const char *)"13");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "21", EN_PIPE, "21", "22");
+    error = EN_addlink(ph, (const char *)"21", EN_PIPE, (const char *)"21", (const char *)"22");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "22", EN_PIPE, "22", "23");
+    error = EN_addlink(ph, (const char *)"22", EN_PIPE, (const char *)"22", (const char *)"23");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "31", EN_PIPE, "31", "32");
+    error = EN_addlink(ph, (const char *)"31", EN_PIPE, (const char *)"31", (const char *)"32");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "110", EN_PIPE, "2", "12");
+    error = EN_addlink(ph, (const char *)"110", EN_PIPE, (const char *)"2", (const char *)"12");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "111", EN_PIPE, "11", "21");
+    error = EN_addlink(ph, (const char *)"111", EN_PIPE, (const char *)"11", (const char *)"21");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "112", EN_PIPE, "12", "22");
+    error = EN_addlink(ph, (const char *)"112", EN_PIPE, (const char *)"12", (const char *)"22");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "113", EN_PIPE, "13", "23");
+    error = EN_addlink(ph, (const char *)"113", EN_PIPE, (const char *)"13", (const char *)"23");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "121", EN_PIPE, "21", "31");
+    error = EN_addlink(ph, (const char *)"121", EN_PIPE, (const char *)"21", (const char *)"31");
     BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "122", EN_PIPE, "22", "32");
+    error = EN_addlink(ph, (const char *)"122", EN_PIPE, (const char *)"22", (const char *)"32");
     BOOST_REQUIRE(error == 0);
     for (i = 0; i < 12; i++)
     {
@@ -163,13 +163,13 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
       BOOST_REQUIRE(error == 0);
     }
 
-    error = EN_addlink(ph, "9", EN_PUMP, "9", "10");
+    error = EN_addlink(ph, (const char *)"9", EN_PUMP, (const char *)"9", (const char *)"10");
     BOOST_REQUIRE(error == 0);
-    error = EN_addcurve(ph, "1");
+    error = EN_addcurve(ph, (const char *)"1");
     BOOST_REQUIRE(error == 0);
     error = EN_setcurvevalue(ph, 1, 1, 1500, 250);
     BOOST_REQUIRE(error == 0);
-    error = EN_getlinkindex(ph, "9", &ind);
+    error = EN_getlinkindex(ph, (const char *)"9", &ind);
     BOOST_REQUIRE(error == 0);
     error = EN_setheadcurveindex(ph, ind, 1);
     BOOST_REQUIRE(error == 0);
@@ -179,9 +179,9 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     error = EN_settimeparam(ph, EN_PATTERNSTEP, 2*3600);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_getlinkindex(ph, "9", &Lindex);
+    error = EN_getlinkindex(ph, (const char *)"9", &Lindex);
     BOOST_REQUIRE(error == 0);
-    error = EN_getnodeindex(ph, "2", &Nindex);
+    error = EN_getnodeindex(ph, (const char *)"2", &Nindex);
     BOOST_REQUIRE(error == 0);
 
     // Add controls
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
     
-    error = EN_saveinpfile(ph, "net_builder.inp");
+    error = EN_saveinpfile(ph, (const char *)"net_builder.inp");
     BOOST_REQUIRE(error == 0);
     
     error = EN_close(ph);
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     // ------------------------------------------------------------------------
     // now we load the netwok we just built and saved
     EN_createproject(&ph);
-    error = EN_open(ph, "net_builder.inp", path_rpt.c_str(), path_out.c_str());
+    error = EN_open(ph, (const char *)"net_builder.inp", path_rpt.c_str(), path_out.c_str());
     BOOST_REQUIRE(error == 0);
 
     error = EN_openH(ph);
