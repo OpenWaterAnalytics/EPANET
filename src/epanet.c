@@ -185,7 +185,7 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
   return (errcode);
 }
 
-int DLLEXPORT ENinit(char *f2, char *f3, int UnitsType,
+int DLLEXPORT ENinit(const char *f2, const char *f3, int UnitsType,
                      int HeadlossFormula) {
   int errcode = 0;
   ERRCODE(EN_createproject(&_defaultModel));
@@ -193,14 +193,14 @@ int DLLEXPORT ENinit(char *f2, char *f3, int UnitsType,
   return (errcode);
 }
 
-int DLLEXPORT ENopen(char *f1, char *f2, char *f3) {
+int DLLEXPORT ENopen(const char *f1, const char *f2, const char *f3) {
   int errcode = 0;
   ERRCODE(EN_createproject(&_defaultModel));
   EN_open(_defaultModel, f1, f2, f3);
   return (errcode);
 }
 
-int DLLEXPORT ENsaveinpfile(char *filename) {
+int DLLEXPORT ENsaveinpfile(const char *filename) {
   return EN_saveinpfile(_defaultModel, filename);
 }
 
@@ -642,7 +642,7 @@ int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2,
     return errcode;
 }
 
-int DLLEXPORT EN_init(EN_ProjectHandle ph, char *f2, char *f3,
+int DLLEXPORT EN_init(EN_ProjectHandle ph, const char *f2, const char *f3,
                       EN_FlowUnits UnitsType, EN_FormType HeadlossFormula)
 /*----------------------------------------------------------------
  **  Input:
@@ -777,7 +777,7 @@ int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const
   return set_error(p->error_handle, errcode);
 }
 
-int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, char *filename)
+int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, const char *filename)
 /*----------------------------------------------------------------
  **  Input:   filename = name of INP file
  **  Output:  none
@@ -3044,7 +3044,7 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
       if (Tank[j].Vcurve > 0)
         return set_error(p->error_handle, 202);
       Tank[j].Hmin = Htmp;
-      Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
+      Tank[j].Vmin = (Tank[j].Hmin - Node[index].El) * Tank[j].A;
     } else {
       return set_error(p->error_handle, 251);
     }
