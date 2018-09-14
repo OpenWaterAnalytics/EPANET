@@ -205,7 +205,7 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
 
   ERRCODE(EN_createproject(&_defaultModel));
 
-  ERRCODE(runconcurrent(_defaultModel, f1, f2, f3, pviewprog));
+  ERRCODE(EN_runproject(_defaultModel, f1, f2, f3, pviewprog));
   
   ERRCODE(EN_deleteproject(&_defaultModel));
 
