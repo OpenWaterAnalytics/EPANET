@@ -144,6 +144,43 @@ void errorLookup(int errcode, char *errmsg, int len);
 
 *****************************************************************/
 
+int runconcurrent(EN_ProjectHandle ph, const char *inputfile, const char *reportfile,
+	const char *outputfile, void(*pviewprog)(char *))
+{
+	long t, tstep_h, tstep_q;
+	int errcode = 0;
+
+	EN_Project *p = NULL;
+
+
+	ERRCODE(EN_open(ph, inputfile, reportfile, outputfile));
+	p = (EN_Project*)(ph);
+	p->viewprog = pviewprog;
+
+	ERRCODE(EN_openH(ph));
+	ERRCODE(EN_initH(ph, EN_SAVE));
+
+	ERRCODE(EN_openQ(ph));
+	ERRCODE(EN_initQ(ph, EN_SAVE));
+
+	do {
+		ERRCODE(EN_runH(ph, &t));
+		ERRCODE(EN_runQ(ph, &t));
+
+		ERRCODE(EN_nextH(ph, &tstep_h));
+		ERRCODE(EN_nextQ(ph, &tstep_q));
+
+	} while (tstep_h > 0);
+
+	ERRCODE(EN_closeH(ph));
+	ERRCODE(EN_closeQ(ph));
+
+	ERRCODE(EN_report(ph));
+	ERRCODE(EN_close(ph));
+
+	return errcode;
+}
+
 /*------------------------------------------------------------------------
  **   Input:   f1 = pointer to name of input file
  **            f2 = pointer to name of report file
@@ -167,20 +204,10 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
   EN_Project *p = NULL;
 
   ERRCODE(EN_createproject(&_defaultModel));
-  ERRCODE(EN_open(_defaultModel, f1, f2, f3));
 
-  p = (EN_Project*)(_defaultModel);
-  p->viewprog = pviewprog;
-
-  if (p->out_files.Hydflag != USE) {
-    ERRCODE(EN_solveH(_defaultModel));
-  }
-
-  ERRCODE(EN_solveQ(_defaultModel));
-  ERRCODE(EN_report(_defaultModel));
-
-  EN_close(_defaultModel);
-  EN_deleteproject(&_defaultModel);
+  ERRCODE(EN_runproject(_defaultModel, f1, f2, f3, pviewprog));
+  
+  ERRCODE(EN_deleteproject(&_defaultModel));
 
   return (errcode);
 }
@@ -3716,6 +3743,7 @@ int DLLEXPORT EN_setstatusreport(EN_ProjectHandle ph, int code) {
     p->report.Statflag = (char)code;
   else
     errcode = 202;
+
   return set_error(p->error_handle, errcode);
 }
 
@@ -3800,6 +3828,7 @@ int DLLEXPORT EN_getheadcurveindex(EN_ProjectHandle ph, int index, int *curveind
   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type)
     return set_error(p->error_handle, 204);
   *curveindex = Pump[findpump(net, index)].Hcurve;
+
   return set_error(p->error_handle, 0);
 }
 
@@ -3842,6 +3871,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   pump->Hmax /= Ucf[HEAD];
   
   p->network.Curve[curveindex].Type = P_CURVE;
+
   return set_error(p->error_handle, 0);
 }
 
@@ -3875,6 +3905,7 @@ int DLLEXPORT EN_getcurvetype(EN_ProjectHandle ph, int curveindex, int *type) {
   if (curveindex < 1 || curveindex > net->Ncurves)
     return set_error(p->error_handle, 206);
   *type = net->Curve[curveindex].Type;
+
   return set_error(p->error_handle, 0);
 }
 
@@ -3919,23 +3950,23 @@ int openfiles(EN_Project *p, const char *f1, const char *f2, const char *f3)
   if (strcomp(f1, f2) || strcomp(f1, f3) ||
       (strcomp(f2, f3) && (strlen(f2) > 0 || strlen(f3) > 0))) {
     writecon(FMT04);
-    return set_error(p->error_handle, 301);
+    return 301;
   }
 
   /* Attempt to open input and report files */
   if ((par->InFile = fopen(f1, "rt")) == NULL) {
     writecon(FMT05);
     writecon(f1);
-    return set_error(p->error_handle, 302);
+    return 302;
   }
   if (strlen(f2) == 0)
     rep->RptFile = stdout;
   else if ((rep->RptFile = fopen(f2, "wt")) == NULL) {
     writecon(FMT06);
-    return set_error(p->error_handle, 303);
+    return 303;
   }
 
-  return set_error(p->error_handle, 0);
+  return 0;
 } /* End of openfiles */
 
 int openhydfile(EN_Project *p)
@@ -4025,7 +4056,8 @@ int openhydfile(EN_Project *p)
   /* Save current position in hydraulics file  */
   /* where storage of hydraulic results begins */
   out->HydOffset = ftell(out->HydFile);
-  return set_error(p->error_handle, errcode);
+
+  return errcode;
 }
 
 int openoutfile(EN_Project *p)
@@ -4093,7 +4125,8 @@ int openoutfile(EN_Project *p)
     } else
       out->TmpOutFile = out->OutFile;
   }
-  return set_error(p->error_handle, errcode);
+
+  return errcode;
 }
 
 /*
@@ -4267,7 +4300,8 @@ int allocdata(EN_Project *p)
   /* Allocate memory for rule base (see RULES.C) */
   if (!errcode)
     errcode = allocrules(p);
-  return set_error(p->error_handle, errcode);
+
+  return errcode;
 } /* End of allocdata */
 
 void freeTmplist(STmplist *t)
@@ -4566,11 +4600,11 @@ char *geterrmsg(int errcode, char *msg)
 */
 {
   switch (errcode) { /* Warnings */
-#define DAT(code,enumer,string) case code: msg = string; break;
+#define DAT(code,enumer,string) case code: strcpy(msg, string); break;
 #include "errors.dat"
 #undef DAT
     default:
-      msg = "";
+      strcpy(msg, "");
   }
   return (msg);
 }
