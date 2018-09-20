@@ -1534,7 +1534,9 @@ int DLLEXPORT EN_getoption(EN_ProjectHandle ph, EN_Option code,
   case EN_FLOWCHANGE:
     v = hyd->FlowChangeLimit * Ucf[FLOW];
     break;
-
+  case EN_HEADLOSSFORM:
+    v = hyd->Formflag;
+	break;
   default:
     return set_error(pr->error_handle, 251);
   }
@@ -3727,7 +3729,38 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
           return set_error(p->error_handle, 202);
       hyd->FlowChangeLimit = value / Ucf[FLOW];
       break;
-
+  case EN_HEADLOSSFORM:
+	  if (value < 0.0 || value > 2.0)
+	      return set_error(p->error_handle, 202);
+      hyd->Formflag = value;
+	  if (hyd->Formflag == HW)
+		hyd->Hexp = 1.852;
+	  else
+		hyd->Hexp = 2.0;
+	  /* See if default reaction coeffs. apply */
+	  for (i = 1; i <= net->Nlinks; i++) {
+		Slink *link = &net->Link[i];
+		if (link->Type > EN_PIPE)
+		  continue;
+		if (link->Kb == MISSING)
+		  link->Kb = qu->Kbulk;      /* Bulk coeff. */
+		if (link->Kw == MISSING) /* Wall coeff. */
+		{
+		  /* Rfactor is the pipe roughness correlation factor */
+		  if (qu->Rfactor == 0.0)
+			link->Kw = qu->Kwall;
+		  else if ((link->Kc > 0.0) && (link->Diam > 0.0)) {
+			if (hyd->Formflag == HW)
+			  link->Kw = qu->Rfactor / link->Kc;
+			if (hyd->Formflag == DW)
+			  link->Kw = qu->Rfactor / ABS(log(link->Kc / link->Diam));
+			if (hyd->Formflag == CM)
+			  link->Kw = qu->Rfactor * link->Kc;
+		  } else
+			link->Kw = 0.0;
+		}
+	  }
+	  break;
   default:
     return set_error(p->error_handle, 251);
   }
