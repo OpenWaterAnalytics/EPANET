@@ -90,9 +90,11 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
 
     error = EN_createproject(&ph);
     error = EN_init(ph, "net.rpt", "net.out", EN_GPM, EN_HW);
-    error = EN_addpattern(ph, (char *)"1");
+    error = EN_addpattern(ph, (char *)"pat1");
     BOOST_REQUIRE(error == 0);
     error = EN_setpattern(ph, 1, P, 12);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setoption(ph, EN_DEMANDDEFPAT, 1);
     BOOST_REQUIRE(error == 0);
     for (i = 0; i < 9; i++)
     {
@@ -104,8 +106,8 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
       BOOST_REQUIRE(error == 0);
       error = EN_setcoord(ph, i + 1, X[i], Y[i]);
       BOOST_REQUIRE(error == 0);
-      error = EN_setdemandpattern(ph, i + 1, 1, 1);
-      BOOST_REQUIRE(error == 0);
+      //error = EN_setdemandpattern(ph, i + 1, 1, 1);
+      //BOOST_REQUIRE(error == 0);
     }
     error = EN_addnode(ph, (char *)"9", EN_RESERVOIR);
     BOOST_REQUIRE(error == 0);

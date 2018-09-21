@@ -219,13 +219,14 @@ typedef enum {           /* Demand model types. */
 
 /// Simulation Option codes
 typedef enum {
-  EN_TRIALS       = 0,
-  EN_ACCURACY     = 1,
-  EN_TOLERANCE    = 2,
-  EN_EMITEXPON    = 3,
-  EN_DEMANDMULT   = 4,
-  EN_HEADERROR    = 5,
-  EN_FLOWCHANGE   = 6
+  EN_TRIALS         = 0,
+  EN_ACCURACY       = 1,
+  EN_TOLERANCE      = 2,
+  EN_EMITEXPON      = 3,
+  EN_DEMANDMULT     = 4,
+  EN_HEADERROR      = 5,
+  EN_FLOWCHANGE     = 6,
+  EN_DEMANDDEFPAT   = 7
 } EN_Option;
 
 typedef enum {

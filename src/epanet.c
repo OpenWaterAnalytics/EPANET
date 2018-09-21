@@ -1527,12 +1527,14 @@ int DLLEXPORT EN_getoption(EN_ProjectHandle ph, EN_Option code,
   case EN_DEMANDMULT:
     v = hyd->Dmult;
     break;
-
   case EN_HEADERROR:
     v = hyd->HeadErrorLimit * Ucf[HEAD];
     break;
   case EN_FLOWCHANGE:
     v = hyd->FlowChangeLimit * Ucf[FLOW];
+    break;
+  case EN_DEMANDDEFPAT:
+    v = hyd->DefPat;
     break;
 
   default:
@@ -3293,7 +3295,7 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
 
   EN_Network *net = &p->network;
   parser_data_t *par = &p->parser;
-  
+  hydraulics_t *hyd = &p->hydraulics;
   Spattern *Pattern = net->Pattern;
   
   const int Npats = net->Npats;
@@ -3359,6 +3361,10 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
   net->Pattern = tmpPat;
   net->Npats = n;
   par->MaxPats = n;
+  
+  if (strcmp(id, par->DefPatID) == 0) {
+      hyd->DefPat = n;
+   }
   return set_error(p->error_handle, 0);
 }
 
@@ -3679,6 +3685,9 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
   double *Ucf = p->Ucf;
   
   int i, j;
+  int tmpPat, error;
+  char tmpId[MAXID+1];
+  Pdemand demand; /* Pointer to demand record */
   double Ke, n, ucf, value = v;
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
@@ -3716,7 +3725,6 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
       return set_error(p->error_handle, 202);
     hyd->Dmult = value;
     break;
-
   case EN_HEADERROR:
     if (value < 0.0)
         return set_error(p->error_handle, 202);
@@ -3727,6 +3735,34 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
           return set_error(p->error_handle, 202);
       hyd->FlowChangeLimit = value / Ucf[FLOW];
       break;
+  case EN_DEMANDDEFPAT:
+    //check that the pattern exists or is set to zero to delete the default pattern
+    if (value < 0 || value > net->Npats)
+        return set_error(p->error_handle, 205);
+    tmpPat = hyd->DefPat;
+    //get the new pattern ID
+    if (value == 0)
+    {
+        strncpy(tmpId, "1", MAXID); // should be DEFPATID
+    }
+    else
+    {
+        error = EN_getpatternid(p, value, &*tmpId);
+        if (error != 0)
+            return set_error(p->error_handle, error);
+    }
+    // replace node patterns for default
+    for (i = 1; i <= net->Nnodes; i++) {
+        Snode *node = &net->Node[i];
+        for (demand = node->D; demand != NULL; demand = demand->next) {
+            if (demand->Pat == tmpPat) {
+               demand->Pat = value;
+            }
+        }
+    }
+    strncpy(p->parser.DefPatID, tmpId, MAXID);
+    hyd->DefPat = value;
+    break;
 
   default:
     return set_error(p->error_handle, 251);
