@@ -111,6 +111,7 @@ int juncdata(EN_Project *pr)
   }
   demand->Base = y;
   demand->Pat = p;
+  strncpy(demand->Name, "", MAXMSG);
   demand->next = NULL;
   node->D = demand;
   hyd->NodeDemand[Njuncs] = y;
@@ -775,6 +776,7 @@ int demanddata(EN_Project *pr)
     // with what is specified in this section
     demand->Base = y;
     demand->Pat = p;
+    strncpy(demand->Name, par->Comment, MAXMSG);
     hyd->NodeDemand[j] = MISSING; // marker - next iteration will append a new category.
   }
   else { // add new demand to junction
@@ -787,6 +789,7 @@ int demanddata(EN_Project *pr)
       return (101);
     demand->Base = y;
     demand->Pat = p;
+    strncpy(demand->Name, par->Comment, MAXMSG);
     demand->next = NULL;
     cur_demand->next = demand;
   }
