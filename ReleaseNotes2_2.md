@@ -96,3 +96,68 @@ for the thread-safe API. Some additional points regarding the new **PDA** option
      - `hydcoeffs.c` computes values of the matrix coefficients (derived from link head losses and their gradients) used by the hydraulic solver.
      - `hydstatus.c` checks for status changes in valves and pumps as requested by the hydraulic solver.
  - The Multiple Minimum Degree re-ordering algorithm appears in a new file named `genmmd.c`. This is 1990's legacy code that is readily available on the web and can be found in several linear equation solver libraries.
+
+## General changes
+ - Read and write demand categories names
+
+## New API functions
+|Function|Description|
+|--|--|
+|`ENaddlink`|  |
+|`ENaddnode`|  |
+|`ENgetcurvetype`|  |
+|`ENgetdemandmodel`||
+|`ENsetdemandmodel`||
+|`ENsetflowunits`||
+|`ENaddcontrol`||
+|`ENsetdemandpattern`||
+|`ENgetrule`||
+|`ENsetrulepriority`||
+|`ENgetpremise`||
+|`ENsetpremise`||
+|`ENsetpremiseindex`||
+|`ENsetpremisestatus`||
+|`ENsetpremisevalue`||
+|`ENgettrueaction`||
+|`ENsettrueaction`||
+|`ENgetfalseaction`||
+|`ENsetfalseaction`||
+|`ENgetruleID`||
+|`ENinit`||
+|`ENsetheadcurveindex`||
+|`ENsetlinktype`||
+|`ENaddnode`||
+|`ENaddlink`||
+|`ENdeletelink`||
+|`ENdeletenode`||
+
+
+## API Extensions (additional definitions)
+### Link value types:
+- `EN_EFFICIENCY`
+- `EN_HEADCURVE`
+- `EN_EFFICIENCYCURVE`
+- `EN_PRICEPATTERN`
+- `EN_STATE`
+- `EN_CONST_POWER`
+- `EN_SPEED`
+### Count types:
+ - `EN_RULECOUNT`
+### Head loss formula:
+ - `EN_HW`
+ - `EN_DW`
+ - `EN_CM`
+### Misc. options:
+ - `EN_HEADERROR`
+ - `EN_FLOWCHANGE`
+ - `EN_DEMANDDEFPAT`
+### Curve types:
+ - `EN_V_CURVE`
+ - `EN_P_CURVE`
+ - `EN_E_CURVE`
+ - `EN_H_CURVE`
+ - `EN_G_CURVE`
+
+## Authors contributing to this release:
+ - List item
+
