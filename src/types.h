@@ -359,9 +359,10 @@ typedef struct        /* Coord OBJECT */
 
 struct Sdemand            /* DEMAND CATEGORY OBJECT */
 {
-   double Base;            /* Baseline demand  */
-   int    Pat;             /* Pattern index    */
-   struct Sdemand *next;   /* Next record      */
+   double Base;            /* Baseline demand      */
+   int    Pat;             /* Pattern index        */
+   char Name[MAXMSG+1];    /* Demand category name */
+   struct Sdemand *next;   /* Next record          */
 };
 typedef struct Sdemand *Pdemand; /* Pointer to demand object */
 

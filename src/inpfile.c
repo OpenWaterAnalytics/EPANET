@@ -333,7 +333,7 @@ int saveinpfile(EN_Project *pr, const char *fname)
         sprintf(s1, "   %s", net->Pattern[j].ID);
       else
         strcpy(s1, "");
-      fprintf(f, "\n%s %s", s, s1);
+      fprintf(f, "\n%s %s ;%s", s, s1, demand->Name);
     }
   }
 
