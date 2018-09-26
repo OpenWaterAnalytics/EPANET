@@ -936,6 +936,26 @@ extern "C" {
    @see EN_QualityType
    */
   int  DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode);
+
+  /**
+   @brief Sets the node's demand name for a category.
+   @param nodeIndex The index of a node.
+   @param demandIdx The index of a demand category.
+   @param demandName The demand name for the selected category.
+   @return Error code.
+   @see ENgetdemandname
+   */
+  int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIdx, char *demandName);
+
+  /**
+   @brief Retrieves the node's demand name for a category.
+   @param nodeIndex The index of a node.
+   @param demandIdx The index of a demand category.
+   @param demandName The demand name for the selected category.
+   @return Error code.
+   @see ENsetdemandname
+   */
+  int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIdx, char *demandName);
   
   /**
    @brief Sets the node's base demand for a category.
@@ -1287,12 +1307,14 @@ extern "C" {
 
   int DLLEXPORT EN_getdemandmodel(EN_ProjectHandle ph, int *type, EN_API_FLOAT_TYPE *pmin,
               EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp);
-   int DLLEXPORT EN_setdemandmodel(EN_ProjectHandle ph, int type, EN_API_FLOAT_TYPE pmin,
+  int DLLEXPORT EN_setdemandmodel(EN_ProjectHandle ph, int type, EN_API_FLOAT_TYPE pmin,
               EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
 
+  int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx, char *demandName);
+  int DLLEXPORT EN_getdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx, char *demandName);
   int DLLEXPORT EN_getqualinfo(EN_ProjectHandle ph, int *qualcode, char *chemname, char *chemunits, int *tracenode);
   int DLLEXPORT EN_setbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
-  int  DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIdx, int patIndex);
+  int DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIdx, int patIndex);
   int DLLEXPORT EN_getcurveindex(EN_ProjectHandle ph, char *id, int *index);
   int DLLEXPORT EN_getcurveid(EN_ProjectHandle ph, int index, char *id);
   int DLLEXPORT EN_getcurvelen(EN_ProjectHandle ph, int index, int *len);
