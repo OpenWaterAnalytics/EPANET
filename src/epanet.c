@@ -1536,7 +1536,10 @@ int DLLEXPORT EN_getoption(EN_ProjectHandle ph, EN_Option code,
   case EN_DEMANDDEFPAT:
     v = hyd->DefPat;
     break;
-
+  case EN_HEADLOSSFORM:
+    v = hyd->Formflag;
+    break;
+	
   default:
     return set_error(pr->error_handle, 251);
   }

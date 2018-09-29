@@ -226,7 +226,8 @@ typedef enum {
   EN_DEMANDMULT     = 4,
   EN_HEADERROR      = 5,
   EN_FLOWCHANGE     = 6,
-  EN_DEMANDDEFPAT   = 7
+  EN_DEMANDDEFPAT   = 7,
+  EN_HEADLOSSFORM 	= 8
 } EN_Option;
 
 typedef enum {
