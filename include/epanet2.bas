@@ -227,6 +227,9 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENgetbasedemand Lib "epanet2.dll" (ByVal index As Long, ByVal DemandIndex As Long, value As Single) As Long
  Declare Function ENgetdemandpattern Lib "epanet2.dll" (ByVal index As Long, ByVal DemandIndex As Long, PatIndex As Long) As Long
 
+ Declare Function ENgetdemandname Lib "epanet2.dll" (ByVal index As Long, ByVal DemandIndex As Long, ByVal demandName As String) As Long
+ Declare Function ENsetdemandname Lib "epanet2.dll" (ByVal nodeIndex As Long, ByVal DemandIndex As Long, ByVal demandName As String) As Long
+  
  Declare Function ENgetlinkindex Lib "epanet2.dll" (ByVal id As String, index As Long) As Long
  Declare Function ENgetlinkid Lib "epanet2.dll" (ByVal index As Long, ByVal id As String) As Long
  Declare Function ENgetlinktype Lib "epanet2.dll" (ByVal index As Long, code As Long) As Long

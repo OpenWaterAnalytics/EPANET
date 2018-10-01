@@ -100,3 +100,5 @@ EXPORTS
     ENsetdemandmodel              = _ENsetdemandmodel@16
     ENgetcurvetype                = _ENgetcurvetype@8
     ENinit                        = _ENinit@16
+    ENgetdemandname               = _ENgetdemandname@12
+    ENsetdemandname               = _ENsetdemandname@12

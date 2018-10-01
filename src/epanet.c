@@ -530,6 +530,15 @@ int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value) {
   return EN_getaveragepatternvalue(_defaultModel, index, value);
 }
 
+int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIdx,
+                               char *demandName) {
+  return EN_getdemandname(_defaultModel, nodeIndex, demandIdx, demandName);
+}
+
+int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIdx,
+                              char *demandName) {
+  return EN_setdemandname(_defaultModel, nodeIndex, demandIdx, demandName);
+}
 
 int DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions,
                         int *nFalseActions, EN_API_FLOAT_TYPE *priority) {
@@ -4762,6 +4771,55 @@ int DLLEXPORT EN_setbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx
       return set_error(pr->error_handle, 253);
     d->Base = baseDemand / Ucf[FLOW];
   }
+  return set_error(pr->error_handle, 0);
+}
+
+int DLLEXPORT EN_getdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx, char *demandName) {
+  Pdemand d;
+  int n = 1;
+
+  EN_Project *p = (EN_Project*)ph;
+
+  strcpy(demandName, "");
+  /* Check for valid arguments */
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs)
+    return set_error(p->error_handle, 203);
+  for (d = p->network.Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next) {
+    n++;
+  }
+  if (n != demandIdx) {
+    return set_error(p->error_handle, 253);
+  }
+  strcpy(demandName, d->Name);
+  return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx, char *demandName) {
+  
+  EN_Project *pr = (EN_Project*)ph;
+
+  EN_Network *net = &pr->network;
+  Snode *Node = net->Node;
+  
+  const int Nnodes = net->Nnodes;
+  const int Njuncs = net->Njuncs;
+  
+  double *Ucf = pr->Ucf;
+  
+  Pdemand d;
+  int n = 1;
+  /* Check for valid arguments */
+  if (!pr->Openflag)
+    return set_error(pr->error_handle, 102);
+  if (nodeIndex <= 0 || nodeIndex > Njuncs)
+    return set_error(pr->error_handle, 203);
+  for (d = Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next)
+    n++;
+  if (n != demandIdx)
+    return set_error(pr->error_handle, 253);
+  strncpy(d->Name, demandName, MAXMSG);
   return set_error(pr->error_handle, 0);
 }
 

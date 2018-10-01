@@ -130,7 +130,8 @@ for the thread-safe API. Some additional points regarding the new **PDA** option
 |`ENaddlink`||
 |`ENdeletelink`||
 |`ENdeletenode`||
-
+|`ENgetdemandname`||
+|`ENsetdemandname`||
 
 ## API Extensions (additional definitions)
 ### Link value types:
