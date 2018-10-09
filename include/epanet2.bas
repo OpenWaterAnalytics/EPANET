@@ -80,6 +80,7 @@ Public Const EN_ITERATIONS = 0
 Public Const EN_RELATIVEERROR = 1
 Public Const EN_MAXHEADERROR = 2
 Public Const EN_MAXFLOWCHANGE = 3
+Public Const EN_MASSBALANCE = 4
 
 Public Const EN_NODECOUNT = 0     'Component counts
 Public Const EN_TANKCOUNT = 1

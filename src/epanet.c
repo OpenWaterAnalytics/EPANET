@@ -1997,6 +1997,9 @@ int DLLEXPORT EN_getstatistic(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE *
   case EN_MAXFLOWCHANGE:
       *value = (EN_API_FLOAT_TYPE)(p->hydraulics.MaxFlowChange * p->Ucf[FLOW]);
       break;
+  case EN_MASSBALANCE:
+      *value = (EN_API_FLOAT_TYPE)(p->quality.massbalance.ratio);
+      break;
   default:
     break;
   }
@@ -3759,7 +3762,7 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
     }
     else
     {
-        error = EN_getpatternid(p, value, &*tmpId);
+        error = EN_getpatternid(p, (int)value, tmpId);
         if (error != 0)
             return set_error(p->error_handle, error);
     }
@@ -3768,12 +3771,12 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
         Snode *node = &net->Node[i];
         for (demand = node->D; demand != NULL; demand = demand->next) {
             if (demand->Pat == tmpPat) {
-               demand->Pat = value;
+               demand->Pat = (int)value;
             }
         }
     }
     strncpy(p->parser.DefPatID, tmpId, MAXID);
-    hyd->DefPat = value;
+    hyd->DefPat = (int)value;
     break;
 
   default:
@@ -4952,7 +4955,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   Snode *node;
   Scoord *coord;
   Scontrol *control;
-  rules_t *rule;
+//  rules_t *rule;
   Premise *pchain, *pnext;
   
   

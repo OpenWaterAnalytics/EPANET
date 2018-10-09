@@ -148,7 +148,8 @@ typedef enum {
   EN_ITERATIONS    = 0,
   EN_RELATIVEERROR = 1,
   EN_MAXHEADERROR  = 2,
-  EN_MAXFLOWCHANGE = 3
+  EN_MAXFLOWCHANGE = 3,
+  EN_MASSBALANCE   = 4  
 } EN_AnalysisStatistic;
 
 typedef enum {

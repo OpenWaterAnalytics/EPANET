@@ -386,7 +386,7 @@ int readhyd(EN_Project *pr, long *hydtime)
   return result;
 } /* End of readhyd */
 
-int readhydstep(FILE *hydFile, long *hydstep)
+int readhydstep(EN_Project *pr, long *hydstep)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -397,8 +397,8 @@ int readhydstep(FILE *hydFile, long *hydstep)
 */
 {
   INT4 t;
-  if (fread(&t, sizeof(INT4), 1, hydFile) < 1)
-    return (0);
+  FILE *hydFile = pr->out_files.HydFile;
+  if (fread(&t, sizeof(INT4), 1, hydFile) < 1) return (0);
   *hydstep = t;
   return (1);
 } /* End of readhydstep */

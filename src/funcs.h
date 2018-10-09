@@ -127,8 +127,6 @@ void    freerules(EN_Project *pr);                  /* Frees rule base memory   
 int     writeRuleinInp(EN_Project *pr, FILE *f,     /* Writes rule to an INP file */
                       int RuleIdx);
 
-int     writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx);
-
 /* ------------- REPORT.C --------------*/
 int     writereport(EN_Project *pr);                /* Writes formatted report    */
 void    writelogo(EN_Project *pr);                  /* Writes program logo        */
@@ -144,6 +142,7 @@ void    writecontrolaction(EN_Project *pr, int, int);     /* Writes control acti
 void    writeruleaction(EN_Project *pr, int, char *);     /* Writes rule action taken   */
 int     writehydwarn(EN_Project *pr, int,double);         /* Writes hydraulic warnings  */
 void    writehyderr(EN_Project *pr, int);                 /* Writes hydraulic error msg.*/
+void    writemassbalance(EN_Project *pr);                 // Writes mass balance ratio
 int     disconnected(EN_Project *pr);                     /* Checks for disconnections  */
 void    marknodes(EN_Project *pr, int, int *, char *);    /* Identifies connected nodes */
 void    getclosedlink(EN_Project *pr, int, char *);       /* Finds a disconnecting link */
@@ -192,41 +191,12 @@ int     linsolve(EN_Project *pr, int);              /* Solves set of linear eqns
 
 /* ----------- QUALITY.C ---------------*/
 int     openqual(EN_Project *pr);                   /* Opens WQ solver system     */
-void    initqual(EN_Project *pr);                   /* Initializes WQ solver      */
+int     initqual(EN_Project *pr);                   /* Initializes WQ solver      */
 int     runqual(EN_Project *pr, long *);            /* Gets current WQ results    */
 int     nextqual(EN_Project *pr, long *);           /* Updates WQ by hyd.timestep */
 int     stepqual(EN_Project *pr, long *);           /* Updates WQ by WQ time step */
 int     closequal(EN_Project *pr);                  /* Closes WQ solver system    */
-int     gethyd(EN_Project *pr, long *, long *);     /* Gets next hyd. results     */
-char    setReactflag(EN_Project *pr);               /* Checks for reactive chem.  */
-void    transport(EN_Project *pr, long);            /* Transports mass in network */
-void    initsegs(EN_Project *pr);                   /* Initializes WQ segments    */
-void    reorientsegs(EN_Project *pr);               /* Re-orients WQ segments     */
-void    updatesegs(EN_Project *pr, long);           /* Updates quality in segments*/
-void    removesegs(EN_Project *pr, int);            /* Removes a WQ segment       */
-void    addseg(EN_Project *pr, int,double,double);  /* Adds a WQ segment to pipe  */
-void    accumulate(EN_Project *pr, long);           /* Sums mass flow into node   */
-void    updatenodes(EN_Project *pr, long);          /* Updates WQ at nodes        */
-void    sourceinput(EN_Project *pr, long);          /* Computes source inputs     */
-void    release(EN_Project *pr, long);              /* Releases mass from nodes   */
-void    updatetanks(EN_Project *pr, long);          /* Updates WQ in tanks        */
-void    updatesourcenodes(EN_Project *pr, long);    /* Updates WQ at source nodes */
-void    tankmix1(EN_Project *pr, int, long);        /* Complete mix tank model    */
-void    tankmix2(EN_Project *pr, int, long);        /* 2-compartment tank model   */
-void    tankmix3(EN_Project *pr, int, long);        /* FIFO tank model            */
-void    tankmix4(EN_Project *pr, int, long);        /* LIFO tank model            */
-double  sourcequal(EN_Project *pr, Psource);        /* Finds WQ input from source */
 double  avgqual(EN_Project *pr, int);               /* Finds avg. quality in pipe */
-void    ratecoeffs(EN_Project *pr);                 /* Finds wall react. coeffs.  */
-double  piperate(EN_Project *pr, int);              /* Finds wall react. coeff.   */
-double  pipereact(EN_Project *pr, int,double,
-                  double,long);                     /* Reacts water in a pipe     */
-double  tankreact(EN_Project *pr, double,double,
-                  double,long);                     /* Reacts water in a tank     */
-double  bulkrate(EN_Project *pr, double,double,
-                double);                            /* Finds bulk reaction rate   */
-double  wallrate(EN_Project *pr, double,double,
-                 double,double);                    /* Finds wall reaction rate   */
 
 /* ------------ OUTPUT.C ---------------*/
 int     savenetdata(EN_Project *pr);                /* Saves basic data to file   */
@@ -234,7 +204,7 @@ int     savehyd(EN_Project *pr, long *);            /* Saves hydraulic solution 
 int     savehydstep(EN_Project *pr, long *);        /* Saves hydraulic timestep   */
 int     saveenergy(EN_Project *pr);                 /* Saves energy usage         */
 int     readhyd(EN_Project *pr, long *);            /* Reads hydraulics from file */
-int     readhydstep(FILE *hydFile, long *);         /* Reads time step from file  */
+int     readhydstep(EN_Project *pr, long *);        /* Reads time step from file  */
 int     saveoutput(EN_Project *pr);                 /* Saves results to file      */
 int     nodeoutput(EN_Project *pr, int, REAL4 *,
                    double);                         /* Saves node results to file */

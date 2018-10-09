@@ -72,6 +72,16 @@ Public Const EN_RULESTEP = 7
 Public Const EN_STATISTIC = 8
 Public Const EN_PERIODS = 9
 Public Const EN_STARTTIME = 10    'ES
+Public Const EN_HTIME = 11
+Public Const EN_QTIME = 12
+Public Const EN_HALTFLAG = 13
+Public Const EN_NEXTEVENT = 14
+
+Public Const EN_ITERATIONS = 0
+Public Const EN_RELATIVEERROR = 1
+Public Const EN_MAXHEADERROR = 2
+Public Const EN_MAXFLOWCHANGE = 3
+Public Const EN_MASSBALANCE = 4
 
 Public Const EN_NODECOUNT = 0     'Component counts
 Public Const EN_TANKCOUNT = 1
