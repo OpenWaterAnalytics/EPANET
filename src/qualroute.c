@@ -487,7 +487,7 @@ int sortnodes(EN_Project *pr)
 */
 {
     int i, j, k, n;
-    int *indegree = NULL;;
+    int *indegree = NULL;
     int *stack = NULL;
     int stacksize = 0;
     int numsorted = 0;
