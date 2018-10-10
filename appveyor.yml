@@ -68,3 +68,11 @@ test_script:
   # run regression tests
   - cd %EPANET_HOME%
   - tools\run-nrtest.cmd %NRTEST_SCRIPT% %TEST_HOME% %APPVEYOR_REPO_COMMIT%
+
+after_test: 
+  # zip up the SUT benchmarks 
+  - 7z a benchmarks.zip %TEST_HOME%\epanet-%APPVEYOR_REPO_COMMIT%\
+
+artifacts:
+  - path: benchmarks.zip
+    name: benchmarks
