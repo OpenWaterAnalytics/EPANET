@@ -71,7 +71,7 @@ test_script:
 
 after_test: 
   # zip up the SUT benchmarks 
-  - 7z a benchmarks.zip %TEST_HOME%\epanet-%APPVEYOR_REPO_COMMIT%\
+  - 7z a benchmarks.zip %TEST_HOME%\benchmark\epanet-%APPVEYOR_REPO_COMMIT%\
 
 artifacts:
   - path: benchmarks.zip
