@@ -376,6 +376,52 @@ void writehydstat(EN_Project *pr, int iter, double relerr)
   writeline(pr, " ");
 } /* End of writehydstat */
 
+
+void writemassbalance(EN_Project *pr)
+/*
+**-------------------------------------------------------------
+**   Input:   none
+**   Output:  none
+**   Purpose: writes water quality mass balance ratio
+**            (Outflow + Final Storage) / Inflow + Initial Storage)
+**            to report file.
+**-------------------------------------------------------------
+*/
+{
+    char s1[MAXMSG+1];
+    char *units[] = {"", " (mg)", " (ug)", " (hrs)"};
+    int  kunits = 0;
+    quality_t *qual = &pr->quality;
+
+    if      (qual->Qualflag == TRACE) kunits = 1;
+    else if (qual->Qualflag == AGE)   kunits = 3;
+    else
+    {
+        if      (match(qual->ChemUnits, "mg")) kunits = 1;
+        else if (match(qual->ChemUnits, "ug")) kunits = 2;
+    }
+
+    snprintf(s1, MAXMSG, "Water Quality Mass Balance%s", units[kunits]);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "================================");
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Initial Mass:      %12.5e", qual->massbalance.initial);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Mass Inflow:       %12.5e", qual->massbalance.inflow);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Mass Outflow:      %12.5e", qual->massbalance.outflow);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Mass Reacted:      %12.5e", qual->massbalance.reacted);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Final Mass:        %12.5e", qual->massbalance.final);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Mass Ratio:         %-0.5f", qual->massbalance.ratio);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "================================\n");
+    writeline(pr, s1);
+}
+
+
 void writeenergy(EN_Project *pr)
 /*
 **-------------------------------------------------------------

@@ -276,20 +276,21 @@ int  nexthyd(EN_Project *pr, long *tstep)
      addenergy(pr,hydstep);
   }
 
-   /* Update current time. */
-   if (top->Htime < top->Dur)  /* More time remains */
+   /* More time remains - update current time. */
+   if (top->Htime < top->Dur)
    {
       top->Htime += hydstep;
-     if (top->Htime >= top->Rtime) {
-        top->Rtime += top->Rstep;
-     }
+      if (!pr->quality.OpenQflag)
+      {
+        if (top->Htime >= top->Rtime) top->Rtime += top->Rstep;
+      }
    }
+
+   /* No more time remains - force completion of analysis. */
    else
    {
-      top->Htime++;          /* Force completion of analysis */
-      if (pr->quality.OpenQflag) {
-        pr->quality.Qtime++; // force completion of wq analysis too
-      }
+      top->Htime++;
+      if (pr->quality.OpenQflag) pr->quality.Qtime++;
    }
    *tstep = hydstep;
    return(errcode);

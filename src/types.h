@@ -23,6 +23,7 @@ AUTHOR:     L. Rossman
 #include "epanet2.h"
 #include "hash.h"
 #include "util/errormanager.h"
+#include <stdio.h>
 
 
 /*********************************************************/
@@ -34,7 +35,7 @@ AUTHOR:     L. Rossman
 -------------------------------------------
 */
 typedef  float        REAL4;                                                   
-typedef  int          INT4;                                                    
+typedef  int          INT4;
 
 /*
 -----------------------------
@@ -286,8 +287,9 @@ typedef enum {
 } HdrType;    
 
 typedef enum {
-  POSITIVE,
-  NEGATIVE
+    NEGATIVE  = -1,    // Flow in reverse of pre-assigned direction
+    ZERO_FLOW = 0,     // Zero flow
+    POSITIVE  = 1      // Flow in pre-assigned direction
 } FlowDirection;
 
 typedef enum {
@@ -361,7 +363,7 @@ struct Sdemand            /* DEMAND CATEGORY OBJECT */
 {
    double Base;            /* Baseline demand      */
    int    Pat;             /* Pattern index        */
-   char Name[MAXMSG+1];    /* Demand category name */
+   char   Name[MAXMSG+1];  /* Demand category name */
    struct Sdemand *next;   /* Next record          */
 };
 typedef struct Sdemand *Pdemand; /* Pointer to demand object */
@@ -538,61 +540,74 @@ typedef struct s_ActItem        /* Action list item */
    struct   s_ActItem  *next;     
 } ActItem;
 
+typedef struct
+{
+    double    initial;
+    double    inflow;
+    double    outflow;
+    double    reacted;
+    double    final;
+    double    ratio;
+} MassBalance;
 
 // Forward declaration of the Mempool structure defined in mempool.h
 struct Mempool;
 
 typedef struct {
   char
-  Qualflag,  /// Water quality flag
-  OpenQflag, /// Quality system opened flag
-  Reactflag; /// Reaction indicator 
+  Qualflag,        // Water quality flag
+  OpenQflag,       // Quality system opened flag
+  Reactflag,       // Reaction indicator 
+  OutOfMemory;     // Out of memory indicator
   
   char
-  ChemName[MAXID+1],     /* Name of chemical             */
-  ChemUnits[MAXID+1];    /* Units of chemical            */
+  ChemName[MAXID+1],    // Name of chemical
+  ChemUnits[MAXID+1];   // Units of chemical
   
   int
-  TraceNode; /// Source node for flow tracing
-  
+  TraceNode,       // Source node for flow tracing
+  *SortedNodes,    // Topologically sorted node indexes
+  *Ilist,          // Link incidence lists for all nodes
+  *IlistPtr;       // Start index of each node in Ilist
+
   double 
-  Ctol,      /// Water quality tolerance
-  Diffus,    /// Diffusivity (sq ft/sec)
-  Wbulk,     /// Avg. bulk reaction rate
-  Wwall,     /// Avg. wall reaction rate
-  Wtank,     /// Avg. tank reaction rate
-  Wsource,   /// Avg. mass inflow
-  Rfactor,   /// Roughness-reaction factor
-  BulkOrder, /// Bulk flow reaction order
-  WallOrder, /// Pipe wall reaction order     
-  TankOrder, /// Tank reaction order          
-  Kbulk,     /// Global bulk reaction coeff.  
-  Kwall,     /// Global wall reaction coeff.  
-  Climit,    /// Limiting potential quality   
-  *NodeQual, /// Node quality state
-  *TempQual, /// General purpose array for water quality
-  *QTempVolumes,
-  *QTankVolumes,
-  *QLinkFlow,
-  *PipeRateCoeff;
-  
+  Ctol,            // Water quality tolerance
+  Diffus,          // Diffusivity (sq ft/sec)
+  Wbulk,           // Avg. bulk reaction rate
+  Wwall,           // Avg. wall reaction rate
+  Wtank,           // Avg. tank reaction rate
+  Wsource,         // Avg. mass inflow
+  Rfactor,         // Roughness-reaction factor
+  Sc,              // Schmidt Number
+  Bucf,            // Bulk reaction units conversion factor
+  Tucf,            // Tank reaction units conversion factor
+  BulkOrder,       // Bulk flow reaction order
+  WallOrder,       // Pipe wall reaction order     
+  TankOrder,       // Tank reaction order          
+  Kbulk,           // Global bulk reaction coeff.  
+  Kwall,           // Global wall reaction coeff.  
+  Climit,          // Limiting potential quality
+  SourceQual,      // External source quality
+  *NodeQual,       // Reported node quality state
+  *PipeRateCoeff;  // Pipe reaction rate coeffs.
+
   long
-  Qstep, /// Quality time step (sec)
-  Qtime; /// Current quality time (sec)
+  Qstep,           // Quality time step (sec)
+  Qtime;           // Current quality time (sec)
   
-  char      OutOfMemory;          /* Out of memory indicator                 */
-  struct Mempool *SegPool;        // Memory pool for water quality segments   
+  struct Mempool
+  *SegPool;        // Memory pool for water quality segments   
   
-  Pseg      FreeSeg;              /* Pointer to unused segment               */
-  Pseg      *FirstSeg,            /* First (downstream) segment in each pipe */
-            *LastSeg;             /* Last (upstream) segment in each pipe    */
-  FlowDirection *FlowDir;         /* Flow direction for each pipe            */
-  double    *VolIn;               /* Total volume inflow to node             */
-  double    *MassIn;              /* Total mass inflow to node               */
-  double    Sc;                   /* Schmidt Number                          */
-  double    Bucf;                 /* Bulk reaction units conversion factor   */
-  double    Tucf;                 /* Tank reaction units conversion factor   */
+  Pseg
+  FreeSeg,         // Pointer to unused segment
+  *FirstSeg,       // First (downstream) segment in each pipe
+  *LastSeg;        // Last (upstream) segment in each pipe
   
+  FlowDirection
+  *FlowDir;        // Flow direction for each pipe
+
+  MassBalance
+  massbalance;     // Mass balance components  
 } quality_t;
 
 typedef struct {

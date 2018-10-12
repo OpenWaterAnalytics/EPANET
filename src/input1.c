@@ -167,7 +167,8 @@ void setdefaults(EN_Project *pr)
   hyd->RQtol = RQTOL;        /* Default hydraulics parameters  */
   hyd->CheckFreq = CHECKFREQ;
   hyd->MaxCheck = MAXCHECK;
-  hyd->DampLimit = DAMPLIMIT; 
+  hyd->DampLimit = DAMPLIMIT;
+  qu->massbalance.ratio = 0.0;
 } /*  End of setdefaults  */
 
 void initreport(report_options_t *r)

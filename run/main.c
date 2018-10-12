@@ -7,9 +7,9 @@
 /* text copied here, no more need of include "text.h" */
 #define FMT01  "\nEPANET Version %d.%d.%d\n"
 #define FMT03 "\nUsage:\n %s <input_filename> <report_filename> [<binary_filename>]\n"
-#define FMT09  "\n\nEPANET completed."
-#define FMT10  "\nEPANET completed. There are warnings."
-#define FMT11  "\nEPANET completed. There are errors."
+#define FMT09  "\n\nEPANET completed.\n"
+#define FMT10  "\nEPANET completed. There are warnings.\n"
+#define FMT11  "\nEPANET completed. There are errors.\n"
 
 
 void  writeConsole(char *s);
@@ -43,7 +43,6 @@ int   main(int argc, char *argv[])
   char errmsg[MAXMSG+1]="";
   int  errcode;
   int  version;
-  char s[256];
   int major;
   int minor;
   int patch;
@@ -54,14 +53,11 @@ int   main(int argc, char *argv[])
   major=  version/10000;
   minor=  (version%10000)/100;
   patch=  version%100;
-  sprintf(s,FMT01, major , minor, patch);
-  writeConsole(s);
-
+  printf(FMT01, major, minor, patch);
   
   /* Check for proper number of command line arguments */
   if (argc < 2) {
-    sprintf(s, FMT03, argv[0]);
-    writeConsole(s);
+    printf(FMT03, argv[0]);
     return(1);
   }
 
@@ -85,51 +81,27 @@ int   main(int argc, char *argv[])
   }
 
   /* Call the main control function */
-  if (strlen(f2)> 0) {
-     /* use stdout for progress messages */
-     //errcode = ENepanet(f1,f2,f3,writeConsole);
-     errcode = ENepanet(f1, f2, f3, NULL);
-  }
-  else {
-     /* use stdout for reporting, no progress messages */
-     errcode = ENepanet(f1,f2,f3,NULL);
-  }
+  errcode = ENepanet(f1,f2,f3,NULL);
 
   /* Error/Warning check   */
   if (errcode == 0) {
      /* no errors */
-     writeConsole(FMT09);
+     printf(FMT09);
      return(0);
   }
   else {
      if (errcode > MAXWARNCODE) printf("\n    Fatal Error: ");
      ENgeterror(errcode, errmsg, MAXMSG);
-     writeConsole(errmsg);
+     printf("%s\n", errmsg);
      if (errcode > MAXWARNCODE) {
-     	// error //
-        writeConsole(FMT11);
+        // error //
+        printf(FMT11);
         return(errcode);
      }
      else {
-     	  // warning //
-        writeConsole(FMT10);
+        // warning //
+        printf(FMT10);
         return(0);
      }
   }
-
 }                                       /* End of main */
-
-
-void  writeConsole(char *s)
-/*----------------------------------------------------------------
- **  Input:   text string
- **  Output:  none
- **  Purpose: writes string of characters to console
- **----------------------------------------------------------------
- */
-{
-  fprintf(stdout,"%s\n",s);
-  fflush(stdout);
-}
-
-
