@@ -1377,9 +1377,10 @@ int DLLEXPORT EN_setreport(EN_ProjectHandle ph, char *s) {
 
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
-  if (strlen(s) > MAXLINE)
+  if (strlen(s) >= MAXLINE)
     return set_error(p->error_handle, 250);
   strcpy(s1, s);
+  strcat(s1, "\n");
   if (setreport(p, s1) > 0)
     return set_error(p->error_handle, 250);
   else
