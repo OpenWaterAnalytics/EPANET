@@ -292,7 +292,7 @@ int newline(EN_Project *pr, int sect, char *line)
       n = (int)strlen(line);
       if (line[n - 1] == 10)
         line[n - 1] = ' ';
-      strncpy(pr->Title[par->Ntitle], line, MAXMSG);
+      strncpy(pr->Title[par->Ntitle], line, TITLELEN);
       par->Ntitle++;
     }
     return (0);

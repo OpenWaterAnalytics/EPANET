@@ -48,8 +48,9 @@ typedef  int          INT4;
 #define   ENGINE_VERSION     201
 #define   EOFMARK            0x1A  /* Use 0x04 for UNIX systems */
 #define   MAXTITLE  3        /* Max. # title lines                     */
+#define   TITLELEN  79       // Max. # characters in a title line
 #define   MAXID     31       /* Max. # characters in ID name           */      
-#define   MAXMSG    79       /* Max. # characters in message text      */
+#define   MAXMSG    255      /* Max. # characters in message text      */
 #define   MAXLINE   255      /* Max. # characters read from input line */
 #define   MAXFNAME  259      /* Max. # characters in file name         */
 #define   MAXTOKS   40       /* Max. items per line of input           */
@@ -900,7 +901,7 @@ typedef struct EN_Project {
   Openflag,                   /// Toolkit open flag
   Warnflag,                   /// Warning flag
   Msg[MAXMSG+1],              /// General-purpose string: errors, messages
-  Title[MAXTITLE][MAXMSG+1],  /// Problem title
+  Title[MAXTITLE][TITLELEN+1],/// Project title
   MapFname[MAXFNAME+1];       /// Map file name
   
   error_handle_t* error_handle; //Simple error manager
