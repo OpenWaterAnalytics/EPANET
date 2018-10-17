@@ -437,8 +437,16 @@ int DLLEXPORT ENaddcontrol(int *cindex, int ctype, int lindex,
                        level);
 }
 
+int DLLEXPORT ENsetnodeid(int index, char *newid) {
+    return EN_setnodeid(_defaultModel, index, newid);
+}
+
 int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v) {
   return EN_setnodevalue(_defaultModel, index, code, v);
+}
+
+int DLLEXPORT ENsetlinkid(int index, char *newid) {
+    return EN_setlinkid(_defaultModel, index, newid);
 }
 
 int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v) {
@@ -2892,6 +2900,34 @@ int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lind
   return set_error(p->error_handle, 0);
 }
 
+int DLLEXPORT EN_setnodeid(EN_ProjectHandle ph, int index, char *newid)
+{
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+    size_t n;
+    
+    // Check for valid arguments
+    if (index <= 0 || index > net->Nnodes)
+    {
+        return set_error(p->error_handle, 203);
+    }
+    n = strlen(newid);
+    if (n < 1 || n > MAXID) return set_error(p->error_handle, 209);
+    if (strcspn(newid, " ;") < n) return set_error(p->error_handle, 209);
+
+    // Check if another node with same name exists
+    if (ENHashTableFind(net->NodeHashTable, newid) > 0)
+    {
+        return set_error(p->error_handle, 215);
+    }
+
+    // Replace the existing node ID with the new value
+    ENHashTableDelete(net->NodeHashTable, net->Node[index].ID);
+    strncpy(net->Node[index].ID, newid, MAXID);
+    ENHashTableInsert(net->NodeHashTable, net->Node[index].ID, index);
+    return set_error(p->error_handle, 0);
+}
+
 int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v)
 /*----------------------------------------------------------------
  **  Input:   index = node index
@@ -3156,6 +3192,34 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
     return set_error(p->error_handle, 251);
   }
   return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT EN_setlinkid(EN_ProjectHandle ph, int index, char *newid)
+{
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+    size_t n;
+
+    // Check for valid arguments
+    if (index <= 0 || index > net->Nlinks)
+    {
+        return set_error(p->error_handle, 204);
+    }
+    n = strlen(newid);
+    if (n < 1 || n > MAXID) return set_error(p->error_handle, 211);
+    if (strcspn(newid, " ;") < n) return set_error(p->error_handle, 211);
+
+    // Check if another link with same name exists
+    if (ENHashTableFind(net->LinkHashTable, newid) > 0)
+    {
+        return set_error(p->error_handle, 215);
+    }
+
+    // Replace the existing link ID with the new value
+    ENHashTableDelete(net->LinkHashTable, net->Link[index].ID);
+    strncpy(net->Link[index].ID, newid, MAXID);
+    ENHashTableInsert(net->LinkHashTable, net->Link[index].ID, index);
+    return set_error(p->error_handle, 0);
 }
 
 int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
