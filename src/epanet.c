@@ -134,7 +134,6 @@ execute function x and set the error code equal to its return value.
 #include "types.h"
 
 
-
 // This single global variable is used only when the library is called
 // in "legacy mode" with the 2.1-style API. 
 int _defaultModel = 0;
