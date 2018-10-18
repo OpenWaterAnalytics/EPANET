@@ -874,9 +874,10 @@ typedef struct {
   Scurve   *Curve;       /* Curve data                   */
   Scoord   *Coord;       /* Coordinate data              */
   Scontrol *Control;     /* Control data                 */
-  ENHashTable *NodeHashTable,
-              *LinkHashTable; /* Hash tables for ID labels    */
-  Padjlist *Adjlist;          /* Node adjacency lists         */
+  HashTable
+  *NodeHashTable,
+  *LinkHashTable;        /* Hash tables for ID labels    */
+  Padjlist *Adjlist;     /* Node adjacency lists         */
   
 } EN_Network;
 
