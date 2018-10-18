@@ -119,7 +119,9 @@ execute function x and set the error code equal to its return value.
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef WINDOWS
 #include <pthread.h>
+#endif
 
 #ifndef __APPLE__
 #include <malloc.h>
