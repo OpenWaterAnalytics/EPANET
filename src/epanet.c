@@ -665,7 +665,6 @@ int DLLEXPORT EN_createproject(int *ph)
   EN_Project *project = calloc(1, sizeof(EN_Project));
 
   int cnt = increment_projectCount();
-  printf("\n Create Projectttt %d \n", cnt);
   
   *ph = cnt;
 
@@ -689,7 +688,6 @@ int DLLEXPORT EN_deleteproject(int ph)
         errorcode = -1;
     else
     {
-        printf("\n Free Project %d \n", ph);
         dst_errormanager(p->error_handle);
         free(p);
     }
