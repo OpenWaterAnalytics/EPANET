@@ -21,9 +21,6 @@ BOOST_AUTO_TEST_SUITE (test_toolkit)
 
 BOOST_AUTO_TEST_CASE(test_setid)
 {
-
-int main(int argc, char *argv[])
-{
     int error = 0;
     int index;
     string newid;
