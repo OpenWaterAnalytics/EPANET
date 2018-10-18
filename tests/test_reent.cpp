@@ -23,7 +23,7 @@ using namespace std;
 void  epanet_thread(long i)
 {
     int errorcode = 0;
-    EN_ProjectHandle ph;
+    int ph;
 
     string prefix = "example_";
     string suffix = ".inp";
@@ -39,7 +39,7 @@ void  epanet_thread(long i)
 
     EN_createproject(&ph);
     errorcode = EN_runproject(ph, input.c_str(), report.c_str(), output.c_str(), NULL);
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 
     printf("Thread #%ld EPANET done. Status = %d\n", i, errorcode);
 }

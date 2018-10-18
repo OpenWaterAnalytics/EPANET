@@ -28,22 +28,22 @@ BOOST_AUTO_TEST_SUITE (test_toolkit)
 BOOST_AUTO_TEST_CASE (test_alloc_free)
 {
     int error = 0;
-    EN_ProjectHandle ph = NULL;
+    int ph = -1;
 
     error = EN_createproject(&ph);
 
     BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(ph != NULL);
+    BOOST_CHECK(ph != -1);
 
-    error = EN_deleteproject(&ph);
+    error = EN_deleteproject(ph);
 
     BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(ph == NULL);
+    //BOOST_CHECK(ph == NULL);
 }
 
 BOOST_AUTO_TEST_CASE (test_open_close)
 {
-    EN_ProjectHandle ph = NULL;
+    int ph;
     EN_createproject(&ph);
 
     std::string path_inp = std::string(DATA_PATH_INP);
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE (test_open_close)
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
 
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 }
 
 BOOST_AUTO_TEST_CASE(test_epanet)
@@ -85,7 +85,7 @@ struct Fixture{
 
     ~Fixture() {
       error = EN_close(ph);
-      EN_deleteproject(&ph);
+      EN_deleteproject(ph);
   }
 
   std::string path_inp;
@@ -93,7 +93,7 @@ struct Fixture{
   std::string path_out;
 
   int error;
-  EN_ProjectHandle ph;
+  int ph;
 
 };
 

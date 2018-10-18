@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
     int error = 0;
     int Nindex, ndem;
     char demname[80];
-    EN_ProjectHandle ph = NULL;
+    int ph;
     
     std::string path_inp = std::string(DATA_PATH_INP);
     std::string path_rpt = std::string(DATA_PATH_RPT);
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
     BOOST_REQUIRE(error == 0);
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
-    error = EN_deleteproject(&ph);
+    error = EN_deleteproject(ph);
     BOOST_REQUIRE(error == 0);
 
     error = EN_createproject(&ph);
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
     BOOST_REQUIRE(strcmp(demname, "Demand category name")==0);
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
-    error = EN_deleteproject(&ph);
+    error = EN_deleteproject(ph);
     BOOST_REQUIRE(error == 0);
 }
 

@@ -1213,133 +1213,138 @@ extern "C" {
    Threadsafe versions of all epanet functions
    
    ***************************************************/
-  int DLLEXPORT EN_createproject(EN_ProjectHandle *ph);
-  int DLLEXPORT EN_deleteproject(EN_ProjectHandle *ph);
+  /***************************************************
+   
+   Threadsafe versions of all epanet functions
+   
+   ***************************************************/
+  int DLLEXPORT EN_createproject(int *ph);
+  int DLLEXPORT EN_deleteproject(int ph);
 
-  int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, 
+  int DLLEXPORT EN_runproject(int ph, const char *f1, 
     const char *f2, const char *f3, void (*pviewprog)(char *));
 
-  void DLLEXPORT EN_clearError(EN_ProjectHandle ph);
-  int DLLEXPORT EN_checkError(EN_ProjectHandle ph, char** msg_buffer);
+  void DLLEXPORT EN_clearError(int ph);
+  int DLLEXPORT EN_checkError(int ph, char** msg_buffer);
 
-  //int DLLEXPORT EN_epanet(EN_ProjectHandle ph, const char *f1, const char *f2,
+  //int DLLEXPORT EN_epanet(int ph, const char *f1, const char *f2,
 	//  const char *f3, void(*pviewprog)(char *));
-  int DLLEXPORT EN_init(EN_ProjectHandle ph, const char *rptFile, const char *binOutFile,
+  int DLLEXPORT EN_init(int ph, const char *rptFile, const char *binOutFile,
           EN_FlowUnits UnitsType, EN_FormType HeadlossFormula);
 
-  int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *inpFile,
+  int DLLEXPORT EN_open(int ph, const char *inpFile,
           const char *rptFile, const char *binOutFile);
 
-  int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, const char *filename);
+  int DLLEXPORT EN_saveinpfile(int ph, const char *filename);
 
-  int DLLEXPORT EN_close(EN_ProjectHandle ph);
-  int DLLEXPORT EN_solveH(EN_ProjectHandle ph);
+  int DLLEXPORT EN_close(int ph);
+  int DLLEXPORT EN_solveH(int ph);
 
-  int DLLEXPORT EN_saveH(EN_ProjectHandle ph);
-  int DLLEXPORT EN_openH(EN_ProjectHandle ph);
-  int DLLEXPORT EN_initH(EN_ProjectHandle ph, int EN_SaveOption);
-  int DLLEXPORT EN_runH(EN_ProjectHandle ph, long *currentTime);
-  int DLLEXPORT EN_nextH(EN_ProjectHandle ph, long *tStep);
-  int DLLEXPORT EN_closeH(EN_ProjectHandle ph);
-  int DLLEXPORT EN_savehydfile(EN_ProjectHandle ph, char *filename);
-  int DLLEXPORT EN_usehydfile(EN_ProjectHandle ph, char *filename);
+  int DLLEXPORT EN_saveH(int ph);
+  int DLLEXPORT EN_openH(int ph);
+  int DLLEXPORT EN_initH(int ph, int EN_SaveOption);
+  int DLLEXPORT EN_runH(int ph, long *currentTime);
+  int DLLEXPORT EN_nextH(int ph, long *tStep);
+  int DLLEXPORT EN_closeH(int ph);
+  int DLLEXPORT EN_savehydfile(int ph, char *filename);
+  int DLLEXPORT EN_usehydfile(int ph, char *filename);
 
-  int DLLEXPORT EN_solveQ(EN_ProjectHandle ph);
-  int DLLEXPORT EN_openQ(EN_ProjectHandle ph);
-  int DLLEXPORT EN_initQ(EN_ProjectHandle ph, int saveFlag);
-  int DLLEXPORT EN_runQ(EN_ProjectHandle ph, long *currentTime);
-  int DLLEXPORT EN_nextQ(EN_ProjectHandle ph, long *tStep);
-  int DLLEXPORT EN_stepQ(EN_ProjectHandle ph, long *timeLeft);
-  int DLLEXPORT EN_closeQ(EN_ProjectHandle ph);
-  int DLLEXPORT EN_writeline(EN_ProjectHandle ph, char *line);
+  int DLLEXPORT EN_solveQ(int ph);
+  int DLLEXPORT EN_openQ(int ph);
+  int DLLEXPORT EN_initQ(int ph, int saveFlag);
+  int DLLEXPORT EN_runQ(int ph, long *currentTime);
+  int DLLEXPORT EN_nextQ(int ph, long *tStep);
+  int DLLEXPORT EN_stepQ(int ph, long *timeLeft);
+  int DLLEXPORT EN_closeQ(int ph);
+  int DLLEXPORT EN_writeline(int ph, char *line);
 
-  int DLLEXPORT EN_report(EN_ProjectHandle ph);
-  int DLLEXPORT EN_resetreport(EN_ProjectHandle ph);
-  int DLLEXPORT EN_setreport(EN_ProjectHandle ph, char *reportFormat);
+  int DLLEXPORT EN_report(int ph);
+  int DLLEXPORT EN_resetreport(int ph);
+  int DLLEXPORT EN_setreport(int ph, char *reportFormat);
 
-  int DLLEXPORT EN_getcontrol(EN_ProjectHandle ph, int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level);
-  int DLLEXPORT EN_getcount(EN_ProjectHandle ph, EN_CountType code, int *count);
-  int DLLEXPORT EN_getoption(EN_ProjectHandle ph, EN_Option opt, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_gettimeparam(EN_ProjectHandle ph, int code, long *value);
-  int DLLEXPORT EN_getflowunits(EN_ProjectHandle ph, int *code);
-  int DLLEXPORT EN_setflowunits(EN_ProjectHandle ph, int code);
-  int DLLEXPORT EN_getpatternindex(EN_ProjectHandle ph, char *id, int *index);
-  int DLLEXPORT EN_getpatternid(EN_ProjectHandle ph, int index, char *id);
-  int DLLEXPORT EN_getpatternlen(EN_ProjectHandle ph, int index, int *len);
-  int DLLEXPORT EN_getpatternvalue(EN_ProjectHandle ph, int index, int period, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_getaveragepatternvalue(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_getqualtype(EN_ProjectHandle ph, int *qualcode, int *tracenode);
+  int DLLEXPORT EN_getcontrol(int ph, int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level);
+  int DLLEXPORT EN_getcount(int ph, EN_CountType code, int *count);
+  int DLLEXPORT EN_getoption(int ph, EN_Option opt, EN_API_FLOAT_TYPE *value);
+  int DLLEXPORT EN_gettimeparam(int ph, int code, long *value);
+  int DLLEXPORT EN_getflowunits(int ph, int *code);
+  int DLLEXPORT EN_setflowunits(int ph, int code);
+  int DLLEXPORT EN_getpatternindex(int ph, char *id, int *index);
+  int DLLEXPORT EN_getpatternid(int ph, int index, char *id);
+  int DLLEXPORT EN_getpatternlen(int ph, int index, int *len);
+  int DLLEXPORT EN_getpatternvalue(int ph, int index, int period, EN_API_FLOAT_TYPE *value);
+  int DLLEXPORT EN_getaveragepatternvalue(int ph, int index, EN_API_FLOAT_TYPE *value);
+  int DLLEXPORT EN_getqualtype(int ph, int *qualcode, int *tracenode);
   int DLLEXPORT EN_geterror(int errcode, char *errmsg, int maxLen);
 
-  int DLLEXPORT EN_getstatistic(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE* value);
-  int DLLEXPORT EN_getnodeindex(EN_ProjectHandle ph, char *id, int *index);
-  int DLLEXPORT EN_getnodeid(EN_ProjectHandle ph, int index, char *id);
-  int DLLEXPORT EN_getnodetype(EN_ProjectHandle ph, int index, int *code);
-  int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_getcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
-  int DLLEXPORT EN_setcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
-  int DLLEXPORT EN_getnumdemands(EN_ProjectHandle ph, int nodeIndex, int *numDemands);
-  int DLLEXPORT EN_getbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
-  int DLLEXPORT EN_getdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIndex, int *pattIndex);
-  int DLLEXPORT EN_getlinkindex(EN_ProjectHandle ph, char *id, int *index);
-  int DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id);
-  int DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, EN_LinkType *code);
-  int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType type);
-  int DLLEXPORT EN_getlinknodes(EN_ProjectHandle ph, int index, int *node1, int *node2);
-  int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
-  int DLLEXPORT EN_getheadcurveindex(EN_ProjectHandle ph, int pumpIndex, int *curveIndex);
-  int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int pumpIndex, int curveIndex);
-  int DLLEXPORT EN_getpumptype(EN_ProjectHandle ph, int linkIndex, int *outType);
-  int DLLEXPORT EN_getcurvetype(EN_ProjectHandle ph, int curveIndex, int *outType);
+  int DLLEXPORT EN_getstatistic(int ph, int code, EN_API_FLOAT_TYPE* value);
+  int DLLEXPORT EN_getnodeindex(int ph, char *id, int *index);
+  int DLLEXPORT EN_getnodeid(int ph, int index, char *id);
+  int DLLEXPORT EN_getnodetype(int ph, int index, int *code);
+  int DLLEXPORT EN_getnodevalue(int ph, int index, int code, EN_API_FLOAT_TYPE *value);
+  int DLLEXPORT EN_getcoord(int ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+  int DLLEXPORT EN_setcoord(int ph, int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
+  int DLLEXPORT EN_getnumdemands(int ph, int nodeIndex, int *numDemands);
+  int DLLEXPORT EN_getbasedemand(int ph, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
+  int DLLEXPORT EN_getdemandpattern(int ph, int nodeIndex, int demandIndex, int *pattIndex);
+  int DLLEXPORT EN_getlinkindex(int ph, char *id, int *index);
+  int DLLEXPORT EN_getlinkid(int ph, int index, char *id);
+  int DLLEXPORT EN_getlinktype(int ph, int index, EN_LinkType *code);
+  int DLLEXPORT EN_setlinktype(int ph, char *id, EN_LinkType type);
+  int DLLEXPORT EN_getlinknodes(int ph, int index, int *node1, int *node2);
+  int DLLEXPORT EN_getlinkvalue(int ph, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value);
+  int DLLEXPORT EN_getcurve(int ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
+  int DLLEXPORT EN_getheadcurveindex(int ph, int pumpIndex, int *curveIndex);
+  int DLLEXPORT EN_setheadcurveindex(int ph, int pumpIndex, int curveIndex);
+  int DLLEXPORT EN_getpumptype(int ph, int linkIndex, int *outType);
+  int DLLEXPORT EN_getcurvetype(int ph, int curveIndex, int *outType);
 
   int DLLEXPORT EN_getversion(int *version);
 
-  int DLLEXPORT EN_addcontrol(EN_ProjectHandle ph, int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
-  int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
-  int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v);
-  int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v);
-  int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id);
-  int DLLEXPORT EN_setpattern(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *f, int len);
-  int DLLEXPORT EN_setpatternvalue(EN_ProjectHandle ph, int index, int period, EN_API_FLOAT_TYPE value);
-  int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value);
-  int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v);
-  int DLLEXPORT EN_setstatusreport(EN_ProjectHandle ph, int code);
-  int DLLEXPORT EN_setqualtype(EN_ProjectHandle ph, int qualcode, char *chemname, char *chemunits, char *tracenode);
+  int DLLEXPORT EN_addcontrol(int ph, int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+  int DLLEXPORT EN_setcontrol(int ph, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+  int DLLEXPORT EN_setnodevalue(int ph, int index, int code, EN_API_FLOAT_TYPE v);
+  int DLLEXPORT EN_setlinkvalue(int ph, int index, int code, EN_API_FLOAT_TYPE v);
+  int DLLEXPORT EN_addpattern(int ph, char *id);
+  int DLLEXPORT EN_setpattern(int ph, int index, EN_API_FLOAT_TYPE *f, int len);
+  int DLLEXPORT EN_setpatternvalue(int ph, int index, int period, EN_API_FLOAT_TYPE value);
+  int DLLEXPORT EN_settimeparam(int ph, int code, long value);
+  int DLLEXPORT EN_setoption(int ph, int code, EN_API_FLOAT_TYPE v);
+  int DLLEXPORT EN_setstatusreport(int ph, int code);
+  int DLLEXPORT EN_setqualtype(int ph, int qualcode, char *chemname, char *chemunits, char *tracenode);
 
-  int DLLEXPORT EN_getdemandmodel(EN_ProjectHandle ph, int *type, EN_API_FLOAT_TYPE *pmin,
+  int DLLEXPORT EN_getdemandmodel(int ph, int *type, EN_API_FLOAT_TYPE *pmin,
               EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp);
-  int DLLEXPORT EN_setdemandmodel(EN_ProjectHandle ph, int type, EN_API_FLOAT_TYPE pmin,
+  int DLLEXPORT EN_setdemandmodel(int ph, int type, EN_API_FLOAT_TYPE pmin,
               EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
 
-  int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx, char *demandName);
-  int DLLEXPORT EN_getdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx, char *demandName);
-  int DLLEXPORT EN_getqualinfo(EN_ProjectHandle ph, int *qualcode, char *chemname, char *chemunits, int *tracenode);
-  int DLLEXPORT EN_setbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
-  int DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIdx, int patIndex);
-  int DLLEXPORT EN_getcurveindex(EN_ProjectHandle ph, char *id, int *index);
-  int DLLEXPORT EN_getcurveid(EN_ProjectHandle ph, int index, char *id);
-  int DLLEXPORT EN_getcurvelen(EN_ProjectHandle ph, int index, int *len);
-  int DLLEXPORT EN_getcurvevalue(EN_ProjectHandle ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
-  int DLLEXPORT EN_setcurvevalue(EN_ProjectHandle ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
-  int DLLEXPORT EN_setcurve(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
-  int DLLEXPORT EN_addcurve(EN_ProjectHandle ph, char *id);
-  int DLLEXPORT EN_getrule(EN_ProjectHandle ph, int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority);
-  int DLLEXPORT EN_setrulepriority(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE priority);
-  int DLLEXPORT EN_getpremise(EN_ProjectHandle ph, int indexRule, int indexPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_setpremise(EN_ProjectHandle ph, int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, EN_API_FLOAT_TYPE value);
-  int DLLEXPORT EN_setpremiseindex(EN_ProjectHandle ph, int indexRule, int indexPremise, int indexObj);
-  int DLLEXPORT EN_setpremisestatus(EN_ProjectHandle ph, int indexRule, int indexPremise, int status);
-  int DLLEXPORT EN_setpremisevalue(EN_ProjectHandle ph, int indexRule, int indexPremise, EN_API_FLOAT_TYPE value);
-  int DLLEXPORT EN_gettrueaction(EN_ProjectHandle ph, int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
-  int DLLEXPORT EN_settrueaction(EN_ProjectHandle ph, int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
-  int DLLEXPORT EN_getfalseaction(EN_ProjectHandle ph, int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
-  int DLLEXPORT EN_setfalseaction(EN_ProjectHandle ph, int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
-  int DLLEXPORT EN_getruleID(EN_ProjectHandle ph, int indexRule, char* id);
-  int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType);
-  int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, char *fromNode, char *toNode);
-  int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int nodeIndex);
-  int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int linkIndex);
+  int DLLEXPORT EN_setdemandname(int ph, int nodeIndex, int demandIdx, char *demandName);
+  int DLLEXPORT EN_getdemandname(int ph, int nodeIndex, int demandIdx, char *demandName);
+  int DLLEXPORT EN_getqualinfo(int ph, int *qualcode, char *chemname, char *chemunits, int *tracenode);
+  int DLLEXPORT EN_setbasedemand(int ph, int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
+  int DLLEXPORT EN_setdemandpattern(int ph, int nodeIndex, int demandIdx, int patIndex);
+  int DLLEXPORT EN_getcurveindex(int ph, char *id, int *index);
+  int DLLEXPORT EN_getcurveid(int ph, int index, char *id);
+  int DLLEXPORT EN_getcurvelen(int ph, int index, int *len);
+  int DLLEXPORT EN_getcurvevalue(int ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+  int DLLEXPORT EN_setcurvevalue(int ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
+  int DLLEXPORT EN_setcurve(int ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
+  int DLLEXPORT EN_addcurve(int ph, char *id);
+  int DLLEXPORT EN_getrule(int ph, int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority);
+  int DLLEXPORT EN_setrulepriority(int ph, int index, EN_API_FLOAT_TYPE priority);
+  int DLLEXPORT EN_getpremise(int ph, int indexRule, int indexPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value);
+  int DLLEXPORT EN_setpremise(int ph, int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, EN_API_FLOAT_TYPE value);
+  int DLLEXPORT EN_setpremiseindex(int ph, int indexRule, int indexPremise, int indexObj);
+  int DLLEXPORT EN_setpremisestatus(int ph, int indexRule, int indexPremise, int status);
+  int DLLEXPORT EN_setpremisevalue(int ph, int indexRule, int indexPremise, EN_API_FLOAT_TYPE value);
+  int DLLEXPORT EN_gettrueaction(int ph, int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
+  int DLLEXPORT EN_settrueaction(int ph, int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
+  int DLLEXPORT EN_getfalseaction(int ph, int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
+  int DLLEXPORT EN_setfalseaction(int ph, int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
+  int DLLEXPORT EN_getruleID(int ph, int indexRule, char* id);
+  int DLLEXPORT EN_addnode(int ph, char *id, EN_NodeType nodeType);
+  int DLLEXPORT EN_addlink(int ph, char *id, EN_LinkType linkType, char *fromNode, char *toNode);
+  int DLLEXPORT EN_deletenode(int ph, int nodeIndex);
+  int DLLEXPORT EN_deletelink(int ph, int linkIndex);
   
 #if defined(__cplusplus)
 }
