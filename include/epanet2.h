@@ -1294,9 +1294,30 @@ extern "C" {
   int DLLEXPORT EN_getdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIndex, int *pattIndex);
   int DLLEXPORT EN_getlinkindex(EN_ProjectHandle ph, char *id, int *index);
   int DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id);
-  int DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, EN_LinkType *code);
+
+  /**
+   @brief Allocates memory and returns name of specified link. Caller is responsible for freeing the memory allocated.
+   @param index The index of the link (first link is index 1)
+   @param[out] name The string name of the specified node.
+   @param[out] length The length of the string name.
+   @return Error code
+   @see ENgetlinkindex
+   */
+  int DLLEXPORT EN_getlinkname(EN_ProjectHandle ph, int index, char **name, int *length);
+
+  int DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, int *code);
   int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType type);
   int DLLEXPORT EN_getlinknodes(EN_ProjectHandle ph, int index, int *node1, int *node2);
+
+  /**
+    @brief Get the indexes of a link's start- and end-nodes.
+    @param index The index of a link (first link is index 1)
+    @param[out] array of node indexes link's start node, link's end node (first node is index 1).
+    @return Error code
+    @see ENgetnodeid, ENgetlinkid
+    */
+  int DLLEXPORT EN_getlinknodearray(EN_ProjectHandle ph, int index, int **int_out, int *int_dim);
+
   int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value);
   int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
   int DLLEXPORT EN_getheadcurveindex(EN_ProjectHandle ph, int pumpIndex, int *curveIndex);

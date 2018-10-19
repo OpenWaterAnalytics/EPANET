@@ -2335,6 +2335,7 @@ int DLLEXPORT EN_getlinkindex(EN_ProjectHandle ph, char *id, int *index) {
     return set_error(p->error_handle, 0);
 }
 
+
 int DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id) {
 
   EN_Project *p = (EN_Project*)ph;
@@ -2347,6 +2348,24 @@ int DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id) {
   strcpy(id, p->network.Link[index].ID);
   return set_error(p->error_handle, 0);
 }
+
+int DLLEXPORT EN_getlinkname(EN_ProjectHandle ph, int index, char **name, int *length) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+
+  if (index < 1 || index > p->network.Nlinks)
+    return set_error(p->error_handle, 204);
+
+  *length = (int)strlen(p->network.Link[index].ID);
+  *name = (char*) malloc((*length + 1)*sizeof(char));
+  strncpy(*name, p->network.Link[index].ID, (*length + 1)*sizeof(char));
+
+  return set_error(p->error_handle, 0);
+}
+
 
 int DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, EN_LinkType *code) {
 
@@ -2376,6 +2395,27 @@ int DLLEXPORT EN_getlinknodes(EN_ProjectHandle ph, int index, int *node1,
   *node2 = p->network.Link[index].N2;
   return set_error(p->error_handle, 0);
 }
+
+int DLLEXPORT EN_getlinknodearray(EN_ProjectHandle ph, int index, int **nodes, int *length)
+{
+  int *temp;
+  EN_Project *p = (EN_Project*)ph;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+  if (index < 1 || index > p->network.Nlinks)
+    return set_error(p->error_handle, 204);
+
+  *length = 2;
+  temp = (int*) malloc((2)*sizeof(int));
+  *temp = p->network.Link[index].N1;
+  *(temp+1) = p->network.Link[index].N2;
+  nodes = &temp;
+
+  return set_error(p->error_handle, 0);
+}
+
+
 
 int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty code,
                                                         EN_API_FLOAT_TYPE *value) {
