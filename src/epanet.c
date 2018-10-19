@@ -850,7 +850,6 @@ int DLLEXPORT EN_close(EN_ProjectHandle ph)
   out_file_t *out;
 
   EN_Project *p = (EN_Project*)ph;
-  
   if (p->Openflag) {
     writetime(p, FMT105);
   }

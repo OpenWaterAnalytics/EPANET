@@ -1,11 +1,11 @@
 /*-----------------------------------------------------------------------------
  **   hash.c
  **
- **   Implementation of a simple Hash Table that uses a string pointer
- **   as a key and an associated integer as data.
+ **   Implementation of a simple Hash Table that uses a string as a key
+ **   and an associated integer as data.
  **
  **   Written by L. Rossman
- **   Last Updated on 10/17/18
+ **   Last Updated on 10/19/18
  **
  **   Interface Functions:
  **      hashtable_create  - creates a hash table
@@ -47,6 +47,14 @@ unsigned int gethash(char *str)
     return retHash;
 }
 
+char *dupstr(const char *s)
+{
+    size_t size = strlen(s) + 1;
+    char *p = malloc(size);
+    if (p) memcpy(p, s, size);
+    return p;
+}
+
 HashTable *hashtable_create()
 {
     int i;
@@ -65,7 +73,7 @@ int hashtable_insert(HashTable *ht, char *key, int data)
     if ( i >= HASHTABLEMAXSIZE ) return 0;
     entry = (DataEntry *) malloc(sizeof(DataEntry));
     if (entry == NULL) return(0);
-    entry->key = key;
+    entry->key = dupstr(key);
     entry->data = data;
     entry->next = ht[i];
     ht[i] = entry;
@@ -76,6 +84,7 @@ int hashtable_update(HashTable *ht, char *key, int new_data)
 {
     unsigned int i = gethash(key);
     DataEntry *entry;
+    
     if ( i >= HASHTABLEMAXSIZE ) return NOTFOUND;
     entry = ht[i];
     while (entry != NULL)
@@ -97,23 +106,15 @@ int hashtable_delete(HashTable *ht, char *key)
     
     if ( i >= HASHTABLEMAXSIZE ) return NOTFOUND;
 
-    // Check if first entry in bucket i to be deleted
+    preventry = NULL;
     entry = ht[i];
-    if (strcmp(entry->key, key) == 0)
-    {
-        ht[i] = entry->next;
-        free(entry);
-        return 1;
-    }
-
-    // Check remaining entries in bucket i
-    preventry = ht[i];
-    entry = ht[i]->next;
     while (entry != NULL)
     {
         if (strcmp(entry->key, key) == 0)
         {
-            preventry->next = entry->next;
+            if (preventry == NULL) ht[i] = entry->next;
+            else preventry->next = entry->next;
+            free(entry->key);
             free(entry);
             return 1;
         }
@@ -127,6 +128,7 @@ int hashtable_find(HashTable *ht, char *key)
 {
     unsigned int i = gethash(key);
     DataEntry *entry;
+
     if ( i >= HASHTABLEMAXSIZE ) return NOTFOUND;
     entry = ht[i];
     while (entry != NULL)
@@ -158,15 +160,18 @@ void hashtable_free(HashTable *ht)
 {
     DataEntry *entry, *nextentry;
     int i;
+    
     for (i = 0; i < HASHTABLEMAXSIZE; i++)
     {
         entry = ht[i];
         while (entry != NULL)
         {
-          nextentry = entry->next;
-          free(entry);
-          entry = nextentry;
+            nextentry = entry->next;
+            free(entry->key);
+            free(entry);
+            entry = nextentry;
         }
+        ht[i] = NULL;
     }
     free(ht);
 }
