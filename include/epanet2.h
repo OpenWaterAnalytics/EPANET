@@ -1274,6 +1274,17 @@ extern "C" {
   int DLLEXPORT EN_getstatistic(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE* value);
   int DLLEXPORT EN_getnodeindex(EN_ProjectHandle ph, char *id, int *index);
   int DLLEXPORT EN_getnodeid(EN_ProjectHandle ph, int index, char *id);
+
+  /**
+   @brief Allocates memory and returns name of specified node. Caller is responsible for freeing the memory allocated.
+   @param index The index of the node (first node is index 1)
+   @param[out] name The string name of the specified node.
+   @param[out] length The length of the string name.
+   @return Error code
+   @see ENgetnodeindex
+   */
+  int DLLEXPORT EN_getnodename(EN_ProjectHandle ph, int index, char **name, int *length);
+
   int DLLEXPORT EN_getnodetype(EN_ProjectHandle ph, int index, int *code);
   int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE *value);
   int DLLEXPORT EN_getcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);

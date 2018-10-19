@@ -2026,6 +2026,7 @@ int DLLEXPORT EN_getnodeindex(EN_ProjectHandle ph, char *id, int *index) {
     return set_error(p->error_handle, 0);
 }
 
+
 int DLLEXPORT EN_getnodeid(EN_ProjectHandle ph, int index, char *id) {
 
   EN_Project *p = (EN_Project*)ph;
@@ -2038,6 +2039,24 @@ int DLLEXPORT EN_getnodeid(EN_ProjectHandle ph, int index, char *id) {
   strcpy(id, p->network.Node[index].ID);
   return set_error(p->error_handle, 0);
 }
+
+int DLLEXPORT EN_getnodename(EN_ProjectHandle ph, int index, char **name, int *length) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  if (!p->Openflag)
+    return set_error(p->error_handle, 102);
+
+  if (index < 1 || index > p->network.Nnodes)
+    return set_error(p->error_handle, 203);
+
+  *length = (int)strlen(p->network.Node[index].ID);
+  *name = (char*) malloc((*length + 1)*sizeof(char));
+  strncpy(*name, p->network.Node[index].ID, (*length + 1)*sizeof(char));
+
+  return set_error(p->error_handle, 0);
+}
+
 
 int DLLEXPORT EN_getnodetype(EN_ProjectHandle ph, int index, int *code) {
 
