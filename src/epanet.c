@@ -4930,12 +4930,13 @@ int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType toType) 
     return set_error(p->error_handle, 0);
 
   /* Get fromNode and toNode nodes index */
-  EN_getlinknodes(p, i, &fromNodeIndex, &toNodeIndex);
+  fromNodeIndex = p->network.Link[i].N1;
+  toNodeIndex = p->network.Link[i].N2;
   /* Delete link */
   EN_deletelink(p, i);
   /* Get nodes id from and to node */
-  EN_getnodeid(p, fromNodeIndex, fromNode);
-  EN_getnodeid(p, toNodeIndex, toNode);
+  strcpy(fromNode, p->network.Node[fromNodeIndex].ID);
+  strcpy(toNode, p->network.Node[toNodeIndex].ID);
   /* Add new link with new type*/
   EN_addlink(p, (char *)id, toType, (char *)fromNode, (char *)toNode);
   
