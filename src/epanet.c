@@ -5236,10 +5236,8 @@ int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index) {
   
   // remove from hash table
   ENHashTableDelete(net->LinkHashTable, link->ID);
-  ENHashTableFind(net->LinkHashTable, link->ID);
 
   // shift link and pump arrays to re-sort link indices
-  net->Nlinks--;
   for (i = index; i <= net->Nlinks - 1; i++) {
     net->Link[i] = net->Link[i + 1];
     // update hashtable
@@ -5256,7 +5254,6 @@ int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index) {
     }
   }
   
-
   // update pumps
   if (linkType == EN_PUMP) {
     int pumpindex = findpump(net,index);
@@ -5274,6 +5271,7 @@ int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index) {
     }
     net->Nvalves--;
   }
+  net->Nlinks--;
 
   return set_error(p->error_handle, 0);
 }
