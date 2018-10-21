@@ -4904,40 +4904,41 @@ int DLLEXPORT EN_getaveragepatternvalue(EN_ProjectHandle ph, int index, EN_API_F
 
 int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType toType) {
   int i;
+  char fromNode[MAXID+1], toNode[MAXID+1];
+  int fromNodeIndex, toNodeIndex;
+    	
   EN_LinkType fromType;
   
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
-
+  
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
 
+  /* Check type code if is valid */
+  if (toType < EN_CVPIPE || toType > EN_GPV)
+    return set_error(p->error_handle, 251);
+  
   /* Check if a link with the id exists */
   if (EN_getlinkindex(p, id, &i) != 0)
-    return set_error(p->error_handle, 215);
+    return set_error(p->error_handle, 204);
 
   /* Get the current type of the link */
   EN_getlinktype(p, i, &fromType);
   if (fromType == toType)
     return set_error(p->error_handle, 0);
 
-  /* Change link from Pipe */
-  if (toType <= EN_PIPE) {
-    net->Npipes++;
-  } else if (toType == EN_PUMP) {
-    net->Npumps++;
-    net->Pump[net->Npumps].Link = i;
-  } else {
-    net->Nvalves++;
-    net->Valve[net->Nvalves].Link = i;
-  }
-
-  if (fromType <= EN_PIPE) {
-    net->Npipes--;
-  } else if (fromType == EN_PUMP) {
-    net->Npumps--;
-  }
+  /* Get fromNode and toNode nodes index */
+  EN_getlinknodes(p, i, &fromNodeIndex, &toNodeIndex);
+  /* Delete link */
+  EN_deletelink(p, i);
+  /* Get nodes id from and to node */
+  EN_getnodeid(p, fromNodeIndex, fromNode);
+  EN_getnodeid(p, toNodeIndex, toNode);
+  /* Add new link with new type*/
+  EN_addlink(p, (char *)id, toType, (char *)fromNode, (char *)toNode);
+  
   return set_error(p->error_handle, 0);
 }
 
