@@ -129,8 +129,6 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 ## New API functions
 |Function|Description|
 |--|--|
-|`ENaddlink`|  |
-|`ENaddnode`|  |
 |`ENgetcurvetype`|  |
 |`ENgetdemandmodel`||
 |`ENsetdemandmodel`||
@@ -156,6 +154,8 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`ENaddlink`||
 |`ENdeletelink`||
 |`ENdeletenode`||
+| `ENsetnodeid` ||
+| `ENsetlinkid` ||
 |`ENgetdemandname`||
 |`ENsetdemandname`||
 

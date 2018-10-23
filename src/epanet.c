@@ -89,9 +89,9 @@ This module calls the following functions that reside in other modules:
      writelogo()
      writereport()
    HASH.C
-     ENHashTablecreate()
-     ENHashTableFind()
-     ENHashTableFree()
+     hashtable_create()
+     hashtable_find()
+     hashtable_free()
 
 The macro ERRCODE(x) is defined in TYPES.H. It says if the current
 value of the error code variable (errcode) is not fatal (< 100) then
@@ -437,8 +437,16 @@ int DLLEXPORT ENaddcontrol(int *cindex, int ctype, int lindex,
                        level);
 }
 
+int DLLEXPORT ENsetnodeid(int index, char *newid) {
+    return EN_setnodeid(_defaultModel, index, newid);
+}
+
 int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v) {
   return EN_setnodevalue(_defaultModel, index, code, v);
+}
+
+int DLLEXPORT ENsetlinkid(int index, char *newid) {
+    return EN_setlinkid(_defaultModel, index, newid);
 }
 
 int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v) {
@@ -842,14 +850,12 @@ int DLLEXPORT EN_close(EN_ProjectHandle ph)
   out_file_t *out;
 
   EN_Project *p = (EN_Project*)ph;
-  
   if (p->Openflag) {
     writetime(p, FMT105);
   }
   freedata(p);
-
+  
   out = &p->out_files;
-
   if (out->TmpOutFile != out->OutFile) {
     if (out->TmpOutFile != NULL) {
       fclose(out->TmpOutFile);
@@ -879,7 +885,7 @@ int DLLEXPORT EN_close(EN_ProjectHandle ph)
     remove(out->HydFname);
   if (out->Outflag == SCRATCH)
     remove(out->OutFname);
-
+    
   p->Openflag = FALSE;
   p->hydraulics.OpenHflag = FALSE;
   p->save_options.SaveHflag = FALSE;
@@ -1377,9 +1383,10 @@ int DLLEXPORT EN_setreport(EN_ProjectHandle ph, char *s) {
 
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
-  if (strlen(s) > MAXLINE)
+  if (strlen(s) >= MAXLINE)
     return set_error(p->error_handle, 250);
   strcpy(s1, s);
+  strcat(s1, "\n");
   if (setreport(p, s1) > 0)
     return set_error(p->error_handle, 250);
   else
@@ -2891,6 +2898,34 @@ int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lind
   return set_error(p->error_handle, 0);
 }
 
+int DLLEXPORT EN_setnodeid(EN_ProjectHandle ph, int index, char *newid)
+{
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+    size_t n;
+    
+    // Check for valid arguments
+    if (index <= 0 || index > net->Nnodes)
+    {
+        return set_error(p->error_handle, 203);
+    }
+    n = strlen(newid);
+    if (n < 1 || n > MAXID) return set_error(p->error_handle, 209);
+    if (strcspn(newid, " ;") < n) return set_error(p->error_handle, 209);
+
+    // Check if another node with same name exists
+    if (hashtable_find(net->NodeHashTable, newid) > 0)
+    {
+        return set_error(p->error_handle, 215);
+    }
+
+    // Replace the existing node ID with the new value
+    hashtable_delete(net->NodeHashTable, net->Node[index].ID);
+    strncpy(net->Node[index].ID, newid, MAXID);
+    hashtable_insert(net->NodeHashTable, net->Node[index].ID, index);
+    return set_error(p->error_handle, 0);
+}
+
 int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v)
 /*----------------------------------------------------------------
  **  Input:   index = node index
@@ -3155,6 +3190,34 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
     return set_error(p->error_handle, 251);
   }
   return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT EN_setlinkid(EN_ProjectHandle ph, int index, char *newid)
+{
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+    size_t n;
+
+    // Check for valid arguments
+    if (index <= 0 || index > net->Nlinks)
+    {
+        return set_error(p->error_handle, 204);
+    }
+    n = strlen(newid);
+    if (n < 1 || n > MAXID) return set_error(p->error_handle, 211);
+    if (strcspn(newid, " ;") < n) return set_error(p->error_handle, 211);
+
+    // Check if another link with same name exists
+    if (hashtable_find(net->LinkHashTable, newid) > 0)
+    {
+        return set_error(p->error_handle, 215);
+    }
+
+    // Replace the existing link ID with the new value
+    hashtable_delete(net->LinkHashTable, net->Link[index].ID);
+    strncpy(net->Link[index].ID, newid, MAXID);
+    hashtable_insert(net->LinkHashTable, net->Link[index].ID, index);
+    return set_error(p->error_handle, 0);
 }
 
 int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
@@ -4260,8 +4323,8 @@ int allocdata(EN_Project *p)
   parser_data_t *par;
   
   /* Allocate node & link ID hash tables */
-  p->network.NodeHashTable = ENHashTableCreate();
-  p->network.LinkHashTable = ENHashTableCreate();
+  p->network.NodeHashTable = hashtable_create();
+  p->network.LinkHashTable = hashtable_create();
   ERRCODE(MEMCHECK(p->network.NodeHashTable));
   ERRCODE(MEMCHECK(p->network.LinkHashTable));
 
@@ -4433,14 +4496,14 @@ void freedata(EN_Project *p)
     }
     free(net->Node);
   }
-
+  
   /* Free memory for other network objects */
   free(net->Link);
   free(net->Tank);
   free(net->Pump);
   free(net->Valve);
   free(net->Control);
-
+  
   /* Free memory for time patterns */
   if (net->Pattern != NULL) {
     for (j = 0; j <= par->MaxPats; j++)
@@ -4456,20 +4519,19 @@ void freedata(EN_Project *p)
     }
     free(net->Curve);
   }
-
+  
   /* Free memory for node coordinates */
   if (p->parser.Coordflag == TRUE) {
     free(net->Coord);
   }
-
+  
   /* Free memory for rule base (see RULES.C) */
   freerules(p);
-
+  
   /* Free hash table memory */
-  if (net->NodeHashTable != NULL)
-    ENHashTableFree(net->NodeHashTable);
-  if (net->LinkHashTable != NULL)
-    ENHashTableFree(net->LinkHashTable);
+  if (net->NodeHashTable != NULL) hashtable_free(net->NodeHashTable);    
+    
+  if (net->LinkHashTable != NULL) hashtable_free(net->LinkHashTable);
 }
 
 /*
@@ -4572,7 +4634,7 @@ int findnode(EN_Network *n, char *id)
 **----------------------------------------------------------------
 */
 {
-  return (ENHashTableFind(n->NodeHashTable, id));
+  return (hashtable_find(n->NodeHashTable, id));
 }
 
 int findlink(EN_Network *n, char *id)
@@ -4584,7 +4646,7 @@ int findlink(EN_Network *n, char *id)
 **----------------------------------------------------------------
 */
 {
-  return (ENHashTableFind(n->LinkHashTable, id));
+  return (hashtable_find(n->LinkHashTable, id));
 }
 
 int findtank(EN_Network *n, int index)
@@ -4990,7 +5052,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
 
     // shift rest of Node array
     for (index = net->Nnodes; index >= net->Njuncs; index--) {
-      ENHashTableUpdate(net->NodeHashTable, net->Node[index].ID, index + 1);
+      hashtable_update(net->NodeHashTable, net->Node[index].ID, index + 1);
       net->Node[index + 1] = net->Node[index];
       net->Coord[index + 1] = net->Coord[index];
     }
@@ -5106,7 +5168,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   coord->Y = 0;
 
   /* Insert new node into hash table */
-  ENHashTableInsert(net->NodeHashTable, node->ID, nIdx); /* see HASH.C */
+  hashtable_insert(net->NodeHashTable, node->ID, nIdx); /* see HASH.C */
   return set_error(p->error_handle, 0);
 }
 
@@ -5129,8 +5191,8 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
     return set_error(p->error_handle, 215);
 
   /* Lookup the from and to nodes */
-  N1 = ENHashTableFind(net->NodeHashTable, fromNode);
-  N2 = ENHashTableFind(net->NodeHashTable, toNode);
+  N1 = hashtable_find(net->NodeHashTable, fromNode);
+  N2 = hashtable_find(net->NodeHashTable, toNode);
 
   if (N1 == 0 || N2 == 0) {
     return set_error(p->error_handle, 203);
@@ -5212,7 +5274,7 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
   link->Rpt = 0;
   strcpy(link->Comment, "");
   
-  ENHashTableInsert(net->LinkHashTable, link->ID, n);
+  hashtable_insert(net->LinkHashTable, link->ID, n);
   return set_error(p->error_handle, 0);
 }
 
@@ -5235,15 +5297,14 @@ int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index) {
   link = &net->Link[index];
   
   // remove from hash table
-  ENHashTableDelete(net->LinkHashTable, link->ID);
-  ENHashTableFind(net->LinkHashTable, link->ID);
+  hashtable_delete(net->LinkHashTable, link->ID);
 
   // shift link and pump arrays to re-sort link indices
   net->Nlinks--;
   for (i = index; i <= net->Nlinks - 1; i++) {
     net->Link[i] = net->Link[i + 1];
     // update hashtable
-    ENHashTableUpdate(net->LinkHashTable, net->Link[i].ID, i);
+    hashtable_update(net->LinkHashTable, net->Link[i].ID, i);
   }
   for (i = 1; i <= net->Npumps; i++) {
     if (net->Pump[i].Link > index) {
@@ -5296,14 +5357,14 @@ int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int index) {
   // TODO: check for existing controls/rules that reference this node? 
   
   // remove from hash table
-  ENHashTableDelete(net->NodeHashTable, net->Node[index].ID);
+  hashtable_delete(net->NodeHashTable, net->Node[index].ID);
 
   // shift node and coord array to remove node
   for (i = index; i <= net->Nnodes - 1; i++) {
     net->Node[i] = net->Node[i + 1];
     net->Coord[i] = net->Coord[i + 1];
     // update hashtable
-    ENHashTableUpdate(net->NodeHashTable, net->Node[i].ID, i);
+    hashtable_update(net->NodeHashTable, net->Node[i].ID, i);
   }
 
   // update tank array

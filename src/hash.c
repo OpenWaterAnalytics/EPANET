@@ -1,21 +1,20 @@
 /*-----------------------------------------------------------------------------
  **   hash.c
  **
- **   Implementation of a simple Hash Table for string storage & retrieval
+ **   Implementation of a simple Hash Table that uses a string as a key
+ **   and an associated integer as data.
  **
  **   Written by L. Rossman
- **   Last Updated on 6/19/03
+ **   Last Updated on 10/19/18
  **
- **   The hash table data structure (HTable) is defined in "hash.h".
  **   Interface Functions:
- **      HTcreate() - creates a hash table
- **      HTinsert() - inserts a string & its index value into a hash table
- **      HTfind()   - retrieves the index value of a string from a table
- **      HTfree()   - frees a hash table
+ **      hashtable_create  - creates a hash table
+ **      hashtable_insert  - inserts a string & its data value into a table
+ **      hashtable_find    - retrieves the data value associated with a string
+ **      hashtable_findkey - retrieves the key associated with a data value
+ **      hashtable_delete  - deletes an entry from a table
+ **      hashtable_free    - frees a hash table
  **
- *********************************************************************
- **   NOTE:  This is a modified version of the original HASH.C module.
- *********************************************************************
  */
 
 #ifndef __APPLE__
@@ -26,144 +25,153 @@
 #include <string.h>
 #include "hash.h"
 
-unsigned int _enHash(char *str);
-unsigned int _enHash(char *str)
-{
-  unsigned int hash = 5381;
-  unsigned int retHash;
-  int c;
-  while ((c = *str++)) {
-    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-  }
-  retHash = hash % ENHASHTABLEMAXSIZE;
-  
-  return retHash;
-}
+#define HASHTABLEMAXSIZE 128000
 
-ENHashTable *ENHashTableCreate()
+typedef struct DataEntryStruct
 {
-  int i;
-  ENHashTable *ht = (ENHashTable *) calloc(ENHASHTABLEMAXSIZE, sizeof(ENHashTable));
-  if (ht != NULL) {
-    for (i=0; i<ENHASHTABLEMAXSIZE; i++) {
-      ht[i] = NULL;
+    char   *key;
+    int    data;
+    struct DataEntryStruct *next;
+} DataEntry;
+
+unsigned int gethash(char *str)
+{
+    unsigned int hash = 5381;
+    unsigned int retHash;
+    int c;
+    while ((c = *str++))
+    {
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
     }
-  }
-  return(ht);
+    retHash = hash % HASHTABLEMAXSIZE;
+    return retHash;
 }
 
-int ENHashTableInsert(ENHashTable *ht, char *key, int data)
+char *dupstr(const char *s)
 {
-  size_t len;
-  unsigned int i = _enHash(key);
-  ENHashEntry *entry;
-  if ( i >= ENHASHTABLEMAXSIZE ) {
-    return(0);
-  }
-  entry = (ENHashEntry *) malloc(sizeof(ENHashEntry));
-  if (entry == NULL) {
-    return(0);
-  }
-  len = strlen(key) + 1;
-  entry->key = calloc(len, sizeof(char));
-  strncpy(entry->key, key, len);
-  entry->data = data;
-  entry->next = ht[i];
-  ht[i] = entry;
-  return(1);
+    size_t size = strlen(s) + 1;
+    char *p = malloc(size);
+    if (p) memcpy(p, s, size);
+    return p;
 }
 
-/* Abel Heinsbroek: Added function to update the hash table value for a given key */
-int ENHashTableUpdate(ENHashTable *ht, char *key, int new_data)
+HashTable *hashtable_create()
 {
-  unsigned int i = _enHash(key);
-  ENHashEntry *entry;
-  if ( i >= ENHASHTABLEMAXSIZE ) {
-    return(NOTFOUND);
-  }
-  entry = ht[i];
-  while (entry != NULL)
-  {
-    if ( strcmp(entry->key,key) == 0 ) {
-      entry->data = new_data;
-      return(1);
+    int i;
+    HashTable *ht = (HashTable *) calloc(HASHTABLEMAXSIZE, sizeof(HashTable));
+    if (ht != NULL)
+    {
+        for (i = 0; i < HASHTABLEMAXSIZE; i++) ht[i] = NULL;
     }
-    entry = entry->next;
-  }
-  return(NOTFOUND);
+    return ht;
 }
 
-int ENHashTableDelete(ENHashTable *ht, char *key) {
-  unsigned int i = _enHash(key);
-  ENHashEntry *entry;
-  if ( i >= ENHASHTABLEMAXSIZE ) {
-    return(NOTFOUND);
-  }
-  entry = ht[i];
-  while (entry != NULL)
-  {
-    if (strcmp(entry->key, key) == 0) {
-      entry->key = "";
-      return(1);
-    }
-    entry = entry->next;
-  }
-
-  return(NOTFOUND);
-}
-
-int     ENHashTableFind(ENHashTable *ht, char *key)
+int hashtable_insert(HashTable *ht, char *key, int data)
 {
-  unsigned int i = _enHash(key);
-
-  ENHashEntry *entry;
-  if ( i >= ENHASHTABLEMAXSIZE ) {
-    return(NOTFOUND);
-  }
-
-  entry = ht[i];
-  while (entry != NULL)
-  {
-    if ( strcmp(entry->key,key) == 0 ) {
-      return(entry->data);
-    }
-    entry = entry->next;
-  }
-  return(NOTFOUND);
+    unsigned int i = gethash(key);
+    DataEntry *entry;
+    if ( i >= HASHTABLEMAXSIZE ) return 0;
+    entry = (DataEntry *) malloc(sizeof(DataEntry));
+    if (entry == NULL) return(0);
+    entry->key = dupstr(key);
+    entry->data = data;
+    entry->next = ht[i];
+    ht[i] = entry;
+    return 1;
 }
 
-char    *ENHashTableFindKey(ENHashTable *ht, char *key)
+int hashtable_update(HashTable *ht, char *key, int new_data)
 {
-  unsigned int i = _enHash(key);
-  ENHashEntry *entry;
-  if ( i >= ENHASHTABLEMAXSIZE ) {
-    return(NULL);
-  }
-  entry = ht[i];
-  while (entry != NULL)
-  {
-    if ( strcmp(entry->key,key) == 0 ) {
-      return(entry->key);
-    }
-    entry = entry->next;
-  }
-  return(NULL);
-}
-
-void    ENHashTableFree(ENHashTable *ht)
-{
-  ENHashEntry *entry, *nextentry;
-  int i;
-  for (i=0; i<ENHASHTABLEMAXSIZE; i++)
-  {
+    unsigned int i = gethash(key);
+    DataEntry *entry;
+    
+    if ( i >= HASHTABLEMAXSIZE ) return NOTFOUND;
     entry = ht[i];
     while (entry != NULL)
     {
-      nextentry = entry->next;
-      free(entry->key);
-      free(entry);
-      entry = nextentry;
+        if ( strcmp(entry->key, key) == 0 )
+        {
+            entry->data = new_data;
+            return 1;
+        }
+        entry = entry->next;
     }
-  }
-  free(ht);
+    return NOTFOUND;
+}
+
+int hashtable_delete(HashTable *ht, char *key)
+{
+    unsigned int i = gethash(key);
+    DataEntry *entry, *preventry;
+    
+    if ( i >= HASHTABLEMAXSIZE ) return NOTFOUND;
+
+    preventry = NULL;
+    entry = ht[i];
+    while (entry != NULL)
+    {
+        if (strcmp(entry->key, key) == 0)
+        {
+            if (preventry == NULL) ht[i] = entry->next;
+            else preventry->next = entry->next;
+            free(entry->key);
+            free(entry);
+            return 1;
+        }
+        preventry = entry;
+        entry = entry->next;
+    }
+    return NOTFOUND;
+}
+
+int hashtable_find(HashTable *ht, char *key)
+{
+    unsigned int i = gethash(key);
+    DataEntry *entry;
+
+    if ( i >= HASHTABLEMAXSIZE ) return NOTFOUND;
+    entry = ht[i];
+    while (entry != NULL)
+    {
+        if ( strcmp(entry->key, key) == 0 )
+        {
+            return entry->data;
+        }
+        entry = entry->next;
+    }
+    return NOTFOUND;
+}
+
+char *hashtable_findkey(HashTable *ht, char *key)
+{
+    unsigned int i = gethash(key);
+    DataEntry *entry;
+    if ( i >= HASHTABLEMAXSIZE ) return NULL;
+    entry = ht[i];
+    while (entry != NULL)
+    {
+        if ( strcmp(entry->key, key) == 0 ) return entry->key;
+        entry = entry->next;
+    }
+    return NULL;
+}
+
+void hashtable_free(HashTable *ht)
+{
+    DataEntry *entry, *nextentry;
+    int i;
+    
+    for (i = 0; i < HASHTABLEMAXSIZE; i++)
+    {
+        entry = ht[i];
+        while (entry != NULL)
+        {
+            nextentry = entry->next;
+            free(entry->key);
+            free(entry);
+            entry = nextentry;
+        }
+        ht[i] = NULL;
+    }
+    free(ht);
 }

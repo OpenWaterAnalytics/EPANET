@@ -292,7 +292,7 @@ int newline(EN_Project *pr, int sect, char *line)
       n = (int)strlen(line);
       if (line[n - 1] == 10)
         line[n - 1] = ' ';
-      strncpy(pr->Title[par->Ntitle], line, MAXMSG);
+      strncpy(pr->Title[par->Ntitle], line, TITLELEN);
       par->Ntitle++;
     }
     return (0);
@@ -472,7 +472,7 @@ int addnodeID(EN_Network *net, int n, char *id)
     return (0); /* see EPANET.C */
   }
   strncpy(net->Node[n].ID, id, MAXID);
-  ENHashTableInsert(net->NodeHashTable, net->Node[n].ID, n); /* see HASH.C */
+  hashtable_insert(net->NodeHashTable, net->Node[n].ID, n); /* see HASH.C */
   return (1);
 }
 
@@ -490,7 +490,7 @@ int addlinkID(EN_Network *net, int n, char *id)
     return (0); /* see EPANET.C */
   }
   strncpy(net->Link[n].ID, id, MAXID);
-  ENHashTableInsert(net->LinkHashTable, net->Link[n].ID, n); /* see HASH.C */
+  hashtable_insert(net->LinkHashTable, net->Link[n].ID, n); /* see HASH.C */
   return (1);
 }
 
