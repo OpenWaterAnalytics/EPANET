@@ -5280,10 +5280,11 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
 
 int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index) {
   int i;
+  int pumpindex;
+  int valveindex;
+  
   EN_LinkType linkType;
-
   EN_Project *p = (EN_Project*)ph;
-
   EN_Network *net = &p->network;
   Slink *link;
   
@@ -5293,14 +5294,12 @@ int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index) {
     return set_error(p->error_handle, 203);
 
   EN_getlinktype(p, index, &linkType);
-
   link = &net->Link[index];
   
   // remove from hash table
   hashtable_delete(net->LinkHashTable, link->ID);
 
   // shift link and pump arrays to re-sort link indices
-  net->Nlinks--;
   for (i = index; i <= net->Nlinks - 1; i++) {
     net->Link[i] = net->Link[i + 1];
     // update hashtable
@@ -5316,25 +5315,27 @@ int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index) {
       net->Valve[i].Link -= 1;
     }
   }
-  
 
-  // update pumps
+  // remove any pump associated with the deleted link
   if (linkType == EN_PUMP) {
-    int pumpindex = findpump(net,index);
+    pumpindex = findpump(net,index);
     for (i = pumpindex; i <= net->Npumps - 1; i++) {
       net->Pump[i] = net->Pump[i + 1];
     }
     net->Npumps--;
   }
   
-  // update valves
+  // remove any valve associated with the deleted link
   if (linkType > EN_PUMP) {
-    int valveindex = findvalve(net,index);
+    valveindex = findvalve(net,index);
     for (i = valveindex; i <= net->Nvalves - 1; i++) {
       net->Valve[i] = net->Valve[i + 1];
     }
     net->Nvalves--;
   }
+  
+  // reduce total link count
+  net->Nlinks--;
 
   return set_error(p->error_handle, 0);
 }
