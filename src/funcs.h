@@ -66,56 +66,11 @@ void    convertunits(EN_Project *pr);               /* Converts data to std. uni
 
 /* -------- INPUT2.C -------------------*/
 int     netsize(EN_Project *pr);                    /* Determines network size    */
-int     readdata(EN_Project *pr);                   /* Reads in network data      */
-int     newline(EN_Project *pr, int, char *);       /* Processes new line of data */
-int     addnodeID(EN_Network *n, int, char *);      /* Adds node ID to data base  */
-int     addlinkID(EN_Network *n, int, char *);      /* Adds link ID to data base  */
-int     addpattern(parser_data_t *par, char *);     /* Adds pattern to data base  */
-int     addcurve(parser_data_t *par, char *);       /* Adds curve to data base    */
-STmplist *findID(char *, STmplist *);               /* Locates ID on linked list  */
-int     unlinked(EN_Project *pr);                   /* Checks for unlinked nodes  */
-int     getpumpparams(EN_Project *pr);              /* Computes pump curve coeffs.*/
+int     findpumpcoeffs(EN_Project *pr, int);        /* Computes pump curve coeffs.*/
 int     getpatterns(EN_Project *pr);                /* Gets pattern data from list*/
-int     getcurves(EN_Project *pr);                  /* Gets curve data from list  */
 int     findmatch(char *, char *[]);                /* Finds keyword in line      */
 int     match(const char *, const char *);          /* Checks for word match      */
-int     gettokens(char *s, char** Tok, int maxToks,
-                  char *comment);                   /* Tokenizes input line       */
-int     getfloat(char *, double *);                 /* Converts string to double  */
-double  hour(char *, char *);                       /* Converts time to hours     */
 int     setreport(EN_Project *pr, char *);          /* Processes reporting command*/
-void    inperrmsg(EN_Project *pr, int,int,char *);  /* Input error message        */
-
-/* ---------- INPUT3.C -----------------*/
-int     juncdata(EN_Project *pr);                   /* Processes junction data    */
-int     tankdata(EN_Project *pr);                   /* Processes tank data        */
-int     pipedata(EN_Project *pr);                   /* Processes pipe data        */
-int     pumpdata(EN_Project *pr);                   /* Processes pump data        */
-int     valvedata(EN_Project *pr);                  /* Processes valve data       */
-int     patterndata(EN_Project *pr);                /* Processes pattern data     */
-int     curvedata(EN_Project *pr);                  /* Processes curve data       */
-int     coordata(EN_Project *pr);                   /* Processes coordinate data  */
-int     demanddata(EN_Project *pr);                 /* Processes demand data      */
-int     controldata(EN_Project *pr);                /* Processes simple controls  */
-int     energydata(EN_Project *pr);                 /* Processes energy data      */
-int     sourcedata(EN_Project *pr);                 /* Processes source data      */
-int     emitterdata(EN_Project *pr);                /* Processes emitter data     */
-int     qualdata(EN_Project *pr);                   /* Processes quality data     */
-int     reactdata(EN_Project *pr);                  /* Processes reaction data    */
-int     mixingdata(EN_Project *pr);                 /* Processes tank mixing data */
-int     statusdata(EN_Project *pr);                 /* Processes link status data */
-int     reportdata(EN_Project *pr);                 /* Processes report options   */
-int     timedata(EN_Project *pr);                   /* Processes time options     */
-int     optiondata(EN_Project *pr);                 /* Processes analysis options */
-int     optionchoice(EN_Project *pr, int);          /* Processes option choices   */
-int     optionvalue(EN_Project *pr, int);           /* Processes option values    */
-int     getpumpcurve(EN_Project *pr, int);          /* Constructs a pump curve    */
-int     powercurve(double, double, double,          /* Coeffs. of power pump curve*/
-                   double, double, double *,
-                   double *, double *);
-int     valvecheck(EN_Project *pr, int, int, int);  /* Checks valve placement     */
-void    changestatus(EN_Network *net, int, StatType,
-                     double);                       /* Changes status of a link   */
 
 /* -------------- RULES.C --------------*/
 void    initrules(rules_t *rules);                  /* Initializes rule base      */

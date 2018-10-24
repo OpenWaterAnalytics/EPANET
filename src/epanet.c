@@ -3973,13 +3973,14 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   pump->Ptype = NOCURVE;
   pump->Hcurve = curveindex;
   // update pump parameters
-  getpumpparams(p);
+  findpumpcoeffs(p, pIdx);
+
   // convert units
   if (pump->Ptype == POWER_FUNC) {
     pump->H0 /= Ucf[HEAD];
     pump->R *= (pow(Ucf[FLOW], pump->N) / Ucf[HEAD]);
   }
-  /* Convert flow range & max. head units */
+  // Convert flow range & max. head units
   pump->Q0 /= Ucf[FLOW];
   pump->Qmax /= Ucf[FLOW];
   pump->Hmax /= Ucf[HEAD];

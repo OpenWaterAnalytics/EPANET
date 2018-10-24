@@ -51,7 +51,7 @@ typedef  int          INT4;
 #define   TITLELEN  79       // Max. # characters in a title line
 #define   MAXID     31       /* Max. # characters in ID name           */      
 #define   MAXMSG    255      /* Max. # characters in message text      */
-#define   MAXLINE   255      /* Max. # characters read from input line */
+#define   MAXLINE   1024     /* Max. # characters read from input line */
 #define   MAXFNAME  259      /* Max. # characters in file name         */
 #define   MAXTOKS   40       /* Max. items per line of input           */
 #define   TZERO     1.E-4    /* Zero time tolerance                    */

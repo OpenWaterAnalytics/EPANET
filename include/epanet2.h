@@ -787,7 +787,7 @@ extern "C" {
   int  DLLEXPORT ENgetheadcurveindex(int pumpIndex, int *curveIndex);
   
   /**
-   @brief Sets the curve id for a specified pump index.
+   @brief Sets the curve index for a specified pump index.
    @param pumpIndex The index of the pump
    @param curveIndex The index of the curve used by the pump
    @return Error code.

@@ -63,6 +63,8 @@ AUTHOR:     L. Rossman
 
 extern char *Fldname[]; /* Defined in enumstxt.h in EPANET.C      */
 extern char *RptFlowUnitsTxt[];
+extern int  readdata(EN_Project *pr);
+
 
 int getdata(EN_Project *pr)
 /*

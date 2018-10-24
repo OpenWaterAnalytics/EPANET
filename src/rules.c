@@ -92,6 +92,11 @@ char *Value[] = {"XXXX", w_OPEN, w_CLOSED, w_ACTIVE, NULL};
 
 /* External variables declared in INPUT2.C */
 
+// Imported Functions
+extern int     getfloat(char *, double *);
+extern double  hour(char *, char *);
+
+
 /*
 **   Local function prototypes are defined here and not in FUNCS.H
 **   because some of them utilize the Premise and Action structures

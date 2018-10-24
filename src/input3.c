@@ -38,7 +38,44 @@ extern char *MixTxt[];
 extern char *Fldname[];
 extern char *DemandModelTxt[];
 
-/* Defined in INPUT2.C */
+// Imported Functions
+extern STmplist *findID(char *, STmplist *);
+extern int      addnodeID(EN_Network *n, int, char *);
+extern int      addlinkID(EN_Network *n, int, char *);
+extern int      getfloat(char *, double *);
+extern double   hour(char *, char *);
+
+// Exported Functions
+int  juncdata(EN_Project *pr);
+int  pipedata(EN_Project *pr);
+int  tankdata(EN_Project *pr);
+int  pumpdata(EN_Project *pr);
+int  valvedata(EN_Project *pr);
+int  patterndata(EN_Project *pr);
+int  curvedata(EN_Project *pr);
+int  coordata(EN_Project *pr);
+int  demanddata(EN_Project *pr);
+int  controldata(EN_Project *pr);
+int  energydata(EN_Project *pr);
+int  sourcedata(EN_Project *pr);
+int  emitterdata(EN_Project *pr);
+int  qualdata(EN_Project *pr);
+int  reactdata(EN_Project *pr);
+int  mixingdata(EN_Project *pr);
+int  statusdata(EN_Project *pr);
+int  reportdata(EN_Project *pr);
+int  timedata(EN_Project *pr);
+int  optiondata(EN_Project *pr);
+int  optionchoice(EN_Project *pr, int);
+int  optionvalue(EN_Project *pr, int);
+int  powercurve(double, double, double, double, double, double *, double *, double *);
+
+
+// Local Functions
+static int  getpumpcurve(EN_Project *pr, int);
+static int  valvecheck(EN_Project *pr, int, int, int);
+static void changestatus(EN_Network *net, int, StatType, double);
+
 
 int juncdata(EN_Project *pr)
 /*
