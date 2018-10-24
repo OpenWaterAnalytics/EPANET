@@ -250,7 +250,9 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENsetflowunits Lib "epanet2.dll" (ByVal code As Long) As Long
  Declare Function ENaddcontrol Lib "epanet2.dll" (Cindex As Long, ByVal Ctype As Long, ByVal Lindex As Long, ByVal setting As Single, ByVal Nindex As Long, ByVal Level As Single) As Long
  Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal Cindex As Long, ByVal Ctype As Long, ByVal Lindex As Long, ByVal setting As Single, ByVal Nindex As Long, ByVal Level As Single) As Long
+ Declare Function ENsetnodeid Lib "epanet2.dll" (ByVal index As Long, ByVal newid As String) As Long
  Declare Function ENsetnodevalue Lib "epanet2.dll" (ByVal index As Long, ByVal code As Long, ByVal value As Single) As Long
+ Declare Function ENsetlinkid Lib "epanet2.dll" (ByVal index As Long, ByVal newid As String) As Long
  Declare Function ENsetlinkvalue Lib "epanet2.dll" (ByVal index As Long, ByVal code As Long, ByVal value As Single) As Long
  Declare Function ENaddpattern Lib "epanet2.dll" (ByVal id As String) As Long
  Declare Function ENsetpattern Lib "epanet2.dll" (ByVal index As Long, F As Any, ByVal N As Long) As Long
