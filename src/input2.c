@@ -441,7 +441,9 @@ int getpumpparams(EN_Project *pr)
 
     /* Assign limits to custom pump curves */
     if (pump->Ptype == CUSTOM) {
+      j = pump->Hcurve; /* Get index of head curve */
       curve = &net->Curve[j];
+      n = curve->Npts;
       for (m = 1; m < n; m++) {
         if (curve->Y[m] >= curve->Y[m - 1]) { /* Error: Invalid curve */
           EN_geterror(227, errMsg, MAXMSG);

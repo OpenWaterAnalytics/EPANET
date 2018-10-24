@@ -27,7 +27,7 @@ if(MSVC)
     set(Boost_USE_STATIC_LIBS       ON)
 endif(MSVC)
 set(Boost_THREAD_FOUND              OFF)    
-find_package(Boost COMPONENTS thread)
+find_package(Boost COMPONENTS thread system)
 include_directories (${Boost_INCLUDE_DIRS})
 
 

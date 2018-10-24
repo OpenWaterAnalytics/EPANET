@@ -3975,14 +3975,19 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   // update pump parameters
   getpumpparams(p);
   // convert units
-  if (pump->Ptype == POWER_FUNC) {
-    pump->H0 /= Ucf[HEAD];
-    pump->R *= (pow(Ucf[FLOW], pump->N) / Ucf[HEAD]);
+  int i;
+
+  for(i = 1; i<= net->Npumps; i++) {
+    pump = &p->network.Pump[i];
+    if (pump->Ptype == POWER_FUNC) {
+      pump->H0 /= Ucf[HEAD];
+      pump->R *= (pow(Ucf[FLOW], pump->N) / Ucf[HEAD]);
+    }
+    /* Convert flow range & max. head units */
+    pump->Q0 /= Ucf[FLOW];
+    pump->Qmax /= Ucf[FLOW];
+    pump->Hmax /= Ucf[HEAD];
   }
-  /* Convert flow range & max. head units */
-  pump->Q0 /= Ucf[FLOW];
-  pump->Qmax /= Ucf[FLOW];
-  pump->Hmax /= Ucf[HEAD];
   
   p->network.Curve[curveindex].Type = P_CURVE;
 
