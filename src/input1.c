@@ -356,6 +356,7 @@ void adjustdata(EN_Project *pr)
     for (demand = node->D; demand != NULL; demand = demand->next) {
       if (demand->Pat == 0) {
         demand->Pat = hyd->DefPat;
+        strcpy(demand->Name, "");
       }
     }
   }
