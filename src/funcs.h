@@ -75,6 +75,7 @@ int     addcurve(parser_data_t *par, char *);       /* Adds curve to data base  
 STmplist *findID(char *, STmplist *);               /* Locates ID on linked list  */
 int     unlinked(EN_Project *pr);                   /* Checks for unlinked nodes  */
 int     getpumpparams(EN_Project *pr);              /* Computes pump curve coeffs.*/
+int     updatepumpparams(EN_Project *pr, int);      // Updates pump curve coeffs.
 int     getpatterns(EN_Project *pr);                /* Gets pattern data from list*/
 int     getcurves(EN_Project *pr);                  /* Gets curve data from list  */
 int     findmatch(char *, char *[]);                /* Finds keyword in line      */

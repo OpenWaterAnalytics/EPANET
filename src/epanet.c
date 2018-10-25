@@ -3835,6 +3835,7 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
         for (demand = node->D; demand != NULL; demand = demand->next) {
             if (demand->Pat == tmpPat) {
                demand->Pat = (int)value;
+               strcpy(demand->Name, "");
             }
         }
     }
@@ -3973,7 +3974,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   pump->Ptype = NOCURVE;
   pump->Hcurve = curveindex;
   // update pump parameters
-  getpumpparams(p);
+  updatepumpparams(p, pIdx);
   // convert units
   if (pump->Ptype == POWER_FUNC) {
     pump->H0 /= Ucf[HEAD];
@@ -4871,8 +4872,6 @@ int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx
   const int Nnodes = net->Nnodes;
   const int Njuncs = net->Njuncs;
   
-  double *Ucf = pr->Ucf;
-  
   Pdemand d;
   int n = 1;
   /* Check for valid arguments */
@@ -5047,6 +5046,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
     demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
     demand->Base = 0.0;
     demand->Pat = hyd->DefPat; // Use default pattern
+    strcpy(demand->Name, "");
     demand->next = NULL;
     node->D = demand;
 
