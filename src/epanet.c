@@ -4610,6 +4610,7 @@ void errmsg(EN_Project *p, int errcode)
 **----------------------------------------------------------------
 */
 {
+    if (errcode < 100) return;  // Warnings are reported separately
     if (errcode != 309 && p->report.RptFile != NULL && p->report.Messageflag)
     {
         writeline(p, geterrmsg(errcode, p->Msg));
