@@ -449,19 +449,15 @@ AUTHOR:     L. Rossman
 #define FMT82  "\n\f\n  Page %-d    %60.60s\n"
 
 /* ------------------- Progress Messages ---------------------- */
-#define FMT100 "Retrieving network data..."
-#define FMT101 "Computing hydraulics at hour %s"
-#define FMT102 "Computing water quality at hour %s"
-#define FMT103 "Saving results to file..."
+#define FMT100 "    Retrieving network data ...                   "
+#define FMT101 "    Computing hydraulics at hour %-10s       "
+#define FMT102 "    Computing water quality at hour %-10s    "
+#define FMT103 "    Writing output report ...                     "
+#define FMT106 "    Transferring results to file ...              "
 #define FMT104 "Analysis begun %s"
 #define FMT105 "Analysis ended %s"
 
 /*------------------- Error Messages --------------------*/
-
-
-
-
-
 #define R_ERR201 "Input Error 201: syntax error in following line of "
 #define R_ERR202 "Input Error 202: illegal numeric value in following line of "
 #define R_ERR203 "Input Error 203: undefined node in following line of "

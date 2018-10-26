@@ -1,5 +1,13 @@
 
 DAT(0,EN_OK,"ok")
+
+DAT(1,ENWARN_UNBALANCED,"WARNING: System hydraulically unbalanced.")
+DAT(2,ENWARN_UNSTABLE,"WARNING: System may be hydraulically unstable.")
+DAT(3,ENWARN_DISCONNECTED,"WARNING: System disconnected.")
+DAT(4,ENWARN_PUMP_OFF_CURVE,"WARNING: Pumps cannot deliver enough flow or head.")
+DAT(5,ENWARN_LOW_VALVE_FLOW,"WARNING: Valves cannot deliver enough flow.")
+DAT(6,ENWARN_NEGATIVE_PRESSURES,"WARNING: System has negative pressures.")
+
 DAT(101,ENERR_INSUF_MEM,"insufficient memory available")
 DAT(102,ENERR_NO_NET_DATA,"no network data available")
 DAT(103,ENERR_HYD_NOT_INIT,"hydraulics not initialized")

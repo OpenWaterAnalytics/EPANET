@@ -34,7 +34,6 @@ The following utility functions are all called from INPUT3.C
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#include "epanet2.h"
 #include "funcs.h"
 #include <math.h>
 

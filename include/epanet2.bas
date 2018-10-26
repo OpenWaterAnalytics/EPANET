@@ -7,7 +7,11 @@ Attribute VB_Name = "Module1"
 
 'Last updated on 4/3/07
 
+
 ' These are codes used by the DLL functions
+Public Const EN_MAXID = 31
+Public Const EN_MAXMSG = 255
+
 Public Const EN_ELEVATION = 0     ' Node parameters
 Public Const EN_BASEDEMAND = 1
 Public Const EN_PATTERN = 2

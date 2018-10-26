@@ -144,43 +144,6 @@ void errorLookup(int errcode, char *errmsg, int len);
 
 *****************************************************************/
 
-int runconcurrent(EN_ProjectHandle ph, const char *inputfile, const char *reportfile,
-	const char *outputfile, void(*pviewprog)(char *))
-{
-	long t, tstep_h, tstep_q;
-	int errcode = 0;
-
-	EN_Project *p = NULL;
-
-
-	ERRCODE(EN_open(ph, inputfile, reportfile, outputfile));
-	p = (EN_Project*)(ph);
-	p->viewprog = pviewprog;
-
-	ERRCODE(EN_openH(ph));
-	ERRCODE(EN_initH(ph, EN_SAVE));
-
-	ERRCODE(EN_openQ(ph));
-	ERRCODE(EN_initQ(ph, EN_SAVE));
-
-	do {
-		ERRCODE(EN_runH(ph, &t));
-		ERRCODE(EN_runQ(ph, &t));
-
-		ERRCODE(EN_nextH(ph, &tstep_h));
-		ERRCODE(EN_nextQ(ph, &tstep_q));
-
-	} while (tstep_h > 0);
-
-	ERRCODE(EN_closeH(ph));
-	ERRCODE(EN_closeQ(ph));
-
-	ERRCODE(EN_report(ph));
-	ERRCODE(EN_close(ph));
-
-	return errcode;
-}
-
 /*------------------------------------------------------------------------
  **   Input:   f1 = pointer to name of input file
  **            f2 = pointer to name of report file
@@ -670,19 +633,17 @@ int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2,
     int errcode = 0;
     EN_Project *p = NULL;
 
+    writewin(pviewprog, FMT100);
     ERRCODE(EN_open(ph, f1, f2, f3));
     p = (EN_Project*)(ph);
     p->viewprog = pviewprog;
-  
     if (p->out_files.Hydflag != USE) {
       ERRCODE(EN_solveH(ph));
     }
-  
     ERRCODE(EN_solveQ(ph));
     ERRCODE(EN_report(ph));
-  
+    errcode = p->error_handle->error_status;
     EN_close(ph);
-  
     return errcode;
 }
 
@@ -792,8 +753,6 @@ int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const
   writelogo(p);
 
   /* Find network size & allocate memory for data */
-  writecon(FMT02);
-  writewin(p->viewprog, FMT100);
   ERRCODE(netsize(p));
   ERRCODE(allocdata(p));
 
@@ -830,12 +789,9 @@ int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, const char *filename)
  **----------------------------------------------------------------
  */
 {
-  EN_Project *p = (EN_Project*)ph;
-  
-  if (!p->Openflag)
-	  return set_error(p->error_handle, 102);
-  
-  return set_error(p->error_handle, saveinpfile(p, filename));
+    EN_Project *p = (EN_Project*)ph;
+    if (!p->Openflag) return set_error(p->error_handle, 102);
+    return set_error(p->error_handle, saveinpfile(p, filename));
 }
 
 int DLLEXPORT EN_close(EN_ProjectHandle ph)
@@ -920,39 +876,27 @@ int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
   if (!errcode) {
     /* Initialize hydraulics */
     errcode = EN_initH(ph, EN_SAVE);
-    writecon(FMT14);
 
     /* Analyze each hydraulic period */
-    if (!errcode)
-      do {
-
-        /* Display progress message */
-
-        /*** Updated 6/24/02 ***/
-        sprintf(p->Msg, "%-10s",
-                clocktime(p->report.Atime, p->time_options.Htime));
-
-        writecon(p->Msg);
-        sprintf(p->Msg, FMT101, p->report.Atime);
+    if (!errcode) do {
+      /* Display progress message */
+      if (p->viewprog)
+      {
+        sprintf(p->Msg, FMT101, clocktime(p->report.Atime,
+                                          p->time_options.Htime));
         writewin(p->viewprog, p->Msg);
-
-        /* Solve for hydraulics & advance to next time period */
-        tstep = 0;
-        ERRCODE(EN_runH(ph, &t));
-        ERRCODE(EN_nextH(ph, &tstep));
-        /*** Updated 6/24/02 ***/
-        writecon("\b\b\b\b\b\b\b\b\b\b");
-      } while (tstep > 0);
+      }
+ 
+      /* Solve for hydraulics & advance to next time period */
+      tstep = 0;
+      ERRCODE(EN_runH(ph, &t));
+      ERRCODE(EN_nextH(ph, &tstep));
+    } while (tstep > 0);
   }
 
   /* Close hydraulics solver */
-
-  /*** Updated 6/24/02 ***/
-  writecon("\b\b\b\b\b\b\b\b                     ");
-
   EN_closeH(ph);
   errcode = MAX(errcode, p->Warnflag);
-
   return set_error(p->error_handle, errcode);
 }
 
@@ -1188,46 +1132,28 @@ int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
   /* Open WQ solver */
   errcode = EN_openQ(ph);
   if (!errcode) {
+
     /* Initialize WQ */
     errcode = EN_initQ(ph, EN_SAVE);
-    if (p->quality.Qualflag)
-      writecon(FMT15);
-    else {
-      writecon(FMT16);
-      writewin(p->viewprog, FMT103);
-    }
+    if (p->quality.Qualflag) writewin(p->viewprog, FMT106);
 
     /* Analyze each hydraulic period */
-    if (!errcode)
-      do {
+    if (!errcode) do {
 
-        /* Display progress message */
-
-        /*** Updated 6/24/02 ***/
-        sprintf(p->Msg, "%-10s",
-                clocktime(p->report.Atime, p->time_options.Htime));
-
-        writecon(p->Msg);
-        if (p->quality.Qualflag) {
-          sprintf(p->Msg, FMT102, p->report.Atime);
+      /* Display progress message */
+      if (p->quality.Qualflag && p->viewprog) {
+          sprintf(p->Msg, FMT102, clocktime(p->report.Atime, p->time_options.Htime));
           writewin(p->viewprog, p->Msg);
-        }
+      }
 
-        /* Retrieve current network solution & update WQ to next time period */
-        tstep = 0;
-        ERRCODE(EN_runQ(ph, &t));
-        ERRCODE(EN_nextQ(ph, &tstep));
-
-        /*** Updated 6/24/02 ***/
-        writecon("\b\b\b\b\b\b\b\b\b\b");
-
-      } while (tstep > 0);
+      /* Retrieve current network solution & update WQ to next time period */
+      tstep = 0;
+      ERRCODE(EN_runQ(ph, &t));
+      ERRCODE(EN_nextQ(ph, &tstep));
+    } while (tstep > 0);
   }
 
   /* Close WQ solver */
-
-  /*** Updated 6/24/02 ***/
-  writecon("\b\b\b\b\b\b\b\b                     ");
   EN_closeQ(ph);
   return set_error(p->error_handle, errcode);
 }
@@ -1348,17 +1274,17 @@ int DLLEXPORT EN_writeline(EN_ProjectHandle ph, char *line) {
 }
 
 int DLLEXPORT EN_report(EN_ProjectHandle ph) {
-  int errcode;
+    int errcode;
+    EN_Project *p = (EN_Project*)ph;
 
-  EN_Project *p = (EN_Project*)ph;
-
-  /* Check if results saved to binary output file */
-  if (!p->save_options.SaveQflag)
-    return set_error(p->error_handle, 106);
-  errcode = writereport(p);
-  if (errcode)
-    errmsg(p, errcode);
-  return set_error(p->error_handle, errcode);
+    // Check if results saved to binary output file
+    if (!p->save_options.SaveQflag) return set_error(p->error_handle, 106);
+    writewin(p->viewprog, FMT103);
+    errcode = writereport(p);
+    
+    // Write any error condition to report file
+    if (errcode) errmsg(p, errcode);
+    return set_error(p->error_handle, errcode);
 }
 
 int DLLEXPORT EN_resetreport(EN_ProjectHandle ph) {
@@ -1898,28 +1824,13 @@ int DLLEXPORT EN_getqualinfo(EN_ProjectHandle ph, int *qualcode, char *chemname,
 }
 
 void errorLookup(int errcode, char *dest_msg, int dest_len)
-// Purpose: takes error code returns error message
+//
+// Purpose: takes error/warning code returns error/warning message
+//
 {
-    char *msg = NULL;
-
-    switch (errcode)
-    {
-    case 1: msg = WARN1;
-    break;
-    case 2: msg = WARN2;
-    break;
-    case 3: msg = WARN3;
-    break;
-    case 4: msg = WARN4;
-    break;
-    case 5: msg = WARN5;
-    break;
-    case 6: msg = WARN6;
-    break;
-    default:
-        msg = geterrmsg(errcode, msg);
-    }
-    strncpy(dest_msg, msg, MAXMSG);
+    char msg[MAXMSG+1];
+    int n = MIN(dest_len, MAXMSG);
+    strncpy(dest_msg, geterrmsg(errcode, msg), n);
 }
 
 void DLLEXPORT EN_clearError(EN_ProjectHandle ph)
@@ -1955,36 +1866,10 @@ int DLLEXPORT EN_checkError(EN_ProjectHandle ph, char** msg_buffer)
 }
 
 int DLLEXPORT EN_geterror(int errcode, char *errmsg, int n) {
-	// Deprecate? 
-  char newMsg[MAXMSG+1];
-  
-  switch (errcode) {
-  case 1:
-    strncpy(errmsg, WARN1, n);
-    break;
-  case 2:
-    strncpy(errmsg, WARN2, n);
-    break;
-  case 3:
-    strncpy(errmsg, WARN3, n);
-    break;
-  case 4:
-    strncpy(errmsg, WARN4, n);
-    break;
-  case 5:
-    strncpy(errmsg, WARN5, n);
-    break;
-  case 6:
-    strncpy(errmsg, WARN6, n);
-    break;
-  default:
-    geterrmsg(errcode, newMsg);
-    strncpy(errmsg, newMsg, n);
-  }
-  if (strlen(errmsg) == 0)
-    return 251;
-  else
-    return 0;
+    char newMsg[MAXMSG + 1];
+    strncpy(errmsg, geterrmsg(errcode, newMsg), n);
+    if (strlen(errmsg) == 0) return 251;
+    return 0; 
 }
 
 int DLLEXPORT EN_getstatistic(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE *value) {
@@ -4064,20 +3949,16 @@ int openfiles(EN_Project *p, const char *f1, const char *f2, const char *f3)
   /* Check that file names are not identical */
   if (strcomp(f1, f2) || strcomp(f1, f3) ||
       (strcomp(f2, f3) && (strlen(f2) > 0 || strlen(f3) > 0))) {
-    writecon(FMT04);
     return 301;
   }
 
   /* Attempt to open input and report files */
   if ((par->InFile = fopen(f1, "rt")) == NULL) {
-    writecon(FMT05);
-    writecon(f1);
     return 302;
   }
   if (strlen(f2) == 0)
     rep->RptFile = stdout;
   else if ((rep->RptFile = fopen(f2, "wt")) == NULL) {
-    writecon(FMT06);
     return 303;
   }
 
@@ -4208,7 +4089,6 @@ int openoutfile(EN_Project *p)
   if (out->Outflag == SAVE) 
   {
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) {
-      writecon(FMT07);
       errcode = 304;
     }
   }
@@ -4218,7 +4098,6 @@ int openoutfile(EN_Project *p)
     getTmpName(p, out->OutFname);                           
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) 
     {
-      writecon(FMT08);
       errcode = 304;
     }
   }
@@ -4731,26 +4610,10 @@ void errmsg(EN_Project *p, int errcode)
 **----------------------------------------------------------------
 */
 {
-  if (errcode == 309) /* Report file write error -  */
-  {                   /* Do not write msg to file.  */
-    writecon("\n  ");
-    writecon(geterrmsg(errcode,p->Msg));
-  } else if (p->report.RptFile != NULL && p->report.Messageflag) {
-    writeline(p, geterrmsg(errcode,p->Msg));
-  }
-}
-
-void writecon(const char *s)
-/*----------------------------------------------------------------
-**  Input:   text string
-**  Output:  none
-**  Purpose: writes string of characters to console
-**----------------------------------------------------------------
-*/
-{
-  
-  fprintf(stdout, "%s", s);
-  fflush(stdout);
+    if (errcode != 309 && p->report.RptFile != NULL && p->report.Messageflag)
+    {
+        writeline(p, geterrmsg(errcode, p->Msg));
+    }
 }
 
 void writewin(void (*vp)(char *), char *s)
