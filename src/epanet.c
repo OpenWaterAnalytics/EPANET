@@ -143,7 +143,7 @@ void errorLookup(int errcode, char *errmsg, int len);
  LEGACY (v <= 2.1) API: uses global project variable
 
 *****************************************************************/
-
+/*
 int runconcurrent(EN_ProjectHandle ph, const char *inputfile, const char *reportfile,
 	const char *outputfile, void(*pviewprog)(char *))
 {
@@ -180,7 +180,7 @@ int runconcurrent(EN_ProjectHandle ph, const char *inputfile, const char *report
 
 	return errcode;
 }
-
+*/
 /*------------------------------------------------------------------------
  **   Input:   f1 = pointer to name of input file
  **            f2 = pointer to name of report file
