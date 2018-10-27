@@ -82,8 +82,6 @@ int writereport(EN_Project *pr)
   /* write formatted output to primary report file. */
   rep->Fprinterr = FALSE;
   if (rep->Rptflag && strlen(rep->Rpt2Fname) == 0 && rep->RptFile != NULL) {
-////    writecon(FMT17);
-////    writecon(rep->Rpt1Fname);
     if (rep->Energyflag)
       writeenergy(pr);
     errcode = writeresults(pr);
@@ -95,8 +93,6 @@ int writereport(EN_Project *pr)
     /* If secondary report file has same name as either input */
     /* or primary report file then use primary report file.   */
     if (strcomp(rep->Rpt2Fname, par->InpFname) || strcomp(rep->Rpt2Fname, rep->Rpt1Fname)) {
-////      writecon(FMT17);
-////      writecon(rep->Rpt1Fname);
       if (rep->Energyflag)
         writeenergy(pr);
       errcode = writeresults(pr);
@@ -117,8 +113,6 @@ int writereport(EN_Project *pr)
       /* Write full formatted report to file */
       else {
         rep->Rptflag = 1;
-////        writecon(FMT17);
-////        writecon(rep->Rpt2Fname);
         writelogo(pr);
         if (rep->Summaryflag)
           writesummary(pr);
