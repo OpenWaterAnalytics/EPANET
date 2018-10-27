@@ -792,8 +792,8 @@ int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const
   writelogo(p);
 
   /* Find network size & allocate memory for data */
-  writecon(FMT02);
-  writewin(p->viewprog, FMT100);
+////  writecon(FMT02);
+////  writewin(p->viewprog, FMT100);
   ERRCODE(netsize(p));
   ERRCODE(allocdata(p));
 
@@ -920,7 +920,7 @@ int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
   if (!errcode) {
     /* Initialize hydraulics */
     errcode = EN_initH(ph, EN_SAVE);
-    writecon(FMT14);
+////    writecon(FMT14);
 
     /* Analyze each hydraulic period */
     if (!errcode)
@@ -932,7 +932,7 @@ int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
         sprintf(p->Msg, "%-10s",
                 clocktime(p->report.Atime, p->time_options.Htime));
 
-        writecon(p->Msg);
+////        writecon(p->Msg);
         sprintf(p->Msg, FMT101, p->report.Atime);
         writewin(p->viewprog, p->Msg);
 
@@ -941,14 +941,14 @@ int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
         ERRCODE(EN_runH(ph, &t));
         ERRCODE(EN_nextH(ph, &tstep));
         /*** Updated 6/24/02 ***/
-        writecon("\b\b\b\b\b\b\b\b\b\b");
+////        writecon("\b\b\b\b\b\b\b\b\b\b");
       } while (tstep > 0);
   }
 
   /* Close hydraulics solver */
 
   /*** Updated 6/24/02 ***/
-  writecon("\b\b\b\b\b\b\b\b                     ");
+////  writecon("\b\b\b\b\b\b\b\b                     ");
 
   EN_closeH(ph);
   errcode = MAX(errcode, p->Warnflag);
@@ -1190,12 +1190,12 @@ int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
   if (!errcode) {
     /* Initialize WQ */
     errcode = EN_initQ(ph, EN_SAVE);
-    if (p->quality.Qualflag)
-      writecon(FMT15);
-    else {
-      writecon(FMT16);
-      writewin(p->viewprog, FMT103);
-    }
+////    if (p->quality.Qualflag)
+////      writecon(FMT15);
+////    else {
+////      writecon(FMT16);
+      if (!p->quality.Qualflag) writewin(p->viewprog, FMT103);
+////    }
 
     /* Analyze each hydraulic period */
     if (!errcode)
@@ -1207,7 +1207,7 @@ int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
         sprintf(p->Msg, "%-10s",
                 clocktime(p->report.Atime, p->time_options.Htime));
 
-        writecon(p->Msg);
+////        writecon(p->Msg);
         if (p->quality.Qualflag) {
           sprintf(p->Msg, FMT102, p->report.Atime);
           writewin(p->viewprog, p->Msg);
@@ -1219,7 +1219,7 @@ int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
         ERRCODE(EN_nextQ(ph, &tstep));
 
         /*** Updated 6/24/02 ***/
-        writecon("\b\b\b\b\b\b\b\b\b\b");
+////        writecon("\b\b\b\b\b\b\b\b\b\b");
 
       } while (tstep > 0);
   }
@@ -1227,7 +1227,7 @@ int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
   /* Close WQ solver */
 
   /*** Updated 6/24/02 ***/
-  writecon("\b\b\b\b\b\b\b\b                     ");
+////  writecon("\b\b\b\b\b\b\b\b                     ");
   EN_closeQ(ph);
   return set_error(p->error_handle, errcode);
 }
@@ -4064,20 +4064,20 @@ int openfiles(EN_Project *p, const char *f1, const char *f2, const char *f3)
   /* Check that file names are not identical */
   if (strcomp(f1, f2) || strcomp(f1, f3) ||
       (strcomp(f2, f3) && (strlen(f2) > 0 || strlen(f3) > 0))) {
-    writecon(FMT04);
+////    writecon(FMT04);
     return 301;
   }
 
   /* Attempt to open input and report files */
   if ((par->InFile = fopen(f1, "rt")) == NULL) {
-    writecon(FMT05);
-    writecon(f1);
+////    writecon(FMT05);
+////    writecon(f1);
     return 302;
   }
   if (strlen(f2) == 0)
     rep->RptFile = stdout;
   else if ((rep->RptFile = fopen(f2, "wt")) == NULL) {
-    writecon(FMT06);
+////    writecon(FMT06);
     return 303;
   }
 
@@ -4208,7 +4208,7 @@ int openoutfile(EN_Project *p)
   if (out->Outflag == SAVE) 
   {
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) {
-      writecon(FMT07);
+////      writecon(FMT07);
       errcode = 304;
     }
   }
@@ -4218,7 +4218,7 @@ int openoutfile(EN_Project *p)
     getTmpName(p, out->OutFname);                           
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) 
     {
-      writecon(FMT08);
+////      writecon(FMT08);
       errcode = 304;
     }
   }
@@ -4733,25 +4733,25 @@ void errmsg(EN_Project *p, int errcode)
 {
   if (errcode == 309) /* Report file write error -  */
   {                   /* Do not write msg to file.  */
-    writecon("\n  ");
-    writecon(geterrmsg(errcode,p->Msg));
+////    writecon("\n  ");
+////    writecon(geterrmsg(errcode,p->Msg));
   } else if (p->report.RptFile != NULL && p->report.Messageflag) {
     writeline(p, geterrmsg(errcode,p->Msg));
   }
 }
 
-void writecon(const char *s)
+//void writecon(const char *s)
 /*----------------------------------------------------------------
 **  Input:   text string
 **  Output:  none
 **  Purpose: writes string of characters to console
 **----------------------------------------------------------------
 */
-{
-  
-  fprintf(stdout, "%s", s);
-  fflush(stdout);
-}
+//{
+//  
+//  fprintf(stdout, "%s", s);
+//  fflush(stdout);
+//}
 
 void writewin(void (*vp)(char *), char *s)
 /*----------------------------------------------------------------
