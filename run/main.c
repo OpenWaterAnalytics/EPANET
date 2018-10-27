@@ -1,26 +1,33 @@
+#include <stdio.h>
+#include <string.h>
+#include "epanet2.h"
+
+#define   MAXMSG         255       /* Max. # characters in message text      */
+#define   MAXWARNCODE    99      
+/* text copied here, no more need of include "text.h" */
+#define FMT01  "\nEPANET Version %d.%d.%d\n"
+#define FMT03 "\nUsage:\n %s <input_filename> <report_filename> [<binary_filename>]\n"
+#define FMT09  "\n\nEPANET completed.\n"
+#define FMT10  "\nEPANET completed. There are warnings.\n"
+#define FMT11  "\nEPANET completed. There are errors.\n"
+
+
+void  writeConsole(char *s);
+
+
 /*
 ----------------------------------------------------------------
-Command line executable for the EPANET water distribution system
-analysis program using the EPANET API library.
+   Entry point used to compile a stand-alone executable.
 ----------------------------------------------------------------
 */
 
-#include <stdio.h>
-#include "epanet2.h"
 
-// Function for writing progress messages to the console
-void  writeConsole(char *s)
-{
-    fprintf(stdout, "\r%s", s);
-    fflush(stdout);
-}
-
-int  main(int argc, char *argv[])
+int   main(int argc, char *argv[])
 /*--------------------------------------------------------------
  **  Input:   argc    = number of command line arguments
  **           *argv[] = array of command line arguments
  **  Output:  none
- **  Purpose: main program stub for command line EPANET
+ **  Purpose: main program segment
  **
  **  Command line for stand-alone operation is:
  **    progname f1  f2  f3
@@ -31,56 +38,70 @@ int  main(int argc, char *argv[])
  **--------------------------------------------------------------
  */
 {
-    char *f1,*f2,*f3;
-    char blank[] = "";
-    int  errcode, version, major, minor, patch;
-    EN_ProjectHandle ph;
-    
-    // Check for proper number of command line arguments
-    if (argc < 2)
-    {
-        printf(
-    "\nUsage:\n %s <input_filename> <report_filename> [<binary_filename>]\n",
-        argv[0]);
-        return 0;
-    }
+  char *f1,*f2,*f3;
+  char blank[] = "";
+  char errmsg[MAXMSG+1]="";
+  int  errcode;
+  int  version;
+  int major;
+  int minor;
+  int patch;
 
-    // Get version number and display in Major.Minor.Patch format
-    ENgetversion(&version);
-    major = version/10000;
-    minor = (version%10000)/100;
-    patch = version%100;
-    printf("\n... Running EPANET Version %d.%d.%d\n", major, minor, patch);
+  /* get version from DLL and trasform in Major.Minor.Patch format
+  instead of hardcoded version */
+  ENgetversion(&version);
+  major=  version/10000;
+  minor=  (version%10000)/100;
+  patch=  version%100;
+  printf(FMT01, major, minor, patch);
   
-    // Assign pointers to file names
-    f1 = argv[1];
-    if (argc > 2) f2 = argv[2];  // set rptfile name
-    else          f2 = blank;    // use stdout for rptfile
-    if (argc > 3) f3 = argv[3];  // set binary output file name
-    else          f3 = blank;    // no binary output file
+  /* Check for proper number of command line arguments */
+  if (argc < 2) {
+    printf(FMT03, argv[0]);
+    return(1);
+  }
 
-    // Create a project, run it, and delete it
-    EN_createproject(&ph);
-    errcode = EN_runproject(ph, f1, f2, f3, &writeConsole);
-    EN_deleteproject(&ph);
+  /* set inputfile name */
+  f1 = argv[1];
+  if (argc > 2) {
+    /* set rptfile name */
+    f2 = argv[2];
+  }
+  else {
+    /* use stdout for rptfile */
+    f2 = blank;
+  }
+  if (argc > 3) {
+    /* set binary output file name */
+    f3 = argv[3];
+  }
+  else {
+    /* NO binary output*/
+    f3 = blank;
+  }
 
-    // Blank out the last progress message
-    printf("\r                                                               ");
+  /* Call the main control function */
+  errcode = ENepanet(f1,f2,f3,NULL);
 
-    // Report run's status
-    if (errcode == 0)
-    {
-        printf("\n... EPANET ran successfully.\n");
-    }
-    else if (errcode < 100)
-    {
-        printf(
-        "\n... EPANET ran with warnings - see the Status Report.\n");
-    }
-    else
-    {
-        printf(
-        "\n... EPANET failed with ERROR %d - see the Status Report\n", errcode);
-    }
-    return errcode;
-}
+  /* Error/Warning check   */
+  if (errcode == 0) {
+     /* no errors */
+     printf(FMT09);
+     return(0);
+  }
+  else {
+     if (errcode > MAXWARNCODE) printf("\n    Fatal Error: ");
+     ENgeterror(errcode, errmsg, MAXMSG);
+     printf("%s\n", errmsg);
+     if (errcode > MAXWARNCODE) {
+        // error //
+        printf(FMT11);
+        return(errcode);
+     }
+     else {
+        // warning //
+        printf(FMT10);
+        return(0);
+     }
+  }
+}                                       /* End of main */
