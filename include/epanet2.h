@@ -67,6 +67,9 @@
 
 // --- Define the EPANET toolkit constants
 
+#define  EN_MAXID  31  /**< Max. # characters in ID name */
+#define  EN_MAXMSG 255 /**< Max. # characters in message text */
+
 /// Node property codes
 typedef enum {
   EN_ELEVATION    = 0, /**< Node Elevation */
