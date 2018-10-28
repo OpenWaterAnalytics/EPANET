@@ -29,7 +29,7 @@ int runEpanet(char *finp, char *frpt)
     if (!err) err = EN_solveH(ph);
     if (!err) err = EN_report(ph);
     EN_close(ph);
-    EN_deleteproject(ph);
+    EN_deleteproject(&ph);
     return err;
 }
 ```
@@ -149,6 +149,7 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`ENgetruleID`||
 |`ENinit`||
 |`ENsetheadcurveindex`||
+|`ENsetlinknodes`||
 |`ENsetlinktype`||
 |`ENaddnode`||
 |`ENaddlink`||

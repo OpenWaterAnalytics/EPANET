@@ -415,6 +415,14 @@ int DLLEXPORT ENsetlinkid(int index, char *newid) {
     return EN_setlinkid(_defaultModel, index, newid);
 }
 
+int DLLEXPORT ENsetlinknodes(int index, int node1, int node2) {
+  return EN_setlinknodes(_defaultModel, index, node1, node2);
+}
+
+int DLLEXPORT ENsetlinktype(int *index, EN_LinkType type) {
+  return EN_setlinktype(_defaultModel, index, type);
+}
+
 int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v) {
   return EN_setlinkvalue(_defaultModel, index, code, v);
 }
@@ -565,10 +573,6 @@ int DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink,
 
 int DLLEXPORT ENgetruleID(int indexRule, char* id){
   return EN_getruleID(_defaultModel, indexRule, id);
-}
-
-int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
-  return EN_setlinktype(_defaultModel, id, toType);
 }
 
 int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType) {
@@ -3160,6 +3164,37 @@ int DLLEXPORT EN_setlinkid(EN_ProjectHandle ph, int index, char *newid)
     return set_error(p->error_handle, 0);
 }
 
+int DLLEXPORT EN_setlinknodes(EN_ProjectHandle ph, int index, int node1, int node2)
+{
+    int type;
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+    
+    // Check that nodes exist
+    if (node1 < 0 || node1 > net->Nnodes) return set_error(p->error_handle, 203);
+    if (node2 < 0 || node2 > net->Nnodes) return set_error(p->error_handle, 203);
+
+    // Check for illegal valve connection
+    type = net->Link[index].Type;
+    if (type == EN_PRV || type == EN_PSV || type == EN_FCV)
+    {
+        // Can't be connected to a fixed grade node
+        if (node1 > net->Njuncs ||
+            node2 > net->Njuncs) return set_error(p->error_handle, 219);
+            
+        // Can't be connected to another pressure/flow control valve
+        if (!valvecheck(p, type, node1, node2))
+        {
+            return set_error(p->error_handle, 220);
+        }
+    }
+    
+    // Assign new end nodes to link
+    net->Link[index].N1 = node1;
+    net->Link[index].N2 = node2;
+    return set_error(p->error_handle, 0);
+}
+
 int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
                               EN_API_FLOAT_TYPE v)
 
@@ -4809,7 +4844,7 @@ int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx
 }
 
 int  DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIdx, int patIndex) {
-	
+
   EN_Project *pr = (EN_Project*)ph;
 
   EN_Network *net = &pr->network;
@@ -4884,7 +4919,52 @@ int DLLEXPORT EN_getaveragepatternvalue(EN_ProjectHandle ph, int index, EN_API_F
   return set_error(p->error_handle, 0);
 }
 
-int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType toType) {
+int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, int *index, EN_LinkType type) {
+
+    int i = *index, n1, n2;
+    char id[MAXID+1];
+    char id1[MAXID+1];
+    char id2[MAXID+1];
+    int errcode;
+    EN_LinkType oldtype;
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+
+    if (!p->Openflag) return set_error(p->error_handle, 102);
+    if (type < 0 || type > EN_GPV) return set_error(p->error_handle, 211);
+
+    // Check if a link with the id exists
+    if (i <= 0 || i > net->Nlinks) return set_error(p->error_handle, 204);
+
+    // Get the current type of the link
+    EN_getlinktype(p, i, &oldtype);
+    if (oldtype == type) return set_error(p->error_handle, 0);
+
+    // Pipe changing from or to having a check valve
+    if (oldtype <= EN_PIPE && type <= EN_PIPE)
+    {
+        net->Link[i].Type = type;
+        if (type == EN_CVPIPE) net->Link[i].Stat = OPEN;
+        return set_error(p->error_handle, 0);
+    }
+
+    // Get ID's of link & its end nodes
+    EN_getlinkid(ph, i, id);
+    EN_getlinknodes(ph, i, &n1, &n2);
+    EN_getnodeid(ph, n1, id1);
+    EN_getnodeid(ph, n2, id2);
+
+    // Delete the original link
+    EN_deletelink(ph, i);
+
+    // Create a new link of new type and old id
+    errcode = EN_addlink(ph, id, type, id1, id2);
+    
+    // Find the index of this new link
+    EN_getlinkindex(ph, id, index);
+    return set_error(p->error_handle, errcode);
+
+    /***********************************************
   int i;
   EN_LinkType fromType;
   
@@ -4895,16 +4975,16 @@ int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType toType) 
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
 
-  /* Check if a link with the id exists */
+  // Check if a link with the id exists 
   if (EN_getlinkindex(p, id, &i) != 0)
     return set_error(p->error_handle, 215);
 
-  /* Get the current type of the link */
+  // Get the current type of the link 
   EN_getlinktype(p, i, &fromType);
   if (fromType == toType)
     return set_error(p->error_handle, 0);
 
-  /* Change link from Pipe */
+  // Change link from Pipe
   if (toType <= EN_PIPE) {
     net->Npipes++;
   } else if (toType == EN_PUMP) {
@@ -4921,6 +5001,7 @@ int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType toType) 
     net->Npumps--;
   }
   return set_error(p->error_handle, 0);
+**********************************************/  
 }
 
 int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {

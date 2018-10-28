@@ -288,7 +288,8 @@ Public Const EN_G_CURVE = 4       ' General\default curve
 
  Declare Function ENinit Lib "epanet2.dll" (ByVal rptFile As String, ByVal binOutFile As String, ByVal UnitsType As Long, ByVal HeadlossFormula As Long) As Long
  Declare Function ENsetheadcurveindex Lib "epanet2.dll" (ByVal pumpIndex As Long, ByVal curveIndex As Long) As Long
- Declare Function ENsetlinktype Lib "epanet2.dll" (ByVal index As Long, ByVal code As Long) As Long
+ Declare Function ENsetlinknodes Lib "epanet2.dll" (ByVal index As Long, ByVal node1 As Long, ByVal node2 As Long) As Long
+ Declare Function ENsetlinktype Lib "epanet2.dll" (index As Long, ByVal code As Long) As Long
  Declare Function ENaddnode Lib "epanet2.dll" (ByVal id As String, ByVal nodeType As Long) As Long
  Declare Function ENaddlink Lib "epanet2.dll" (ByVal id As String, ByVal linkType As Long, ByVal fromNode As String, ByVal toNode As String) As Long
  Declare Function ENdeletelink Lib "epanet2.dll" (ByVal nodeIndex As Long) As Long
