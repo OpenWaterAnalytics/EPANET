@@ -144,43 +144,6 @@ void errorLookup(int errcode, char *errmsg, int len);
 
 *****************************************************************/
 
-int runconcurrent(EN_ProjectHandle ph, const char *inputfile, const char *reportfile,
-	const char *outputfile, void(*pviewprog)(char *))
-{
-	long t, tstep_h, tstep_q;
-	int errcode = 0;
-
-	EN_Project *p = NULL;
-
-
-	ERRCODE(EN_open(ph, inputfile, reportfile, outputfile));
-	p = (EN_Project*)(ph);
-	p->viewprog = pviewprog;
-
-	ERRCODE(EN_openH(ph));
-	ERRCODE(EN_initH(ph, EN_SAVE));
-
-	ERRCODE(EN_openQ(ph));
-	ERRCODE(EN_initQ(ph, EN_SAVE));
-
-	do {
-		ERRCODE(EN_runH(ph, &t));
-		ERRCODE(EN_runQ(ph, &t));
-
-		ERRCODE(EN_nextH(ph, &tstep_h));
-		ERRCODE(EN_nextQ(ph, &tstep_q));
-
-	} while (tstep_h > 0);
-
-	ERRCODE(EN_closeH(ph));
-	ERRCODE(EN_closeQ(ph));
-
-	ERRCODE(EN_report(ph));
-	ERRCODE(EN_close(ph));
-
-	return errcode;
-}
-
 /*------------------------------------------------------------------------
  **   Input:   f1 = pointer to name of input file
  **            f2 = pointer to name of report file
@@ -201,14 +164,17 @@ int runconcurrent(EN_ProjectHandle ph, const char *inputfile, const char *report
 int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
 {
   int errcode = 0;
+  int warncode = 0;
   EN_Project *p = NULL;
 
   ERRCODE(EN_createproject(&_defaultModel));
 
   ERRCODE(EN_runproject(_defaultModel, f1, f2, f3, pviewprog));
+  if (errcode < 100) warncode = errcode;
   
   ERRCODE(EN_deleteproject(&_defaultModel));
 
+  if (warncode) errcode = MAX(errcode, warncode);
   return (errcode);
 }
 
@@ -449,6 +415,14 @@ int DLLEXPORT ENsetlinkid(int index, char *newid) {
     return EN_setlinkid(_defaultModel, index, newid);
 }
 
+int DLLEXPORT ENsetlinknodes(int index, int node1, int node2) {
+  return EN_setlinknodes(_defaultModel, index, node1, node2);
+}
+
+int DLLEXPORT ENsetlinktype(int *index, EN_LinkType type) {
+  return EN_setlinktype(_defaultModel, index, type);
+}
+
 int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v) {
   return EN_setlinkvalue(_defaultModel, index, code, v);
 }
@@ -601,10 +575,6 @@ int DLLEXPORT ENgetruleID(int indexRule, char* id){
   return EN_getruleID(_defaultModel, indexRule, id);
 }
 
-int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
-  return EN_setlinktype(_defaultModel, id, toType);
-}
-
 int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType) {
   return EN_addnode(_defaultModel, id, nodeType);
 }
@@ -682,7 +652,8 @@ int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2,
     ERRCODE(EN_report(ph));
   
     EN_close(ph);
-  
+    
+    if (p->Warnflag) errcode = MAX(errcode, p->Warnflag);
     return errcode;
 }
 
@@ -792,7 +763,6 @@ int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const
   writelogo(p);
 
   /* Find network size & allocate memory for data */
-  writecon(FMT02);
   writewin(p->viewprog, FMT100);
   ERRCODE(netsize(p));
   ERRCODE(allocdata(p));
@@ -920,19 +890,14 @@ int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
   if (!errcode) {
     /* Initialize hydraulics */
     errcode = EN_initH(ph, EN_SAVE);
-    writecon(FMT14);
 
     /* Analyze each hydraulic period */
     if (!errcode)
       do {
 
         /* Display progress message */
-
-        /*** Updated 6/24/02 ***/
         sprintf(p->Msg, "%-10s",
                 clocktime(p->report.Atime, p->time_options.Htime));
-
-        writecon(p->Msg);
         sprintf(p->Msg, FMT101, p->report.Atime);
         writewin(p->viewprog, p->Msg);
 
@@ -940,16 +905,10 @@ int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
         tstep = 0;
         ERRCODE(EN_runH(ph, &t));
         ERRCODE(EN_nextH(ph, &tstep));
-        /*** Updated 6/24/02 ***/
-        writecon("\b\b\b\b\b\b\b\b\b\b");
       } while (tstep > 0);
   }
 
   /* Close hydraulics solver */
-
-  /*** Updated 6/24/02 ***/
-  writecon("\b\b\b\b\b\b\b\b                     ");
-
   EN_closeH(ph);
   errcode = MAX(errcode, p->Warnflag);
 
@@ -1190,24 +1149,15 @@ int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
   if (!errcode) {
     /* Initialize WQ */
     errcode = EN_initQ(ph, EN_SAVE);
-    if (p->quality.Qualflag)
-      writecon(FMT15);
-    else {
-      writecon(FMT16);
-      writewin(p->viewprog, FMT103);
-    }
+    if (!p->quality.Qualflag) writewin(p->viewprog, FMT106);
 
     /* Analyze each hydraulic period */
     if (!errcode)
       do {
 
         /* Display progress message */
-
-        /*** Updated 6/24/02 ***/
         sprintf(p->Msg, "%-10s",
                 clocktime(p->report.Atime, p->time_options.Htime));
-
-        writecon(p->Msg);
         if (p->quality.Qualflag) {
           sprintf(p->Msg, FMT102, p->report.Atime);
           writewin(p->viewprog, p->Msg);
@@ -1217,17 +1167,10 @@ int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
         tstep = 0;
         ERRCODE(EN_runQ(ph, &t));
         ERRCODE(EN_nextQ(ph, &tstep));
-
-        /*** Updated 6/24/02 ***/
-        writecon("\b\b\b\b\b\b\b\b\b\b");
-
       } while (tstep > 0);
   }
 
   /* Close WQ solver */
-
-  /*** Updated 6/24/02 ***/
-  writecon("\b\b\b\b\b\b\b\b                     ");
   EN_closeQ(ph);
   return set_error(p->error_handle, errcode);
 }
@@ -1355,6 +1298,7 @@ int DLLEXPORT EN_report(EN_ProjectHandle ph) {
   /* Check if results saved to binary output file */
   if (!p->save_options.SaveQflag)
     return set_error(p->error_handle, 106);
+  writewin(p->viewprog, FMT103);
   errcode = writereport(p);
   if (errcode)
     errmsg(p, errcode);
@@ -3220,6 +3164,37 @@ int DLLEXPORT EN_setlinkid(EN_ProjectHandle ph, int index, char *newid)
     return set_error(p->error_handle, 0);
 }
 
+int DLLEXPORT EN_setlinknodes(EN_ProjectHandle ph, int index, int node1, int node2)
+{
+    int type;
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+    
+    // Check that nodes exist
+    if (node1 < 0 || node1 > net->Nnodes) return set_error(p->error_handle, 203);
+    if (node2 < 0 || node2 > net->Nnodes) return set_error(p->error_handle, 203);
+
+    // Check for illegal valve connection
+    type = net->Link[index].Type;
+    if (type == EN_PRV || type == EN_PSV || type == EN_FCV)
+    {
+        // Can't be connected to a fixed grade node
+        if (node1 > net->Njuncs ||
+            node2 > net->Njuncs) return set_error(p->error_handle, 219);
+            
+        // Can't be connected to another pressure/flow control valve
+        if (!valvecheck(p, type, node1, node2))
+        {
+            return set_error(p->error_handle, 220);
+        }
+    }
+    
+    // Assign new end nodes to link
+    net->Link[index].N1 = node1;
+    net->Link[index].N2 = node2;
+    return set_error(p->error_handle, 0);
+}
+
 int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
                               EN_API_FLOAT_TYPE v)
 
@@ -3835,6 +3810,7 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
         for (demand = node->D; demand != NULL; demand = demand->next) {
             if (demand->Pat == tmpPat) {
                demand->Pat = (int)value;
+               strcpy(demand->Name, "");
             }
         }
     }
@@ -3973,7 +3949,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   pump->Ptype = NOCURVE;
   pump->Hcurve = curveindex;
   // update pump parameters
-  getpumpparams(p);
+  updatepumpparams(p, pIdx);
   // convert units
   if (pump->Ptype == POWER_FUNC) {
     pump->H0 /= Ucf[HEAD];
@@ -4063,20 +4039,16 @@ int openfiles(EN_Project *p, const char *f1, const char *f2, const char *f3)
   /* Check that file names are not identical */
   if (strcomp(f1, f2) || strcomp(f1, f3) ||
       (strcomp(f2, f3) && (strlen(f2) > 0 || strlen(f3) > 0))) {
-    writecon(FMT04);
     return 301;
   }
 
   /* Attempt to open input and report files */
   if ((par->InFile = fopen(f1, "rt")) == NULL) {
-    writecon(FMT05);
-    writecon(f1);
     return 302;
   }
   if (strlen(f2) == 0)
     rep->RptFile = stdout;
   else if ((rep->RptFile = fopen(f2, "wt")) == NULL) {
-    writecon(FMT06);
     return 303;
   }
 
@@ -4207,7 +4179,6 @@ int openoutfile(EN_Project *p)
   if (out->Outflag == SAVE) 
   {
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) {
-      writecon(FMT07);
       errcode = 304;
     }
   }
@@ -4217,7 +4188,6 @@ int openoutfile(EN_Project *p)
     getTmpName(p, out->OutFname);                           
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) 
     {
-      writecon(FMT08);
       errcode = 304;
     }
   }
@@ -4714,6 +4684,7 @@ char *geterrmsg(int errcode, char *msg)
 {
   switch (errcode) { /* Warnings */
 #define DAT(code,enumer,string) case code: strcpy(msg, string); break;
+//#define DAT(code,enumer,string) case code: sprintf(msg, "Error %d: %s", code, string); break;
 #include "errors.dat"
 #undef DAT
     default:
@@ -4732,24 +4703,10 @@ void errmsg(EN_Project *p, int errcode)
 {
   if (errcode == 309) /* Report file write error -  */
   {                   /* Do not write msg to file.  */
-    writecon("\n  ");
-    writecon(geterrmsg(errcode,p->Msg));
+
   } else if (p->report.RptFile != NULL && p->report.Messageflag) {
     writeline(p, geterrmsg(errcode,p->Msg));
   }
-}
-
-void writecon(const char *s)
-/*----------------------------------------------------------------
-**  Input:   text string
-**  Output:  none
-**  Purpose: writes string of characters to console
-**----------------------------------------------------------------
-*/
-{
-  
-  fprintf(stdout, "%s", s);
-  fflush(stdout);
 }
 
 void writewin(void (*vp)(char *), char *s)
@@ -4871,8 +4828,6 @@ int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx
   const int Nnodes = net->Nnodes;
   const int Njuncs = net->Njuncs;
   
-  double *Ucf = pr->Ucf;
-  
   Pdemand d;
   int n = 1;
   /* Check for valid arguments */
@@ -4889,7 +4844,7 @@ int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx
 }
 
 int  DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIdx, int patIndex) {
-	
+
   EN_Project *pr = (EN_Project*)ph;
 
   EN_Network *net = &pr->network;
@@ -4964,43 +4919,50 @@ int DLLEXPORT EN_getaveragepatternvalue(EN_ProjectHandle ph, int index, EN_API_F
   return set_error(p->error_handle, 0);
 }
 
-int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType toType) {
-  int i;
-  EN_LinkType fromType;
-  
-  EN_Project *p = (EN_Project*)ph;
+int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, int *index, EN_LinkType type) {
 
-  EN_Network *net = &p->network;
+    int i = *index, n1, n2;
+    char id[MAXID+1];
+    char id1[MAXID+1];
+    char id2[MAXID+1];
+    int errcode;
+    EN_LinkType oldtype;
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
 
-  if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    if (!p->Openflag) return set_error(p->error_handle, 102);
+    if (type < 0 || type > EN_GPV) return set_error(p->error_handle, 211);
 
-  /* Check if a link with the id exists */
-  if (EN_getlinkindex(p, id, &i) != 0)
-    return set_error(p->error_handle, 215);
+    // Check if a link with the id exists
+    if (i <= 0 || i > net->Nlinks) return set_error(p->error_handle, 204);
 
-  /* Get the current type of the link */
-  EN_getlinktype(p, i, &fromType);
-  if (fromType == toType)
-    return set_error(p->error_handle, 0);
+    // Get the current type of the link
+    EN_getlinktype(p, i, &oldtype);
+    if (oldtype == type) return set_error(p->error_handle, 0);
 
-  /* Change link from Pipe */
-  if (toType <= EN_PIPE) {
-    net->Npipes++;
-  } else if (toType == EN_PUMP) {
-    net->Npumps++;
-    net->Pump[net->Npumps].Link = i;
-  } else {
-    net->Nvalves++;
-    net->Valve[net->Nvalves].Link = i;
-  }
+    // Pipe changing from or to having a check valve
+    if (oldtype <= EN_PIPE && type <= EN_PIPE)
+    {
+        net->Link[i].Type = type;
+        if (type == EN_CVPIPE) net->Link[i].Stat = OPEN;
+        return set_error(p->error_handle, 0);
+    }
 
-  if (fromType <= EN_PIPE) {
-    net->Npipes--;
-  } else if (fromType == EN_PUMP) {
-    net->Npumps--;
-  }
-  return set_error(p->error_handle, 0);
+    // Get ID's of link & its end nodes
+    EN_getlinkid(ph, i, id);
+    EN_getlinknodes(ph, i, &n1, &n2);
+    EN_getnodeid(ph, n1, id1);
+    EN_getnodeid(ph, n2, id2);
+
+    // Delete the original link
+    EN_deletelink(ph, i);
+
+    // Create a new link of new type and old id
+    errcode = EN_addlink(ph, id, type, id1, id2);
+    
+    // Find the index of this new link
+    EN_getlinkindex(ph, id, index);
+    return set_error(p->error_handle, errcode);
 }
 
 int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
@@ -5047,6 +5009,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
     demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
     demand->Base = 0.0;
     demand->Pat = hyd->DefPat; // Use default pattern
+    strcpy(demand->Name, "");
     demand->next = NULL;
     node->D = demand;
 

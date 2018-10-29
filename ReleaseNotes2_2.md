@@ -1,4 +1,3 @@
-﻿
 Release Notes for EPANET 2.2 (Draft)
 ============================
 
@@ -29,7 +28,7 @@ int runEpanet(char *finp, char *frpt)
     if (!err) err = EN_solveH(ph);
     if (!err) err = EN_report(ph);
     EN_close(ph);
-    EN_deleteproject(ph);
+    EN_deleteproject(&ph);
     return err;
 }
 ```

@@ -52,7 +52,6 @@ int     findvalve(EN_Network *n, int);             /* Find valve index from node
 int     findpump(EN_Network *n, int);              /* Find pump index from node index */  // (AH)
 char   *geterrmsg(int errcode, char *msg);         /* Gets text of error message */
 void    errmsg(EN_Project *p, int);                /* Reports program error      */
-void    writecon(const char *);                    /* Writes text to console     */
 void    writewin(void (*vp)(char *), char *);      /* Passes text to calling app */
 
 /* ------- INPUT1.C --------------------*/
@@ -75,6 +74,7 @@ int     addcurve(parser_data_t *par, char *);       /* Adds curve to data base  
 STmplist *findID(char *, STmplist *);               /* Locates ID on linked list  */
 int     unlinked(EN_Project *pr);                   /* Checks for unlinked nodes  */
 int     getpumpparams(EN_Project *pr);              /* Computes pump curve coeffs.*/
+int     updatepumpparams(EN_Project *pr, int);      // Updates pump curve coeffs.
 int     getpatterns(EN_Project *pr);                /* Gets pattern data from list*/
 int     getcurves(EN_Project *pr);                  /* Gets curve data from list  */
 int     findmatch(char *, char *[]);                /* Finds keyword in line      */
