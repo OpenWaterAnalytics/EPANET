@@ -4963,45 +4963,6 @@ int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, int *index, EN_LinkType type) 
     // Find the index of this new link
     EN_getlinkindex(ph, id, index);
     return set_error(p->error_handle, errcode);
-
-    /***********************************************
-  int i;
-  EN_LinkType fromType;
-  
-  EN_Project *p = (EN_Project*)ph;
-
-  EN_Network *net = &p->network;
-
-  if (!p->Openflag)
-    return set_error(p->error_handle, 102);
-
-  // Check if a link with the id exists 
-  if (EN_getlinkindex(p, id, &i) != 0)
-    return set_error(p->error_handle, 215);
-
-  // Get the current type of the link 
-  EN_getlinktype(p, i, &fromType);
-  if (fromType == toType)
-    return set_error(p->error_handle, 0);
-
-  // Change link from Pipe
-  if (toType <= EN_PIPE) {
-    net->Npipes++;
-  } else if (toType == EN_PUMP) {
-    net->Npumps++;
-    net->Pump[net->Npumps].Link = i;
-  } else {
-    net->Nvalves++;
-    net->Valve[net->Nvalves].Link = i;
-  }
-
-  if (fromType <= EN_PIPE) {
-    net->Npipes--;
-  } else if (fromType == EN_PUMP) {
-    net->Npumps--;
-  }
-  return set_error(p->error_handle, 0);
-**********************************************/  
 }
 
 int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
