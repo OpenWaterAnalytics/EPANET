@@ -531,7 +531,7 @@ typedef struct s_aRule      /* Control Rule Structure */
    Premise  *Pchain;        /* Linked list of premises */
    Action   *Tchain;        /* Linked list of actions if true */
    Action   *Fchain;        /* Linked list of actions if false */
-   struct   s_aRule    *next;
+   //struct   s_aRule    *next;
 } aRule;
 
 typedef struct s_ActItem        /* Action list item */
