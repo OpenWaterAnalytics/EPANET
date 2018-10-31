@@ -121,6 +121,8 @@ void    changestatus(EN_Network *net, int, StatType,
 void    initrules(rules_t *rules);                  /* Initializes rule base      */
 void    addrule(parser_data_t *par, char *);        /* Adds rule to rule base     */
 int     allocrules(EN_Project *pr);                 /* Allocates memory for rule  */
+void    adjustrules(EN_Project *pr, int, int);      // Shifts object indices down
+void    adjusttankrules(EN_Project *pr);            // Shifts tank indices up
 int     ruledata(EN_Project *pr);                   /* Processes rule input data  */
 int     checkrules(EN_Project *pr, long);           /* Checks all rules           */
 void    freerules(EN_Project *pr);                  /* Frees rule base memory     */  

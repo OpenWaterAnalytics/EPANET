@@ -833,6 +833,13 @@ extern "C" {
    @return Error code.
    */
   int  DLLEXPORT ENaddcontrol(int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+  
+  /**
+   @brief Delete an existing simple control
+   @param cindex The index of the control. First control is index 1.
+   @return Error code.
+  */
+  int  DLLEXPORT ENdeletecontrol(int cindex);
 
   /**
    @brief Specify parameters to define a simple control
@@ -1371,6 +1378,7 @@ extern "C" {
   int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, char *fromNode, char *toNode);
   int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int nodeIndex);
   int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int linkIndex);
+  int DLLEXPORT EN_deletecontrol(EN_ProjectHandle ph, int controlIndex);
   
 #if defined(__cplusplus)
 }
