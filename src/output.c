@@ -87,9 +87,9 @@ int savenetdata(EN_Project *pr)
     fwrite(ibuf, sizeof(INT4), 15, outFile);
 
     /* Write string variables to outFile */
-    fwrite(pr->Title[0], sizeof(char), MAXMSG + 1, outFile);
-    fwrite(pr->Title[1], sizeof(char), MAXMSG + 1, outFile);
-    fwrite(pr->Title[2], sizeof(char), MAXMSG + 1, outFile);
+    fwrite(pr->Title[0], sizeof(char), TITLELEN + 1, outFile);
+    fwrite(pr->Title[1], sizeof(char), TITLELEN + 1, outFile);
+    fwrite(pr->Title[2], sizeof(char), TITLELEN + 1, outFile);
     fwrite(par->InpFname, sizeof(char), MAXFNAME + 1, outFile);
     fwrite(rep->Rpt2Fname, sizeof(char), MAXFNAME + 1, outFile);
     fwrite(qu->ChemName, sizeof(char), MAXID + 1, outFile);

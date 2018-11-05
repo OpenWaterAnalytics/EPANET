@@ -89,9 +89,9 @@ This module calls the following functions that reside in other modules:
      writelogo()
      writereport()
    HASH.C
-     ENHashTablecreate()
-     ENHashTableFind()
-     ENHashTableFree()
+     hashtable_create()
+     hashtable_find()
+     hashtable_free()
 
 The macro ERRCODE(x) is defined in TYPES.H. It says if the current
 value of the error code variable (errcode) is not fatal (< 100) then
@@ -138,48 +138,12 @@ void *_defaultModel;
 // Local functions
 void errorLookup(int errcode, char *errmsg, int len);
 
+
 /****************************************************************
 
  LEGACY (v <= 2.1) API: uses global project variable
 
 *****************************************************************/
-
-int runconcurrent(EN_ProjectHandle ph, const char *inputfile, const char *reportfile,
-	const char *outputfile, void(*pviewprog)(char *))
-{
-	long t, tstep_h, tstep_q;
-	int errcode = 0;
-
-	EN_Project *p = NULL;
-
-
-	ERRCODE(EN_open(ph, inputfile, reportfile, outputfile));
-	p = (EN_Project*)(ph);
-	p->viewprog = pviewprog;
-
-	ERRCODE(EN_openH(ph));
-	ERRCODE(EN_initH(ph, EN_SAVE));
-
-	ERRCODE(EN_openQ(ph));
-	ERRCODE(EN_initQ(ph, EN_SAVE));
-
-	do {
-		ERRCODE(EN_runH(ph, &t));
-		ERRCODE(EN_runQ(ph, &t));
-
-		ERRCODE(EN_nextH(ph, &tstep_h));
-		ERRCODE(EN_nextQ(ph, &tstep_q));
-
-	} while (tstep_h > 0);
-
-	ERRCODE(EN_closeH(ph));
-	ERRCODE(EN_closeQ(ph));
-
-	ERRCODE(EN_report(ph));
-	ERRCODE(EN_close(ph));
-
-	return errcode;
-}
 
 /*------------------------------------------------------------------------
  **   Input:   f1 = pointer to name of input file
@@ -201,14 +165,17 @@ int runconcurrent(EN_ProjectHandle ph, const char *inputfile, const char *report
 int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
 {
   int errcode = 0;
+  int warncode = 0;
   EN_Project *p = NULL;
 
   ERRCODE(EN_createproject(&_defaultModel));
 
   ERRCODE(EN_runproject(_defaultModel, f1, f2, f3, pviewprog));
+  if (errcode < 100) warncode = errcode;
   
   ERRCODE(EN_deleteproject(&_defaultModel));
 
+  if (warncode) errcode = MAX(errcode, warncode);
   return (errcode);
 }
 
@@ -437,8 +404,29 @@ int DLLEXPORT ENaddcontrol(int *cindex, int ctype, int lindex,
                        level);
 }
 
+int  DLLEXPORT ENdeletecontrol(int cindex) {
+    return EN_deletecontrol(_defaultModel, cindex);
+}
+
+
+int DLLEXPORT ENsetnodeid(int index, char *newid) {
+    return EN_setnodeid(_defaultModel, index, newid);
+}
+
 int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v) {
   return EN_setnodevalue(_defaultModel, index, code, v);
+}
+
+int DLLEXPORT ENsetlinkid(int index, char *newid) {
+    return EN_setlinkid(_defaultModel, index, newid);
+}
+
+int DLLEXPORT ENsetlinknodes(int index, int node1, int node2) {
+  return EN_setlinknodes(_defaultModel, index, node1, node2);
+}
+
+int DLLEXPORT ENsetlinktype(int *index, EN_LinkType type) {
+  return EN_setlinktype(_defaultModel, index, type);
 }
 
 int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v) {
@@ -593,10 +581,6 @@ int DLLEXPORT ENgetruleID(int indexRule, char* id){
   return EN_getruleID(_defaultModel, indexRule, id);
 }
 
-int DLLEXPORT ENsetlinktype(char *id, EN_LinkType toType) {
-  return EN_setlinktype(_defaultModel, id, toType);
-}
-
 int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType) {
   return EN_addnode(_defaultModel, id, nodeType);
 }
@@ -674,7 +658,8 @@ int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2,
     ERRCODE(EN_report(ph));
   
     EN_close(ph);
-  
+    
+    if (p->Warnflag) errcode = MAX(errcode, p->Warnflag);
     return errcode;
 }
 
@@ -784,7 +769,6 @@ int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const
   writelogo(p);
 
   /* Find network size & allocate memory for data */
-  writecon(FMT02);
   writewin(p->viewprog, FMT100);
   ERRCODE(netsize(p));
   ERRCODE(allocdata(p));
@@ -842,14 +826,12 @@ int DLLEXPORT EN_close(EN_ProjectHandle ph)
   out_file_t *out;
 
   EN_Project *p = (EN_Project*)ph;
-  
   if (p->Openflag) {
     writetime(p, FMT105);
   }
   freedata(p);
-
+  
   out = &p->out_files;
-
   if (out->TmpOutFile != out->OutFile) {
     if (out->TmpOutFile != NULL) {
       fclose(out->TmpOutFile);
@@ -879,7 +861,7 @@ int DLLEXPORT EN_close(EN_ProjectHandle ph)
     remove(out->HydFname);
   if (out->Outflag == SCRATCH)
     remove(out->OutFname);
-
+    
   p->Openflag = FALSE;
   p->hydraulics.OpenHflag = FALSE;
   p->save_options.SaveHflag = FALSE;
@@ -914,19 +896,14 @@ int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
   if (!errcode) {
     /* Initialize hydraulics */
     errcode = EN_initH(ph, EN_SAVE);
-    writecon(FMT14);
 
     /* Analyze each hydraulic period */
     if (!errcode)
       do {
 
         /* Display progress message */
-
-        /*** Updated 6/24/02 ***/
         sprintf(p->Msg, "%-10s",
                 clocktime(p->report.Atime, p->time_options.Htime));
-
-        writecon(p->Msg);
         sprintf(p->Msg, FMT101, p->report.Atime);
         writewin(p->viewprog, p->Msg);
 
@@ -934,16 +911,10 @@ int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
         tstep = 0;
         ERRCODE(EN_runH(ph, &t));
         ERRCODE(EN_nextH(ph, &tstep));
-        /*** Updated 6/24/02 ***/
-        writecon("\b\b\b\b\b\b\b\b\b\b");
       } while (tstep > 0);
   }
 
   /* Close hydraulics solver */
-
-  /*** Updated 6/24/02 ***/
-  writecon("\b\b\b\b\b\b\b\b                     ");
-
   EN_closeH(ph);
   errcode = MAX(errcode, p->Warnflag);
 
@@ -1184,24 +1155,15 @@ int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
   if (!errcode) {
     /* Initialize WQ */
     errcode = EN_initQ(ph, EN_SAVE);
-    if (p->quality.Qualflag)
-      writecon(FMT15);
-    else {
-      writecon(FMT16);
-      writewin(p->viewprog, FMT103);
-    }
+    if (!p->quality.Qualflag) writewin(p->viewprog, FMT106);
 
     /* Analyze each hydraulic period */
     if (!errcode)
       do {
 
         /* Display progress message */
-
-        /*** Updated 6/24/02 ***/
         sprintf(p->Msg, "%-10s",
                 clocktime(p->report.Atime, p->time_options.Htime));
-
-        writecon(p->Msg);
         if (p->quality.Qualflag) {
           sprintf(p->Msg, FMT102, p->report.Atime);
           writewin(p->viewprog, p->Msg);
@@ -1211,17 +1173,10 @@ int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
         tstep = 0;
         ERRCODE(EN_runQ(ph, &t));
         ERRCODE(EN_nextQ(ph, &tstep));
-
-        /*** Updated 6/24/02 ***/
-        writecon("\b\b\b\b\b\b\b\b\b\b");
-
       } while (tstep > 0);
   }
 
   /* Close WQ solver */
-
-  /*** Updated 6/24/02 ***/
-  writecon("\b\b\b\b\b\b\b\b                     ");
   EN_closeQ(ph);
   return set_error(p->error_handle, errcode);
 }
@@ -1349,6 +1304,7 @@ int DLLEXPORT EN_report(EN_ProjectHandle ph) {
   /* Check if results saved to binary output file */
   if (!p->save_options.SaveQflag)
     return set_error(p->error_handle, 106);
+  writewin(p->viewprog, FMT103);
   errcode = writereport(p);
   if (errcode)
     errmsg(p, errcode);
@@ -1377,9 +1333,10 @@ int DLLEXPORT EN_setreport(EN_ProjectHandle ph, char *s) {
 
   if (!p->Openflag)
     return set_error(p->error_handle, 102);
-  if (strlen(s) > MAXLINE)
+  if (strlen(s) >= MAXLINE)
     return set_error(p->error_handle, 250);
   strcpy(s1, s);
+  strcat(s1, "\n");
   if (setreport(p, s1) > 0)
     return set_error(p->error_handle, 250);
   else
@@ -2891,6 +2848,34 @@ int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lind
   return set_error(p->error_handle, 0);
 }
 
+int DLLEXPORT EN_setnodeid(EN_ProjectHandle ph, int index, char *newid)
+{
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+    size_t n;
+    
+    // Check for valid arguments
+    if (index <= 0 || index > net->Nnodes)
+    {
+        return set_error(p->error_handle, 203);
+    }
+    n = strlen(newid);
+    if (n < 1 || n > MAXID) return set_error(p->error_handle, 209);
+    if (strcspn(newid, " ;") < n) return set_error(p->error_handle, 209);
+
+    // Check if another node with same name exists
+    if (hashtable_find(net->NodeHashTable, newid) > 0)
+    {
+        return set_error(p->error_handle, 215);
+    }
+
+    // Replace the existing node ID with the new value
+    hashtable_delete(net->NodeHashTable, net->Node[index].ID);
+    strncpy(net->Node[index].ID, newid, MAXID);
+    hashtable_insert(net->NodeHashTable, net->Node[index].ID, index);
+    return set_error(p->error_handle, 0);
+}
+
 int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v)
 /*----------------------------------------------------------------
  **  Input:   index = node index
@@ -3155,6 +3140,68 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
     return set_error(p->error_handle, 251);
   }
   return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT EN_setlinkid(EN_ProjectHandle ph, int index, char *newid)
+{
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+    size_t n;
+
+    // Check for valid arguments
+    if (index <= 0 || index > net->Nlinks)
+    {
+        return set_error(p->error_handle, 204);
+    }
+    n = strlen(newid);
+    if (n < 1 || n > MAXID) return set_error(p->error_handle, 211);
+    if (strcspn(newid, " ;") < n) return set_error(p->error_handle, 211);
+
+    // Check if another link with same name exists
+    if (hashtable_find(net->LinkHashTable, newid) > 0)
+    {
+        return set_error(p->error_handle, 215);
+    }
+
+    // Replace the existing link ID with the new value
+    hashtable_delete(net->LinkHashTable, net->Link[index].ID);
+    strncpy(net->Link[index].ID, newid, MAXID);
+    hashtable_insert(net->LinkHashTable, net->Link[index].ID, index);
+    return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT EN_setlinknodes(EN_ProjectHandle ph, int index, int node1, int node2)
+{
+    int type;
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+
+    // Check that end and start nodes are not the same
+    if (node1 == node2) return set_error(p->error_handle, 222);
+    
+    // Check that nodes exist
+    if (node1 < 0 || node1 > net->Nnodes) return set_error(p->error_handle, 203);
+    if (node2 < 0 || node2 > net->Nnodes) return set_error(p->error_handle, 203);
+
+    // Check for illegal valve connection
+    type = net->Link[index].Type;
+    if (type == EN_PRV || type == EN_PSV || type == EN_FCV)
+    {
+        // Can't be connected to a fixed grade node
+        if (node1 > net->Njuncs ||
+            node2 > net->Njuncs) return set_error(p->error_handle, 219);
+            
+        // Can't be connected to another pressure/flow control valve
+        if (!valvecheck(p, type, node1, node2))
+        {
+            return set_error(p->error_handle, 220);
+        }
+    }
+    
+    // Assign new end nodes to link
+    net->Link[index].N1 = node1;
+    net->Link[index].N2 = node2;
+    return set_error(p->error_handle, 0);
 }
 
 int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
@@ -3772,6 +3819,7 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
         for (demand = node->D; demand != NULL; demand = demand->next) {
             if (demand->Pat == tmpPat) {
                demand->Pat = (int)value;
+               strcpy(demand->Name, "");
             }
         }
     }
@@ -3910,7 +3958,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   pump->Ptype = NOCURVE;
   pump->Hcurve = curveindex;
   // update pump parameters
-  getpumpparams(p);
+  updatepumpparams(p, pIdx);
   // convert units
   if (pump->Ptype == POWER_FUNC) {
     pump->H0 /= Ucf[HEAD];
@@ -4000,20 +4048,16 @@ int openfiles(EN_Project *p, const char *f1, const char *f2, const char *f3)
   /* Check that file names are not identical */
   if (strcomp(f1, f2) || strcomp(f1, f3) ||
       (strcomp(f2, f3) && (strlen(f2) > 0 || strlen(f3) > 0))) {
-    writecon(FMT04);
     return 301;
   }
 
   /* Attempt to open input and report files */
   if ((par->InFile = fopen(f1, "rt")) == NULL) {
-    writecon(FMT05);
-    writecon(f1);
     return 302;
   }
   if (strlen(f2) == 0)
     rep->RptFile = stdout;
   else if ((rep->RptFile = fopen(f2, "wt")) == NULL) {
-    writecon(FMT06);
     return 303;
   }
 
@@ -4144,7 +4188,6 @@ int openoutfile(EN_Project *p)
   if (out->Outflag == SAVE) 
   {
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) {
-      writecon(FMT07);
       errcode = 304;
     }
   }
@@ -4154,7 +4197,6 @@ int openoutfile(EN_Project *p)
     getTmpName(p, out->OutFname);                           
     if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) 
     {
-      writecon(FMT08);
       errcode = 304;
     }
   }
@@ -4260,8 +4302,8 @@ int allocdata(EN_Project *p)
   parser_data_t *par;
   
   /* Allocate node & link ID hash tables */
-  p->network.NodeHashTable = ENHashTableCreate();
-  p->network.LinkHashTable = ENHashTableCreate();
+  p->network.NodeHashTable = hashtable_create();
+  p->network.LinkHashTable = hashtable_create();
   ERRCODE(MEMCHECK(p->network.NodeHashTable));
   ERRCODE(MEMCHECK(p->network.LinkHashTable));
 
@@ -4433,14 +4475,14 @@ void freedata(EN_Project *p)
     }
     free(net->Node);
   }
-
+  
   /* Free memory for other network objects */
   free(net->Link);
   free(net->Tank);
   free(net->Pump);
   free(net->Valve);
   free(net->Control);
-
+  
   /* Free memory for time patterns */
   if (net->Pattern != NULL) {
     for (j = 0; j <= par->MaxPats; j++)
@@ -4456,20 +4498,19 @@ void freedata(EN_Project *p)
     }
     free(net->Curve);
   }
-
+  
   /* Free memory for node coordinates */
   if (p->parser.Coordflag == TRUE) {
     free(net->Coord);
   }
-
+  
   /* Free memory for rule base (see RULES.C) */
   freerules(p);
-
+  
   /* Free hash table memory */
-  if (net->NodeHashTable != NULL)
-    ENHashTableFree(net->NodeHashTable);
-  if (net->LinkHashTable != NULL)
-    ENHashTableFree(net->LinkHashTable);
+  if (net->NodeHashTable != NULL) hashtable_free(net->NodeHashTable);    
+    
+  if (net->LinkHashTable != NULL) hashtable_free(net->LinkHashTable);
 }
 
 /*
@@ -4572,7 +4613,7 @@ int findnode(EN_Network *n, char *id)
 **----------------------------------------------------------------
 */
 {
-  return (ENHashTableFind(n->NodeHashTable, id));
+  return (hashtable_find(n->NodeHashTable, id));
 }
 
 int findlink(EN_Network *n, char *id)
@@ -4584,7 +4625,7 @@ int findlink(EN_Network *n, char *id)
 **----------------------------------------------------------------
 */
 {
-  return (ENHashTableFind(n->LinkHashTable, id));
+  return (hashtable_find(n->LinkHashTable, id));
 }
 
 int findtank(EN_Network *n, int index)
@@ -4652,6 +4693,7 @@ char *geterrmsg(int errcode, char *msg)
 {
   switch (errcode) { /* Warnings */
 #define DAT(code,enumer,string) case code: strcpy(msg, string); break;
+//#define DAT(code,enumer,string) case code: sprintf(msg, "Error %d: %s", code, string); break;
 #include "errors.dat"
 #undef DAT
     default:
@@ -4670,24 +4712,10 @@ void errmsg(EN_Project *p, int errcode)
 {
   if (errcode == 309) /* Report file write error -  */
   {                   /* Do not write msg to file.  */
-    writecon("\n  ");
-    writecon(geterrmsg(errcode,p->Msg));
+
   } else if (p->report.RptFile != NULL && p->report.Messageflag) {
     writeline(p, geterrmsg(errcode,p->Msg));
   }
-}
-
-void writecon(const char *s)
-/*----------------------------------------------------------------
-**  Input:   text string
-**  Output:  none
-**  Purpose: writes string of characters to console
-**----------------------------------------------------------------
-*/
-{
-  
-  fprintf(stdout, "%s", s);
-  fflush(stdout);
 }
 
 void writewin(void (*vp)(char *), char *s)
@@ -4809,8 +4837,6 @@ int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx
   const int Nnodes = net->Nnodes;
   const int Njuncs = net->Njuncs;
   
-  double *Ucf = pr->Ucf;
-  
   Pdemand d;
   int n = 1;
   /* Check for valid arguments */
@@ -4827,7 +4853,7 @@ int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx
 }
 
 int  DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIdx, int patIndex) {
-	
+
   EN_Project *pr = (EN_Project*)ph;
 
   EN_Network *net = &pr->network;
@@ -4902,43 +4928,50 @@ int DLLEXPORT EN_getaveragepatternvalue(EN_ProjectHandle ph, int index, EN_API_F
   return set_error(p->error_handle, 0);
 }
 
-int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType toType) {
-  int i;
-  EN_LinkType fromType;
-  
-  EN_Project *p = (EN_Project*)ph;
+int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, int *index, EN_LinkType type) {
 
-  EN_Network *net = &p->network;
+    int i = *index, n1, n2;
+    char id[MAXID+1];
+    char id1[MAXID+1];
+    char id2[MAXID+1];
+    int errcode;
+    EN_LinkType oldtype;
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
 
-  if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    if (!p->Openflag) return set_error(p->error_handle, 102);
+    if (type < 0 || type > EN_GPV) return set_error(p->error_handle, 211);
 
-  /* Check if a link with the id exists */
-  if (EN_getlinkindex(p, id, &i) != 0)
-    return set_error(p->error_handle, 215);
+    // Check if a link with the id exists
+    if (i <= 0 || i > net->Nlinks) return set_error(p->error_handle, 204);
 
-  /* Get the current type of the link */
-  EN_getlinktype(p, i, &fromType);
-  if (fromType == toType)
-    return set_error(p->error_handle, 0);
+    // Get the current type of the link
+    EN_getlinktype(p, i, &oldtype);
+    if (oldtype == type) return set_error(p->error_handle, 0);
 
-  /* Change link from Pipe */
-  if (toType <= EN_PIPE) {
-    net->Npipes++;
-  } else if (toType == EN_PUMP) {
-    net->Npumps++;
-    net->Pump[net->Npumps].Link = i;
-  } else {
-    net->Nvalves++;
-    net->Valve[net->Nvalves].Link = i;
-  }
+    // Pipe changing from or to having a check valve
+    if (oldtype <= EN_PIPE && type <= EN_PIPE)
+    {
+        net->Link[i].Type = type;
+        if (type == EN_CVPIPE) net->Link[i].Stat = OPEN;
+        return set_error(p->error_handle, 0);
+    }
 
-  if (fromType <= EN_PIPE) {
-    net->Npipes--;
-  } else if (fromType == EN_PUMP) {
-    net->Npumps--;
-  }
-  return set_error(p->error_handle, 0);
+    // Get ID's of link & its end nodes
+    EN_getlinkid(ph, i, id);
+    EN_getlinknodes(ph, i, &n1, &n2);
+    EN_getnodeid(ph, n1, id1);
+    EN_getnodeid(ph, n2, id2);
+
+    // Delete the original link
+    EN_deletelink(ph, i);
+
+    // Create a new link of new type and old id
+    errcode = EN_addlink(ph, id, type, id1, id2);
+    
+    // Find the index of this new link
+    EN_getlinkindex(ph, id, index);
+    return set_error(p->error_handle, errcode);
 }
 
 int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
@@ -4947,7 +4980,6 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   struct Sdemand *demand;
 
   EN_Project *p = (EN_Project*)ph;
-
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
   quality_t *qu = &p->quality;
@@ -4955,9 +4987,6 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   Snode *node;
   Scoord *coord;
   Scontrol *control;
-//  rules_t *rule;
-  Premise *pchain, *pnext;
-  
   
   /* Check if a node with same id already exists */
   if (!p->Openflag)
@@ -4976,6 +5005,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   qu->NodeQual = (double *)realloc(qu->NodeQual, (net->Nnodes + 2) * sizeof(double));
   hyd->NodeHead = (double *)realloc(hyd->NodeHead, (net->Nnodes + 2) * sizeof(double));
   
+  // Actions taken when a new Junction is added
   if (nodeType == EN_JUNCTION) {
     net->Njuncs++;
     nIdx = net->Njuncs;
@@ -4985,12 +5015,13 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
     demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
     demand->Base = 0.0;
     demand->Pat = hyd->DefPat; // Use default pattern
+    strcpy(demand->Name, "");
     demand->next = NULL;
     node->D = demand;
 
     // shift rest of Node array
     for (index = net->Nnodes; index >= net->Njuncs; index--) {
-      ENHashTableUpdate(net->NodeHashTable, net->Node[index].ID, index + 1);
+      hashtable_update(net->NodeHashTable, net->Node[index].ID, index + 1);
       net->Node[index + 1] = net->Node[index];
       net->Coord[index + 1] = net->Coord[index];
     }
@@ -5018,43 +5049,10 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
       }
     }
     
-    // shift indices of Rules for tanks/reservoirs
-    for (index = 1; index <= net->Nrules; ++index) {
-      pchain = (&p->rules)->Rule[i].Pchain;
-      while (pchain != NULL) {
-        pnext = pchain->next;
-        // object types are: (duplicated here from rules.c --> TODO: move these to external definition?
-//        enum Objects {
-//          r_JUNC,
-//          r_RESERV,
-//          r_TANK,
-//          r_PIPE,
-//          r_PUMP,
-//          r_VALVE,
-//          r_NODE,
-//          r_LINK,
-//          r_SYSTEM
-//        };
-        
-        // if object is a node
-        switch (pchain->object) {
-          case 0: // junc
-          case 1: // reservoir
-          case 2: // tank
-          case 6: // node
-            // if the junction needs to be re-indexed:
-            if (pchain->index > net->Njuncs) {
-              pchain->index += 1;
-            }
-            break;
-          default:
-            break;
-        }
-        // next premise in the chain
-        pchain = pnext;
-      }
-    }
-    
+    // adjust indices of tanks/reservoirs in Rule premises (see RULES.C)
+    adjusttankrules(p);
+
+  // Actions taken when a new Tank/Reservoir is added
   } else {
     nIdx = net->Nnodes+1;
     node = &net->Node[nIdx];
@@ -5106,7 +5104,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   coord->Y = 0;
 
   /* Insert new node into hash table */
-  ENHashTableInsert(net->NodeHashTable, node->ID, nIdx); /* see HASH.C */
+  hashtable_insert(net->NodeHashTable, node->ID, nIdx); /* see HASH.C */
   return set_error(p->error_handle, 0);
 }
 
@@ -5129,8 +5127,8 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
     return set_error(p->error_handle, 215);
 
   /* Lookup the from and to nodes */
-  N1 = ENHashTableFind(net->NodeHashTable, fromNode);
-  N2 = ENHashTableFind(net->NodeHashTable, toNode);
+  N1 = hashtable_find(net->NodeHashTable, fromNode);
+  N2 = hashtable_find(net->NodeHashTable, toNode);
 
   if (N1 == 0 || N2 == 0) {
     return set_error(p->error_handle, 203);
@@ -5212,142 +5210,236 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
   link->Rpt = 0;
   strcpy(link->Comment, "");
   
-  ENHashTableInsert(net->LinkHashTable, link->ID, n);
+  hashtable_insert(net->LinkHashTable, link->ID, n);
   return set_error(p->error_handle, 0);
 }
 
-int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index) {
-  int i;
-  EN_LinkType linkType;
-
-  EN_Project *p = (EN_Project*)ph;
-
-  EN_Network *net = &p->network;
-  Slink *link;
+int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index)
+/*----------------------------------------------------------------
+**  Input:   index  = index of the control
+**  Output:  none
+**  Returns: error code
+**  Purpose: deletes a link from a project.
+**----------------------------------------------------------------
+*/
+{
+    int i;
+    int pumpindex;
+    int valveindex;
   
-  if (!p->Openflag)
-    return set_error(p->error_handle, 102);
-  if (index <= 0 || index > net->Nlinks)
-    return set_error(p->error_handle, 203);
-
-  EN_getlinktype(p, index, &linkType);
-
-  link = &net->Link[index];
+    EN_LinkType linkType;
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+    Slink *link;
   
-  // remove from hash table
-  ENHashTableDelete(net->LinkHashTable, link->ID);
-  ENHashTableFind(net->LinkHashTable, link->ID);
+    // Check that link exists
+    if (!p->Openflag) return set_error(p->error_handle, 102);
+    if (index <= 0 || index > net->Nlinks) return set_error(p->error_handle, 203);
 
-  // shift link and pump arrays to re-sort link indices
-  net->Nlinks--;
-  for (i = index; i <= net->Nlinks - 1; i++) {
-    net->Link[i] = net->Link[i + 1];
-    // update hashtable
-    ENHashTableUpdate(net->LinkHashTable, net->Link[i].ID, i);
-  }
-  for (i = 1; i <= net->Npumps; i++) {
-    if (net->Pump[i].Link > index) {
-      net->Pump[i].Link -= 1;
-    }
-  }
-  for (i = 1; i <= net->Nvalves; i++) {
-    if (net->Valve[i].Link > index) {
-      net->Valve[i].Link -= 1;
-    }
-  }
+    // Get references to the link and its type
+    link = &net->Link[index];
+    EN_getlinktype(p, index, &linkType);
   
+    // Remove link from hash table
+    hashtable_delete(net->LinkHashTable, link->ID);
 
-  // update pumps
-  if (linkType == EN_PUMP) {
-    int pumpindex = findpump(net,index);
-    for (i = pumpindex; i <= net->Npumps - 1; i++) {
-      net->Pump[i] = net->Pump[i + 1];
+    // Shift position of higher entries in Link array down one
+    for (i = index; i <= net->Nlinks - 1; i++)
+    {
+        net->Link[i] = net->Link[i + 1];
+        // ... update hashtable
+        hashtable_update(net->LinkHashTable, net->Link[i].ID, i);
     }
-    net->Npumps--;
-  }
+
+    // Adjust references to higher numbered links for pumps & valves
+    for (i = 1; i <= net->Npumps; i++)
+    {
+        if (net->Pump[i].Link > index) net->Pump[i].Link -= 1;
+    }
+    for (i = 1; i <= net->Nvalves; i++)
+    {
+        if (net->Valve[i].Link > index) net->Valve[i].Link -= 1;
+    }
+
+    // Delete any pump associated with the deleted link
+    if (linkType == EN_PUMP)
+    {
+        pumpindex = findpump(net,index);
+        for (i = pumpindex; i <= net->Npumps - 1; i++)
+        {
+            net->Pump[i] = net->Pump[i + 1];
+        }
+        net->Npumps--;
+    }
   
-  // update valves
-  if (linkType > EN_PUMP) {
-    int valveindex = findvalve(net,index);
-    for (i = valveindex; i <= net->Nvalves - 1; i++) {
-      net->Valve[i] = net->Valve[i + 1];
+    // Delete any valve (linkType > EN_PUMP) associated with the deleted link
+    if (linkType > EN_PUMP)
+    {
+        valveindex = findvalve(net,index);
+        for (i = valveindex; i <= net->Nvalves - 1; i++)
+        {
+            net->Valve[i] = net->Valve[i + 1];
+        }
+        net->Nvalves--;
     }
-    net->Nvalves--;
-  }
 
-  return set_error(p->error_handle, 0);
+    // Delete any control containing the link
+    for (i = net->Ncontrols; i >= 1; i--)
+    {
+        if (net->Control[i].Link == index) EN_deletecontrol(ph, i);
+    }
+
+    // Adjust higher numbered link indices in remaining controls
+    for (i = 1; i <= net->Ncontrols; i++)
+    {
+        if (net->Control[i].Link > index) net->Control[i].Link--;
+    }
+
+    // Make necessary adjustments to rule-based controls (r_LINK = 7)
+    adjustrules(p, 7, index);  // see RULES.C
+
+    // Reduce link count by one
+    net->Nlinks--;
+    return set_error(p->error_handle, 0);
 }
 
-int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int index) {
+int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int index)
+/*----------------------------------------------------------------
+**  Input:   index  = index of the control
+**  Output:  none
+**  Returns: error code
+**  Purpose: deletes a node from a project.
+**----------------------------------------------------------------
+*/
+{
+    int i, nodeType, tankindex;
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+    Snode *node;
+    Pdemand demand, nextdemand;
+    Psource source;
 
-  EN_Project *p = (EN_Project*)ph;
-
-  EN_Network *net = &p->network;
-  
-  int i, nodeType;
-
-  if (!p->Openflag)
-    return set_error(p->error_handle, 102);
-  if (index <= 0 || index > net->Nnodes)
-    return set_error(p->error_handle, 203);
-
-  EN_getnodetype(p, index, &nodeType);
-
-  // TODO: check for existing controls/rules that reference this node? 
-  
-  // remove from hash table
-  ENHashTableDelete(net->NodeHashTable, net->Node[index].ID);
-
-  // shift node and coord array to remove node
-  for (i = index; i <= net->Nnodes - 1; i++) {
-    net->Node[i] = net->Node[i + 1];
-    net->Coord[i] = net->Coord[i + 1];
-    // update hashtable
-    ENHashTableUpdate(net->NodeHashTable, net->Node[i].ID, i);
-  }
-
-  // update tank array
-  if (nodeType != EN_JUNCTION) {
-    int tankindex = findtank(net, index);
-    for (i = tankindex; i <= net->Ntanks - 1; i++) {
-      net->Tank[i] = net->Tank[i + 1];
+    // Check that node exists
+    if (!p->Openflag) return set_error(p->error_handle, 102);
+    if (index <= 0 || index > net->Nnodes)
+    {
+        return set_error(p->error_handle, 203);
     }
-  }
 
-  // update tank node indices
-  for (i = 1; i <= net->Ntanks; i++) {
-    if (net->Tank[i].Node > index) {
-      net->Tank[i].Node -= 1;
+    // Get a reference to the node & its type
+    node = &net->Node[index];
+    EN_getnodetype(ph, index, &nodeType);
+
+    // Remove node from hash table
+    hashtable_delete(net->NodeHashTable, node->ID);
+
+    // Free memory allocated to node's demands & WQ source
+    demand = node->D;
+    while (demand != NULL)
+    {
+        nextdemand = demand->next;
+        free(demand);
+        demand = nextdemand;
     }
-  }
-
-  // gather a list of link ids to remove in reverse order,
-  // so that re-shuffling doesn't destroy the indexing
-  for (i = net->Nlinks; i >= 1; i--) {
-    if (net->Link[i].N1 == index || net->Link[i].N2 == index) {
-      EN_deletelink(p,i);
+    source = node->S;
+    if (source != NULL) free(source);
+    
+    // Shift position of higher entries in Node 7 Cord arrays down one
+    for (i = index; i <= net->Nnodes - 1; i++)
+    {
+        net->Node[i] = net->Node[i + 1];
+        net->Coord[i] = net->Coord[i + 1];
+        // ... update hashtable
+        hashtable_update(net->NodeHashTable, net->Node[i].ID, i);
     }
-  }
 
-  for (i = 1; i <= net->Nlinks; i++) {
-    if (net->Link[i].N1 > index) {
-      net->Link[i].N1 -= 1;
+    // Remove references to demands & source in last (inactive) Node array entry
+    net->Node[net->Nnodes].D = NULL;
+    net->Node[net->Nnodes].S = NULL;
+
+    // If deleted node is a tank, remove it from the Tank array
+    if (nodeType != EN_JUNCTION)
+    {
+        tankindex = findtank(net, index);
+        for (i = tankindex; i <= net->Ntanks - 1; i++)
+        {
+            net->Tank[i] = net->Tank[i + 1];
+        }
     }
-    if (net->Link[i].N2 > index) {
-      net->Link[i].N2 -= 1;
+
+    // Shift higher node indices in Tank array down one
+    for (i = 1; i <= net->Ntanks; i++)
+    {
+        if (net->Tank[i].Node > index) net->Tank[i].Node -= 1;
     }
-  }
 
-  // update counters
-  if (nodeType == EN_JUNCTION) {
-    net->Njuncs--;
-  } else {
-    net->Ntanks--;
-  }
+    // Delete any links connected to the deleted node
+    // (Process links in reverse order to maintain their indexing)
+    for (i = net->Nlinks; i >= 1; i--)
+    {
+        if (net->Link[i].N1 == index || 
+            net->Link[i].N2 == index)  EN_deletelink(ph, i);
+    }
 
-  net->Nnodes--;
+    // Adjust indices of all link end nodes
+    for (i = 1; i <= net->Nlinks; i++)
+    {
+        if (net->Link[i].N1 > index) net->Link[i].N1 -= 1;
+        if (net->Link[i].N2 > index) net->Link[i].N2 -= 1;
+    }
 
-  return set_error(p->error_handle, 0);
+    // Delete any control containing the node
+    for (i = net->Ncontrols; i >= 1; i--)
+    {
+        if (net->Control[i].Node == index) EN_deletecontrol(ph, i);
+    }
+
+    // Adjust higher numbered link indices in remaining controls
+    for (i = 1; i <= net->Ncontrols; i++)
+    {
+        if (net->Control[i].Node > index) net->Control[i].Node--;
+    }
+
+    // Make necessary adjustments to rule-based controls (r_NODE = 6)
+    adjustrules(p, 6, index);
+
+    // Set water quality analysis to NONE if deleted node is trace node
+    if (p->quality.Qualflag == TRACE && p->quality.TraceNode == index)
+    {
+        p->quality.TraceNode = 0;
+        p->quality.Qualflag = NONE;
+    }
+
+    // Reduce counts of node types
+    if (nodeType == EN_JUNCTION) net->Njuncs--;
+    else net->Ntanks--;
+    net->Nnodes--;
+    return set_error(p->error_handle, 0);
+}
+
+int DLLEXPORT EN_deletecontrol(EN_ProjectHandle ph, int index)
+/*----------------------------------------------------------------
+**  Input:   index  = index of the control
+**  Output:  none
+**  Returns: error code
+**  Purpose: deletes a simple control from a project.
+**----------------------------------------------------------------
+*/
+{
+    int i;
+    EN_Project *p = (EN_Project*)ph;
+    EN_Network *net = &p->network;
+
+    if (index <= 0 || index > net->Ncontrols)
+    {
+        return set_error(p->error_handle, 241);
+    }
+    for (i = index; i <= net->Ncontrols - 1; i++)
+    {
+        net->Control[i] = net->Control[i + 1];
+    }
+    net->Ncontrols--;
+    return set_error(p->error_handle, 0);
 }
 
 int DLLEXPORT EN_getrule(EN_ProjectHandle ph, int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority)

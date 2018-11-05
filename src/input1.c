@@ -104,9 +104,9 @@ void setdefaults(EN_Project *pr)
   time_options_t *time = &pr->time_options;
   out_file_t *out = &pr->out_files;
 
-  strncpy(pr->Title[0], "", MAXMSG);
-  strncpy(pr->Title[1], "", MAXMSG);
-  strncpy(pr->Title[2], "", MAXMSG);
+  strncpy(pr->Title[0], "", TITLELEN);
+  strncpy(pr->Title[1], "", TITLELEN);
+  strncpy(pr->Title[2], "", TITLELEN);
   strncpy(out->TmpDir, "", MAXFNAME);   
   strncpy(out->TmpFname, "", MAXFNAME); 
   strncpy(out->HydFname, "", MAXFNAME);
@@ -356,6 +356,7 @@ void adjustdata(EN_Project *pr)
     for (demand = node->D; demand != NULL; demand = demand->next) {
       if (demand->Pat == 0) {
         demand->Pat = hyd->DefPat;
+        strcpy(demand->Name, "");
       }
     }
   }

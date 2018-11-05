@@ -40,9 +40,9 @@ The following utility functions are all called from INPUT3.C
 
 #define MAXERRS 10 /* Max. input errors reported        */
 
-
 /* Defined in enumstxt.h in EPANET.C */
 extern char *SectTxt[]; /* Input section keywords            */
+
 
 int netsize(EN_Project *pr)
 /*
@@ -206,9 +206,10 @@ int readdata(EN_Project *pr)
 
       /* Check if max. length exceeded */
       if (strlen(line) >= MAXLINE) {
-        char errMsg[MAXMSG+1];
-        EN_geterror(214, errMsg, MAXMSG);
-        sprintf(pr->Msg, "%s section: %s", errMsg, SectTxt[sect]);
+//        char errMsg[MAXMSG+1];
+//        EN_geterror(214, errMsg, MAXMSG);
+//        sprintf(pr->Msg, "%s section: %s", errMsg, SectTxt[sect]);
+        sprintf(pr->Msg, "%s section: %s", geterrmsg(214, pr->Msg), SectTxt[sect]);
         writeline(pr, pr->Msg);
         writeline(pr, line);
         errsum++;
@@ -292,7 +293,7 @@ int newline(EN_Project *pr, int sect, char *line)
       n = (int)strlen(line);
       if (line[n - 1] == 10)
         line[n - 1] = ' ';
-      strncpy(pr->Title[par->Ntitle], line, MAXMSG);
+      strncpy(pr->Title[par->Ntitle], line, TITLELEN);
       par->Ntitle++;
     }
     return (0);
@@ -363,100 +364,120 @@ int getpumpparams(EN_Project *pr)
 **-------------------------------------------------------------
 **  Input:   none
 **  Output:  returns error code
-**  Purpose: computes & checks pump curve parameters
+**  Purpose: computes pump curve coefficients for all pumps
 **--------------------------------------------------------------
 */
 {
-  int i, j = 0, k, m, n = 0;
-  double a, b, c, h0 = 0.0, h1 = 0.0, h2 = 0.0, q1 = 0.0, q2 = 0.0;
-  char errMsg[MAXMSG+1];
-  Spump *pump;
-  Slink *link;
-  Scurve *curve;
-  
-  EN_Network *net = &pr->network;
-  
-  for (i = 1; i <= net->Npumps; i++) {
-    pump = &net->Pump[i];
-    k = pump->Link;
-    link = &net->Link[k];
-    if (pump->Ptype == CONST_HP) { /* Constant Hp pump */
-      pump->H0 = 0.0;
-      pump->R = -8.814 * link->Km;
-      pump->N = -1.0;
-      pump->Hmax = BIG; /* No head limit      */
-      pump->Qmax = BIG; /* No flow limit      */
-      pump->Q0 = 1.0;   /* Init. flow = 1 cfs */
-      continue;
-    }
-    else if (pump->Ptype == NOCURVE) { /* Pump curve specified */
-      j = pump->Hcurve; /* Get index of head curve */
-      if (j == 0) {       /* Error: No head curve */
-        EN_geterror(226, errMsg, MAXMSG);
-        sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
-        writeline(pr, pr->Msg);
-        return (200);
-      }
-      curve = &net->Curve[j];
-      curve->Type = P_CURVE;
-      n = curve->Npts;
-      if (n == 1) {  /* Only a single h-q point supplied so use generic */
-        pump->Ptype = POWER_FUNC; /* power function curve.   */
-        q1 = curve->X[0];
-        h1 = curve->Y[0];
-        h0 = 1.33334 * h1;
-        q2 = 2.0 * q1;
-        h2 = 0.0;
-      } else if (n == 3 && curve->X[0] == 0.0) /* 3 h-q points supplied with */
-      {                                /* shutoff head so use fitted */
-        pump->Ptype = POWER_FUNC;    /* power function curve.      */
-        h0 = curve->Y[0];
-        q1 = curve->X[1];
-        h1 = curve->Y[1];
-        q2 = curve->X[2];
-        h2 = curve->Y[2];
-      } 
-      else { // use a custom curve, referenced by ID
-        pump->Ptype = CUSTOM; /* Else use custom pump curve.*/
-        // at this point, j is set to that curve's index.
-      }
-      
-      /* Compute shape factors & limits of power function pump curves */
-      if (pump->Ptype == POWER_FUNC) {
-        if (!powercurve(h0, h1, h2, q1, q2, &a, &b, &c)) { /* Error: Invalid curve */
-          EN_geterror(227, errMsg, MAXMSG);
-          sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
-          writeline(pr, pr->Msg);
-          return (200);
-        } else {
-          pump->H0 = -a;
-          pump->R = -b;
-          pump->N = c;
-          pump->Q0 = q1;
-          pump->Qmax = pow((-a / b), (1.0 / c));
-          pump->Hmax = h0;
+    int i, k, errcode = 0;  
+    EN_Network *net = &pr->network;
+
+    for (i = 1; i <= net->Npumps; i++)
+    {
+        errcode = updatepumpparams(pr, i);
+        if (errcode)
+        {
+            k = net->Pump[i].Link;
+            sprintf(pr->Msg, "%s link: %s", geterrmsg(errcode, pr->Msg),
+                    net->Link[k].ID);
+            writeline(pr, pr->Msg);
+            return 200;
         }
-      }
+    }
+    return 0;
+}
+
+int updatepumpparams(EN_Project *pr, int pumpindex)
+/*
+**-------------------------------------------------------------
+**  Input:   pumpindex = index of a pump
+**  Output:  returns error code
+**  Purpose: computes & checks a pump's head curve coefficients
+**--------------------------------------------------------------
+*/
+{
+    int m;
+    int curveindex;
+    int npts = 0;
+    int errcode = 0;
+    double a, b, c, h0 = 0.0, h1 = 0.0, h2 = 0.0, q1 = 0.0, q2 = 0.0;
+
+    EN_Network *net = &pr->network;
+    Spump  *pump;
+    Scurve *curve;
+
+    pump = &net->Pump[pumpindex];
+    if (pump->Ptype == CONST_HP)  // Constant Hp pump
+    {
+        pump->H0 = 0.0;
+        pump->R = -8.814 * net->Link[pump->Link].Km;
+        pump->N = -1.0;
+        pump->Hmax = BIG; // No head limit
+        pump->Qmax = BIG; // No flow limit
+        pump->Q0 = 1.0;   // Init. flow = 1 cfs
+        return errcode;
     }
 
-    /* Assign limits to custom pump curves */
-    if (pump->Ptype == CUSTOM) {
-      curve = &net->Curve[j];
-      for (m = 1; m < n; m++) {
-        if (curve->Y[m] >= curve->Y[m - 1]) { /* Error: Invalid curve */
-          EN_geterror(227, errMsg, MAXMSG);
-          sprintf(pr->Msg, "%s link: %s", errMsg, link->ID);
-          writeline(pr, pr->Msg);
-          return (200);
+    else if (pump->Ptype == NOCURVE) // Pump curve specified
+    {
+        curveindex = pump->Hcurve;
+        if (curveindex == 0) return 226;
+        curve = &net->Curve[curveindex];
+        curve->Type = P_CURVE;
+        npts = curve->Npts;
+
+        // Generic power function curve 
+        if (npts == 1)
+        {
+            pump->Ptype = POWER_FUNC;
+            q1 = curve->X[0];
+            h1 = curve->Y[0];
+            h0 = 1.33334 * h1;
+            q2 = 2.0 * q1;
+            h2 = 0.0;
         }
-      }
-      pump->Qmax = curve->X[n - 1];
-      pump->Q0 = (curve->X[0] + pump->Qmax) / 2.0;
-      pump->Hmax = curve->Y[0];
+      
+        // 3 point curve with shutoff head
+        else if (npts == 3 && curve->X[0] == 0.0)
+        {
+            pump->Ptype = POWER_FUNC;
+            h0 = curve->Y[0];
+            q1 = curve->X[1];
+            h1 = curve->Y[1];
+            q2 = curve->X[2];
+            h2 = curve->Y[2];
+        }
+      
+        // Custom pump curve
+        else
+        {
+            pump->Ptype = CUSTOM;
+            for (m = 1; m < npts; m++)
+            {
+                if (curve->Y[m] >= curve->Y[m - 1]) return 227;
+            }
+            pump->Qmax = curve->X[npts - 1];
+            pump->Q0 = (curve->X[0] + pump->Qmax) / 2.0;
+            pump->Hmax = curve->Y[0];
+        }
+      
+        // Compute shape factors & limits of power function curves
+        if (pump->Ptype == POWER_FUNC)
+        {
+            if (!powercurve(h0, h1, h2, q1, q2, &a, &b, &c)) return 227;
+            else
+            {
+                pump->H0 = -a;
+                pump->R = -b;
+                pump->N = c;
+                pump->Q0 = q1;
+                pump->Qmax = pow((-a / b), (1.0 / c));
+                pump->Hmax = h0;
+            }
+        }
     }
-  } /* Next pump */
-  return (0);
+    return 0;
 }
+
 
 int addnodeID(EN_Network *net, int n, char *id)
 /*
@@ -472,7 +493,7 @@ int addnodeID(EN_Network *net, int n, char *id)
     return (0); /* see EPANET.C */
   }
   strncpy(net->Node[n].ID, id, MAXID);
-  ENHashTableInsert(net->NodeHashTable, net->Node[n].ID, n); /* see HASH.C */
+  hashtable_insert(net->NodeHashTable, net->Node[n].ID, n); /* see HASH.C */
   return (1);
 }
 
@@ -490,7 +511,7 @@ int addlinkID(EN_Network *net, int n, char *id)
     return (0); /* see EPANET.C */
   }
   strncpy(net->Link[n].ID, id, MAXID);
-  ENHashTableInsert(net->LinkHashTable, net->Link[n].ID, n); /* see HASH.C */
+  hashtable_insert(net->LinkHashTable, net->Link[n].ID, n); /* see HASH.C */
   return (1);
 }
 
@@ -603,7 +624,6 @@ int unlinked(EN_Project *pr)
   EN_Network *net = &pr->network;
   int *marked;
   int i, err, errcode;
-  char errMsg[MAXMSG+1];
   
   errcode = 0;
   err = 0;
@@ -621,8 +641,7 @@ int unlinked(EN_Project *pr)
       if (marked[i] == 0) /* If not marked then error */
       {
         err++;
-        EN_geterror(233, errMsg, MAXMSG);
-        sprintf(pr->Msg, "%s node: %s", errMsg, net->Node[i].ID);
+        sprintf(pr->Msg, "%s link: %s", geterrmsg(233, pr->Msg), net->Node[i].ID);
         writeline(pr, pr->Msg);
       }
       if (err >= MAXERRS)
@@ -732,9 +751,7 @@ int getcurves(EN_Project *pr)
 
       /* Check that curve has data points */
       if (curve->Npts <= 0) {
-        char errMsg[MAXMSG+1];
-        EN_geterror(230, errMsg, MAXMSG);
-        sprintf(pr->Msg, "%s curve: %s", errMsg, curve->ID);
+        sprintf(pr->Msg, "%s link: %s", geterrmsg(230, pr->Msg), curve->ID);
         writeline(pr, pr->Msg);
         return (200);
       }
@@ -754,9 +771,7 @@ int getcurves(EN_Project *pr)
 
         /* Check that x data is in ascending order */
         if (fx->value >= x) {
-          char errMsg[MAXMSG+1];
-          EN_geterror(230, errMsg, MAXMSG);
-          sprintf(pr->Msg, "%s node: %s", errMsg, curve->ID);
+          sprintf(pr->Msg, "%s link: %s", geterrmsg(230, pr->Msg), curve->ID);
           writeline(pr, pr->Msg);
           return (200);
         }
@@ -1012,10 +1027,8 @@ void inperrmsg(EN_Project *pr, int err, int sect, char *line)
   char errStr[MAXMSG + 1];
   char id[MAXMSG + 1];
   
-  EN_geterror(err, errStr, MAXMSG);
-  
   /* get text for error message */
-  sprintf(pr->Msg, "%s - section: %s", errStr, SectTxt[sect]);
+  sprintf(pr->Msg, "%s - section: %s", geterrmsg(err, errStr), SectTxt[sect]);
   
   // append ID?
   /* Retrieve ID label of object with input error */

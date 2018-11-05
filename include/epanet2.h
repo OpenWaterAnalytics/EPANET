@@ -67,6 +67,9 @@
 
 // --- Define the EPANET toolkit constants
 
+#define  EN_MAXID  31  /**< Max. # characters in ID name */
+#define  EN_MAXMSG 255 /**< Max. # characters in message text */
+
 /// Node property codes
 typedef enum {
   EN_ELEVATION    = 0, /**< Node Elevation */
@@ -740,12 +743,12 @@ extern "C" {
 
   /**
    @brief Set the link type code for a specified link
-   @param id The id of a link
-   @param type The type code of the link.
+   @param[in,out] index The index of a link before [in] and after [out] the type change.
+   @param code The new type code of the link.
    @return Error code
    @see EN_LinkType
    */
-  int  DLLEXPORT ENsetlinktype(char *id, EN_LinkType type);
+  int  DLLEXPORT ENsetlinktype(int *index, EN_LinkType code);
   
   /**
    @brief Get the indexes of a link's start- and end-nodes.
@@ -830,6 +833,13 @@ extern "C" {
    @return Error code.
    */
   int  DLLEXPORT ENaddcontrol(int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+  
+  /**
+   @brief Delete an existing simple control
+   @param cindex The index of the control. First control is index 1.
+   @return Error code.
+  */
+  int  DLLEXPORT ENdeletecontrol(int cindex);
 
   /**
    @brief Specify parameters to define a simple control
@@ -842,6 +852,14 @@ extern "C" {
    @return Error code.
    */
   int  DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+
+  /**
+  @brief Change the ID name for a node.
+  @param index The index of a node. First node is index 1.
+  @param newid A string containing the node's new ID name.
+  @return Error code.
+  */
+  int DLLEXPORT ENsetnodeid(int index, char *newid);
   
   /**
    @brief Set a property value for a node.
@@ -852,6 +870,24 @@ extern "C" {
    @see EN_NodeProperty
    */
   int  DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
+
+  /**
+  @brief Change the ID name for a link.
+  @param index The index of a link. First link is index 1.
+  @param newid A string containing the link's new ID name.
+  @return Error code.
+  */
+  int DLLEXPORT ENsetlinkid(int index, char *newid);
+  
+  /**
+   @brief Set the indexes of a link's start- and end-nodes.
+   @param index The index of a link (first link is index 1)
+   @param node1 The index of the link's start node (first node is index 1).
+   @param node2 The index of the link's end node (first node is index 1).
+   @return Error code
+   @see ENsetnodeid, ENsetlinkid
+   */
+  int  DLLEXPORT ENsetlinknodes(int index, int node1, int node2);
   
   /**
    @brief Set a property value for a link.
@@ -1045,7 +1081,6 @@ extern "C" {
    @see ENgetcurveindex ENsetcurve
    */
   int  DLLEXPORT ENaddcurve(char *id);
-  
 
   /**
    @brief Gets the number of premises, true actions, and false actions and the priority of an existing rule-based control.
@@ -1284,7 +1319,6 @@ extern "C" {
   int DLLEXPORT EN_getlinkindex(EN_ProjectHandle ph, char *id, int *index);
   int DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id);
   int DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, EN_LinkType *code);
-  int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, char *id, EN_LinkType type);
   int DLLEXPORT EN_getlinknodes(EN_ProjectHandle ph, int index, int *node1, int *node2);
   int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value);
   int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
@@ -1297,7 +1331,11 @@ extern "C" {
 
   int DLLEXPORT EN_addcontrol(EN_ProjectHandle ph, int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
   int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+  int DLLEXPORT EN_setnodeid(EN_ProjectHandle ph, int index, char *newid);
   int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v);
+  int DLLEXPORT EN_setlinkid(EN_ProjectHandle ph, int index, char *newid);
+  int DLLEXPORT EN_setlinknodes(EN_ProjectHandle ph, int index, int node1, int node2);
+  int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, int *index, EN_LinkType code);
   int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v);
   int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id);
   int DLLEXPORT EN_setpattern(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *f, int len);
@@ -1340,6 +1378,7 @@ extern "C" {
   int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, char *fromNode, char *toNode);
   int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int nodeIndex);
   int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int linkIndex);
+  int DLLEXPORT EN_deletecontrol(EN_ProjectHandle ph, int controlIndex);
   
 #if defined(__cplusplus)
 }

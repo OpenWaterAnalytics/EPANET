@@ -90,29 +90,24 @@ char *Operator[] = {"=",  "<>",  "<=",    ">=",    "<", ">",
 enum Values { IS_NUMBER, IS_OPEN, IS_CLOSED, IS_ACTIVE };
 char *Value[] = {"XXXX", w_OPEN, w_CLOSED, w_ACTIVE, NULL};
 
-/* External variables declared in INPUT2.C */
+// Local Functions
+static void newrule(EN_Project *pr);
+static int  newpremise(EN_Project *pr, int);
+static int  newaction(EN_Project *pr);
+static int  newpriority(EN_Project *pr);
+static int  evalpremises(EN_Project *pr, int);
+static void updateactlist(rules_t *rules, int, Action *);
+static int  checkaction(rules_t *rules, int, Action *);
+static int  checkpremise(EN_Project *pr, Premise *);
+static int  checktime(EN_Project *pr, Premise *);
+static int  checkstatus(EN_Project *pr, Premise *);
+static int  checkvalue(EN_Project *pr, Premise *);
+static int  takeactions(EN_Project *pr);
+static void clearactlist(rules_t *rules);
+static void ruleerrmsg(EN_Project *pr, int);
+static void clearrule(EN_Project *pr, int);
+static void deleterule(EN_Project *pr, int);
 
-/*
-**   Local function prototypes are defined here and not in FUNCS.H
-**   because some of them utilize the Premise and Action structures
-**   defined locally in this module.
-*/
-void newrule(EN_Project *pr);
-int newpremise(EN_Project *pr, int);
-int newaction(EN_Project *pr);
-int newpriority(EN_Project *pr);
-int evalpremises(EN_Project *pr, int);
-void updateactlist(rules_t *rules, int, Action *);
-int checkaction(rules_t *rules, int, Action *);
-int checkpremise(EN_Project *pr, Premise *);
-int checktime(EN_Project *pr, Premise *);
-int checkstatus(EN_Project *pr, Premise *);
-int checkvalue(EN_Project *pr, Premise *);
-int takeactions(EN_Project *pr);
-void clearactlist(rules_t *rules);
-void clearrules(EN_Project *pr);
-void ruleerrmsg(EN_Project *pr, int);
-//int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx);
 
 void initrules(rules_t *rules)
 /*
@@ -166,8 +161,9 @@ void freerules(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
-  clearrules(pr);
-  free(pr->rules.Rule);
+    int i;
+    for (i = 1; i <= pr->network.Nrules; i++) clearrule(pr, i);
+    free(pr->rules.Rule);
 }
 
 int checkrules(EN_Project *pr, long dt)
@@ -217,7 +213,7 @@ int ruledata(EN_Project *pr)
 **--------------------------------------------------------------
 **    Parses a line from [RULES] section of input.
 **    Called by newline() in INPUT2.C module.
-**    Tok[] is global array of tokens parsed from input line.
+**    Tok[] is an array of tokens parsed from input line.
 **--------------------------------------------------------------
 */
 {
@@ -305,6 +301,132 @@ int ruledata(EN_Project *pr)
   return (err);
 }
 
+
+void adjustrules(EN_Project *pr, int objtype, int index)
+/*
+**-----------------------------------------------------------
+**    Adjusts rules when a specific node or link is deleted.
+**    Called by EN_deletenode & EN_deletelink in EPANET.C.
+**-----------------------------------------------------------
+*/
+{
+    int i, delete;
+    EN_Network *net = &pr->network;
+    rules_t *rules = &pr->rules;
+    Premise *p;
+    Action *a;
+
+    // Delete rules that refer to objtype and index
+    for (i = net->Nrules; i >= 1; i--)
+    {
+        delete = FALSE;
+        p = rules->Rule[i].Pchain;
+        while (p != NULL && !delete)
+        {
+            if (objtype == p->object && p->index == index) delete = TRUE;
+            p = p->next;
+        }
+        if (objtype == r_LINK)
+        {
+            a = rules->Rule[i].Tchain;
+            while (a != NULL && !delete)
+            {
+                if (a->link == index) delete = TRUE;
+                a = a->next;
+            }
+            a = rules->Rule[i].Fchain;
+            while (a != NULL && !delete)
+            {
+                if (a->link == index) delete = TRUE;
+                a = a->next;
+            }
+        }
+        if (delete) deleterule(pr, i);
+    }
+
+    // Adjust all higher object indices to reflect deletion of object index
+    for (i = 1; i <= net->Nrules; i++)
+    {
+        p = rules->Rule[i].Pchain;
+        while (p != NULL)
+        {
+            if (objtype == p->object && p->index > index) p->index--;
+            p = p->next;
+        }
+        if (objtype == r_LINK)
+        {
+            a = rules->Rule[i].Tchain;
+            while (a != NULL)
+            {
+                if (a->link > index) a->link--;
+                a = a->next;
+            }
+            a = rules->Rule[i].Fchain;
+            while (a != NULL)
+            {
+                if (a->link > index) a->link--;
+                a = a->next;
+            }
+        }
+    }
+}
+
+void adjusttankrules(EN_Project *pr)
+/*
+**-----------------------------------------------------------
+**    Adjusts tank indices in rule premises.
+**    Called by EN_addnode in EPANET.C.
+**-----------------------------------------------------------
+*/
+{
+    int i, njuncs;
+    EN_Network *net = &pr->network;
+    rules_t *rules = &pr->rules;
+    Premise *p;
+
+    njuncs = net->Njuncs;
+    for (i = 1; i <= net->Nrules; i++)
+    {
+        p = rules->Rule[i].Pchain;
+        while (p != NULL)
+        {
+            if (p->object == r_NODE && p->index > njuncs) p->index++;
+            p = p->next;
+        }
+    }
+}
+
+void deleterule(EN_Project *pr, int index)
+/*
+**-----------------------------------------------------------
+**    Deletes a specific rule
+**-----------------------------------------------------------
+*/
+{
+    int i;
+    EN_Network *net = &pr->network;
+    rules_t *rules = &pr->rules;
+    aRule *lastRule;
+
+    // Free memory allocated to rule's premises & actions
+    clearrule(pr, index);
+
+    // Shift position of higher indexed rules down one
+    for (i = index; i <= net->Nrules - 1; i++)
+    {
+        rules->Rule[i] = rules->Rule[i + 1];
+    }
+
+    // Remove premises & actions from last (inactive) entry in Rule array
+    lastRule = &rules->Rule[net->Nrules];
+    lastRule->Pchain = NULL;
+    lastRule->Tchain = NULL;
+    lastRule->Fchain = NULL;
+
+    // Reduce active rule count by one
+    net->Nrules--;
+}
+
 void clearactlist(rules_t *rules)
 /*
 **----------------------------------------------------------
@@ -322,23 +444,19 @@ void clearactlist(rules_t *rules)
   }
 }
 
-void clearrules(EN_Project *pr)
+void clearrule(EN_Project *pr, int i)
 /*
 **-----------------------------------------------------------
-**    Clears memory used for premises & actions for all rules
+**  Clears memory used by a rule for premises & actions
 **-----------------------------------------------------------
 */
 {
-  EN_Network *net = &pr->network;
+    rules_t *rules = &pr->rules;
+    Premise *p;
+    Premise *pnext;
+    Action *a;
+    Action *anext;
 
-  rules_t *rules = &pr->rules;
-  
-  Premise *p;
-  Premise *pnext;
-  Action *a;
-  Action *anext;
-  int i;
-  for (i = 1; i <= net->Nrules; i++) {
     p = rules->Rule[i].Pchain;
     while (p != NULL) {
       pnext = p->next;
@@ -357,7 +475,6 @@ void clearrules(EN_Project *pr)
       free(a);
       a = anext;
     }
-  }
 }
 
 void newrule(EN_Project *pr)
