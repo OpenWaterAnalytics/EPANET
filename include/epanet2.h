@@ -1,13 +1,13 @@
 /** @file epanet2.h
  @see http://github.com/openwateranalytics/epanet
- 
+
  */
 
 /*
  *******************************************************************
- 
+
  EPANET2.H - Prototypes for EPANET Functions Exported to DLL Toolkit
- 
+
  VERSION:    2.00
  DATE:       5/8/00
  10/25/00
@@ -16,7 +16,7 @@
  2/14/08    (2.00.12)
  AUTHORS:     L. Rossman - US EPA - NRMRL
               OpenWaterAnalytics members: see git stats for contributors
- 
+
  *******************************************************************
  */
 
@@ -32,7 +32,7 @@
 
 #ifdef WITH_GENX
    #include "epanet_export.h"
-#else 
+#else
   // --- define WINDOWS
   #undef WINDOWS
   #ifdef _WIN32
@@ -152,7 +152,7 @@ typedef enum {
   EN_RELATIVEERROR = 1,
   EN_MAXHEADERROR  = 2,
   EN_MAXFLOWCHANGE = 3,
-  EN_MASSBALANCE   = 4  
+  EN_MASSBALANCE   = 4
 } EN_AnalysisStatistic;
 
 typedef enum {
@@ -281,7 +281,7 @@ typedef enum {
 #if defined(__cplusplus)
 extern "C" {
 #endif
-  
+
   /**
    @brief The EPANET Project wrapper object
    */
@@ -289,7 +289,12 @@ extern "C" {
 
   typedef struct EN_Pattern EN_Pattern;
   typedef struct EN_Curve EN_Curve;
-  
+
+
+  int DLLEXPORT EN_createproject(EN_ProjectHandle *ph);
+
+  int DLLEXPORT EN_deleteproject(EN_ProjectHandle *ph);
+
   /**
    @brief runs a complete EPANET simulation
    @param inpFile pointer to name of input file (must exist)
@@ -297,15 +302,15 @@ extern "C" {
    @param binOutFile pointer to name of binary output file (to be created)
    @param callback a callback function that takes a character string (char *) as its only parameter.
    @return error code
-   
+
    The callback function should reside in and be used by the calling
    code to display the progress messages that EPANET generates
    as it carries out its computations. If this feature is not
    needed then the argument should be NULL.
    */
-  int  DLLEXPORT ENepanet(const char *inpFile, const char *rptFile, 
-    const char *binOutFile, void (*callback) (char *));
-  
+  int  DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *inpFile,
+      const char *rptFile, const char *binOutFile, void (*callback) (char *));
+
   /**
    @brief Initializes an EPANET session
    @param rptFile pointer to name of report file (to be created)
@@ -314,9 +319,9 @@ extern "C" {
    @param HeadlossFormula headloss formula flag
    @return error code
    */
-  int  DLLEXPORT ENinit(const char *rptFile, const char *binOutFile, 
-    int UnitsType, int HeadlossFormula);
-  
+   int DLLEXPORT EN_init(EN_ProjectHandle ph, const char *rptFile,
+       const char *binOutFile, EN_FlowUnits UnitsType, EN_FormType HeadlossFormula);
+
   /**
    @brief Opens EPANET input file & reads in network data
    @param inpFile pointer to name of input file (must exist)
@@ -324,174 +329,175 @@ extern "C" {
    @param binOutFile pointer to name of binary output file (to be created)
    @return error code
    */
-  int  DLLEXPORT ENopen(const char *inpFile, const char *rptFile, const char *binOutFile);
-  
+  int  DLLEXPORT EN_open(EN_ProjectHandle ph, const char *inpFile,
+      const char *rptFile, const char *binOutFile);
+
   /**
    @brief Saves current data to "INP" formatted text file.
    @param filename The file path to create
    @return Error code
    */
-  int  DLLEXPORT ENsaveinpfile(const char *filename);
-  
+  int  DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, const char *filename);
+
   /**
    @brief Frees all memory and files used by EPANET
    @return Error code
    */
-  int  DLLEXPORT ENclose();
-  
+  int  DLLEXPORT EN_close(EN_ProjectHandle ph);
+
   /**
    @brief Solves the network hydraulics for all time periods
    @return Error code
    */
-  int  DLLEXPORT ENsolveH();
-  
+  int  DLLEXPORT EN_solveH(EN_ProjectHandle ph);
+
   /**
    @brief Saves hydraulic results to binary file
    @return Error code
-   
+
    Must be called before ENreport() if no WQ simulation has been made.
    Should not be called if ENsolveQ() will be used.
    */
-  int  DLLEXPORT ENsaveH();
-  
+  int  DLLEXPORT EN_saveH(EN_ProjectHandle ph);
+
   /**
    @brief Sets up data structures for hydraulic analysis
    @return Error code
    */
-  int  DLLEXPORT ENopenH();
-  
+  int  DLLEXPORT EN_openH(EN_ProjectHandle ph);
+
   /**
    @brief Initializes hydraulic analysis
    @param initFlag 2-digit flag where 1st (left) digit indicates if link flows should be re-initialized (1) or not (0), and 2nd digit indicates if hydraulic results should be saved to file (1) or not (0).
    @return Error code
    */
-  int  DLLEXPORT ENinitH(int initFlag);
-  
+  int  DLLEXPORT EN_initH(EN_ProjectHandle ph, int initFlag);
+
   /**
    @brief Run a hydraulic solution period
    @param[out] currentTime The current simulation time in seconds
    @return Error or warning code
    @see ENsolveH
-   
+
    This function is used in a loop with ENnextH() to run
    an extended period hydraulic simulation.
    See ENsolveH() for an example.
    */
-  int  DLLEXPORT ENrunH(long *currentTime);
-  
+  int  DLLEXPORT EN_runH(EN_ProjectHandle ph, long *currentTime);
+
   /**
    @brief Determine time (in seconds) until next hydraulic event
    @param[out] tStep Time (seconds) until next hydraulic event. 0 marks end of simulation period.
    @return Error code
-   
+
    This function is used in a loop with ENrunH() to run an extended period hydraulic simulation.
    See ENsolveH() for an example.
    */
-  int  DLLEXPORT ENnextH(long *tStep);
-  
-  
+  int  DLLEXPORT EN_nextH(EN_ProjectHandle ph, long *tStep);
+
+
   /**
    @brief Frees data allocated by hydraulics solver
    @return Error code
    */
-  int  DLLEXPORT ENcloseH();
-  
+  int  DLLEXPORT EN_closeH(EN_ProjectHandle ph);
+
   /**
    @brief Copies binary hydraulics file to disk
    @param filename Name of file to be created
    @return Error code
    */
-  int  DLLEXPORT ENsavehydfile(char *filename);
-  
+  int  DLLEXPORT EN_savehydfile(EN_ProjectHandle ph, char *filename);
+
   /**
    @brief Opens previously saved binary hydraulics file
    @param filename Name of file to be used
    @return Error code
    */
-  int  DLLEXPORT ENusehydfile(char *filename);
-  
+  int  DLLEXPORT EN_usehydfile(EN_ProjectHandle ph, char *filename);
+
   /**
    @brief Solves for network water quality in all time periods
    @return Error code
    */
-  int  DLLEXPORT ENsolveQ();
-  
+  int  DLLEXPORT EN_solveQ(EN_ProjectHandle ph);
+
   /**
    @brief Sets up data structures for WQ analysis
    @return Error code
    */
-  int  DLLEXPORT ENopenQ();
-  
+  int  DLLEXPORT EN_openQ(EN_ProjectHandle ph);
+
   /**
    @brief Initializes water quality analysis
    @param saveFlag EN_SAVE (1) if results saved to file, EN_NOSAVE (0) if not
    @return Error code
    */
-  int  DLLEXPORT ENinitQ(int saveFlag);
-  
+  int  DLLEXPORT EN_initQ(EN_ProjectHandle ph, int saveFlag);
+
   /**
    @brief Retrieves hydraulic & WQ results at time t.
    @param[out] currentTime Current simulation time, in seconds.
    @return Error code
-   
+
    This function is used in a loop with ENnextQ() to run
    an extended period WQ simulation. See ENsolveQ() for
    an example.
    */
-  int  DLLEXPORT ENrunQ(long *currentTime);
-  
+  int  DLLEXPORT EN_runQ(EN_ProjectHandle ph, long *currentTime);
+
   /**
    @brief Advances WQ simulation to next hydraulic event.
    @param[out] tStep Time in seconds until next hydraulic event. 0 marks end of simulation period.
    @return Error code
-   
+
    This function is used in a loop with ENrunQ() to run
    an extended period WQ simulation. See ENsolveQ() for
    an example.
    */
-  int  DLLEXPORT ENnextQ(long *tStep);
-  
+  int  DLLEXPORT EN_nextQ(EN_ProjectHandle ph, long *tStep);
+
   /**
    @brief Advances WQ simulation by a single WQ time step
    @param[out] timeLeft Time left in overall simulation (in seconds)
    @return Error code
-   
+
    This function is used in a loop with ENrunQ() to run
    an extended period WQ simulation.
    */
-  int  DLLEXPORT ENstepQ(long *timeLeft);
-  
+  int  DLLEXPORT EN_stepQ(EN_ProjectHandle ph, long *timeLeft);
+
   /**
    @brief Frees data allocated by water quality solver.
    @return Error code.
    */
-  int  DLLEXPORT ENcloseQ();
-  
+  int  DLLEXPORT EN_closeQ(EN_ProjectHandle ph);
+
   /**
    @brief Writes line of text to the report file.
    @param line Text string to write
    @return Error code.
    */
   int  DLLEXPORT ENwriteline(char *line);
-  
+
   /**
    @brief Writes simulation report to the report file
    @return Error code
    */
-  int  DLLEXPORT ENreport();
-  
+  int  DLLEXPORT EN_report(EN_ProjectHandle ph);
+
   /**
    @brief Resets report options to default values
    @return Error code
    */
-  int  DLLEXPORT ENresetreport();
-  
+  int  DLLEXPORT EN_resetreport(EN_ProjectHandle ph);
+
   /**
    @brief Processes a reporting format command
    @return Error code
    */
-  int  DLLEXPORT ENsetreport(char *reportFormat);
-  
+  int  DLLEXPORT EN_setreport(EN_ProjectHandle ph, char *reportFormat);
+
   /**
    @brief Retrieves parameters that define a simple control
    @param controlIndex Control index (position of control statement in the input file, starting from 1)
@@ -502,45 +508,47 @@ extern "C" {
    @param[out] level Control level (tank level, junction pressure, or time (seconds))
    @return Error code
    */
-  int  DLLEXPORT ENgetcontrol(int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level);
-  
+  int  DLLEXPORT EN_getcontrol(EN_ProjectHandle ph, int controlIndex,
+      int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting,
+      int *nodeIndex, EN_API_FLOAT_TYPE *level);
+
   /**
    @brief Retrieves the number of components of a given type in the network.
    @param code Component code (see EPANET2.H)
    @param[out] count Number of components in network
    @return Error code
    */
-  int  DLLEXPORT ENgetcount(int code, int *count);
-  
+  int  DLLEXPORT EN_getcount(EN_ProjectHandle ph, int code, int *count);
+
   /**
    @brief Gets value for an analysis option
    @param code Option code (see EPANET2.H)
    @param[out] value Option value
    @return Error code
    */
-  int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value);
-  
+  int  DLLEXPORT EN_getoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE *value);
+
   /**
    @brief Retrieves value of specific time parameter.
    @param code Time parameter code
    @param[out] value Value of time parameter.
    @return Error code
    */
-  int  DLLEXPORT ENgettimeparam(int code, long *value);
-  
+  int  DLLEXPORT EN_gettimeparam(EN_ProjectHandle ph, int code, long *value);
+
   /**
    @brief Retrieves the flow units code
    @param[out] code Code of flow units in use
    @return Error code
    */
-  int  DLLEXPORT ENgetflowunits(int *code);
-  
+  int  DLLEXPORT EN_getflowunits(EN_ProjectHandle ph, int *code);
+
   /**
    @brief Sets the flow units
    @param code Code of flow units to use
    @return Error code
    */
-  int  DLLEXPORT ENsetflowunits(int code);
+  int  DLLEXPORT EN_setflowunits(EN_ProjectHandle ph, int code);
 
   /**
    @brief Retrieves the type of demand model in use and its parameters
@@ -550,8 +558,8 @@ extern "C" {
    @param[out] pexp  Pressure exponent in demand function
    @return Error code
   */
-  int DLLEXPORT ENgetdemandmodel(int *type, EN_API_FLOAT_TYPE *pmin,
-      EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp);
+  int DLLEXPORT EN_getdemandmodel(EN_ProjectHandle ph, int *type,
+      EN_API_FLOAT_TYPE *pmin, EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp);
 
   /**
   @brief Sets the type of demand model to use and its parameters
@@ -561,8 +569,8 @@ extern "C" {
   @param pexp  Pressure exponent in demand function
   @return Error code
   */
-  int DLLEXPORT ENsetdemandmodel(int type, EN_API_FLOAT_TYPE pmin,
-      EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
+  int DLLEXPORT EN_setdemandmodel(EN_ProjectHandle ph, int type,
+      EN_API_FLOAT_TYPE pmin, EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
 
   /**
    @brief Retrieves the index of the time pattern with specified ID
@@ -571,8 +579,8 @@ extern "C" {
    @return Error code
    @see ENgetpatternid
    */
-  int  DLLEXPORT ENgetpatternindex(char *id, int *index);
-  
+  int  DLLEXPORT EN_getpatternindex(EN_ProjectHandle ph, char *id, int *index);
+
   /**
    @brief Retrieves ID of a time pattern with specific index.
    @param index The index of a time pattern.
@@ -580,7 +588,7 @@ extern "C" {
    @return Error code
    @see ENgetpatternindex
    */
-  int  DLLEXPORT ENgetpatternid(int index, char *id);
+  int  DLLEXPORT EN_getpatternid(EN_ProjectHandle ph, int index, char *id);
 
   /**
    @brief Retrieves the number of multipliers in a time pattern.
@@ -588,8 +596,8 @@ extern "C" {
    @param[out] len The length of the time pattern.
    @return Error code
    */
-  int  DLLEXPORT ENgetpatternlen(int index, int *len);
-  
+  int  DLLEXPORT EN_getpatternlen(EN_ProjectHandle ph, int index, int *len);
+
   /**
    @brief Retrive a multiplier from a pattern for a specific time period.
    @param index The index of a time pattern
@@ -597,16 +605,18 @@ extern "C" {
    @param[out] value Pattern multiplier
    @return Error code
    */
-  int  DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value);
-  
+  int  DLLEXPORT EN_getpatternvalue(EN_ProjectHandle ph, int index, int period,
+      EN_API_FLOAT_TYPE *value);
+
   /**
    @brief Retrieve the average multiplier value in a time pattern
    @param index The index of a time pattern
    @param[out] value The average of all of this time pattern's values
    @return Error code
    */
-  int  DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value);
-  
+  int  DLLEXPORT EN_getaveragepatternvalue(EN_ProjectHandle ph, int index,
+      EN_API_FLOAT_TYPE *value);
+
   /**
    @brief Retrieve the type of quality analytis to be run.
    @param[out] qualcode The quality analysis code number.
@@ -614,8 +624,8 @@ extern "C" {
    @return Error code
    @see ENsetqualtype
    */
-  int  DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode);
-  
+  int  DLLEXPORT EN_getqualtype(EN_ProjectHandle ph, int *qualcode, int *tracenode);
+
   /**
    @brief Get the text of an error code.
    @param errcode The error code
@@ -623,16 +633,16 @@ extern "C" {
    @param maxLen The maximum number of characters to copy into the char pointer errmsg
    @return Error code
    */
-  int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen);
-  
+  int  DLLEXPORT EN_geterror(EN_ProjectHandle ph, int errcode, char *errmsg, int maxLen);
+
   /**
    @brief Get hydraulic simulation statistic
    @param code The type of statistic to get
    @param[out] value The value of the statistic
    @return Error code
    */
-  int  DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value);
-  
+  int  DLLEXPORT EN_getstatistic(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE* value);
+
   /**
    @brief Get index of node with specified ID
    @param id The string ID of the node
@@ -640,8 +650,8 @@ extern "C" {
    @return Error code
    @see ENgetnodeid
    */
-  int  DLLEXPORT ENgetnodeindex(char *id, int *index);
-  
+  int  DLLEXPORT EN_getnodeindex(EN_ProjectHandle ph, char *id, int *index);
+
   /**
    @brief Get the string ID of the specified node.
    @param index The index of the node (first node is index 1)
@@ -649,16 +659,16 @@ extern "C" {
    @return Error code
    @see ENgetnodeindex
    */
-  int  DLLEXPORT ENgetnodeid(int index, char *id);
-  
+  int  DLLEXPORT EN_getnodeid(EN_ProjectHandle ph, int index, char *id);
+
   /**
    @brief Get the type of node with specified index.
    @param index The index of a node (first node is index 1)
    @param[out] code The type code for the node.
    @return Error code
    */
-  int  DLLEXPORT ENgetnodetype(int index, int *code);
-  
+  int  DLLEXPORT EN_getnodetype(EN_ProjectHandle ph, int index, int *code);
+
   /**
    @brief Get a property value for specified node
    @param index The index of a node (first node is index 1).
@@ -667,8 +677,9 @@ extern "C" {
    @return Error code
    @see EN_NodeProperty
    */
-  int  DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value);
-  
+  int  DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code,
+      EN_API_FLOAT_TYPE *value);
+
   /**
    @brief Get coordinates (x,y) for a node.
    @param index The index of a node (first node is index 1).
@@ -677,8 +688,9 @@ extern "C" {
    @return Error code
    @see ENsetcoord
    */
-  int  DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
-  
+  int  DLLEXPORT EN_getcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x,
+      EN_API_FLOAT_TYPE *y);
+
   /**
    @brief Set coordinates (x,y) for a node.
    @param index The index of a node (first node is index 1)
@@ -687,24 +699,25 @@ extern "C" {
    @return Error code
    @see ENgetcoord
    */
-  int  DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
-  
+  int  DLLEXPORT EN_setcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE x,
+      EN_API_FLOAT_TYPE y);
+
   /**
    @brief Get the number of demand categories for a node.
    @param nodeIndex The index of a node (first node is index 1)
    @param[out] numDemands The number of demand categories
    @return Error code
    */
-  int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
-  
+  int  DLLEXPORT EN_getnumdemands(EN_ProjectHandle ph, int nodeIndex, int *numDemands);
+
   /**
    @brief Get a node's base demand for a specified category.
    @param nodeIndex The index of a node (first node is index 1)
    @param demandIndex The index of the demand category (starting at 1)
    @return Error code
    */
-  int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
-  
+  int  DLLEXPORT EN_getbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
+
   /**
    @brief Get the index of the demand pattern assigned to a node for a category index.
    @param nodeIndex The index of a node (first node is index 1).
@@ -712,8 +725,8 @@ extern "C" {
    @param[out] pattIndex The index of the pattern for this node and category.
    @return Error code
    */
-  int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIndex, int *pattIndex);
-  
+  int  DLLEXPORT EN_getdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIndex, int *pattIndex);
+
   /**
    @brief Get the index of a Link with specified ID.
    @param id The string ID of a link.
@@ -721,8 +734,8 @@ extern "C" {
    @return Error code
    @see ENgetlinkid
    */
-  int  DLLEXPORT ENgetlinkindex(char *id, int *index);
-  
+  int  DLLEXPORT EN_getlinkindex(EN_ProjectHandle ph, char *id, int *index);
+
   /**
    @brief Get the string ID of a link with specified index
    @param index The index of a link (first link is index 1)
@@ -730,8 +743,8 @@ extern "C" {
    @return Error code
    @see ENgetlinkindex
    */
-  int  DLLEXPORT ENgetlinkid(int index, char *id);
-  
+  int  DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id);
+
   /**
    @brief Get the link type code for a specified link
    @param index The index of a link (first link is index 1)
@@ -739,7 +752,7 @@ extern "C" {
    @return Error code
    @see EN_LinkType
    */
-  int  DLLEXPORT ENgetlinktype(int index, EN_LinkType *code);
+  int  DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, EN_LinkType *code);
 
   /**
    @brief Set the link type code for a specified link
@@ -748,8 +761,8 @@ extern "C" {
    @return Error code
    @see EN_LinkType
    */
-  int  DLLEXPORT ENsetlinktype(int *index, EN_LinkType code);
-  
+  int  DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, int *index, EN_LinkType code);
+
   /**
    @brief Get the indexes of a link's start- and end-nodes.
    @param index The index of a link (first link is index 1)
@@ -758,8 +771,8 @@ extern "C" {
    @return Error code
    @see ENgetnodeid, ENgetlinkid
    */
-  int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2);
-  
+  int  DLLEXPORT EN_getlinknodes(EN_ProjectHandle ph, int index, int *node1, int *node2);
+
   /**
    @brief Get a property value for specified link.
    @param index The index of a node (first node is index 1).
@@ -768,8 +781,8 @@ extern "C" {
    @return Error code
    @see ENgetnodevalue, EN_LinkProperty
    */
-  int  DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value);
-  
+  int  DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE *value);
+
   /**
    @brief Get a curve's properties.
    @param curveIndex The index of a curve (first curve is index 1).
@@ -779,24 +792,24 @@ extern "C" {
    @param[out] yValues The curve's y-values. Pointer must be freed by client.
    @return Error code.
    */
-  int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
-  
+  int  DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
+
   /**
    @brief Retrieves the curve index for a specified pump index.
    @param pumpIndex The index of a pump
    @param[out] curveIndex The index of the curve used by the pump.
    @return Error code.
    */
-  int  DLLEXPORT ENgetheadcurveindex(int pumpIndex, int *curveIndex);
-  
+  int  DLLEXPORT EN_getheadcurveindex(EN_ProjectHandle ph, int pumpIndex, int *curveIndex);
+
   /**
    @brief Sets the curve id for a specified pump index.
    @param pumpIndex The index of the pump
    @param curveIndex The index of the curve used by the pump
    @return Error code.
    */
-  int  DLLEXPORT ENsetheadcurveindex(int pumpIndex, int curveIndex);
-  
+  int  DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int pumpIndex, int curveIndex);
+
   /**
    @brief Get the type of pump
    @param linkIndex The index of the pump element
@@ -804,7 +817,7 @@ extern "C" {
    @return Error code
    @see EN_PumpType
    */
-  int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
+  int  DLLEXPORT EN_getpumptype(EN_ProjectHandle ph, int linkIndex, int *outType);
 
   /**
    @brief Get the type of a curve
@@ -813,8 +826,8 @@ extern "C" {
    @return Error code
    @see EN_CurveType
    */
-  int  DLLEXPORT ENgetcurvetype(int curveIndex, int *outType);
-    
+  int  DLLEXPORT EN_getcurvetype(EN_ProjectHandle ph, int curveIndex, int *outType);
+
   /**
    @brief Get the version number. This number is to be interpreted with implied decimals, i.e., "20100" == "2(.)01(.)00"
    @param[out] version The version of EPANET
@@ -832,14 +845,15 @@ extern "C" {
    @param level control point (tank level, junction pressure, or time in seconds).
    @return Error code.
    */
-  int  DLLEXPORT ENaddcontrol(int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
-  
+  int  DLLEXPORT EN_addcontrol(EN_ProjectHandle ph, int *cindex, int ctype,
+      int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+
   /**
    @brief Delete an existing simple control
    @param cindex The index of the control. First control is index 1.
    @return Error code.
   */
-  int  DLLEXPORT ENdeletecontrol(int cindex);
+  int  DLLEXPORT EN_deletecontrol(EN_ProjectHandle ph, int cindex);
 
   /**
    @brief Specify parameters to define a simple control
@@ -851,7 +865,8 @@ extern "C" {
    @param level control point (tank level, junction pressure, or time in seconds).
    @return Error code.
    */
-  int  DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+  int  DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype,
+      int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
 
   /**
   @brief Change the ID name for a node.
@@ -859,8 +874,8 @@ extern "C" {
   @param newid A string containing the node's new ID name.
   @return Error code.
   */
-  int DLLEXPORT ENsetnodeid(int index, char *newid);
-  
+  int DLLEXPORT EN_setnodeid(EN_ProjectHandle ph, int index, char *newid);
+
   /**
    @brief Set a property value for a node.
    @param index The index of a node. First node is index 1.
@@ -869,7 +884,8 @@ extern "C" {
    @return Error code.
    @see EN_NodeProperty
    */
-  int  DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
+  int  DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code,
+      EN_API_FLOAT_TYPE v);
 
   /**
   @brief Change the ID name for a link.
@@ -877,8 +893,8 @@ extern "C" {
   @param newid A string containing the link's new ID name.
   @return Error code.
   */
-  int DLLEXPORT ENsetlinkid(int index, char *newid);
-  
+  int DLLEXPORT EN_setlinkid(EN_ProjectHandle ph, int index, char *newid);
+
   /**
    @brief Set the indexes of a link's start- and end-nodes.
    @param index The index of a link (first link is index 1)
@@ -887,8 +903,8 @@ extern "C" {
    @return Error code
    @see ENsetnodeid, ENsetlinkid
    */
-  int  DLLEXPORT ENsetlinknodes(int index, int node1, int node2);
-  
+  int  DLLEXPORT EN_setlinknodes(EN_ProjectHandle ph, int index, int node1, int node2);
+
   /**
    @brief Set a property value for a link.
    @param index The index of a link. First link is index 1.
@@ -897,16 +913,17 @@ extern "C" {
    @return Error code.
    @see EN_LinkProperty
    */
-  int  DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v);
-  
+  int  DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
+      EN_API_FLOAT_TYPE v);
+
   /**
    @brief Add a new time pattern.
    @param id The string ID of the pattern to add.
    @return Error code.
    @see ENgetpatternindex
    */
-  int  DLLEXPORT ENaddpattern(char *id);
-  
+  int  DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id);
+
   /**
    @brief Set multipliers for a specific pattern
    @param index The index of a pattern. First pattern is index 1.
@@ -915,8 +932,9 @@ extern "C" {
    @return Error code.
    @see ENgetpatternindex
    */
-  int  DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int len);
-  
+  int  DLLEXPORT EN_setpattern(EN_ProjectHandle ph, int index,
+      EN_API_FLOAT_TYPE *f, int len);
+
   /**
    @brief Set the multiplier for a specific pattern at a specific period.
    @param index The index of a pattern. First pattern is index 1.
@@ -924,8 +942,9 @@ extern "C" {
    @param value The value of the multiplier to set.
    @return Error code.
    */
-  int  DLLEXPORT ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value);
-  
+  int  DLLEXPORT EN_setpatternvalue(EN_ProjectHandle ph, int index, int period,
+      EN_API_FLOAT_TYPE value);
+
   /**
    @brief Set the value for a time parameter.
    @param code The code for the parameter to set.
@@ -933,8 +952,8 @@ extern "C" {
    @return Error code.
    @see EN_TimeProperty
    */
-  int  DLLEXPORT ENsettimeparam(int code, long value);
-  
+  int  DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value);
+
   /**
    @brief Set a value for an anlysis option.
    @param code The code for the desired option.
@@ -942,15 +961,15 @@ extern "C" {
    @return Error code.
    @see EN_Option
    */
-  int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v);
-  
+  int  DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v);
+
   /**
    @brief Sets the level of hydraulic status reporting.
    @param code Status reporting code.
    @return Error code.
    */
-  int  DLLEXPORT ENsetstatusreport(int code);
-  
+  int  DLLEXPORT EN_setstatusreport(EN_ProjectHandle ph, int code);
+
   /**
    @brief Sets type of quality analysis called for
    @param qualcode WQ parameter code, EN_QualityType
@@ -959,11 +978,12 @@ extern "C" {
    @param tracenode ID of node being traced (if applicable)
    @return Error code.
    @see EN_QualityType
-   
+
    chemname and chemunits only apply when WQ analysis is for chemical. tracenode only applies when WQ analysis is source tracing.
    */
-  int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
-  
+  int  DLLEXPORT EN_setqualtype(EN_ProjectHandle ph, int qualcode, char *chemname,
+      char *chemunits, char *tracenode);
+
   /**
    @brief Get quality analysis information (type, chemical name, units, trace node ID)
    @param[out] qualcode The EN_QualityType code being used.
@@ -973,7 +993,8 @@ extern "C" {
    @return Error code.
    @see EN_QualityType
    */
-  int  DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode);
+  int  DLLEXPORT EN_getqualinfo(EN_ProjectHandle ph, int *qualcode, char *chemname,
+      char *chemunits, int *tracenode);
 
   /**
    @brief Sets the node's demand name for a category.
@@ -983,7 +1004,8 @@ extern "C" {
    @return Error code.
    @see ENgetdemandname
    */
-  int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIdx, char *demandName);
+  int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex,
+      int demandIdx, char *demandName);
 
   /**
    @brief Retrieves the node's demand name for a category.
@@ -993,8 +1015,9 @@ extern "C" {
    @return Error code.
    @see ENsetdemandname
    */
-  int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIdx, char *demandName);
-  
+  int DLLEXPORT EN_getdemandname(EN_ProjectHandle ph, int nodeIndex,
+      int demandIdx, char *demandName);
+
   /**
    @brief Sets the node's base demand for a category.
    @param nodeIndex The index of a node.
@@ -1003,17 +1026,19 @@ extern "C" {
    @return Error code.
    @see ENgetbasedemand
    */
-  int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
-  
-   /**  
-   @brief Sets the index of the demand pattern assigned to a node for a category index. 
-   @param nodeIndex The index of a node (first node is index 1).  
-   @param demandIndex The index of a category (first category is index 1).  
-   @param pattIndex The index of the pattern for this node and category.  
-   @return Error code 
-   */ 
-  int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, int patIndex);
-  
+  int  DLLEXPORT EN_setbasedemand(EN_ProjectHandle ph, int nodeIndex,
+      int demandIdx, EN_API_FLOAT_TYPE baseDemand);
+
+   /**
+   @brief Sets the index of the demand pattern assigned to a node for a category index.
+   @param nodeIndex The index of a node (first node is index 1).
+   @param demandIndex The index of a category (first category is index 1).
+   @param pattIndex The index of the pattern for this node and category.
+   @return Error code
+   */
+  int  DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex,
+      int demandIdx, int patIndex);
+
   /**
    @brief Retrieves index of curve with specific ID.
    @param id The ID of a curve.
@@ -1021,19 +1046,19 @@ extern "C" {
    @return Error code.
    @see ENgetcurveid
    */
-  int  DLLEXPORT ENgetcurveindex(char *id, int *index);
-  
+  int  DLLEXPORT EN_getcurveindex(EN_ProjectHandle ph, char *id, int *index);
+
   /**
    @brief Retrieves ID of a curve with specific index.
    @param index The index of a curve.
    @param[out] id The ID of the curve specified.
    @return Error code.
    @see ENsetcurveindex
-   
+
    NOTE: 'id' must be able to hold MAXID characters
    */
-  int  DLLEXPORT ENgetcurveid(int index, char *id);
-  
+  int  DLLEXPORT EN_getcurveid(EN_ProjectHandle ph, int index, char *id);
+
   /**
    @brief Retrieves number of points in a curve
    @param index The index of a curve.
@@ -1041,8 +1066,8 @@ extern "C" {
    @return Error code.
    @see ENgetcurvevalue
    */
-  int  DLLEXPORT ENgetcurvelen(int index, int *len);
-  
+  int  DLLEXPORT EN_getcurvelen(EN_ProjectHandle ph, int index, int *len);
+
   /**
    @brief retrieves x,y point for a specific point number and curve
    @param curveIndex The index of a curve
@@ -1052,8 +1077,9 @@ extern "C" {
    @return Error code.
    @see ENgetcurvelen ENsetcurvevalue
    */
-  int  DLLEXPORT ENgetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
-  
+  int  DLLEXPORT EN_getcurvevalue(EN_ProjectHandle ph, int curveIndex,
+      int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+
   /**
    @brief Sets x,y point for a specific point and curve.
    @param curveIndex The index of a curve.
@@ -1062,8 +1088,9 @@ extern "C" {
    @param y The y-value of the point.
    @return Error code.
    */
-  int  DLLEXPORT ENsetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
-  
+  int  DLLEXPORT EN_setcurvevalue(EN_ProjectHandle ph, int curveIndex,
+      int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
+
   /**
    @brief Sets x,y values for a specified curve.
    @param index The index of a curve.
@@ -1072,15 +1099,16 @@ extern "C" {
    @param len The length of the arrays x and y.
    @return Error code.
    */
-  int  DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
-  
+  int  DLLEXPORT EN_setcurve(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x,
+      EN_API_FLOAT_TYPE *y, int len);
+
   /**
    @brief Adds a new curve appended to the end of the existing curves.
    @param id The name of the curve to be added.
    @return Error code.
    @see ENgetcurveindex ENsetcurve
    */
-  int  DLLEXPORT ENaddcurve(char *id);
+  int  DLLEXPORT EN_addcurve(EN_ProjectHandle ph, char *id);
 
   /**
    @brief Gets the number of premises, true actions, and false actions and the priority of an existing rule-based control.
@@ -1091,7 +1119,8 @@ extern "C" {
    @param priority The priority of a rule-based control.
    @return Error code.
    */
-  int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority);
+  int  DLLEXPORT EN_getrule(EN_ProjectHandle ph, int index, int *nPremises,
+      int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority);
 
   /**
    @brief Sets the priority of the existing rule-based control.
@@ -1099,7 +1128,7 @@ extern "C" {
    @param priority The priority to be set in the rule-based control.
    @return Error code.
    */
-  int  DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
+  int  DLLEXPORT EN_setrulepriority(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE priority);
 
   /**
    @brief Gets the components of a premise/condition in an existing rule-based control.
@@ -1111,10 +1140,12 @@ extern "C" {
    @param variable The variable to be checked (e.g. level).
    @param relop The relashionship operator (e.g. LARGER THAN) in the premise.
    @param status The status of the object to be checked (e.g. CLOSED)
-   @param value The value of the variable to be checked (e.g. 5.5) 
+   @param value The value of the variable to be checked (e.g. 5.5)
    @return Error code.
    */
-  int  DLLEXPORT ENgetpremise(int indexRule, int indexPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value);
+  int  DLLEXPORT EN_getpremise(EN_ProjectHandle ph, int indexRule,
+      int indexPremise, int *logop, int *object, int *indexObj, int *variable,
+      int *relop, int *status, EN_API_FLOAT_TYPE *value);
 
   /**
    @brief Sets the components of a premise/condition in an existing rule-based control.
@@ -1126,10 +1157,12 @@ extern "C" {
    @param variable The variable to be checked (e.g. level).
    @param relop The relashionship operator (e.g. LARGER THAN) in the premise.
    @param status The status of the object to be checked (e.g. CLOSED)
-   @param value The value of the variable to be checked (e.g. 5.5) 
+   @param value The value of the variable to be checked (e.g. 5.5)
    @return Error code.
    */
-  int  DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, EN_API_FLOAT_TYPE value);
+  int  DLLEXPORT EN_setpremise(EN_ProjectHandle ph, int indexRule,
+      int indexPremise, int logop, int object, int indexObj, int variable,
+      int relop, int status, EN_API_FLOAT_TYPE value);
 
   /**
    @brief Sets the index of an object in a premise of an existing rule-based control.
@@ -1138,7 +1171,8 @@ extern "C" {
    @param indexObj The index of the object (e.g. the index of the tank).
    @return Error code.
    */
-  int  DLLEXPORT ENsetpremiseindex(int indexRule, int indexPremise, int indexObj);
+  int  DLLEXPORT EN_setpremiseindex(EN_ProjectHandle ph, int indexRule,
+      int indexPremise, int indexObj);
 
   /**
    @brief Sets the status in a premise of an existing rule-based control.
@@ -1147,17 +1181,19 @@ extern "C" {
    @param status The status of the object to be checked (e.g. CLOSED)
    @return Error code.
    */
-  int  DLLEXPORT ENsetpremisestatus(int indexRule, int indexPremise, int status);
+  int  DLLEXPORT EN_setpremisestatus(EN_ProjectHandle ph, int indexRule,
+      int indexPremise, int status);
 
   /**
    @brief Sets the value in a premise of an existing rule-based control.
    @param indexRule The index of a rule-based control.
    @param indexPremise The index of the premise.
-   @param value The value of the variable to be checked (e.g. 5.5) 
+   @param value The value of the variable to be checked (e.g. 5.5)
    @return Error code.
    */
-  int  DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise, EN_API_FLOAT_TYPE value);
-  
+  int  DLLEXPORT EN_setpremisevalue(EN_ProjectHandle ph, int indexRule,
+      int indexPremise, EN_API_FLOAT_TYPE value);
+
   /**
    @brief Gets the components of a true-action in an existing rule-based control.
    @param indexRule The index of a rule-based control.
@@ -1167,7 +1203,8 @@ extern "C" {
    @param setting The value of the link (e.g. pump speed 0.9)
    @return Error code.
    */
-  int  DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
+  int  DLLEXPORT EN_gettrueaction(EN_ProjectHandle ph, int indexRule,
+      int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
 
   /**
    @brief Sets the components of a true-action in an existing rule-based control.
@@ -1178,8 +1215,9 @@ extern "C" {
    @param setting The value of the link (e.g. pump speed 0.9)
    @return Error code.
    */
-  int  DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
-  
+  int  DLLEXPORT EN_settrueaction(EN_ProjectHandle ph, int indexRule,
+      int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
+
   /**
    @brief Gets the components of a false-action in an existing rule-based control.
    @param indexRule The index of a rule-based control.
@@ -1189,7 +1227,8 @@ extern "C" {
    @param setting The value of the link (e.g. pump speed 0.9)
    @return Error code.
    */
-  int  DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
+  int  DLLEXPORT EN_getfalseaction(EN_ProjectHandle ph, int indexRule,
+      int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
 
   /**
    @brief Sets the components of a false-action in an existing rule-based control.
@@ -1200,7 +1239,8 @@ extern "C" {
    @param setting The value of the link (e.g. pump speed 0.9)
    @return Error code.
    */
-  int  DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
+  int  DLLEXPORT EN_setfalseaction(EN_ProjectHandle ph, int indexRule,
+      int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
 
   /**
    @brief Returns the ID of a rule.
@@ -1208,7 +1248,7 @@ extern "C" {
    @param id The ID of the rule
    @return Error code.
    */
-  int  DLLEXPORT ENgetruleID(int indexRule, char* id);
+  int  DLLEXPORT EN_getruleID(EN_ProjectHandle ph, int indexRule, char* id);
 
   /**
    @brief Adds a new node
@@ -1216,8 +1256,8 @@ extern "C" {
    @param nodeType The node type code
    @return Error code.
    */
-  int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType);
-  
+  int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType);
+
   /**
    @brief Adds a new link
    @param id The name of the link to be added.
@@ -1226,41 +1266,35 @@ extern "C" {
    @param toNode The id of the to node
    @return Error code.
    */
-  int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode);
-  
+  int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType,
+      char *fromNode, char *toNode);
+
   /**
    @brief Deletes a node
    @param nodeIndex The node index
    @return Error code.
    */
-  int DLLEXPORT ENdeletenode(int nodeIndex);
-  
+  int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int nodeIndex);
+
   /**
    @brief Deletes a link
    @param linkIndex The link index
    @return Error code.
    */
-  int DLLEXPORT ENdeletelink(int linkIndex);
-  
-  
-  /***************************************************
-   
-   Threadsafe versions of all epanet functions
-   
-   ***************************************************/
-  int DLLEXPORT EN_createproject(EN_ProjectHandle *ph);
-  int DLLEXPORT EN_deleteproject(EN_ProjectHandle *ph);
+  int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int linkIndex);
 
-  int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, 
-    const char *f2, const char *f3, void (*pviewprog)(char *));
+
+  /***************************************************
+
+   Threadsafe versions of all epanet functions
+
+   ***************************************************/
+
 
   void DLLEXPORT EN_clearError(EN_ProjectHandle ph);
   int DLLEXPORT EN_checkError(EN_ProjectHandle ph, char** msg_buffer);
 
-  //int DLLEXPORT EN_epanet(EN_ProjectHandle ph, const char *f1, const char *f2,
-	//  const char *f3, void(*pviewprog)(char *));
-  int DLLEXPORT EN_init(EN_ProjectHandle ph, const char *rptFile, const char *binOutFile,
-          EN_FlowUnits UnitsType, EN_FormType HeadlossFormula);
+
 
   int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *inpFile,
           const char *rptFile, const char *binOutFile);
@@ -1379,7 +1413,7 @@ extern "C" {
   int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int nodeIndex);
   int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int linkIndex);
   int DLLEXPORT EN_deletecontrol(EN_ProjectHandle ph, int controlIndex);
-  
+
 #if defined(__cplusplus)
 }
 #endif

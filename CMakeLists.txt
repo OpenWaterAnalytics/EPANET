@@ -70,16 +70,18 @@ ENDIF (MSVC)
 
 # configure file groups
 file(GLOB EPANET_SOURCES src/*.c src/util/*.c)
-file(GLOB EPANET_LIB_ALL src/* src/util/*)
-source_group("Library" FILES ${EPANET_LIB_ALL})
+file(GLOB EPANET_HEADERS src/*.h src/util/*.h)
+file(GLOB EPANET_DATA src/*.dat)
+file(GLOB EPANET_API_HEADERS include/*.h)
+source_group("Library" FILES ${EPANET_SOURCES} ${EPANET_HEADERS} ${EPANET_DATA} ${EPANET_API_HEADERS})
 
 
 # the shared library
-add_library(epanet SHARED ${EPANET_LIB_ALL})
+add_library(epanet SHARED ${EPANET_SOURCES} ${EPANET_HEADERS} ${EPANET_DATA})
 target_include_directories(epanet PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 
-# create export lib so we can link against dll using Visual Studio
+# create export libs so we can link against dll using Visual Studio
 add_definitions(-DWITH_GENX)
 include(GenerateExportHeader)
 GENERATE_EXPORT_HEADER(epanet
@@ -87,6 +89,7 @@ GENERATE_EXPORT_HEADER(epanet
     EXPORT_MACRO_NAME DLLEXPORT
     EXPORT_FILE_NAME epanet_export.h
     STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC)
+
 
 file(COPY ${CMAKE_CURRENT_BINARY_DIR}/epanet_export.h
     DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include)

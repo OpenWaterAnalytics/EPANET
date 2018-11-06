@@ -59,14 +59,19 @@ BOOST_AUTO_TEST_CASE (test_open_close)
     EN_deleteproject(&ph);
 }
 
-BOOST_AUTO_TEST_CASE(test_epanet)
+BOOST_AUTO_TEST_CASE(test_runproject)
 {
+    EN_ProjectHandle ph = NULL;
+    EN_createproject(&ph);
+
     std::string path_inp = std::string(DATA_PATH_INP);
     std::string path_rpt = std::string(DATA_PATH_RPT);
     std::string path_out = std::string(DATA_PATH_OUT);
 
-    int error = ENepanet(path_inp.c_str(), path_rpt.c_str(), path_out.c_str(), NULL);
+    int error = EN_runproject(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str(), NULL);
     BOOST_REQUIRE(error == 0);
+
+    EN_deleteproject(&ph);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -130,7 +135,7 @@ BOOST_FIXTURE_TEST_CASE(test_hyd_step, Fixture)
         BOOST_REQUIRE(error == 0);
 
     } while (tstep > 0);
-    
+
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
 }
@@ -157,7 +162,7 @@ BOOST_FIXTURE_TEST_CASE(test_qual_step, Fixture)
         BOOST_REQUIRE(error == 0);
 
     } while (tstep > 0);
-    
+
     error = EN_closeQ(ph);
     BOOST_REQUIRE(error == 0);
 }
@@ -212,7 +217,7 @@ BOOST_FIXTURE_TEST_CASE(test_setdemandpattern, Fixture)
 	// get the number of nodes
     error = EN_getcount(ph, EN_NODECOUNT, &nnodes);
     BOOST_REQUIRE(error == 0);
-	
+
 	// add a new pattern
     error = EN_addpattern(ph, newpat);
 	BOOST_REQUIRE(error == 0);
@@ -220,18 +225,18 @@ BOOST_FIXTURE_TEST_CASE(test_setdemandpattern, Fixture)
 	// get the new patterns index, should be as the number of patterns
     error = EN_getpatternindex(ph, newpat, &pat_index);
 	BOOST_REQUIRE(error == 0);
-	
+
 	for (i = 1; i <= nnodes; i++) {
 		// get the number of demand categories
 		error = EN_getnumdemands(ph, i, &numDemands);
 		BOOST_REQUIRE(error == 0);
-		
+
 		for (j = 1; j <= numDemands; j++) {
 			// set demand patterns
-			error = EN_setdemandpattern(ph, i, j, pat_index); 
+			error = EN_setdemandpattern(ph, i, j, pat_index);
 			BOOST_REQUIRE(error == 0);
 			// get demand patterns should be the same with set
-			error = EN_getdemandpattern(ph, i, j, &pat_index_2); 
+			error = EN_getdemandpattern(ph, i, j, &pat_index_2);
 			BOOST_REQUIRE(error == 0);
 			BOOST_REQUIRE(pat_index == pat_index_2);
 		}
@@ -241,11 +246,11 @@ BOOST_FIXTURE_TEST_CASE(test_addpattern, Fixture)
 {
     int pat_index, n_patterns_1, n_patterns_2;
     char newpat[] = "new_pattern";
-    
+
     // get the number of current patterns
     error = EN_getcount(ph, EN_PATCOUNT, &n_patterns_1);
     BOOST_REQUIRE(error == 0);
-    
+
     // add a new pattern
     error = EN_addpattern(ph, newpat);
     BOOST_REQUIRE(error == 0);
@@ -254,7 +259,7 @@ BOOST_FIXTURE_TEST_CASE(test_addpattern, Fixture)
     error = EN_getcount(ph, EN_PATCOUNT, &n_patterns_2);
     BOOST_REQUIRE(error == 0);
     BOOST_REQUIRE(n_patterns_1 + 1 == n_patterns_2);
-    
+
     // gwt the new patterns index, should be as the number of patterns
     error = EN_getpatternindex(ph, newpat, &pat_index);
     BOOST_REQUIRE(pat_index == n_patterns_2);
@@ -280,16 +285,16 @@ BOOST_FIXTURE_TEST_CASE(test_add_control, Fixture)
         error = EN_nextH(ph, &tstep);
         BOOST_REQUIRE(error == 0);
     } while (tstep > 0);
-    
+
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
-    
-    // disable current controls 
+
+    // disable current controls
     error = EN_setcontrol(ph, 1, 0, 0, 0, 0, 0);
     BOOST_REQUIRE(error == 0);
     error = EN_setcontrol(ph, 2, 1, 0, 0, 0, 0);
     BOOST_REQUIRE(error == 0);
-    
+
     // add new controls
     error = EN_addcontrol(ph, &Cindex, 0, 13, 1, 11, 110);
     BOOST_REQUIRE(error == 0);
@@ -311,10 +316,10 @@ BOOST_FIXTURE_TEST_CASE(test_add_control, Fixture)
         error = EN_nextH(ph, &tstep);
         BOOST_REQUIRE(error == 0);
     } while (tstep > 0);
-    
+
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
-    
+
     BOOST_REQUIRE(h1 == h2); // end head should be the same with new controls
 }
 
