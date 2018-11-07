@@ -10,7 +10,7 @@ A node and link name are changed, the network is saved, reopened and the new nam
 #include <boost/test/included/unit_test.hpp>
 
 #include <string>
-#include "epanet2.h"
+#include "epanet_2_2.h"
 
 #define DATA_PATH_INP "./net1.inp"
 #define DATA_PATH_RPT "./test.rpt"
@@ -28,11 +28,11 @@ BOOST_AUTO_TEST_CASE(test_setid)
 
     EN_ProjectHandle ph = NULL;
     EN_createproject(&ph);
-    
+
     std::string path_inp = std::string(DATA_PATH_INP);
     std::string path_rpt = std::string(DATA_PATH_RPT);
     std::string path_out = std::string(DATA_PATH_OUT);
-    
+
     error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
     BOOST_REQUIRE(error == 0);
 
@@ -68,12 +68,12 @@ BOOST_AUTO_TEST_CASE(test_setid)
     EN_createproject(&ph);
     error = EN_open(ph, "net1_setid.inp", path_rpt.c_str(), "");
     BOOST_REQUIRE(error == 0);
-    
+
     // Check that 3rd node has its new name
     error = EN_getnodeindex(ph, "Node3", &index);
     BOOST_REQUIRE(error == 0);
     BOOST_REQUIRE(index == 3);
-    
+
     // Check that 3rd link has its new name
     error = EN_getlinkindex(ph, "Link3", &index);
     BOOST_REQUIRE(error == 0);

@@ -5,22 +5,18 @@
 
  EPANET2.H - Prototypes for EPANET Functions Exported to DLL Toolkit
 
- VERSION:    2.00
- DATE:       5/8/00
- 10/25/00
- 3/1/01
- 8/15/07    (2.00.11)
- 2/14/08    (2.00.12)
+ VERSION:    2.1.0
+ DATE:       7/25/2016
  AUTHORS:     L. Rossman - US EPA - NRMRL
               OpenWaterAnalytics members: see git stats for contributors
 
  *******************************************************************
  */
 
-#ifndef EPANET2_DEP_H
-#define EPANET2_DEP_H
+#ifndef EPANET_2_1_H
+#define EPANET_2_1_H
 
-#include "epanet2.h"
+#include "epanet_2_2.h"
 
 
 // --- Declare the EPANET toolkit functions
@@ -42,7 +38,7 @@ extern "C" {
  as it carries out its computations. If this feature is not
  needed then the argument should be NULL.
  */
-int  EPANET_DEPRECATED_EXPORT ENepanet(const char *inpFile, const char *rptFile,
+int  DLLEXPORT ENepanet(const char *inpFile, const char *rptFile,
   const char *binOutFile, void (*callback) (char *));
 
 /**
@@ -53,7 +49,7 @@ int  EPANET_DEPRECATED_EXPORT ENepanet(const char *inpFile, const char *rptFile,
  @param HeadlossFormula headloss formula flag
  @return error code
  */
-int  EPANET_DEPRECATED_EXPORT ENinit(const char *rptFile, const char *binOutFile,
+int  DLLEXPORT ENinit(const char *rptFile, const char *binOutFile,
   int UnitsType, int HeadlossFormula);
 
 /**
@@ -63,26 +59,26 @@ int  EPANET_DEPRECATED_EXPORT ENinit(const char *rptFile, const char *binOutFile
  @param binOutFile pointer to name of binary output file (to be created)
  @return error code
  */
-int  EPANET_DEPRECATED_EXPORT ENopen(const char *inpFile, const char *rptFile, const char *binOutFile);
+int  DLLEXPORT ENopen(const char *inpFile, const char *rptFile, const char *binOutFile);
 
 /**
  @brief Saves current data to "INP" formatted text file.
  @param filename The file path to create
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENsaveinpfile(const char *filename);
+int  DLLEXPORT ENsaveinpfile(const char *filename);
 
 /**
  @brief Frees all memory and files used by EPANET
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENclose();
+int  DLLEXPORT ENclose();
 
 /**
  @brief Solves the network hydraulics for all time periods
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENsolveH();
+int  DLLEXPORT ENsolveH();
 
 /**
  @brief Saves hydraulic results to binary file
@@ -91,20 +87,20 @@ int  EPANET_DEPRECATED_EXPORT ENsolveH();
  Must be called before ENreport() if no WQ simulation has been made.
  Should not be called if ENsolveQ() will be used.
  */
-int  EPANET_DEPRECATED_EXPORT ENsaveH();
+int  DLLEXPORT ENsaveH();
 
 /**
  @brief Sets up data structures for hydraulic analysis
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENopenH();
+int  DLLEXPORT ENopenH();
 
 /**
  @brief Initializes hydraulic analysis
  @param initFlag 2-digit flag where 1st (left) digit indicates if link flows should be re-initialized (1) or not (0), and 2nd digit indicates if hydraulic results should be saved to file (1) or not (0).
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENinitH(int initFlag);
+int  DLLEXPORT ENinitH(int initFlag);
 
 /**
  @brief Run a hydraulic solution period
@@ -116,7 +112,7 @@ int  EPANET_DEPRECATED_EXPORT ENinitH(int initFlag);
  an extended period hydraulic simulation.
  See ENsolveH() for an example.
  */
-int  EPANET_DEPRECATED_EXPORT ENrunH(long *currentTime);
+int  DLLEXPORT ENrunH(long *currentTime);
 
 /**
  @brief Determine time (in seconds) until next hydraulic event
@@ -126,47 +122,47 @@ int  EPANET_DEPRECATED_EXPORT ENrunH(long *currentTime);
  This function is used in a loop with ENrunH() to run an extended period hydraulic simulation.
  See ENsolveH() for an example.
  */
-int  EPANET_DEPRECATED_EXPORT ENnextH(long *tStep);
+int  DLLEXPORT ENnextH(long *tStep);
 
 
 /**
  @brief Frees data allocated by hydraulics solver
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENcloseH();
+int  DLLEXPORT ENcloseH();
 
 /**
  @brief Copies binary hydraulics file to disk
  @param filename Name of file to be created
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENsavehydfile(char *filename);
+int  DLLEXPORT ENsavehydfile(char *filename);
 
 /**
  @brief Opens previously saved binary hydraulics file
  @param filename Name of file to be used
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENusehydfile(char *filename);
+int  DLLEXPORT ENusehydfile(char *filename);
 
 /**
  @brief Solves for network water quality in all time periods
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENsolveQ();
+int  DLLEXPORT ENsolveQ();
 
 /**
  @brief Sets up data structures for WQ analysis
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENopenQ();
+int  DLLEXPORT ENopenQ();
 
 /**
  @brief Initializes water quality analysis
  @param saveFlag EN_SAVE (1) if results saved to file, EN_NOSAVE (0) if not
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENinitQ(int saveFlag);
+int  DLLEXPORT ENinitQ(int saveFlag);
 
 /**
  @brief Retrieves hydraulic & WQ results at time t.
@@ -177,7 +173,7 @@ int  EPANET_DEPRECATED_EXPORT ENinitQ(int saveFlag);
  an extended period WQ simulation. See ENsolveQ() for
  an example.
  */
-int  EPANET_DEPRECATED_EXPORT ENrunQ(long *currentTime);
+int  DLLEXPORT ENrunQ(long *currentTime);
 
 /**
  @brief Advances WQ simulation to next hydraulic event.
@@ -188,7 +184,7 @@ int  EPANET_DEPRECATED_EXPORT ENrunQ(long *currentTime);
  an extended period WQ simulation. See ENsolveQ() for
  an example.
  */
-int  EPANET_DEPRECATED_EXPORT ENnextQ(long *tStep);
+int  DLLEXPORT ENnextQ(long *tStep);
 
 /**
  @brief Advances WQ simulation by a single WQ time step
@@ -198,38 +194,38 @@ int  EPANET_DEPRECATED_EXPORT ENnextQ(long *tStep);
  This function is used in a loop with ENrunQ() to run
  an extended period WQ simulation.
  */
-int  EPANET_DEPRECATED_EXPORT ENstepQ(long *timeLeft);
+int  DLLEXPORT ENstepQ(long *timeLeft);
 
 /**
  @brief Frees data allocated by water quality solver.
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENcloseQ();
+int  DLLEXPORT ENcloseQ();
 
 /**
  @brief Writes line of text to the report file.
  @param line Text string to write
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENwriteline(char *line);
+int  DLLEXPORT ENwriteline(char *line);
 
 /**
  @brief Writes simulation report to the report file
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENreport();
+int  DLLEXPORT ENreport();
 
 /**
  @brief Resets report options to default values
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENresetreport();
+int  DLLEXPORT ENresetreport();
 
 /**
  @brief Processes a reporting format command
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENsetreport(char *reportFormat);
+int  DLLEXPORT ENsetreport(char *reportFormat);
 
 /**
  @brief Retrieves parameters that define a simple control
@@ -241,7 +237,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetreport(char *reportFormat);
  @param[out] level Control level (tank level, junction pressure, or time (seconds))
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetcontrol(int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level);
+int  DLLEXPORT ENgetcontrol(int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level);
 
 /**
  @brief Retrieves the number of components of a given type in the network.
@@ -249,7 +245,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetcontrol(int controlIndex, int *controlType, i
  @param[out] count Number of components in network
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetcount(int code, int *count);
+int  DLLEXPORT ENgetcount(int code, int *count);
 
 /**
  @brief Gets value for an analysis option
@@ -257,7 +253,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetcount(int code, int *count);
  @param[out] value Option value
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value);
+int  DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value);
 
 /**
  @brief Retrieves value of specific time parameter.
@@ -265,21 +261,21 @@ int  EPANET_DEPRECATED_EXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value);
  @param[out] value Value of time parameter.
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgettimeparam(int code, long *value);
+int  DLLEXPORT ENgettimeparam(int code, long *value);
 
 /**
  @brief Retrieves the flow units code
  @param[out] code Code of flow units in use
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetflowunits(int *code);
+int  DLLEXPORT ENgetflowunits(int *code);
 
 /**
  @brief Sets the flow units
  @param code Code of flow units to use
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENsetflowunits(int code);
+int  DLLEXPORT ENsetflowunits(int code);
 
 /**
  @brief Retrieves the type of demand model in use and its parameters
@@ -289,7 +285,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetflowunits(int code);
  @param[out] pexp  Pressure exponent in demand function
  @return Error code
 */
-int EPANET_DEPRECATED_EXPORT ENgetdemandmodel(int *type, EN_API_FLOAT_TYPE *pmin,
+int DLLEXPORT ENgetdemandmodel(int *type, EN_API_FLOAT_TYPE *pmin,
     EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp);
 
 /**
@@ -300,7 +296,7 @@ int EPANET_DEPRECATED_EXPORT ENgetdemandmodel(int *type, EN_API_FLOAT_TYPE *pmin
 @param pexp  Pressure exponent in demand function
 @return Error code
 */
-int EPANET_DEPRECATED_EXPORT ENsetdemandmodel(int type, EN_API_FLOAT_TYPE pmin,
+int DLLEXPORT ENsetdemandmodel(int type, EN_API_FLOAT_TYPE pmin,
     EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
 
 /**
@@ -310,7 +306,7 @@ int EPANET_DEPRECATED_EXPORT ENsetdemandmodel(int type, EN_API_FLOAT_TYPE pmin,
  @return Error code
  @see ENgetpatternid
  */
-int  EPANET_DEPRECATED_EXPORT ENgetpatternindex(char *id, int *index);
+int  DLLEXPORT ENgetpatternindex(char *id, int *index);
 
 /**
  @brief Retrieves ID of a time pattern with specific index.
@@ -319,7 +315,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetpatternindex(char *id, int *index);
  @return Error code
  @see ENgetpatternindex
  */
-int  EPANET_DEPRECATED_EXPORT ENgetpatternid(int index, char *id);
+int  DLLEXPORT ENgetpatternid(int index, char *id);
 
 /**
  @brief Retrieves the number of multipliers in a time pattern.
@@ -327,7 +323,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetpatternid(int index, char *id);
  @param[out] len The length of the time pattern.
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetpatternlen(int index, int *len);
+int  DLLEXPORT ENgetpatternlen(int index, int *len);
 
 /**
  @brief Retrive a multiplier from a pattern for a specific time period.
@@ -336,7 +332,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetpatternlen(int index, int *len);
  @param[out] value Pattern multiplier
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value);
+int  DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value);
 
 /**
  @brief Retrieve the average multiplier value in a time pattern
@@ -344,7 +340,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetpatternvalue(int index, int period, EN_API_FL
  @param[out] value The average of all of this time pattern's values
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value);
+int  DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value);
 
 /**
  @brief Retrieve the type of quality analytis to be run.
@@ -353,7 +349,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_T
  @return Error code
  @see ENsetqualtype
  */
-int  EPANET_DEPRECATED_EXPORT ENgetqualtype(int *qualcode, int *tracenode);
+int  DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode);
 
 /**
  @brief Get the text of an error code.
@@ -362,7 +358,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetqualtype(int *qualcode, int *tracenode);
  @param maxLen The maximum number of characters to copy into the char pointer errmsg
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgeterror(int errcode, char *errmsg, int maxLen);
+int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen);
 
 /**
  @brief Get hydraulic simulation statistic
@@ -370,7 +366,7 @@ int  EPANET_DEPRECATED_EXPORT ENgeterror(int errcode, char *errmsg, int maxLen);
  @param[out] value The value of the statistic
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value);
+int  DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value);
 
 /**
  @brief Get index of node with specified ID
@@ -379,7 +375,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE* value)
  @return Error code
  @see ENgetnodeid
  */
-int  EPANET_DEPRECATED_EXPORT ENgetnodeindex(char *id, int *index);
+int  DLLEXPORT ENgetnodeindex(char *id, int *index);
 
 /**
  @brief Get the string ID of the specified node.
@@ -388,7 +384,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetnodeindex(char *id, int *index);
  @return Error code
  @see ENgetnodeindex
  */
-int  EPANET_DEPRECATED_EXPORT ENgetnodeid(int index, char *id);
+int  DLLEXPORT ENgetnodeid(int index, char *id);
 
 /**
  @brief Get the type of node with specified index.
@@ -396,7 +392,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetnodeid(int index, char *id);
  @param[out] code The type code for the node.
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetnodetype(int index, int *code);
+int  DLLEXPORT ENgetnodetype(int index, int *code);
 
 /**
  @brief Get a property value for specified node
@@ -406,7 +402,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetnodetype(int index, int *code);
  @return Error code
  @see EN_NodeProperty
  */
-int  EPANET_DEPRECATED_EXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value);
+int  DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value);
 
 /**
  @brief Get coordinates (x,y) for a node.
@@ -416,7 +412,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_T
  @return Error code
  @see ENsetcoord
  */
-int  EPANET_DEPRECATED_EXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+int  DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
 
 /**
  @brief Set coordinates (x,y) for a node.
@@ -426,7 +422,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API
  @return Error code
  @see ENgetcoord
  */
-int  EPANET_DEPRECATED_EXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
+int  DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
 
 /**
  @brief Get the number of demand categories for a node.
@@ -434,7 +430,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_
  @param[out] numDemands The number of demand categories
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
+int  DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
 
 /**
  @brief Get a node's base demand for a specified category.
@@ -442,7 +438,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
  @param demandIndex The index of the demand category (starting at 1)
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetbasedemand(int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
+int  DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
 
 /**
  @brief Get the index of the demand pattern assigned to a node for a category index.
@@ -451,7 +447,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetbasedemand(int nodeIndex, int demandIndex, EN
  @param[out] pattIndex The index of the pattern for this node and category.
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENgetdemandpattern(int nodeIndex, int demandIndex, int *pattIndex);
+int  DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIndex, int *pattIndex);
 
 /**
  @brief Get the index of a Link with specified ID.
@@ -460,7 +456,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetdemandpattern(int nodeIndex, int demandIndex,
  @return Error code
  @see ENgetlinkid
  */
-int  EPANET_DEPRECATED_EXPORT ENgetlinkindex(char *id, int *index);
+int  DLLEXPORT ENgetlinkindex(char *id, int *index);
 
 /**
  @brief Get the string ID of a link with specified index
@@ -469,7 +465,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetlinkindex(char *id, int *index);
  @return Error code
  @see ENgetlinkindex
  */
-int  EPANET_DEPRECATED_EXPORT ENgetlinkid(int index, char *id);
+int  DLLEXPORT ENgetlinkid(int index, char *id);
 
 /**
  @brief Get the link type code for a specified link
@@ -478,7 +474,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetlinkid(int index, char *id);
  @return Error code
  @see EN_LinkType
  */
-int  EPANET_DEPRECATED_EXPORT ENgetlinktype(int index, EN_LinkType *code);
+int  DLLEXPORT ENgetlinktype(int index, EN_LinkType *code);
 
 /**
  @brief Set the link type code for a specified link
@@ -487,7 +483,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetlinktype(int index, EN_LinkType *code);
  @return Error code
  @see EN_LinkType
  */
-int  EPANET_DEPRECATED_EXPORT ENsetlinktype(int *index, EN_LinkType code);
+int  DLLEXPORT ENsetlinktype(int *index, EN_LinkType code);
 
 /**
  @brief Get the indexes of a link's start- and end-nodes.
@@ -497,7 +493,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetlinktype(int *index, EN_LinkType code);
  @return Error code
  @see ENgetnodeid, ENgetlinkid
  */
-int  EPANET_DEPRECATED_EXPORT ENgetlinknodes(int index, int *node1, int *node2);
+int  DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2);
 
 /**
  @brief Get a property value for specified link.
@@ -507,7 +503,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetlinknodes(int index, int *node1, int *node2);
  @return Error code
  @see ENgetnodevalue, EN_LinkProperty
  */
-int  EPANET_DEPRECATED_EXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value);
+int  DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value);
 
 /**
  @brief Get a curve's properties.
@@ -518,7 +514,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_T
  @param[out] yValues The curve's y-values. Pointer must be freed by client.
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
+int  DLLEXPORT ENgetcurve(int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
 
 /**
  @brief Retrieves the curve index for a specified pump index.
@@ -526,7 +522,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetcurve(int curveIndex, char* id, int *nValues,
  @param[out] curveIndex The index of the curve used by the pump.
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENgetheadcurveindex(int pumpIndex, int *curveIndex);
+int  DLLEXPORT ENgetheadcurveindex(int pumpIndex, int *curveIndex);
 
 /**
  @brief Sets the curve id for a specified pump index.
@@ -534,7 +530,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetheadcurveindex(int pumpIndex, int *curveIndex
  @param curveIndex The index of the curve used by the pump
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetheadcurveindex(int pumpIndex, int curveIndex);
+int  DLLEXPORT ENsetheadcurveindex(int pumpIndex, int curveIndex);
 
 /**
  @brief Get the type of pump
@@ -543,7 +539,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetheadcurveindex(int pumpIndex, int curveIndex)
  @return Error code
  @see EN_PumpType
  */
-int  EPANET_DEPRECATED_EXPORT ENgetpumptype(int linkIndex, int *outType);
+int  DLLEXPORT ENgetpumptype(int linkIndex, int *outType);
 
 /**
  @brief Get the type of a curve
@@ -552,14 +548,14 @@ int  EPANET_DEPRECATED_EXPORT ENgetpumptype(int linkIndex, int *outType);
  @return Error code
  @see EN_CurveType
  */
-int  EPANET_DEPRECATED_EXPORT ENgetcurvetype(int curveIndex, int *outType);
+int  DLLEXPORT ENgetcurvetype(int curveIndex, int *outType);
 
 /**
  @brief Get the version number. This number is to be interpreted with implied decimals, i.e., "20100" == "2(.)01(.)00"
  @param[out] version The version of EPANET
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENgetversion(int *version);
+int  DLLEXPORT ENgetversion(int *version);
 
 /**
  @brief Specify parameters to add a new simple control
@@ -571,14 +567,14 @@ int  EPANET_DEPRECATED_EXPORT ENgetversion(int *version);
  @param level control point (tank level, junction pressure, or time in seconds).
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENaddcontrol(int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+int  DLLEXPORT ENaddcontrol(int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
 
 /**
  @brief Delete an existing simple control
  @param cindex The index of the control. First control is index 1.
  @return Error code.
 */
-int  EPANET_DEPRECATED_EXPORT ENdeletecontrol(int cindex);
+int  DLLEXPORT ENdeletecontrol(int cindex);
 
 /**
  @brief Specify parameters to define a simple control
@@ -590,7 +586,7 @@ int  EPANET_DEPRECATED_EXPORT ENdeletecontrol(int cindex);
  @param level control point (tank level, junction pressure, or time in seconds).
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetcontrol(int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+int  DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
 
 /**
 @brief Change the ID name for a node.
@@ -598,7 +594,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetcontrol(int cindex, int ctype, int lindex, EN
 @param newid A string containing the node's new ID name.
 @return Error code.
 */
-int EPANET_DEPRECATED_EXPORT ENsetnodeid(int index, char *newid);
+int DLLEXPORT ENsetnodeid(int index, char *newid);
 
 /**
  @brief Set a property value for a node.
@@ -608,7 +604,7 @@ int EPANET_DEPRECATED_EXPORT ENsetnodeid(int index, char *newid);
  @return Error code.
  @see EN_NodeProperty
  */
-int  EPANET_DEPRECATED_EXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
+int  DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
 
 /**
 @brief Change the ID name for a link.
@@ -616,7 +612,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_T
 @param newid A string containing the link's new ID name.
 @return Error code.
 */
-int EPANET_DEPRECATED_EXPORT ENsetlinkid(int index, char *newid);
+int DLLEXPORT ENsetlinkid(int index, char *newid);
 
 /**
  @brief Set the indexes of a link's start- and end-nodes.
@@ -626,7 +622,7 @@ int EPANET_DEPRECATED_EXPORT ENsetlinkid(int index, char *newid);
  @return Error code
  @see ENsetnodeid, ENsetlinkid
  */
-int  EPANET_DEPRECATED_EXPORT ENsetlinknodes(int index, int node1, int node2);
+int  DLLEXPORT ENsetlinknodes(int index, int node1, int node2);
 
 /**
  @brief Set a property value for a link.
@@ -636,7 +632,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetlinknodes(int index, int node1, int node2);
  @return Error code.
  @see EN_LinkProperty
  */
-int  EPANET_DEPRECATED_EXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v);
+int  DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v);
 
 /**
  @brief Add a new time pattern.
@@ -644,7 +640,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_T
  @return Error code.
  @see ENgetpatternindex
  */
-int  EPANET_DEPRECATED_EXPORT ENaddpattern(char *id);
+int  DLLEXPORT ENaddpattern(char *id);
 
 /**
  @brief Set multipliers for a specific pattern
@@ -654,7 +650,7 @@ int  EPANET_DEPRECATED_EXPORT ENaddpattern(char *id);
  @return Error code.
  @see ENgetpatternindex
  */
-int  EPANET_DEPRECATED_EXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int len);
+int  DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int len);
 
 /**
  @brief Set the multiplier for a specific pattern at a specific period.
@@ -663,7 +659,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int 
  @param value The value of the multiplier to set.
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value);
+int  DLLEXPORT ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value);
 
 /**
  @brief Set the value for a time parameter.
@@ -672,7 +668,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetpatternvalue(int index, int period, EN_API_FL
  @return Error code.
  @see EN_TimeProperty
  */
-int  EPANET_DEPRECATED_EXPORT ENsettimeparam(int code, long value);
+int  DLLEXPORT ENsettimeparam(int code, long value);
 
 /**
  @brief Set a value for an anlysis option.
@@ -681,14 +677,14 @@ int  EPANET_DEPRECATED_EXPORT ENsettimeparam(int code, long value);
  @return Error code.
  @see EN_Option
  */
-int  EPANET_DEPRECATED_EXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v);
+int  DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v);
 
 /**
  @brief Sets the level of hydraulic status reporting.
  @param code Status reporting code.
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetstatusreport(int code);
+int  DLLEXPORT ENsetstatusreport(int code);
 
 /**
  @brief Sets type of quality analysis called for
@@ -701,7 +697,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetstatusreport(int code);
 
  chemname and chemunits only apply when WQ analysis is for chemical. tracenode only applies when WQ analysis is source tracing.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
+int  DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits, char *tracenode);
 
 /**
  @brief Get quality analysis information (type, chemical name, units, trace node ID)
@@ -712,7 +708,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetqualtype(int qualcode, char *chemname, char *
  @return Error code.
  @see EN_QualityType
  */
-int  EPANET_DEPRECATED_EXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode);
+int  DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits, int *tracenode);
 
 /**
  @brief Sets the node's demand name for a category.
@@ -722,7 +718,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetqualinfo(int *qualcode, char *chemname, char 
  @return Error code.
  @see ENgetdemandname
  */
-int EPANET_DEPRECATED_EXPORT ENsetdemandname(int nodeIndex, int demandIdx, char *demandName);
+int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIdx, char *demandName);
 
 /**
  @brief Retrieves the node's demand name for a category.
@@ -732,7 +728,7 @@ int EPANET_DEPRECATED_EXPORT ENsetdemandname(int nodeIndex, int demandIdx, char 
  @return Error code.
  @see ENsetdemandname
  */
-int EPANET_DEPRECATED_EXPORT ENgetdemandname(int nodeIndex, int demandIdx, char *demandName);
+int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIdx, char *demandName);
 
 /**
  @brief Sets the node's base demand for a category.
@@ -742,7 +738,7 @@ int EPANET_DEPRECATED_EXPORT ENgetdemandname(int nodeIndex, int demandIdx, char 
  @return Error code.
  @see ENgetbasedemand
  */
-int  EPANET_DEPRECATED_EXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
+int  DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand);
 
  /**
  @brief Sets the index of the demand pattern assigned to a node for a category index.
@@ -751,7 +747,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_A
  @param pattIndex The index of the pattern for this node and category.
  @return Error code
  */
-int  EPANET_DEPRECATED_EXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, int patIndex);
+int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, int patIndex);
 
 /**
  @brief Retrieves index of curve with specific ID.
@@ -760,7 +756,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, i
  @return Error code.
  @see ENgetcurveid
  */
-int  EPANET_DEPRECATED_EXPORT ENgetcurveindex(char *id, int *index);
+int  DLLEXPORT ENgetcurveindex(char *id, int *index);
 
 /**
  @brief Retrieves ID of a curve with specific index.
@@ -771,7 +767,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetcurveindex(char *id, int *index);
 
  NOTE: 'id' must be able to hold MAXID characters
  */
-int  EPANET_DEPRECATED_EXPORT ENgetcurveid(int index, char *id);
+int  DLLEXPORT ENgetcurveid(int index, char *id);
 
 /**
  @brief Retrieves number of points in a curve
@@ -780,7 +776,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetcurveid(int index, char *id);
  @return Error code.
  @see ENgetcurvevalue
  */
-int  EPANET_DEPRECATED_EXPORT ENgetcurvelen(int index, int *len);
+int  DLLEXPORT ENgetcurvelen(int index, int *len);
 
 /**
  @brief retrieves x,y point for a specific point number and curve
@@ -791,7 +787,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetcurvelen(int index, int *len);
  @return Error code.
  @see ENgetcurvelen ENsetcurvevalue
  */
-int  EPANET_DEPRECATED_EXPORT ENgetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+int  DLLEXPORT ENgetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
 
 /**
  @brief Sets x,y point for a specific point and curve.
@@ -801,7 +797,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetcurvevalue(int curveIndex, int pointIndex, EN
  @param y The y-value of the point.
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
+int  DLLEXPORT ENsetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
 
 /**
  @brief Sets x,y values for a specified curve.
@@ -811,7 +807,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetcurvevalue(int curveIndex, int pointIndex, EN
  @param len The length of the arrays x and y.
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
+int  DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
 
 /**
  @brief Adds a new curve appended to the end of the existing curves.
@@ -819,7 +815,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API
  @return Error code.
  @see ENgetcurveindex ENsetcurve
  */
-int  EPANET_DEPRECATED_EXPORT ENaddcurve(char *id);
+int  DLLEXPORT ENaddcurve(char *id);
 
 /**
  @brief Gets the number of premises, true actions, and false actions and the priority of an existing rule-based control.
@@ -830,7 +826,7 @@ int  EPANET_DEPRECATED_EXPORT ENaddcurve(char *id);
  @param priority The priority of a rule-based control.
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority);
+int  DLLEXPORT ENgetrule(int index, int *nPremises, int *nTrueActions, int *nFalseActions, EN_API_FLOAT_TYPE *priority);
 
 /**
  @brief Sets the priority of the existing rule-based control.
@@ -838,7 +834,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetrule(int index, int *nPremises, int *nTrueAct
  @param priority The priority to be set in the rule-based control.
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
+int  DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
 
 /**
  @brief Gets the components of a premise/condition in an existing rule-based control.
@@ -853,7 +849,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE pri
  @param value The value of the variable to be checked (e.g. 5.5)
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENgetpremise(int indexRule, int indexPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value);
+int  DLLEXPORT ENgetpremise(int indexRule, int indexPremise, int *logop, int *object, int *indexObj, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value);
 
 /**
  @brief Sets the components of a premise/condition in an existing rule-based control.
@@ -868,7 +864,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetpremise(int indexRule, int indexPremise, int 
  @param value The value of the variable to be checked (e.g. 5.5)
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, EN_API_FLOAT_TYPE value);
+int  DLLEXPORT ENsetpremise(int indexRule, int indexPremise, int logop, int object, int indexObj, int variable, int relop, int status, EN_API_FLOAT_TYPE value);
 
 /**
  @brief Sets the index of an object in a premise of an existing rule-based control.
@@ -877,7 +873,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetpremise(int indexRule, int indexPremise, int 
  @param indexObj The index of the object (e.g. the index of the tank).
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetpremiseindex(int indexRule, int indexPremise, int indexObj);
+int  DLLEXPORT ENsetpremiseindex(int indexRule, int indexPremise, int indexObj);
 
 /**
  @brief Sets the status in a premise of an existing rule-based control.
@@ -886,7 +882,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetpremiseindex(int indexRule, int indexPremise,
  @param status The status of the object to be checked (e.g. CLOSED)
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetpremisestatus(int indexRule, int indexPremise, int status);
+int  DLLEXPORT ENsetpremisestatus(int indexRule, int indexPremise, int status);
 
 /**
  @brief Sets the value in a premise of an existing rule-based control.
@@ -895,7 +891,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetpremisestatus(int indexRule, int indexPremise
  @param value The value of the variable to be checked (e.g. 5.5)
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetpremisevalue(int indexRule, int indexPremise, EN_API_FLOAT_TYPE value);
+int  DLLEXPORT ENsetpremisevalue(int indexRule, int indexPremise, EN_API_FLOAT_TYPE value);
 
 /**
  @brief Gets the components of a true-action in an existing rule-based control.
@@ -906,7 +902,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetpremisevalue(int indexRule, int indexPremise,
  @param setting The value of the link (e.g. pump speed 0.9)
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
+int  DLLEXPORT ENgettrueaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
 
 /**
  @brief Sets the components of a true-action in an existing rule-based control.
@@ -917,7 +913,7 @@ int  EPANET_DEPRECATED_EXPORT ENgettrueaction(int indexRule, int indexAction, in
  @param setting The value of the link (e.g. pump speed 0.9)
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
+int  DLLEXPORT ENsettrueaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
 
 /**
  @brief Gets the components of a false-action in an existing rule-based control.
@@ -928,7 +924,7 @@ int  EPANET_DEPRECATED_EXPORT ENsettrueaction(int indexRule, int indexAction, in
  @param setting The value of the link (e.g. pump speed 0.9)
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
+int  DLLEXPORT ENgetfalseaction(int indexRule, int indexAction, int *indexLink, int *status, EN_API_FLOAT_TYPE *setting);
 
 /**
  @brief Sets the components of a false-action in an existing rule-based control.
@@ -939,7 +935,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetfalseaction(int indexRule, int indexAction, i
  @param setting The value of the link (e.g. pump speed 0.9)
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
+int  DLLEXPORT ENsetfalseaction(int indexRule, int indexAction, int indexLink, int status, EN_API_FLOAT_TYPE setting);
 
 /**
  @brief Returns the ID of a rule.
@@ -947,7 +943,7 @@ int  EPANET_DEPRECATED_EXPORT ENsetfalseaction(int indexRule, int indexAction, i
  @param id The ID of the rule
  @return Error code.
  */
-int  EPANET_DEPRECATED_EXPORT ENgetruleID(int indexRule, char* id);
+int  DLLEXPORT ENgetruleID(int indexRule, char* id);
 
 /**
  @brief Adds a new node
@@ -955,7 +951,7 @@ int  EPANET_DEPRECATED_EXPORT ENgetruleID(int indexRule, char* id);
  @param nodeType The node type code
  @return Error code.
  */
-int EPANET_DEPRECATED_EXPORT ENaddnode(char *id, EN_NodeType nodeType);
+int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType);
 
 /**
  @brief Adds a new link
@@ -965,25 +961,25 @@ int EPANET_DEPRECATED_EXPORT ENaddnode(char *id, EN_NodeType nodeType);
  @param toNode The id of the to node
  @return Error code.
  */
-int EPANET_DEPRECATED_EXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode);
+int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode);
 
 /**
  @brief Deletes a node
  @param nodeIndex The node index
  @return Error code.
  */
-int EPANET_DEPRECATED_EXPORT ENdeletenode(int nodeIndex);
+int DLLEXPORT ENdeletenode(int nodeIndex);
 
 /**
  @brief Deletes a link
  @param linkIndex The link index
  @return Error code.
  */
-int EPANET_DEPRECATED_EXPORT ENdeletelink(int linkIndex);
+int DLLEXPORT ENdeletelink(int linkIndex);
 
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif //EPANET2_H
+#endif //EPANET_2_1_H

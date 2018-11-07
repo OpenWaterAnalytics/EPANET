@@ -11,7 +11,7 @@ A demand category name is set, the network is saved, reopened and the new demand
 #include <boost/test/included/unit_test.hpp>
 
 #include <string>
-#include "epanet2.h"
+#include "epanet_2_2.h"
 
 // NOTE: Project Home needs to be updated to run unit test
 #define DATA_PATH_INP "./net1.inp"
@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
     int Nindex, ndem;
     char demname[80];
     EN_ProjectHandle ph = NULL;
-    
+
     std::string path_inp = std::string(DATA_PATH_INP);
     std::string path_rpt = std::string(DATA_PATH_RPT);
     std::string path_out = std::string(DATA_PATH_OUT);

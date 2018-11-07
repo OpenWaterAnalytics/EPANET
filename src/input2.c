@@ -34,7 +34,7 @@ The following utility functions are all called from INPUT3.C
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#include "epanet2.h"
+//#include "epanet2.h"
 #include "funcs.h"
 #include <math.h>
 
@@ -54,7 +54,7 @@ int netsize(EN_Project *pr)
 */
 {
   parser_data_t *par = &pr->parser;
-  
+
   char line[MAXLINE + 1]; /* Line from input data file    */
   char *tok;              /* First token of line          */
   int sect, newsect;      /* Input data sections          */
@@ -285,7 +285,7 @@ int newline(EN_Project *pr, int sect, char *line)
 */
 {
   parser_data_t *par = &pr->parser;
-  
+
   int n;
   switch (sect) {
   case _TITLE:
@@ -368,7 +368,7 @@ int getpumpparams(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
-    int i, k, errcode = 0;  
+    int i, k, errcode = 0;
     EN_Network *net = &pr->network;
 
     for (i = 1; i <= net->Npumps; i++)
@@ -425,7 +425,7 @@ int updatepumpparams(EN_Project *pr, int pumpindex)
         curve->Type = P_CURVE;
         npts = curve->Npts;
 
-        // Generic power function curve 
+        // Generic power function curve
         if (npts == 1)
         {
             pump->Ptype = POWER_FUNC;
@@ -435,7 +435,7 @@ int updatepumpparams(EN_Project *pr, int pumpindex)
             q2 = 2.0 * q1;
             h2 = 0.0;
         }
-      
+
         // 3 point curve with shutoff head
         else if (npts == 3 && curve->X[0] == 0.0)
         {
@@ -446,7 +446,7 @@ int updatepumpparams(EN_Project *pr, int pumpindex)
             q2 = curve->X[2];
             h2 = curve->Y[2];
         }
-      
+
         // Custom pump curve
         else
         {
@@ -459,7 +459,7 @@ int updatepumpparams(EN_Project *pr, int pumpindex)
             pump->Q0 = (curve->X[0] + pump->Qmax) / 2.0;
             pump->Hmax = curve->Y[0];
         }
-      
+
         // Compute shape factors & limits of power function curves
         if (pump->Ptype == POWER_FUNC)
         {
@@ -524,7 +524,7 @@ int addpattern(parser_data_t *par, char *id)
 **--------------------------------------------------------------
 */
 {
-  
+
   STmplist *p;
 
   /* Check if ID is same as last one processed */
@@ -624,7 +624,7 @@ int unlinked(EN_Project *pr)
   EN_Network *net = &pr->network;
   int *marked;
   int i, err, errcode;
-  
+
   errcode = 0;
   err = 0;
   marked = (int *)calloc(net->Nnodes + 1, sizeof(int));
@@ -666,7 +666,7 @@ int getpatterns(EN_Project *pr)
   int i, j;
   SFloatlist *f;
   STmplist *pat;
-  
+
   EN_Network *net = &pr->network;
   hydraulics_t *hyd = &pr->hydraulics;
   parser_data_t *par = &pr->parser;
@@ -686,9 +686,9 @@ int getpatterns(EN_Project *pr)
     }
     if (i >= 0 && i <= par->MaxPats) {
       /* Save pattern ID */
-      
+
       Spattern *pattern = &net->Pattern[i];
-      
+
       strcpy(pattern->ID, pat->ID);
 
       /* Give pattern a length of at least 1 */
@@ -731,7 +731,7 @@ int getcurves(EN_Project *pr)
 {
   EN_Network *net = &pr->network;
   parser_data_t *par = &pr->parser;
-  
+
   int i, j;
   double x;
   SFloatlist *fx, *fy;
@@ -745,7 +745,7 @@ int getcurves(EN_Project *pr)
     i = c->i;
     if (i >= 1 && i <= par->MaxCurves) {
       Scurve *curve = &net->Curve[i];
-      
+
       /* Save curve ID */
       strcpy(curve->ID, c->ID);
 
@@ -859,16 +859,16 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
   int  m, n;
   size_t len;
   char *c, *c2;
-  
+
   // clear comment
   comment[0] = '\0';
-  
+
   /* Begin with no tokens */
-  for (n=0; n<maxToks; n++) { 
+  for (n=0; n<maxToks; n++) {
     Tok[n] = NULL;
   }
   n = 0;
-  
+
   /* Truncate s at start of comment */
   c = strchr(s,';');
   if (c) {
@@ -886,7 +886,7 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
     *c = '\0';
   }
   len = (int)strlen(s);
-  
+
   /* Scan s for tokens until nothing left */
   while (len > 0 && n < MAXTOKS)
   {
@@ -899,7 +899,7 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
       {
         s++;                      /* Start token after quote */
         m = (int)strcspn(s,"\"\n\r");  /* Find end quote (or EOL) */
-      }                            
+      }
       s[m] = '\0';                 /* Null-terminate the token */
       Tok[n] = s;                  /* Save pointer to token */
       n++;                         /* Update token count */
@@ -907,7 +907,7 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
     }
   }
   return(n);
-}  
+}
 
 double hour(char *time, char *units)
 /*
@@ -1023,13 +1023,13 @@ void inperrmsg(EN_Project *pr, int err, int sect, char *line)
 */
 {
   parser_data_t *par = &pr->parser;
-  
+
   char errStr[MAXMSG + 1];
   char id[MAXMSG + 1];
-  
+
   /* get text for error message */
   sprintf(pr->Msg, "%s - section: %s", geterrmsg(err, errStr), SectTxt[sect]);
-  
+
   // append ID?
   /* Retrieve ID label of object with input error */
   /* (No ID used for CONTROLS or REPORT sections).*/
@@ -1045,7 +1045,7 @@ void inperrmsg(EN_Project *pr, int err, int sect, char *line)
       sprintf(id, " id: %s", par->Tok[0]);
       break;
   }
-    
+
   strcat(pr->Msg, id);
   writeline(pr, pr->Msg);
 

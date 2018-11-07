@@ -30,7 +30,7 @@ AUTHOR:     L. Rossman
 #include "hash.h"
 #include "text.h"
 #include "types.h"
-#include "epanet2.h"
+//#include "epanet2.h"
 #include "funcs.h"
 #include <math.h>
 
@@ -38,7 +38,7 @@ AUTHOR:     L. Rossman
   --------------------- Module Global Variables  ----------------------
 */
 
-#define MAXITER  200 /* Default max. # hydraulic iterations    */ 
+#define MAXITER  200 /* Default max. # hydraulic iterations    */
 #define HACC 0.001   /* Default hydraulics convergence ratio   */
 #define HTOL 0.0005  /* Default hydraulic head tolerance (ft)  */
 
@@ -59,7 +59,7 @@ AUTHOR:     L. Rossman
 #define RQTOL 1E-7  /* Default low flow resistance tolerance  */
 #define CHECKFREQ 2 /* Default status check frequency         */
 #define MAXCHECK 10 /* Default # iterations for status checks */
-#define DAMPLIMIT 0 /* Default damping threshold              */ 
+#define DAMPLIMIT 0 /* Default damping threshold              */
 
 extern char *Fldname[]; /* Defined in enumstxt.h in EPANET.C      */
 extern char *RptFlowUnitsTxt[];
@@ -107,8 +107,8 @@ void setdefaults(EN_Project *pr)
   strncpy(pr->Title[0], "", TITLELEN);
   strncpy(pr->Title[1], "", TITLELEN);
   strncpy(pr->Title[2], "", TITLELEN);
-  strncpy(out->TmpDir, "", MAXFNAME);   
-  strncpy(out->TmpFname, "", MAXFNAME); 
+  strncpy(out->TmpDir, "", MAXFNAME);
+  strncpy(out->TmpFname, "", MAXFNAME);
   strncpy(out->HydFname, "", MAXFNAME);
   strncpy(pr->MapFname, "", MAXFNAME);
   strncpy(qu->ChemName, t_CHEMICAL, MAXID);
@@ -569,7 +569,7 @@ void convertunits(EN_Project *pr)
   Slink *link;
   Spump *pump;
   Scontrol *control;
-  
+
   /* Convert nodal elevations & initial WQ */
   /* (WQ source units are converted in QUALITY.C */
   for (i = 1; i <= net->Nnodes; i++) {
@@ -687,7 +687,7 @@ void convertunits(EN_Project *pr)
           default:
             break;
         }
-      
+
     }
 
 //////  Moved to inithyd() in hydraul.c  ///////

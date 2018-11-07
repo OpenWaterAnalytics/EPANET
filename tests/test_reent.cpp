@@ -14,7 +14,7 @@
 
 #include <boost/thread.hpp>
 
-#include "epanet2.h"
+#include "epanet_2_2.h"
 
 #define NUM_THREADS 2
 

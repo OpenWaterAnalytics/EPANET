@@ -13,7 +13,7 @@ of the PRV 121 should be 100.
 #include <boost/test/included/unit_test.hpp>
 
 #include <string>
-#include "epanet2.h"
+#include "epanet_2_2.h"
 
 #define DATA_PATH_INP "./net1.inp"
 #define DATA_PATH_RPT "./test.rpt"
@@ -31,11 +31,11 @@ BOOST_AUTO_TEST_CASE(test_setlinktype)
 
     EN_ProjectHandle ph = NULL;
     EN_createproject(&ph);
-    
+
     std::string path_inp = std::string(DATA_PATH_INP);
     std::string path_rpt = std::string(DATA_PATH_RPT);
     std::string path_out = std::string(DATA_PATH_OUT);
-    
+
     error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
     BOOST_REQUIRE(error == 0);
 

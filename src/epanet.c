@@ -124,7 +124,7 @@ execute function x and set the error code equal to its return value.
 #include <math.h>
 
 #include "enumstxt.h"
-#include "epanet2.h"
+#include "epanet_2_2.h"
 #include "funcs.h"
 #include "text.h"
 #include "types.h"
