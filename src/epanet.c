@@ -4,7 +4,8 @@
 EPANET.C -- Hydraulic & Water Quality Simulator for Water Distribution Networks
 
 VERSION:    2.2
-AUTHORS:    OpenWaterAnalytics members: see git stats for contributors
+AUTHORS:    L. Rossman - US EPA - NRMRL
+            OpenWaterAnalytics members: see git stats for contributors
 
 EPANET performs extended period hydraulic and water quality analysis of
 looped, pressurized piping networks. The program consists of the

@@ -11,7 +11,6 @@ AUTHORS:    OpenWaterAnalytics members: see git stats for contributors
 
 #include <stdlib.h>
 
-#include "epanet_2_2.h"
 #include "epanet_2_1.h"
 #include "types.h"
 
@@ -57,7 +56,12 @@ int DLLEXPORT ENsaveinpfile(const char *filename) {
   return EN_saveinpfile(_defaultModel, filename);
 }
 
-int DLLEXPORT ENclose() { return EN_close(_defaultModel); }
+int DLLEXPORT ENclose() {
+    int errcode = 0;
+    ERRCODE(EN_close(_defaultModel));
+    ERRCODE(EN_deleteproject(&_defaultModel));
+    return (errcode);
+}
 
 int DLLEXPORT ENsolveH() { return EN_solveH(_defaultModel); }
 
@@ -231,8 +235,8 @@ int DLLEXPORT ENgetlinkid(int index, char *id) {
   return EN_getlinkid(_defaultModel, index, id);
 }
 
-int DLLEXPORT ENgetlinktype(int index, EN_LinkType *code) {
-  return EN_getlinktype(_defaultModel, index, code);
+int DLLEXPORT ENgetlinktype(int index, int *code) {
+  return EN_getlinktype(_defaultModel, index, (EN_LinkType *)code);
 }
 
 int DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2) {

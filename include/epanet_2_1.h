@@ -16,6 +16,7 @@
 #ifndef EPANET_2_1_H
 #define EPANET_2_1_H
 
+// v2.1 is implemented as a thin wrapper on v2.2
 #include "epanet_2_2.h"
 
 
@@ -474,7 +475,7 @@ int  DLLEXPORT ENgetlinkid(int index, char *id);
  @return Error code
  @see EN_LinkType
  */
-int  DLLEXPORT ENgetlinktype(int index, EN_LinkType *code);
+int  DLLEXPORT ENgetlinktype(int index, int *code);
 
 /**
  @brief Set the link type code for a specified link
@@ -483,7 +484,7 @@ int  DLLEXPORT ENgetlinktype(int index, EN_LinkType *code);
  @return Error code
  @see EN_LinkType
  */
-int  DLLEXPORT ENsetlinktype(int *index, EN_LinkType code);
+int  DLLEXPORT ENsetlinktype(int *index, int code);
 
 /**
  @brief Get the indexes of a link's start- and end-nodes.
@@ -951,7 +952,7 @@ int  DLLEXPORT ENgetruleID(int indexRule, char* id);
  @param nodeType The node type code
  @return Error code.
  */
-int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType);
+int DLLEXPORT ENaddnode(char *id, int nodeType);
 
 /**
  @brief Adds a new link
@@ -961,7 +962,7 @@ int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType);
  @param toNode The id of the to node
  @return Error code.
  */
-int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode);
+int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode);
 
 /**
  @brief Deletes a node
