@@ -16,7 +16,8 @@
 #ifndef EPANET_2_1_H
 #define EPANET_2_1_H
 
-// v2.1 is implemented as a thin wrapper on v2.2
+
+// Sharing preprocessor definitions, macros, and enums with v2.2 API
 #include "epanet_2_2.h"
 
 

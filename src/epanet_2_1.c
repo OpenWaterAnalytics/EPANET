@@ -114,10 +114,8 @@ int DLLEXPORT ENsetreport(char *s) { return EN_setreport(_defaultModel, s); }
 int DLLEXPORT ENgetversion(int *v) { return EN_getversion(v); }
 
 int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex,
-                           EN_API_FLOAT_TYPE *setting, int *nindex,
-                           EN_API_FLOAT_TYPE *level) {
-  return EN_getcontrol(_defaultModel, cindex, ctype, lindex, setting, nindex,
-                       level);
+    EN_API_FLOAT_TYPE *setting, int *nindex, EN_API_FLOAT_TYPE *level) {
+  return EN_getcontrol(_defaultModel, cindex, ctype, lindex, setting, nindex, level);
 }
 
 int DLLEXPORT ENgetcount(int code, int *count) {
@@ -288,8 +286,8 @@ int DLLEXPORT ENsetlinknodes(int index, int node1, int node2) {
   return EN_setlinknodes(_defaultModel, index, node1, node2);
 }
 
-int DLLEXPORT ENsetlinktype(int *index, EN_LinkType type) {
-  return EN_setlinktype(_defaultModel, index, type);
+int DLLEXPORT ENsetlinktype(int *index, int type) {
+  return EN_setlinktype(_defaultModel, index, (EN_LinkType)type);
 }
 
 int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v) {
@@ -444,13 +442,12 @@ int DLLEXPORT ENgetruleID(int indexRule, char* id){
   return EN_getruleID(_defaultModel, indexRule, id);
 }
 
-int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType) {
-  return EN_addnode(_defaultModel, id, nodeType);
+int DLLEXPORT ENaddnode(char *id, int nodeType) {
+  return EN_addnode(_defaultModel, id, (EN_NodeType)nodeType);
 }
 
-int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode,
-                        char *toNode) {
-  return EN_addlink(_defaultModel, id, linkType, fromNode, toNode);
+int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode) {
+  return EN_addlink(_defaultModel, id, (EN_LinkType)linkType, fromNode, toNode);
 }
 
 int DLLEXPORT ENdeletelink(int index) {
