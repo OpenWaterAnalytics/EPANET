@@ -24,34 +24,42 @@
 
 #define DATA_PATH "./example1.out"
 
-using namespace std; 
+using namespace std;
 
-// Custom test to check the minimum number of correct decimal digits between 
-// the test and the ref vectors.  
-boost::test_tools::predicate_result check_cdd(std::vector<float>& test, 
-    std::vector<float>& ref, long cdd_tol)
-{
-    float tmp, min_cdd = 100.0;
-    
-    // TODO: What is the vectors aren't the same length? 
+// Custom test to check the minimum number of correct decimal digits between
+// the test and the ref vectors.
+boost::test_tools::predicate_result check_cdd(std::vector<float>& test,
+    std::vector<float>& ref, long cdd_tol){
+    float tmp, min_cdd = 10.0;
+
+    // TODO: What if the vectors aren't the same length?
 
     std::vector<float>::iterator test_it;
     std::vector<float>::iterator ref_it;
 
-    for (test_it = test.begin(); test_it < test.end(); ++test_it) {
-        for (ref_it = ref.begin(); ref_it < ref.end(); ++ref_it) {
-             
-             if (*test_it != *ref_it) {
-                tmp = - log10f(abs(*test_it - *ref_it));
-                if (tmp < min_cdd) min_cdd = tmp;
-            }
+    for (test_it = test.begin(), ref_it = ref.begin();
+        (test_it < test.end()) && (ref_it < ref.end());
+        ++test_it, ++ref_it)
+    {
+        if (*test_it != *ref_it) {
+            // Compute log absolute error
+            tmp = abs(*test_it - *ref_it);
+            if (tmp < 1.0e-7f)
+                tmp = 1.0e-7f;
+
+            else if (tmp > 2.0f)
+                tmp = 1.0f;
+
+            tmp = -log10(tmp);
+            if (tmp < 0.0f)
+                tmp = 0.0f;
+
+            if (tmp < min_cdd)
+                min_cdd = tmp;
         }
     }
 
-    if (min_cdd == 100.0)
-        return true; 
-    else
-        return floor(min_cdd) <= cdd_tol;
+    return floor(min_cdd) >= cdd_tol;
 }
 
 boost::test_tools::predicate_result check_string(std::string test, std::string ref)
@@ -96,7 +104,7 @@ struct Fixture{
         free((void*)array);
         error = ENR_close(&p_handle);
     }
-    
+
     std::string path;
     int error;
     ENR_Handle p_handle;
@@ -110,14 +118,14 @@ BOOST_AUTO_TEST_SUITE(test_output_fixture)
 BOOST_FIXTURE_TEST_CASE(test_getNetSize, Fixture)
 {
     int *i_array = NULL;
-    
+
     error = ENR_getNetSize(p_handle, &i_array, &array_dim);
     BOOST_REQUIRE(error == 0);
 
     // nodes, tanks, links, pumps, valves
     std::vector<int> test;
     test.assign(i_array, i_array + array_dim);
- 
+
 	std::vector<int> ref = {11,2,13,1,0};
 
     BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
@@ -149,11 +157,11 @@ BOOST_FIXTURE_TEST_CASE(test_getElementName, Fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNodeAttribute, Fixture) {
-    
+
     error = ENR_getNodeAttribute(p_handle, 1, ENR_quality, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
 
-    std::vector<float> ref_vec = { 1.0f, 
+    std::vector<float> ref_vec = { 1.0f,
 		                           0.44407997f,
                                    0.43766347f,
                                    0.42827705f,
@@ -197,10 +205,10 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkAttribute, Fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNodeResult, Fixture) {
-    
+
     error = ENR_getNodeResult(p_handle, 1, 2, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
-    
+
 	std::vector<float> ref_vec = {0.041142918f,
                                   150.0f,
                                   987.98358f,
@@ -213,7 +221,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeResult, Fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getLinkResult, Fixture) {
-    
+
     error = ENR_getLinkResult(p_handle, 24, 13, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
 
@@ -233,7 +241,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkResult, Fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNodeSeries, Fixture){
-    
+
     error = ENR_getNodeSeries(p_handle, 2, ENR_pressure, 0, 10, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
 
@@ -250,12 +258,12 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeSeries, Fixture){
 
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
-    
+
     BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getLinkSeries, Fixture) {
-    
+
     error = ENR_getLinkSeries(p_handle, 2, ENR_flow, 0, 10, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
 
@@ -277,7 +285,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkSeries, Fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNetReacts, Fixture) {
-    
+
     error = ENR_getNetReacts(p_handle, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
 
@@ -293,7 +301,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNetReacts, Fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getEnergyUsage, Fixture) {
-    
+
     int linkIdx;
 
     error = ENR_getEnergyUsage(p_handle, 1, &linkIdx, &array, &array_dim);

@@ -36,6 +36,7 @@ EXPORTS
     ENgetlinkid                   = _ENgetlinkid@8                      
     ENgetlinkindex                = _ENgetlinkindex@8                   
     ENgetlinknodes                = _ENgetlinknodes@12                  
+    ENsetlinknodes                = _ENsetlinknodes@12                  
     ENgetlinktype                 = _ENgetlinktype@8                    
     ENgetlinkvalue                = _ENgetlinkvalue@12                  
     ENgetnodeid                   = _ENgetnodeid@8                      

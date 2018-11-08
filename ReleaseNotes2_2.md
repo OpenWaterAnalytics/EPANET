@@ -1,4 +1,3 @@
-﻿
 Release Notes for EPANET 2.2 (Draft)
 ============================
 
@@ -162,6 +161,35 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`ENdeleterule` ||
 |`ENsetnodeid` ||
 |`ENsetlinkid` ||
+|`ENgetcurvetype`|Get the type of a curve|
+|`ENgetdemandmodel`|Retrieves the type of demand model in use and its parameters|
+|`ENsetdemandmodel`|Sets the type of demand model to use and its parameters|
+|`ENsetflowunits`|Sets the flow units|
+|`ENaddcontrol`|Specify parameters to add a new simple control|
+|`ENsetdemandpattern`|Sets the index of the demand pattern assigned to a node for a category index|
+|`ENgetrule`|Gets the number of premises, true actions, and false actions and the priority of an existing rule-based control|
+|`ENsetrulepriority`|Sets the priority of the existing rule-based control|
+|`ENgetpremise`|Gets the components of a premise/condition in an existing rule-based control|
+|`ENsetpremise`|Sets the components of a premise/condition in an existing rule-based control|
+|`ENsetpremiseindex`|Sets the index of an object in a premise of an existing rule-based control|
+|`ENsetpremisestatus`|Sets the status in a premise of an existing rule-based control|
+|`ENsetpremisevalue`|Sets the value in a premise of an existing rule-based control|
+|`ENgettrueaction`|Gets the components of a true-action in an existing rule-based control|
+|`ENsettrueaction`|Sets the components of a true-action in an existing rule-based control|
+|`ENgetfalseaction`|Gets the components of a false-action in an existing rule-based control|
+|`ENsetfalseaction`|Sets the components of a false-action in an existing rule-based control|
+|`ENgetruleID`|Returns the ID of a rule|
+|`ENinit`|Initializes an EPANET session|
+|`ENsetheadcurveindex`|Sets the curve id for a specified pump index|
+|`ENsetlinktype`|Set the link type code for a specified link|
+|`ENaddnode`|Adds a new node|
+|`ENaddlink`|Adds a new link|
+|`ENdeletelink`|Deletes a link|
+|`ENdeletenode`|Deletes a node|
+| `ENsetnodeid` |Change the ID name for a node|
+| `ENsetlinkid` |Change the ID name for a link|
+|`ENgetdemandname`|Sets the node's demand name for a category|
+|`ENsetdemandname`|Sets the node's demand name for a category|
 
 ## API Extensions (additional definitions)
 ### Link value types:
@@ -178,10 +206,14 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
  - `EN_HW`
  - `EN_DW`
  - `EN_CM`
-### Misc. options:
+### Option types:
  - `EN_HEADERROR`
  - `EN_FLOWCHANGE`
  - `EN_DEMANDDEFPAT`
+ - `EN_HEADLOSSFORM`
+### Time statistic types:
+ - `EN_MAXHEADERROR`
+ - `EN_MAXFLOWCHANGE`
  - `EN_MASSBALANCE`
  - `EN_UNCONDITIONAL`
  - `EN_CONDITIONAL`
@@ -191,7 +223,10 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
  - `EN_E_CURVE`
  - `EN_H_CURVE`
  - `EN_G_CURVE`
-
+### Demand model types:
+ - `EN_DDA`
+ - `EN_PDA`
+ 
 ## Authors contributing to this release:
  - List item
 
