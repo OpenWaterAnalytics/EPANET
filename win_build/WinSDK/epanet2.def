@@ -11,8 +11,8 @@ EXPORTS
     ENcloseH                      = _ENcloseH@0                         
     ENcloseQ                      = _ENcloseQ@0
     ENdeletecontrol               = _ENdeletecontrol@4
-    ENdeletelink                  = _ENdeletelink@4
-    ENdeletenode                  = _ENdeletenode@4
+    ENdeletelink                  = _ENdeletelink@8
+    ENdeletenode                  = _ENdeletenode@8
     ENdeleterule                  = _ENdeleterule@4
     ENepanet                      = _ENepanet@16
     ENgetaveragepatternvalue      = _ENgetaveragepatternvalue@8
@@ -87,7 +87,7 @@ EXPORTS
     ENsetheadcurveindex           = _ENsetheadcurveindex@8
     ENsetlinkid                   = _ENsetlinkid@8
     ENsetlinknodes                = _ENsetlinknodes@12
-    ENsetlinktype                 = _ENsetlinktype@8
+    ENsetlinktype                 = _ENsetlinktype@12
     ENsetlinkvalue                = _ENsetlinkvalue@12
     ENsetnodeid                   = _ENsetnodeid@8                  
     ENsetnodevalue                = _ENsetnodevalue@12                  
