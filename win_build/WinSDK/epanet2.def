@@ -29,7 +29,7 @@ EXPORTS
     ENgetdemandmodel              = _ENgetdemandmodel@16
     ENgetdemandname               = _ENgetdemandname@12
     ENgetdemandpattern            = _ENgetdemandpattern@12
-    ENgetelseaction               = _ENgetfalseaction@20
+    ENgetelseaction               = _ENgetelseaction@20
     ENgeterror                    = _ENgeterror@12                      
     ENgetflowunits                = _ENgetflowunits@4                   
     ENgetheadcurveindex           = _ENgetheadcurveindex@8
@@ -56,7 +56,7 @@ EXPORTS
     ENgetrule                     = _ENgetrule@20
     ENgetruleID                   = _ENgetruleID@8
     ENgetstatistic                = _ENgetstatistic@8
-    ENgetthenaction               = _ENgettrueaction@20
+    ENgetthenaction               = _ENgetthenaction@20
     ENgettimeparam                = _ENgettimeparam@8                   
     ENgetversion                  = _ENgetversion@4
     ENinit                        = _ENinit@16
@@ -82,7 +82,7 @@ EXPORTS
     ENsetdemandmodel              = _ENsetdemandmodel@16
     ENsetdemandname               = _ENsetdemandname@12
     ENsetdemandpattern            = _ENsetdemandpattern@12
-    ENsetelseaction               = _ENsetfalseaction@20
+    ENsetelseaction               = _ENsetelseaction@20
     ENsetflowunits                = _ENsetflowunits@4
     ENsetheadcurveindex           = _ENsetheadcurveindex@8
     ENsetlinkid                   = _ENsetlinkid@8
@@ -102,7 +102,7 @@ EXPORTS
     ENsetreport                   = _ENsetreport@4                      
     ENsetrulepriority             = _ENsetrulepriority@8
     ENsetstatusreport             = _ENsetstatusreport@4                
-    ENsetthenaction               = _ENsettrueaction@20
+    ENsetthenaction               = _ENsetthenaction@20
     ENsettimeparam                = _ENsettimeparam@8                   
     ENsolveH                      = _ENsolveH@0                         
     ENsolveQ                      = _ENsolveQ@0                         
