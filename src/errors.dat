@@ -57,7 +57,7 @@ DAT(257,ENERR_NO_RULE,"function applied to nonexistent rule")
 DAT(258,ENERR_NO_CONDITION_ACTION,"function applied to nonexistent rule clause")
 
 DAT(260,ENERR_DEL_TRACE_NODE,"cannot delete node assigned as a Trace Node")
-DAT(261,ENERR_DEL_NODE_LINK, "cannot delete a node or link contained in a control")
+DAT(261,ENERR_DEL_NODE_LINK, "cannot delete a node or link contained in a control or rule")
 
 DAT(301,ENERR_FILES_ARE_SAME,"identical file names")
 DAT(302,ENERR_CANT_OPEN_INP,"cannot open input file")
