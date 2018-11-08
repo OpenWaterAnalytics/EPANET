@@ -27,11 +27,11 @@ AUTHOR:     L. Rossman
 #ifndef __APPLE__
 #include <malloc.h>
 #endif
+
+#include "types.h"
+#include "funcs.h"
 #include "hash.h"
 #include "text.h"
-#include "types.h"
-#include "epanet2.h"
-#include "funcs.h"
 #include <math.h>
 
 /*
@@ -107,8 +107,6 @@ void setdefaults(EN_Project *pr)
   strncpy(pr->Title[0], "", TITLELEN);
   strncpy(pr->Title[1], "", TITLELEN);
   strncpy(pr->Title[2], "", TITLELEN);
-  strncpy(out->TmpDir, "", MAXFNAME);   
-  strncpy(out->TmpFname, "", MAXFNAME); 
   strncpy(out->HydFname, "", MAXFNAME);
   strncpy(pr->MapFname, "", MAXFNAME);
   strncpy(qu->ChemName, t_CHEMICAL, MAXID);
@@ -324,7 +322,7 @@ void adjustdata(EN_Project *pr)
   /* See if default reaction coeffs. apply */
   for (i = 1; i <= net->Nlinks; i++) {
     Slink *link = &net->Link[i];
-    if (link->Type > EN_PIPE)
+    if (link->Type > PIPE)
       continue;
     if (link->Kb == MISSING)
       link->Kb = qu->Kbulk;      /* Bulk coeff. */
@@ -406,9 +404,8 @@ int inittanks(EN_Project *pr)
 
     /* Report error in levels if found */
     if (levelerr) {
-      char errMsg[MAXMSG+1];
-      EN_geterror(225, errMsg, MAXMSG);
-      sprintf(pr->Msg, "%s node: %s", errMsg, net->Node[tank->Node].ID);
+      sprintf(pr->Msg, "%s node: %s", geterrmsg(225, pr->Msg),
+              net->Node[tank->Node].ID);
       writeline(pr, pr->Msg);
       errcode = 200;
     }
@@ -629,7 +626,7 @@ void convertunits(EN_Project *pr)
   /* Convert units of link parameters */
   for (k = 1; k <= net->Nlinks; k++) {
     link = &net->Link[k];
-    if (link->Type <= EN_PIPE) {
+    if (link->Type <= PIPE) {
       /* Convert pipe parameter units:                         */
       /*    - for Darcy-Weisbach formula, convert roughness    */
       /*      from millifeet (or mm) to ft (or m)              */
@@ -647,7 +644,7 @@ void convertunits(EN_Project *pr)
       link->Kw /= SECperDAY;
     }
 
-    else if (link->Type == EN_PUMP) {
+    else if (link->Type == PUMP) {
       /* Convert units for pump curve parameters */
       i = findpump(net, k);
       pump = &net->Pump[i];
@@ -676,12 +673,12 @@ void convertunits(EN_Project *pr)
       link->Km = 0.02517 * link->Km / SQR(link->Diam) / SQR(link->Diam);
       if (link->Kc != MISSING)
         switch (link->Type) {
-          case EN_FCV:
+          case FCV:
             link->Kc /= pr->Ucf[FLOW];
             break;
-          case EN_PRV:
-          case EN_PSV:
-          case EN_PBV:
+          case PRV:
+          case PSV:
+          case PBV:
             link->Kc /= pr->Ucf[PRESSURE];
             break;
           default:
@@ -716,12 +713,12 @@ void convertunits(EN_Project *pr)
     /* Convert units on valve settings */
     if (control->Setting != MISSING) {
       switch (link->Type) {
-        case EN_PRV:
-        case EN_PSV:
-        case EN_PBV:
+        case PRV:
+        case PSV:
+        case PBV:
           control->Setting /= pr->Ucf[PRESSURE];
           break;
-        case EN_FCV:
+        case FCV:
           control->Setting /= pr->Ucf[FLOW];
         default:
           break;

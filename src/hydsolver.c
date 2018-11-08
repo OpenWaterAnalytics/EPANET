@@ -18,9 +18,10 @@ The solver implements Todini's Global Gradient Algorithm.
 #include <stdlib.h>
 #endif
 #include <math.h>
-#include "text.h"
+
 #include "types.h"
 #include "funcs.h"
+#include "text.h"
 
 // Hydraulic balance error for network being analyzed
 typedef struct {
@@ -241,7 +242,7 @@ int  badvalve(EN_Project *pr, int n)
     report_options_t *rep  = &pr->report;
     time_options_t   *time = &pr->time_options;
     Slink *link;
-    EN_LinkType t;
+    LinkType t;
 
     for (i = 1; i <= net->Nvalves; i++)
     {
@@ -252,7 +253,7 @@ int  badvalve(EN_Project *pr, int n)
         if (n == n1 || n == n2)
         {
             t = link->Type;
-            if (t == EN_PRV || t == EN_PSV || t == EN_FCV)
+            if (t == PRV || t == PSV || t == FCV)
             {
                 if (hyd->LinkStatus[k] == ACTIVE)
                 {
@@ -261,7 +262,7 @@ int  badvalve(EN_Project *pr, int n)
                         sprintf(pr->Msg, FMT61, clocktime(rep->Atime, time->Htime), link->ID);
                         writeline(pr, pr->Msg);
                     }
-                    if (link->Type == EN_FCV)
+                    if (link->Type == FCV)
                     {
                         hyd->LinkStatus[k] = XFCV;
                     }
@@ -332,15 +333,15 @@ int  pswitch(EN_Project *pr)
             link = &net->Link[k];
             change = 0;
             s = hyd->LinkStatus[k];
-            if (link->Type == EN_PIPE)
+            if (link->Type == PIPE)
             {
                 if (s != net->Control[i].Status) change = 1;
             }
-            if (link->Type == EN_PUMP)
+            if (link->Type == PUMP)
             {
                 if (hyd->LinkSetting[k] != net->Control[i].Setting) change = 1;
             }
-            if (link->Type >= EN_PRV)
+            if (link->Type >= PRV)
             {
                 if (hyd->LinkSetting[k] != net->Control[i].Setting) change = 1;
                 else if (hyd->LinkSetting[k] == MISSING && s != net->Control[i].Status)
@@ -353,7 +354,7 @@ int  pswitch(EN_Project *pr)
             if (change)
             {
                 hyd->LinkStatus[k] = net->Control[i].Status;
-                if (link->Type > EN_PIPE)
+                if (link->Type > PIPE)
                 {
                     hyd->LinkSetting[k] = net->Control[i].Setting;
                 }
@@ -450,7 +451,7 @@ void  newlinkflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsum
         dq *= hyd->RelaxFactor;
 
         // Prevent flow in constant HP pumps from going negative
-        if (link->Type == EN_PUMP)
+        if (link->Type == PUMP)
         {
             n = findpump(net, k);
             if (net->Pump[n].Ptype == CONST_HP && dq > hyd->LinkFlows[k])

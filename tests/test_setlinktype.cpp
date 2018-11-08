@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(test_setlinktype)
     BOOST_REQUIRE(error == 0);
     error = EN_setlinknodes(ph, p113, n113_2, n113_1);
     BOOST_REQUIRE(error == 0);
-    error = EN_setlinktype(ph, &p113, EN_CVPIPE);
+    error = EN_setlinktype(ph, &p113, EN_CVPIPE, 0);
     BOOST_REQUIRE(error == 0);
 
     // Get index & diameter of pipe 121 connected to node 31
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(test_setlinktype)
     BOOST_REQUIRE(error == 0);
 
     // Replace it with a PRV
-    error = EN_setlinktype(ph, &p121, EN_PRV);
+    error = EN_setlinktype(ph, &p121, EN_PRV, 0);
     BOOST_REQUIRE(error == 0);
 
     // Set diameter & setting of new PRV

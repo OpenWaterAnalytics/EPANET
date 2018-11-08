@@ -14,6 +14,7 @@ HYDCOEFFS.C --  hydraulic coefficients for the EPANET Program
 #include <stdlib.h>
 #endif
 #include <math.h>
+
 #include "types.h"
 #include "funcs.h"
 
@@ -82,8 +83,8 @@ void  resistcoeff(EN_Project *pr, int k)
     // ... Link is a pipe. Compute resistance based on headloss formula.
     //     Friction factor for D-W formula gets included during head loss 
     //     calculation.
-    case EN_CVPIPE:
-    case EN_PIPE:
+    case CVPIPE:
+    case PIPE:
         e = link->Kc;                 // Roughness coeff.
         d = link->Diam;               // Diameter
         L = link->Len;                // Length
@@ -108,7 +109,7 @@ void  resistcoeff(EN_Project *pr, int k)
         break;
 
     // ... Link is a pump. Use huge resistance.
-    case EN_PUMP:
+    case PUMP:
         link->R = CBIG;
         break;
 
@@ -138,25 +139,25 @@ void headlosscoeffs(EN_Project *pr)
     {
         switch (net->Link[k].Type)
         {
-        case EN_CVPIPE:
-        case EN_PIPE:
+        case CVPIPE:
+        case PIPE:
             pipecoeff(pr, k);
             break;
-        case EN_PUMP:
+        case PUMP:
             pumpcoeff(pr, k);
             break;
-        case EN_PBV:
+        case PBV:
             pbvcoeff(pr, k);
             break;
-        case EN_TCV:
+        case TCV:
             tcvcoeff(pr, k);
             break;
-        case EN_GPV:
+        case GPV:
             gpvcoeff(pr, k);
             break;
-        case EN_FCV:
-        case EN_PRV:
-        case EN_PSV:
+        case FCV:
+        case PRV:
+        case PSV:
             if (hyd->LinkSetting[k] == MISSING) valvecoeff(pr, k);
             else hyd->solver.P[k] = 0.0;
         }
@@ -317,13 +318,13 @@ void  valvecoeffs(EN_Project *pr)
         // Call valve-specific function
         switch (link->Type) 
         {
-        case EN_PRV:
+        case PRV:
             prvcoeff(pr, k, n1, n2);
             break;
-        case EN_PSV:
+        case PSV:
             psvcoeff(pr, k, n1, n2);
             break;
-        case EN_FCV:
+        case FCV:
             fcvcoeff(pr, k, n1, n2);
             break;
         default:   continue;

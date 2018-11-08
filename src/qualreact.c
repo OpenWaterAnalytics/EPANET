@@ -52,7 +52,7 @@ char setreactflag(EN_Project *pr)
     {
         for (i = 1; i <= net->Nlinks; i++)
         {
-            if (net->Link[i].Type <= EN_PIPE)
+            if (net->Link[i].Type <= PIPE)
             {
                 if (net->Link[i].Kb != 0.0 || net->Link[i].Kw != 0.0) return 1;
             }
@@ -127,7 +127,7 @@ void reactpipes(EN_Project *pr, long dt)
     for (k = 1; k <= net->Nlinks; k++)
     {
         // Skip non-pipe links (pumps & valves)
-        if (net->Link[k].Type != EN_PIPE) continue;
+        if (net->Link[k].Type != PIPE) continue;
         rsum = 0.0;
         vsum = 0.0;
 

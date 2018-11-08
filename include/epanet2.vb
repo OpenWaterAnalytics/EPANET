@@ -176,6 +176,9 @@ Public Const EN_E_CURVE = 2       ' efficiency curve
 Public Const EN_H_CURVE = 3       ' head loss curve
 Public Const EN_G_CURVE = 4       ' General\default curve
 
+Public Const EN_UNCONDITIONAL = 0 ' Unconditional object deletion
+Public Const EN_CONDITIONAL   = 1 ' Conditional object deletion
+
 'These are the external functions that comprise the DLL
 
 'System Functions
@@ -296,6 +299,8 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal Cindex As Int32, ByVal CtlType As Int32, ByVal Lindex As Int32, ByVal Setting As Single, ByVal Nindex As Int32, ByVal Level As Single) As Int32
 
 'Rule-Based Control Functions 
+ Declare Function ENaddrule Lib "epanet2.dll" (ByVal rule As String) as Int32
+ Declare Function ENdeleterule Lib "epanet2.dll" (ByVal index As Int32) As Int32
  Declare Function ENgetrule  Lib "epanet2.dll" (ByVal index As Int32, ByRef nPremises As Int32, ByRef nTrueActions As Int32, ByRef nFalseActions As Int32, ByRef priority As Single) As Int32
  Declare Function ENgetruleID Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal id As StringBuilder) As Int32
  Declare Function ENsetrulepriority Lib "epanet2.dll" (ByVal index As Int32, ByVal priority As Single) As Int32
@@ -304,9 +309,9 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENsetpremiseindex Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByVal indexObj As Int32) As Int32
  Declare Function ENsetpremisestatus Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByVal status As Int32) As Int32
  Declare Function ENsetpremisevalue Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexPremise As Int32, ByVal value As Single) As Int32
- Declare Function ENgettrueaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByRef indexLink As Int32, ByRef status As Int32, ByRef setting As Single) As Int32
- Declare Function ENsettrueaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByVal indexLink As Int32, ByVal status As Int32, ByVal setting As Single) As Int32
- Declare Function ENgetfalseaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByRef indexLink As Int32, ByRef status As Int32, ByRef setting As Single) As Int32
- Declare Function ENsetfalseaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByVal indexLink As Int32, ByVal status As Int32, ByVal setting As Single) As Int32
+ Declare Function ENgetthenaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByRef indexLink As Int32, ByRef status As Int32, ByRef setting As Single) As Int32
+ Declare Function ENsetthenaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByVal indexLink As Int32, ByVal status As Int32, ByVal setting As Single) As Int32
+ Declare Function ENgetelseaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByRef indexLink As Int32, ByRef status As Int32, ByRef setting As Single) As Int32
+ Declare Function ENsetelseaction Lib "epanet2.dll" (ByVal indexRule As Int32, ByVal indexAction As Int32, ByVal indexLink As Int32, ByVal status As Int32, ByVal setting As Single) As Int32
 
 End Module

@@ -30,10 +30,10 @@ AUTHOR:     L. Rossman
 #include <stdlib.h>
 #endif
 
+#include "types.h"
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
-#include "types.h"
 
 enum Rulewords {
   r_RULE,
@@ -96,20 +96,23 @@ static int  newpremise(EN_Project *pr, int);
 static int  newaction(EN_Project *pr);
 static int  newpriority(EN_Project *pr);
 static int  evalpremises(EN_Project *pr, int);
-static void updateactlist(rules_t *rules, int, Action *);
-static int  checkaction(rules_t *rules, int, Action *);
-static int  checkpremise(EN_Project *pr, Premise *);
-static int  checktime(EN_Project *pr, Premise *);
-static int  checkstatus(EN_Project *pr, Premise *);
-static int  checkvalue(EN_Project *pr, Premise *);
+static void updateactionlist(EN_Project *pr, int, Saction *);
+static int  onactionlist(EN_Project *pr, int, Saction *);
+static int  checkpremise(EN_Project *pr, Spremise *);
+static int  checktime(EN_Project *pr, Spremise *);
+static int  checkstatus(EN_Project *pr, Spremise *);
+static int  checkvalue(EN_Project *pr, Spremise *);
 static int  takeactions(EN_Project *pr);
-static void clearactlist(rules_t *rules);
-static void ruleerrmsg(EN_Project *pr, int);
+static void clearactionlist(rules_t *rules);
 static void clearrule(EN_Project *pr, int);
-static void deleterule(EN_Project *pr, int);
+
+static void writepremise(Spremise *p, FILE *f, EN_Network *net);
+static void writeaction(Saction *a, FILE *f, EN_Network *net);
+static void getobjtxt(int objtype, int subtype, char *objtxt);
+static void gettimetxt(double hrs, char *timetxt);
 
 
-void initrules(rules_t *rules)
+void initrules(EN_Project *pr)
 /*
 **--------------------------------------------------------------
 **    Initializes rule base.
@@ -117,8 +120,8 @@ void initrules(rules_t *rules)
 **--------------------------------------------------------------
 */
 {
-  rules->RuleState = r_PRIORITY;
-  rules->Rule = NULL;
+  pr->rules.RuleState = r_PRIORITY;
+  pr->network.Rule = NULL;
 }
 
 void addrule(parser_data_t *par, char *tok)
@@ -142,15 +145,12 @@ int allocrules(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
-  rules_t *rules = &pr->rules;
-  parser_data_t *par = &pr->parser;
+    EN_Network *net = &pr->network;
+    int n = pr->parser.MaxRules + 1;
 
-  rules->Rule = (aRule *)calloc(par->MaxRules + 1, sizeof(aRule));
-  if (rules->Rule == NULL) {
-    return (101);
-  } else {
-    return (0);
-  }
+    net->Rule = (Srule *)calloc(n, sizeof(Srule));
+    if (net->Rule == NULL) return (101);
+    return 0;
 }
 
 void freerules(EN_Project *pr)
@@ -163,7 +163,7 @@ void freerules(EN_Project *pr)
 {
     int i;
     for (i = 1; i <= pr->network.Nrules; i++) clearrule(pr, i);
-    free(pr->rules.Rule);
+    free(pr->network.Rule);
 }
 
 int checkrules(EN_Project *pr, long dt)
@@ -174,38 +174,40 @@ int checkrules(EN_Project *pr, long dt)
 **-----------------------------------------------------
 */
 {
-  EN_Network *net = &pr->network;
-  time_options_t *time = &pr->time_options;
-  rules_t *rules = &pr->rules;
+    EN_Network     *net = &pr->network;
+    time_options_t *time = &pr->time_options;
+    rules_t        *rules = &pr->rules;
 
-  int i, r; /* Number of actions actually taken */
+    int i,
+        actionCount = 0;    // Number of actions actually taken
 
-  /* Start of rule evaluation time interval */
-  rules->Time1 = time->Htime - dt + 1;
+    // Start of rule evaluation time interval
+    rules->Time1 = time->Htime - dt + 1;
 
-  /* Iterate through each rule */
-  rules->ActList = NULL;
-  r = 0;
-  for (i = 1; i <= net->Nrules; i++) {
-    /* If premises true, add THEN clauses to action list. */
-    if (evalpremises(pr, i) == TRUE) {
-      updateactlist(rules, i, rules->Rule[i].Tchain);
+    // Iterate through each rule
+    rules->ActionList = NULL;
+    for (i = 1; i <= net->Nrules; i++)
+    {
+        // If premises true, add THEN clauses to action list
+        if (evalpremises(pr, i) == TRUE)
+        {
+            updateactionlist(pr, i, net->Rule[i].ThenActions);
+        }
+
+        // If premises false, add ELSE actions to list
+        else
+        {
+            if (net->Rule[i].ElseActions != NULL)
+            {
+                updateactionlist(pr, i, net->Rule[i].ElseActions);
+            }
+        }
     }
 
-    /* If premises false, add ELSE actions to list. */
-    else {
-      if (rules->Rule[i].Fchain != NULL) {
-        updateactlist(rules, i, rules->Rule[i].Fchain);
-      }
-    }
-  }
-
-  /* Execute actions then clear list. */
-  if (rules->ActList != NULL) {
-    r = takeactions(pr);
-  }
-  clearactlist(rules);
-  return (r);
+    // Execute actions then clear action list
+    if (rules->ActionList != NULL) actionCount = takeactions(pr);
+    clearactionlist(rules);
+    return actionCount;
 }
 
 int ruledata(EN_Project *pr)
@@ -217,88 +219,99 @@ int ruledata(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
-  EN_Network *net = &pr->network;
-  parser_data_t *par = &pr->parser;
-
-  rules_t *rules = &pr->rules;
-  char **Tok = par->Tok;
+    EN_Network    *net = &pr->network;
+    parser_data_t *par = &pr->parser;
+    rules_t       *rules = &pr->rules;
+    char **Tok = par->Tok;
   
-  int key, /* Keyword code */
-      err;
+    int key, // Keyword code
+        err;
 
-  /* Exit if current rule has an error */
-  if (rules->RuleState == r_ERROR)
-    return (0);
+    // Exit if current rule has an error */
+    if (rules->RuleState == r_ERROR) return 0;
 
-  /* Find the key word that begins the rule statement */
-  err = 0;
-  key = findmatch(Tok[0], Ruleword);
-  switch (key) {
-  case -1:
-    err = 201; /* Unrecognized keyword */
-    break;
-  case r_RULE:
-    net->Nrules++;
-    newrule(pr);
-    rules->RuleState = r_RULE;
-    break;
-  case r_IF:
-    if (rules->RuleState != r_RULE) {
-      err = 221; /* Mis-placed IF clause */
-      break;
-    }
-    rules->RuleState = r_IF;
-    err = newpremise(pr,r_AND);
-    break;
-  case r_AND:
-    if (rules->RuleState == r_IF)
-      err = newpremise(pr, r_AND);
-    else if (rules->RuleState == r_THEN || rules->RuleState == r_ELSE)
-      err = newaction(pr);
-    else
-      err = 221;
-    break;
-  case r_OR:
-    if (rules->RuleState == r_IF)
-      err = newpremise(pr, r_OR);
-    else
-      err = 221;
-    break;
-  case r_THEN:
-    if (rules->RuleState != r_IF) {
-      err = 221; /* Mis-placed THEN clause */
-      break;
-    }
-    rules->RuleState = r_THEN;
-    err = newaction(pr);
-    break;
-  case r_ELSE:
-    if (rules->RuleState != r_THEN) {
-      err = 221; /* Mis-placed ELSE clause */
-      break;
-    }
-    rules->RuleState = r_ELSE;
-    err = newaction(pr);
-    break;
-  case r_PRIORITY:
-    if (rules->RuleState != r_THEN && rules->RuleState != r_ELSE) {
-      err = 221;
-      break;
-    }
-    rules->RuleState = r_PRIORITY;
-    err = newpriority(pr);
-    break;
-  default:
-    err = 201;
-  }
+    // Find the key word that begins the rule statement
+    err = 0;
+    key = findmatch(Tok[0], Ruleword);
+    switch (key)
+    {
+        case -1:
+          err = 201;   // Unrecognized keyword 
+          break;
 
-  /* Set RuleState to r_ERROR if errors found */
-  if (err) {
-    rules->RuleState = r_ERROR;
-    ruleerrmsg(pr,err);
-    err = 200;
-  }
-  return (err);
+        case r_RULE:
+          net->Nrules++;
+          newrule(pr);
+          rules->RuleState = r_RULE;
+          rules->Errcode = 0;
+          break;
+
+        case r_IF:
+          if (rules->RuleState != r_RULE)
+          {
+              err = 221;   // Mis-placed IF clause
+              break;
+          }
+          rules->RuleState = r_IF;
+          err = newpremise(pr, r_AND);
+          break;
+
+        case r_AND:
+          if (rules->RuleState == r_IF) err = newpremise(pr, r_AND);
+          else if (rules->RuleState == r_THEN || rules->RuleState == r_ELSE)
+          {
+              err = newaction(pr);
+          }
+          else err = 221;
+          break;
+
+        case r_OR:
+          if (rules->RuleState == r_IF) err = newpremise(pr, r_OR);
+          else err = 221;
+          break;
+
+        case r_THEN:
+          if (rules->RuleState != r_IF)
+          {
+              err = 221;   // Mis-placed THEN clause
+              break;
+          }
+          rules->RuleState = r_THEN;
+          err = newaction(pr);
+          break;
+
+        case r_ELSE:
+          if (rules->RuleState != r_THEN)
+          {
+            err = 221;   // Mis-placed ELSE clause
+            break;
+          }
+          rules->RuleState = r_ELSE;
+          err = newaction(pr);
+          break;
+
+        case r_PRIORITY:
+          if (rules->RuleState != r_THEN && rules->RuleState != r_ELSE)
+          {
+              err = 221;
+              break;
+          }
+          rules->RuleState = r_PRIORITY;
+          err = newpriority(pr);
+          break;
+
+        default:
+          err = 201;
+    }
+
+    // Set RuleState to r_ERROR if errors found
+    if (err)
+    {
+        rules->RuleState = r_ERROR;
+        rules->Errcode = err;
+        err = 200;
+    }
+    return err;
 }
 
 
@@ -313,14 +326,14 @@ void adjustrules(EN_Project *pr, int objtype, int index)
     int i, delete;
     EN_Network *net = &pr->network;
     rules_t *rules = &pr->rules;
-    Premise *p;
-    Action *a;
+    Spremise *p;
+    Saction *a;
 
     // Delete rules that refer to objtype and index
     for (i = net->Nrules; i >= 1; i--)
     {
         delete = FALSE;
-        p = rules->Rule[i].Pchain;
+        p = net->Rule[i].Premises;
         while (p != NULL && !delete)
         {
             if (objtype == p->object && p->index == index) delete = TRUE;
@@ -328,13 +341,13 @@ void adjustrules(EN_Project *pr, int objtype, int index)
         }
         if (objtype == r_LINK)
         {
-            a = rules->Rule[i].Tchain;
+            a = net->Rule[i].ThenActions;
             while (a != NULL && !delete)
             {
                 if (a->link == index) delete = TRUE;
                 a = a->next;
             }
-            a = rules->Rule[i].Fchain;
+            a = net->Rule[i].ElseActions;
             while (a != NULL && !delete)
             {
                 if (a->link == index) delete = TRUE;
@@ -347,7 +360,7 @@ void adjustrules(EN_Project *pr, int objtype, int index)
     // Adjust all higher object indices to reflect deletion of object index
     for (i = 1; i <= net->Nrules; i++)
     {
-        p = rules->Rule[i].Pchain;
+        p = net->Rule[i].Premises;
         while (p != NULL)
         {
             if (objtype == p->object && p->index > index) p->index--;
@@ -355,43 +368,18 @@ void adjustrules(EN_Project *pr, int objtype, int index)
         }
         if (objtype == r_LINK)
         {
-            a = rules->Rule[i].Tchain;
+            a = net->Rule[i].ThenActions;
             while (a != NULL)
             {
                 if (a->link > index) a->link--;
                 a = a->next;
             }
-            a = rules->Rule[i].Fchain;
+            a = net->Rule[i].ElseActions;
             while (a != NULL)
             {
                 if (a->link > index) a->link--;
                 a = a->next;
             }
-        }
-    }
-}
-
-void adjusttankrules(EN_Project *pr)
-/*
-**-----------------------------------------------------------
-**    Adjusts tank indices in rule premises.
-**    Called by EN_addnode in EPANET.C.
-**-----------------------------------------------------------
-*/
-{
-    int i, njuncs;
-    EN_Network *net = &pr->network;
-    rules_t *rules = &pr->rules;
-    Premise *p;
-
-    njuncs = net->Njuncs;
-    for (i = 1; i <= net->Nrules; i++)
-    {
-        p = rules->Rule[i].Pchain;
-        while (p != NULL)
-        {
-            if (p->object == r_NODE && p->index > njuncs) p->index++;
-            p = p->next;
         }
     }
 }
@@ -405,8 +393,7 @@ void deleterule(EN_Project *pr, int index)
 {
     int i;
     EN_Network *net = &pr->network;
-    rules_t *rules = &pr->rules;
-    aRule *lastRule;
+    Srule *lastRule;
 
     // Free memory allocated to rule's premises & actions
     clearrule(pr, index);
@@ -414,34 +401,59 @@ void deleterule(EN_Project *pr, int index)
     // Shift position of higher indexed rules down one
     for (i = index; i <= net->Nrules - 1; i++)
     {
-        rules->Rule[i] = rules->Rule[i + 1];
+        net->Rule[i] = net->Rule[i + 1];
     }
 
     // Remove premises & actions from last (inactive) entry in Rule array
-    lastRule = &rules->Rule[net->Nrules];
-    lastRule->Pchain = NULL;
-    lastRule->Tchain = NULL;
-    lastRule->Fchain = NULL;
+    lastRule = &net->Rule[net->Nrules];
+    lastRule->Premises = NULL;
+    lastRule->ThenActions = NULL;
+    lastRule->ElseActions = NULL;
 
     // Reduce active rule count by one
     net->Nrules--;
 }
 
-void clearactlist(rules_t *rules)
+void adjusttankrules(EN_Project *pr)
+/*
+**-----------------------------------------------------------
+**    Adjusts tank indices in rule premises.
+**    Called by EN_addnode in EPANET.C.
+**-----------------------------------------------------------
+*/
+{
+    int i, njuncs;
+    EN_Network *net = &pr->network;
+    Spremise *p;
+
+    njuncs = net->Njuncs;
+    for (i = 1; i <= net->Nrules; i++)
+    {
+        p = net->Rule[i].Premises;
+        while (p != NULL)
+        {
+            if (p->object == r_NODE && p->index > njuncs) p->index++;
+            p = p->next;
+        }
+    }
+}
+
+void clearactionlist(rules_t *rules)
 /*
 **----------------------------------------------------------
 **    Clears memory used for action list
 **----------------------------------------------------------
 */
 {  
-  ActItem *a;
-  ActItem *anext;
-  a = rules->ActList;
-  while (a != NULL) {
-    anext = a->next;
-    free(a);
-    a = anext;
-  }
+    SactionList *nextItem;
+    SactionList *actionItem;
+    actionItem = rules->ActionList;
+    while (actionItem != NULL)
+    {
+        nextItem = actionItem->next;
+        free(actionItem);
+        actionItem = nextItem;
+    }
 }
 
 void clearrule(EN_Project *pr, int i)
@@ -451,29 +463,32 @@ void clearrule(EN_Project *pr, int i)
 **-----------------------------------------------------------
 */
 {
-    rules_t *rules = &pr->rules;
-    Premise *p;
-    Premise *pnext;
-    Action *a;
-    Action *anext;
+    EN_Network *net = &pr->network;
+    Spremise *p;
+    Spremise *pnext;
+    Saction *a;
+    Saction *anext;
 
-    p = rules->Rule[i].Pchain;
-    while (p != NULL) {
-      pnext = p->next;
-      free(p);
-      p = pnext;
+    p = net->Rule[i].Premises;
+    while (p != NULL)
+    {
+        pnext = p->next;
+        free(p);
+        p = pnext;
     }
-    a = rules->Rule[i].Tchain;
-    while (a != NULL) {
-      anext = a->next;
-      free(a);
-      a = anext;
+    a = net->Rule[i].ThenActions;
+    while (a != NULL)
+    {
+        anext = a->next;
+        free(a);
+        a = anext;
     }
-    a = rules->Rule[i].Fchain;
-    while (a != NULL) {
-      anext = a->next;
-      free(a);
-      a = anext;
+    a = net->Rule[i].ElseActions;
+    while (a != NULL)
+    {
+        anext = a->next;
+        free(a);
+        a = anext;
     }
 }
 
@@ -484,18 +499,18 @@ void newrule(EN_Project *pr)
 **----------------------------------------------------------
 */
 {
-  EN_Network *net = &pr->network;
-  parser_data_t *par = &pr->parser;
-  rules_t *rules = &pr->rules;
-  char **Tok = par->Tok;
-  strncpy(rules->Rule[net->Nrules].label, Tok[1], MAXID);
-  rules->Rule[net->Nrules].Pchain = NULL;
-  rules->Rule[net->Nrules].Tchain = NULL;
-  rules->Rule[net->Nrules].Fchain = NULL;
-  rules->Rule[net->Nrules].priority = 0.0;
-  rules->Plast = NULL;
-  rules->Tlast = NULL;
-  rules->Flast = NULL;
+    EN_Network *net = &pr->network;
+    char **Tok = pr->parser.Tok;
+    Srule *rule = &net->Rule[net->Nrules];
+
+    strncpy(rule->label, Tok[1], MAXID);
+    rule->Premises = NULL;
+    rule->ThenActions = NULL;
+    rule->ElseActions = NULL;
+    rule->priority = 0.0;
+    pr->rules.LastPremise = NULL;
+    pr->rules.LastThenAction = NULL;
+    pr->rules.LastElseAction = NULL;
 }
 
 int newpremise(EN_Project *pr, int logop)
@@ -519,7 +534,7 @@ int newpremise(EN_Project *pr, int logop)
   
   int i, j, k, m, r, s, v;
   double x;
-  Premise *p;
+  Spremise *p;
 
   /* Check for correct number of tokens */
   if (par->Ntokens != 5 && par->Ntokens != 6)
@@ -638,7 +653,7 @@ int newpremise(EN_Project *pr, int logop)
   }
 
   /* Create new premise structure */
-  p = (Premise *)malloc(sizeof(Premise));
+  p = (Spremise *)malloc(sizeof(Spremise));
   if (p == NULL)
     return (101);
   p->object = i;
@@ -651,11 +666,11 @@ int newpremise(EN_Project *pr, int logop)
 
   /* Add premise to current rule's premise list */
   p->next = NULL;
-  if (rules->Plast == NULL)
-    rules->Rule[net->Nrules].Pchain = p;
+  if (rules->LastPremise == NULL)
+    net->Rule[net->Nrules].Premises = p;
   else
-    rules->Plast->next = p;
-  rules->Plast = p;
+    rules->LastPremise->next = p;
+  rules->LastPremise = p;
   return (0);
 }
 
@@ -678,7 +693,7 @@ int newaction(EN_Project *pr)
 
   int j, k, s;
   double x;
-  Action *a;
+  Saction *a;
 
   /* Check for correct number of tokens */
   if (par->Ntokens != 6)
@@ -691,7 +706,7 @@ int newaction(EN_Project *pr)
 
   /***  Updated 9/7/00  ***/
   /* Cannot control a CV */
-  if (net->Link[j].Type == EN_CVPIPE)
+  if (net->Link[j].Type == CVPIPE)
     return (207);
 
   /* Find value for status or setting */
@@ -710,12 +725,12 @@ int newaction(EN_Project *pr)
 
   /*** Updated 9/7/00 ***/
   /* Cannot change setting for a GPV ***/
-  if (x != MISSING && net->Link[j].Type == EN_GPV)
+  if (x != MISSING && net->Link[j].Type == GPV)
     return (202);
 
   /*** Updated 3/1/01 ***/
   /* Set status for pipe in case setting was specified */
-  if (x != MISSING && net->Link[j].Type == EN_PIPE) {
+  if (x != MISSING && net->Link[j].Type == PIPE) {
     if (x == 0.0)
       s = IS_CLOSED;
     else
@@ -724,7 +739,7 @@ int newaction(EN_Project *pr)
   }
 
   /* Create a new action structure */
-  a = (Action *)malloc(sizeof(Action));
+  a = (Saction *)malloc(sizeof(Saction));
   if (a == NULL)
     return (101);
   a->link = j;
@@ -734,18 +749,18 @@ int newaction(EN_Project *pr)
   /* Add action to current rule's action list */
   if (rules->RuleState == r_THEN) {
     a->next = NULL;
-    if (rules->Tlast == NULL)
-      rules->Rule[net->Nrules].Tchain = a;
+    if (rules->LastThenAction == NULL)
+      net->Rule[net->Nrules].ThenActions = a;
     else
-      rules->Tlast->next = a;
-    rules->Tlast = a;
+      rules->LastThenAction->next = a;
+    rules->LastThenAction = a;
   } else {
     a->next = NULL;
-    if (rules->Flast == NULL)
-      rules->Rule[net->Nrules].Fchain = a;
+    if (rules->LastElseAction == NULL)
+      net->Rule[net->Nrules].ElseActions = a;
     else
-      rules->Flast->next = a;
-    rules->Flast = a;
+      rules->LastElseAction->next = a;
+    rules->LastElseAction = a;
   }
   return (0);
 }
@@ -757,17 +772,53 @@ int newpriority(EN_Project *pr)
 **---------------------------------------------------
 */
 {
-  EN_Network *net = &pr->network;
-  parser_data_t *par = &pr->parser;
-  rules_t *rules = &pr->rules;
-  char **Tok = par->Tok;
-  
-  double x;
-  if (!getfloat(Tok[1], &x))
-    return (202);
-  rules->Rule[net->Nrules].priority = x;
-  return (0);
+    EN_Network *net = &pr->network;
+    char **Tok = pr->parser.Tok;
+    double x;
+
+    if (!getfloat(Tok[1], &x)) return (202);
+    net->Rule[net->Nrules].priority = x;
+    return 0;
 }
+
+Spremise *getpremise(Spremise *premises, int i)
+/*
+**----------------------------------------------------------
+**    Return the i-th premise in a rule
+**----------------------------------------------------------
+*/
+{
+    int count = 0;
+    Spremise *p;
+    p = premises;
+    while (p != NULL)
+    {
+        count++;
+        if (count == i) break;
+        p = p->next;
+    }
+    return p;
+}
+
+Saction *getaction(Saction *actions, int i)
+/*
+**----------------------------------------------------------
+**    Return the i-th action from a rule's action list
+**----------------------------------------------------------
+*/
+{
+    int count = 0;
+    Saction *a;
+    a = actions;
+    while (a != NULL)
+    {
+        count++;
+        if (count == i) break;
+        a = a->next;
+    }
+    return a;
+}
+
 
 int evalpremises(EN_Project *pr, int i)
 /*
@@ -776,112 +827,108 @@ int evalpremises(EN_Project *pr, int i)
 **----------------------------------------------------------
 */
 {
-  rules_t *rules = &pr->rules;
-  
-  int result;
-  Premise *p;
+    EN_Network *net = &pr->network;
+    int result;
+    Spremise *p;
 
-  result = TRUE;
-  p = rules->Rule[i].Pchain;
-  while (p != NULL) {
-    if (p->logop == r_OR) {
-      if (result == FALSE) {
-        result = checkpremise(pr,p);
-      }
-    } else {
-      if (result == FALSE)
-        return (FALSE);
-      result = checkpremise(pr,p);
+    result = TRUE;
+    p = net->Rule[i].Premises;
+    while (p != NULL)
+    {
+        if (p->logop == r_OR)
+        {
+            if (result == FALSE) result = checkpremise(pr, p);
+        }
+        else
+        {
+            if (result == FALSE) return (FALSE);
+            result = checkpremise(pr, p);
+        }
+        p = p->next;
     }
-    p = p->next;
-  }
-  return (result);
+    return result;
 }
 
-int checkpremise(EN_Project *pr, Premise *p)
+int checkpremise(EN_Project *pr, Spremise *p)
 /*
 **----------------------------------------------------------
 **    Checks if a particular premise is true
 **----------------------------------------------------------
 */
 {
-  if (p->variable == r_TIME || p->variable == r_CLOCKTIME)
-    return (checktime(pr,p));
-  else if (p->status > IS_NUMBER)
-    return (checkstatus(pr,p));
-  else
-    return (checkvalue(pr,p));
+    if (p->variable == r_TIME ||
+        p->variable == r_CLOCKTIME) return (checktime(pr,p));
+    else if (p->status > IS_NUMBER) return (checkstatus(pr,p));
+    else return (checkvalue(pr,p));
 }
 
-int checktime(EN_Project *pr, Premise *p)
+int checktime(EN_Project *pr, Spremise *p)
 /*
 **------------------------------------------------------------
 **    Checks if condition on system time holds
 **------------------------------------------------------------
 */
 {
-  time_options_t *time = &pr->time_options;
-  rules_t *rules = &pr->rules;
-  
-  char flag;
-  long t1, t2, x;
+    time_options_t *time = &pr->time_options;
+    rules_t *rules = &pr->rules;
+    char flag;
+    long t1, t2, x;
 
-  /* Get start and end of rule evaluation time interval */
-  if (p->variable == r_TIME) {
-    t1 = rules->Time1;
-    t2 = time->Htime;
-  } 
-  else if (p->variable == r_CLOCKTIME) {
-    t1 = (rules->Time1 + time->Tstart) % SECperDAY;
-    t2 = (time->Htime + time->Tstart) % SECperDAY;
-  } else
-    return (0);
-
-  /* Test premise's time */
-  x = (long)(p->value);
-  switch (p->relop) {
-  /* For inequality, test against current time */
-  case LT:
-    if (t2 >= x)
-      return (0);
-    break;
-  case LE:
-    if (t2 > x)
-      return (0);
-    break;
-  case GT:
-    if (t2 <= x)
-      return (0);
-    break;
-  case GE:
-    if (t2 < x)
-      return (0);
-    break;
-
-  /* For equality, test if within interval */
-  case EQ:
-  case NE:
-    flag = FALSE;
-    if (t2 < t1) /* E.g., 11:00 am to 1:00 am */
+    // Get start and end of rule evaluation time interval
+    if (p->variable == r_TIME)
     {
-      if (x >= t1 || x <= t2)
-        flag = TRUE;
-    } else {
-      if (x >= t1 && x <= t2)
-        flag = TRUE;
+        t1 = rules->Time1;
+        t2 = time->Htime;
+    } 
+    else if (p->variable == r_CLOCKTIME)
+    {
+        t1 = (rules->Time1 + time->Tstart) % SECperDAY;
+        t2 = (time->Htime + time->Tstart) % SECperDAY;
     }
-    if (p->relop == EQ && flag == FALSE)
-      return (0);
-    if (p->relop == NE && flag == TRUE)
-      return (0);
-    break;
-  }
+    else return (0);
 
-  /* If we get to here then premise was satisfied */
-  return (1);
+    // Test premise's time
+    x = (long)(p->value);
+    switch (p->relop)
+    {
+      // For inequality, test against current time
+      case LT:
+        if (t2 >= x) return (0);
+        break;
+      case LE:
+        if (t2 > x) return (0);
+        break;
+      case GT:
+        if (t2 <= x) return (0);
+        break;
+      case GE:
+        if (t2 < x) return (0);
+      break;
+
+      // For equality, test if within interval
+      case EQ:
+      case NE:
+        flag = FALSE;
+        if (t2 < t1) // E.g., 11:00 am to 1:00 am 
+        {
+            if (x >= t1 || x <= t2)
+            flag = TRUE;
+        }
+        else
+        {
+            if (x >= t1 && x <= t2)
+            flag = TRUE;
+        }
+        if (p->relop == EQ && flag == FALSE) return (0);
+        if (p->relop == NE && flag == TRUE)  return (0);
+        break;
+    }
+
+    // If we get to here then premise was satisfied 
+    return 1;
 }
 
-int checkstatus(EN_Project *pr, Premise *p)
+int checkstatus(EN_Project *pr, Spremise *p)
 /*
 **------------------------------------------------------------
 **    Checks if condition on link status holds
@@ -911,7 +958,7 @@ int checkstatus(EN_Project *pr, Premise *p)
   return (0);
 }
 
-int checkvalue(EN_Project *pr, Premise *p)
+int checkvalue(EN_Project *pr, Spremise *p)
 /*
 **----------------------------------------------------------
 **    Checks if numerical condition on a variable is true.
@@ -963,12 +1010,12 @@ int checkvalue(EN_Project *pr, Premise *p)
         return (0);
       x = LinkSetting[i];
       switch (Link[i].Type) {
-        case EN_PRV:
-        case EN_PSV:
-        case EN_PBV:
+        case PRV:
+        case PSV:
+        case PBV:
           x = x * Ucf[PRESSURE];
           break;
-        case EN_FCV:
+        case FCV:
           x = x * Ucf[FLOW];
           break;
         default:
@@ -1027,63 +1074,75 @@ int checkvalue(EN_Project *pr, Premise *p)
   return (1);
 }
 
-void updateactlist(rules_t *rules, int i, Action *actions)
+void updateactionlist(EN_Project *pr, int i, Saction *actions)
 /*
 **---------------------------------------------------
 **    Adds rule's actions to action list
 **---------------------------------------------------
 */
 {
-  ActItem *item;
-  Action *a;
+    rules_t *rules = &pr->rules;
+    SactionList *actionItem;
+    Saction *a;
 
-  /* Iterate through each action of Rule i */
-  a = actions;
-  while (a != NULL) {
-    /* Add action to list if not already on it */
-    if (!checkaction(rules, i, a)) {
-      item = (ActItem *)malloc(sizeof(ActItem));
-      if (item != NULL) {
-        item->action = a;
-        item->ruleindex = i;
-        item->next = rules->ActList;
-        rules->ActList = item;
-      }
+    // Iterate through each action of Rule i
+    a = actions;
+    while (a != NULL)
+    {
+        // Add action to list if its link not already on it
+        if (!onactionlist(pr, i, a))
+        {
+            actionItem = (SactionList *)malloc(sizeof(SactionList));
+            if (actionItem != NULL)
+            {
+                actionItem->action = a;
+                actionItem->ruleIndex = i;
+                actionItem->next = rules->ActionList;
+                rules->ActionList = actionItem;
+            }
+        }
+        a = a->next;
     }
-    a = a->next;
-  }
 }
 
-int checkaction(rules_t *rules, int i, Action *a)
+int onactionlist(EN_Project *pr, int i, Saction *a)
 /*
-**-----------------------------------------------------------
-**    Checks if an action is already on the Action List
-**-----------------------------------------------------------
+**-----------------------------------------------------------------------------
+**  Checks if action a from rule i can be added to the action list
+**-----------------------------------------------------------------------------
 */
 {
-  int i1, k, k1;
-  ActItem *item;
-  Action *a1;
+    int link, i1;
+    EN_Network *net = &pr->network;
+    SactionList *actionItem;
+    Saction *a1;
 
-  /* Search action list for link named in action */
-  k = a->link; /* Action applies to link k */
-  item = rules->ActList;
-  while (item != NULL) {
-    a1 = item->action;
-    i1 = item->ruleindex;
-    k1 = a1->link;
+    // Search action list for link included in action a
+    link = a->link;
+    actionItem = pr->rules.ActionList;
+    while (actionItem != NULL)
+    {
+        a1 = actionItem->action;
+        i1 = actionItem->ruleIndex;
 
-    /* If link on list then replace action if rule has higher priority. */
-    if (k1 == k) {
-      if (rules->Rule[i].priority > rules->Rule[i1].priority) {
-        item->action = a;
-        item->ruleindex = i;
-      }
-      return (1);
+        // Link appears in list
+        if (link == a1->link)
+        {
+            // Replace it's action with 'a' if rule i has higher priority
+            if (net->Rule[i].priority > net->Rule[i1].priority)
+            {
+                actionItem->action = a;
+                actionItem->ruleIndex = i;
+            }
+
+            // Return indicating that 'a' should not be added to action list
+            return 1;
+        }
+        actionItem = actionItem->next;
     }
-    item = item->next;
-  }
-  return (0);
+
+    // Return indicating that it's ok to add 'a' to the action list
+    return 0;
 }
 
 int takeactions(EN_Project *pr)
@@ -1094,22 +1153,22 @@ int takeactions(EN_Project *pr)
 */
 {
   
-  EN_Network *net = &pr->network;
-  hydraulics_t *hyd = &pr->hydraulics;
+  EN_Network       *net = &pr->network;
+  hydraulics_t     *hyd = &pr->hydraulics;
   report_options_t *rep = &pr->report;
-  rules_t *rules = &pr->rules;
+  rules_t          *rules = &pr->rules;
   
-  Action *a;
-  ActItem *item;
+  Saction *a;
+  SactionList *actionItem;
   char flag;
   int k, s, n;
   double tol = 1.e-3, v, x;
   
   n = 0;
-  item = rules->ActList;
-  while (item != NULL) {
+  actionItem = rules->ActionList;
+  while (actionItem != NULL) {
     flag = FALSE;
-    a = item->action;
+    a = actionItem->action;
     k = a->link;
     s = hyd->LinkStatus[k];
     v = hyd->LinkSetting[k];
@@ -1130,12 +1189,12 @@ int takeactions(EN_Project *pr)
     /* Change link's setting */
     else if (x != MISSING) {
       switch (net->Link[k].Type) {
-        case EN_PRV:
-        case EN_PSV:
-        case EN_PBV:
+        case PRV:
+        case PSV:
+        case PBV:
           x = x / pr->Ucf[PRESSURE];
           break;
-        case EN_FCV:
+        case FCV:
           x = x / pr->Ucf[FLOW];
           break;
         default:
@@ -1151,384 +1210,251 @@ int takeactions(EN_Project *pr)
     if (flag == TRUE) {
       n++;
       if (rep->Statflag)
-        writeruleaction(pr, k, rules->Rule[item->ruleindex].label);
+        writeruleaction(pr, k, net->Rule[actionItem->ruleIndex].label);
     }
 
     /* Move to next action on list */
-    item = item->next;
+    actionItem = actionItem->next;
   }
   return (n);
 }
 
-void ruleerrmsg(EN_Project *pr, int err)
+void ruleerrmsg(EN_Project *pr)
 /*
 **-----------------------------------------------------------
-**    Reports error message
+**    Report a rule parsing error message
 **-----------------------------------------------------------
 */
 {
-  EN_Network *net = &pr->network;
-  parser_data_t *par = &pr->parser;
-  rules_t *rules = &pr->rules;
-  char **Tok = par->Tok;
+    EN_Network    *net = &pr->network;
+    parser_data_t *par = &pr->parser;
+    rules_t       *rules = &pr->rules;
+    char **Tok = par->Tok;
   
-  int i;
-  char label[81];
-  char fmt[256];
-  switch (err) {
-  case 201:
-    strcpy(fmt, R_ERR201);
-    break;
-  case 202:
-    strcpy(fmt, R_ERR202);
-    break;
-  case 203:
-    strcpy(fmt, R_ERR203);
-    break;
-  case 204:
-    strcpy(fmt, R_ERR204);
-    break;
+    int i;
+    char label[MAXMSG+1];
+    char msg[MAXLINE+1];
 
-  /***  Updated on 9/7/00  ***/
-  case 207:
-    strcpy(fmt, R_ERR207);
-    break;
+    // Get text of error message
+    switch (rules->Errcode)
+    {
+    case 201:
+        strcpy(msg, R_ERR201);
+        break;
+    case 202:
+        strcpy(msg, R_ERR202);
+        break;
+    case 203:
+        strcpy(msg, R_ERR203);
+        break;
+    case 204:
+        strcpy(msg, R_ERR204);
+        break;
+    case 207:
+        strcpy(msg, R_ERR207);
+        break;
+    case 221:
+        strcpy(msg, R_ERR221);
+        break;
+    default:
+        return;
+    }
 
-  case 221:
-    strcpy(fmt, R_ERR221);
-    break;
-  default:
-    return;
-  }
-  if (net->Nrules > 0) {
-    strcpy(label, t_RULE);
-    strcat(label, " ");
-    strcat(label, rules->Rule[net->Nrules].label);
-  } else
-    strcpy(label, t_RULES_SECT);
-  sprintf(pr->Msg, "%s", fmt);
-  strcat(pr->Msg, label);
-  strcat(pr->Msg, ":");
-  writeline(pr, pr->Msg);
-  strcpy(fmt, Tok[0]);
-  for (i = 1; i < par->Ntokens; i++) {
-    strcat(fmt, " ");
-    strcat(fmt, Tok[i]);
-  }
-  writeline(pr, fmt);
+    // Get label of rule being parsed
+    if (net->Nrules > 0)
+    {
+        strcpy(label, t_RULE);
+        strcat(label, " ");
+        strcat(label, net->Rule[net->Nrules].label);
+    }
+    else strcpy(label, t_RULES_SECT);
+
+    // Write rule label and error message to status report
+    sprintf(pr->Msg, "%s", msg);
+    strcat(pr->Msg, label);
+    strcat(pr->Msg, ":");
+    writeline(pr, pr->Msg);
+
+    // Write text of rule clause being parsed to status report
+    strcpy(msg, Tok[0]);
+    for (i = 1; i < par->Ntokens; i++)
+    {
+        strcat(msg, " ");
+        strcat(msg, Tok[i]);
+    }
+    writeline(pr, msg);
 }
 
-int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
-  /*
-  **-----------------------------------------------------------
-  **    This function writes a specific rule (rule ID,
-  **    premises, true and false actions and prioriry in the
-  **    text input file.
-  **    INPUT:
-  **    - FILE *f : pointer to the .inp file to be written
-  **    - int RuleIdx : index of the rule that needs to be written
-  **    OUTPUT: error code
-  **-----------------------------------------------------------
-  */
 
-  EN_Network *net = &pr->network;
-  rules_t *rules = &pr->rules;
-  
-  Slink *Link = net->Link;
-  Stank *Tank = net->Tank;
-  Snode *Node = net->Node;
-  
-  // int i,j;
-  Premise *p;
-  Action *a;
-  int hours = 0, minutes = 0, seconds = 0;
+int writerule(EN_Project *pr, FILE *f, int ruleIndex)
+//-----------------------------------------------------------------------------
+//  Write a rule to an INP file.
+//-----------------------------------------------------------------------------
+{
+    EN_Network *net = &pr->network;
+    rules_t    *rules = &pr->rules;
+    Srule      *rule = &net->Rule[ruleIndex];
+    Spremise   *p;
+    Saction    *a;
 
-  // the first condition/premises is different from the others because it starts
-  // with IF (but it is kept in memory as AND)
-  p = rules->Rule[RuleIdx].Pchain;
-  if (p->value == MISSING) {
-    fprintf(f, "\nIF ");
-    if ((strncmp(Object[p->object], "NODE", 4) == 0) ||
-        (strncmp(Object[p->object], "Junc", 4) == 0) ||
-        (strncmp(Object[p->object], "Reser", 5) == 0) ||
-        (strncmp(Object[p->object], "Tank", 4) == 0)) {
-      if (p->index <= net->Njuncs)
-        fprintf(f, "JUNCTION %s %s %s %s", Node[p->index].ID,
-                Varword[p->variable], Operator[p->relop], Value[p->status]);
-      else if (Tank[p->index - net->Njuncs].A == 0.0)
-        fprintf(f, "RESERVOIR %s %s %s %s", Node[p->index].ID,
-                Varword[p->variable], Operator[p->relop], Value[p->status]);
-      else
-        fprintf(f, "TANK %s %s %s %s", Node[p->index].ID, Varword[p->variable],
-                Operator[p->relop], Value[p->status]);
-    } else { // it is a link
-      if (Link[p->index].Type == EN_PIPE || Link[p->index].Type == EN_CVPIPE)
-        fprintf(f, "PIPE %s %s %s %s", Link[p->index].ID, Varword[p->variable],
-                Operator[p->relop], Value[p->status]);
-      else if (Link[p->index].Type == EN_PUMP)
-        fprintf(f, "PUMP %s %s %s %s", Link[p->index].ID, Varword[p->variable],
-                Operator[p->relop], Value[p->status]);
-      else
-        fprintf(f, "VALVE %s %s %s %s", Link[p->index].ID, Varword[p->variable],
-                Operator[p->relop], Value[p->status]);
+    // Write each premise clause to the file
+    p = rule->Premises;
+    fprintf(f, "\nIF   ");
+    while (p != NULL)
+    {
+        writepremise(p, f, net);
+        p = p->next;
+        if (p) fprintf(f, "\n%-5s", Ruleword[p->logop]);
     }
-  } else {
-    if (p->variable == r_TIME) {
-      hours = (int)p->value / 3600;
-      minutes = (int)((p->value - 3600 * hours) / 60);
-      seconds = (int)(p->value - 3600 * hours - minutes * 60);
-      fprintf(f, "\nIF %s %s %s %d:%02d:%02d", Object[p->object],
-              Varword[p->variable], Operator[p->relop], hours, minutes,
-              seconds);
-    } else {
-      if (p->variable == r_CLOCKTIME) {
-        hours = (int)p->value / 3600;
-        minutes = (int)((p->value - 3600 * hours) / 60);
-        seconds = (int)(p->value - 3600 * hours - minutes * 60);
 
-        if (hours < 12)
-          fprintf(f, "\nIF %s %s %s %d:%02d:%02d AM", Object[p->object],
-                  Varword[p->variable], Operator[p->relop], hours, minutes,
-                  seconds);
-        else
-          fprintf(f, "\nIF %s %s %s %d:%02d:%02d PM", Object[p->object],
-                  Varword[p->variable], Operator[p->relop], hours - 12, minutes,
-                  seconds);
-      } else {
-        if (p->variable == r_FILLTIME || p->variable == r_DRAINTIME)
-          fprintf(f, "\nIF TANK %s %s %s %.4lf", Node[p->index].ID,
-                  Varword[p->variable], Operator[p->relop], p->value / 3600.0);
-        else {
-          fprintf(f, "\nIF ");
-          if ((strncmp(Object[p->object], "NODE", 4) == 0) ||
-              (strncmp(Object[p->object], "Junc", 4) == 0) ||
-              (strncmp(Object[p->object], "Reser", 5) == 0) ||
-              (strncmp(Object[p->object], "Tank", 4) == 0)) {
-            if (p->index <= net->Njuncs)
-              fprintf(f, "JUNCTION %s %s %s %.4lf", Node[p->index].ID,
-                      Varword[p->variable], Operator[p->relop], p->value);
-            else if (Tank[p->index - net->Njuncs].A == 0.0)
-              fprintf(f, "RESERVOIR %s %s %s %.4lf", Node[p->index].ID,
-                      Varword[p->variable], Operator[p->relop], p->value);
-            else
-              fprintf(f, "TANK %s %s %s %.4lf", Node[p->index].ID,
-                      Varword[p->variable], Operator[p->relop], p->value);
-          } else { // it is a link
-            if (Link[p->index].Type == EN_PIPE ||
-                Link[p->index].Type == EN_CVPIPE)
-              fprintf(f, "PIPE %s %s %s %.4lf", Link[p->index].ID,
-                      Varword[p->variable], Operator[p->relop], p->value);
-            else if (Link[p->index].Type == EN_PUMP)
-              fprintf(f, "PUMP %s %s %s %.4lf", Link[p->index].ID,
-                      Varword[p->variable], Operator[p->relop], p->value);
-            else
-              fprintf(f, "VALVE %s %s %s %.4lf", Link[p->index].ID,
-                      Varword[p->variable], Operator[p->relop], p->value);
-          }
-        }
-      }
+    // Write each THEN action clause to the file
+    a = rule->ThenActions;
+    if (a) fprintf(f, "\nTHEN ");
+    while (a != NULL)
+    {
+        writeaction(a, f, net);
+        a = a->next;
+        if (a) fprintf(f, "\nAND  ");
     }
-  }
 
-  p = p->next;
-  while (p != NULL) // for all other premises/conditions write the corresponding
-                    // logicOperator
-  {
-    if (p->value == MISSING) {
-      fprintf(f, "\n%s ", Ruleword[p->logop]);
-      if ((strncmp(Object[p->object], "NODE", 4) == 0) ||
-          (strncmp(Object[p->object], "Junc", 4) == 0) ||
-          (strncmp(Object[p->object], "Reser", 5) == 0) ||
-          (strncmp(Object[p->object], "Tank", 4) == 0)) {
-        if (p->index <= net->Njuncs)
-          fprintf(f, "JUNCTION %s %s %s %s", Node[p->index].ID,
-                  Varword[p->variable], Operator[p->relop], Value[p->status]);
-        else if (Tank[p->index - net->Njuncs].A == 0.0)
-          fprintf(f, "RESERVOIR %s %s %s %s", Node[p->index].ID,
-                  Varword[p->variable], Operator[p->relop], Value[p->status]);
-        else
-          fprintf(f, "TANK %s %s %s %s", Node[p->index].ID,
-                  Varword[p->variable], Operator[p->relop], Value[p->status]);
-      } else { // it is a link
-        if (Link[p->index].Type == EN_PIPE || Link[p->index].Type == EN_CVPIPE)
-          fprintf(f, "PIPE %s %s %s %s", Link[p->index].ID,
-                  Varword[p->variable], Operator[p->relop], Value[p->status]);
-        else if (Link[p->index].Type == EN_PUMP)
-          fprintf(f, "PUMP %s %s %s %s", Link[p->index].ID,
-                  Varword[p->variable], Operator[p->relop], Value[p->status]);
-        else
-          fprintf(f, "VALVE %s %s %s %s", Link[p->index].ID,
-                  Varword[p->variable], Operator[p->relop], Value[p->status]);
-      }
-    } else {
-      if (p->variable == r_TIME) {
-        hours = (int)p->value / 3600;
-        minutes = (int)((p->value - 3600 * hours) / 60);
-        seconds = (int)(p->value - 3600 * hours - minutes * 60);
-        fprintf(f, "\n%s %s %s %s %d:%02d:%02d", Ruleword[p->logop],
-                Object[p->object], Varword[p->variable], Operator[p->relop],
-                hours, minutes, seconds);
-      } else {
-        if (p->variable == r_CLOCKTIME) {
-          hours = (int)p->value / 3600;
-          minutes = (int)((p->value - 3600 * hours) / 60);
-          seconds = (int)(p->value - 3600 * hours - minutes * 60);
-
-          if (hours < 12)
-            fprintf(f, "\n%s %s %s %s %d:%02d:%02d AM", Ruleword[p->logop],
-                    Object[p->object], Varword[p->variable], Operator[p->relop],
-                    hours, minutes, seconds);
-          else
-            fprintf(f, "\n%s %s %s %s %d:%02d:%02d PM", Ruleword[p->logop],
-                    Object[p->object], Varword[p->variable], Operator[p->relop],
-                    hours - 12, minutes, seconds);
-        } else {
-          if (p->variable == r_FILLTIME || p->variable == r_DRAINTIME)
-            fprintf(f, "\n%s TANK %s %s %s %s %.4lf", Ruleword[p->logop],
-                    Object[p->object], Node[p->index].ID, Varword[p->variable],
-                    Operator[p->relop], p->value / 3600.0);
-          else {
-            fprintf(f, "\n%s ", Ruleword[p->logop]);
-            if ((strncmp(Object[p->object], "NODE", 4) == 0) ||
-                (strncmp(Object[p->object], "Junc", 4) == 0) ||
-                (strncmp(Object[p->object], "Reser", 5) == 0) ||
-                (strncmp(Object[p->object], "Tank", 4) == 0)) {
-              if (p->index <= net->Njuncs)
-                fprintf(f, "JUNCTION %s %s %s %.4lf", Node[p->index].ID,
-                        Varword[p->variable], Operator[p->relop], p->value);
-              else if (Tank[p->index - net->Njuncs].A == 0.0)
-                fprintf(f, "RESERVOIR %s %s %s %.4lf", Node[p->index].ID,
-                        Varword[p->variable], Operator[p->relop], p->value);
-              else
-                fprintf(f, "TANK %s %s %s %.4lf", Node[p->index].ID,
-                        Varword[p->variable], Operator[p->relop], p->value);
-            } else { // it is a link
-              if (Link[p->index].Type == EN_PIPE ||
-                  Link[p->index].Type == EN_CVPIPE)
-                fprintf(f, "PIPE %s %s %s %.4lf", Link[p->index].ID,
-                        Varword[p->variable], Operator[p->relop], p->value);
-              else if (Link[p->index].Type == EN_PUMP)
-                fprintf(f, "PUMP %s %s %s %.4lf", Link[p->index].ID,
-                        Varword[p->variable], Operator[p->relop], p->value);
-              else
-                fprintf(f, "VALVE %s %s %s %.4lf", Link[p->index].ID,
-                        Varword[p->variable], Operator[p->relop], p->value);
-            }
-          }
-        }
-      }
+    // Write each ELSE action clause to the file
+    a = rule->ElseActions;
+    if (a) fprintf(f, "\nELSE ");
+    while (a != NULL)
+    {
+        writeaction(a, f, net);
+        a = a->next;
+        if (a) fprintf(f, "\nAND  ");
     }
-    p = p->next;
-  }
 
-  a = rules->Rule[RuleIdx].Tchain; // The first action in hte list of true actions
-                            // starts with THEN
-  if (a->setting == MISSING) {
-    if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
-      fprintf(f, "\nTHEN PIPE %s STATUS IS %s", Link[a->link].ID,
-              Value[a->status]);
-    else if (Link[a->link].Type == EN_PUMP)
-      fprintf(f, "\nTHEN PUMP %s STATUS IS %s", Link[a->link].ID,
-              Value[a->status]);
+    // Write the rule's priority to the file
+    if (rule->priority > 0) fprintf(f, "\nPRIORITY %f", rule->priority);
+    return 0;
+}
+
+void writepremise(Spremise *p, FILE *f, EN_Network *net)
+//-----------------------------------------------------------------------------
+//  Write a rule's premise clause to an INP file.
+//-----------------------------------------------------------------------------
+{
+    char s_obj[20];
+    char s_id[MAXID + 1];
+    char s_value[20];
+    int  subtype;
+
+    // Get the type name & ID of object referred to in the premise
+    if (p->object == r_NODE)
+    {
+        subtype = net->Node[p->index].Type;
+        getobjtxt(r_NODE, subtype, s_obj);
+        strcpy(s_id, net->Node[p->index].ID);
+    }
+    else if (p->object == r_LINK)
+    {
+        subtype = net->Link[p->index].Type;
+        getobjtxt(r_LINK, subtype, s_obj);
+        strcpy(s_id, net->Link[p->index].ID);
+    }
     else
-      fprintf(f, "\nTHEN VALVE %s STATUS IS %s", Link[a->link].ID,
-              Value[a->status]);
-  } else {
-    if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
-      fprintf(f, "\nTHEN PIPE %s SETTING IS %.4f", Link[a->link].ID,
-              a->setting);
-    else if (Link[a->link].Type == EN_PUMP)
-      fprintf(f, "\nTHEN PUMP %s SETTING IS %.4f", Link[a->link].ID,
-              a->setting);
+    {
+        strcpy(s_obj, "SYSTEM");
+        strcpy(s_id, "");
+    }
+
+    // If premise has no value field, use it's status field as a value
+    if (p->value == MISSING) strcpy(s_value, Value[p->status]);
+
+    // Otherwise get text of premise's value field
     else
-      fprintf(f, "\nTHEN VALVE %s SETTING IS %.4f", Link[a->link].ID,
-              a->setting);
-  }
-
-  a = a->next; // The other actions in the list of true actions start with AND
-  while (a != NULL) {
-    if (a->setting == MISSING) {
-      if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
-        fprintf(f, "\nAND PIPE %s STATUS IS %s", Link[a->link].ID,
-                Value[a->status]);
-      else if (Link[a->link].Type == EN_PUMP)
-        fprintf(f, "\nAND PUMP %s STATUS IS %s", Link[a->link].ID,
-                Value[a->status]);
-      else
-        fprintf(f, "\nAND VALVE %s STATUS IS %s", Link[a->link].ID,
-                Value[a->status]);
-    } else {
-      if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
-        fprintf(f, "\nAND PIPE %s SETTING IS %.4f", Link[a->link].ID,
-                a->setting);
-      else if (Link[a->link].Type == EN_PUMP)
-        fprintf(f, "\nAND PUMP %s SETTING IS %.4f", Link[a->link].ID,
-                a->setting);
-      else
-        fprintf(f, "\nAND VALVE %s SETTING IS %.4f", Link[a->link].ID,
-                a->setting);
+    {
+        // For time values convert from seconds to hr:min:sec
+        switch (p->variable)
+        {
+        case r_CLOCKTIME:
+        case r_DRAINTIME:
+        case r_FILLTIME:
+        case r_TIME:
+            gettimetxt(p->value, s_value);
+            break;
+        default: sprintf(s_value, "%.4f", p->value);
+        }
     }
 
-    a = a->next;
-  }
+    // Write the premise clause to the file
+    fprintf(f, "%s %s %s %s %s", s_obj, s_id, Varword[p->variable],
+            Operator[p->relop], s_value);
+}
 
-  a = rules->Rule[RuleIdx].Fchain; // The first action in the list of false actions
-                            // starts with ELSE
-  if (a != NULL) {
-    if (a->setting == MISSING) {
-      if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
-        fprintf(f, "\nELSE PIPE %s  STATUS IS %s", Link[a->link].ID,
-                Value[a->status]);
-      else if (Link[a->link].Type == EN_PUMP)
-        fprintf(f, "\nELSE PUMP %s  STATUS IS %s", Link[a->link].ID,
-                Value[a->status]);
-      else
-        fprintf(f, "\nELSE VALVE %s  STATUS IS %s", Link[a->link].ID,
-                Value[a->status]);
-    } else {
-      if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
-        fprintf(f, "\nELSE PIPE %s SETTING IS %.4f", Link[a->link].ID,
-                a->setting);
-      else if (Link[a->link].Type == EN_PUMP)
-        fprintf(f, "\nELSE PUMP %s SETTING IS %.4f", Link[a->link].ID,
-                a->setting);
-      else
-        fprintf(f, "\nELSE VALVE %s SETTING IS %.4f", Link[a->link].ID,
-                a->setting);
+
+void writeaction(Saction *a, FILE *f, EN_Network *net)
+//-----------------------------------------------------------------------------
+//  Write a rule's action clause to an INP file.
+//-----------------------------------------------------------------------------
+{
+    char s_id[MAXID + 1];
+    char s_obj[20];
+    char s_var[20];
+    char s_value[20];
+    int subtype;
+
+    subtype = net->Link[a->link].Type;
+    getobjtxt(r_LINK, subtype, s_obj);
+    strcpy(s_id, net->Link[a->link].ID);
+    if (a->setting == MISSING)
+    {
+        strcpy(s_var, "STATUS");
+        strcpy(s_value, Value[a->status]);
     }
-
-    a = a->next; // The other actions in the list of false actions start with
-                 // AND
-    while (a != NULL) {
-      if (a->setting == MISSING) {
-        if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
-          fprintf(f, "\nAND PIPE %s  STATUS IS %s", Link[a->link].ID,
-                  Value[a->status]);
-        else if (Link[a->link].Type == EN_PUMP)
-          fprintf(f, "\nAND PUMP %s  STATUS IS %s", Link[a->link].ID,
-                  Value[a->status]);
-        else
-          fprintf(f, "\nAND VALVE %s  STATUS IS %s", Link[a->link].ID,
-                  Value[a->status]);
-      } else {
-        if (Link[a->link].Type == EN_PIPE || Link[a->link].Type == EN_CVPIPE)
-          fprintf(f, "\nAND PIPE %s SETTING IS %.4f", Link[a->link].ID,
-                  a->setting);
-        else if (Link[a->link].Type == EN_PUMP)
-          fprintf(f, "\nAND PUMP %s SETTING IS %.4f", Link[a->link].ID,
-                  a->setting);
-        else
-          fprintf(f, "\nAND VALVE %s SETTING IS %.4f", Link[a->link].ID,
-                  a->setting);
-      }
-
-      a = a->next;
+    else
+    {
+        strcpy(s_var, "SETTING");
+        sprintf(s_value, "%.4f", a->setting);
     }
-  }
-  if (rules->Rule[RuleIdx].priority != 0)
-    fprintf(f, "\nPRIORITY %.4f", rules->Rule[RuleIdx].priority);
+    fprintf(f, "%s %s %s = %s", s_obj, s_id, s_var, s_value);
+}
 
-  return (0);
+void getobjtxt(int objtype, int subtype, char *objtxt)
+//-----------------------------------------------------------------------------
+//  Retrieve the text label for a specific type of object.
+//-----------------------------------------------------------------------------
+{
+    if (objtype == r_NODE)
+    {
+        switch (subtype)
+        {
+            case JUNCTION:  strcpy(objtxt, "JUNCTION"); break;
+            case RESERVOIR: strcpy(objtxt, "RESERVOIR"); break;
+            case TANK:      strcpy(objtxt, "TANK"); break;
+            default:        strcpy(objtxt, "NODE");
+        }
+    }
+    else if (objtype == r_LINK)
+    {
+        switch (subtype)
+        {
+        case CVPIPE:
+        case PIPE:  strcpy(objtxt, "PIPE"); break;
+        case PUMP:  strcpy(objtxt, "PUMP"); break;
+        default:    strcpy(objtxt, "VALVE");
+        }
+    }
+    else strcpy(objtxt, "SYSTEM");
+}
+
+void gettimetxt(double secs, char *timetxt)
+//-----------------------------------------------------------------------------
+//  Convert number of seconds to a text string in hrs:min:sec format.
+//-----------------------------------------------------------------------------
+{
+    int hours = 0, minutes = 0, seconds = 0;
+    hours = (int)secs / 3600;
+    if (hours > 24 * 7) sprintf(timetxt, "%.4f", secs / 3600.0);
+    else
+    {
+        minutes = (int)((secs - 3600 * hours) / 60);
+        seconds = (int)(secs - 3600 * hours - minutes * 60);
+        sprintf(timetxt, "%d:%02d:%02d", hours, minutes, seconds);
+    }
 }
 
 /***************** END OF RULES.C ******************/

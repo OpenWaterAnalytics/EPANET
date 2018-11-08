@@ -129,11 +129,12 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 ## New API functions
 |Function|Description|
 |--|--|
-|`ENgetcurvetype`|  |
+|`ENinit`||
+|`ENsetflowunits`||
 |`ENgetdemandmodel`||
 |`ENsetdemandmodel`||
-|`ENsetflowunits`||
-|`ENaddcontrol`||
+|`ENgetdemandname`||
+|`ENsetdemandname`||
 |`ENsetdemandpattern`||
 |`ENgetrule`||
 |`ENsetrulepriority`||
@@ -142,23 +143,25 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`ENsetpremiseindex`||
 |`ENsetpremisestatus`||
 |`ENsetpremisevalue`||
-|`ENgettrueaction`||
-|`ENsettrueaction`||
-|`ENgetfalseaction`||
-|`ENsetfalseaction`||
+|`ENgetthenaction`||
+|`ENsetthenaction`||
+|`ENgetelseaction`||
+|`ENsetelseaction`||
 |`ENgetruleID`||
-|`ENinit`||
-|`ENsetheadcurveindex`||
+|`ENgetcurvetype`||
 |`ENsetlinknodes`||
 |`ENsetlinktype`||
 |`ENaddnode`||
 |`ENaddlink`||
-|`ENdeletelink`||
+|`ENaddpattern`||
+|`ENaddcontrol`||
+|`ENaddrule` ||
 |`ENdeletenode`||
-| `ENsetnodeid` ||
-| `ENsetlinkid` ||
-|`ENgetdemandname`||
-|`ENsetdemandname`||
+|`ENdeletelink`||
+|`ENdeletecontrol`||
+|`ENdeleterule` ||
+|`ENsetnodeid` ||
+|`ENsetlinkid` ||
 
 ## API Extensions (additional definitions)
 ### Link value types:
@@ -180,6 +183,8 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
  - `EN_FLOWCHANGE`
  - `EN_DEMANDDEFPAT`
  - `EN_MASSBALANCE`
+ - `EN_UNCONDITIONAL`
+ - `EN_CONDITIONAL`
 ### Curve types:
  - `EN_V_CURVE`
  - `EN_P_CURVE`

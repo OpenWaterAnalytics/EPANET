@@ -63,12 +63,12 @@ int  valvestatus(EN_Project *pr)
         // Evaluate valve's new status
         switch (link->Type)
         {
-        case EN_PRV:
+        case PRV:
             hset = net->Node[n2].El + hyd->LinkSetting[k];
             hyd->LinkStatus[k] = prvstatus(pr, k, status, hset,
                                      hyd->NodeHead[n1], hyd->NodeHead[n2]);
             break;
-        case EN_PSV:
+        case PSV:
             hset = net->Node[n1].El + hyd->LinkSetting[k];
             hyd->LinkStatus[k] = psvstatus(pr, k, status, hset,
                                      hyd->NodeHead[n1], hyd->NodeHead[n2]);
@@ -129,19 +129,19 @@ int  linkstatus(EN_Project *pr)
         }
 
         // Check for status changes in CVs and pumps
-        if (link->Type == EN_CVPIPE)
+        if (link->Type == CVPIPE)
         {
             hyd->LinkStatus[k] = cvstatus(pr, hyd->LinkStatus[k], dh,
                                           hyd->LinkFlows[k]);
         }
-        if (link->Type == EN_PUMP && hyd->LinkStatus[k] >= OPEN &&
+        if (link->Type == PUMP && hyd->LinkStatus[k] >= OPEN &&
             hyd->LinkSetting[k] > 0.0)
         {
             hyd->LinkStatus[k] = pumpstatus(pr, k, -dh);
         }
 
         // Check for status changes in non-fixed FCVs
-        if (link->Type == EN_FCV && hyd->LinkSetting[k] != MISSING)
+        if (link->Type == FCV && hyd->LinkSetting[k] != MISSING)
         {
             hyd->LinkStatus[k] = fcvstatus(pr, k, status, hyd->NodeHead[n1],
                                            hyd->NodeHead[n2]);
@@ -430,7 +430,7 @@ void  tankstatus(EN_Project *pr, int k, int n1, int n2)
     if (hyd->NodeHead[n1] >= tank->Hmax - hyd->Htol)
     {
         // Case 1: Link is a pump discharging into tank
-        if (link->Type == EN_PUMP)
+        if (link->Type == PUMP)
         {
             if (link->N2 == n1) hyd->LinkStatus[k] = TEMPCLOSED;
         }
@@ -447,7 +447,7 @@ void  tankstatus(EN_Project *pr, int k, int n1, int n2)
     if (hyd->NodeHead[n1] <= tank->Hmin + hyd->Htol)
     {
         // Case 1: Link is a pump discharging from tank
-        if (link->Type == EN_PUMP)
+        if (link->Type == PUMP)
         {
             if (link->N1 == n1) hyd->LinkStatus[k] = TEMPCLOSED;
         }

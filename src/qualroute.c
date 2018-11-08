@@ -94,7 +94,7 @@ void transport(EN_Project *pr, long tstep)
         }
 
         // ... if node is a junction, add on any external outflow (e.g., demands)
-        if (net->Node[n].Type == EN_JUNCTION)
+        if (net->Node[n].Type == JUNCTION)
         {
             volout += MAX(0.0, hyd->NodeDemand[n]);
         }
@@ -204,7 +204,7 @@ double  findnodequal(EN_Project *pr, int n, double volin,
     quality_t    *qual = &pr->quality;
 
     // Node is a junction - update its water quality
-    if (net->Node[n].Type == EN_JUNCTION)
+    if (net->Node[n].Type == JUNCTION)
     {
         // ... dilute inflow with any external negative demand
         volin -= MIN(0.0, hyd->NodeDemand[n]) * tstep;
@@ -217,7 +217,7 @@ double  findnodequal(EN_Project *pr, int n, double volin,
     }
 
     // Node is a tank - use its mixing model to update its quality
-    else if (net->Node[n].Type == EN_TANK)
+    else if (net->Node[n].Type == TANK)
     {
         qual->NodeQual[n] = mixtank(pr, n, volin, massin, volout);
     }
@@ -232,7 +232,7 @@ double  findnodequal(EN_Project *pr, int n, double volin,
         {
             // ... quality added to network is difference between tracer
             //     concentration (100 mg/L) and current node quality
-            if (net->Node[n].Type == EN_RESERVOIR) qual->SourceQual = 100.0;
+            if (net->Node[n].Type == RESERVOIR) qual->SourceQual = 100.0;
             else qual->SourceQual = MAX(100.0 - qual->NodeQual[n], 0.0);
             qual->NodeQual[n] = 100.0;
         }
@@ -246,14 +246,14 @@ double  findnodequal(EN_Project *pr, int n, double volin,
     // Combine source quality with node quality
     switch (net->Node[n].Type)
     {
-    case EN_JUNCTION:
+    case JUNCTION:
         qual->NodeQual[n] += qual->SourceQual;
         return qual->NodeQual[n];
 
-    case EN_TANK:
+    case TANK:
         return qual->NodeQual[n] + qual->SourceQual;
 
-    case EN_RESERVOIR:
+    case RESERVOIR:
         qual->NodeQual[n] = qual->SourceQual;
         return qual->SourceQual;
     }
@@ -382,21 +382,21 @@ void updatemassbalance(EN_Project *pr, int n, double massin,
     switch (net->Node[n].Type)
     {
         // Junctions lose mass from outflow demand & gain it from source inflow
-    case EN_JUNCTION:
+    case JUNCTION:
         masslost = MAX(0.0, hyd->NodeDemand[n]) * tstep * qual->NodeQual[n];
         massadded = qual->SourceQual * volout;
         break;
 
         // Reservoirs add mass from quality source if specified or from a fixed
         // initial quality
-    case EN_RESERVOIR:
+    case RESERVOIR:
         masslost = massin;
         if (qual->SourceQual > 0.0) massadded = qual->SourceQual * volout;
         else                        massadded = qual->NodeQual[n] * volout;
         break;
 
         // Tanks add mass only from external source inflow
-    case EN_TANK:
+    case TANK:
         massadded = qual->SourceQual * volout;
         break;
     }
@@ -664,7 +664,7 @@ void initsegs(EN_Project *pr)
     {
         qual->FirstSeg[k] = NULL;
         qual->LastSeg[k] = NULL;
-        if (net->Link[k].Type == EN_PIPE)
+        if (net->Link[k].Type == PIPE)
         {
             v = LINKVOL(k);
             j = net->Link[k].N2;

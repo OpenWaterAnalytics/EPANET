@@ -173,6 +173,9 @@ Public Const EN_E_CURVE = 2       ' efficiency curve
 Public Const EN_H_CURVE = 3       ' head loss curve
 Public Const EN_G_CURVE = 4       ' General\default curve
 
+Public Const EN_UNCONDITIONAL = 0 ' Unconditional object deletion
+Public Const EN_CONDITIONAL   = 1 ' Conditional object deletion
+
 'These are the external functions that comprise the DLL
 
 'System Functions
@@ -211,6 +214,7 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENsetstatusreport Lib "epanet2.dll" (ByVal code As Long) As Long
  Declare Function ENgetcount Lib "epanet2.dll" (ByVal code As Long, value As Long) As Long
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal ErrCode As Long, ByVal ErrMsg As String, ByVal N As Long) As Long
+ Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal code As Long, ByRef value As Single) As Long
 
 'Analysis Options Functions
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal code As Long, value As Single) As Long
@@ -292,6 +296,8 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal Cindex As Long, ByVal Ctype As Long, ByVal Lindex As Long, ByVal setting As Single, ByVal Nindex As Long, ByVal Level As Single) As Long
 
 'Rue-Based Control Functions
+ Declare Function ENaddrule Lib "epanet2.dll" (ByVal rule As String) As Long
+ Declare Function ENdeleterule Lib "epanet2.dll" (ByVal index As Long) As Long
  Declare Function ENgetrule Lib "epanet2.dll" (ByVal index As Long, nPremises As Long, nTrueActions As Long, nFalseActions As Long, priority As Single) As Long
  Declare Function ENgetruleID Lib "epanet2.dll" (ByVal indexRule As Long, ByVal id As String) As Long
  Declare Function ENsetrulepriority Lib "epanet2.dll" (ByVal index As Long, ByVal priority As Single) As Long
@@ -300,7 +306,7 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENsetpremiseindex Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal indexObj As Long) As Long
  Declare Function ENsetpremisestatus Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal status As Long) As Long
  Declare Function ENsetpremisevalue Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal value As Single) As Long
- Declare Function ENgettrueaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
- Declare Function ENsettrueaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long
- Declare Function ENgetfalseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
- Declare Function ENsetfalseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long
+ Declare Function ENgetthenaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
+ Declare Function ENsetthenaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long
+ Declare Function ENgetelseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
+ Declare Function ENsetelseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long

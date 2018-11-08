@@ -495,7 +495,7 @@ double findsourcequal(EN_Project *pr, int n, double volin, double volout, long t
     {
         // Concentration Source:
         case CONCEN:
-        if (net->Node[n].Type == EN_JUNCTION)
+        if (net->Node[n].Type == JUNCTION)
         {
             // ... source requires a negative demand at the node
             if (hyd->NodeDemand[n] < 0.0)

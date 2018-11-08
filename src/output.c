@@ -19,12 +19,12 @@ AUTHOR:     L. Rossman
 #else
 #include <stdlib.h>
 #endif
-
-#include "funcs.h"
-#include "text.h"
-#include "types.h"
 #include <math.h>
+
+#include "types.h"
+#include "funcs.h"
 #include "hash.h"
+#include "text.h"
 
 /* write x[1] to x[n] to file */
 size_t f_save(REAL4 *x, int n, FILE *file) {
@@ -139,7 +139,7 @@ int savenetdata(EN_Project *pr)
     f_save(x, net->Nlinks, outFile);
 
     for (i = 1; i <= net->Nlinks; i++) {
-      if (net->Link[i].Type != EN_PUMP)
+      if (net->Link[i].Type != PUMP)
         x[i] = (REAL4)(net->Link[i].Diam * pr->Ucf[DIAM]);
       else
         x[i] = 0.0f;
@@ -500,7 +500,7 @@ int linkoutput(EN_Project *pr, int j, REAL4 *x, double ucf)
     break;
   case VELOCITY:
     for (i = 1; i <= net->Nlinks; i++) {
-      if (net->Link[i].Type == EN_PUMP)
+      if (net->Link[i].Type == PUMP)
         x[i] = 0.0f;
       else {
         q = ABS(hyd->LinkFlows[i]);
@@ -515,9 +515,9 @@ int linkoutput(EN_Project *pr, int j, REAL4 *x, double ucf)
         x[i] = 0.0f;
       else {
         h = hyd->NodeHead[net->Link[i].N1] - hyd->NodeHead[net->Link[i].N2];
-        if (net->Link[i].Type != EN_PUMP)
+        if (net->Link[i].Type != PUMP)
           h = ABS(h);
-        if (net->Link[i].Type <= EN_PIPE)
+        if (net->Link[i].Type <= PIPE)
           x[i] = (REAL4)(1000.0 * h / net->Link[i].Len);
         else
           x[i] = (REAL4)(h * ucf);
@@ -537,22 +537,22 @@ int linkoutput(EN_Project *pr, int j, REAL4 *x, double ucf)
       double setting = hyd->LinkSetting[i];
       if (setting != MISSING)
         switch (net->Link[i].Type) {
-        case EN_CVPIPE:
-        case EN_PIPE:
+        case CVPIPE:
+        case PIPE:
           x[i] = (REAL4)setting;
           break;
-        case EN_PUMP:
+        case PUMP:
           x[i] = (REAL4)setting;
           break;
-        case EN_PRV:
-        case EN_PSV:
-        case EN_PBV:
+        case PRV:
+        case PSV:
+        case PBV:
           x[i] = (REAL4)(setting * pr->Ucf[PRESSURE]);
           break;
-        case EN_FCV:
+        case FCV:
           x[i] = (REAL4)(setting * pr->Ucf[FLOW]);
           break;
-        case EN_TCV:
+        case TCV:
           x[i] = (REAL4)setting;
           break;
         default:
@@ -573,7 +573,7 @@ int linkoutput(EN_Project *pr, int j, REAL4 *x, double ucf)
     /* u = velocity, g = grav. accel., h = head  */
     /*loss, d = diam., & L = pipe length         */
     for (i = 1; i <= net->Nlinks; i++) {
-      if (net->Link[i].Type <= EN_PIPE && ABS(hyd->LinkFlows[i]) > TINY) {
+      if (net->Link[i].Type <= PIPE && ABS(hyd->LinkFlows[i]) > TINY) {
         h = ABS(hyd->NodeHead[net->Link[i].N1] - hyd->NodeHead[net->Link[i].N2]);
         f = 39.725 * h * pow(net->Link[i].Diam, 5) / net->Link[i].Len / SQR(hyd->LinkFlows[i]);
         x[i] = (REAL4)f;
