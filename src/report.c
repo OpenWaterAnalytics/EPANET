@@ -32,13 +32,13 @@ formatted string S to the report file.
 #else
 #include <stdlib.h>
 #endif
+#include <math.h>
+#include <time.h>
 
+#include "types.h"
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
-#include "types.h"
-#include <math.h>
-#include <time.h>
 
 #undef WINDOWS
 #ifdef _WIN32
@@ -692,7 +692,7 @@ void writelinktable(EN_Project *pr, Pfloat *x)
       }
 
       /* Note if link is a pump or valve */
-      if ((j = Link[i].Type) > EN_PIPE) {
+      if ((j = Link[i].Type) > PIPE) {
         strcat(s, "  ");
         strcat(s, LinkTxt[j]);
       }
@@ -909,12 +909,12 @@ void writestatchange(EN_Project *pr, int k, char s1, char s2)
     setting = LinkSetting[k]; // Link[k].Kc;
 
     switch (Link[k].Type) {
-      case EN_PRV:
-      case EN_PSV:
-      case EN_PBV:
+      case PRV:
+      case PSV:
+      case PBV:
         setting *= Ucf[PRESSURE];
         break;
-      case EN_FCV:
+      case FCV:
         setting *= Ucf[FLOW];
       default:
         break;
@@ -1243,9 +1243,9 @@ void marknodes(EN_Project *pr, int m, int *nodelist, char *marked)
 
       /* Check if valve connection is in correct direction */
       switch (net->Link[k].Type) {
-        case EN_CVPIPE:
-        case EN_PRV:
-        case EN_PSV:
+        case CVPIPE:
+        case PRV:
+        case PSV:
           if (j == net->Link[k].N1) {
             continue;
           }

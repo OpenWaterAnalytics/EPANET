@@ -173,6 +173,9 @@ Public Const EN_E_CURVE = 2       ' efficiency curve
 Public Const EN_H_CURVE = 3       ' head loss curve
 Public Const EN_G_CURVE = 4       ' General\default curve
 
+Public Const EN_UNCONDITIONAL = 0 ' Unconditional object deletion
+Public Const EN_CONDITIONAL = 1   ' Conditional object deletion
+
 'These are the external functions that comprise the DLL
 
 'System Functions
@@ -211,6 +214,7 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENsetstatusreport Lib "epanet2.dll" (ByVal code As Long) As Long
  Declare Function ENgetcount Lib "epanet2.dll" (ByVal code As Long, value As Long) As Long
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal ErrCode As Long, ByVal ErrMsg As String, ByVal N As Long) As Long
+ Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal code As Long, ByRef value As Single) As Long
 
 'Analysis Options Functions
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal code As Long, value As Single) As Long
@@ -225,7 +229,7 @@ Public Const EN_G_CURVE = 4       ' General\default curve
 
 'Basic Node Functions
  Declare Function ENaddnode Lib "epanet2.dll" (ByVal id As String, ByVal nodeType As Long) As Long
- Declare Function ENdeletenode Lib "epanet2.dll" (ByVal linkIndex As Long) As Long
+ Declare Function ENdeletenode Lib "epanet2.dll" (ByVal linkIndex As Long, ByVal actionCode As Long) As Long
  Declare Function ENgetnodeindex Lib "epanet2.dll" (ByVal id As String, index As Long) As Long
  Declare Function ENgetnodeid Lib "epanet2.dll" (ByVal index As Long, ByVal id As String) As Long
  Declare Function ENsetnodeid Lib "epanet2.dll" (ByVal index As Long, ByVal newid As String) As Long
@@ -240,21 +244,21 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENsetdemandmodel Lib "epanet2.dll" (ByVal mtype As Long, ByVal pmin As Single, ByVal preq As Single, ByVal pexp As Single) As Long
  Declare Function ENgetnumdemands Lib "epanet2.dll" (ByVal index As Long, numDemands As Long) As Long
  Declare Function ENgetbasedemand Lib "epanet2.dll" (ByVal index As Long, ByVal DemandIndex As Long, value As Single) As Long
- Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal Index As Long, ByVal DemandIndex As Long, ByVal BaseDemand As Single) As Long
+ Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal index As Long, ByVal DemandIndex As Long, ByVal BaseDemand As Single) As Long
  Declare Function ENgetdemandpattern Lib "epanet2.dll" (ByVal index As Long, ByVal DemandIndex As Long, PatIndex As Long) As Long
- Declare Function ENsetdemandpattern Lib "epanet2.dll" (ByVal Index As Long, ByVal DemandIndex As Long, ByVal PatIndex As Long) As Long
+ Declare Function ENsetdemandpattern Lib "epanet2.dll" (ByVal index As Long, ByVal DemandIndex As Long, ByVal PatIndex As Long) As Long
  Declare Function ENgetdemandname Lib "epanet2.dll" (ByVal index As Long, ByVal DemandIndex As Long, ByVal demandName As String) As Long
  Declare Function ENsetdemandname Lib "epanet2.dll" (ByVal nodeIndex As Long, ByVal DemandIndex As Long, ByVal demandName As String) As Long
 
 'Basic Link Functions
  Declare Function ENaddlink Lib "epanet2.dll" (ByVal id As String, ByVal linkType As Long, ByVal fromNode As String, ByVal toNode As String) As Long
- Declare Function ENdeletelink Lib "epanet2.dll" (ByVal nodeIndex As Long) As Long
+ Declare Function ENdeletelink Lib "epanet2.dll" (ByVal linkIndex As Long, ByVal actionCode As Long) As Long
  Declare Function ENgetlinkindex Lib "epanet2.dll" (ByVal id As String, index As Long) As Long
  Declare Function ENgetlinkid Lib "epanet2.dll" (ByVal index As Long, ByVal id As String) As Long
  Declare Function ENsetlinkid Lib "epanet2.dll" (ByVal index As Long, ByVal newid As String) As Long
  Declare Function ENgetlinktype Lib "epanet2.dll" (ByVal index As Long, code As Long) As Long
  Declare Function ENsetlinktype Lib "epanet2.dll" (index As Long, ByVal code As Long) As Long
- Declare Function ENgetlinknodes Lib "epanet2.dll" (ByVal index As Long, Node1 As Long, Node2 As Long) As Long
+ Declare Function ENgetlinknodes Lib "epanet2.dll" (ByVal index As Long, node1 As Long, node2 As Long) As Long
  Declare Function ENsetlinknodes Lib "epanet2.dll" (ByVal index As Long, ByVal node1 As Long, ByVal node2 As Long) As Long
  Declare Function ENgetlinkvalue Lib "epanet2.dll" (ByVal index As Long, ByVal code As Long, value As Single) As Long
  Declare Function ENsetlinkvalue Lib "epanet2.dll" (ByVal index As Long, ByVal code As Long, ByVal value As Single) As Long
@@ -285,13 +289,15 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENgetcurve Lib "epanet2.dll" (ByVal curveIndex As Long, ByVal CurveID As String, nValues As Long, xValues As Any, yValues As Any) As Long
  Declare Function ENsetcurve Lib "epanet2.dll" (ByVal index As Long, X As Any, Y As Any, ByVal N As Long) As Long
 
-'Simple Control Functions  
+'Simple Control Functions
  Declare Function ENaddcontrol Lib "epanet2.dll" (Cindex As Long, ByVal Ctype As Long, ByVal Lindex As Long, ByVal setting As Single, ByVal Nindex As Long, ByVal Level As Single) As Long
- Declare Function ENdeletecontrol Lib "epanet2.dll" (ByVal Cindex as Long) As Long
+ Declare Function ENdeletecontrol Lib "epanet2.dll" (ByVal Cindex As Long) As Long
  Declare Function ENgetcontrol Lib "epanet2.dll" (ByVal Cindex As Long, Ctype As Long, Lindex As Long, setting As Single, Nindex As Long, Level As Single) As Long
  Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal Cindex As Long, ByVal Ctype As Long, ByVal Lindex As Long, ByVal setting As Single, ByVal Nindex As Long, ByVal Level As Single) As Long
 
 'Rue-Based Control Functions
+ Declare Function ENaddrule Lib "epanet2.dll" (ByVal rule As String) As Long
+ Declare Function ENdeleterule Lib "epanet2.dll" (ByVal index As Long) As Long
  Declare Function ENgetrule Lib "epanet2.dll" (ByVal index As Long, nPremises As Long, nTrueActions As Long, nFalseActions As Long, priority As Single) As Long
  Declare Function ENgetruleID Lib "epanet2.dll" (ByVal indexRule As Long, ByVal id As String) As Long
  Declare Function ENsetrulepriority Lib "epanet2.dll" (ByVal index As Long, ByVal priority As Single) As Long
@@ -300,7 +306,7 @@ Public Const EN_G_CURVE = 4       ' General\default curve
  Declare Function ENsetpremiseindex Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal indexObj As Long) As Long
  Declare Function ENsetpremisestatus Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal status As Long) As Long
  Declare Function ENsetpremisevalue Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexPremise As Long, ByVal value As Single) As Long
- Declare Function ENgettrueaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
- Declare Function ENsettrueaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long
- Declare Function ENgetfalseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
- Declare Function ENsetfalseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long
+ Declare Function ENgetthenaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
+ Declare Function ENsetthenaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long
+ Declare Function ENgetelseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, indexLink As Long, status As Long, setting As Single) As Long
+ Declare Function ENsetelseaction Lib "epanet2.dll" (ByVal indexRule As Long, ByVal indexAction As Long, ByVal indexLink As Long, ByVal status As Long, ByVal setting As Single) As Long

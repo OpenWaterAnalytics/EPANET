@@ -128,6 +128,39 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 ## New API functions
 |Function|Description|
 |--|--|
+|`ENinit`||
+|`ENsetflowunits`||
+|`ENgetdemandmodel`||
+|`ENsetdemandmodel`||
+|`ENgetdemandname`||
+|`ENsetdemandname`||
+|`ENsetdemandpattern`||
+|`ENgetrule`||
+|`ENsetrulepriority`||
+|`ENgetpremise`||
+|`ENsetpremise`||
+|`ENsetpremiseindex`||
+|`ENsetpremisestatus`||
+|`ENsetpremisevalue`||
+|`ENgetthenaction`||
+|`ENsetthenaction`||
+|`ENgetelseaction`||
+|`ENsetelseaction`||
+|`ENgetruleID`||
+|`ENgetcurvetype`||
+|`ENsetlinknodes`||
+|`ENsetlinktype`||
+|`ENaddnode`||
+|`ENaddlink`||
+|`ENaddpattern`||
+|`ENaddcontrol`||
+|`ENaddrule` ||
+|`ENdeletenode`||
+|`ENdeletelink`||
+|`ENdeletecontrol`||
+|`ENdeleterule` ||
+|`ENsetnodeid` ||
+|`ENsetlinkid` ||
 |`ENgetcurvetype`|Get the type of a curve|
 |`ENgetdemandmodel`|Retrieves the type of demand model in use and its parameters|
 |`ENsetdemandmodel`|Sets the type of demand model to use and its parameters|
@@ -182,6 +215,8 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
  - `EN_MAXHEADERROR`
  - `EN_MAXFLOWCHANGE`
  - `EN_MASSBALANCE`
+ - `EN_UNCONDITIONAL`
+ - `EN_CONDITIONAL`
 ### Curve types:
  - `EN_V_CURVE`
  - `EN_P_CURVE`

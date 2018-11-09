@@ -29,8 +29,6 @@ AUTHOR:     L. Rossman
 #ifndef FUNCS_H
 #define FUNCS_H
 
-#include "types.h"
-
 void    initpointers(EN_Project *pr);              /* Initializes pointers       */
 int     allocdata(EN_Project *pr);                 /* Allocates memory           */
 void    freeTmplist(STmplist *);                   /* Frees items in linked list */
@@ -41,7 +39,7 @@ int     openfiles(EN_Project *pr, const char *,
 int     openhydfile(EN_Project *pr);               /* Opens hydraulics file      */
 int     openoutfile(EN_Project *pr);               /* Opens binary output file   */
 int     strcomp(const char *, const char *);       /* Compares two strings       */
-char*   getTmpName(EN_Project *p, char* fname);    /* Gets temporary file name   */     
+char*   getTmpName(char* fname);                   /* Gets temporary file name   */     
 double  interp(int n, double x[], double y[],
         double xx);                                /* Interpolates a data curve  */
                
@@ -118,16 +116,19 @@ void    changestatus(EN_Network *net, int, StatType,
                      double);                       /* Changes status of a link   */
 
 /* -------------- RULES.C --------------*/
-void    initrules(rules_t *rules);                  /* Initializes rule base      */
+void    initrules(EN_Project *pr);                  /* Initializes rule base      */
 void    addrule(parser_data_t *par, char *);        /* Adds rule to rule base     */
 int     allocrules(EN_Project *pr);                 /* Allocates memory for rule  */
 void    adjustrules(EN_Project *pr, int, int);      // Shifts object indices down
 void    adjusttankrules(EN_Project *pr);            // Shifts tank indices up
 int     ruledata(EN_Project *pr);                   /* Processes rule input data  */
 int     checkrules(EN_Project *pr, long);           /* Checks all rules           */
-void    freerules(EN_Project *pr);                  /* Frees rule base memory     */  
-int     writeRuleinInp(EN_Project *pr, FILE *f,     /* Writes rule to an INP file */
-                      int RuleIdx);
+void    deleterule(EN_Project *pr, int);            // Deletes a rule
+void    freerules(EN_Project *pr);                  /* Frees rule base memory     */
+int     writerule(EN_Project *pr, FILE *, int);     /* Writes rule to an INP file */
+void    ruleerrmsg(EN_Project *pr);                 /* Reports rule parser error  */
+Spremise *getpremise(Spremise *, int);              // Retrieves a rule's premise
+Saction  *getaction(Saction *, int);                // Retrieves a rule's action
 
 /* ------------- REPORT.C --------------*/
 int     writereport(EN_Project *pr);                /* Writes formatted report    */
@@ -169,8 +170,8 @@ void    setlinksetting(EN_Project *pr, int, double,
 int     tanktimestep(EN_Project *pr, long *);       /* Time till tanks fill/drain */
 void    getenergy(EN_Project *pr, int, double *,
                   double *);                        /* Computes link energy use   */
-double  tankvolume(EN_Project *pr, int,double);     /* Finds tank vol. from grade */
-double  tankgrade(EN_Project *pr, int,double);      /* Finds tank grade from vol. */
+double  tankvolume(EN_Project *pr, int, double);    /* Finds tank vol. from grade */
+double  tankgrade(EN_Project *pr, int, double);     /* Finds tank grade from vol. */
 
 /* ----------- HYDSOLVER.C -  ----------*/
 int     hydsolve(EN_Project *pr, int *,double *);   /* Solves network equations   */

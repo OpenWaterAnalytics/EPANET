@@ -54,9 +54,10 @@ AUTHOR:     L. Rossman
 #include <stdlib.h>
 #endif
 #include <math.h>
-#include "text.h"
+
 #include "types.h"
 #include "funcs.h"
+#include "text.h"
 
 #define   QZERO  1.e-6  /* Equivalent to zero flow */
 
@@ -146,8 +147,8 @@ void inithyd(EN_Project *pr, int initflag)
 
         /* Start active control valves in ACTIVE position */                     
         if (
-            (link->Type == EN_PRV || link->Type == EN_PSV
-            || link->Type == EN_FCV) && (link->Kc != MISSING)
+            (link->Type == PRV || link->Type == PSV
+            || link->Type == FCV) && (link->Kc != MISSING)
         ) hyd->LinkStatus[i] = ACTIVE;                                                      
 
 /*** Updated 3/1/01 ***/
@@ -391,7 +392,7 @@ void  initlinkflow(EN_Project *pr, int i, char s, double k)
   if (s == CLOSED) {
     hyd->LinkFlows[i] = QZERO;
   }
-  else if (link->Type == EN_PUMP) {
+  else if (link->Type == PUMP) {
     hyd->LinkFlows[i] = k * n->Pump[findpump(n,i)].Q0;
   }
   else {
@@ -421,8 +422,8 @@ void  setlinkflow(EN_Project *pr, int k, double dh)
   
   switch (link->Type)
   {
-    case EN_CVPIPE:
-    case EN_PIPE:
+    case CVPIPE:
+    case PIPE:
       
       /* For Darcy-Weisbach formula: */
       /* use approx. inverse of formula. */
@@ -447,7 +448,7 @@ void  setlinkflow(EN_Project *pr, int k, double dh)
       
       break;
       
-    case EN_PUMP:
+    case PUMP:
       
       /* Convert headloss to pump head gain */
       dh = -dh;
@@ -492,15 +493,15 @@ void  setlinkstatus(EN_Project *pr, int index, char value, StatType *s, double *
 {
   EN_Network *net = &pr->network;
   Slink *link = &net->Link[index];
-  EN_LinkType t = link->Type;
+  LinkType t = link->Type;
   
    /* Status set to open */
    if (value == 1) {
       /* Adjust link setting for pumps & valves */
-     if (t == EN_PUMP) {
+     if (t == PUMP) {
         *k = 1.0;
      }
-     if (t > EN_PUMP &&  t != EN_GPV) {
+     if (t > PUMP &&  t != GPV) {
         *k = MISSING;
      }
       /* Reset link flow if it was originally closed */
@@ -510,10 +511,10 @@ void  setlinkstatus(EN_Project *pr, int index, char value, StatType *s, double *
    /* Status set to closed */ 
    else if (value == 0) {
       /* Adjust link setting for pumps & valves */
-     if (t == EN_PUMP) {
+     if (t == PUMP) {
        *k = 0.0;
      }
-     if (t >  EN_PUMP &&  t != EN_GPV) {
+     if (t >  PUMP &&  t != GPV) {
         *k = MISSING;
      }
       /* Reset link flow if it was originally open */
@@ -536,10 +537,10 @@ void  setlinksetting(EN_Project *pr, int index, double value, StatType *s, doubl
 {
   EN_Network *net = &pr->network;
   Slink *link = &net->Link[index];
-  EN_LinkType t = link->Type;
+  LinkType t = link->Type;
   
    /* For a pump, status is OPEN if speed > 0, CLOSED otherwise */
-   if (t == EN_PUMP)
+   if (t == PUMP)
    {
       *k = value;
       if (value > 0 && *s <= CLOSED) {
@@ -551,7 +552,7 @@ void  setlinksetting(EN_Project *pr, int index, double value, StatType *s, doubl
    }
 
    /* For FCV, activate it */
-   else if (t == EN_FCV) {
+   else if (t == FCV) {
       *k = value;
       *s = ACTIVE;
    }
@@ -709,7 +710,7 @@ int  controls(EN_Project *pr)
          s2 = control->Status;
          k1 = hyd->LinkSetting[k];
          k2 = k1;
-         if (link->Type > EN_PIPE) {
+         if (link->Type > PIPE) {
            k2 = control->Setting;
          }
          if (s1 != s2 || k1 != k2) {
@@ -891,7 +892,7 @@ void  controltimestep(EN_Project *pr, long *tstep)
          /* Check if rule actually changes link status or setting */
          k = control->Link;
          link = &net->Link[k];
-         if ( (link->Type > EN_PIPE && hyd->LinkSetting[k] != control->Setting)
+         if ( (link->Type > PIPE && hyd->LinkSetting[k] != control->Setting)
                || (hyd->LinkStatus[k] != control->Status) ) {
             *tstep = t;
          }
@@ -1103,7 +1104,7 @@ void  getenergy(EN_Project *pr, int k, double *kw, double *eff)
    dh = ABS(hyd->NodeHead[link->N1] - hyd->NodeHead[link->N2]);
 
    /* For pumps, find effic. at current flow */
-   if (link->Type == EN_PUMP)
+   if (link->Type == PUMP)
    {
       j = findpump(net,k);
       e = hyd->Epump;

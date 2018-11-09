@@ -20,7 +20,7 @@ AUTHOR:     L. Rossman
 #ifndef TYPES_H
 #define TYPES_H
 
-#include "epanet2.h"
+//#include "epanet2.h"
 #include "hash.h"
 #include "util/errormanager.h"
 #include <stdio.h>
@@ -103,7 +103,7 @@ typedef  int          INT4;
 ---------------------------------------------------------------------
 */
 #define  MEMCHECK(x)  (((x) == NULL) ? 101 : 0 )
-#define  FREE(x)      if ((x)) free((x))
+#define  FREE(x) do { free(x); (x) = NULL; } while(0)
 
 /*
 ---------------------------------------------------------------------
@@ -130,25 +130,47 @@ typedef  int          INT4;
 */
 #define ERRCODE(x) (errcode = ((errcode>100) ? (errcode) : (x))) 
 
-
-
 /*
  ----------------------------------------------
  Global Enumeration Types
  ----------------------------------------------
  */
+
+typedef enum {
+  NODE    = 0,
+  LINK    = 1
+} ObjectType;
+
+typedef enum {
+    JUNCTION = 0,
+    RESERVOIR = 1,
+    TANK = 2
+} NodeType;
+
+typedef enum {
+  CVPIPE = 0,
+  PIPE   = 1,
+  PUMP   = 2,
+  PRV    = 3,
+  PSV    = 4,
+  PBV    = 5,
+  FCV    = 6,
+  TCV    = 7,
+  GPV    = 8
+} LinkType;
+
 typedef enum {
   USE,           /*    use from previous run            */
   SAVE,          /*    save after current run           */
-  SCRATCH
-} Hydtype;       /*    use temporary file               */
+  SCRATCH        /*    use temporary file               */
+} HydFiletype;
 
 typedef enum {
   NONE,          /*    no quality analysis              */
   CHEM,          /*    analyze a chemical               */
   AGE,           /*    analyze water age                */
-  TRACE
-} QualType;      /*    trace % of flow from a source    */
+  TRACE          /*    trace % of flow from a source    */
+} QualType;
 
 typedef enum {
   V_CURVE,       /*    volume curve                      */
@@ -169,8 +191,8 @@ typedef enum {
   CONCEN,        /*    inflow concentration             */
   MASS,          /*    mass inflow booster              */
   SETPOINT,      /*    setpoint booster                 */
-  FLOWPACED
-} SourceType;    /*    flow paced booster               */
+  FLOWPACED      /*    flow paced booster               */
+} SourceType;
 
 typedef enum {
   LOWLEVEL,      /*    act when grade below set level   */
@@ -189,14 +211,14 @@ typedef enum {
   XFCV,         /*   FCV cannot supply flow            */
   XPRESSURE,    /*   valve cannot supply pressure      */
   FILLING,      /*   tank filling                      */
-  EMPTYING
-} StatType;     /*   tank emptying                     */
+  EMPTYING      /*   tank emptying                     */
+} StatType;
 
 typedef enum {
   HW,           /*   Hazen-Williams                    */
   DW,           /*   Darcy-Weisbach                    */
   CM            /*   Chezy-Manning                     */
-} FormType;    
+} HeadLossType;    
 
 typedef enum {
   US,           /*   US                                */
@@ -398,7 +420,7 @@ typedef struct            /* NODE OBJECT */
    double  C0;             /* Initial quality  */
    double  Ke;             /* Emitter coeff.   */
    char    Rpt;            /* Reporting flag   */
-   EN_NodeType Type;       /* Node Type */
+   NodeType Type;          /* Node Type */
    char Comment[MAXMSG+1]; /* Node Comment */
 }  Snode;
 
@@ -416,7 +438,7 @@ typedef struct            /* LINK OBJECT */
    double  R;              /* Flow resistance   */
    double  Rc;             /* Reaction coeff.   */
    double  Qa;             // Low flow limit
-   EN_LinkType Type;       /* Link type         */
+   LinkType Type;          // Link type         */
    StatType Stat;          /* Initial status    */
    char Rpt;            /* Reporting flag    */
    char Comment[MAXMSG+1]; /* Link Comment */
@@ -514,7 +536,7 @@ typedef struct s_Premise    /* Rule Premise Clause */
    int      status;         /* Variable's status */
    double   value;          /* Variable's value */
    struct   s_Premise *next;
-} Premise;
+} Spremise;
 
 typedef struct s_Action     /* Rule Action Clause */
 {
@@ -522,24 +544,23 @@ typedef struct s_Action     /* Rule Action Clause */
    int     status;          /* Link's status */
    double  setting;         /* Link's setting */
    struct  s_Action *next;
-} Action;
+} Saction;
 
-typedef struct s_aRule      /* Control Rule Structure */
+typedef struct              /* Control Rule Structure */
 {
-   char     label[MAXID+1]; /* Rule character label */
+   char     label[MAXID+1]; /* Rule label */
    double   priority;       /* Priority level */
-   Premise  *Pchain;        /* Linked list of premises */
-   Action   *Tchain;        /* Linked list of actions if true */
-   Action   *Fchain;        /* Linked list of actions if false */
-   //struct   s_aRule    *next;
-} aRule;
+   Spremise *Premises;      /* Linked list of premises */
+   Saction  *ThenActions;   /* Linked list of THEN actions */
+   Saction  *ElseActions;   /* Linked list of ELSE actions */
+} Srule;
 
-typedef struct s_ActItem        /* Action list item */
+typedef struct s_ActionItem /* Action list item */
 {
-   int      ruleindex;          /* Index of rule action belongs to */
-   struct   s_Action   *action; /* An action structure */
-   struct   s_ActItem  *next;     
-} ActItem;
+   int      ruleIndex;      /* Index of rule action belongs to */
+   Saction  *action;        /* An action structure */
+   struct   s_ActionItem *next;     
+} SactionList;
 
 typedef struct
 {
@@ -707,11 +728,8 @@ typedef struct {
   char
   HydFname[MAXFNAME+1],  /* Hydraulics file name         */
   OutFname[MAXFNAME+1],  /* Binary output file name      */
-  TmpFname[MAXFNAME+1],  /* Temporary file name          */
-  TmpDir[MAXFNAME+1],    /* Temporary directory name     */
   Outflag,               /* Output file flag             */
   Hydflag;               /* Hydraulics flag              */
-  
   
   long     
   HydOffset,             /* Hydraulics file byte offset  */
@@ -733,18 +751,6 @@ typedef struct {
   Saveflag;              /* General purpose save flag    */
 
 } save_options_t;
-
-
-typedef struct {
-  
-  aRule *Rule;        /* Array of rules */
-  ActItem *ActList;   /* Linked list of action items */
-  int RuleState;      /* State of rule interpreter */
-  long Time1;         /* Start of rule evaluation time interval (sec) */
-  Premise *Plast;     /* Previous premise clause */
-  Action *Tlast;      /* Previous true action */
-  Action *Flast;      /* Previous false action */
-} rules_t;
 
 /*
  ** NOTE: Hydraulic analysis of the pipe network at a given point in time
@@ -852,6 +858,16 @@ typedef struct {
 } hydraulics_t;
 
 typedef struct {
+  SactionList *ActionList;     /* Linked list of action items */
+  int         RuleState;       /* State of rule interpreter */
+  int         Errcode;         // Rule parser error code
+  long        Time1;           /* Start of rule evaluation time interval (sec) */
+  Spremise    *LastPremise;    /* Previous premise clause */
+  Saction     *LastThenAction; /* Previous THEN action */
+  Saction     *LastElseAction; /* Previous ELSE action */
+} rules_t;
+
+typedef struct {
   int Nnodes,            /* Number of network nodes      */
   Ntanks,                /* Number of tanks              */
   Njuncs,                /* Number of junction nodes     */
@@ -863,17 +879,18 @@ typedef struct {
   Nrules,                /* Number of control rules      */
   Npats,                 /* Number of time patterns      */
   Ncurves,               /* Number of data curves        */
-  Ncoords;               /* Number of Coords             */
+  Ncoords;               /* Number of node coordinates   */
   
-  Snode    *Node;        /* Node data                    */
-  Slink    *Link;        /* Link data                    */
-  Stank    *Tank;        /* Tank data                    */
-  Spump    *Pump;        /* Pump data                    */
-  Svalve   *Valve;       /* Valve data                   */
-  Spattern *Pattern;     /* Time patterns                */
-  Scurve   *Curve;       /* Curve data                   */
-  Scoord   *Coord;       /* Coordinate data              */
-  Scontrol *Control;     /* Control data                 */
+  Snode    *Node;        /* Node array                   */
+  Slink    *Link;        /* Link array                   */
+  Stank    *Tank;        /* Tank array                   */
+  Spump    *Pump;        /* Pump array                   */
+  Svalve   *Valve;       /* Valve array                  */
+  Spattern *Pattern;     /* Time pattern array           */
+  Scurve   *Curve;       /* Data curve array             */
+  Scoord   *Coord;       /* Node coordinate array        */
+  Scontrol *Control;     /* Simple controls array        */
+  Srule    *Rule;        /* Rule-based controls array    */
   HashTable
   *NodeHashTable,
   *LinkHashTable;        /* Hash tables for ID labels    */
@@ -896,18 +913,21 @@ typedef struct EN_Project {
   out_file_t out_files;
   save_options_t save_options;
   
-  double Ucf[MAXVAR];
+  double Ucf[MAXVAR];          // Unit conversion factors
   
   char
-  Openflag,                   /// Toolkit open flag
-  Warnflag,                   /// Warning flag
-  Msg[MAXMSG+1],              /// General-purpose string: errors, messages
-  Title[MAXTITLE][TITLELEN+1],/// Project title
-  MapFname[MAXFNAME+1];       /// Map file name
+  Openflag,                    // Toolkit open flag
+  Warnflag,                    // Warning flag
+  Msg[MAXMSG+1],               // General-purpose string: errors, messages
+  Title[MAXTITLE][TITLELEN+1], // Project title
+  MapFname[MAXFNAME+1],        // Map file name
+  TmpHydFname[MAXFNAME+1],     // Temporary hydraulics file name
+  TmpOutFname[MAXFNAME+1],     // Temporary output file name
+  TmpStatFname[MAXFNAME+1];    // Temporary statistic file name
   
-  error_handle_t* error_handle; //Simple error manager
+  error_handle_t* error_handle; // Simple error manager
 
-  void (* viewprog) (char *);     /* Pointer to progress viewing function */   
+  void (* viewprog) (char *);   // Pointer to progress viewing function   
   
 } EN_Project;
 

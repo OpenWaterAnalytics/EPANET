@@ -26,14 +26,12 @@ data describing a piping network to a file in EPANET's text format.
 #else
 #include <stdlib.h>
 #endif
+#include <math.h>
 
-#include "hash.h"
-#include "text.h"
 #include "types.h"
 #include "funcs.h"
-#include <math.h>
-//#define EXTERN extern
-//#include "vars.h"
+#include "hash.h"
+#include "text.h"
 
 /* Defined in enumstxt.h in EPANET.C */
 extern char *LinkTxt[];
@@ -216,7 +214,7 @@ int saveinpfile(EN_Project *pr, const char *fname)
   fprintf(f, s_PIPES);
   for (i = 1; i <= net->Nlinks; i++) {
     link = &net->Link[i];
-    if (link->Type <= EN_PIPE) {
+    if (link->Type <= PIPE) {
       d = link->Diam;
       kc = link->Kc;
       if (hyd->Formflag == DW)
@@ -229,7 +227,7 @@ int saveinpfile(EN_Project *pr, const char *fname)
         sprintf(s1, "%12.4f %12.4f", kc, km);
       else
         sprintf(s1, "%12.4f %12.4f", kc, km);
-      if (link->Type == EN_CVPIPE)
+      if (link->Type == CVPIPE)
         sprintf(s2, "CV");
       else if (link->Stat == CLOSED)
         sprintf(s2, "CLOSED");
@@ -295,12 +293,12 @@ int saveinpfile(EN_Project *pr, const char *fname)
     if (kc == MISSING)
       kc = 0.0;
     switch (link->Type) {
-      case EN_FCV:
+      case FCV:
         kc *= pr->Ucf[FLOW];
         break;
-      case EN_PRV:
-      case EN_PSV:
-      case EN_PBV:
+      case PRV:
+      case PSV:
+      case PBV:
         kc *= pr->Ucf[PRESSURE];
         break;
       default:
@@ -312,7 +310,7 @@ int saveinpfile(EN_Project *pr, const char *fname)
     sprintf(s, " %-31s %-31s %-31s %12.4f %5s", link->ID, net->Node[link->N1].ID,
             net->Node[link->N2].ID, d * pr->Ucf[DIAM], LinkTxt[link->Type]);
 
-    if (link->Type == EN_GPV && (j = ROUND(link->Kc)) > 0)
+    if (link->Type == GPV && (j = ROUND(link->Kc)) > 0)
       sprintf(s1, "%-31s %12.4f", net->Curve[j].ID, km);
     else
       sprintf(s1, "%12.4f %12.4f", kc, km);
@@ -355,12 +353,12 @@ int saveinpfile(EN_Project *pr, const char *fname)
   fprintf(f, s_STATUS);
   for (i = 1; i <= net->Nlinks; i++) {
     link = &net->Link[i];
-    if (link->Type <= EN_PUMP) {
+    if (link->Type <= PUMP) {
       if (link->Stat == CLOSED)
         fprintf(f, "\n %-31s %s", link->ID, StatTxt[CLOSED]);
 
       /* Write pump speed here for pumps with old-style pump curve input */
-      else if (link->Type == EN_PUMP) {
+      else if (link->Type == PUMP) {
         n = findpump(net, i);
         pump = &net->Pump[n];
         if (pump->Hcurve == 0 && pump->Ptype != CONST_HP &&
@@ -419,12 +417,12 @@ int saveinpfile(EN_Project *pr, const char *fname)
     else {
       kc = control->Setting;
       switch (link->Type) {
-        case EN_PRV:
-        case EN_PSV:
-        case EN_PBV:
+        case PRV:
+        case PSV:
+        case PBV:
           kc *= pr->Ucf[PRESSURE];
           break;
-        case EN_FCV:
+        case FCV:
           kc *= pr->Ucf[FLOW];
           break;
         default:
@@ -467,8 +465,8 @@ int saveinpfile(EN_Project *pr, const char *fname)
   fprintf(f, "\n\n");
   fprintf(f, s_RULES);
   for (i = 1; i <= net->Nrules; i++) {
-    fprintf(f, "\nRULE %s", pr->rules.Rule[i].label);
-    errcode = writeRuleinInp(pr, f, i);
+    fprintf(f, "\nRULE %s", pr->network.Rule[i].label);
+    errcode = writerule(pr, f, i);
     fprintf(f, "\n");
   }
 
@@ -528,7 +526,7 @@ int saveinpfile(EN_Project *pr, const char *fname)
     fprintf(f, "\n ROUGHNESS CORRELATION  %-.6f", qu->Rfactor);
   for (i = 1; i <= net->Nlinks; i++) {
     link = &net->Link[i];
-    if (link->Type > EN_PIPE)
+    if (link->Type > PIPE)
       continue;
     if (link->Kb != qu->Kbulk)
       fprintf(f, "\n BULK   %-31s %-.6f", link->ID, link->Kb * SECperDAY);

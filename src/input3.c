@@ -26,12 +26,12 @@ All functions in this module are called from newline() in INPUT2.C.
 #ifndef __APPLE__
 #include <malloc.h>
 #endif
-#include "epanet2.h"
+#include <math.h>
+
+#include "types.h"
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
-#include "types.h"
-#include <math.h>
 
 /* Defined in enumstxt.h in EPANET.C */
 extern char *MixTxt[];
@@ -98,7 +98,7 @@ int juncdata(EN_Project *pr)
   node->S = NULL;
   node->Ke = 0.0;
   node->Rpt = 0;
-  node->Type = EN_JUNCTION;
+  node->Type = JUNCTION;
   strcpy(node->Comment, par->Comment);
 
   
@@ -214,7 +214,7 @@ int tankdata(EN_Project *pr)
   node->C0 = 0.0; /* Init. quality.       */
   node->S = NULL; /* WQ source data       */
   node->Ke = 0.0; /* Emitter coeff.       */
-  node->Type = (diam == 0) ? EN_RESERVOIR : EN_TANK;
+  node->Type = (diam == 0) ? RESERVOIR : TANK;
   strcpy(node->Comment, par->Comment);
   tank->Node = i;        /* Node index.          */
   tank->H0 = initlevel;  /* Init. level.         */
@@ -258,7 +258,7 @@ int pipedata(EN_Project *pr)
   int j1,                     /* Start-node index  */
       j2,                     /* End-node index    */
       n;                      /* # data items      */
-  EN_LinkType type = EN_PIPE; /* Link type         */
+  LinkType type = PIPE;       /* Link type         */
   StatType status = OPEN;     /* Link status       */
   double length,              /* Link length       */
       diam,                   /* Link diameter     */
@@ -298,7 +298,7 @@ int pipedata(EN_Project *pr)
   /* Case where either loss coeff. or status supplied */
   if (n == 7) {
     if (match(par->Tok[6], w_CV))
-      type = EN_CVPIPE;
+      type = CVPIPE;
     else if (match(par->Tok[6], w_CLOSED))
       status = CLOSED;
     else if (match(par->Tok[6], w_OPEN))
@@ -312,7 +312,7 @@ int pipedata(EN_Project *pr)
     if (!getfloat(par->Tok[6], &lcoeff))
       return (202);
     if (match(par->Tok[7], w_CV))
-      type = EN_CVPIPE;
+      type = CVPIPE;
     else if (match(par->Tok[7], w_CLOSED))
       status = CLOSED;
     else if (match(par->Tok[7], w_OPEN))
@@ -401,7 +401,7 @@ int pumpdata(EN_Project *pr)
   link->Km = 0.0;  /* Horsepower.        */
   link->Kb = 0.0;
   link->Kw = 0.0;
-  link->Type = EN_PUMP;  /* Link type.         */
+  link->Type = PUMP;     /* Link type.         */
   link->Stat = OPEN;     /* Link status.       */
   link->Rpt = 0;         /* Report flag.       */
   strcpy(link->Comment, par->Comment);
@@ -514,24 +514,24 @@ int valvedata(EN_Project *pr)
     return (222);
 
   if (match(par->Tok[4], w_PRV))
-    type = EN_PRV;
+    type = PRV;
   else if (match(par->Tok[4], w_PSV))
-    type = EN_PSV;
+    type = PSV;
   else if (match(par->Tok[4], w_PBV))
-    type = EN_PBV;
+    type = PBV;
   else if (match(par->Tok[4], w_FCV))
-    type = EN_FCV;
+    type = FCV;
   else if (match(par->Tok[4], w_TCV))
-    type = EN_TCV;
+    type = TCV;
   else if (match(par->Tok[4], w_GPV))
-    type = EN_GPV;
+    type = GPV;
   else
     return (201); /* Illegal valve type.*/
   if (!getfloat(par->Tok[3], &diam))
     return (202);
   if (diam <= 0.0)
     return (202);     /* Illegal diameter.*/
-  if (type == EN_GPV) { /* Headloss curve for GPV */
+  if (type == GPV) { /* Headloss curve for GPV */
     t = findID(par->Tok[5], par->Curvelist);
     if (t == NULL) {
       return (206);
@@ -549,7 +549,7 @@ int valvedata(EN_Project *pr)
   /* Check that PRV, PSV, or FCV not connected to a tank & */
   /* check for illegal connections between pairs of valves.*/
   if ((j1 > net->Njuncs || j2 > net->Njuncs) &&
-      (type == EN_PRV || type == EN_PSV || type == EN_FCV))
+      (type == PRV || type == PSV || type == FCV))
     return (219);
   if (!valvecheck(pr, type, j1, j2))
     return (220);
@@ -820,7 +820,7 @@ int controldata(EN_Project *pr)
       n;                    /* # data items           */
   StatType status = ACTIVE; /* Link status            */
   ControlType c_type;       /* control type   */
-  EN_LinkType l_type;       /* Link Type */
+  LinkType l_type;          /* Link Type */
   double setting = MISSING, /* Link setting           */
       time = 0.0,           /* Simulation time        */
       level = 0.0;          /* Pressure or tank level */
@@ -836,24 +836,24 @@ int controldata(EN_Project *pr)
   if (k == 0)
     return (204);
   l_type = net->Link[k].Type;
-  if (l_type == EN_CVPIPE) {
+  if (l_type == CVPIPE) {
     return (207); /* Cannot control check valve. */
   }
   /*** Updated 9/7/00 ***/
   /* Parse control setting into a status level or numerical setting. */
   if (match(par->Tok[2], w_OPEN)) {
     status = OPEN;
-    if (l_type == EN_PUMP)
+    if (l_type == PUMP)
       setting = 1.0;
-    if (l_type == EN_GPV)
+    if (l_type == GPV)
       setting = net->Link[k].Kc;
   } else if (match(par->Tok[2], w_CLOSED)) {
     status = CLOSED;
-    if (l_type == EN_PUMP)
+    if (l_type == PUMP)
       setting = 0.0;
-    if (l_type == EN_GPV)
+    if (l_type == GPV)
       setting = net->Link[k].Kc;
-  } else if (l_type == EN_GPV) {
+  } else if (l_type == GPV) {
     return (206);
   } else if (!getfloat(par->Tok[2], &setting)) {
     return (202);
@@ -863,7 +863,7 @@ int controldata(EN_Project *pr)
   /* Set status for pump in case speed setting was supplied */
   /* or for pipe if numerical setting was supplied */
 
-  if (l_type == EN_PUMP || l_type == EN_PIPE) {
+  if (l_type == PUMP || l_type == PIPE) {
     if (setting != MISSING) {
       if (setting < 0.0)
         return (202);
@@ -1321,12 +1321,12 @@ int statusdata(EN_Project *pr)
     if ((j = findlink(net, par->Tok[0])) == 0)
       return (0);
     /* Cannot change status of a Check Valve */
-    if (net->Link[j].Type == EN_CVPIPE)
+    if (net->Link[j].Type == CVPIPE)
       return (211);
 
     /*** Updated 9/7/00 ***/
     /* Cannot change setting for a GPV */
-    if (net->Link[j].Type == EN_GPV && status == ACTIVE)
+    if (net->Link[j].Type == GPV && status == ACTIVE)
       return (211);
 
     changestatus(net, j, status, y);
@@ -1398,7 +1398,7 @@ int energydata(EN_Project *pr)
     k = findlink(net,par->Tok[1]); /* Check that pump exists */
     if (k == 0)
       return (216);
-    if (Link[k].Type != EN_PUMP)
+    if (Link[k].Type != PUMP)
       return (216);
     j = findpump(net, k);
   } else
@@ -2150,7 +2150,7 @@ int valvecheck(EN_Project *pr, int type, int j1, int j2)
   EN_Network *net = &pr->network;
   
   int k, vj1, vj2;
-  EN_LinkType vtype;
+  LinkType vtype;
 
   /* Examine each existing valve */
   for (k = 1; k <= net->Nvalves; k++) {
@@ -2161,35 +2161,35 @@ int valvecheck(EN_Project *pr, int type, int j1, int j2)
     vtype = link->Type;
 
     /* Cannot have two PRVs sharing downstream nodes or in series */
-    if (vtype == EN_PRV && type == EN_PRV) {
+    if (vtype == PRV && type == PRV) {
       if (vj2 == j2 || vj2 == j1 || vj1 == j2)
         return (0);
     }
 
     /* Cannot have two PSVs sharing upstream nodes or in series */
-    if (vtype == EN_PSV && type == EN_PSV) {
+    if (vtype == PSV && type == PSV) {
       if (vj1 == j1 || vj1 == j2 || vj2 == j1)
         return (0);
     }
 
     /* Cannot have PSV connected to downstream node of PRV */
-    if (vtype == EN_PSV && type == EN_PRV && vj1 == j2)
+    if (vtype == PSV && type == PRV && vj1 == j2)
       return (0);
-    if (vtype == EN_PRV && type == EN_PSV && vj2 == j1)
+    if (vtype == PRV && type == PSV && vj2 == j1)
       return (0);
 
     /*** Updated 3/1/01 ***/
     /* Cannot have PSV connected to downstream node of FCV */
     /* nor have PRV connected to upstream node of FCV */
-    if (vtype == EN_FCV && type == EN_PSV && vj2 == j1)
+    if (vtype == FCV && type == PSV && vj2 == j1)
       return (0);
-    if (vtype == EN_FCV && type == EN_PRV && vj1 == j2)
+    if (vtype == FCV && type == PRV && vj1 == j2)
       return (0);
 
     /*** Updated 4/14/05 ***/
-    if (vtype == EN_PSV && type == EN_FCV && vj1 == j2)
+    if (vtype == PSV && type == FCV && vj1 == j2)
       return (0);
-    if (vtype == EN_PRV && type == EN_FCV && vj2 == j1)
+    if (vtype == PRV && type == FCV && vj2 == j1)
       return (0);
   }
   return (1);
@@ -2213,10 +2213,10 @@ void changestatus(EN_Network *net, int j, StatType status, double y)
 {
   Slink *link = &net->Link[j];
   
-  if (link->Type == EN_PIPE || link->Type == EN_GPV) {
+  if (link->Type == PIPE || link->Type == GPV) {
     if (status != ACTIVE)
       link->Stat = status;
-  } else if (link->Type == EN_PUMP) {
+  } else if (link->Type == PUMP) {
     if (status == ACTIVE) {
       link->Kc = y;
       status = OPEN;
@@ -2226,7 +2226,7 @@ void changestatus(EN_Network *net, int j, StatType status, double y)
       link->Kc = 1.0;
     }
     link->Stat = status;
-  } else if (link->Type >= EN_PRV) {
+  } else if (link->Type >= PRV) {
     link->Kc = y;
     link->Stat = status;
     if (status != ACTIVE) {

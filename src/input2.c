@@ -31,12 +31,12 @@ The following utility functions are all called from INPUT3.C
 #ifndef __APPLE__
 #include <malloc.h>
 #endif
+#include <math.h>
+
+#include "types.h"
+#include "funcs.h"
 #include "hash.h"
 #include "text.h"
-#include "types.h"
-#include "epanet2.h"
-#include "funcs.h"
-#include <math.h>
 
 #define MAXERRS 10 /* Max. input errors reported        */
 
@@ -206,9 +206,6 @@ int readdata(EN_Project *pr)
 
       /* Check if max. length exceeded */
       if (strlen(line) >= MAXLINE) {
-//        char errMsg[MAXMSG+1];
-//        EN_geterror(214, errMsg, MAXMSG);
-//        sprintf(pr->Msg, "%s section: %s", errMsg, SectTxt[sect]);
         sprintf(pr->Msg, "%s section: %s", geterrmsg(214, pr->Msg), SectTxt[sect]);
         writeline(pr, pr->Msg);
         writeline(pr, line);
@@ -317,7 +314,12 @@ int newline(EN_Project *pr, int sect, char *line)
   case _CONTROLS:
     return (controldata(pr));
   case _RULES:
-    return (ruledata(pr)); /* See RULES.C */
+    if (ruledata(pr) > 0)
+    {
+        ruleerrmsg(pr);
+        return 200;
+    }
+    else return 0;
   case _SOURCES:
     return (sourcedata(pr));
   case _EMITTERS:
