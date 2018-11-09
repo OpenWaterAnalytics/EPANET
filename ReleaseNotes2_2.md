@@ -128,45 +128,14 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 ## New API functions
 |Function|Description|
 |--|--|
-|`ENinit`||
-|`ENsetflowunits`||
-|`ENgetdemandmodel`||
-|`ENsetdemandmodel`||
-|`ENgetdemandname`||
-|`ENsetdemandname`||
-|`ENsetdemandpattern`||
-|`ENgetrule`||
-|`ENsetrulepriority`||
-|`ENgetpremise`||
-|`ENsetpremise`||
-|`ENsetpremiseindex`||
-|`ENsetpremisestatus`||
-|`ENsetpremisevalue`||
-|`ENgetthenaction`||
-|`ENsetthenaction`||
-|`ENgetelseaction`||
-|`ENsetelseaction`||
-|`ENgetruleID`||
-|`ENgetcurvetype`||
-|`ENsetlinknodes`||
-|`ENsetlinktype`||
-|`ENaddnode`||
-|`ENaddlink`||
-|`ENaddpattern`||
-|`ENaddcontrol`||
-|`ENaddrule` ||
-|`ENdeletenode`||
-|`ENdeletelink`||
-|`ENdeletecontrol`||
-|`ENdeleterule` ||
-|`ENsetnodeid` ||
-|`ENsetlinkid` ||
-|`ENgetcurvetype`|Get the type of a curve|
+|`ENinit`|Initializes an EPANET session|
+|`ENsetflowunits`|Sets the flow units|
 |`ENgetdemandmodel`|Retrieves the type of demand model in use and its parameters|
 |`ENsetdemandmodel`|Sets the type of demand model to use and its parameters|
-|`ENsetflowunits`|Sets the flow units|
-|`ENaddcontrol`|Specify parameters to add a new simple control|
+|`ENgetdemandname`|Sets the node's demand name for a category|
+|`ENsetdemandname`|Sets the node's demand name for a category|
 |`ENsetdemandpattern`|Sets the index of the demand pattern assigned to a node for a category index|
+|`ENsetheadcurveindex`|Sets the curve id for a specified pump index|
 |`ENgetrule`|Gets the number of premises, true actions, and false actions and the priority of an existing rule-based control|
 |`ENsetrulepriority`|Sets the priority of the existing rule-based control|
 |`ENgetpremise`|Gets the components of a premise/condition in an existing rule-based control|
@@ -174,22 +143,24 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`ENsetpremiseindex`|Sets the index of an object in a premise of an existing rule-based control|
 |`ENsetpremisestatus`|Sets the status in a premise of an existing rule-based control|
 |`ENsetpremisevalue`|Sets the value in a premise of an existing rule-based control|
-|`ENgettrueaction`|Gets the components of a true-action in an existing rule-based control|
-|`ENsettrueaction`|Sets the components of a true-action in an existing rule-based control|
-|`ENgetfalseaction`|Gets the components of a false-action in an existing rule-based control|
-|`ENsetfalseaction`|Sets the components of a false-action in an existing rule-based control|
+|`ENgetthenaction`|Get the components of a THEN action in a rule-based control|
+|`ENsetthenaction`|Set the components of a THEN action in a rule-based control|
+|`ENgetelseaction`|Get the components of an ELSE action in a rule-based control|
+|`ENsetelseaction`|Set the components of an ELSE action in a rule-based control|
 |`ENgetruleID`|Returns the ID of a rule|
-|`ENinit`|Initializes an EPANET session|
-|`ENsetheadcurveindex`|Sets the curve id for a specified pump index|
+|`ENgetcurvetype`|Get the type of a curve|
+|`ENsetlinknodes`|Set the indexes of a link's start- and end-nodes|
 |`ENsetlinktype`|Set the link type code for a specified link|
 |`ENaddnode`|Adds a new node|
 |`ENaddlink`|Adds a new link|
-|`ENdeletelink`|Deletes a link|
+|`ENaddcontrol`|Specify parameters to add a new simple control|
+|`ENaddrule`|Add a new control rule to the project|
 |`ENdeletenode`|Deletes a node|
-| `ENsetnodeid` |Change the ID name for a node|
-| `ENsetlinkid` |Change the ID name for a link|
-|`ENgetdemandname`|Sets the node's demand name for a category|
-|`ENsetdemandname`|Sets the node's demand name for a category|
+|`ENdeletelink`|Deletes a link|
+|`ENdeletecontrol`|Delete an existing simple control|
+|`ENdeleterule`|Delete a rule-based control|
+|`ENsetnodeid`|Change the ID name for a node|
+|`ENsetlinkid`|Change the ID name for a link|
 
 ## API Extensions (additional definitions)
 ### Link value types:
@@ -215,6 +186,7 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
  - `EN_MAXHEADERROR`
  - `EN_MAXFLOWCHANGE`
  - `EN_MASSBALANCE`
+ ### Action code types:
  - `EN_UNCONDITIONAL`
  - `EN_CONDITIONAL`
 ### Curve types:
@@ -229,4 +201,3 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
  
 ## Authors contributing to this release:
  - List item
-
