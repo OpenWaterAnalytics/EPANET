@@ -12,12 +12,7 @@ AUTHORS:    OpenWaterAnalytics members: see git stats for contributors
 #include <stdlib.h>
 
 #include "epanet_2_1.h"
-
-// Formerly included from types.h
-#include "epanet_2_2.h"
-
-#define MAX(x,y) (((x)>=(y)) ? (x) : (y))     /* maximum of x and y    */
-typedef struct EN_Project EN_Project;
+#include "types.h"
 
 
 // This single global variable is used only when the library is called
@@ -31,12 +26,12 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
   int warncode = 0;
   EN_Project *p = NULL;
 
-  EN_createproject(&_defaultModel);
+  ERRCODE(EN_createproject(&_defaultModel));
 
-  errcode = EN_runproject(_defaultModel, f1, f2, f3, pviewprog);
+  ERRCODE(EN_runproject(_defaultModel, f1, f2, f3, pviewprog));
   if (errcode < 100) warncode = errcode;
 
-  EN_deleteproject(&_defaultModel);
+  ERRCODE(EN_deleteproject(&_defaultModel));
 
   if (warncode) errcode = MAX(errcode, warncode);
   return (errcode);
@@ -45,15 +40,15 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
 int DLLEXPORT ENinit(const char *f2, const char *f3, int UnitsType,
                      int HeadlossFormula) {
   int errcode = 0;
-  EN_createproject(&_defaultModel);
-  errcode = EN_init(_defaultModel, f2, f3, UnitsType, HeadlossFormula);
+  ERRCODE(EN_createproject(&_defaultModel));
+  ERRCODE(EN_init(_defaultModel, f2, f3, UnitsType, HeadlossFormula));
   return (errcode);
 }
 
 int DLLEXPORT ENopen(const char *f1, const char *f2, const char *f3) {
   int errcode = 0;
-  EN_createproject(&_defaultModel);
-  errcode = EN_open(_defaultModel, f1, f2, f3);
+  ERRCODE(EN_createproject(&_defaultModel));
+  EN_open(_defaultModel, f1, f2, f3);
   return (errcode);
 }
 
@@ -63,8 +58,8 @@ int DLLEXPORT ENsaveinpfile(const char *filename) {
 
 int DLLEXPORT ENclose() {
     int errcode = 0;
-    errcode = EN_close(_defaultModel);
-    EN_deleteproject(&_defaultModel);
+    ERRCODE(EN_close(_defaultModel));
+    ERRCODE(EN_deleteproject(&_defaultModel));
     return (errcode);
 }
 
