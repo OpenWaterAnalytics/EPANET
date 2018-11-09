@@ -17,8 +17,48 @@
 #define EPANET_2_1_H
 
 
-// Sharing preprocessor definitions, macros, and enums with v2.2 API
-#include "epanet_2_2.h"
+// the toolkit can be compiled with support for double-precision as well.
+// just make sure that you use the correct #define in your client code.
+#ifndef EN_API_FLOAT_TYPE
+  #define EN_API_FLOAT_TYPE float
+#endif
+
+#ifdef WITH_GENX
+   #include "epanet_export.h"
+#else
+  // --- define WINDOWS
+  #undef WINDOWS
+  #ifdef _WIN32
+    #define WINDOWS
+  #endif
+  #ifdef __WIN32__
+    #define WINDOWS
+  #endif
+
+  // --- define DLLEXPORT
+  #ifndef DLLEXPORT
+    #ifdef WINDOWS
+      #ifdef __cplusplus
+        #define DLLEXPORT __declspec(dllexport)
+      #else
+        #define DLLEXPORT __declspec(dllexport) __stdcall
+      #endif // __cplusplus
+    #elif defined(CYGWIN)
+      #define DLLEXPORT __stdcall
+    #elif defined(__APPLE__)
+      #ifdef __cplusplus
+        #define DLLEXPORT
+      #else
+        #define DLLEXPORT
+      #endif
+    #else
+      #define DLLEXPORT
+    #endif
+  #endif
+#endif
+
+
+#include "epanet2_enums.h"
 
 
 // --- Declare the EPANET toolkit functions
