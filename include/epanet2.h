@@ -27,7 +27,7 @@
 // the toolkit can be compiled with support for double-precision as well.
 // just make sure that you use the correct #define in your client code.
 #ifndef EN_API_FLOAT_TYPE
-  #define EN_API_FLOAT_TYPE float
+  #define EN_API_FLOAT_TYPE double
 #endif
 
 #ifdef WITH_GENX
