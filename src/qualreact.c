@@ -11,30 +11,30 @@ QUALREACT.C -- water quality reaction module for the EPANET program
 #include "types.h"
 
 // Exported Functions
-char    setreactflag(EN_Project *pr);
+char    setreactflag(Project *pr);
 double  getucf(double);
-void    ratecoeffs(EN_Project *pr);
-void    reactpipes(EN_Project *pr, long);
-void    reacttanks(EN_Project *pr, long);
-double  mixtank(EN_Project *pr, int, double, double ,double);
+void    ratecoeffs(Project *pr);
+void    reactpipes(Project *pr, long);
+void    reacttanks(Project *pr, long);
+double  mixtank(Project *pr, int, double, double ,double);
 
 // Imported Functions
-extern  void addseg(EN_Project *pr, int, double, double);
+extern  void addseg(Project *pr, int, double, double);
 
 // Local Functions
-static double  piperate(EN_Project *pr, int);
-static double  pipereact(EN_Project *pr, int, double, double, long);
-static double  tankreact(EN_Project *pr, double, double, double, long);
-static double  bulkrate(EN_Project *pr, double, double, double);
-static double  wallrate(EN_Project *pr, double, double, double, double);
+static double  piperate(Project *pr, int);
+static double  pipereact(Project *pr, int, double, double, long);
+static double  tankreact(Project *pr, double, double, double, long);
+static double  bulkrate(Project *pr, double, double, double);
+static double  wallrate(Project *pr, double, double, double, double);
 
-static void    tankmix1(EN_Project *pr, int, double, double, double);
-static void    tankmix2(EN_Project *pr, int, double, double, double);
-static void    tankmix3(EN_Project *pr, int, double, double, double);
-static void    tankmix4(EN_Project *pr, int, double, double, double);
+static void    tankmix1(Project *pr, int, double, double, double);
+static void    tankmix2(Project *pr, int, double, double, double);
+static void    tankmix3(Project *pr, int, double, double, double);
+static void    tankmix4(Project *pr, int, double, double, double);
 
 
-char setreactflag(EN_Project *pr)
+char setreactflag(Project *pr)
 /*
 **-----------------------------------------------------------
 **   Input:   none
@@ -82,7 +82,7 @@ double getucf(double order)
 }
 
 
-void ratecoeffs(EN_Project *pr)
+void ratecoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -107,7 +107,7 @@ void ratecoeffs(EN_Project *pr)
 }
 
 
-void reactpipes(EN_Project *pr, long dt)
+void reactpipes(Project *pr, long dt)
 /*
 **--------------------------------------------------------------
 **   Input:   dt = time step
@@ -158,7 +158,7 @@ void reactpipes(EN_Project *pr, long dt)
 }
 
 
-void reacttanks(EN_Project *pr, long dt)
+void reacttanks(Project *pr, long dt)
 /*
 **--------------------------------------------------------------
 **   Input:   dt = time step
@@ -198,7 +198,7 @@ void reacttanks(EN_Project *pr, long dt)
 }
 
 
-double piperate(EN_Project *pr, int k)
+double piperate(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -258,7 +258,7 @@ double piperate(EN_Project *pr, int k)
 }
 
 
-double pipereact(EN_Project *pr, int k, double c, double v, long dt)
+double pipereact(Project *pr, int k, double c, double v, long dt)
 /*
 **------------------------------------------------------------
 **   Input:   k = link index
@@ -308,7 +308,7 @@ double pipereact(EN_Project *pr, int k, double c, double v, long dt)
 }
 
 
-double tankreact(EN_Project *pr, double c, double v, double kb, long dt)
+double tankreact(Project *pr, double c, double v, double kb, long dt)
 /*
 **-------------------------------------------------------
 **   Input:   c = current quality in tank
@@ -349,7 +349,7 @@ double tankreact(EN_Project *pr, double c, double v, double kb, long dt)
 }
 
 
-double bulkrate(EN_Project *pr, double c, double kb, double order)
+double bulkrate(Project *pr, double c, double kb, double order)
 /*
 **-----------------------------------------------------------
 **   Input:   c = current WQ concentration
@@ -396,7 +396,7 @@ double bulkrate(EN_Project *pr, double c, double kb, double order)
 }
 
 
-double wallrate(EN_Project *pr, double c, double d, double kw, double kf)
+double wallrate(Project *pr, double c, double d, double kw, double kf)
 /*
 **------------------------------------------------------------
 **   Input:   c = current WQ concentration
@@ -424,7 +424,7 @@ double wallrate(EN_Project *pr, double c, double d, double kw, double kf)
 }
 
 
-double mixtank(EN_Project *pr, int n, double volin, double massin, double volout)
+double mixtank(Project *pr, int n, double volin, double massin, double volout)
 /*
 **------------------------------------------------------------
 **   Input:   n      = node index
@@ -454,7 +454,7 @@ double mixtank(EN_Project *pr, int n, double volin, double massin, double volout
 }
 
 
-void tankmix1(EN_Project *pr, int i, double vin, double win, double vnet)
+void tankmix1(Project *pr, int i, double vin, double win, double vnet)
 /*
 **---------------------------------------------
 **   Input:   i = tank index
@@ -488,7 +488,7 @@ void tankmix1(EN_Project *pr, int i, double vin, double win, double vnet)
 }
 
 
-void tankmix2(EN_Project *pr, int i, double vin, double win, double vnet)
+void tankmix2(Project *pr, int i, double vin, double win, double vnet)
 /*
 **------------------------------------------------
 **   Input:   i = tank index
@@ -568,7 +568,7 @@ void tankmix2(EN_Project *pr, int i, double vin, double win, double vnet)
 }
 
 
-void tankmix3(EN_Project *pr, int i, double vin, double win, double vnet)
+void tankmix3(Project *pr, int i, double vin, double win, double vnet)
 /*
 **----------------------------------------------------------
 **   Input:   i = tank index
@@ -639,7 +639,7 @@ void tankmix3(EN_Project *pr, int i, double vin, double win, double vnet)
 }
 
 
-void tankmix4(EN_Project *pr, int i, double vin, double win, double vnet)
+void tankmix4(Project *pr, int i, double vin, double win, double vnet)
 /*
 **----------------------------------------------------------
 **   Input:   i = tank index

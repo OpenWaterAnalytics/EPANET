@@ -17,29 +17,29 @@ QUALROUTE.C -- water quality routing module for the EPANET program
 #define LINKFLOW(k) ((hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlows[k])
 
 // Exported Functions
-int     buildilists(EN_Project *pr);
-int     sortnodes(EN_Project *pr);
-void    transport(EN_Project *pr, long);
-void    initsegs(EN_Project *pr);
-void    reversesegs(EN_Project *pr, int);
-void    addseg(EN_Project *pr, int, double, double);
+int     buildilists(Project *pr);
+int     sortnodes(Project *pr);
+void    transport(Project *pr, long);
+void    initsegs(Project *pr);
+void    reversesegs(Project *pr, int);
+void    addseg(Project *pr, int, double, double);
 
 // Imported Functions
-extern double  findsourcequal(EN_Project *pr, int, double, double, long);
-extern void    reactpipes(EN_Project *pr, long);
-extern void    reacttanks(EN_Project *pr, long);
-extern double  mixtank(EN_Project *pr, int, double, double, double);
+extern double  findsourcequal(Project *pr, int, double, double, long);
+extern void    reactpipes(Project *pr, long);
+extern void    reacttanks(Project *pr, long);
+extern double  mixtank(Project *pr, int, double, double, double);
 
 // Local Functions
-static void    evalnodeinflow(EN_Project *pr, int, long, double *, double *);
-static void    evalnodeoutflow(EN_Project *pr, int, double, long);
-static double  findnodequal(EN_Project *pr, int, double, double, double, long);
-static double  noflowqual(EN_Project *pr, int);
-static void    updatemassbalance(EN_Project *pr, int, double, double, long);
-static int     selectnonstacknode(EN_Project *pr, int, int *);
+static void    evalnodeinflow(Project *pr, int, long, double *, double *);
+static void    evalnodeoutflow(Project *pr, int, double, long);
+static double  findnodequal(Project *pr, int, double, double, double, long);
+static double  noflowqual(Project *pr, int);
+static void    updatemassbalance(Project *pr, int, double, double, long);
+static int     selectnonstacknode(Project *pr, int, int *);
 
 
-void transport(EN_Project *pr, long tstep)
+void transport(Project *pr, long tstep)
 /*
 **--------------------------------------------------------------
 **   Input:   tstep = length of current time step
@@ -122,7 +122,7 @@ void transport(EN_Project *pr, long tstep)
     }
 }
 
-void  evalnodeinflow(EN_Project *pr, int k, long tstep, double *volin,
+void  evalnodeinflow(Project *pr, int k, long tstep, double *volin,
     double *massin)
     /*
     **--------------------------------------------------------------
@@ -184,7 +184,7 @@ void  evalnodeinflow(EN_Project *pr, int k, long tstep, double *volin,
 }
 
 
-double  findnodequal(EN_Project *pr, int n, double volin,
+double  findnodequal(Project *pr, int n, double volin,
     double massin, double volout, long tstep)
     /*
     **--------------------------------------------------------------
@@ -261,7 +261,7 @@ double  findnodequal(EN_Project *pr, int n, double volin,
 }
 
 
-double  noflowqual(EN_Project *pr, int n)
+double  noflowqual(Project *pr, int n)
 /*
 **--------------------------------------------------------------
 **   Input:   n = node index
@@ -312,7 +312,7 @@ double  noflowqual(EN_Project *pr, int n)
 }
 
 
-void evalnodeoutflow(EN_Project *pr, int k, double c, long tstep)
+void evalnodeoutflow(Project *pr, int k, double c, long tstep)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -357,7 +357,7 @@ void evalnodeoutflow(EN_Project *pr, int k, double c, long tstep)
 }
 
 
-void updatemassbalance(EN_Project *pr, int n, double massin,
+void updatemassbalance(Project *pr, int n, double massin,
     double volout, long tstep)
     /*
     **--------------------------------------------------------------
@@ -406,7 +406,7 @@ void updatemassbalance(EN_Project *pr, int n, double massin,
 
 
 
-int buildilists(EN_Project *pr)
+int buildilists(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -475,7 +475,7 @@ int buildilists(EN_Project *pr)
 
 
 
-int sortnodes(EN_Project *pr)
+int sortnodes(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -596,7 +596,7 @@ int sortnodes(EN_Project *pr)
 }
 
 
-int selectnonstacknode(EN_Project *pr, int numsorted, int *indegree)
+int selectnonstacknode(Project *pr, int numsorted, int *indegree)
 /*
 **--------------------------------------------------------------
 **   Input:   numsorted = number of nodes that have been sorted
@@ -642,7 +642,7 @@ int selectnonstacknode(EN_Project *pr, int numsorted, int *indegree)
 }
 
 
-void initsegs(EN_Project *pr)
+void initsegs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -705,7 +705,7 @@ void initsegs(EN_Project *pr)
 }
 
 
-void reversesegs(EN_Project *pr, int k)
+void reversesegs(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -731,7 +731,7 @@ void reversesegs(EN_Project *pr, int k)
 }
 
 
-void addseg(EN_Project *pr, int k, double v, double c)
+void addseg(Project *pr, int k, double v, double c)
 /*
 **-------------------------------------------------------------
 **   Input:   k = segment chain index

@@ -23,7 +23,7 @@ using namespace std;
 void  epanet_thread(long i)
 {
     int errorcode = 0;
-    EN_ProjectHandle ph;
+    EN_Project ph;
 
     string prefix = "example_";
     string suffix = ".inp";

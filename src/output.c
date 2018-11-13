@@ -32,7 +32,7 @@ size_t f_save(REAL4 *x, int n, FILE *file) {
 }
 
 
-int savenetdata(EN_Project *pr)
+int savenetdata(Project *pr)
 /*
 **---------------------------------------------------------------
 **   Input:   none
@@ -154,7 +154,7 @@ int savenetdata(EN_Project *pr)
   return (errcode);
 }
 
-int savehyd(EN_Project *pr, long *htime)
+int savehyd(Project *pr, long *htime)
 /*
 **--------------------------------------------------------------
 **   Input:   *htime   = current time
@@ -217,7 +217,7 @@ int savehyd(EN_Project *pr, long *htime)
   return (errcode);
 } /* End of savehyd */
 
-int savehydstep(EN_Project *pr, long *hydstep)
+int savehydstep(Project *pr, long *hydstep)
 /*
 **--------------------------------------------------------------
 **   Input:   *hydstep = next time step
@@ -239,7 +239,7 @@ int savehydstep(EN_Project *pr, long *hydstep)
   return (errcode);
 }
 
-int saveenergy(EN_Project *pr)
+int saveenergy(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -322,7 +322,7 @@ int saveenergy(EN_Project *pr)
   return (0);
 }
 
-int readhyd(EN_Project *pr, long *hydtime)
+int readhyd(Project *pr, long *hydtime)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -386,7 +386,7 @@ int readhyd(EN_Project *pr, long *hydtime)
   return result;
 } /* End of readhyd */
 
-int readhydstep(EN_Project *pr, long *hydstep)
+int readhydstep(Project *pr, long *hydstep)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -403,7 +403,7 @@ int readhydstep(EN_Project *pr, long *hydstep)
   return (1);
 } /* End of readhydstep */
 
-int saveoutput(EN_Project *pr)
+int saveoutput(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -429,7 +429,7 @@ int saveoutput(EN_Project *pr)
   return (errcode);
 } /* End of saveoutput */
 
-int nodeoutput(EN_Project *pr, int j, REAL4 *x, double ucf)
+int nodeoutput(Project *pr, int j, REAL4 *x, double ucf)
 /*
 **--------------------------------------------------------------
 **   Input:   j   = type of node variable
@@ -473,7 +473,7 @@ int nodeoutput(EN_Project *pr, int j, REAL4 *x, double ucf)
   return (0);
 } /* End of nodeoutput */
 
-int linkoutput(EN_Project *pr, int j, REAL4 *x, double ucf)
+int linkoutput(Project *pr, int j, REAL4 *x, double ucf)
 /*
 **----------------------------------------------------------------
 **   Input:   j   = type of link variable
@@ -590,7 +590,7 @@ int linkoutput(EN_Project *pr, int j, REAL4 *x, double ucf)
   return (0);
 } /* End of linkoutput */
 
-int savefinaloutput(EN_Project *pr)
+int savefinaloutput(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -631,7 +631,7 @@ int savefinaloutput(EN_Project *pr)
   return (errcode);
 }
 
-int savetimestat(EN_Project *pr, REAL4 *x, HdrType objtype)
+int savetimestat(Project *pr, REAL4 *x, HdrType objtype)
 /*
 **--------------------------------------------------------------
 **   Input:   *x  = buffer for node values
@@ -796,7 +796,7 @@ int savetimestat(EN_Project *pr, REAL4 *x, HdrType objtype)
   return (errcode);
 }
 
-int savenetreacts(EN_Project *pr, double wbulk, double wwall, double wtank, double wsource)
+int savenetreacts(Project *pr, double wbulk, double wwall, double wtank, double wsource)
 /*
 **-----------------------------------------------------
 **  Writes average network-wide reaction rates (in
@@ -824,7 +824,7 @@ int savenetreacts(EN_Project *pr, double wbulk, double wwall, double wtank, doub
   return (errcode);
 }
 
-int saveepilog(EN_Project *pr)
+int saveepilog(Project *pr)
 /*
 **-------------------------------------------------
 **  Writes Nperiods, Warnflag, & Magic Number to

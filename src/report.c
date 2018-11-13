@@ -57,10 +57,10 @@ extern char *RptFormTxt[];
 extern char *DemandModelTxt[];
 
 typedef REAL4 *Pfloat;
-void writenodetable(EN_Project *pr, Pfloat *);
-void writelinktable(EN_Project *pr, Pfloat *);
+void writenodetable(Project *pr, Pfloat *);
+void writelinktable(Project *pr, Pfloat *);
 
-int writereport(EN_Project *pr)
+int writereport(Project *pr)
 /*
 **------------------------------------------------------
 **   Input:   none
@@ -132,7 +132,7 @@ int writereport(EN_Project *pr)
   return (errcode);
 } /* End of writereport */
 
-void writelogo(EN_Project *pr)
+void writelogo(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -170,7 +170,7 @@ void writelogo(EN_Project *pr)
   writeline(pr, "");
 } /* End of writelogo */
 
-void writesummary(EN_Project *pr)
+void writesummary(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -288,7 +288,7 @@ void writesummary(EN_Project *pr)
   writeline(pr, " ");
 } /* End of writesummary */
 
-void writehydstat(EN_Project *pr, int iter, double relerr)
+void writehydstat(Project *pr, int iter, double relerr)
 /*
 **--------------------------------------------------------------
 **   Input:   iter   = # iterations to find hydraulic solution
@@ -371,7 +371,7 @@ void writehydstat(EN_Project *pr, int iter, double relerr)
 } /* End of writehydstat */
 
 
-void writemassbalance(EN_Project *pr)
+void writemassbalance(Project *pr)
 /*
 **-------------------------------------------------------------
 **   Input:   none
@@ -416,7 +416,7 @@ void writemassbalance(EN_Project *pr)
 }
 
 
-void writeenergy(EN_Project *pr)
+void writeenergy(Project *pr)
 /*
 **-------------------------------------------------------------
 **   Input:   none
@@ -462,7 +462,7 @@ void writeenergy(EN_Project *pr)
   writeline(pr, " ");
 } /* End of writeenergy */
 
-int writeresults(EN_Project *pr)
+int writeresults(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -563,7 +563,7 @@ int writeresults(EN_Project *pr)
   return (errcode);
 } /* End of writereport */
 
-void writenodetable(EN_Project *pr, Pfloat *x)
+void writenodetable(Project *pr, Pfloat *x)
 /*
 **---------------------------------------------------------------
 **   Input:   x = pointer to node results for current time
@@ -626,7 +626,7 @@ void writenodetable(EN_Project *pr, Pfloat *x)
   writeline(pr, " ");
 }
 
-void writelinktable(EN_Project *pr, Pfloat *x)
+void writelinktable(Project *pr, Pfloat *x)
 /*
 **---------------------------------------------------------------
 **   Input:   x = pointer to link results for current time
@@ -704,7 +704,7 @@ void writelinktable(EN_Project *pr, Pfloat *x)
   writeline(pr, " ");
 }
 
-void writeheader(EN_Project *pr, int type, int contin)
+void writeheader(Project *pr, int type, int contin)
 /*
 **--------------------------------------------------------------
 **   Input:   type   = table type
@@ -831,7 +831,7 @@ void writeheader(EN_Project *pr, int type, int contin)
   }
 } /* End of writeheader */
 
-void writeline(EN_Project *pr, char *s)
+void writeline(Project *pr, char *s)
 /*
 **--------------------------------------------------------------
 **   Input:   *s = text string
@@ -860,7 +860,7 @@ void writeline(EN_Project *pr, char *s)
   rpt->LineNum++;
 } /* End of writeline */
 
-void writerelerr(EN_Project *pr, int iter, double relerr)
+void writerelerr(Project *pr, int iter, double relerr)
 /*
 **-----------------------------------------------------------------
 **   Input:   iter   = current iteration of hydraulic solution
@@ -882,7 +882,7 @@ void writerelerr(EN_Project *pr, int iter, double relerr)
   }
 } /* End of writerelerr */
 
-void writestatchange(EN_Project *pr, int k, char s1, char s2)
+void writestatchange(Project *pr, int k, char s1, char s2)
 /*
 **--------------------------------------------------------------
 **   Input:   k  = link index
@@ -944,7 +944,7 @@ void writestatchange(EN_Project *pr, int k, char s1, char s2)
   }
 } /* End of writestatchange */
 
-void writecontrolaction(EN_Project *pr, int k, int i)
+void writecontrolaction(Project *pr, int k, int i)
 /*
 ----------------------------------------------------------------
 **   Input:   k  = link index
@@ -979,7 +979,7 @@ void writecontrolaction(EN_Project *pr, int k, int i)
   writeline(pr, pr->Msg);
 }
 
-void writeruleaction(EN_Project *pr, int k, char *ruleID)
+void writeruleaction(Project *pr, int k, char *ruleID)
 /*
 **--------------------------------------------------------------
 **   Input:   k  = link index
@@ -999,7 +999,7 @@ void writeruleaction(EN_Project *pr, int k, char *ruleID)
   writeline(pr, pr->Msg);
 }
 
-int writehydwarn(EN_Project *pr, int iter, double relerr)
+int writehydwarn(Project *pr, int iter, double relerr)
 /*
 **--------------------------------------------------------------
 **   Input:   iter = # iterations to find hydraulic solution
@@ -1108,7 +1108,7 @@ int writehydwarn(EN_Project *pr, int iter, double relerr)
   return (flag);
 } /* End of writehydwarn */
 
-void writehyderr(EN_Project *pr, int errnode)
+void writehyderr(Project *pr, int errnode)
 /*
 **-----------------------------------------------------------
 **   Input:   none
@@ -1130,7 +1130,7 @@ void writehyderr(EN_Project *pr, int errnode)
   disconnected(pr);
 } /* End of writehyderr */
 
-int disconnected(EN_Project *pr)
+int disconnected(Project *pr)
 /*
 **-------------------------------------------------------------------
 **   Input:   None
@@ -1209,7 +1209,7 @@ int disconnected(EN_Project *pr)
   return (count);
 } /* End of disconnected() */
 
-void marknodes(EN_Project *pr, int m, int *nodelist, char *marked)
+void marknodes(Project *pr, int m, int *nodelist, char *marked)
 /*
 **----------------------------------------------------------------
 **   Input:   m = number of source nodes
@@ -1264,7 +1264,7 @@ void marknodes(EN_Project *pr, int m, int *nodelist, char *marked)
   }
 } /* End of marknodes() */
 
-void getclosedlink(EN_Project *pr, int i, char *marked)
+void getclosedlink(Project *pr, int i, char *marked)
 /*
 **----------------------------------------------------------------
 **   Input:   i = junction index
@@ -1293,7 +1293,7 @@ void getclosedlink(EN_Project *pr, int i, char *marked)
   }
 }
 
-void writelimits(EN_Project *pr, int j1, int j2)
+void writelimits(Project *pr, int j1, int j2)
 /*
 **--------------------------------------------------------------
 **   Input:   j1 = index of first output variable
@@ -1339,7 +1339,7 @@ int checklimits(report_options_t *rep, double *y, int j1, int j2)
   return (1);
 } /* End of checklim */
 
-void writetime(EN_Project *pr, char *fmt)
+void writetime(Project *pr, char *fmt)
 /*
 **----------------------------------------------------------------
 **   Input:   fmt = format string

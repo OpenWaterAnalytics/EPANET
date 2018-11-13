@@ -34,26 +34,26 @@ const double QZERO = 0.005 / GPMperCFS;     // 0.005 gpm = 1.114e-5 cfs
 //int     stepqual(EN_Project *pr, long *);
 //int     closequal(EN_Project *pr);
 //double  avgqual(EN_Project *pr, int);
-double  findsourcequal(EN_Project *pr, int, double, double, long);
+double  findsourcequal(Project *pr, int, double, double, long);
 
 // Imported Functions
-extern char    setreactflag(EN_Project *pr);
+extern char    setreactflag(Project *pr);
 extern double  getucf(double);
-extern void    ratecoeffs(EN_Project *pr);
-extern int     buildilists(EN_Project *pr);
-extern void    initsegs(EN_Project *pr);
-extern void    reversesegs(EN_Project *pr, int);
-extern int     sortnodes(EN_Project *pr);
-extern void    transport(EN_Project *pr, long);
+extern void    ratecoeffs(Project *pr);
+extern int     buildilists(Project *pr);
+extern void    initsegs(Project *pr);
+extern void    reversesegs(Project *pr, int);
+extern int     sortnodes(Project *pr);
+extern void    transport(Project *pr, long);
 
 // Local Functions
-static double  sourcequal(EN_Project *pr, Psource);
-static void    evalmassbalance(EN_Project *pr);
-static double  findstoredmass(EN_Project *pr);
-static int     flowdirchanged(EN_Project *pr);
+static double  sourcequal(Project *pr, Psource);
+static void    evalmassbalance(Project *pr);
+static double  findstoredmass(Project *pr);
+static int     flowdirchanged(Project *pr);
 
 
-int openqual(EN_Project *pr)
+int openqual(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -110,7 +110,7 @@ int openqual(EN_Project *pr)
 }
 
 
-int initqual(EN_Project *pr)
+int initqual(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -193,7 +193,7 @@ int initqual(EN_Project *pr)
 }
 
 
-int runqual(EN_Project *pr, long *t)
+int runqual(Project *pr, long *t)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -256,7 +256,7 @@ int runqual(EN_Project *pr, long *t)
 }
 
 
-int nextqual(EN_Project *pr, long *tstep)
+int nextqual(Project *pr, long *tstep)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -316,7 +316,7 @@ int nextqual(EN_Project *pr, long *tstep)
 }
 
 
-int stepqual(EN_Project *pr, long *tleft)
+int stepqual(Project *pr, long *tleft)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -394,7 +394,7 @@ int stepqual(EN_Project *pr, long *tleft)
 }
 
 
-int closequal(EN_Project *pr)
+int closequal(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -418,7 +418,7 @@ int closequal(EN_Project *pr)
 }
 
 
-double avgqual(EN_Project *pr, int k)
+double avgqual(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -459,7 +459,7 @@ double avgqual(EN_Project *pr, int k)
 }
 
 
-double findsourcequal(EN_Project *pr, int n, double volin, double volout, long tstep)
+double findsourcequal(Project *pr, int n, double volin, double volout, long tstep)
 /*
 **---------------------------------------------------------------------
 **   Input:   n = node index
@@ -540,7 +540,7 @@ double findsourcequal(EN_Project *pr, int n, double volin, double volout, long t
 }
 
 
-double sourcequal(EN_Project *pr, Psource source)
+double sourcequal(Project *pr, Psource source)
 /*
 **--------------------------------------------------------------
 **   Input:   source = a water quality source object
@@ -574,7 +574,7 @@ double sourcequal(EN_Project *pr, Psource source)
 }
 
 
-void  evalmassbalance(EN_Project *pr)
+void  evalmassbalance(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -604,7 +604,7 @@ void  evalmassbalance(EN_Project *pr)
 }
 
 
-double  findstoredmass(EN_Project *pr)
+double  findstoredmass(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -654,7 +654,7 @@ double  findstoredmass(EN_Project *pr)
     return totalmass;
 }
 
-int flowdirchanged(EN_Project *pr)
+int flowdirchanged(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none

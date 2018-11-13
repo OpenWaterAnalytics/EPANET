@@ -11,19 +11,19 @@ HYDSTATUS.C --  Hydraulic status updating for the EPANET Program
 #include "funcs.h"
 
 // External functions
-int  valvestatus(EN_Project *pr);
-int  linkstatus(EN_Project *pr);
+int  valvestatus(Project *pr);
+int  linkstatus(Project *pr);
 
 // Local functions
-static StatType cvstatus(EN_Project *pr, StatType, double, double);
-static StatType pumpstatus(EN_Project *pr, int, double);
-static StatType prvstatus(EN_Project *pr, int, StatType, double, double, double);
-static StatType psvstatus(EN_Project *pr, int, StatType, double, double, double);
-static StatType fcvstatus(EN_Project *pr, int, StatType, double, double);
-static void     tankstatus(EN_Project *pr, int, int, int);
+static StatType cvstatus(Project *pr, StatType, double, double);
+static StatType pumpstatus(Project *pr, int, double);
+static StatType prvstatus(Project *pr, int, StatType, double, double, double);
+static StatType psvstatus(Project *pr, int, StatType, double, double, double);
+static StatType fcvstatus(Project *pr, int, StatType, double, double);
+static void     tankstatus(Project *pr, int, int, int);
 
 
-int  valvestatus(EN_Project *pr)
+int  valvestatus(Project *pr)
 /*
 **-----------------------------------------------------------------
 **  Input:   none
@@ -91,7 +91,7 @@ int  valvestatus(EN_Project *pr)
 }                       /* End of valvestatus() */
 
 
-int  linkstatus(EN_Project *pr)
+int  linkstatus(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -167,7 +167,7 @@ int  linkstatus(EN_Project *pr)
 }
 
 
-StatType  cvstatus(EN_Project *pr, StatType s, double dh, double q)
+StatType  cvstatus(Project *pr, StatType s, double dh, double q)
 /*
 **--------------------------------------------------
 **  Input:   s  = current link status
@@ -195,7 +195,7 @@ StatType  cvstatus(EN_Project *pr, StatType s, double dh, double q)
 }
 
 
-StatType  pumpstatus(EN_Project *pr, int k, double dh)
+StatType  pumpstatus(Project *pr, int k, double dh)
 /*
 **--------------------------------------------------
 **  Input:   k  = link index
@@ -231,7 +231,7 @@ StatType  pumpstatus(EN_Project *pr, int k, double dh)
 }
 
 
-StatType  prvstatus(EN_Project *pr, int k, StatType s, double hset,
+StatType  prvstatus(Project *pr, int k, StatType s, double hset,
                     double h1, double h2)
 /*
 **-----------------------------------------------------------
@@ -288,7 +288,7 @@ StatType  prvstatus(EN_Project *pr, int k, StatType s, double hset,
 }
 
 
-StatType  psvstatus(EN_Project *pr, int k, StatType s, double hset,
+StatType  psvstatus(Project *pr, int k, StatType s, double hset,
                     double h1, double h2)
 /*
 **-----------------------------------------------------------
@@ -345,7 +345,7 @@ StatType  psvstatus(EN_Project *pr, int k, StatType s, double hset,
 }
 
 
-StatType  fcvstatus(EN_Project *pr, int k, StatType s, double h1, double h2)
+StatType  fcvstatus(Project *pr, int k, StatType s, double h1, double h2)
 /*
 **-----------------------------------------------------------
 **  Input:   k    = link index
@@ -384,7 +384,7 @@ StatType  fcvstatus(EN_Project *pr, int k, StatType s, double h1, double h2)
 }
 
 
-void  tankstatus(EN_Project *pr, int k, int n1, int n2)
+void  tankstatus(Project *pr, int k, int n1, int n2)
 /*
 **----------------------------------------------------------------
 **  Input:   k  = link index

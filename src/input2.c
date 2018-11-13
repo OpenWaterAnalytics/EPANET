@@ -44,7 +44,7 @@ The following utility functions are all called from INPUT3.C
 extern char *SectTxt[]; /* Input section keywords            */
 
 
-int netsize(EN_Project *pr)
+int netsize(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -148,7 +148,7 @@ int netsize(EN_Project *pr)
   return (errcode);
 } /*  End of netsize  */
 
-int readdata(EN_Project *pr)
+int readdata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -274,7 +274,7 @@ int readdata(EN_Project *pr)
 
 } /*  End of readdata  */
 
-int newline(EN_Project *pr, int sect, char *line)
+int newline(Project *pr, int sect, char *line)
 /*
 **--------------------------------------------------------------
 **  Input:   sect  = current section of input file
@@ -359,7 +359,7 @@ int newline(EN_Project *pr, int sect, char *line)
   return (201);
 } /* end of newline */
 
-int getpumpparams(EN_Project *pr)
+int getpumpparams(Project *pr)
 /*
 **-------------------------------------------------------------
 **  Input:   none
@@ -386,7 +386,7 @@ int getpumpparams(EN_Project *pr)
     return 0;
 }
 
-int updatepumpparams(EN_Project *pr, int pumpindex)
+int updatepumpparams(Project *pr, int pumpindex)
 /*
 **-------------------------------------------------------------
 **  Input:   pumpindex = index of a pump
@@ -610,7 +610,7 @@ STmplist *findID(char *id, STmplist *list)
   return (NULL);
 }
 
-int unlinked(EN_Project *pr)
+int unlinked(Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none
@@ -654,7 +654,7 @@ int unlinked(EN_Project *pr)
   return (errcode);
 } /* End of unlinked */
 
-int getpatterns(EN_Project *pr)
+int getpatterns(Project *pr)
 /*
 **-----------------------------------------------------------
 **  Input:   none
@@ -720,7 +720,7 @@ int getpatterns(EN_Project *pr)
   return (0);
 }
 
-int getcurves(EN_Project *pr)
+int getcurves(Project *pr)
 /*
 **-----------------------------------------------------------
 **  Input:   none
@@ -995,7 +995,7 @@ int getfloat(char *s, double *y)
   return (1);
 }
 
-int setreport(EN_Project *pr, char *s)
+int setreport(Project *pr, char *s)
 /*
 **-----------------------------------------------------------
 **  Input:   *s = report format command
@@ -1011,7 +1011,7 @@ int setreport(EN_Project *pr, char *s)
   return (reportdata(pr));
 }
 
-void inperrmsg(EN_Project *pr, int err, int sect, char *line)
+void inperrmsg(Project *pr, int err, int sect, char *line)
 /*
 **-------------------------------------------------------------
 **  Input:   err     = error code

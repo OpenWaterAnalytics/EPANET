@@ -61,20 +61,20 @@ AUTHOR:     L. Rossman
 #define   QZERO  1.e-6  /* Equivalent to zero flow */
 
 // Local functions
-int     allocmatrix(EN_Project *pr);
-void    freematrix(EN_Project *pr);
-void    initlinkflow(EN_Project *pr, int, char, double);
-void    setlinkflow(EN_Project *pr, int, double);
-void    demands(EN_Project *pr);
-int     controls(EN_Project *pr);
-long    timestep(EN_Project *pr);
-void    controltimestep(EN_Project *pr, long *);
-void    ruletimestep(EN_Project *pr, long *);
-void    addenergy(EN_Project *pr, long);
-void    tanklevels(EN_Project *pr, long);
+int     allocmatrix(Project *pr);
+void    freematrix(Project *pr);
+void    initlinkflow(Project *pr, int, char, double);
+void    setlinkflow(Project *pr, int, double);
+void    demands(Project *pr);
+int     controls(Project *pr);
+long    timestep(Project *pr);
+void    controltimestep(Project *pr, long *);
+void    ruletimestep(Project *pr, long *);
+void    addenergy(Project *pr, long);
+void    tanklevels(Project *pr, long);
 
 
-int  openhyd(EN_Project *pr)
+int  openhyd(Project *pr)
 /*
  *--------------------------------------------------------------
  *  Input:   none     
@@ -96,7 +96,7 @@ int  openhyd(EN_Project *pr)
 
 
 /*** Updated 3/1/01 ***/
-void inithyd(EN_Project *pr, int initflag)
+void inithyd(Project *pr, int initflag)
 /*
 **--------------------------------------------------------------
 **  Input:   initflag > 0 if link flows should be re-initialized
@@ -183,7 +183,7 @@ void inithyd(EN_Project *pr, int initflag)
 }
 
 
-int   runhyd(EN_Project *pr, long *t)
+int   runhyd(Project *pr, long *t)
 /*
 **--------------------------------------------------------------
 **  Input:   none     
@@ -231,7 +231,7 @@ int   runhyd(EN_Project *pr, long *t)
 }                               /* end of runhyd */
 
 
-int  nexthyd(EN_Project *pr, long *tstep)
+int  nexthyd(Project *pr, long *tstep)
 /*
 **--------------------------------------------------------------
 **  Input:   none     
@@ -297,7 +297,7 @@ int  nexthyd(EN_Project *pr, long *tstep)
 }
   
 
-void  closehyd(EN_Project *pr)
+void  closehyd(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none     
@@ -311,7 +311,7 @@ void  closehyd(EN_Project *pr)
 }
 
 
-int  allocmatrix(EN_Project *pr)
+int  allocmatrix(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none                                                
@@ -347,7 +347,7 @@ int  allocmatrix(EN_Project *pr)
 }                               /* end of allocmatrix */
 
 
-void  freematrix(EN_Project *pr)
+void  freematrix(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none                                                
@@ -371,7 +371,7 @@ void  freematrix(EN_Project *pr)
 }                               /* end of freematrix */
 
 
-void  initlinkflow(EN_Project *pr, int i, char s, double k)
+void  initlinkflow(Project *pr, int i, char s, double k)
 /*
 **--------------------------------------------------------------------
 **  Input:   i = link index
@@ -401,7 +401,7 @@ void  initlinkflow(EN_Project *pr, int i, char s, double k)
 
 
 /*** Updated 9/7/00 ***/
-void  setlinkflow(EN_Project *pr, int k, double dh)
+void  setlinkflow(Project *pr, int k, double dh)
 /*
 **--------------------------------------------------------------
 **  Input:   k = link index
@@ -479,7 +479,7 @@ void  setlinkflow(EN_Project *pr, int k, double dh)
 }
 
 
-void  setlinkstatus(EN_Project *pr, int index, char value, StatType *s, double *k)
+void  setlinkstatus(Project *pr, int index, char value, StatType *s, double *k)
 /*----------------------------------------------------------------
 **  Input:   index  = link index
 **           value  = 0 (CLOSED) or 1 (OPEN)
@@ -522,7 +522,7 @@ void  setlinkstatus(EN_Project *pr, int index, char value, StatType *s, double *
 }
 
 
-void  setlinksetting(EN_Project *pr, int index, double value, StatType *s, double *k)
+void  setlinksetting(Project *pr, int index, double value, StatType *s, double *k)
 /*----------------------------------------------------------------
 **  Input:   index  = link index
 **           value  = pump speed or valve setting
@@ -566,7 +566,7 @@ void  setlinksetting(EN_Project *pr, int index, double value, StatType *s, doubl
 } 
 
 
-void  demands(EN_Project *pr)
+void  demands(Project *pr)
 /*
 **--------------------------------------------------------------------
 **  Input:   none                                                      
@@ -638,7 +638,7 @@ void  demands(EN_Project *pr)
 }                        /* End of demands */
 
 
-int  controls(EN_Project *pr)
+int  controls(Project *pr)
 /*
 **---------------------------------------------------------------------
 **  Input:   none                                                   
@@ -726,7 +726,7 @@ int  controls(EN_Project *pr)
 }                        /* End of controls */
 
 
-long  timestep(EN_Project *pr)
+long  timestep(Project *pr)
 /*
 **----------------------------------------------------------------
 **  Input:   none                                                
@@ -774,7 +774,7 @@ long  timestep(EN_Project *pr)
 }
 
 
-int  tanktimestep(EN_Project *pr, long *tstep)
+int  tanktimestep(Project *pr, long *tstep)
 /*
 **-----------------------------------------------------------------
 **  Input:   *tstep = current time step                                                
@@ -823,7 +823,7 @@ int  tanktimestep(EN_Project *pr, long *tstep)
 }
 
 
-void  controltimestep(EN_Project *pr, long *tstep)
+void  controltimestep(Project *pr, long *tstep)
 /*
 **------------------------------------------------------------------
 **  Input:   *tstep = current time step                                                
@@ -900,7 +900,7 @@ void  controltimestep(EN_Project *pr, long *tstep)
 }                        /* End of timestep */
 
 
-void  ruletimestep(EN_Project *pr, long *tstep)
+void  ruletimestep(Project *pr, long *tstep)
 /*
 **--------------------------------------------------------------
 **  Input:   *tstep = current time step (sec)                            
@@ -972,7 +972,7 @@ void  ruletimestep(EN_Project *pr, long *tstep)
 }
    
 
-void  addenergy(EN_Project *pr, long hstep)
+void  addenergy(Project *pr, long hstep)
 /*
 **-------------------------------------------------------------
 **  Input:   hstep = time step (sec)                            
@@ -1065,7 +1065,7 @@ void  addenergy(EN_Project *pr, long hstep)
 }                       /* End of pumpenergy */
 
 
-void  getenergy(EN_Project *pr, int k, double *kw, double *eff)
+void  getenergy(Project *pr, int k, double *kw, double *eff)
 /*
 **----------------------------------------------------------------
 **  Input:   k    = link index                         
@@ -1128,7 +1128,7 @@ void  getenergy(EN_Project *pr, int k, double *kw, double *eff)
 }
 
 
-void  tanklevels(EN_Project *pr, long tstep)
+void  tanklevels(Project *pr, long tstep)
 /*
 **----------------------------------------------------------------
 **  Input:   tstep = current time step                         
@@ -1169,7 +1169,7 @@ void  tanklevels(EN_Project *pr, long tstep)
 }                       /* End of tanklevels */
 
 
-double  tankvolume(EN_Project *pr, int i, double h)
+double  tankvolume(Project *pr, int i, double h)
 /*
 **--------------------------------------------------------------------
 **  Input:   i = tank index                                         
@@ -1202,7 +1202,7 @@ double  tankvolume(EN_Project *pr, int i, double h)
 }                       /* End of tankvolume */
 
 
-double  tankgrade(EN_Project *pr, int i, double v)
+double  tankgrade(Project *pr, int i, double v)
 /*
 **-------------------------------------------------------------------
 **  Input:   i = tank index                                         

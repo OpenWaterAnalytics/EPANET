@@ -37,27 +37,27 @@ typedef struct {
 //void  headlosscoeffs(EN_Project *pr);
 //void  matrixcoeffs(EN_Project *pr);
 
-extern int  valvestatus(EN_Project *pr);    //(see HYDSTATUS.C)
-extern int  linkstatus(EN_Project *pr);     //(see HYDSTATUS.C)
+extern int  valvestatus(Project *pr);    //(see HYDSTATUS.C)
+extern int  linkstatus(Project *pr);     //(see HYDSTATUS.C)
 
 // Local functions
-static int      badvalve(EN_Project *pr, int);
-static int      pswitch(EN_Project *pr);
+static int      badvalve(Project *pr, int);
+static int      pswitch(Project *pr);
 
-static double   newflows(EN_Project *pr, Hydbalance *hbal);
-static void     newlinkflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
+static double   newflows(Project *pr, Hydbalance *hbal);
+static void     newlinkflows(Project *pr, Hydbalance *hbal, double *qsum,
                 double *dqsum);
-static void     newemitterflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
+static void     newemitterflows(Project *pr, Hydbalance *hbal, double *qsum,
                 double *dqsum);
-static void     newdemandflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
+static void     newdemandflows(Project *pr, Hydbalance *hbal, double *qsum,
                 double *dqsum);
 
-static void     checkhydbalance(EN_Project *pr, Hydbalance *hbal);
-static int      hasconverged(EN_Project *pr, double *relerr, Hydbalance *hbal);
-static void     reporthydbal(EN_Project *pr, Hydbalance *hbal);
+static void     checkhydbalance(Project *pr, Hydbalance *hbal);
+static int      hasconverged(Project *pr, double *relerr, Hydbalance *hbal);
+static void     reporthydbal(Project *pr, Hydbalance *hbal);
 
 
-int  hydsolve(EN_Project *pr, int *iter, double *relerr)
+int  hydsolve(Project *pr, int *iter, double *relerr)
 /*
 **-------------------------------------------------------------------
 **  Input:   none
@@ -221,7 +221,7 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
 }
 
 
-int  badvalve(EN_Project *pr, int n)
+int  badvalve(Project *pr, int n)
 /*
 **-----------------------------------------------------------------
 **  Input:   n = node index
@@ -279,7 +279,7 @@ int  badvalve(EN_Project *pr, int n)
 }
 
 
-int  pswitch(EN_Project *pr)
+int  pswitch(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -369,7 +369,7 @@ int  pswitch(EN_Project *pr)
 }
 
 
-double newflows(EN_Project *pr, Hydbalance *hbal)
+double newflows(Project *pr, Hydbalance *hbal)
 /*
 **----------------------------------------------------------------
 **  Input:   hbal = ptr. to hydraulic balance information
@@ -403,7 +403,7 @@ double newflows(EN_Project *pr, Hydbalance *hbal)
 }
 
 
-void  newlinkflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
+void  newlinkflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
 /*
 **----------------------------------------------------------------
 **  Input:   hbal = ptr. to hydraulic balance information
@@ -482,7 +482,7 @@ void  newlinkflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsum
 }
 
 
-void newemitterflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
+void newemitterflows(Project *pr, Hydbalance *hbal, double *qsum,
                      double *dqsum)
 /*
 **----------------------------------------------------------------
@@ -528,7 +528,7 @@ void newemitterflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
 }
 
 
-void newdemandflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
+void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
 /*
 **----------------------------------------------------------------
 **  Input:   hbal = ptr. to hydraulic balance information
@@ -576,7 +576,7 @@ void newdemandflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsu
 }
 
 
-void  checkhydbalance(EN_Project *pr, Hydbalance *hbal)
+void  checkhydbalance(Project *pr, Hydbalance *hbal)
 /*
 **--------------------------------------------------------------
 **   Input:   hbal = hydraulic balance errors
@@ -614,7 +614,7 @@ void  checkhydbalance(EN_Project *pr, Hydbalance *hbal)
 }
 
 
-int  hasconverged(EN_Project *pr, double *relerr, Hydbalance *hbal)
+int  hasconverged(Project *pr, double *relerr, Hydbalance *hbal)
 /*
 **--------------------------------------------------------------
 **   Input:   relerr = current total relative flow change
@@ -641,7 +641,7 @@ int  hasconverged(EN_Project *pr, double *relerr, Hydbalance *hbal)
 }
 
 
-void  reporthydbal(EN_Project *pr, Hydbalance *hbal)
+void  reporthydbal(Project *pr, Hydbalance *hbal)
 /*
 **--------------------------------------------------------------
 **   Input:   hbal   = current hydraulic balance errors

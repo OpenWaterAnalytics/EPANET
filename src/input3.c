@@ -40,7 +40,7 @@ extern char *DemandModelTxt[];
 
 /* Defined in INPUT2.C */
 
-int juncdata(EN_Project *pr)
+int juncdata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -119,7 +119,7 @@ int juncdata(EN_Project *pr)
   return (0);
 } /* end of juncdata */
 
-int tankdata(EN_Project *pr)
+int tankdata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -243,7 +243,7 @@ int tankdata(EN_Project *pr)
   return (0);
 } /* end of tankdata */
 
-int pipedata(EN_Project *pr)
+int pipedata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -341,7 +341,7 @@ int pipedata(EN_Project *pr)
   return (0);
 } /* end of pipedata */
 
-int pumpdata(EN_Project *pr)
+int pumpdata(Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none
@@ -468,7 +468,7 @@ int pumpdata(EN_Project *pr)
   return (0);
 } /* end of pumpdata */
 
-int valvedata(EN_Project *pr)
+int valvedata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -572,7 +572,7 @@ int valvedata(EN_Project *pr)
   return (0);
 } /* end of valvedata */
 
-int patterndata(EN_Project *pr)
+int patterndata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -617,7 +617,7 @@ int patterndata(EN_Project *pr)
   return (0);
 } /* end of patterndata */
 
-int curvedata(EN_Project *pr)
+int curvedata(Project *pr)
 /*
 **------------------------------------------------------
 **  Input:   none
@@ -671,7 +671,7 @@ int curvedata(EN_Project *pr)
   return (0);
 }
 
-int coordata(EN_Project *pr)
+int coordata(Project *pr)
 /*
  **--------------------------------------------------------------
  **  Input:   none
@@ -714,7 +714,7 @@ int coordata(EN_Project *pr)
   return (0);
 } /* end of coordata */
 
-int demanddata(EN_Project *pr)
+int demanddata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -796,7 +796,7 @@ int demanddata(EN_Project *pr)
   return (0);
 } /* end of demanddata */
 
-int controldata(EN_Project *pr)
+int controldata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -930,7 +930,7 @@ int controldata(EN_Project *pr)
   return (0);
 } /* end of controldata */
 
-int sourcedata(EN_Project *pr)
+int sourcedata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -996,7 +996,7 @@ int sourcedata(EN_Project *pr)
   return (0);
 } /* end of sourcedata */
 
-int emitterdata(EN_Project *pr)
+int emitterdata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -1030,7 +1030,7 @@ int emitterdata(EN_Project *pr)
   return (0);
 }
 
-int qualdata(EN_Project *pr)
+int qualdata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -1085,7 +1085,7 @@ int qualdata(EN_Project *pr)
   return (0);
 } /* end of qualdata */
 
-int reactdata(EN_Project *pr)
+int reactdata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -1236,7 +1236,7 @@ int reactdata(EN_Project *pr)
   return (0);
 } /* end of reactdata */
 
-int mixingdata(EN_Project *pr)
+int mixingdata(Project *pr)
 /*
 **-------------------------------------------------------------
 **  Input:   none
@@ -1279,7 +1279,7 @@ int mixingdata(EN_Project *pr)
   return (0);
 }
 
-int statusdata(EN_Project *pr)
+int statusdata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -1350,7 +1350,7 @@ int statusdata(EN_Project *pr)
   return (0);
 } /* end of statusdata */
 
-int energydata(EN_Project *pr)
+int energydata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -1452,7 +1452,7 @@ int energydata(EN_Project *pr)
   return (201);
 }
 
-int reportdata(EN_Project *pr)
+int reportdata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -1625,7 +1625,7 @@ int reportdata(EN_Project *pr)
   return (201);
 } /* end of reportdata */
 
-int timedata(EN_Project *pr)
+int timedata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -1728,7 +1728,7 @@ int timedata(EN_Project *pr)
   return (0);
 } /* end of timedata */
 
-int optiondata(EN_Project *pr)
+int optiondata(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -1748,7 +1748,7 @@ int optiondata(EN_Project *pr)
   return (optionvalue(pr,n)); /* Option is a numerical value */
 } /* end of optiondata */
 
-int optionchoice(EN_Project *pr, int n)
+int optionchoice(Project *pr, int n)
 /*
 **--------------------------------------------------------------
 **  Input:   n = index of last input token saved in par->Tok[]
@@ -1896,7 +1896,7 @@ int optionchoice(EN_Project *pr, int n)
   return (0);
 } /* end of optionchoice */
 
-int optionvalue(EN_Project *pr, int n)
+int optionvalue(Project *pr, int n)
 /*
 **-------------------------------------------------------------
 **  Input:   *line = line read from input file
@@ -2041,7 +2041,7 @@ int optionvalue(EN_Project *pr, int n)
   return (0);
 } /* end of optionvalue */
 
-int getpumpcurve(EN_Project *pr, int n)
+int getpumpcurve(Project *pr, int n)
 /*
 **--------------------------------------------------------
 **  Input:   n = number of parameters for pump curve
@@ -2136,7 +2136,7 @@ int powercurve(double h0, double h1, double h2, double q1, double q2,
   return (1);
 }
 
-int valvecheck(EN_Project *pr, int type, int j1, int j2)
+int valvecheck(Project *pr, int type, int j1, int j2)
 /*
 **--------------------------------------------------------------
 **  Input:   type = valve type

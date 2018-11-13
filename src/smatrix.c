@@ -57,20 +57,20 @@ extern int genmmd(int *neqns, int *xadj, int *adjncy, int *invp, int *perm,
 
 
 // Local functions
-static int     allocsparse(EN_Project *pr);
-static int     buildlists(EN_Project *pr, int);
-static int     paralink(EN_Project *pr, int, int, int);
-static void    xparalinks(EN_Project *pr);
-static void    freelists(EN_Project *pr);
-static void    countdegree(EN_Project *pr);
-static int     reordernodes(EN_Project *pr);
-static int     factorize(EN_Project *pr);
-static int     growlist(EN_Project *pr, int);
-static int     newlink(EN_Project *pr, Padjlist);
+static int     allocsparse(Project *pr);
+static int     buildlists(Project *pr, int);
+static int     paralink(Project *pr, int, int, int);
+static void    xparalinks(Project *pr);
+static void    freelists(Project *pr);
+static void    countdegree(Project *pr);
+static int     reordernodes(Project *pr);
+static int     factorize(Project *pr);
+static int     growlist(Project *pr, int);
+static int     newlink(Project *pr, Padjlist);
 static int     linked(EN_Network *net, int, int);
 static int     addlink(EN_Network *net, int, int, int);
-static int     storesparse(EN_Project *pr, int);
-static int     sortsparse(EN_Project *pr, int);
+static int     storesparse(Project *pr, int);
+static int     sortsparse(Project *pr, int);
 static void    transpose(int, int *, int *, int *, int *,
                          int *, int *, int *);
 
@@ -91,7 +91,7 @@ static void    transpose(int, int *, int *, int *, int *,
 // timer    SmatrixTimer;
 
 
-int  createsparse(EN_Project *pr)
+int  createsparse(Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none                                                
@@ -157,7 +157,7 @@ int  createsparse(EN_Project *pr)
 }                        /* End of createsparse */
 
 
-int  allocsparse(EN_Project *pr)
+int  allocsparse(Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none                                              
@@ -182,7 +182,7 @@ int  allocsparse(EN_Project *pr)
 }
 
 
-void  freesparse(EN_Project *pr)
+void  freesparse(Project *pr)
 /*
 **----------------------------------------------------------------
 ** Input:   None                                                
@@ -210,7 +210,7 @@ void  freesparse(EN_Project *pr)
 }                        /* End of freesparse */
 
 
-int  buildlists(EN_Project *pr, int paraflag)
+int  buildlists(Project *pr, int paraflag)
 /*
 **--------------------------------------------------------------
 ** Input:   paraflag = TRUE if list marks parallel links      
@@ -257,7 +257,7 @@ int  buildlists(EN_Project *pr, int paraflag)
 }                        /* End of buildlists */
 
 
-int  paralink(EN_Project *pr, int i, int j, int k)
+int  paralink(Project *pr, int i, int j, int k)
 /*
 **--------------------------------------------------------------
 ** Input:   i = index of start node of link                    
@@ -286,7 +286,7 @@ int  paralink(EN_Project *pr, int i, int j, int k)
 }                        /* End of paralink */
 
 
-void  xparalinks(EN_Project *pr)
+void  xparalinks(Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none                                                
@@ -332,7 +332,7 @@ void  xparalinks(EN_Project *pr)
 }                        /* End of xparalinks */
 
 
-void  freelists(EN_Project *pr)
+void  freelists(Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none                                                
@@ -357,7 +357,7 @@ void  freelists(EN_Project *pr)
 }                        /* End of freelists */
 
 
-void  countdegree(EN_Project *pr)
+void  countdegree(Project *pr)
 /*
 **----------------------------------------------------------------
 ** Input:   none                                                
@@ -385,7 +385,7 @@ void  countdegree(EN_Project *pr)
 }
 
 
-int   reordernodes(EN_Project *pr)
+int   reordernodes(Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none                                                
@@ -468,7 +468,7 @@ int   reordernodes(EN_Project *pr)
 }                        /* End of reordernodes */
 
 
-int factorize(EN_Project *pr)
+int factorize(Project *pr)
 /*
 **--------------------------------------------------------------
 ** Input:   none
@@ -500,7 +500,7 @@ int factorize(EN_Project *pr)
 }                        /* End of factorize */
 
 
-int  growlist(EN_Project *pr, int knode)
+int  growlist(Project *pr, int knode)
 /*
 **--------------------------------------------------------------
 ** Input:   knode = node index                                  
@@ -532,7 +532,7 @@ int  growlist(EN_Project *pr, int knode)
 }                        /* End of growlist */
 
 
-int  newlink(EN_Project *pr, Padjlist alink)
+int  newlink(Project *pr, Padjlist alink)
 /*
 **--------------------------------------------------------------
 ** Input:   alink = element of node's adjacency list            
@@ -618,7 +618,7 @@ int  addlink(EN_Network *net, int i, int j, int n)
 }                        /* End of addlink */
 
 
-int  storesparse(EN_Project *pr, int n)
+int  storesparse(Project *pr, int n)
 /*
 **--------------------------------------------------------------
 ** Input:   n = number of rows in solution matrix               
@@ -670,7 +670,7 @@ int  storesparse(EN_Project *pr, int n)
 }                        /* End of storesparse */
 
 
-int  sortsparse(EN_Project *pr, int n)
+int  sortsparse(Project *pr, int n)
 /*
 **--------------------------------------------------------------
 ** Input:   n = number of rows in solution matrix               
@@ -752,7 +752,7 @@ void  transpose(int n, int *il, int *jl, int *xl, int *ilt, int *jlt,
 }                        /* End of transpose */
 
 
-int  linsolve(EN_Project *pr, int n)
+int  linsolve(Project *pr, int n)
 /*
 **--------------------------------------------------------------
 ** Input:   s    = solver struct

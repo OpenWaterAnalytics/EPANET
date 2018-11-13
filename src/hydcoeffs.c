@@ -37,31 +37,31 @@ const double AC = -5.14214965799093883760e-03;  // AA*AB
 //void   demandparams(EN_Project *pr, double *dp, double *n);
 
 // Local functions
-static void    linkcoeffs(EN_Project *pr);
-static void    nodecoeffs(EN_Project *pr);
-static void    valvecoeffs(EN_Project *pr);
-static void    emittercoeffs(EN_Project *pr);
-static void    demandcoeffs(EN_Project *pr);
+static void    linkcoeffs(Project *pr);
+static void    nodecoeffs(Project *pr);
+static void    valvecoeffs(Project *pr);
+static void    emittercoeffs(Project *pr);
+static void    demandcoeffs(Project *pr);
 static void    demandheadloss(double d, double dfull, double dp,
                double n, double *hloss, double *hgrad);
 
-static void    pipecoeff(EN_Project *pr, int k);
-static void    DWpipecoeff(EN_Project *pr, int k);
+static void    pipecoeff(Project *pr, int k);
+static void    DWpipecoeff(Project *pr, int k);
 static double  frictionFactor(double q, double e, double s, double *dfdq);
 
-static void    pumpcoeff(EN_Project *pr, int k);
-static void    curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r);
+static void    pumpcoeff(Project *pr, int k);
+static void    curvecoeff(Project *pr, int i, double q, double *h0, double *r);
 
-static void    valvecoeff(EN_Project *pr, int k);
-static void    gpvcoeff(EN_Project *pr, int k);
-static void    pbvcoeff(EN_Project *pr, int k);
-static void    tcvcoeff(EN_Project *pr, int k);
-static void    prvcoeff(EN_Project *pr, int k, int n1, int n2);
-static void    psvcoeff(EN_Project *pr, int k, int n1, int n2);
-static void    fcvcoeff(EN_Project *pr, int k, int n1, int n2);
+static void    valvecoeff(Project *pr, int k);
+static void    gpvcoeff(Project *pr, int k);
+static void    pbvcoeff(Project *pr, int k);
+static void    tcvcoeff(Project *pr, int k);
+static void    prvcoeff(Project *pr, int k, int n1, int n2);
+static void    psvcoeff(Project *pr, int k, int n1, int n2);
+static void    fcvcoeff(Project *pr, int k, int n1, int n2);
 
 
-void  resistcoeff(EN_Project *pr, int k)
+void  resistcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------------
 **  Input:   k = link index
@@ -120,7 +120,7 @@ void  resistcoeff(EN_Project *pr, int k)
 }
 
 
-void headlosscoeffs(EN_Project *pr)
+void headlosscoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -164,7 +164,7 @@ void headlosscoeffs(EN_Project *pr)
 }
 
 
-void   matrixcoeffs(EN_Project *pr)
+void   matrixcoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -198,7 +198,7 @@ void   matrixcoeffs(EN_Project *pr)
 }
 
 
-void  linkcoeffs(EN_Project *pr)
+void  linkcoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -256,7 +256,7 @@ void  linkcoeffs(EN_Project *pr)
 }
 
 
-void  nodecoeffs(EN_Project *pr)
+void  nodecoeffs(Project *pr)
 /*
 **----------------------------------------------------------------
 **  Input:   none
@@ -281,7 +281,7 @@ void  nodecoeffs(EN_Project *pr)
 }
 
 
-void  valvecoeffs(EN_Project *pr)
+void  valvecoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -332,7 +332,7 @@ void  valvecoeffs(EN_Project *pr)
 }
 
 
-void  emittercoeffs(EN_Project *pr)
+void  emittercoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -377,7 +377,7 @@ void  emittercoeffs(EN_Project *pr)
 }
 
 
-void emitheadloss(EN_Project *pr, int i, double *hloss, double *hgrad)
+void emitheadloss(Project *pr, int i, double *hloss, double *hgrad)
 /*
 **-------------------------------------------------------------
 **   Input:   i = node index
@@ -415,7 +415,7 @@ void emitheadloss(EN_Project *pr, int i, double *hloss, double *hgrad)
 }
 
 
-void demandparams(EN_Project *pr, double *dp, double *n)
+void demandparams(Project *pr, double *dp, double *n)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -446,7 +446,7 @@ void demandparams(EN_Project *pr, double *dp, double *n)
 }
 
 
-void  demandcoeffs(EN_Project *pr)
+void  demandcoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -493,7 +493,7 @@ void  demandcoeffs(EN_Project *pr)
 }
 
 
-double demandflowchange(EN_Project *pr, int i, double dp, double n)
+double demandflowchange(Project *pr, int i, double dp, double n)
 /*
 **--------------------------------------------------------------
 **   Input:   i  = node index
@@ -562,7 +562,7 @@ void demandheadloss(double d, double dfull, double dp, double n,
 }
 
 
-void  pipecoeff(EN_Project *pr, int k)
+void  pipecoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -632,7 +632,7 @@ void  pipecoeff(EN_Project *pr, int k)
 }
 
 
-void DWpipecoeff(EN_Project *pr, int k)
+void DWpipecoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -729,7 +729,7 @@ double frictionFactor(double q, double e, double s, double *dfdq)
 }
 
 
-void  pumpcoeff(EN_Project *pr, int k)
+void  pumpcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -813,7 +813,7 @@ void  pumpcoeff(EN_Project *pr, int k)
 }
 
 
-void  curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r)
+void  curvecoeff(Project *pr, int i, double q, double *h0, double *r)
 /*
 **-------------------------------------------------------------------
 **   Input:   i   = curve index
@@ -853,7 +853,7 @@ void  curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r)
 }
 
 
-void  gpvcoeff(EN_Project *pr, int k)
+void  gpvcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -896,7 +896,7 @@ void  gpvcoeff(EN_Project *pr, int k)
 }
 
 
-void  pbvcoeff(EN_Project *pr, int k)
+void  pbvcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -933,7 +933,7 @@ void  pbvcoeff(EN_Project *pr, int k)
 }
 
 
-void  tcvcoeff(EN_Project *pr, int k)
+void  tcvcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -963,7 +963,7 @@ void  tcvcoeff(EN_Project *pr, int k)
 }
 
 
-void  prvcoeff(EN_Project *pr, int k, int n1, int n2)
+void  prvcoeff(Project *pr, int k, int n1, int n2)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -1015,7 +1015,7 @@ void  prvcoeff(EN_Project *pr, int k, int n1, int n2)
 }
 
 
-void  psvcoeff(EN_Project *pr, int k, int n1, int n2)
+void  psvcoeff(Project *pr, int k, int n1, int n2)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -1066,7 +1066,7 @@ void  psvcoeff(EN_Project *pr, int k, int n1, int n2)
 }
 
 
-void  fcvcoeff(EN_Project *pr, int k, int n1, int n2)
+void  fcvcoeff(Project *pr, int k, int n1, int n2)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -1118,7 +1118,7 @@ void  fcvcoeff(EN_Project *pr, int k, int n1, int n2)
 }
 
 
-void valvecoeff(EN_Project *pr, int k)
+void valvecoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index

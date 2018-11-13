@@ -25,7 +25,7 @@ AUTHOR:       Michael Tryby
 ----------------------------------------------------------------
 */
 
-int openfiles(EN_Project *p, const char *f1, const char *f2, const char *f3)
+int openfiles(Project *p, const char *f1, const char *f2, const char *f3)
 /*----------------------------------------------------------------
 **  Input:   f1 = pointer to name of input file
 **           f2 = pointer to name of report file
@@ -75,7 +75,7 @@ int openfiles(EN_Project *p, const char *f1, const char *f2, const char *f3)
   return 0;
 } /* End of openfiles */
 
-int openhydfile(EN_Project *p)
+int openhydfile(Project *p)
 /*----------------------------------------------------------------
 ** Input:   none
 ** Output:  none
@@ -166,7 +166,7 @@ int openhydfile(EN_Project *p)
   return errcode;
 }
 
-int openoutfile(EN_Project *p)
+int openoutfile(Project *p)
 /*----------------------------------------------------------------
 **  Input:   none
 **  Output:  none
@@ -239,7 +239,7 @@ int openoutfile(EN_Project *p)
 ----------------------------------------------------------------
 */
 
-void initpointers(EN_Project *p)
+void initpointers(Project *p)
 /*----------------------------------------------------------------
 **  Input:   none
 **  Output:  none
@@ -296,7 +296,7 @@ void initpointers(EN_Project *p)
   initrules(&p->rules);
 }
 
-int allocdata(EN_Project *p)
+int allocdata(Project *p)
 /*----------------------------------------------------------------
 **  Input:   none
 **  Output:  none
@@ -443,7 +443,7 @@ void freeFloatlist(SFloatlist *f)
   }
 }
 
-void freedata(EN_Project *p)
+void freedata(Project *p)
 /*----------------------------------------------------------------
 **  Input:   none
 **  Output:  none
@@ -530,7 +530,7 @@ void freedata(EN_Project *p)
 ----------------------------------------------------------------
 */
 
-char *getTmpName(EN_Project *p, char *fname)
+char *getTmpName(Project *p, char *fname)
 //
 //  Input:   fname = file name string
 //  Output:  returns pointer to file name

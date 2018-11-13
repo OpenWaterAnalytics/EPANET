@@ -909,7 +909,7 @@ typedef struct Project {
 
   void (* viewprog) (char *);     /* Pointer to progress viewing function */
 
-} EN_Project;
+} Project;
 
 
 #endif

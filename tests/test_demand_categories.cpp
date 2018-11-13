@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
     int error = 0;
     int Nindex, ndem;
     char demname[80];
-    EN_ProjectHandle ph = NULL;
+    EN_Project ph = NULL;
 
     std::string path_inp = std::string(DATA_PATH_INP);
     std::string path_rpt = std::string(DATA_PATH_RPT);

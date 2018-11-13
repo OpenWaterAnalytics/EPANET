@@ -64,7 +64,7 @@ AUTHOR:     L. Rossman
 extern char *Fldname[]; /* Defined in enumstxt.h in EPANET.C      */
 extern char *RptFlowUnitsTxt[];
 
-int getdata(EN_Project *pr)
+int getdata(Project *pr)
 /*
 **----------------------------------------------------------------
 **  Input:   none
@@ -88,7 +88,7 @@ int getdata(EN_Project *pr)
   return (errcode);
 } /*  End of getdata  */
 
-void setdefaults(EN_Project *pr)
+void setdefaults(Project *pr)
 /*
 **----------------------------------------------------------------
 **  Input:   none
@@ -208,7 +208,7 @@ void initreport(report_options_t *r)
   }
 }
 
-void adjustdata(EN_Project *pr)
+void adjustdata(Project *pr)
 /*
 **----------------------------------------------------------------------
 **  Input:   none
@@ -367,7 +367,7 @@ void adjustdata(EN_Project *pr)
 
 } /*  End of adjustdata  */
 
-int inittanks(EN_Project *pr)
+int inittanks(Project *pr)
 /*
 **---------------------------------------------------------------
 **  Input:   none
@@ -429,7 +429,7 @@ int inittanks(EN_Project *pr)
   return (errcode);
 } /* End of inittanks */
 
-void initunits(EN_Project *pr)
+void initunits(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -547,7 +547,7 @@ void initunits(EN_Project *pr)
 
 } /*  End of initunits  */
 
-void convertunits(EN_Project *pr)
+void convertunits(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none

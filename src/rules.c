@@ -91,22 +91,22 @@ enum Values { IS_NUMBER, IS_OPEN, IS_CLOSED, IS_ACTIVE };
 char *Value[] = {"XXXX", w_OPEN, w_CLOSED, w_ACTIVE, NULL};
 
 // Local Functions
-static void newrule(EN_Project *pr);
-static int  newpremise(EN_Project *pr, int);
-static int  newaction(EN_Project *pr);
-static int  newpriority(EN_Project *pr);
-static int  evalpremises(EN_Project *pr, int);
+static void newrule(Project *pr);
+static int  newpremise(Project *pr, int);
+static int  newaction(Project *pr);
+static int  newpriority(Project *pr);
+static int  evalpremises(Project *pr, int);
 static void updateactlist(rules_t *rules, int, Action *);
 static int  checkaction(rules_t *rules, int, Action *);
-static int  checkpremise(EN_Project *pr, Premise *);
-static int  checktime(EN_Project *pr, Premise *);
-static int  checkstatus(EN_Project *pr, Premise *);
-static int  checkvalue(EN_Project *pr, Premise *);
-static int  takeactions(EN_Project *pr);
+static int  checkpremise(Project *pr, Premise *);
+static int  checktime(Project *pr, Premise *);
+static int  checkstatus(Project *pr, Premise *);
+static int  checkvalue(Project *pr, Premise *);
+static int  takeactions(Project *pr);
 static void clearactlist(rules_t *rules);
-static void ruleerrmsg(EN_Project *pr, int);
-static void clearrule(EN_Project *pr, int);
-static void deleterule(EN_Project *pr, int);
+static void ruleerrmsg(Project *pr, int);
+static void clearrule(Project *pr, int);
+static void deleterule(Project *pr, int);
 
 
 void initrules(rules_t *rules)
@@ -134,7 +134,7 @@ void addrule(parser_data_t *par, char *tok)
   }
 }
 
-int allocrules(EN_Project *pr)
+int allocrules(Project *pr)
 /*
 **--------------------------------------------------------------
 **    Allocates memory for rule-based controls.
@@ -153,7 +153,7 @@ int allocrules(EN_Project *pr)
   }
 }
 
-void freerules(EN_Project *pr)
+void freerules(Project *pr)
 /*
 **--------------------------------------------------------------
 **    Frees memory used for rule-based controls.
@@ -166,7 +166,7 @@ void freerules(EN_Project *pr)
     free(pr->rules.Rule);
 }
 
-int checkrules(EN_Project *pr, long dt)
+int checkrules(Project *pr, long dt)
 /*
 **-----------------------------------------------------
 **    Checks which rules should fire at current time.
@@ -208,7 +208,7 @@ int checkrules(EN_Project *pr, long dt)
   return (r);
 }
 
-int ruledata(EN_Project *pr)
+int ruledata(Project *pr)
 /*
 **--------------------------------------------------------------
 **    Parses a line from [RULES] section of input.
@@ -302,7 +302,7 @@ int ruledata(EN_Project *pr)
 }
 
 
-void adjustrules(EN_Project *pr, int objtype, int index)
+void adjustrules(Project *pr, int objtype, int index)
 /*
 **-----------------------------------------------------------
 **    Adjusts rules when a specific node or link is deleted.
@@ -371,7 +371,7 @@ void adjustrules(EN_Project *pr, int objtype, int index)
     }
 }
 
-void adjusttankrules(EN_Project *pr)
+void adjusttankrules(Project *pr)
 /*
 **-----------------------------------------------------------
 **    Adjusts tank indices in rule premises.
@@ -396,7 +396,7 @@ void adjusttankrules(EN_Project *pr)
     }
 }
 
-void deleterule(EN_Project *pr, int index)
+void deleterule(Project *pr, int index)
 /*
 **-----------------------------------------------------------
 **    Deletes a specific rule
@@ -444,7 +444,7 @@ void clearactlist(rules_t *rules)
   }
 }
 
-void clearrule(EN_Project *pr, int i)
+void clearrule(Project *pr, int i)
 /*
 **-----------------------------------------------------------
 **  Clears memory used by a rule for premises & actions
@@ -477,7 +477,7 @@ void clearrule(EN_Project *pr, int i)
     }
 }
 
-void newrule(EN_Project *pr)
+void newrule(Project *pr)
 /*
 **----------------------------------------------------------
 **    Adds new rule to rule base
@@ -498,7 +498,7 @@ void newrule(EN_Project *pr)
   rules->Flast = NULL;
 }
 
-int newpremise(EN_Project *pr, int logop)
+int newpremise(Project *pr, int logop)
 /*
 **--------------------------------------------------------------------
 **   Adds new premise to current rule.
@@ -659,7 +659,7 @@ int newpremise(EN_Project *pr, int logop)
   return (0);
 }
 
-int newaction(EN_Project *pr)
+int newaction(Project *pr)
 /*
 **----------------------------------------------------------
 **   Adds new action to current rule.
@@ -750,7 +750,7 @@ int newaction(EN_Project *pr)
   return (0);
 }
 
-int newpriority(EN_Project *pr)
+int newpriority(Project *pr)
 /*
 **---------------------------------------------------
 **    Adds priority rating to current rule
@@ -769,7 +769,7 @@ int newpriority(EN_Project *pr)
   return (0);
 }
 
-int evalpremises(EN_Project *pr, int i)
+int evalpremises(Project *pr, int i)
 /*
 **----------------------------------------------------------
 **    Checks if premises to rule i are true
@@ -798,7 +798,7 @@ int evalpremises(EN_Project *pr, int i)
   return (result);
 }
 
-int checkpremise(EN_Project *pr, Premise *p)
+int checkpremise(Project *pr, Premise *p)
 /*
 **----------------------------------------------------------
 **    Checks if a particular premise is true
@@ -813,7 +813,7 @@ int checkpremise(EN_Project *pr, Premise *p)
     return (checkvalue(pr,p));
 }
 
-int checktime(EN_Project *pr, Premise *p)
+int checktime(Project *pr, Premise *p)
 /*
 **------------------------------------------------------------
 **    Checks if condition on system time holds
@@ -881,7 +881,7 @@ int checktime(EN_Project *pr, Premise *p)
   return (1);
 }
 
-int checkstatus(EN_Project *pr, Premise *p)
+int checkstatus(Project *pr, Premise *p)
 /*
 **------------------------------------------------------------
 **    Checks if condition on link status holds
@@ -911,7 +911,7 @@ int checkstatus(EN_Project *pr, Premise *p)
   return (0);
 }
 
-int checkvalue(EN_Project *pr, Premise *p)
+int checkvalue(Project *pr, Premise *p)
 /*
 **----------------------------------------------------------
 **    Checks if numerical condition on a variable is true.
@@ -1086,7 +1086,7 @@ int checkaction(rules_t *rules, int i, Action *a)
   return (0);
 }
 
-int takeactions(EN_Project *pr)
+int takeactions(Project *pr)
 /*
 **-----------------------------------------------------------
 **    Implements actions on action list
@@ -1160,7 +1160,7 @@ int takeactions(EN_Project *pr)
   return (n);
 }
 
-void ruleerrmsg(EN_Project *pr, int err)
+void ruleerrmsg(Project *pr, int err)
 /*
 **-----------------------------------------------------------
 **    Reports error message
@@ -1218,7 +1218,7 @@ void ruleerrmsg(EN_Project *pr, int err)
   writeline(pr, fmt);
 }
 
-int writeRuleinInp(EN_Project *pr, FILE *f, int RuleIdx) {
+int writeRuleinInp(Project *pr, FILE *f, int RuleIdx) {
   /*
   **-----------------------------------------------------------
   **    This function writes a specific rule (rule ID,
