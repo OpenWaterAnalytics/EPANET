@@ -24,7 +24,6 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
 {
   int errcode = 0;
   int warncode = 0;
-  EN_Project *p = NULL;
 
   ERRCODE(EN_createproject(&_defaultModel));
 
@@ -34,21 +33,26 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3, void (*pv
   ERRCODE(EN_deleteproject(&_defaultModel));
 
   if (warncode) errcode = MAX(errcode, warncode);
+  
   return (errcode);
 }
 
 int DLLEXPORT ENinit(const char *f2, const char *f3, int UnitsType,
                      int HeadlossFormula) {
   int errcode = 0;
+  
   ERRCODE(EN_createproject(&_defaultModel));
   ERRCODE(EN_init(_defaultModel, f2, f3, UnitsType, HeadlossFormula));
+  
   return (errcode);
 }
 
 int DLLEXPORT ENopen(const char *f1, const char *f2, const char *f3) {
   int errcode = 0;
+  
   ERRCODE(EN_createproject(&_defaultModel));
   EN_open(_defaultModel, f1, f2, f3);
+  
   return (errcode);
 }
 
@@ -58,9 +62,11 @@ int DLLEXPORT ENsaveinpfile(const char *filename) {
 
 int DLLEXPORT ENclose() {
     int errcode = 0;
+
     ERRCODE(EN_close(_defaultModel));
     ERRCODE(EN_deleteproject(&_defaultModel));
-    return (errcode);
+    
+	return (errcode);
 }
 
 int DLLEXPORT ENsolveH() { return EN_solveH(_defaultModel); }
