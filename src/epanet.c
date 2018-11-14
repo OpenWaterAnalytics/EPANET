@@ -2952,6 +2952,9 @@ int DLLEXPORT EN_setlinknodes(EN_Project p, int index, int node1, int node2)
 {
     int type;
     network_t *net = &p->network;
+
+    // Check that end and start nodes are not the same
+    if (node1 == node2) return set_error(p->error_handle, 222);
     
     // Check that nodes exist
     if (node1 < 0 || node1 > net->Nnodes) return set_error(p->error_handle, 203);
