@@ -1728,8 +1728,8 @@ int optionchoice(EN_Project pr, int n)
             strcpy(parser->Tok[0], parser->Tok[2]);
             qual->TraceNode = findnode(net, parser->Tok[2]);
             if (qual->TraceNode == 0) return 212;
-            strncpy(qual->ChemUnits, u_PERCENT, MAXID);
-            strncpy(qual->ChemName, parser->Tok[2], MAXID);
+            strncpy(qual->ChemName, u_PERCENT, MAXID);
+            strncpy(qual->ChemUnits, parser->Tok[2], MAXID);
         }
         if (qual->Qualflag == AGE)
         {
