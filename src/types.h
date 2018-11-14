@@ -20,10 +20,12 @@ AUTHOR:     L. Rossman
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "epanet_2_2.h"
 #include "hash.h"
-#include "util/errormanager.h"
-#include <stdio.h>
+
 
 
 /*********************************************************/
@@ -904,8 +906,6 @@ typedef struct Project {
   Msg[MAXMSG+1],              /// General-purpose string: errors, messages
   Title[MAXTITLE][TITLELEN+1],/// Project title
   MapFname[MAXFNAME+1];       /// Map file name
-
-  error_handle_t* error_handle; //Simple error manager
 
   void (* viewprog) (char *);     /* Pointer to progress viewing function */
 

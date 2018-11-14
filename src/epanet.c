@@ -143,7 +143,7 @@ int DLLEXPORT EN_createproject(EN_Project *pr)
 // Note: No error handling available until project allocation
 {
   int errorcode = 0;
-  Project *project = calloc(1, sizeof(Project));
+  Project *project = (Project *)calloc(1, sizeof(Project));
 
   if (project != NULL){
       *pr = project;
@@ -158,17 +158,18 @@ int DLLEXPORT EN_deleteproject(EN_Project *pr)
 // Note: No error handling available after project deallocation
 {
     int errorcode = 0;
+	Project *project = (Project *)(*pr);
 
-    if (*pr == NULL)
+    if (project == NULL)
         errorcode = -1;
     else
     {
-        free(*pr);
+        free(project);
 
         *pr = NULL;
     }
 
-    return 0;
+    return errorcode;
 }
 
 int DLLEXPORT EN_runproject(EN_Project pr, const char *f1, const char *f2,

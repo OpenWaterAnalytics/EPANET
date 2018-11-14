@@ -13,6 +13,8 @@ AUTHOR:       Michael Tryby
 *******************************************************************************
 */
 
+#include <stdlib.h>
+#include <string.h>
 
 #include "funcs.h"
 #include "types.h"
@@ -103,7 +105,7 @@ int openhydfile(Project *p)
   /* If HydFile currently open, then close it if its not a scratch file */
   if (out->HydFile != NULL) {
     if (out->Hydflag == SCRATCH)
-      return set_error(p->error_handle, 0);
+      return 0;
     fclose(out->HydFile);
   }
 
@@ -123,7 +125,7 @@ int openhydfile(Project *p)
     break;
   }
   if (out->HydFile == NULL)
-    return set_error(p->error_handle, 305);
+    return 305;
 
   /* If a previous hydraulics solution is not being used, then */
   /* save the current network size parameters to the file.     */
@@ -147,15 +149,15 @@ int openhydfile(Project *p)
   if (out->Hydflag == USE) {
     fread(&magic, sizeof(INT4), 1, out->HydFile);
     if (magic != MAGICNUMBER)
-      return set_error(p->error_handle, 306);
+      return 306;
     fread(&version, sizeof(INT4), 1, out->HydFile);
     if (version != ENGINE_VERSION)
-      return set_error(p->error_handle, 306);
+      return 306;
     if (fread(nsize, sizeof(INT4), 6, out->HydFile) < 6)
-      return set_error(p->error_handle, 306);
+      return 306;
     if (nsize[0] != Nnodes || nsize[1] != Nlinks || nsize[2] != Ntanks ||
         nsize[3] != Npumps || nsize[4] != Nvalves || nsize[5] != time->Dur)
-      return set_error(p->error_handle, 306);
+      return 306;
     p->save_options.SaveHflag = TRUE;
   }
 

@@ -6,8 +6,10 @@ QUALROUTE.C -- water quality routing module for the EPANET program
 *********************************************************************
 */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
 #include "mempool.h"
 #include "types.h"
 
