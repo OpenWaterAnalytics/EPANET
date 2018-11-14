@@ -1,10 +1,17 @@
-/*  mempool.c
-**
-**  A simple fast pooled memory allocation package.
-**
-**  Based on code by Steve Hill in Graphics Gems III,
-**  David Kirk (ed.), Academic Press, Boston, MA, 1992
-**
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       mempool.c
+ Description:  a simple fast poooled memory allocation package
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/10/2018
+
+ This module is based code by Steve Hill in Graphics Gems III,
+ David Kirk (ed.), Academic Press, Boston, MA, 1992
+ ******************************************************************************
 */
 
 #include <stdlib.h>

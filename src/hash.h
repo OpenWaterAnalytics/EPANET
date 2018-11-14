@@ -1,9 +1,15 @@
-/* HASH.H
-**
-** Header file for Hash Table module HASH.C
-**
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       hash.h
+ Description:  header for a simple hash table
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/10/2018
+ ******************************************************************************
 */
-
 #ifndef HASH_H
 #define HASH_H
 

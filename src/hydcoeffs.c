@@ -1,9 +1,14 @@
 /*
-*********************************************************************
-
-HYDCOEFFS.C --  hydraulic coefficients for the EPANET Program
-
-*******************************************************************
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       hydcoeffs.c
+ Description:  computes coefficients for a hydraulic solution matrix
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/10/2018
+ ******************************************************************************
 */
 
 #include <stdio.h>
@@ -29,40 +34,44 @@ const double AA = -1.5634601348517065795e+00;   // -2*.9*2/ln(10)
 const double AB = 3.28895476345399058690e-03;   // 5.74/(4000^.9)
 const double AC = -5.14214965799093883760e-03;  // AA*AB
 
+// Definitions of very small and very big coefficients
+const double CSMALL = 1.e-6;
+const double CBIG   = 1.e8;
+
 // External functions
-//void   resistcoeff(EN_Project *pr, int k);
-//void   headlosscoeffs(EN_Project *pr);
-//void   matrixcoeffs(EN_Project *pr);
-//void   emitheadloss(EN_Project *pr, int i, double *hloss, double *dhdq);
-//double demandflowchange(EN_Project *pr, int i, double dp, double n);
-//void   demandparams(EN_Project *pr, double *dp, double *n);
+//void   resistcoeff(EN_Project pr, int k);
+//void   headlosscoeffs(EN_Project pr);
+//void   matrixcoeffs(EN_Project pr);
+//void   emitheadloss(EN_Project pr, int i, double *hloss, double *dhdq);
+//double demandflowchange(EN_Project pr, int i, double dp, double n);
+//void   demandparams(EN_Project pr, double *dp, double *n);
 
 // Local functions
-static void    linkcoeffs(EN_Project *pr);
-static void    nodecoeffs(EN_Project *pr);
-static void    valvecoeffs(EN_Project *pr);
-static void    emittercoeffs(EN_Project *pr);
-static void    demandcoeffs(EN_Project *pr);
+static void    linkcoeffs(EN_Project pr);
+static void    nodecoeffs(EN_Project pr);
+static void    valvecoeffs(EN_Project pr);
+static void    emittercoeffs(EN_Project pr);
+static void    demandcoeffs(EN_Project pr);
 static void    demandheadloss(double d, double dfull, double dp,
                double n, double *hloss, double *hgrad);
 
-static void    pipecoeff(EN_Project *pr, int k);
-static void    DWpipecoeff(EN_Project *pr, int k);
+static void    pipecoeff(EN_Project pr, int k);
+static void    DWpipecoeff(EN_Project pr, int k);
 static double  frictionFactor(double q, double e, double s, double *dfdq);
 
-static void    pumpcoeff(EN_Project *pr, int k);
-static void    curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r);
+static void    pumpcoeff(EN_Project pr, int k);
+static void    curvecoeff(EN_Project pr, int i, double q, double *h0, double *r);
 
-static void    valvecoeff(EN_Project *pr, int k);
-static void    gpvcoeff(EN_Project *pr, int k);
-static void    pbvcoeff(EN_Project *pr, int k);
-static void    tcvcoeff(EN_Project *pr, int k);
-static void    prvcoeff(EN_Project *pr, int k, int n1, int n2);
-static void    psvcoeff(EN_Project *pr, int k, int n1, int n2);
-static void    fcvcoeff(EN_Project *pr, int k, int n1, int n2);
+static void    valvecoeff(EN_Project pr, int k);
+static void    gpvcoeff(EN_Project pr, int k);
+static void    pbvcoeff(EN_Project pr, int k);
+static void    tcvcoeff(EN_Project pr, int k);
+static void    prvcoeff(EN_Project pr, int k, int n1, int n2);
+static void    psvcoeff(EN_Project pr, int k, int n1, int n2);
+static void    fcvcoeff(EN_Project pr, int k, int n1, int n2);
 
 
-void  resistcoeff(EN_Project *pr, int k)
+void  resistcoeff(EN_Project pr, int k)
 /*
 **--------------------------------------------------------------------
 **  Input:   k = link index
@@ -73,7 +82,7 @@ void  resistcoeff(EN_Project *pr, int k)
 {
     double e, d, L;
 
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     Slink *link = &net->Link[k];
     
@@ -121,7 +130,7 @@ void  resistcoeff(EN_Project *pr, int k)
 }
 
 
-void headlosscoeffs(EN_Project *pr)
+void headlosscoeffs(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -132,7 +141,7 @@ void headlosscoeffs(EN_Project *pr)
 */
 {
     int k;
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
 
     for (k = 1; k <= net->Nlinks; k++)
@@ -165,7 +174,7 @@ void headlosscoeffs(EN_Project *pr)
 }
 
 
-void   matrixcoeffs(EN_Project *pr)
+void   matrixcoeffs(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -176,7 +185,7 @@ void   matrixcoeffs(EN_Project *pr)
 {
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
-    EN_Network   *net = &pr->network;
+    network_t   *net = &pr->network;
 
     // Reset values of all diagonal coeffs. (Aii), off-diagonal
     // coeffs. (Aij), r.h.s. coeffs. (F) and node flow balance (X_tmp)
@@ -199,7 +208,7 @@ void   matrixcoeffs(EN_Project *pr)
 }
 
 
-void  linkcoeffs(EN_Project *pr)
+void  linkcoeffs(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -211,7 +220,7 @@ void  linkcoeffs(EN_Project *pr)
 {
     int   k, n1, n2;
 
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
     Slink *link;
@@ -257,7 +266,7 @@ void  linkcoeffs(EN_Project *pr)
 }
 
 
-void  nodecoeffs(EN_Project *pr)
+void  nodecoeffs(EN_Project pr)
 /*
 **----------------------------------------------------------------
 **  Input:   none
@@ -270,7 +279,7 @@ void  nodecoeffs(EN_Project *pr)
     int   i;
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
 
     // For junction nodes, subtract demand flow from net
     // flow balance & add flow balance to RHS array F
@@ -282,7 +291,7 @@ void  nodecoeffs(EN_Project *pr)
 }
 
 
-void  valvecoeffs(EN_Project *pr)
+void  valvecoeffs(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -296,7 +305,7 @@ void  valvecoeffs(EN_Project *pr)
     int i, k, n1, n2;
 
     hydraulics_t *hyd = &pr->hydraulics;
-    EN_Network   *net = &pr->network;
+    network_t   *net = &pr->network;
     Slink *link;
     Svalve *valve;
 
@@ -333,7 +342,7 @@ void  valvecoeffs(EN_Project *pr)
 }
 
 
-void  emittercoeffs(EN_Project *pr)
+void  emittercoeffs(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -353,7 +362,7 @@ void  emittercoeffs(EN_Project *pr)
 
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     Snode *node;
 
     for (i = 1; i <= net->Njuncs; i++)
@@ -378,7 +387,7 @@ void  emittercoeffs(EN_Project *pr)
 }
 
 
-void emitheadloss(EN_Project *pr, int i, double *hloss, double *hgrad)
+void emitheadloss(EN_Project pr, int i, double *hloss, double *hgrad)
 /*
 **-------------------------------------------------------------
 **   Input:   i = node index
@@ -416,7 +425,7 @@ void emitheadloss(EN_Project *pr, int i, double *hloss, double *hgrad)
 }
 
 
-void demandparams(EN_Project *pr, double *dp, double *n)
+void demandparams(EN_Project pr, double *dp, double *n)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -447,7 +456,7 @@ void demandparams(EN_Project *pr, double *dp, double *n)
 }
 
 
-void  demandcoeffs(EN_Project *pr)
+void  demandcoeffs(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -470,7 +479,7 @@ void  demandcoeffs(EN_Project *pr)
 
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
 
     // Get demand function parameters
     if (hyd->DemandModel == DDA) return;
@@ -494,7 +503,7 @@ void  demandcoeffs(EN_Project *pr)
 }
 
 
-double demandflowchange(EN_Project *pr, int i, double dp, double n)
+double demandflowchange(EN_Project pr, int i, double dp, double n)
 /*
 **--------------------------------------------------------------
 **   Input:   i  = node index
@@ -563,7 +572,7 @@ void demandheadloss(double d, double dfull, double dp, double n,
 }
 
 
-void  pipecoeff(EN_Project *pr, int k)
+void  pipecoeff(EN_Project pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -633,7 +642,7 @@ void  pipecoeff(EN_Project *pr, int k)
 }
 
 
-void DWpipecoeff(EN_Project *pr, int k)
+void DWpipecoeff(EN_Project pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -730,7 +739,7 @@ double frictionFactor(double q, double e, double s, double *dfdq)
 }
 
 
-void  pumpcoeff(EN_Project *pr, int k)
+void  pumpcoeff(EN_Project pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -814,7 +823,7 @@ void  pumpcoeff(EN_Project *pr, int k)
 }
 
 
-void  curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r)
+void  curvecoeff(EN_Project pr, int i, double q, double *h0, double *r)
 /*
 **-------------------------------------------------------------------
 **   Input:   i   = curve index
@@ -854,7 +863,7 @@ void  curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r)
 }
 
 
-void  gpvcoeff(EN_Project *pr, int k)
+void  gpvcoeff(EN_Project pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -897,7 +906,7 @@ void  gpvcoeff(EN_Project *pr, int k)
 }
 
 
-void  pbvcoeff(EN_Project *pr, int k)
+void  pbvcoeff(EN_Project pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -934,7 +943,7 @@ void  pbvcoeff(EN_Project *pr, int k)
 }
 
 
-void  tcvcoeff(EN_Project *pr, int k)
+void  tcvcoeff(EN_Project pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -964,7 +973,7 @@ void  tcvcoeff(EN_Project *pr, int k)
 }
 
 
-void  prvcoeff(EN_Project *pr, int k, int n1, int n2)
+void  prvcoeff(EN_Project pr, int k, int n1, int n2)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -1016,7 +1025,7 @@ void  prvcoeff(EN_Project *pr, int k, int n1, int n2)
 }
 
 
-void  psvcoeff(EN_Project *pr, int k, int n1, int n2)
+void  psvcoeff(EN_Project pr, int k, int n1, int n2)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -1067,7 +1076,7 @@ void  psvcoeff(EN_Project *pr, int k, int n1, int n2)
 }
 
 
-void  fcvcoeff(EN_Project *pr, int k, int n1, int n2)
+void  fcvcoeff(EN_Project pr, int k, int n1, int n2)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -1119,7 +1128,7 @@ void  fcvcoeff(EN_Project *pr, int k, int n1, int n2)
 }
 
 
-void valvecoeff(EN_Project *pr, int k)
+void valvecoeff(EN_Project pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -1131,7 +1140,7 @@ void valvecoeff(EN_Project *pr, int k)
 {
     double flow, q, y, qa, hgrad;
     
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
     Slink *link = &net->Link[k];

@@ -1,9 +1,14 @@
 /*
-**  mempool.h
-**
-**  Header for mempool.c
-**
-**  A simple pooled memory allocator
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       mempool.h
+ Description:  header for a simple pooled memory allocator
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/10/2018
+ ******************************************************************************
 */
 
 #ifndef MEMPOOL_H

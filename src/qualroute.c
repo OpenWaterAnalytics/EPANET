@@ -1,9 +1,14 @@
 /*
-*********************************************************************
-
-QUALROUTE.C -- water quality routing module for the EPANET program
-
-*********************************************************************
+******************************************************************************
+Project:      OWA EPANET
+Version:      2.2
+Module:       qualroute.c
+Description:  computes water quality transport over a single time step
+Authors:      see AUTHORS
+Copyright:    see AUTHORS
+License:      see LICENSE
+Last Updated: 11/10/2018
+******************************************************************************
 */
 
 #include <stdio.h>
@@ -17,29 +22,29 @@ QUALROUTE.C -- water quality routing module for the EPANET program
 #define LINKFLOW(k) ((hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlows[k])
 
 // Exported Functions
-int     buildilists(EN_Project *pr);
-int     sortnodes(EN_Project *pr);
-void    transport(EN_Project *pr, long);
-void    initsegs(EN_Project *pr);
-void    reversesegs(EN_Project *pr, int);
-void    addseg(EN_Project *pr, int, double, double);
+int     buildilists(EN_Project pr);
+int     sortnodes(EN_Project pr);
+void    transport(EN_Project pr, long);
+void    initsegs(EN_Project pr);
+void    reversesegs(EN_Project pr, int);
+void    addseg(EN_Project pr, int, double, double);
 
 // Imported Functions
-extern double  findsourcequal(EN_Project *pr, int, double, double, long);
-extern void    reactpipes(EN_Project *pr, long);
-extern void    reacttanks(EN_Project *pr, long);
-extern double  mixtank(EN_Project *pr, int, double, double, double);
+extern double  findsourcequal(EN_Project pr, int, double, double, long);
+extern void    reactpipes(EN_Project pr, long);
+extern void    reacttanks(EN_Project pr, long);
+extern double  mixtank(EN_Project pr, int, double, double, double);
 
 // Local Functions
-static void    evalnodeinflow(EN_Project *pr, int, long, double *, double *);
-static void    evalnodeoutflow(EN_Project *pr, int, double, long);
-static double  findnodequal(EN_Project *pr, int, double, double, double, long);
-static double  noflowqual(EN_Project *pr, int);
-static void    updatemassbalance(EN_Project *pr, int, double, double, long);
-static int     selectnonstacknode(EN_Project *pr, int, int *);
+static void    evalnodeinflow(EN_Project pr, int, long, double *, double *);
+static void    evalnodeoutflow(EN_Project pr, int, double, long);
+static double  findnodequal(EN_Project pr, int, double, double, double, long);
+static double  noflowqual(EN_Project pr, int);
+static void    updatemassbalance(EN_Project pr, int, double, double, long);
+static int     selectnonstacknode(EN_Project pr, int, int *);
 
 
-void transport(EN_Project *pr, long tstep)
+void transport(EN_Project pr, long tstep)
 /*
 **--------------------------------------------------------------
 **   Input:   tstep = length of current time step
@@ -54,7 +59,7 @@ void transport(EN_Project *pr, long tstep)
 
     hydraulics_t *hyd = &pr->hydraulics;
     quality_t    *qual = &pr->quality;
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
 
     // React contents of each pipe and tank
     if (qual->Reactflag)
@@ -122,26 +127,26 @@ void transport(EN_Project *pr, long tstep)
     }
 }
 
-void  evalnodeinflow(EN_Project *pr, int k, long tstep, double *volin,
-    double *massin)
-    /*
-    **--------------------------------------------------------------
-    **   Input:   k = link index
-    **            tstep = quality routing time step
-    **   Output:  volin = flow volume entering a node
-    **            massin = constituent mass entering a node
-    **   Purpose: adds the contribution of a link's outflow volume
-    **            and constituent mass to the total inflow into its
-    **            downstream node over a time step.
-    **--------------------------------------------------------------
-    */
+void  evalnodeinflow(EN_Project pr, int k, long tstep, double *volin,
+                     double *massin)
+/*
+**--------------------------------------------------------------
+**   Input:   k = link index
+**            tstep = quality routing time step
+**   Output:  volin = flow volume entering a node
+**            massin = constituent mass entering a node
+**   Purpose: adds the contribution of a link's outflow volume
+**            and constituent mass to the total inflow into its
+**            downstream node over a time step.
+**--------------------------------------------------------------
+*/
 {
     double q, v, vseg;
     Pseg seg;
 
-    EN_Network *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
-    quality_t *qual = &pr->quality;
+    quality_t    *qual = &pr->quality;
 
     // Get flow rate (q) and flow volume (v) through link
     q = LINKFLOW(k);
@@ -184,22 +189,22 @@ void  evalnodeinflow(EN_Project *pr, int k, long tstep, double *volin,
 }
 
 
-double  findnodequal(EN_Project *pr, int n, double volin,
-    double massin, double volout, long tstep)
-    /*
-    **--------------------------------------------------------------
-    **   Input:   n = node index
-    **            volin = flow volume entering node
-    **            massin = mass entering node
-    **            volout = flow volume leaving node
-    **            tstep = length of current time step
-    **   Output:  returns water quality in a node's outflow
-    **   Purpose: computes a node's new quality from its inflow
-    **            volume and mass, including any source contribution.
-    **--------------------------------------------------------------
-    */
+double  findnodequal(EN_Project pr, int n, double volin,
+                     double massin, double volout, long tstep)
+/*
+**--------------------------------------------------------------
+**   Input:   n = node index
+**            volin = flow volume entering node
+**            massin = mass entering node
+**            volout = flow volume leaving node
+**            tstep = length of current time step
+**   Output:  returns water quality in a node's outflow
+**   Purpose: computes a node's new quality from its inflow
+**            volume and mass, including any source contribution.
+**--------------------------------------------------------------
+*/
 {
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     quality_t    *qual = &pr->quality;
 
@@ -261,7 +266,7 @@ double  findnodequal(EN_Project *pr, int n, double volin,
 }
 
 
-double  noflowqual(EN_Project *pr, int n)
+double  noflowqual(EN_Project pr, int n)
 /*
 **--------------------------------------------------------------
 **   Input:   n = node index
@@ -277,7 +282,7 @@ double  noflowqual(EN_Project *pr, int n)
     double c = 0.0;
     FlowDirection dir;
 
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     quality_t    *qual = &pr->quality;
 
@@ -312,7 +317,7 @@ double  noflowqual(EN_Project *pr, int n)
 }
 
 
-void evalnodeoutflow(EN_Project *pr, int k, double c, long tstep)
+void evalnodeoutflow(EN_Project pr, int k, double c, long tstep)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -357,24 +362,24 @@ void evalnodeoutflow(EN_Project *pr, int k, double c, long tstep)
 }
 
 
-void updatemassbalance(EN_Project *pr, int n, double massin,
-    double volout, long tstep)
-    /*
-    **--------------------------------------------------------------
-    **   Input:   n = node index
-    **            massin = mass inflow to node
-    **            volout = outflow volume from node
-    **   Output:  none
-    **   Purpose: Adds a node's external mass inflow and outflow
-    **            over the current time step to the network's
-    **            overall mass balance.
-    **--------------------------------------------------------------
-    */
+void updatemassbalance(EN_Project pr, int n, double massin,
+                       double volout, long tstep)
+/*
+**--------------------------------------------------------------
+**   Input:   n = node index
+**            massin = mass inflow to node
+**            volout = outflow volume from node
+**   Output:  none
+**   Purpose: Adds a node's external mass inflow and outflow
+**            over the current time step to the network's
+**            overall mass balance.
+**--------------------------------------------------------------
+*/
 {
     double masslost = 0.0,
-        massadded = 0.0;
+           massadded = 0.0;
 
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     quality_t    *qual = &pr->quality;
 
@@ -406,7 +411,7 @@ void updatemassbalance(EN_Project *pr, int n, double massin,
 
 
 
-int buildilists(EN_Project *pr)
+int buildilists(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -420,7 +425,7 @@ int buildilists(EN_Project *pr)
     int *degree = NULL;
 
     quality_t    *qual = &pr->quality;
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
 
     // Allocate an array to count # links incident on each node
     n = net->Nnodes + 1;
@@ -435,7 +440,7 @@ int buildilists(EN_Project *pr)
     }
 
     // Use incidence counts to determine start position of
-    // each node's incidence list in Xilist
+    // each node's incidence list in IlistPtr
     qual->IlistPtr[1] = 1;
     for (i = 1; i <= n; i++)
     {
@@ -459,23 +464,12 @@ int buildilists(EN_Project *pr)
         degree[n2]++;
     }
     free(degree);
-
-    /*//////// QA CHECK
-    for (i = 1; i <= net->Nnodes; i++)
-    {
-    printf("\nNode %s: ", net->Node[i].ID);
-    for (j = qual->IlistPtr[i]; j < qual->IlistPtr[i + 1]; j++)
-    {
-    printf("  %s,", net->Link[qual->Ilist[j]].ID);
-    }
-    }
-    */
     return 0;
 }
 
 
 
-int sortnodes(EN_Project *pr)
+int sortnodes(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -494,7 +488,7 @@ int sortnodes(EN_Project *pr)
     int errcode = 0;
     FlowDirection dir;
 
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     quality_t    *qual = &pr->quality;
 
@@ -578,25 +572,11 @@ int sortnodes(EN_Project *pr)
     if (numsorted < net->Nnodes) errcode = 120;
     FREE(indegree);
     FREE(stack);
-    /*
-    /////////////////// QA CHECK
-    snprintf(pr->Msg, MAXMSG, "\n\nSorted Nodes:");
-    writeline(pr, pr->Msg);
-    for (i = 1; i <= net->Nnodes; i++)
-    {
-    j = qual->SortedNodes[i];
-    snprintf(pr->Msg, MAXMSG, "%s", net->Node[j].ID);
-    writeline(pr, pr->Msg);
-    }
-    //printf("\n");
-    //system("pause");
-    /////////////////
-    */
     return errcode;
 }
 
 
-int selectnonstacknode(EN_Project *pr, int numsorted, int *indegree)
+int selectnonstacknode(EN_Project pr, int numsorted, int *indegree)
 /*
 **--------------------------------------------------------------
 **   Input:   numsorted = number of nodes that have been sorted
@@ -609,7 +589,7 @@ int selectnonstacknode(EN_Project *pr, int numsorted, int *indegree)
     int i, j, k, m, n;
 
     quality_t    *qual = &pr->quality;
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
 
     // Examine each sorted node in last in - first out order
     for (i = numsorted; i > 0; i--)
@@ -642,7 +622,7 @@ int selectnonstacknode(EN_Project *pr, int numsorted, int *indegree)
 }
 
 
-void initsegs(EN_Project *pr)
+void initsegs(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -655,7 +635,7 @@ void initsegs(EN_Project *pr)
     int j, k;
     double c, v, v1;
 
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     quality_t    *qual = &pr->quality;
 
@@ -705,7 +685,7 @@ void initsegs(EN_Project *pr)
 }
 
 
-void reversesegs(EN_Project *pr, int k)
+void reversesegs(EN_Project pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -731,7 +711,7 @@ void reversesegs(EN_Project *pr, int k)
 }
 
 
-void addseg(EN_Project *pr, int k, double v, double c)
+void addseg(EN_Project pr, int k, double v, double c)
 /*
 **-------------------------------------------------------------
 **   Input:   k = segment chain index

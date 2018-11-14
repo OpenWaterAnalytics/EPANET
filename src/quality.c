@@ -1,13 +1,14 @@
 /*
-*********************************************************************
-
-QUALITY.C -- water quality engine module for the EPANET program
-
-This module works together with QUALROUTE.C and QUALREACT.C to
-compute transport and reaction of a water quality constituent within
-a pipe network over a series of time steps.
-
-*********************************************************************
+******************************************************************************
+Project:      OWA EPANET
+Version:      2.2
+Module:       quality.c
+Description:  implements EPANET's water quality solver
+Authors:      see AUTHORS
+Copyright:    see AUTHORS
+License:      see LICENSE
+Last Updated: 11/10/2018
+******************************************************************************
 */
 
 #include <stdio.h>
@@ -24,36 +25,36 @@ a pipe network over a series of time steps.
 #include "funcs.h"
 
 // Stagnant flow tolerance
-const double QZERO = 0.005 / GPMperCFS;     // 0.005 gpm = 1.114e-5 cfs
+const double Q_STAGNANT = 0.005 / GPMperCFS;     // 0.005 gpm = 1.114e-5 cfs
 
 // Exported Functions (declared in FUNCS.H)
-//int     openqual(EN_Project *pr);
-//void    initqual(EN_Project *pr);
-//int     runqual(EN_Project *pr, long *);
-//int     nextqual(EN_Project *pr, long *);
-//int     stepqual(EN_Project *pr, long *);
-//int     closequal(EN_Project *pr);
-//double  avgqual(EN_Project *pr, int);
-double  findsourcequal(EN_Project *pr, int, double, double, long);
+//int     openqual(EN_Project pr);
+//void    initqual(EN_Project pr);
+//int     runqual(EN_Project pr, long *);
+//int     nextqual(EN_Project pr, long *);
+//int     stepqual(EN_Project pr, long *);
+//int     closequal(EN_Project pr);
+//double  avgqual(EN_Project pr, int);
+double  findsourcequal(EN_Project pr, int, double, double, long);
 
 // Imported Functions
-extern char    setreactflag(EN_Project *pr);
+extern char    setreactflag(EN_Project pr);
 extern double  getucf(double);
-extern void    ratecoeffs(EN_Project *pr);
-extern int     buildilists(EN_Project *pr);
-extern void    initsegs(EN_Project *pr);
-extern void    reversesegs(EN_Project *pr, int);
-extern int     sortnodes(EN_Project *pr);
-extern void    transport(EN_Project *pr, long);
+extern void    ratecoeffs(EN_Project pr);
+extern int     buildilists(EN_Project pr);
+extern void    initsegs(EN_Project pr);
+extern void    reversesegs(EN_Project pr, int);
+extern int     sortnodes(EN_Project pr);
+extern void    transport(EN_Project pr, long);
 
 // Local Functions
-static double  sourcequal(EN_Project *pr, Psource);
-static void    evalmassbalance(EN_Project *pr);
-static double  findstoredmass(EN_Project *pr);
-static int     flowdirchanged(EN_Project *pr);
+static double  sourcequal(EN_Project pr, Psource);
+static void    evalmassbalance(EN_Project pr);
+static double  findstoredmass(EN_Project pr);
+static int     flowdirchanged(EN_Project pr);
 
 
-int openqual(EN_Project *pr)
+int openqual(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -66,7 +67,7 @@ int openqual(EN_Project *pr)
     int n;
 
     quality_t *qual = &pr->quality;
-    EN_Network *net = &pr->network;
+    network_t  *net = &pr->network;
 
     // Create a memory pool for water quality segments
     qual->OutOfMemory = FALSE;
@@ -110,7 +111,7 @@ int openqual(EN_Project *pr)
 }
 
 
-int initqual(EN_Project *pr)
+int initqual(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -121,7 +122,7 @@ int initqual(EN_Project *pr)
 {
     int i;
     int errcode = 0;
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     quality_t    *qual = &pr->quality;
 
@@ -193,7 +194,7 @@ int initqual(EN_Project *pr)
 }
 
 
-int runqual(EN_Project *pr, long *t)
+int runqual(EN_Project pr, long *t)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -256,7 +257,7 @@ int runqual(EN_Project *pr, long *t)
 }
 
 
-int nextqual(EN_Project *pr, long *tstep)
+int nextqual(EN_Project pr, long *tstep)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -316,7 +317,7 @@ int nextqual(EN_Project *pr, long *tstep)
 }
 
 
-int stepqual(EN_Project *pr, long *tleft)
+int stepqual(EN_Project pr, long *tleft)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -394,7 +395,7 @@ int stepqual(EN_Project *pr, long *tleft)
 }
 
 
-int closequal(EN_Project *pr)
+int closequal(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -418,7 +419,7 @@ int closequal(EN_Project *pr)
 }
 
 
-double avgqual(EN_Project *pr, int k)
+double avgqual(EN_Project pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -430,7 +431,7 @@ double avgqual(EN_Project *pr, int k)
     double vsum = 0.0, msum = 0.0;
     Pseg seg;
 
-    EN_Network *net = &pr->network;
+    network_t  *net = &pr->network;
     quality_t  *qual = &pr->quality;
 
     if (qual->Qualflag == NONE) return 0.0;
@@ -459,7 +460,7 @@ double avgqual(EN_Project *pr, int k)
 }
 
 
-double findsourcequal(EN_Project *pr, int n, double volin, double volout, long tstep)
+double findsourcequal(EN_Project pr, int n, double volin, double volout, long tstep)
 /*
 **---------------------------------------------------------------------
 **   Input:   n = node index
@@ -475,7 +476,7 @@ double findsourcequal(EN_Project *pr, int n, double volin, double volout, long t
     double massadded = 0.0, c;
     Psource source;
 
-    EN_Network     *net = &pr->network;
+    network_t      *net = &pr->network;
     hydraulics_t   *hyd = &pr->hydraulics;
     quality_t      *qual = &pr->quality;
     time_options_t *time = &pr->time_options;
@@ -487,7 +488,7 @@ double findsourcequal(EN_Project *pr, int n, double volin, double volout, long t
     source = net->Node[n].S;
     if (source == NULL)    return 0.0;
     if (source->C0 == 0.0) return 0.0;
-    if (volout / tstep <= QZERO) return 0.0;
+    if (volout / tstep <= Q_STAGNANT) return 0.0;
 
     // Added source concentration depends on source type
     c = sourcequal(pr, source);
@@ -540,7 +541,7 @@ double findsourcequal(EN_Project *pr, int n, double volin, double volout, long t
 }
 
 
-double sourcequal(EN_Project *pr, Psource source)
+double sourcequal(EN_Project pr, Psource source)
 /*
 **--------------------------------------------------------------
 **   Input:   source = a water quality source object
@@ -553,7 +554,7 @@ double sourcequal(EN_Project *pr, Psource source)
     long k;
     double c;
 
-    EN_Network     *net = &pr->network;
+    network_t      *net = &pr->network;
     quality_t      *qual = &pr->quality;
     time_options_t *time = &pr->time_options;
 
@@ -574,7 +575,7 @@ double sourcequal(EN_Project *pr, Psource source)
 }
 
 
-void  evalmassbalance(EN_Project *pr)
+void  evalmassbalance(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -604,7 +605,7 @@ void  evalmassbalance(EN_Project *pr)
 }
 
 
-double  findstoredmass(EN_Project *pr)
+double  findstoredmass(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -618,7 +619,7 @@ double  findstoredmass(EN_Project *pr)
     double totalmass = 0.0;
     Pseg   seg;
 
-    EN_Network *net = &pr->network;
+    network_t  *net = &pr->network;
     quality_t  *qual = &pr->quality;
 
     // Mass residing in each pipe
@@ -654,7 +655,7 @@ double  findstoredmass(EN_Project *pr)
     return totalmass;
 }
 
-int flowdirchanged(EN_Project *pr)
+int flowdirchanged(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -681,7 +682,7 @@ int flowdirchanged(EN_Project *pr)
         newdir = SGN(q);
 
         // Indicate if flow is negligible
-        if (fabs(q) < QZERO) newdir = 0;
+        if (fabs(q) < Q_STAGNANT) newdir = 0;
 
         // Reverse link's volume segments if flow direction changes sign
         if (newdir * olddir < 0) reversesegs(pr, k);
@@ -696,5 +697,3 @@ int flowdirchanged(EN_Project *pr)
     }
     return result;
 }
-
-/************************* End of QUALITY.C ***************************/

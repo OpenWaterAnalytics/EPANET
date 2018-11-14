@@ -1,9 +1,14 @@
 /*
-*********************************************************************
-
-HYDSTATUS.C --  Hydraulic status updating for the EPANET Program
-
-*******************************************************************
+******************************************************************************
+Project:      OWA EPANET
+Version:      2.2
+Module:       hydstatus.c
+Description:  updates hydraulic status of network elements
+Authors:      see AUTHORS
+Copyright:    see AUTHORS
+License:      see LICENSE
+Last Updated: 11/10/2018
+******************************************************************************
 */
 
 #include <stdio.h>
@@ -11,19 +16,19 @@ HYDSTATUS.C --  Hydraulic status updating for the EPANET Program
 #include "funcs.h"
 
 // External functions
-int  valvestatus(EN_Project *pr);
-int  linkstatus(EN_Project *pr);
+int  valvestatus(EN_Project pr);
+int  linkstatus(EN_Project pr);
 
 // Local functions
-static StatType cvstatus(EN_Project *pr, StatType, double, double);
-static StatType pumpstatus(EN_Project *pr, int, double);
-static StatType prvstatus(EN_Project *pr, int, StatType, double, double, double);
-static StatType psvstatus(EN_Project *pr, int, StatType, double, double, double);
-static StatType fcvstatus(EN_Project *pr, int, StatType, double, double);
-static void     tankstatus(EN_Project *pr, int, int, int);
+static StatType cvstatus(EN_Project pr, StatType, double, double);
+static StatType pumpstatus(EN_Project pr, int, double);
+static StatType prvstatus(EN_Project pr, int, StatType, double, double, double);
+static StatType psvstatus(EN_Project pr, int, StatType, double, double, double);
+static StatType fcvstatus(EN_Project pr, int, StatType, double, double);
+static void     tankstatus(EN_Project pr, int, int, int);
 
 
-int  valvestatus(EN_Project *pr)
+int  valvestatus(EN_Project pr)
 /*
 **-----------------------------------------------------------------
 **  Input:   none
@@ -41,7 +46,7 @@ int  valvestatus(EN_Project *pr)
     double hset;                     // Valve head setting
     Slink *link;
 
-    EN_Network       *net = &pr->network;
+    network_t        *net = &pr->network;
     hydraulics_t     *hyd = &pr->hydraulics;
     report_options_t *rep = &pr->report;
 
@@ -88,10 +93,10 @@ int  valvestatus(EN_Project *pr)
         }
     }
     return change;
-}                       /* End of valvestatus() */
+}
 
 
-int  linkstatus(EN_Project *pr)
+int  linkstatus(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -108,7 +113,7 @@ int  linkstatus(EN_Project *pr)
     double dh;                      // Head difference across link
     StatType  status;               // Current status
 
-    EN_Network       *net = &pr->network;
+    network_t        *net = &pr->network;
     hydraulics_t     *hyd = &pr->hydraulics;
     report_options_t *rep = &pr->report;
     Slink *link;
@@ -167,7 +172,7 @@ int  linkstatus(EN_Project *pr)
 }
 
 
-StatType  cvstatus(EN_Project *pr, StatType s, double dh, double q)
+StatType  cvstatus(EN_Project pr, StatType s, double dh, double q)
 /*
 **--------------------------------------------------
 **  Input:   s  = current link status
@@ -195,7 +200,7 @@ StatType  cvstatus(EN_Project *pr, StatType s, double dh, double q)
 }
 
 
-StatType  pumpstatus(EN_Project *pr, int k, double dh)
+StatType  pumpstatus(EN_Project pr, int k, double dh)
 /*
 **--------------------------------------------------
 **  Input:   k  = link index
@@ -208,7 +213,7 @@ StatType  pumpstatus(EN_Project *pr, int k, double dh)
     int   p;
     double hmax;
     hydraulics_t *hyd = &pr->hydraulics;
-    EN_Network *net = &pr->network;
+    network_t    *net = &pr->network;
 
     // Find maximum head (hmax) pump can deliver
     p = findpump(net, k);
@@ -231,7 +236,7 @@ StatType  pumpstatus(EN_Project *pr, int k, double dh)
 }
 
 
-StatType  prvstatus(EN_Project *pr, int k, StatType s, double hset,
+StatType  prvstatus(EN_Project pr, int k, StatType s, double hset,
                     double h1, double h2)
 /*
 **-----------------------------------------------------------
@@ -288,7 +293,7 @@ StatType  prvstatus(EN_Project *pr, int k, StatType s, double hset,
 }
 
 
-StatType  psvstatus(EN_Project *pr, int k, StatType s, double hset,
+StatType  psvstatus(EN_Project pr, int k, StatType s, double hset,
                     double h1, double h2)
 /*
 **-----------------------------------------------------------
@@ -345,7 +350,7 @@ StatType  psvstatus(EN_Project *pr, int k, StatType s, double hset,
 }
 
 
-StatType  fcvstatus(EN_Project *pr, int k, StatType s, double h1, double h2)
+StatType  fcvstatus(EN_Project pr, int k, StatType s, double h1, double h2)
 /*
 **-----------------------------------------------------------
 **  Input:   k    = link index
@@ -384,7 +389,7 @@ StatType  fcvstatus(EN_Project *pr, int k, StatType s, double h1, double h2)
 }
 
 
-void  tankstatus(EN_Project *pr, int k, int n1, int n2)
+void  tankstatus(EN_Project pr, int k, int n1, int n2)
 /*
 **----------------------------------------------------------------
 **  Input:   k  = link index
@@ -400,7 +405,7 @@ void  tankstatus(EN_Project *pr, int k, int n1, int n2)
     Stank *tank;
 
     hydraulics_t *hyd = &pr->hydraulics;
-    EN_Network *net = &pr->network;
+    network_t    *net = &pr->network;
     Slink *link = &net->Link[k];
 
     // Return if link is closed

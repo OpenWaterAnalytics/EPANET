@@ -1,18 +1,16 @@
 /*
-****************************************************
-
-      String Constants for EPANET Program                            
-                                                                     
-VERSION:    2.00                                               
-DATE:       5/8/00
-            10/25/00
-            8/15/07     (2.00.11)
-            2/14/08    (2.00.12)
-AUTHOR:     L. Rossman
-            US EPA - NRMRL
-                                                                     
-****************************************************
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       text.h
+ Description:  string constants used throughout EPANET
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/10/2018
+ ******************************************************************************
 */
+
 /* ------------ Keyword Dictionary ---------- */
 #ifndef TEXT_H
 #define TEXT_H

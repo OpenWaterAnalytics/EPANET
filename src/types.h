@@ -1,34 +1,23 @@
 /*
-***********************************************************************
-                                                                     
-TYPES.H -- Global constants and data types for EPANET program  
-                                                                     
-VERSION:    2.00                                               
-DATE:       5/8/00
-            9/7/00
-            10/25/00
-            3/1/01
-            12/6/01
-            6/24/02
-            8/15/07    (2.00.11)
-            2/14/08    (2.00.12)
-AUTHOR:     L. Rossman                                         
-            US EPA - NRMRL
-                                                                     
-**********************************************************************
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       types.h
+ Description:  symbolic constants and data types used throughout EPANET
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/10/2018
+ ******************************************************************************
 */
+
 #ifndef TYPES_H
 #define TYPES_H
 
-//#include "epanet2.h"
 #include "hash.h"
 #include "util/errormanager.h"
 #include <stdio.h>
 
-
-/*********************************************************/
-/* All floats have been re-declared as doubles (7/3/07). */
-/*********************************************************/ 
 /*
 -------------------------------------------
    Definition of 4-byte integers & reals
@@ -38,14 +27,13 @@ typedef  float        REAL4;
 typedef  int          INT4;
 
 /*
------------------------------
-   Global Constants
------------------------------
+----------------------------------------------
+   Various constants
+----------------------------------------------
 */
-/*** Updated ***/
 #define   CODEVERSION        20200
 #define   MAGICNUMBER        516114521
-#define   ENGINE_VERSION     201
+#define   ENGINE_VERSION     201   /* Used for binary hydraulics file */
 #define   EOFMARK            0x1A  /* Use 0x04 for UNIX systems */
 #define   MAXTITLE  3        /* Max. # title lines                     */
 #define   TITLELEN  79       // Max. # characters in a title line
@@ -60,19 +48,23 @@ typedef  int          INT4;
 #define   FULL      2
 #define   BIG       1.E10
 #define   TINY      1.E-6
-#define   MISSING   -1.E10
-
-#define   CBIG      1.e8     /* Big coefficient         */
-#define   CSMALL    1.e-6    /* Small coefficient       */
-
+#define   MISSING   -1.E10     /* Missing value indicator */
+#define   DIFFUS    1.3E-8     /* Diffusivity of chlorine                */
+                               /* @ 20 deg C (sq ft/sec)                 */
+#define   VISCOS    1.1E-5     /* Kinematic viscosity of water           */
+                               /* @ 20 deg C (sq ft/sec)                 */
+#define   SEPSTR    " \t\n\r"  /* Token separator characters */
 #ifdef M_PI
   #define   PI        M_PI
 #else
   #define   PI        3.141592654
 #endif
 
-/*** Updated 9/7/00 ***/
-/* Various conversion factors */
+/*
+----------------------------------------------
+   Flow units conversion factors
+----------------------------------------------
+*/
 #define   GPMperCFS   448.831 
 #define   AFDperCFS   1.9837
 #define   MGDperCFS   0.64632
@@ -90,16 +82,9 @@ typedef  int          INT4;
 #define   KWperHP     0.7457
 #define   SECperDAY   86400
 
-#define   DIFFUS    1.3E-8   /* Diffusivity of chlorine                */
-                             /* @ 20 deg C (sq ft/sec)                 */
-#define   VISCOS    1.1E-5   /* Kinematic viscosity of water           */
-                             /* @ 20 deg C (sq ft/sec)                 */
-
-#define   SEPSTR    " \t\n\r"  /* Token separator characters */
-
 /*
 ---------------------------------------------------------------------
-   Macro to test for successful allocation of memory            
+   Macros to test for successful allocation of memory and to free it
 ---------------------------------------------------------------------
 */
 #define  MEMCHECK(x)  (((x) == NULL) ? 101 : 0 )
@@ -131,9 +116,9 @@ typedef  int          INT4;
 #define ERRCODE(x) (errcode = ((errcode>100) ? (errcode) : (x))) 
 
 /*
- ----------------------------------------------
- Global Enumeration Types
- ----------------------------------------------
+----------------------------------------------
+   Enumerated Data Types
+----------------------------------------------
  */
 
 typedef enum {
@@ -142,9 +127,9 @@ typedef enum {
 } ObjectType;
 
 typedef enum {
-    JUNCTION = 0,
-    RESERVOIR = 1,
-    TANK = 2
+  JUNCTION = 0,
+  RESERVOIR = 1,
+  TANK = 2
 } NodeType;
 
 typedef enum {
@@ -242,14 +227,14 @@ typedef enum {
   PSI,          /*   pounds per square inch            */
   KPA,          /*   kiloPascals                       */
   METERS        /*   meters                            */
+} PressUnitsType;
 
-} PressUnitsType;      
 typedef enum {
   LOW,          /*   lower limit                       */
   HI,           /*   upper limit                       */
   PREC          /*   precision                         */
-
 } RangeType;        
+
 typedef enum {
   MIX1,         /*   1-compartment model               */
   MIX2,         /*   2-compartment model               */
@@ -263,11 +248,9 @@ typedef enum {
   MIN,          /*   minimum values                    */
   MAX,          /*   maximum values                    */
   RANGE         /*   max - min values                  */
-} TstatType;
+} StatisticType;
 
 
-#define MAXVAR   21 /* Max. # types of network variables */        
-                    /* (equals # items enumed below)   */
 typedef enum {
   ELEV = 0,     /*   nodal elevation                   */
   DEMAND,       /*   nodal demand flow                 */
@@ -291,7 +274,8 @@ typedef enum {
   VOLUME,       /*   tank volume                       */
   CLOCKTIME,    /*   simulation time of day            */
   FILLTIME,     /*   time to fill a tank               */
-  DRAINTIME     /*   time to drain a tank              */
+  DRAINTIME,    /*   time to drain a tank              */
+  MAXVAR        //   total number of variable fields
 } FieldType;
 
 typedef enum {
@@ -310,19 +294,19 @@ typedef enum {
 } HdrType;    
 
 typedef enum {
-    NEGATIVE  = -1,    // Flow in reverse of pre-assigned direction
-    ZERO_FLOW = 0,     // Zero flow
-    POSITIVE  = 1      // Flow in pre-assigned direction
+  NEGATIVE  = -1,    // Flow in reverse of pre-assigned direction
+  ZERO_FLOW = 0,     // Zero flow
+  POSITIVE  = 1      // Flow in pre-assigned direction
 } FlowDirection;
 
 typedef enum {
-    PCNT_ONLINE,
-    PCNT_EFFIC,
-    KWH_PER_FLOW,
-    TOTAL_KWH,
-    MAX_KW,
-    TOTAL_COST,
-    MAX_ENERGY_STATS
+  PCNT_ONLINE,
+  PCNT_EFFIC,
+  KWH_PER_FLOW,
+  TOTAL_KWH,
+  MAX_KW,
+  TOTAL_COST,
+  MAX_ENERGY_STATS
 } EnergyStats;
 
 typedef enum {
@@ -332,7 +316,7 @@ typedef enum {
 
 /*
 ------------------------------------------------------
-   Global Data Structures                             
+   Fundamental Data Structures                             
 ------------------------------------------------------
 */
 
@@ -374,14 +358,6 @@ typedef struct        /* CURVE OBJECT */
    double *Y;          /* Y-values         */
 }  Scurve;
 
-typedef struct        /* Coord OBJECT */
-{
-	char   ID[MAXID+1];  /* Coord ID         */
-	double X;            /* X-value          */
-	double Y;            /* Y-value          */
-	char   HaveCoords;   /* Coordinates flag */
-}  Scoord;
-
 struct Sdemand            /* DEMAND CATEGORY OBJECT */
 {
    double Base;            /* Baseline demand      */
@@ -414,6 +390,8 @@ typedef struct Ssource *Psource; /* Pointer to WQ source object */
 typedef struct            /* NODE OBJECT */
 {
    char    ID[MAXID+1];    /* Node ID          */
+   double  X;              /* X-coordinate     */
+   double  Y;              /* Y-coordinate     */
    double  El;             /* Elevation        */
    Pdemand D;              /* Demand pointer   */
    Psource S;              /* Source pointer   */
@@ -572,215 +550,154 @@ typedef struct
     double    ratio;
 } MassBalance;
 
-// Forward declaration of the Mempool structure defined in mempool.h
-struct Mempool;
+/*
+------------------------------------------------------
+  Wrapper Data Structures
+------------------------------------------------------
+*/
 
+// Input File Parser Wrapper
 typedef struct {
-  char
-  Qualflag,        // Water quality flag
-  OpenQflag,       // Quality system opened flag
-  Reactflag,       // Reaction indicator 
-  OutOfMemory;     // Out of memory indicator
-  
-  char
-  ChemName[MAXID+1],    // Name of chemical
-  ChemUnits[MAXID+1];   // Units of chemical
-  
-  int
-  TraceNode,       // Source node for flow tracing
-  *SortedNodes,    // Topologically sorted node indexes
-  *Ilist,          // Link incidence lists for all nodes
-  *IlistPtr;       // Start index of each node in Ilist
-
-  double 
-  Ctol,            // Water quality tolerance
-  Diffus,          // Diffusivity (sq ft/sec)
-  Wbulk,           // Avg. bulk reaction rate
-  Wwall,           // Avg. wall reaction rate
-  Wtank,           // Avg. tank reaction rate
-  Wsource,         // Avg. mass inflow
-  Rfactor,         // Roughness-reaction factor
-  Sc,              // Schmidt Number
-  Bucf,            // Bulk reaction units conversion factor
-  Tucf,            // Tank reaction units conversion factor
-  BulkOrder,       // Bulk flow reaction order
-  WallOrder,       // Pipe wall reaction order     
-  TankOrder,       // Tank reaction order          
-  Kbulk,           // Global bulk reaction coeff.  
-  Kwall,           // Global wall reaction coeff.  
-  Climit,          // Limiting potential quality
-  SourceQual,      // External source quality
-  *NodeQual,       // Reported node quality state
-  *PipeRateCoeff;  // Pipe reaction rate coeffs.
-
-  long
-  Qstep,           // Quality time step (sec)
-  Qtime;           // Current quality time (sec)
-  
-  struct Mempool
-  *SegPool;        // Memory pool for water quality segments   
-  
-  Pseg
-  FreeSeg,         // Pointer to unused segment
-  *FirstSeg,       // First (downstream) segment in each pipe
-  *LastSeg;        // Last (upstream) segment in each pipe
-  
-  FlowDirection
-  *FlowDir;        // Flow direction for each pipe
-
-  MassBalance
-  massbalance;     // Mass balance components  
-} quality_t;
-
-typedef struct {
-  long     
-  Tstart,                /* Starting time of day (sec)   */
-  Hstep,                 /* Nominal hyd. time step (sec) */
-  Pstep,                 /* Time pattern time step (sec) */
-  Pstart,                /* Starting pattern time (sec)  */
-  Rstep,                 /* Reporting time step (sec)    */
-  Rstart,                /* Time when reporting starts   */
-  Rtime,                 /* Next reporting time          */
-  Htime,                 /* Current hyd. time (sec)      */
-  Hydstep,               /* Actual hydraulic time step   */
-  Rulestep,              /* Rule evaluation time step    */
-  Dur;                   /* Duration of simulation (sec) */
-  
-} time_options_t;
-
-
-typedef struct {
-  
-  FILE *InFile; /// Input file pointer
+  FILE *InFile;          /* Input file pointer           */
   
   char
-  Coordflag,             /* Load coordinates flag        */
-  Unitsflag,             /* Unit system flag             */
-  Flowflag,              /* Flow units flag              */
-  Pressflag;             /* Pressure units flag          */
+    Unitsflag,             /* Unit system flag             */
+    Flowflag,              /* Flow units flag              */
+    Pressflag,             /* Pressure units flag          */
+    DefPatID[MAXID+1],     /* Default demand pattern ID    */
+    InpFname[MAXFNAME+1],  /* Input file name              */
+    *Tok[MAXTOKS],         /* Array of token strings       */
+    Comment[MAXMSG+1];     /* Comment text                 */
   
   int      
-  MaxNodes,              /* Node count from input file   */
-  MaxLinks,              /* Link count from input file   */
-  MaxJuncs,              /* Junction count               */
-  MaxPipes,              /* Pipe count                   */
-  MaxTanks,              /* Tank count                   */
-  MaxPumps,              /* Pump count                   */
-  MaxValves,             /* Valve count                  */
-  MaxControls,           /* Control count                */
-  MaxRules,              /* Rule count                   */
-  MaxPats,               /* Pattern count                */
-  MaxCurves;             /* Curve count                  */
-  
-  char
-  DefPatID[MAXID+1],     /* Default demand pattern ID    */
-  InpFname[MAXFNAME+1];  /* Input file name              */
+    MaxNodes,              /* Node count from input file   */
+    MaxLinks,              /* Link count from input file   */
+    MaxJuncs,              /* Junction count               */
+    MaxPipes,              /* Pipe count                   */
+    MaxTanks,              /* Tank count                   */
+    MaxPumps,              /* Pump count                   */
+    MaxValves,             /* Valve count                  */
+    MaxControls,           /* Control count                */
+    MaxRules,              /* Rule count                   */
+    MaxPats,               /* Pattern count                */
+    MaxCurves,             /* Curve count                  */
+    Ntokens,               /* # tokens a line of input     */
+    Ntitle;                /* Number of title lines        */
   
   STmplist 
-  *Patlist,              /* Temporary time pattern list  */ 
-  *Curvelist;            /* Temporary list of curves     */
-  
-  double *X;             // temporary array for curve data
-  int 
-  Ntokens,               /* Number of tokens in input line */
-  Ntitle;                /* Number of title lines          */
-  
-  char *Tok[MAXTOKS];    /* Array of token strings         */
-  char Comment[MAXMSG+1];
-  STmplist *PrevPat;     /* Pointer to pattern list element */
-  STmplist *PrevCurve;   /* Pointer to curve list element   */
-  
+    *Patlist,              /* Temporary time pattern list  */ 
+    *PrevPat,              /* Ptr to pattern list element  */
+    *Curvelist,            /* Temporary list of curves     */
+    *PrevCurve;            /* Ptr to curve list element    */
+
+  double *X;               // temporary array for curve data
+
 } parser_data_t;
 
+// Time Step Options Wrapper
 typedef struct {
-  
-  FILE *RptFile;         /* Report file pointer          */
+
+  long
+    Tstart,                /* Starting time of day (sec)   */
+    Hstep,                 /* Nominal hyd. time step (sec) */
+    Pstep,                 /* Time pattern time step (sec) */
+    Pstart,                /* Starting pattern time (sec)  */
+    Rstep,                 /* Reporting time step (sec)    */
+    Rstart,                /* Time when reporting starts   */
+    Rtime,                 /* Next reporting time          */
+    Htime,                 /* Current hyd. time (sec)      */
+    Hydstep,               /* Actual hydraulic time step   */
+    Rulestep,              /* Rule evaluation time step    */
+    Dur;                   /* Duration of simulation (sec) */
+
+} time_options_t;
+
+// Reporting Options Wrapper
+typedef struct {
+
+  FILE *RptFile;           /* Report file pointer          */
   
   int
-  Nperiods,              /* Number of reporting periods  */
-  PageSize;              /* Lines/page in output report  */
+    Nperiods,              /* Number of reporting periods  */
+    PageSize;              /* Lines/page in output report  */
+
+  long
+    LineNum,               /* Current line number          */
+    PageNum;               /* Current page number          */
   
   char
-  Rptflag,               /* Report flag                  */
-  Tstatflag,             /* Time statistics flag         */
-  Summaryflag,           /* Report summary flag          */
-  Messageflag,           /* Error/warning message flag   */
-  Statflag,              /* Status report flag           */
-  Energyflag,            /* Energy report flag           */
-  Nodeflag,              /* Node report flag             */
-  Linkflag,              /* Link report flag             */
-  Atime[13],             /* Clock time (hrs:min:sec)     */
-  Rpt1Fname[MAXFNAME+1], /* Primary report file name     */
-  Rpt2Fname[MAXFNAME+1]; /* Secondary report file name   */
+    Rptflag,               /* Report flag                  */
+    Tstatflag,             /* Time statistics flag         */
+    Summaryflag,           /* Report summary flag          */
+    Messageflag,           /* Error/warning message flag   */
+    Statflag,              /* Status report flag           */
+    Energyflag,            /* Energy report flag           */
+    Nodeflag,              /* Node report flag             */
+    Linkflag,              /* Link report flag             */
+    Atime[13],             /* Clock time (hrs:min:sec)     */
+    Rpt1Fname[MAXFNAME+1], /* Primary report file name     */
+    Rpt2Fname[MAXFNAME+1], /* Secondary report file name   */
+    DateStamp[26],         /* Current date & time          */
+    Fprinterr;             /* File write error flag        */
   
-  SField   Field[MAXVAR];   /* Output reporting fields      */
-  
-  long      LineNum;        /* Current line number     */
-  long      PageNum;        /* Current page number     */
-  char      DateStamp[26];  /* Current date & time     */
-  char      Fprinterr;      /* File write error flag   */
-  
+  SField   Field[MAXVAR];  /* Output reporting fields      */
+
 } report_options_t;
 
-
+// Output File Wrapper
 typedef struct {
-  
+
   char
-  HydFname[MAXFNAME+1],  /* Hydraulics file name         */
-  OutFname[MAXFNAME+1],  /* Binary output file name      */
-  Outflag,               /* Output file flag             */
-  Hydflag;               /* Hydraulics flag              */
+    HydFname[MAXFNAME+1],  /* Hydraulics file name         */
+    OutFname[MAXFNAME+1],  /* Binary output file name      */
+    Outflag,               /* Output file flag             */
+    Hydflag;               /* Hydraulics flag              */
   
   long     
-  HydOffset,             /* Hydraulics file byte offset  */
-  OutOffset1,            /* 1st output file byte offset  */
-  OutOffset2;            /* 2nd output file byte offset  */
+    HydOffset,             /* Hydraulics file byte offset  */
+    OutOffset1,            /* 1st output file byte offset  */
+    OutOffset2;            /* 2nd output file byte offset  */
   
   FILE
-  *OutFile,              /* Output file pointer          */
-  *HydFile,              /* Hydraulics file pointer      */
-  *TmpOutFile;           /* Temporary file handle        */
-  
+    *OutFile,              /* Output file pointer          */
+    *HydFile,              /* Hydraulics file pointer      */
+    *TmpOutFile;           /* Temporary file handle        */
+
 } out_file_t;
 
 typedef struct {
-  
+
   char
-  SaveHflag,             /* Hydraul. results saved flag  */
-  SaveQflag,             /* Quality results saved flag   */
-  Saveflag;              /* General purpose save flag    */
+    SaveHflag,             /* Hydraul. results saved flag  */
+    SaveQflag,             /* Quality results saved flag   */
+    Saveflag;              /* General purpose save flag    */
 
 } save_options_t;
 
-/*
- ** NOTE: Hydraulic analysis of the pipe network at a given point in time
- **       is done by repeatedly solving a linearized version of the 
- **       equations for conservation of flow & energy:
- **
- **           A*H = F
- **
- **       where H = vector of heads (unknowns) at each node,
- **             F = vector of right-hand side coeffs.
- **             A = square matrix of coeffs.
- **       and both A and F are updated at each iteration until there is
- **       negligible change in pipe flows.
- **
- **       Each row (or column) of A corresponds to a junction in the pipe
- **       network. Each link (pipe, pump or valve) in the network has a
- **       non-zero entry in the row-column of A that corresponds to its
- **       end points. This results in A being symmetric and very sparse.
- **       The following arrays are used to efficiently manage this sparsity:
- */
+// Rule-Based Controls Wrapper
 typedef struct {
-  // hydraulic solution vars
-  double  
+
+    SactionList *ActionList;     /* Linked list of action items */
+    int         RuleState;       /* State of rule interpreter */
+    int         Errcode;         // Rule parser error code
+    long        Time1;           /* Start of rule evaluation time interval (sec) */
+    Spremise    *LastPremise;    /* Previous premise clause */
+    Saction     *LastThenAction; /* Previous THEN action */
+    Saction     *LastElseAction; /* Previous ELSE action */
+
+} rules_t;
+
+// Hydraulic Solution Wrapper
+typedef struct {
+
+  double
   *Aii,        /* Diagonal coeffs. of A               */
   *Aij,        /* Non-zero, off-diagonal coeffs. of A */
   *F,          /* Right hand side coeffs.             */
   *P,          /* Inverse headloss derivatives        */
   *Y;          /* Flow correction factors             */
   
-  int     
+  int          /* Ordered sparse matrix storage       */
   *Order,      /* Node-to-row of A                    */
   *Row,        /* Row-to-node of A                    */
   *Ndx,        /* Index of link's coeff. in Aij       */
@@ -788,98 +705,150 @@ typedef struct {
   *NZSUB,      /* Row index of each coeff. in each column */
   *LNZ,        /* Position of each coeff. in Aij array    */
   *Degree;     /* Number of links adjacent to each node  */
+
 } solver_t;
 
+// Hydraulic Engine Wrapper
 typedef struct {
+
   double  
-  *NodeDemand,           // Node actual total outflow
-  *DemandFlows,          // Demand outflows
-  *EmitterFlows,         /* Emitter flows                */
-  *LinkSetting,          /* Link settings                */
-  *LinkFlows,            /* Link flows                   */
-  *NodeHead,
-  Htol,                  /* Hydraulic head tolerance     */
-  Qtol,                  /* Flow rate tolerance          */
-  RQtol,                 /* Flow resistance tolerance    */
-  Hexp,                  /* Exponent in headloss formula */
-  Qexp,                  /* Exponent in emitter formula  */
-  Pexp,                  // Exponent in demand formula
-  Pmin,                  // Pressure needed for any demand
-  Preq,                  // Pressure needed for full demand
-  Dmult,                 /* Demand multiplier            */
-
-  Hacc,                  /* Hydraulics solution accuracy */
-  FlowChangeLimit,       /* Hydraulics flow change limit */
-  HeadErrorLimit,        /* Hydraulics head error limit  */
-
-  DampLimit,             /* Solution damping threshold   */
-  Viscos,                /* Kin. viscosity (sq ft/sec)   */
-  SpGrav,                /* Specific gravity             */
-  Epump,                 /* Global pump efficiency       */  
-  Dsystem,               /* Total system demand          */
-  Ecost,                 /* Base energy cost per kwh     */
-  Dcost,                 /* Energy demand charge/kw/day  */
-  Emax,                  /* Peak energy usage            */
-  *X_tmp;
+    *NodeDemand,           // Node actual total outflow
+    *DemandFlows,          // Demand outflows
+    *EmitterFlows,         /* Emitter flows                */
+    *LinkSetting,          /* Link settings                */
+    *LinkFlows,            /* Link flows                   */
+    *NodeHead,
+    Htol,                  /* Hydraulic head tolerance     */
+    Qtol,                  /* Flow rate tolerance          */
+    RQtol,                 /* Flow resistance tolerance    */
+    Hexp,                  /* Exponent in headloss formula */
+    Qexp,                  /* Exponent in emitter formula  */
+    Pexp,                  // Exponent in demand formula
+    Pmin,                  // Pressure needed for any demand
+    Preq,                  // Pressure needed for full demand
+    Dmult,                 /* Demand multiplier            */
+    Hacc,                  /* Hydraulics solution accuracy */
+    FlowChangeLimit,       /* Hydraulics flow change limit */
+    HeadErrorLimit,        /* Hydraulics head error limit  */
+    DampLimit,             /* Solution damping threshold   */
+    Viscos,                /* Kin. viscosity (sq ft/sec)   */
+    SpGrav,                /* Specific gravity             */
+    Epump,                 /* Global pump efficiency       */  
+    Dsystem,               /* Total system demand          */
+    Ecost,                 /* Base energy cost per kwh     */
+    Dcost,                 /* Energy demand charge/kw/day  */
+    Emax,                  /* Peak energy usage            */
+    RelativeError,         // Total flow change / total flow
+    MaxHeadError,          // Max. error for link head loss 
+    MaxFlowChange,         // Max. change in link flow
+    *X_tmp;                // Scratch array
   
   int
-  DefPat,                /* Default demand pattern       */
-  Epat,                  /* Energy cost time pattern     */
-  DemandModel;           // Fixed or pressure dependent
+    DefPat,                /* Default demand pattern       */
+    Epat,                  /* Energy cost time pattern     */
+    DemandModel,           // Fixed or pressure dependent
+    Iterations,            // # hydraulic trials taken
+    MaxIter,               /* Max. hydraulic trials        */
+    ExtraIter,             /* Extra hydraulic trials       */
+    Ncoeffs,               /* Number of non-0 matrix coeffs*/
+    CheckFreq,             /* Hydraulics solver parameter  */
+    MaxCheck;              /* Hydraulics solver parameter  */
 
   StatType  
-  *LinkStatus,           /* Link status                  */
-  *OldStat;              /* Previous link/tank status    */
-  
-  int
-  MaxIter,               /* Max. hydraulic trials        */
-  ExtraIter,             /* Extra hydraulic trials       */
-  Ncoeffs,               /* Number of non-0 matrix coeffs*/
-  CheckFreq,             /* Hydraulics solver parameter  */
-  MaxCheck;              /* Hydraulics solver parameter  */
+    *LinkStatus,           /* Link status                  */
+    *OldStat;              /* Previous link/tank status    */
   
   char
-  OpenHflag,             /* Hydraul. system opened flag  */
-  Formflag;              /* Hydraulic formula flag       */
+    OpenHflag,             /* Hydraul. system opened flag  */
+    Formflag;              /* Hydraulic formula flag       */
   
-  /* Info about hydraulic solution */
-  double RelativeError;
-  double MaxHeadError;
-  double MaxFlowChange;
-  int    Iterations;
   
   /* Flag used to halt taking further time steps */
   int Haltflag;
   /* Relaxation factor used for updating flow changes */                         
-  double RelaxFactor;                                                            
-  
+  double RelaxFactor;
   solver_t solver;
-  
+
 } hydraulics_t;
 
-typedef struct {
-  SactionList *ActionList;     /* Linked list of action items */
-  int         RuleState;       /* State of rule interpreter */
-  int         Errcode;         // Rule parser error code
-  long        Time1;           /* Start of rule evaluation time interval (sec) */
-  Spremise    *LastPremise;    /* Previous premise clause */
-  Saction     *LastThenAction; /* Previous THEN action */
-  Saction     *LastElseAction; /* Previous ELSE action */
-} rules_t;
+// Forward declaration of the Mempool structure defined in mempool.h
+struct Mempool;
 
+// Water Quality Engine Wrapper
 typedef struct {
-  int Nnodes,            /* Number of network nodes      */
-  Ntanks,                /* Number of tanks              */
-  Njuncs,                /* Number of junction nodes     */
-  Nlinks,                /* Number of network links      */
-  Npipes,                /* Number of pipes              */
-  Npumps,                /* Number of pumps              */
-  Nvalves,               /* Number of valves             */
-  Ncontrols,             /* Number of simple controls    */
-  Nrules,                /* Number of control rules      */
-  Npats,                 /* Number of time patterns      */
-  Ncurves,               /* Number of data curves        */
-  Ncoords;               /* Number of node coordinates   */
+
+  char
+    Qualflag,        // Water quality flag
+    OpenQflag,       // Quality system opened flag
+    Reactflag,       // Reaction indicator 
+    OutOfMemory;     // Out of memory indicator
+
+  char
+    ChemName[MAXID + 1],    // Name of chemical
+    ChemUnits[MAXID + 1];   // Units of chemical
+
+  int
+    TraceNode,       // Source node for flow tracing
+    *SortedNodes,    // Topologically sorted node indexes
+    *Ilist,          // Link incidence lists for all nodes
+    *IlistPtr;       // Start index of each node in Ilist
+
+  double
+    Ctol,            // Water quality tolerance
+    Diffus,          // Diffusivity (sq ft/sec)
+    Wbulk,           // Avg. bulk reaction rate
+    Wwall,           // Avg. wall reaction rate
+    Wtank,           // Avg. tank reaction rate
+    Wsource,         // Avg. mass inflow
+    Rfactor,         // Roughness-reaction factor
+    Sc,              // Schmidt Number
+    Bucf,            // Bulk reaction units conversion factor
+    Tucf,            // Tank reaction units conversion factor
+    BulkOrder,       // Bulk flow reaction order
+    WallOrder,       // Pipe wall reaction order     
+    TankOrder,       // Tank reaction order          
+    Kbulk,           // Global bulk reaction coeff.  
+    Kwall,           // Global wall reaction coeff.  
+    Climit,          // Limiting potential quality
+    SourceQual,      // External source quality
+    *NodeQual,       // Reported node quality state
+    *PipeRateCoeff;  // Pipe reaction rate coeffs.
+
+  long
+    Qstep,           // Quality time step (sec)
+    Qtime;           // Current quality time (sec)
+
+  struct Mempool
+    *SegPool;        // Memory pool for water quality segments   
+
+  Pseg
+    FreeSeg,         // Pointer to unused segment
+    *FirstSeg,       // First (downstream) segment in each pipe
+    *LastSeg;        // Last (upstream) segment in each pipe
+
+  FlowDirection
+    *FlowDir;        // Flow direction for each pipe
+
+  MassBalance
+    massbalance;     // Mass balance components
+
+} quality_t;
+
+// Pipe Network Wrapper
+typedef struct {
+
+  int
+    Nnodes,            /* Number of network nodes      */
+    Ntanks,            /* Number of tanks              */
+    Njuncs,            /* Number of junction nodes     */
+    Nlinks,            /* Number of network links      */
+    Npipes,            /* Number of pipes              */
+    Npumps,            /* Number of pumps              */
+    Nvalves,           /* Number of valves             */
+    Ncontrols,         /* Number of simple controls    */
+    Nrules,            /* Number of control rules      */
+    Npats,             /* Number of time patterns      */
+    Ncurves;           /* Number of data curves        */
   
   Snode    *Node;        /* Node array                   */
   Slink    *Link;        /* Link array                   */
@@ -888,47 +857,44 @@ typedef struct {
   Svalve   *Valve;       /* Valve array                  */
   Spattern *Pattern;     /* Time pattern array           */
   Scurve   *Curve;       /* Data curve array             */
-  Scoord   *Coord;       /* Node coordinate array        */
   Scontrol *Control;     /* Simple controls array        */
   Srule    *Rule;        /* Rule-based controls array    */
   HashTable
-  *NodeHashTable,
-  *LinkHashTable;        /* Hash tables for ID labels    */
+    *NodeHashTable,
+    *LinkHashTable;      /* Hash tables for ID labels    */
   Padjlist *Adjlist;     /* Node adjacency lists         */
-  
-} EN_Network;
 
+} network_t;
 
-/* project wrapper */
-typedef struct EN_Project {
-  
-  EN_Network network; /// the network description struct
-  hydraulics_t hydraulics;
-  rules_t rules;
-  quality_t quality;
-  time_options_t time_options;
-  
-  parser_data_t parser;
+/* Overall Project Wrapper */
+typedef struct Project {
+
+  parser_data_t    parser;
+  time_options_t   time_options;
   report_options_t report;
-  out_file_t out_files;
-  save_options_t save_options;
+  out_file_t       out_files;
+  save_options_t   save_options;
+  rules_t          rules;
+  hydraulics_t     hydraulics;
+  quality_t        quality;
+  network_t        network;
   
-  double Ucf[MAXVAR];          // Unit conversion factors
+  double
+    Ucf[MAXVAR];                 // Unit conversion factors
   
   char
-  Openflag,                    // Toolkit open flag
-  Warnflag,                    // Warning flag
-  Msg[MAXMSG+1],               // General-purpose string: errors, messages
-  Title[MAXTITLE][TITLELEN+1], // Project title
-  MapFname[MAXFNAME+1],        // Map file name
-  TmpHydFname[MAXFNAME+1],     // Temporary hydraulics file name
-  TmpOutFname[MAXFNAME+1],     // Temporary output file name
-  TmpStatFname[MAXFNAME+1];    // Temporary statistic file name
+    Openflag,                    // Toolkit open flag
+    Warnflag,                    // Warning flag
+    Msg[MAXMSG+1],               // General-purpose string: errors, messages
+    Title[MAXTITLE][TITLELEN+1], // Project title
+    MapFname[MAXFNAME+1],        // Map file name
+    TmpHydFname[MAXFNAME+1],     // Temporary hydraulics file name
+    TmpOutFname[MAXFNAME+1],     // Temporary output file name
+    TmpStatFname[MAXFNAME+1];    // Temporary statistic file name
   
-  error_handle_t* error_handle; // Simple error manager
-
-  void (* viewprog) (char *);   // Pointer to progress viewing function   
+  error_handle_t* error_handle;  // Simple error manager
+  void (* viewprog) (char *);    // Pointer to progress viewing function   
   
-} EN_Project;
+} Project, *EN_Project;
 
 #endif

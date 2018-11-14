@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_SUITE (test_toolkit)
 BOOST_AUTO_TEST_CASE (test_alloc_free)
 {
     int error = 0;
-    EN_ProjectHandle ph = NULL;
+    EN_Project ph = NULL;
 
     error = EN_createproject(&ph);
 
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE (test_alloc_free)
 
 BOOST_AUTO_TEST_CASE (test_open_close)
 {
-    EN_ProjectHandle ph = NULL;
+    EN_Project ph = NULL;
     EN_createproject(&ph);
 
     std::string path_inp = std::string(DATA_PATH_INP);
@@ -93,7 +93,7 @@ struct Fixture{
   std::string path_out;
 
   int error;
-  EN_ProjectHandle ph;
+  EN_Project ph;
 
 };
 

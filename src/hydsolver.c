@@ -1,13 +1,15 @@
 /*
-*********************************************************************
-
-HYDSOLVER.C --  Equilibrium hydraulic solver for the EPANET Program
-
-This module contains a pipe network hydraulic solver that computes
-flows and pressures within the network at a specific point in time.
-
-The solver implements Todini's Global Gradient Algorithm.
-*******************************************************************
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       hydsolver.c
+ Description:  computes flows and pressures throughout a pipe network using
+               Todini's Global Gradient Algorithm
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/10/2018
+ ******************************************************************************
 */
 
 #include <stdio.h>
@@ -34,31 +36,31 @@ typedef struct {
 } Hydbalance;
 
 // External functions
-//int   hydsolve(EN_Project *pr, int *iter, double *relerr);
-//void  headlosscoeffs(EN_Project *pr);
-//void  matrixcoeffs(EN_Project *pr);
+//int   hydsolve(EN_Project pr, int *iter, double *relerr);
+//void  headlosscoeffs(EN_Project pr);
+//void  matrixcoeffs(EN_Project pr);
 
-extern int  valvestatus(EN_Project *pr);    //(see HYDSTATUS.C)
-extern int  linkstatus(EN_Project *pr);     //(see HYDSTATUS.C)
+extern int  valvestatus(EN_Project pr);    //(see HYDSTATUS.C)
+extern int  linkstatus(EN_Project pr);     //(see HYDSTATUS.C)
 
 // Local functions
-static int      badvalve(EN_Project *pr, int);
-static int      pswitch(EN_Project *pr);
+static int      badvalve(EN_Project pr, int);
+static int      pswitch(EN_Project pr);
 
-static double   newflows(EN_Project *pr, Hydbalance *hbal);
-static void     newlinkflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
+static double   newflows(EN_Project pr, Hydbalance *hbal);
+static void     newlinkflows(EN_Project pr, Hydbalance *hbal, double *qsum,
                 double *dqsum);
-static void     newemitterflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
+static void     newemitterflows(EN_Project pr, Hydbalance *hbal, double *qsum,
                 double *dqsum);
-static void     newdemandflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
+static void     newdemandflows(EN_Project pr, Hydbalance *hbal, double *qsum,
                 double *dqsum);
 
-static void     checkhydbalance(EN_Project *pr, Hydbalance *hbal);
-static int      hasconverged(EN_Project *pr, double *relerr, Hydbalance *hbal);
-static void     reporthydbal(EN_Project *pr, Hydbalance *hbal);
+static void     checkhydbalance(EN_Project pr, Hydbalance *hbal);
+static int      hasconverged(EN_Project pr, double *relerr, Hydbalance *hbal);
+static void     reporthydbal(EN_Project pr, Hydbalance *hbal);
 
 
-int  hydsolve(EN_Project *pr, int *iter, double *relerr)
+int  hydsolve(EN_Project pr, int *iter, double *relerr)
 /*
 **-------------------------------------------------------------------
 **  Input:   none
@@ -68,11 +70,8 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
 **  Purpose: solves network nodal equations for heads and flows
 **           using Todini's Gradient algorithm
 **
-*** Updated 9/7/00 ***
-*** Updated 2.00.11 ***
-*** Updated 2.00.12 ***
 **  Notes:   Status checks on CVs, pumps and pipes to tanks are made
-**           every hyd->CheckFreq iteration, up until MaxCheck iterations
+**           every CheckFreq iteration, up until MaxCheck iterations
 **           are reached. Status checks on control valves are made
 **           every iteration if DampLimit = 0 or only when the
 **           convergence error is at or below DampLimit. If DampLimit
@@ -96,7 +95,7 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
     int    statChange;            // Non-valve status change flag
     Hydbalance hydbal;            // Hydraulic balance errors
 
-    EN_Network       *net = &pr->network;
+    network_t        *net = &pr->network;
     hydraulics_t     *hyd = &pr->hydraulics;
     solver_t         *sol = &hyd->solver;
     report_options_t *rep = &pr->report;
@@ -119,12 +118,12 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
     *iter = 1;
     while (*iter <= maxtrials)
     {
-        /*
-        ** Compute coefficient matrices A & F and solve A*H = F
-        ** where H = heads, A = Jacobian coeffs. derived from
-        ** head loss gradients, & F = flow correction terms.
-        ** Solution for H is returned in F from call to linsolve().
-        */
+        //
+        // Compute coefficient matrices A & F and solve A*H = F
+        // where H = heads, A = Jacobian coeffs. derived from
+        // head loss gradients, & F = flow correction terms.
+        // Solution for H is returned in F from call to linsolve().
+        //
         headlosscoeffs(pr);
         matrixcoeffs(pr);
         errcode = linsolve(pr, net->Njuncs);
@@ -222,7 +221,7 @@ int  hydsolve(EN_Project *pr, int *iter, double *relerr)
 }
 
 
-int  badvalve(EN_Project *pr, int n)
+int  badvalve(EN_Project pr, int n)
 /*
 **-----------------------------------------------------------------
 **  Input:   n = node index
@@ -237,7 +236,7 @@ int  badvalve(EN_Project *pr, int n)
 {
     int i, k, n1, n2;
 
-    EN_Network       *net  = &pr->network;
+    network_t        *net  = &pr->network;
     hydraulics_t     *hyd  = &pr->hydraulics;
     report_options_t *rep  = &pr->report;
     time_options_t   *time = &pr->time_options;
@@ -259,7 +258,8 @@ int  badvalve(EN_Project *pr, int n)
                 {
                     if (rep->Statflag == FULL)
                     {
-                        sprintf(pr->Msg, FMT61, clocktime(rep->Atime, time->Htime), link->ID);
+                        sprintf(pr->Msg, FMT61,
+                                clocktime(rep->Atime, time->Htime), link->ID);
                         writeline(pr, pr->Msg);
                     }
                     if (link->Type == FCV)
@@ -280,7 +280,7 @@ int  badvalve(EN_Project *pr, int n)
 }
 
 
-int  pswitch(EN_Project *pr)
+int  pswitch(EN_Project pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -298,7 +298,7 @@ int  pswitch(EN_Project *pr)
           anychange = 0;     // Flag for 1 or more control actions
     char  s;                 // Current link status
 
-    EN_Network       *net = &pr->network;
+    network_t        *net = &pr->network;
     hydraulics_t     *hyd = &pr->hydraulics;
     report_options_t *rep = &pr->report;
     Slink *link;
@@ -366,11 +366,11 @@ int  pswitch(EN_Project *pr)
             }
         }
     }
-    return(anychange);
+    return anychange;
 }
 
 
-double newflows(EN_Project *pr, Hydbalance *hbal)
+double newflows(EN_Project pr, Hydbalance *hbal)
 /*
 **----------------------------------------------------------------
 **  Input:   hbal = ptr. to hydraulic balance information
@@ -383,7 +383,7 @@ double newflows(EN_Project *pr, Hydbalance *hbal)
     double  dqsum,                 // Network flow change
             qsum;                  // Network total flow
 
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
 
     // Initialize sum of flows & corrections
@@ -404,7 +404,7 @@ double newflows(EN_Project *pr, Hydbalance *hbal)
 }
 
 
-void  newlinkflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
+void  newlinkflows(EN_Project pr, Hydbalance *hbal, double *qsum, double *dqsum)
 /*
 **----------------------------------------------------------------
 **  Input:   hbal = ptr. to hydraulic balance information
@@ -419,7 +419,7 @@ void  newlinkflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsum
             dq;                    /* Link flow change     */
     int     k, n, n1, n2;
 
-    EN_Network   *net = &pr->network;
+    network_t   *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
     Slink *link;
@@ -483,7 +483,7 @@ void  newlinkflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsum
 }
 
 
-void newemitterflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
+void newemitterflows(EN_Project pr, Hydbalance *hbal, double *qsum,
                      double *dqsum)
 /*
 **----------------------------------------------------------------
@@ -497,7 +497,7 @@ void newemitterflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
 {
     int     i;
     double  hloss, hgrad, dh, dq;
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
 
     // Examine each network junction
@@ -529,7 +529,7 @@ void newemitterflows(EN_Project *pr, Hydbalance *hbal, double *qsum,
 }
 
 
-void newdemandflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
+void newdemandflows(EN_Project pr, Hydbalance *hbal, double *qsum, double *dqsum)
 /*
 **----------------------------------------------------------------
 **  Input:   hbal = ptr. to hydraulic balance information
@@ -545,7 +545,7 @@ void newdemandflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsu
             dq,         // change in demand flow (cfs)
             n;          // exponent in head loss v. demand  function
     int     k;
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
 
     // Get demand function parameters
@@ -577,7 +577,7 @@ void newdemandflows(EN_Project *pr, Hydbalance *hbal, double *qsum, double *dqsu
 }
 
 
-void  checkhydbalance(EN_Project *pr, Hydbalance *hbal)
+void  checkhydbalance(EN_Project pr, Hydbalance *hbal)
 /*
 **--------------------------------------------------------------
 **   Input:   hbal = hydraulic balance errors
@@ -589,7 +589,7 @@ void  checkhydbalance(EN_Project *pr, Hydbalance *hbal)
     int k, n1, n2;
     double dh, headerror, headloss;
 
-    EN_Network   *net = &pr->network;
+    network_t    *net = &pr->network;
     hydraulics_t *hyd = &pr->hydraulics;
     solver_t     *sol = &hyd->solver;
     Slink *link;
@@ -615,7 +615,7 @@ void  checkhydbalance(EN_Project *pr, Hydbalance *hbal)
 }
 
 
-int  hasconverged(EN_Project *pr, double *relerr, Hydbalance *hbal)
+int  hasconverged(EN_Project pr, double *relerr, Hydbalance *hbal)
 /*
 **--------------------------------------------------------------
 **   Input:   relerr = current total relative flow change
@@ -642,7 +642,7 @@ int  hasconverged(EN_Project *pr, double *relerr, Hydbalance *hbal)
 }
 
 
-void  reporthydbal(EN_Project *pr, Hydbalance *hbal)
+void  reporthydbal(EN_Project pr, Hydbalance *hbal)
 /*
 **--------------------------------------------------------------
 **   Input:   hbal   = current hydraulic balance errors

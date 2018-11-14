@@ -1,20 +1,14 @@
-/*-----------------------------------------------------------------------------
- **   hash.c
- **
- **   Implementation of a simple Hash Table that uses a string as a key
- **   and an associated integer as data.
- **
- **   Written by L. Rossman
- **   Last Updated on 10/19/18
- **
- **   Interface Functions:
- **      hashtable_create  - creates a hash table
- **      hashtable_insert  - inserts a string & its data value into a table
- **      hashtable_find    - retrieves the data value associated with a string
- **      hashtable_findkey - retrieves the key associated with a data value
- **      hashtable_delete  - deletes an entry from a table
- **      hashtable_free    - frees a hash table
- **
+ /*
+  ******************************************************************************
+  Project:      OWA EPANET
+  Version:      2.2
+  Module:       hash.c
+  Description:  implementation of a simple hash table
+  Authors:      see AUTHORS
+  Copyright:    see AUTHORS
+  License:      see LICENSE
+  Last Updated: 11/10/2018
+ ******************************************************************************
  */
 
 #ifndef __APPLE__
@@ -27,6 +21,7 @@
 
 #define HASHTABLEMAXSIZE 128000
 
+// An entry in the hash table
 typedef struct DataEntryStruct
 {
     char   *key;
@@ -34,6 +29,7 @@ typedef struct DataEntryStruct
     struct DataEntryStruct *next;
 } DataEntry;
 
+// Hash a string to an integer
 unsigned int gethash(char *str)
 {
     unsigned int hash = 5381;
@@ -47,6 +43,7 @@ unsigned int gethash(char *str)
     return retHash;
 }
 
+// Produce a duplicate string
 char *dupstr(const char *s)
 {
     size_t size = strlen(s) + 1;
@@ -55,6 +52,7 @@ char *dupstr(const char *s)
     return p;
 }
 
+// Create a hash table
 HashTable *hashtable_create()
 {
     int i;
@@ -66,6 +64,7 @@ HashTable *hashtable_create()
     return ht;
 }
 
+// Insert an entry into the hash table
 int hashtable_insert(HashTable *ht, char *key, int data)
 {
     unsigned int i = gethash(key);
@@ -80,6 +79,7 @@ int hashtable_insert(HashTable *ht, char *key, int data)
     return 1;
 }
 
+// Change the hash table's data entry for a particular key
 int hashtable_update(HashTable *ht, char *key, int new_data)
 {
     unsigned int i = gethash(key);
@@ -99,6 +99,7 @@ int hashtable_update(HashTable *ht, char *key, int new_data)
     return NOTFOUND;
 }
 
+// Delete an entry in the hash table
 int hashtable_delete(HashTable *ht, char *key)
 {
     unsigned int i = gethash(key);
@@ -124,6 +125,7 @@ int hashtable_delete(HashTable *ht, char *key)
     return NOTFOUND;
 }
 
+// Find the data for a particular key
 int hashtable_find(HashTable *ht, char *key)
 {
     unsigned int i = gethash(key);
@@ -142,6 +144,7 @@ int hashtable_find(HashTable *ht, char *key)
     return NOTFOUND;
 }
 
+// Find a particular key in the hash table
 char *hashtable_findkey(HashTable *ht, char *key)
 {
     unsigned int i = gethash(key);
@@ -156,6 +159,7 @@ char *hashtable_findkey(HashTable *ht, char *key)
     return NULL;
 }
 
+// Delete a hash table and free all of its memory
 void hashtable_free(HashTable *ht)
 {
     DataEntry *entry, *nextentry;
