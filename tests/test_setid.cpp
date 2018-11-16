@@ -22,38 +22,37 @@ BOOST_AUTO_TEST_SUITE (test_toolkit)
 
 BOOST_AUTO_TEST_CASE(test_setid)
 {
+	string path_inp(DATA_PATH_INP);
+	string path_rpt(DATA_PATH_RPT);
+	string path_out(DATA_PATH_OUT);
+
     int error = 0;
     int index;
-    string newid;
 
     EN_ProjectHandle ph = NULL;
     EN_createproject(&ph);
-    
-    std::string path_inp = std::string(DATA_PATH_INP);
-    std::string path_rpt = std::string(DATA_PATH_RPT);
-    std::string path_out = std::string(DATA_PATH_OUT);
     
     error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
     BOOST_REQUIRE(error == 0);
 
     // Test of illegal node name change
-    newid = "Illegal; node name";
-    error = EN_setnodeid(ph, 3, (char *)newid.c_str());
+    char newid_1[] = "Illegal; node name";
+    error = EN_setnodeid(ph, 3, newid_1);
     BOOST_REQUIRE(error > 0);
 
     // Test of legal node name change
-    newid = "Node3";
-    error = EN_setnodeid(ph, 3, (char *)newid.c_str());
+    char newid_2[] = "Node3";
+    error = EN_setnodeid(ph, 3, newid_2);
     BOOST_REQUIRE(error == 0);
 
     // Test of illegal link name change
-    newid = "Illegal; link name";
-    error = EN_setlinkid(ph, 3, (char *)newid.c_str());
+    char newid_3[] = "Illegal; link name";
+    error = EN_setlinkid(ph, 3, newid_3);
     BOOST_REQUIRE(error > 0);
 
     // Test of legal link name change
-    newid = "Link3";
-    error = EN_setlinkid(ph, 3, (char *)newid.c_str());
+    char newid_4[] = "Link3";
+    error = EN_setlinkid(ph, 3, newid_4);
     BOOST_REQUIRE(error == 0);
 
     // Save the project
@@ -64,20 +63,21 @@ BOOST_AUTO_TEST_CASE(test_setid)
     BOOST_REQUIRE(error == 0);
     EN_deleteproject(&ph);
 
-    // Re-open the saved project
+    
+	// Re-open the saved project
     EN_createproject(&ph);
     error = EN_open(ph, "net1_setid.inp", path_rpt.c_str(), "");
     BOOST_REQUIRE(error == 0);
     
     // Check that 3rd node has its new name
-    error = EN_getnodeindex(ph, "Node3", &index);
+    error = EN_getnodeindex(ph, newid_2, &index);
     BOOST_REQUIRE(error == 0);
-    BOOST_REQUIRE(index == 3);
+    BOOST_CHECK(index == 3);
     
     // Check that 3rd link has its new name
-    error = EN_getlinkindex(ph, "Link3", &index);
+    error = EN_getlinkindex(ph, newid_4, &index);
     BOOST_REQUIRE(error == 0);
-    BOOST_REQUIRE(index == 3);
+    BOOST_CHECK(index == 3);
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
