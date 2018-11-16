@@ -9,9 +9,13 @@
 
 //#define BOOST_TEST_DYN_LINK
 
+#ifdef _WIN32
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#else
+#include <stdlib.h>
+#endif
 
 #define BOOST_TEST_MODULE "toolkit"
 #include <boost/test/included/unit_test.hpp>
