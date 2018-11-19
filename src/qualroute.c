@@ -5,9 +5,10 @@ QUALROUTE.C -- water quality routing module for the EPANET program
 
 *********************************************************************
 */
-
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
 #include "mempool.h"
 #include "types.h"
 
@@ -288,7 +289,7 @@ double  noflowqual(EN_Project *pr, int n)
         k = qual->Ilist[i];
         dir = qual->FlowDir[k];
 
-        // Node n is link's downstream node - add quality 
+        // Node n is link's downstream node - add quality
         // of link's first segment to average
         if (net->Link[k].N2 == n && dir >= 0) inflow = TRUE;
         else if (net->Link[k].N1 == n && dir < 0)  inflow = TRUE;
@@ -299,7 +300,7 @@ double  noflowqual(EN_Project *pr, int n)
             kount++;
         }
 
-        // Node n is link's upstream node - add quality 
+        // Node n is link's upstream node - add quality
         // of link's last segment to average
         else if (inflow == FALSE && qual->LastSeg[k] != NULL)
         {
