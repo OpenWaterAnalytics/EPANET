@@ -70,7 +70,7 @@ ENDIF (MSVC)
 
 # configure file groups
 file(GLOB EPANET_SOURCES src/*.c)
-file(GLOB EPANET_LIB_ALL src/*)
+file(GLOB EPANET_LIB_ALL src/*.c src/*.h)
 source_group("Library" FILES ${EPANET_LIB_ALL})
 
 
