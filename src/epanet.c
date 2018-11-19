@@ -100,7 +100,7 @@ execute function x and set the error code equal to its return value.
 *******************************************************************************
 */
 
-/*** Need to define WINDOWS to use the getTmpName function ***/ 
+/*** Need to define WINDOWS to use the getTmpName function ***/
 // --- define WINDOWS
 #undef WINDOWS
 #ifdef _WIN32
@@ -121,7 +121,7 @@ execute function x and set the error code equal to its return value.
 #ifndef __APPLE__
 #include <malloc.h>
 #endif
-#include <float.h> 
+#include <float.h>
 #include <math.h>
 
 #include "epanet2.h"
@@ -131,7 +131,7 @@ execute function x and set the error code equal to its return value.
 #include "enumstxt.h"
 
 // This single global variable is used only when the library is called
-// in "legacy mode" with the 2.1-style API. 
+// in "legacy mode" with the 2.1-style API.
 void *_defaultModel;
 
 
@@ -177,7 +177,7 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3,
     // Run the project and record any warning
     errcode = EN_runproject(_defaultModel, f1, f2, f3, pviewprog);
     if (errcode < 100) warncode = errcode;
-  
+
     // Must delete the project even if run had errors
     EN_deleteproject(&_defaultModel);
 
@@ -649,7 +649,6 @@ int DLLEXPORT EN_createproject(EN_ProjectHandle *ph)
   EN_Project *project = calloc(1, sizeof(EN_Project));
 
   if (project != NULL){
-      project->error_handle = new_errormanager(&errorLookup);
       *ph = project;
       getTmpName(project->TmpHydFname);
       getTmpName(project->TmpOutFname);
@@ -672,14 +671,13 @@ int DLLEXPORT EN_deleteproject(EN_ProjectHandle *ph)
         remove(p->TmpHydFname);
         remove(p->TmpOutFname);
         remove(p->TmpStatFname);
-        dst_errormanager(p->error_handle);
         free(p);
         *ph = NULL;
     }
     return 0;
 }
 
-int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2, 
+int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2,
   const char *f3, void (*pviewprog)(char *))
 {
     int errcode = 0;
@@ -688,16 +686,16 @@ int DLLEXPORT EN_runproject(EN_ProjectHandle ph, const char *f1, const char *f2,
     ERRCODE(EN_open(ph, f1, f2, f3));
     p = (EN_Project*)(ph);
     p->viewprog = pviewprog;
-  
+
     if (p->out_files.Hydflag != USE) {
       ERRCODE(EN_solveH(ph));
     }
-  
+
     ERRCODE(EN_solveQ(ph));
     ERRCODE(EN_report(ph));
-  
+
     EN_close(ph);
-    
+
     if (p->Warnflag) errcode = MAX(errcode, p->Warnflag);
     return errcode;
 }
@@ -733,12 +731,12 @@ int DLLEXPORT EN_init(EN_ProjectHandle ph, const char *f2, const char *f3,
 
     // Open files
     errcode = openfiles(pr, "", f2, f3);
-   
+
     // Initialize memory used for project's data objects
     initpointers(pr);
     ERRCODE(netsize(pr));
     ERRCODE(allocdata(pr));
-    if (errcode) return set_error(pr->error_handle, errcode);
+    if (errcode) return (errcode);
 
     // Set analysis options
     setdefaults(pr);
@@ -755,7 +753,7 @@ int DLLEXPORT EN_init(EN_ProjectHandle ph, const char *f2, const char *f3,
     // Initialize the default demand pattern
     pr->parser.MaxPats = 0;
     getpatterns(pr);
-    return set_error(pr->error_handle, errcode);
+    return errcode;
 }
 
 int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const char *f3)
@@ -799,7 +797,7 @@ int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const
   ERRCODE(openfiles(p, f1, f2, f3));
   if (errcode > 0) {
     errmsg(p, errcode);
-    return set_error(p->error_handle, errcode);
+    return errcode;
   }
   writelogo(p);
 
@@ -829,7 +827,7 @@ int DLLEXPORT EN_open(EN_ProjectHandle ph, const char *f1, const char *f2, const
     p->Openflag = TRUE;
   } else
     errmsg(p, errcode);
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, const char *filename)
@@ -842,8 +840,8 @@ int DLLEXPORT EN_saveinpfile(EN_ProjectHandle ph, const char *filename)
  */
 {
   EN_Project *p = (EN_Project*)ph;
-  if (!p->Openflag) return set_error(p->error_handle, 102);
-  return set_error(p->error_handle, saveinpfile(p, filename));
+  if (!p->Openflag) return (102);
+  return saveinpfile(p, filename);
 }
 
 int DLLEXPORT EN_close(EN_ProjectHandle ph)
@@ -861,7 +859,7 @@ int DLLEXPORT EN_close(EN_ProjectHandle ph)
     // Free all project data
     if (p->Openflag) writetime(p, FMT105);
     freedata(p);
-  
+
     // Close output file
     out = &p->out_files;
     if (out->TmpOutFile != out->OutFile)
@@ -902,7 +900,7 @@ int DLLEXPORT EN_close(EN_ProjectHandle ph)
     p->save_options.SaveHflag = FALSE;
     p->quality.OpenQflag = FALSE;
     p->save_options.SaveQflag = FALSE;
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 /*
@@ -952,7 +950,7 @@ int DLLEXPORT EN_solveH(EN_ProjectHandle ph)
   EN_closeH(ph);
   errcode = MAX(errcode, p->Warnflag);
 
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_saveH(EN_ProjectHandle ph)
@@ -974,7 +972,7 @@ int DLLEXPORT EN_saveH(EN_ProjectHandle ph)
 
   /* Check if hydraulic results exist */
   if (!p->save_options.SaveHflag)
-    return set_error(p->error_handle, 104);
+    return (104);
 
   /* Temporarily turn off WQ analysis */
   tmpflag = p->quality.Qualflag;
@@ -990,7 +988,7 @@ int DLLEXPORT EN_saveH(EN_ProjectHandle ph)
   if (errcode) {
     errmsg(p, errcode);
   }
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_openH(EN_ProjectHandle ph)
@@ -1010,12 +1008,12 @@ int DLLEXPORT EN_openH(EN_ProjectHandle ph)
   p->hydraulics.OpenHflag = FALSE;
   p->save_options.SaveHflag = FALSE;
   if (!p->Openflag) {
-    return set_error(p->error_handle, 102);
+    return (102);
   }
 
   /* Check that previously saved hydraulics file not in use */
   if (p->out_files.Hydflag == USE) {
-    return set_error(p->error_handle, 107);
+    return (107);
   }
 
   /* Open hydraulics solver */
@@ -1025,7 +1023,7 @@ int DLLEXPORT EN_openH(EN_ProjectHandle ph)
   else
     errmsg(p, errcode);
 
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 /*** Updated 3/1/01 ***/
@@ -1056,7 +1054,7 @@ int DLLEXPORT EN_initH(EN_ProjectHandle ph, int flag)
 
   /* Check that hydraulics solver was opened */
   if (!p->hydraulics.OpenHflag)
-    return set_error(p->error_handle, 103);
+    return (103);
 
   /* Open hydraulics file */
   p->save_options.Saveflag = FALSE;
@@ -1066,7 +1064,7 @@ int DLLEXPORT EN_initH(EN_ProjectHandle ph, int flag)
       p->save_options.Saveflag = TRUE;
     else {
       errmsg(p, errcode);
-      return set_error(p->error_handle, errcode);
+      return errcode;
       }
   }
 
@@ -1074,7 +1072,7 @@ int DLLEXPORT EN_initH(EN_ProjectHandle ph, int flag)
   inithyd(p, fflag);
   if (p->report.Statflag > 0)
     writeheader(p, STATHDR, 0);
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_runH(EN_ProjectHandle ph, long *t) {
@@ -1084,11 +1082,11 @@ int DLLEXPORT EN_runH(EN_ProjectHandle ph, long *t) {
 
   *t = 0;
   if (!p->hydraulics.OpenHflag)
-    return set_error(p->error_handle, 103);
+    return (103);
   errcode = runhyd(p, t);
   if (errcode)
     errmsg(p, errcode);
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_nextH(EN_ProjectHandle ph, long *tstep) {
@@ -1098,13 +1096,13 @@ int DLLEXPORT EN_nextH(EN_ProjectHandle ph, long *tstep) {
 
   *tstep = 0;
   if (!p->hydraulics.OpenHflag)
-    return set_error(p->error_handle, 103);
+    return (103);
   errcode = nexthyd(p, tstep);
   if (errcode)
     errmsg(p, errcode);
   else if (p->save_options.Saveflag && *tstep == 0)
     p->save_options.SaveHflag = TRUE;
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_closeH(EN_ProjectHandle ph)
@@ -1112,29 +1110,29 @@ int DLLEXPORT EN_closeH(EN_ProjectHandle ph)
   EN_Project *p = (EN_Project*)ph;
 
   if (!p->Openflag) {
-    return set_error(p->error_handle, 102);
+    return (102);
   }
   if (p->hydraulics.OpenHflag) {
     closehyd(p);
   }
   p->hydraulics.OpenHflag = FALSE;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_savehydfile(EN_ProjectHandle ph, char *filename) {
   FILE *f;
   int c;
   FILE *HydFile;
-  
+
   EN_Project *p = (EN_Project*)ph;
 
   /* Check that hydraulics results exist */
   if (p->out_files.HydFile == NULL || !p->save_options.SaveHflag)
-    return set_error(p->error_handle, 104);
+    return (104);
 
   /* Open file */
   if ((f = fopen(filename, "w+b")) == NULL)
-    return set_error(p->error_handle, 305);
+    return (305);
 
   /* Copy from HydFile to f */
   HydFile = p->out_files.HydFile;
@@ -1143,7 +1141,7 @@ int DLLEXPORT EN_savehydfile(EN_ProjectHandle ph, char *filename) {
     fputc(c, f);
   }
   fclose(f);
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_usehydfile(EN_ProjectHandle ph, char *filename) {
@@ -1153,9 +1151,9 @@ int DLLEXPORT EN_usehydfile(EN_ProjectHandle ph, char *filename) {
 
   /* Check that input data exists & hydraulics system closed */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (p->hydraulics.OpenHflag)
-    return set_error(p->error_handle, 108);
+    return (108);
 
   /* Try to open hydraulics file */
   strncpy(p->out_files.HydFname, filename, MAXFNAME);
@@ -1169,7 +1167,7 @@ int DLLEXPORT EN_usehydfile(EN_ProjectHandle ph, char *filename) {
     p->out_files.Hydflag = SCRATCH;
     p->save_options.SaveHflag = FALSE;
   }
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 /*
@@ -1212,7 +1210,7 @@ int DLLEXPORT EN_solveQ(EN_ProjectHandle ph) {
 
   /* Close WQ solver */
   EN_closeQ(ph);
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_openQ(EN_ProjectHandle ph) {
@@ -1224,7 +1222,7 @@ int DLLEXPORT EN_openQ(EN_ProjectHandle ph) {
   p->quality.OpenQflag = FALSE;
   p->save_options.SaveQflag = FALSE;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   // !LT! todo - check for p->save_options.SaveHflag / set sequential/step mode
   // if (!p->save_options.SaveHflag) return(104);
 
@@ -1234,7 +1232,7 @@ int DLLEXPORT EN_openQ(EN_ProjectHandle ph) {
     p->quality.OpenQflag = TRUE;
   else
     errmsg(p, errcode);
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_initQ(EN_ProjectHandle ph, int saveflag) {
@@ -1243,7 +1241,7 @@ int DLLEXPORT EN_initQ(EN_ProjectHandle ph, int saveflag) {
   EN_Project *p = (EN_Project*)ph;
 
   if (!p->quality.OpenQflag)
-    return set_error(p->error_handle, 105);
+    return (105);
   initqual(p);
   p->save_options.SaveQflag = FALSE;
   p->save_options.Saveflag = FALSE;
@@ -1252,7 +1250,7 @@ int DLLEXPORT EN_initQ(EN_ProjectHandle ph, int saveflag) {
     if (!errcode)
       p->save_options.Saveflag = TRUE;
   }
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_runQ(EN_ProjectHandle ph, long *t) {
@@ -1262,11 +1260,11 @@ int DLLEXPORT EN_runQ(EN_ProjectHandle ph, long *t) {
 
   *t = 0;
   if (!p->quality.OpenQflag)
-    return set_error(p->error_handle, 105);
+    return (105);
   errcode = runqual(p, t);
   if (errcode)
     errmsg(p, errcode);
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_nextQ(EN_ProjectHandle ph, long *tstep) {
@@ -1276,14 +1274,14 @@ int DLLEXPORT EN_nextQ(EN_ProjectHandle ph, long *tstep) {
 
   *tstep = 0;
   if (!p->quality.OpenQflag)
-    return set_error(p->error_handle, 105);
+    return (105);
   errcode = nextqual(p, tstep);
   if (!errcode && p->save_options.Saveflag && *tstep == 0) {
     p->save_options.SaveQflag = TRUE;
   }
   if (errcode)
     errmsg(p, errcode);
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_stepQ(EN_ProjectHandle ph, long *tleft) {
@@ -1293,14 +1291,14 @@ int DLLEXPORT EN_stepQ(EN_ProjectHandle ph, long *tleft) {
 
   *tleft = 0;
   if (!p->quality.OpenQflag)
-    return set_error(p->error_handle, 105);
+    return (105);
   errcode = stepqual(p, tleft);
   if (!errcode && p->save_options.Saveflag && *tleft == 0) {
     p->save_options.SaveQflag = TRUE;
   }
   if (errcode)
     errmsg(p, errcode);
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_closeQ(EN_ProjectHandle ph) {
@@ -1308,10 +1306,10 @@ int DLLEXPORT EN_closeQ(EN_ProjectHandle ph) {
   EN_Project *p = (EN_Project*)ph;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   closequal(p);
   p->quality.OpenQflag = FALSE;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 /*
@@ -1325,9 +1323,9 @@ int DLLEXPORT EN_writeline(EN_ProjectHandle ph, char *line) {
   EN_Project *p = (EN_Project*)ph;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   writeline(p, line);
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_report(EN_ProjectHandle ph) {
@@ -1337,12 +1335,12 @@ int DLLEXPORT EN_report(EN_ProjectHandle ph) {
 
   /* Check if results saved to binary output file */
   if (!p->save_options.SaveQflag)
-    return set_error(p->error_handle, 106);
+    return (106);
   writewin(p->viewprog, FMT103);
   errcode = writereport(p);
   if (errcode)
     errmsg(p, errcode);
-  return set_error(p->error_handle, errcode);
+  return errcode;
 }
 
 int DLLEXPORT EN_resetreport(EN_ProjectHandle ph) {
@@ -1351,13 +1349,13 @@ int DLLEXPORT EN_resetreport(EN_ProjectHandle ph) {
   EN_Project *p = (EN_Project*)ph;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   initreport(&p->report);
   for (i = 1; i <= p->network.Nnodes; i++)
     p->network.Node[i].Rpt = 0;
   for (i = 1; i <= p->network.Nlinks; i++)
     p->network.Link[i].Rpt = 0;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setreport(EN_ProjectHandle ph, char *s) {
@@ -1366,15 +1364,15 @@ int DLLEXPORT EN_setreport(EN_ProjectHandle ph, char *s) {
   EN_Project *p = (EN_Project*)ph;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (strlen(s) >= MAXLINE)
-    return set_error(p->error_handle, 250);
+    return (250);
   strcpy(s1, s);
   strcat(s1, "\n");
   if (setreport(p, s1) > 0)
-    return set_error(p->error_handle, 250);
+    return (250);
   else
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 /*
@@ -1415,16 +1413,16 @@ int DLLEXPORT EN_getcontrol(EN_ProjectHandle ph, int cindex, int *ctype, int *li
 
   const int Njuncs = net->Njuncs;
   double *Ucf = pr->Ucf;
-  
+
   s = 0.0;
   lvl = 0.0;
   *ctype = 0;
   *lindex = 0;
   *nindex = 0;
   if (!pr->Openflag)
-    return set_error(pr->error_handle, 102);
+    return (102);
   if (cindex < 1 || cindex > net->Ncontrols)
-    return set_error(pr->error_handle, 241);
+    return (241);
   *ctype = Control[cindex].Type;
   *lindex = Control[cindex].Link;
   s = Control[cindex].Setting;
@@ -1457,7 +1455,7 @@ int DLLEXPORT EN_getcontrol(EN_ProjectHandle ph, int cindex, int *ctype, int *li
     lvl = (EN_API_FLOAT_TYPE)Control[cindex].Time;
   *setting = (EN_API_FLOAT_TYPE)s;
   *level = (EN_API_FLOAT_TYPE)lvl;
-  return set_error(pr->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getcount(EN_ProjectHandle ph, EN_CountType code, int *count) {
@@ -1468,7 +1466,7 @@ int DLLEXPORT EN_getcount(EN_ProjectHandle ph, EN_CountType code, int *count) {
 
   *count = 0;
   if (!pr->Openflag)
-    return set_error(pr->error_handle, 102);
+    return (102);
   switch (code) {
   case EN_NODECOUNT:
     *count = net->Nnodes;
@@ -1492,9 +1490,9 @@ int DLLEXPORT EN_getcount(EN_ProjectHandle ph, EN_CountType code, int *count) {
     *count = net->Nrules;
     break;
   default:
-    return set_error(pr->error_handle, 251);
+    return (251);
   }
-  return set_error(pr->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getoption(EN_ProjectHandle ph, EN_Option code,
@@ -1509,7 +1507,7 @@ int DLLEXPORT EN_getoption(EN_ProjectHandle ph, EN_Option code,
   double v = 0.0;
   *value = 0.0;
   if (!pr->Openflag)
-    return set_error(pr->error_handle, 102);
+    return (102);
   switch (code) {
   case EN_TRIALS:
     v = (double)hyd->MaxIter;
@@ -1539,12 +1537,12 @@ int DLLEXPORT EN_getoption(EN_ProjectHandle ph, EN_Option code,
   case EN_HEADLOSSFORM:
     v = hyd->Formflag;
     break;
-	
+
   default:
-    return set_error(pr->error_handle, 251);
+    return (251);
   }
   *value = (EN_API_FLOAT_TYPE)v;
-  return set_error(pr->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_gettimeparam(EN_ProjectHandle ph, int code, long *value) {
@@ -1559,9 +1557,9 @@ int DLLEXPORT EN_gettimeparam(EN_ProjectHandle ph, int code, long *value) {
 
   *value = 0;
   if (!pr->Openflag)
-    return set_error(pr->error_handle, 102);
+    return (102);
   if (code < EN_DURATION || code > EN_NEXTEVENTIDX)
-    return set_error(pr->error_handle, 251);
+    return (251);
   switch (code) {
   case EN_DURATION:
     *value = time->Dur;
@@ -1610,7 +1608,7 @@ int DLLEXPORT EN_gettimeparam(EN_ProjectHandle ph, int code, long *value) {
       *value = i;
       break;
   }
-  return set_error(pr->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getflowunits(EN_ProjectHandle ph, int *code) {
@@ -1619,9 +1617,9 @@ int DLLEXPORT EN_getflowunits(EN_ProjectHandle ph, int *code) {
 
   *code = -1;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   *code = p->parser.Flowflag;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setflowunits(EN_ProjectHandle ph, int code) {
@@ -1632,17 +1630,17 @@ int DLLEXPORT EN_setflowunits(EN_ProjectHandle ph, int code) {
 
   double *Ucf = p->Ucf;
   EN_Network *net = &p->network;
-  
-  if (!p->Openflag) { 
-    return set_error(p->error_handle, 102);
+
+  if (!p->Openflag) {
+    return (102);
   }
-  
+
   /* Determine unit system based on flow units */
   qfactor = Ucf[FLOW];
   vfactor = Ucf[VOLUME];
   hfactor = Ucf[HEAD];
   efactor = Ucf[ELEV];
-  
+
   p->parser.Flowflag = code;
   switch (code)
   {
@@ -1657,17 +1655,17 @@ int DLLEXPORT EN_setflowunits(EN_ProjectHandle ph, int code) {
       p->parser.Unitsflag = US;
       break;
   }
-  
+
   /* Revise pressure units depending on flow units */
-  if (p->parser.Unitsflag != SI) { 
+  if (p->parser.Unitsflag != SI) {
     p->parser.Pressflag = PSI;
   }
-  else if (p->parser.Pressflag == PSI) { 
+  else if (p->parser.Pressflag == PSI) {
     p->parser.Pressflag = METERS;
   }
-  
+
   initunits(p);
-  
+
   //update curves
   for (i=1; i <= net->Ncurves; i++)
   {
@@ -1690,15 +1688,15 @@ int DLLEXPORT EN_setflowunits(EN_ProjectHandle ph, int code) {
         xfactor = 1;
         yfactor = 1;
     }
-    
+
     for (j=0; j < net->Curve[i].Npts; j++)
     {
       net->Curve[i].X[j] = net->Curve[i].X[j]/xfactor;
       net->Curve[i].Y[j] = net->Curve[i].Y[j]/yfactor;
     }
   }
-  
-  return set_error(p->error_handle, 0);
+
+  return (0);
 }
 
 int DLLEXPORT EN_getdemandmodel(EN_ProjectHandle ph, int *type, EN_API_FLOAT_TYPE *pmin,
@@ -1711,7 +1709,7 @@ int DLLEXPORT EN_getdemandmodel(EN_ProjectHandle ph, int *type, EN_API_FLOAT_TYP
     *preq = (EN_API_FLOAT_TYPE)(p->hydraulics.Preq * p->Ucf[PRESSURE]);
     *pexp = (EN_API_FLOAT_TYPE)(p->hydraulics.Pexp);
 
-	return set_error(p->error_handle, 0);
+	return (0);
 }
 
 int DLLEXPORT EN_setdemandmodel(EN_ProjectHandle ph, int type, EN_API_FLOAT_TYPE pmin,
@@ -1719,14 +1717,14 @@ int DLLEXPORT EN_setdemandmodel(EN_ProjectHandle ph, int type, EN_API_FLOAT_TYPE
 {
     EN_Project *p = (EN_Project*)ph;
 
-    if (type < 0 || type > EN_PDA) return set_error(p->error_handle, 251);
-    if (pmin > preq || pexp <= 0.0) return set_error(p->error_handle, 202);
+    if (type < 0 || type > EN_PDA) return (251);
+    if (pmin > preq || pexp <= 0.0) return (202);
     p->hydraulics.DemandModel = type;
     p->hydraulics.Pmin = pmin / p->Ucf[PRESSURE];
     p->hydraulics.Preq = preq / p->Ucf[PRESSURE];
     p->hydraulics.Pexp = pexp;
 
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 
@@ -1737,15 +1735,15 @@ int DLLEXPORT EN_getpatternindex(EN_ProjectHandle ph, char *id, int *index) {
 
   *index = 0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   for (i = 1; i <= p->network.Npats; i++) {
     if (strcmp(id, p->network.Pattern[i].ID) == 0) {
       *index = i;
-      return set_error(p->error_handle, 0);
+      return (0);
     }
   }
   *index = 0;
-  return set_error(p->error_handle, 205);
+  return (205);
 }
 
 int DLLEXPORT EN_getpatternid(EN_ProjectHandle ph, int index, char *id) {
@@ -1754,11 +1752,11 @@ int DLLEXPORT EN_getpatternid(EN_ProjectHandle ph, int index, char *id) {
 
   strcpy(id, "");
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Npats)
-    return set_error(p->error_handle, 205);
+    return (205);
   strcpy(id, p->network.Pattern[index].ID);
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getpatternlen(EN_ProjectHandle ph, int index, int *len) {
@@ -1766,11 +1764,11 @@ int DLLEXPORT EN_getpatternlen(EN_ProjectHandle ph, int index, int *len) {
   EN_Project *p = (EN_Project*)ph;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Npats)
-    return set_error(p->error_handle, 205);
+    return (205);
   *len = p->network.Pattern[index].Length;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getpatternvalue(EN_ProjectHandle ph, int index, int period,
@@ -1780,13 +1778,13 @@ int DLLEXPORT EN_getpatternvalue(EN_ProjectHandle ph, int index, int period,
 
   *value = 0.0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Npats)
-    return set_error(p->error_handle, 205);
+    return (205);
   if (period < 1 || period > p->network.Pattern[index].Length)
-    return set_error(p->error_handle, 251);
+    return (251);
   *value = (EN_API_FLOAT_TYPE)p->network.Pattern[index].F[period - 1];
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getcurveindex(EN_ProjectHandle ph, char *id, int *index) {
@@ -1796,15 +1794,15 @@ int DLLEXPORT EN_getcurveindex(EN_ProjectHandle ph, char *id, int *index) {
 
   *index = 0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   for (i = 1; i <= p->network.Ncurves; i++) {
     if (strcmp(id, p->network.Curve[i].ID) == 0) {
       *index = i;
-      return set_error(p->error_handle, 0);
+      return (0);
     }
   }
   *index = 0;
-  return set_error(p->error_handle, 206);
+  return (206);
 }
 
 int DLLEXPORT EN_getcurveid(EN_ProjectHandle ph, int index, char *id) {
@@ -1813,11 +1811,11 @@ int DLLEXPORT EN_getcurveid(EN_ProjectHandle ph, int index, char *id) {
 
   strcpy(id, "");
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Ncurves)
-    return set_error(p->error_handle, 206);
+    return (206);
   strcpy(id, p->network.Curve[index].ID);
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getcurvelen(EN_ProjectHandle ph, int index, int *len) {
@@ -1825,11 +1823,11 @@ int DLLEXPORT EN_getcurvelen(EN_ProjectHandle ph, int index, int *len) {
   EN_Project *p = (EN_Project*)ph;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Ncurves)
-    return set_error(p->error_handle, 206);
+    return (206);
   *len = p->network.Curve[index].Npts;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getcurvevalue(EN_ProjectHandle ph, int index, int pnt,
@@ -1840,14 +1838,14 @@ int DLLEXPORT EN_getcurvevalue(EN_ProjectHandle ph, int index, int pnt,
   *x = 0.0;
   *y = 0.0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Ncurves)
-    return set_error(p->error_handle, 206);
+    return (206);
   if (pnt < 1 || pnt > p->network.Curve[index].Npts)
-    return set_error(p->error_handle, 251);
+    return (251);
   *x = (EN_API_FLOAT_TYPE)p->network.Curve[index].X[pnt - 1];
   *y = (EN_API_FLOAT_TYPE)p->network.Curve[index].Y[pnt - 1];
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getqualtype(EN_ProjectHandle ph, int *qualcode, int *tracenode) {
@@ -1856,11 +1854,11 @@ int DLLEXPORT EN_getqualtype(EN_ProjectHandle ph, int *qualcode, int *tracenode)
 
   *tracenode = 0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   *qualcode = p->quality.Qualflag;
   if (p->quality.Qualflag == TRACE)
     *tracenode = p->quality.TraceNode;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 
@@ -1878,7 +1876,7 @@ int DLLEXPORT EN_getqualinfo(EN_ProjectHandle ph, int *qualcode, char *chemname,
     strncpy(chemname, p->quality.ChemName, MAXID);
     strncpy(chemunits, p->quality.ChemUnits, MAXID);
   }
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 void errorLookup(int errcode, char *dest_msg, int dest_len)
@@ -1906,42 +1904,10 @@ void errorLookup(int errcode, char *dest_msg, int dest_len)
     strncpy(dest_msg, msg, MAXMSG);
 }
 
-void DLLEXPORT EN_clearError(EN_ProjectHandle ph)
-{
-    EN_Project *p = (EN_Project*)ph;
-
-    clear_error(p->error_handle);
-}
-
-int DLLEXPORT EN_checkError(EN_ProjectHandle ph, char** msg_buffer)
-//
-// Purpose: Returns the error message or NULL.
-//
-// Note: Caller must free memory allocated by EN_check_error
-//
-{
-    int errorcode = 0;
-    char *temp = NULL;
-    EN_Project *p = (EN_Project*)ph;
-
-
-    if (p == NULL) return -1;
-    else
-    {
-        errorcode = p->error_handle->error_status;
-        if (errorcode)
-            temp = check_error(p->error_handle);
-
-        *msg_buffer = temp;
-    }
-
-    return errorcode;
-}
-
 int DLLEXPORT EN_geterror(int errcode, char *errmsg, int n) {
-	// Deprecate? 
+	// Deprecate?
   char newMsg[MAXMSG+1];
-  
+
   switch (errcode) {
   case 1:
     strncpy(errmsg, WARN1, n);
@@ -1994,7 +1960,7 @@ int DLLEXPORT EN_getstatistic(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE *
   default:
     break;
   }
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 /*
@@ -2009,12 +1975,12 @@ int DLLEXPORT EN_getnodeindex(EN_ProjectHandle ph, char *id, int *index) {
 
   *index = 0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   *index = findnode(&p->network,id);
   if (*index == 0)
-    return set_error(p->error_handle, 203);
+    return (203);
   else
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_getnodeid(EN_ProjectHandle ph, int index, char *id) {
@@ -2023,11 +1989,11 @@ int DLLEXPORT EN_getnodeid(EN_ProjectHandle ph, int index, char *id) {
 
   strcpy(id, "");
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Nnodes)
-    return set_error(p->error_handle, 203);
+    return (203);
   strcpy(id, p->network.Node[index].ID);
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getnodetype(EN_ProjectHandle ph, int index, int *code) {
@@ -2036,9 +2002,9 @@ int DLLEXPORT EN_getnodetype(EN_ProjectHandle ph, int index, int *code) {
 
   *code = -1;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Nnodes)
-    return set_error(p->error_handle, 203);
+    return (203);
   if (index <= p->network.Njuncs)
     *code = EN_JUNCTION;
   else {
@@ -2047,7 +2013,7 @@ int DLLEXPORT EN_getnodetype(EN_ProjectHandle ph, int index, int *code) {
     else
       *code = EN_TANK;
   }
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x,
@@ -2056,20 +2022,20 @@ int DLLEXPORT EN_getcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x,
   EN_Project *p = (EN_Project*)ph;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Nnodes)
-    return set_error(p->error_handle, 203);
+    return (203);
   if (!p->parser.Coordflag)
-    return set_error(p->error_handle, 255);
+    return (255);
 
   // check if node have coords
   if (p->network.Coord[index].HaveCoords == FALSE)
-    return set_error(p->error_handle, 254);
+    return (254);
 
   *x = (EN_API_FLOAT_TYPE)p->network.Coord[index].X;
   *y = (EN_API_FLOAT_TYPE)p->network.Coord[index].Y;
 
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE x,
@@ -2078,16 +2044,16 @@ int DLLEXPORT EN_setcoord(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE x,
   EN_Project *p = (EN_Project*)ph;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Nnodes)
-    return set_error(p->error_handle, 203);
+    return (203);
   if (!p->parser.Coordflag)
-    return set_error(p->error_handle, 255);
+    return (255);
 
   p->network.Coord[index].X = x;
   p->network.Coord[index].Y = y;
   p->network.Coord[index].HaveCoords = TRUE;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code,
@@ -2097,28 +2063,28 @@ int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code,
   Psource source;
 
   EN_Project *p = (EN_Project*)ph;
-  
+
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
   quality_t *qu = &p->quality;
-  
+
   Snode *Node = net->Node;
   Stank *Tank = net->Tank;
-  
+
   const int Nnodes = net->Nnodes;
   const int Njuncs = net->Njuncs;
-  
+
   double *Ucf = p->Ucf;
   double *NodeDemand = hyd->NodeDemand;
   double *NodeQual = qu->NodeQual;
-  
-  
+
+
   /* Check for valid arguments */
   *value = 0.0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index <= 0 || index > Nnodes)
-    return set_error(p->error_handle, 203);
+    return (203);
 
   /* Retrieve called-for parameter */
   switch (code) {
@@ -2155,14 +2121,14 @@ int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code,
     v = Node[index].C0 * Ucf[QUALITY];
     break;
 
-    /*** Additional parameters added for retrieval ***/ 
+    /*** Additional parameters added for retrieval ***/
   case EN_SOURCEQUAL:
   case EN_SOURCETYPE:
   case EN_SOURCEMASS:
   case EN_SOURCEPAT:
     source = Node[index].S;
     if (source == NULL)
-      return set_error(p->error_handle, 240);
+      return (240);
     if (code == EN_SOURCEQUAL)
       v = source->C0;
     else if (code == EN_SOURCEMASS)
@@ -2175,30 +2141,30 @@ int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code,
 
   case EN_TANKLEVEL:
     if (index <= Njuncs)
-      return set_error(p->error_handle, 251);
+      return (251);
     v = (Tank[index - Njuncs].H0 - Node[index].El) * Ucf[ELEV];
     break;
 
-    /*** New parameter added for retrieval ***/ 
-  case EN_INITVOLUME:                           
-    v = 0.0;                                    
+    /*** New parameter added for retrieval ***/
+  case EN_INITVOLUME:
+    v = 0.0;
     if (index > Njuncs)
-      v = Tank[index - Njuncs].V0 * Ucf[VOLUME]; 
-    break;                                       
+      v = Tank[index - Njuncs].V0 * Ucf[VOLUME];
+    break;
 
-    /*** New parameter added for retrieval ***/ 
-  case EN_MIXMODEL:                             
-    v = MIX1;                                   
+    /*** New parameter added for retrieval ***/
+  case EN_MIXMODEL:
+    v = MIX1;
     if (index > Njuncs)
-      v = Tank[index - Njuncs].MixModel; 
-    break;                               
+      v = Tank[index - Njuncs].MixModel;
+    break;
 
-    /*** New parameter added for retrieval ***/ 
-  case EN_MIXZONEVOL:                           
-    v = 0.0;                                    
+    /*** New parameter added for retrieval ***/
+  case EN_MIXZONEVOL:
+    v = 0.0;
     if (index > Njuncs)
-      v = Tank[index - Njuncs].V1max * Ucf[VOLUME]; 
-    break;                                          
+      v = Tank[index - Njuncs].V1max * Ucf[VOLUME];
+    break;
 
   case EN_DEMAND:
     v = NodeDemand[index] * Ucf[FLOW];
@@ -2216,7 +2182,7 @@ int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code,
     v = NodeQual[index] * Ucf[QUALITY];
     break;
 
-    /*** New parameters added for retrieval begins here   ***/ 
+    /*** New parameters added for retrieval begins here   ***/
   /*** (Thanks to Nicolas Basile of Ecole Polytechnique ***/
   /***  de Montreal for suggesting some of these.)      ***/
 
@@ -2272,19 +2238,19 @@ int DLLEXPORT EN_getnodevalue(EN_ProjectHandle ph, int index, int code,
       v = Tank[index - Njuncs].Kb * SECperDAY;
     break;
 
-    /***  New parameter additions ends here. ***/ 
+    /***  New parameter additions ends here. ***/
 
   case EN_TANKVOLUME:
     if (index <= Njuncs)
-      return set_error(p->error_handle, 251);
+      return (251);
     v = tankvolume(p, index - Njuncs, hyd->NodeHead[index]) * Ucf[VOLUME];
     break;
 
   default:
-    return set_error(p->error_handle, 251);
+    return (251);
   }
   *value = (EN_API_FLOAT_TYPE)v;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 /*
@@ -2299,12 +2265,12 @@ int DLLEXPORT EN_getlinkindex(EN_ProjectHandle ph, char *id, int *index) {
 
   *index = 0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   *index = findlink(&p->network,id);
   if (*index == 0)
-    return set_error(p->error_handle, 204);
+    return (204);
   else
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id) {
@@ -2313,11 +2279,11 @@ int DLLEXPORT EN_getlinkid(EN_ProjectHandle ph, int index, char *id) {
 
   strcpy(id, "");
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Nlinks)
-    return set_error(p->error_handle, 204);
+    return (204);
   strcpy(id, p->network.Link[index].ID);
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, EN_LinkType *code) {
@@ -2326,11 +2292,11 @@ int DLLEXPORT EN_getlinktype(EN_ProjectHandle ph, int index, EN_LinkType *code) 
 
   *code = -1;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Nlinks)
-    return set_error(p->error_handle, 204);
+    return (204);
   *code = p->network.Link[index].Type;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getlinknodes(EN_ProjectHandle ph, int index, int *node1,
@@ -2341,12 +2307,12 @@ int DLLEXPORT EN_getlinknodes(EN_ProjectHandle ph, int index, int *node1,
   *node1 = 0;
   *node2 = 0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > p->network.Nlinks)
-    return set_error(p->error_handle, 204);
+    return (204);
   *node1 = p->network.Link[index].N1;
   *node2 = p->network.Link[index].N2;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty code,
@@ -2354,17 +2320,17 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
   double a, h, q, v = 0.0;
   int returnValue = 0;
   int pmp;
-  
+
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
-  
+
   Slink *Link = net->Link;
   Spump *Pump = net->Pump;
-  
+
   const int Nlinks = net->Nlinks;
-  
+
   double *Ucf = p->Ucf;
   double *LinkFlows = hyd->LinkFlows;
   double *LinkSetting = hyd->LinkSetting;
@@ -2372,9 +2338,9 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
   /* Check for valid arguments */
   *value = 0.0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index <= 0 || index > Nlinks)
-    return set_error(p->error_handle, 204);
+    return (204);
 
   /* Retrieve called-for parameter */
   switch (code) {
@@ -2384,11 +2350,11 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
       else
         v = Link[index].Diam * Ucf[DIAM];
       break;
-      
+
     case EN_LENGTH:
       v = Link[index].Len * Ucf[ELEV];
       break;
-      
+
     case EN_ROUGHNESS:
       if (Link[index].Type <= EN_PIPE) {
         if (hyd->Formflag == DW)
@@ -2398,7 +2364,7 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
       } else
         v = 0.0;
       break;
-      
+
     case EN_MINORLOSS:
       if (Link[index].Type != EN_PUMP) {
         v = Link[index].Km;
@@ -2406,17 +2372,17 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
       } else
         v = 0.0;
       break;
-      
+
     case EN_INITSTATUS:
       if (Link[index].Stat <= CLOSED)
         v = 0.0;
       else
         v = 1.0;
       break;
-      
+
     case EN_INITSETTING:
       if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
-        return set_error(p->error_handle, EN_getlinkvalue(p, index, EN_ROUGHNESS, value));
+        return EN_getlinkvalue(p, index, EN_ROUGHNESS, value);
       v = Link[index].Kc;
       switch (Link[index].Type) {
         case EN_PRV:
@@ -2430,46 +2396,46 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
           break;
       }
       break;
-      
+
     case EN_KBULK:
       v = Link[index].Kb * SECperDAY;
       break;
-      
+
     case EN_KWALL:
       v = Link[index].Kw * SECperDAY;
       break;
-      
+
     case EN_FLOW:
-      
+
       /*** Updated 10/25/00 ***/
       if (hyd->LinkStatus[index] <= CLOSED)
         v = 0.0;
       else
         v = LinkFlows[index] * Ucf[FLOW];
       break;
-      
+
     case EN_VELOCITY:
       if (Link[index].Type == EN_PUMP) {
         v = 0.0;
       }
-      
+
       /*** Updated 11/19/01 ***/
       else if (hyd->LinkStatus[index] <= CLOSED)
         v = 0.0;
-      
+
       else {
         q = ABS(LinkFlows[index]);
         a = PI * SQR(Link[index].Diam) / 4.0;
         v = q / a * Ucf[VELOCITY];
       }
       break;
-      
+
     case EN_HEADLOSS:
-      
+
       /*** Updated 11/19/01 ***/
       if (hyd->LinkStatus[index] <= CLOSED)
         v = 0.0;
-      
+
       else {
         h = hyd->NodeHead[Link[index].N1] - hyd->NodeHead[Link[index].N2];
         if (Link[index].Type != EN_PUMP)
@@ -2477,7 +2443,7 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
         v = h * Ucf[HEADLOSS];
       }
       break;
-      
+
     case EN_STATUS:
       if (hyd->LinkStatus[index] <= CLOSED)
         v = 0.0;
@@ -2487,7 +2453,7 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
 
     case EN_STATE:
       v = hyd->LinkStatus[index];
-      
+
       if (Link[index].Type == EN_PUMP) {
          pmp = findpump(net, index);
          if (hyd->LinkStatus[index] >= OPEN) {
@@ -2516,10 +2482,10 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
          v = Link[index].Kc;
       }
       break;
-      
+
     case EN_SETTING:
       if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE) {
-        return set_error(p->error_handle, EN_getlinkvalue(p, index, EN_ROUGHNESS, value));
+        return EN_getlinkvalue(p, index, EN_ROUGHNESS, value);
       }
       if (LinkSetting[index] == MISSING) {
         v = 0.0;
@@ -2538,29 +2504,29 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
           break;
       }
       break;
-      
+
     case EN_ENERGY:
       getenergy(p, index, &v, &a);
       break;
-      
+
     case EN_LINKQUAL:
       v = avgqual(p, index) * Ucf[LINKQUAL];
       break;
-      
+
     case EN_LINKPATTERN:
       if (Link[index].Type == EN_PUMP)
         v = (double)Pump[findpump(&p->network, index)].Upat;
       break;
-      
+
     case EN_EFFICIENCY:
       getenergy(p, index, &a, &v);
       break;
-      
+
     case EN_PRICEPATTERN:
       if (Link[index].Type == EN_PUMP)
         v = (double)Pump[findpump(&p->network, index)].Epat;
       break;
-      
+
     case EN_HEADCURVE:
       if (Link[index].Type == EN_PUMP) {
         v = (double)Pump[findpump(&p->network, index)].Hcurve;
@@ -2573,7 +2539,7 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
         returnValue = 211;
       }
       break;
-      
+
     case EN_EFFICIENCYCURVE:
       if (Link[index].Type == EN_PUMP) {
         v = (double)Pump[findpump(&p->network, index)].Ecurve;
@@ -2585,13 +2551,13 @@ int DLLEXPORT EN_getlinkvalue(EN_ProjectHandle ph, int index, EN_LinkProperty co
         v = 0;
         returnValue = 211;
       }
-      
+
     default:
       v = 0;
       returnValue = 251;
   }
   *value = (EN_API_FLOAT_TYPE)v;
-  return set_error(p->error_handle, returnValue);
+  return returnValue;
 }
 
 int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char *id, int *nValues,
@@ -2605,7 +2571,7 @@ int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char *id, int *nV
 
   /* Check that input file opened */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
 
   curve = p->network.Curve[curveIndex];
   nPoints = curve.Npts;
@@ -2626,7 +2592,7 @@ int DLLEXPORT EN_getcurve(EN_ProjectHandle ph, int curveIndex, char *id, int *nV
   *xValues = pointX;
   *yValues = pointY;
 
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 /*
@@ -2647,50 +2613,50 @@ int DLLEXPORT EN_addcontrol(EN_ProjectHandle ph, int *cindex, int ctype, int lin
   Slink *Link;
   Scontrol *Control;
   Scontrol *tmpControl;
-  
+
   int Nnodes;
   int Njuncs;
   int Nlinks;
   double *Ucf;
-    
+
   EN_Project *p = (EN_Project*)ph;
   parser_data_t *par = &p->parser;
 
   /* Check that input file opened */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
-  
+    return (102);
+
   net = &p->network;
   Node = net->Node;
   Link = net->Link;
   Control = net->Control;
-  
+
   Nnodes = net->Nnodes;
   Njuncs = net->Njuncs;
   Nlinks = net->Nlinks;
   nControls = net->Ncontrols;
-  
+
   Ucf = p->Ucf;
-    
+
   /* Check that controlled link exists */
   if (lindex < 0 || lindex > Nlinks)
-    return set_error(p->error_handle, 204);
+    return (204);
 
   /* Cannot control check valve. */
   if (Link[lindex].Type == EN_CVPIPE)
-    return set_error(p->error_handle, 207);
+    return (207);
 
   /* Check for valid parameters */
   if (ctype < 0 || ctype > EN_TIMEOFDAY)
-    return set_error(p->error_handle, 251);
+    return (251);
   if (ctype == EN_LOWLEVEL || ctype == EN_HILEVEL) {
     if (nindex < 1 || nindex > Nnodes)
-      return set_error(p->error_handle, 203);
+      return (203);
   } else
     nindex = 0;
   if (s < 0.0 || lvl < 0.0)
-    return set_error(p->error_handle, 202);
-  
+    return (202);
+
   /* Adjust units of control parameters */
   switch (Link[lindex].Type) {
     case EN_PRV:
@@ -2707,9 +2673,9 @@ int DLLEXPORT EN_addcontrol(EN_ProjectHandle ph, int *cindex, int ctype, int lin
       else if (s == 1.0)
         status = OPEN;
       else
-        return set_error(p->error_handle, 202);
+        return (202);
       s = Link[lindex].Kc;
-      break;      
+      break;
     case EN_PIPE:
     case EN_PUMP:
       status = OPEN;
@@ -2735,7 +2701,7 @@ int DLLEXPORT EN_addcontrol(EN_ProjectHandle ph, int *cindex, int ctype, int lin
   n = nControls + 1;
   tmpControl = (Scontrol *)calloc(n + 1, sizeof(Scontrol));
   if (tmpControl == NULL)
-    return set_error(p->error_handle, 101);
+    return (101);
 
   /* Copy contents of old controls array to new one */
   for (i = 0; i <= nControls; i++) {
@@ -2766,7 +2732,7 @@ int DLLEXPORT EN_addcontrol(EN_ProjectHandle ph, int *cindex, int ctype, int lin
   // return the new control index
   *cindex = n;
 
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lindex,
@@ -2779,7 +2745,7 @@ int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lind
   Snode *Node;
   Slink *Link;
   Scontrol *Control;
-  
+
   int Nnodes;
   int Njuncs;
   int Nlinks;
@@ -2789,46 +2755,46 @@ int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lind
 
   /* Check that input file opened */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
 
   /* Check that control exists */
   if (cindex < 1 || cindex > p->network.Ncontrols)
-    return set_error(p->error_handle, 241);
-  
+    return (241);
+
   net = &p->network;
-  
+
   Node = net->Node;
   Link = net->Link;
   Control = net->Control;
-  
+
   Nnodes = net->Nnodes;
   Njuncs = net->Njuncs;
   Nlinks = net->Nlinks;
-  
+
   Ucf = p->Ucf;
-    
+
   /* Check that controlled link exists */
   if (lindex == 0) {
     Control[cindex].Link = 0;
-    return set_error(p->error_handle, 0);
+    return (0);
   }
   if (lindex < 0 || lindex > Nlinks)
-    return set_error(p->error_handle, 204);
+    return (204);
 
   /* Cannot control check valve. */
   if (Link[lindex].Type == EN_CVPIPE)
-    return set_error(p->error_handle, 207);
+    return (207);
 
   /* Check for valid parameters */
   if (ctype < 0 || ctype > EN_TIMEOFDAY)
-    return set_error(p->error_handle, 251);
+    return (251);
   if (ctype == EN_LOWLEVEL || ctype == EN_HILEVEL) {
     if (nindex < 1 || nindex > Nnodes)
-      return set_error(p->error_handle, 203);
+      return (203);
   } else
     nindex = 0;
   if (s < 0.0 || lvl < 0.0)
-    return set_error(p->error_handle, 202);
+    return (202);
 
   /* Adjust units of control parameters */
   switch (Link[lindex].Type) {
@@ -2840,7 +2806,7 @@ int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lind
     case EN_FCV:
       s /= Ucf[FLOW];
       break;
-      
+
       /*** Updated 9/7/00 ***/
     case EN_GPV:
       if (s == 0.0)
@@ -2848,10 +2814,10 @@ int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lind
       else if (s == 1.0)
         status = OPEN;
       else
-        return set_error(p->error_handle, 202);
+        return (202);
       s = Link[lindex].Kc;
       break;
-      
+
     case EN_PIPE:
     case EN_PUMP:
       status = OPEN;
@@ -2879,7 +2845,7 @@ int DLLEXPORT EN_setcontrol(EN_ProjectHandle ph, int cindex, int ctype, int lind
   Control[cindex].Setting = s;
   Control[cindex].Grade = lvl;
   Control[cindex].Time = t;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setnodeid(EN_ProjectHandle ph, int index, char *newid)
@@ -2887,27 +2853,27 @@ int DLLEXPORT EN_setnodeid(EN_ProjectHandle ph, int index, char *newid)
     EN_Project *p = (EN_Project*)ph;
     EN_Network *net = &p->network;
     size_t n;
-    
+
     // Check for valid arguments
     if (index <= 0 || index > net->Nnodes)
     {
-        return set_error(p->error_handle, 203);
+        return (203);
     }
     n = strlen(newid);
-    if (n < 1 || n > MAXID) return set_error(p->error_handle, 209);
-    if (strcspn(newid, " ;") < n) return set_error(p->error_handle, 209);
+    if (n < 1 || n > MAXID) return (209);
+    if (strcspn(newid, " ;") < n) return (209);
 
     // Check if another node with same name exists
     if (hashtable_find(net->NodeHashTable, newid) > 0)
     {
-        return set_error(p->error_handle, 215);
+        return (215);
     }
 
     // Replace the existing node ID with the new value
     hashtable_delete(net->NodeHashTable, net->Node[index].ID);
     strncpy(net->Node[index].ID, newid, MAXID);
     hashtable_insert(net->NodeHashTable, net->Node[index].ID, index);
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_FLOAT_TYPE v)
@@ -2926,16 +2892,16 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
   quality_t *qu = &p->quality;
-  
+
   Snode *Node = net->Node;
   Stank *Tank = net->Tank;
-  
+
   const int Nnodes = net->Nnodes;
   const int Njuncs = net->Njuncs;
   const int Npats = net->Npats;
-  
+
   double *Ucf = p->Ucf;
-  
+
   int j;
   Pdemand demand;
   Psource source;
@@ -2943,9 +2909,9 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
   double value = v;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index <= 0 || index > Nnodes)
-    return set_error(p->error_handle, 203);
+    return (203);
   switch (code) {
   case EN_ELEVATION:
     if (index <= Njuncs)
@@ -2975,7 +2941,7 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
     /* NOTE: primary demand category is last on demand list */
     j = ROUND(value);
     if (j < 0 || j > Npats)
-      return set_error(p->error_handle, 205);
+      return (205);
     if (index <= Njuncs) {
       for (demand = Node[index].D; demand != NULL; demand = demand->next) {
         if (demand->next == NULL)
@@ -2987,9 +2953,9 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
 
   case EN_EMITTER:
     if (index > Njuncs)
-      return set_error(p->error_handle, 203);
+      return (203);
     if (value < 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     if (value > 0.0)
       value = pow((Ucf[FLOW] / value), hyd->Qexp) / Ucf[PRESSURE];
     Node[index].Ke = value;
@@ -2997,7 +2963,7 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
 
   case EN_INITQUAL:
     if (value < 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     Node[index].C0 = value / Ucf[QUALITY];
     if (index > Njuncs)
       Tank[index - Njuncs].C = Node[index].C0;
@@ -3007,12 +2973,12 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
   case EN_SOURCETYPE:
   case EN_SOURCEPAT:
     if (value < 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     source = Node[index].S;
     if (source == NULL) {
       source = (struct Ssource *)malloc(sizeof(struct Ssource));
       if (source == NULL)
-        return set_error(p->error_handle, 101);
+        return (101);
       source->Type = CONCEN;
       source->C0 = 0.0;
       source->Pat = 0;
@@ -3023,21 +2989,21 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
     } else if (code == EN_SOURCEPAT) {
       j = ROUND(value);
       if (j < 0 || j > Npats)
-        return set_error(p->error_handle, 205);
+        return (205);
       source->Pat = j;
     } else // code == EN_SOURCETYPE
     {
       j = ROUND(value);
       if (j < CONCEN || j > FLOWPACED)
-        return set_error(p->error_handle, 251);
+        return (251);
       else
         source->Type = (char)j;
     }
-    return set_error(p->error_handle, 0);
+    return (0);
 
   case EN_TANKLEVEL:
     if (index <= Njuncs)
-      return set_error(p->error_handle, 251);
+      return (251);
     j = index - Njuncs;
     if (Tank[j].A == 0.0) /* Tank is a reservoir */
     {
@@ -3049,7 +3015,7 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
     } else {
       value = Node[index].El + value / Ucf[ELEV];
       if (value > Tank[j].Hmax || value < Tank[j].Hmin)
-        return set_error(p->error_handle, 202);
+        return (202);
       Tank[j].H0 = value;
       Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
       // Resetting Volume in addition to initial volume
@@ -3058,15 +3024,15 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
     }
     break;
 
-    /*** New parameters added for retrieval begins here   ***/ 
+    /*** New parameters added for retrieval begins here   ***/
   /*** (Thanks to Nicolas Basile of Ecole Polytechnique ***/
   /***  de Montreal for suggesting some of these.)      ***/
 
   case EN_TANKDIAM:
     if (value <= 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     if (index <= Njuncs)
-      return set_error(p->error_handle, 251);
+      return (251);
     j = index - Njuncs;
     if (j > 0 && Tank[j].A > 0.0) {
       value /= Ucf[ELEV];
@@ -3075,81 +3041,81 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
       Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
       Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
     } else {
-      return set_error(p->error_handle, 251);
+      return (251);
     }
     break;
 
   case EN_MINVOLUME:
     if (value < 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     if (index <= Njuncs)
-      return set_error(p->error_handle, 251);
+      return (251);
     j = index - Njuncs;
     if (j > 0 && Tank[j].A > 0.0) {
       Tank[j].Vmin = value / Ucf[VOLUME];
       Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
       Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
     } else {
-      return set_error(p->error_handle, 251);
+      return (251);
     }
     break;
 
   case EN_MINLEVEL:
     if (value < 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     if (index <= Njuncs)
-      return set_error(p->error_handle, 251); // not a tank or reservoir
+      return (251); // not a tank or reservoir
     j = index - Njuncs;
     if (Tank[j].A == 0.0)
-      return set_error(p->error_handle, 251); // node is a reservoir
+      return (251); // node is a reservoir
     Htmp = value / Ucf[ELEV] + Node[index].El;
     if (Htmp < Tank[j].Hmax && Htmp <= Tank[j].H0) {
       if (Tank[j].Vcurve > 0)
-        return set_error(p->error_handle, 202);
+        return (202);
       Tank[j].Hmin = Htmp;
       Tank[j].Vmin = (Tank[j].Hmin - Node[index].El) * Tank[j].A;
     } else {
-      return set_error(p->error_handle, 251);
+      return (251);
     }
     break;
 
   case EN_MAXLEVEL:
     if (value < 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     if (index <= Njuncs)
-      return set_error(p->error_handle, 251); // not a tank or reservoir
+      return (251); // not a tank or reservoir
     j = index - Njuncs;
     if (Tank[j].A == 0.0)
-      return set_error(p->error_handle, 251); // node is a reservoir
+      return (251); // node is a reservoir
     Htmp = value / Ucf[ELEV] + Node[index].El;
     if (Htmp > Tank[j].Hmin && Htmp >= Tank[j].H0) {
       if (Tank[j].Vcurve > 0)
-        return set_error(p->error_handle, 202);
+        return (202);
       Tank[j].Hmax = Htmp;
       Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
     } else {
-      return set_error(p->error_handle, 251);
+      return (251);
     }
     break;
 
   case EN_MIXMODEL:
     j = ROUND(value);
     if (index <= Njuncs)
-      return set_error(p->error_handle, 251);
+      return (251);
     if (j < MIX1 || j > LIFO)
-      return set_error(p->error_handle, 202);
+      return (202);
     if (index > Njuncs && Tank[index - Njuncs].A > 0.0) {
       Tank[index - Njuncs].MixModel = (char)j;
     } else {
-      return set_error(p->error_handle, 251);
+      return (251);
     }
     break;
 
   case EN_MIXFRACTION:
     if (value < 0.0 || value > 1.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     if (index <= Njuncs)
-      return set_error(p->error_handle, 251);
+      return (251);
     j = index - Njuncs;
     if (j > 0 && Tank[j].A > 0.0) {
       Tank[j].V1max = value * Tank[j].Vmax;
@@ -3158,22 +3124,22 @@ int DLLEXPORT EN_setnodevalue(EN_ProjectHandle ph, int index, int code, EN_API_F
 
   case EN_TANK_KBULK:
     if (index <= Njuncs)
-      return set_error(p->error_handle, 251);
+      return (251);
     j = index - Njuncs;
     if (j > 0 && Tank[j].A > 0.0) {
       Tank[j].Kb = value / SECperDAY;
       qu->Reactflag = 1;
     } else {
-      return set_error(p->error_handle, 251);
+      return (251);
     }
     break;
 
-    /***  New parameter additions ends here. ***/ 
+    /***  New parameter additions ends here. ***/
 
   default:
-    return set_error(p->error_handle, 251);
+    return (251);
   }
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setlinkid(EN_ProjectHandle ph, int index, char *newid)
@@ -3185,23 +3151,23 @@ int DLLEXPORT EN_setlinkid(EN_ProjectHandle ph, int index, char *newid)
     // Check for valid arguments
     if (index <= 0 || index > net->Nlinks)
     {
-        return set_error(p->error_handle, 204);
+        return (204);
     }
     n = strlen(newid);
-    if (n < 1 || n > MAXID) return set_error(p->error_handle, 211);
-    if (strcspn(newid, " ;") < n) return set_error(p->error_handle, 211);
+    if (n < 1 || n > MAXID) return (211);
+    if (strcspn(newid, " ;") < n) return (211);
 
     // Check if another link with same name exists
     if (hashtable_find(net->LinkHashTable, newid) > 0)
     {
-        return set_error(p->error_handle, 215);
+        return (215);
     }
 
     // Replace the existing link ID with the new value
     hashtable_delete(net->LinkHashTable, net->Link[index].ID);
     strncpy(net->Link[index].ID, newid, MAXID);
     hashtable_insert(net->LinkHashTable, net->Link[index].ID, index);
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_setlinknodes(EN_ProjectHandle ph, int index, int node1, int node2)
@@ -3211,11 +3177,11 @@ int DLLEXPORT EN_setlinknodes(EN_ProjectHandle ph, int index, int node1, int nod
     EN_Network *net = &p->network;
 
     // Check that end and start nodes are not the same
-    if (node1 == node2) return set_error(p->error_handle, 222);
-    
+    if (node1 == node2) return (222);
+
     // Check that nodes exist
-    if (node1 < 0 || node1 > net->Nnodes) return set_error(p->error_handle, 203);
-    if (node2 < 0 || node2 > net->Nnodes) return set_error(p->error_handle, 203);
+    if (node1 < 0 || node1 > net->Nnodes) return (203);
+    if (node2 < 0 || node2 > net->Nnodes) return (203);
 
     // Check for illegal valve connection
     type = net->Link[index].Type;
@@ -3223,19 +3189,19 @@ int DLLEXPORT EN_setlinknodes(EN_ProjectHandle ph, int index, int node1, int nod
     {
         // Can't be connected to a fixed grade node
         if (node1 > net->Njuncs ||
-            node2 > net->Njuncs) return set_error(p->error_handle, 219);
-            
+            node2 > net->Njuncs) return (219);
+
         // Can't be connected to another pressure/flow control valve
         if (!valvecheck(p, type, node1, node2))
         {
-            return set_error(p->error_handle, 220);
+            return (220);
         }
     }
-    
+
     // Assign new end nodes to link
     net->Link[index].N1 = node1;
     net->Link[index].N2 = node2;
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
@@ -3256,26 +3222,26 @@ int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
   quality_t *qu = &p->quality;
-  
+
   Slink *Link = net->Link;
-  
+
   const int Nlinks = net->Nlinks;
-  
+
   double *Ucf = p->Ucf;
   double *LinkSetting = hyd->LinkSetting;
-  
+
   char s;
   double r, value = v;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index <= 0 || index > Nlinks)
-    return set_error(p->error_handle, 204);
+    return (204);
   switch (code) {
   case EN_DIAMETER:
     if (Link[index].Type != EN_PUMP) {
       if (value <= 0.0)
-        return set_error(p->error_handle, 202);
+        return (202);
       value /= Ucf[DIAM];                /* Convert to feet */
       r = Link[index].Diam / value;      /* Ratio of old to new diam */
       Link[index].Km *= SQR(r) * SQR(r); /* Adjust minor loss factor */
@@ -3287,7 +3253,7 @@ int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
   case EN_LENGTH:
     if (Link[index].Type <= EN_PIPE) {
       if (value <= 0.0)
-        return set_error(p->error_handle, 202);
+        return (202);
       Link[index].Len = value / Ucf[ELEV];
       resistcoeff(p, index);
     }
@@ -3296,7 +3262,7 @@ int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
   case EN_ROUGHNESS:
     if (Link[index].Type <= EN_PIPE) {
       if (value <= 0.0)
-        return set_error(p->error_handle, 202);
+        return (202);
       Link[index].Kc = value;
       if (hyd->Formflag == DW)
         Link[index].Kc /= (1000.0 * Ucf[ELEV]);
@@ -3307,7 +3273,7 @@ int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
   case EN_MINORLOSS:
     if (Link[index].Type != EN_PUMP) {
       if (value <= 0.0)
-        return set_error(p->error_handle, 202);
+        return (202);
       Link[index].Km =
           0.02517 * value / SQR(Link[index].Diam) / SQR(Link[index].Diam);
     }
@@ -3317,10 +3283,10 @@ int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
   case EN_STATUS:
     /* Cannot set status for a check valve */
     if (Link[index].Type == EN_CVPIPE)
-      return set_error(p->error_handle, 207);
+      return (207);
     s = (char)ROUND(value);
     if (s < 0 || s > 1)
-      return set_error(p->error_handle, 251);
+      return (251);
     if (code == EN_INITSTATUS)
       setlinkstatus(p, index, s, &Link[index].Stat, &Link[index].Kc);
     else
@@ -3330,9 +3296,9 @@ int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
   case EN_INITSETTING:
   case EN_SETTING:
     if (value < 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
-      return set_error(p->error_handle, EN_setlinkvalue(p, index, EN_ROUGHNESS, v));
+      return EN_setlinkvalue(p, index, EN_ROUGHNESS, v);
     else {
       switch (Link[index].Type) {
       case EN_PUMP:
@@ -3350,10 +3316,10 @@ int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
 
       /***  Updated 9/7/00  ***/
       case EN_GPV:
-        return set_error(p->error_handle, 202); /* Cannot modify setting for GPV */
+        return (202); /* Cannot modify setting for GPV */
 
       default:
-        return set_error(p->error_handle, 251);
+        return (251);
       }
       if (code == EN_INITSETTING)
         setlinksetting(p, index, value, &Link[index].Stat, &Link[index].Kc);
@@ -3366,21 +3332,21 @@ int DLLEXPORT EN_setlinkvalue(EN_ProjectHandle ph, int index, int code,
   case EN_KBULK:
     if (Link[index].Type <= EN_PIPE) {
       Link[index].Kb = value / SECperDAY;
-      qu->Reactflag = 1; 
+      qu->Reactflag = 1;
     }
     break;
 
   case EN_KWALL:
     if (Link[index].Type <= EN_PIPE) {
       Link[index].Kw = value / SECperDAY;
-      qu->Reactflag = 1; 
+      qu->Reactflag = 1;
     }
     break;
 
   default:
-    return set_error(p->error_handle, 251);
+    return (251);
   }
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
@@ -3393,28 +3359,28 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
   parser_data_t *par = &p->parser;
   hydraulics_t *hyd = &p->hydraulics;
   Spattern *Pattern = net->Pattern;
-  
+
   const int Npats = net->Npats;
-  
-  
+
+
   /* Check if a pattern with same id already exists */
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (EN_getpatternindex(ph, id, &i) == 0)
-    return set_error(p->error_handle, 215);
+    return (215);
 
   /* Check that id name is not too long */
 
   if (strlen(id) > MAXID)
-    return set_error(p->error_handle, 250);
+    return (250);
 
   /* Allocate memory for a new array of patterns */
 
   n = Npats + 1;
   tmpPat = (Spattern *)calloc(n + 1, sizeof(Spattern));
   if (tmpPat == NULL)
-    return set_error(p->error_handle, 101);
+    return (101);
 
   /* Copy contents of old pattern array to new one */
 
@@ -3446,7 +3412,7 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
       if (tmpPat[i].F)
         free(tmpPat[i].F);
     free(tmpPat);
-    return set_error(p->error_handle, 101);
+    return (101);
   }
 
   // Replace old pattern array with new one
@@ -3457,11 +3423,11 @@ int DLLEXPORT EN_addpattern(EN_ProjectHandle ph, char *id) {
   net->Pattern = tmpPat;
   net->Npats = n;
   par->MaxPats = n;
-  
+
   if (strcmp(id, par->DefPatID) == 0) {
       hyd->DefPat = n;
    }
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setpattern(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *f, int n) {
@@ -3472,78 +3438,78 @@ int DLLEXPORT EN_setpattern(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *f
   EN_Network *net = &p->network;
   Spattern *Pattern = net->Pattern;
   const int Npats = net->Npats;
-  
-  
+
+
   /* Check for valid arguments */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index <= 0 || index > Npats)
-    return set_error(p->error_handle, 205);
+    return (205);
   if (n <= 0)
-    return set_error(p->error_handle, 202);
+    return (202);
 
   /* Re-set number of time periods & reallocate memory for multipliers */
   Pattern[index].Length = n;
   Pattern[index].F = (double *)realloc(Pattern[index].F, n * sizeof(double));
   if (Pattern[index].F == NULL)
-    return set_error(p->error_handle, 101);
+    return (101);
 
   /* Load multipliers into pattern */
   for (j = 0; j < n; j++)
     Pattern[index].F[j] = f[j];
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setpatternvalue(EN_ProjectHandle ph, int index, int period, EN_API_FLOAT_TYPE value) {
-  
+
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
-  
+
   Spattern *Pattern = net->Pattern;
-  
+
   const int Npats = net->Npats;
-  
-  
+
+
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index <= 0 || index > Npats)
-    return set_error(p->error_handle, 205);
+    return (205);
   if (period <= 0 || period > Pattern[index].Length)
-    return set_error(p->error_handle, 251);
+    return (251);
   Pattern[index].F[period - 1] = value;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_addcurve(EN_ProjectHandle ph, char *id) {
-  
+
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
   parser_data_t *par = &p->parser;
   Scurve *Curve = net->Curve;
-  
+
   int i, j, n, err = 0;
   Scurve *tmpCur;
 
   /* Check if a curve with same id already exists */
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (EN_getcurveindex(p, id, &i) == 0)
-    return set_error(p->error_handle, 215);
+    return (215);
 
   /* Check that id name is not too long */
 
   if (strlen(id) > MAXID)
-    return set_error(p->error_handle, 250);
+    return (250);
 
   /* Allocate memory for a new array of curves */
 
   n = net->Ncurves + 1;
   tmpCur = (Scurve *)calloc(n + 1, sizeof(Scurve));
   if (tmpCur == NULL)
-    return set_error(p->error_handle, 101);
+    return (101);
 
   /* Copy contents of old curve array to new one */
 
@@ -3589,7 +3555,7 @@ int DLLEXPORT EN_addcurve(EN_ProjectHandle ph, char *id) {
         free(tmpCur[i].Y);
     }
     free(tmpCur);
-    return set_error(p->error_handle, 101);
+    return (101);
   }
 
   // Replace old curves array with new one
@@ -3602,40 +3568,40 @@ int DLLEXPORT EN_addcurve(EN_ProjectHandle ph, char *id) {
   net->Curve = tmpCur;
   net->Ncurves = n;
   par->MaxCurves = n;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setcurve(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int n) {
-  
+
   EN_Project *p = (EN_Project*)ph;
 
-  EN_Network *net = &p->network;  
-  Scurve *Curve = net->Curve;  
+  EN_Network *net = &p->network;
+  Scurve *Curve = net->Curve;
   int j;
 
   /* Check for valid arguments */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index <= 0 || index > net->Ncurves)
-    return set_error(p->error_handle, 206);
+    return (206);
   if (n <= 0)
-    return set_error(p->error_handle, 202);
+    return (202);
 
   /* Re-set number of points & reallocate memory for values */
   Curve[index].Npts = n;
   Curve[index].X = (double *)realloc(Curve[index].X, n * sizeof(double));
   Curve[index].Y = (double *)realloc(Curve[index].Y, n * sizeof(double));
   if (Curve[index].X == NULL)
-    return set_error(p->error_handle, 101);
+    return (101);
   if (Curve[index].Y == NULL)
-    return set_error(p->error_handle, 101);
+    return (101);
 
   /* Load values into curve */
   for (j = 0; j < n; j++) {
     Curve[index].X[j] = x[j];
     Curve[index].Y[j] = y[j];
   }
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setcurvevalue(EN_ProjectHandle ph, int index, int pnt, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y) {
@@ -3645,16 +3611,16 @@ int DLLEXPORT EN_setcurvevalue(EN_ProjectHandle ph, int index, int pnt, EN_API_F
   EN_Network *net = &p->network;
   Scurve *Curve = net->Curve;
   const int Ncurves = net->Ncurves;
-  
+
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index <= 0 || index > Ncurves)
-    return set_error(p->error_handle, 206);
+    return (206);
   if (pnt <= 0 || pnt > Curve[index].Npts)
-    return set_error(p->error_handle, 251);
+    return (251);
   Curve[index].X[pnt - 1] = x;
   Curve[index].Y[pnt - 1] = y;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value)
@@ -3664,9 +3630,9 @@ int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value)
   report_options_t *rep = &p->report;
   quality_t *qu = &p->quality;
   time_options_t *time = &p->time_options;
-  
+
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (p->hydraulics.OpenHflag || p->quality.OpenQflag) {
     // --> there's nothing wrong with changing certain time parameters during a
     // simulation run, or before the run has started.
@@ -3682,7 +3648,7 @@ int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value)
      */
   }
   if (value < 0)
-    return set_error(p->error_handle, 202);
+    return (202);
   switch (code) {
   case EN_DURATION:
     time->Dur = value;
@@ -3692,7 +3658,7 @@ int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value)
 
   case EN_HYDSTEP:
     if (value == 0)
-      return set_error(p->error_handle, 202);
+      return (202);
     time->Hstep = value;
     time->Hstep = MIN(time->Pstep, time->Hstep);
     time->Hstep = MIN(time->Rstep, time->Hstep);
@@ -3701,14 +3667,14 @@ int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value)
 
   case EN_QUALSTEP:
     if (value == 0)
-      return set_error(p->error_handle, 202);
+      return (202);
     qu->Qstep = value;
     qu->Qstep = MIN(qu->Qstep, time->Hstep);
     break;
 
   case EN_PATTERNSTEP:
     if (value == 0)
-      return set_error(p->error_handle, 202);
+      return (202);
     time->Pstep = value;
     if (time->Hstep > time->Pstep)
       time->Hstep = time->Pstep;
@@ -3720,7 +3686,7 @@ int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value)
 
   case EN_REPORTSTEP:
     if (value == 0)
-      return set_error(p->error_handle, 202);
+      return (202);
     time->Rstep = value;
     if (time->Hstep > time->Rstep)
       time->Hstep = time->Rstep;
@@ -3728,20 +3694,20 @@ int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value)
 
   case EN_REPORTSTART:
     if (time->Rstart > time->Dur)
-      return set_error(p->error_handle, 202);
+      return (202);
     time->Rstart = value;
     break;
 
   case EN_RULESTEP:
     if (value == 0)
-      return set_error(p->error_handle, 202);
+      return (202);
     time->Rulestep = value;
     time->Rulestep = MIN(time->Rulestep, time->Hstep);
     break;
 
   case EN_STATISTIC:
     if (value > RANGE)
-      return set_error(p->error_handle, 202);
+      return (202);
     rep->Tstatflag = (char)value;
     break;
 
@@ -3754,9 +3720,9 @@ int DLLEXPORT EN_settimeparam(EN_ProjectHandle ph, int code, long value)
     break;
 
   default:
-    return set_error(p->error_handle, 251);
+    return (251);
   }
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
@@ -3774,38 +3740,38 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
   quality_t *qu = &p->quality;
-  
+
   Snode *Node = net->Node;
   const int Njuncs = net->Njuncs;
-  
+
   double *Ucf = p->Ucf;
-  
+
   int i, j;
   int tmpPat, error;
   char tmpId[MAXID+1];
   Pdemand demand; /* Pointer to demand record */
   double Ke, n, ucf, value = v;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   switch (code) {
   case EN_TRIALS:
     if (value < 1.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     hyd->MaxIter = (int)value;
     break;
   case EN_ACCURACY:
     if (value < 1.e-5 || value > 1.e-1)
-      return set_error(p->error_handle, 202);
+      return (202);
     hyd->Hacc = value;
     break;
   case EN_TOLERANCE:
     if (value < 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     qu->Ctol = value / Ucf[QUALITY];
     break;
   case EN_EMITEXPON:
     if (value <= 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     n = 1.0 / value;
     ucf = pow(Ucf[FLOW], n) / Ucf[PRESSURE];
     for (i = 1; i <= Njuncs; i++) {
@@ -3818,23 +3784,23 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
     break;
   case EN_DEMANDMULT:
     if (value <= 0.0)
-      return set_error(p->error_handle, 202);
+      return (202);
     hyd->Dmult = value;
     break;
   case EN_HEADERROR:
     if (value < 0.0)
-        return set_error(p->error_handle, 202);
+        return (202);
     hyd->HeadErrorLimit = value / Ucf[HEAD];
     break;
   case EN_FLOWCHANGE:
       if (value < 0.0)
-          return set_error(p->error_handle, 202);
+          return (202);
       hyd->FlowChangeLimit = value / Ucf[FLOW];
       break;
   case EN_DEMANDDEFPAT:
     //check that the pattern exists or is set to zero to delete the default pattern
     if (value < 0 || value > net->Npats)
-        return set_error(p->error_handle, 205);
+        return (205);
     tmpPat = hyd->DefPat;
     //get the new pattern ID
     if (value == 0)
@@ -3845,7 +3811,7 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
     {
         error = EN_getpatternid(p, (int)value, tmpId);
         if (error != 0)
-            return set_error(p->error_handle, error);
+            return (error);
     }
     // replace node patterns for default
     for (i = 1; i <= net->Nnodes; i++) {
@@ -3862,9 +3828,9 @@ int DLLEXPORT EN_setoption(EN_ProjectHandle ph, int code, EN_API_FLOAT_TYPE v)
     break;
 
   default:
-    return set_error(p->error_handle, 251);
+    return (251);
   }
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setstatusreport(EN_ProjectHandle ph, int code) {
@@ -3877,27 +3843,27 @@ int DLLEXPORT EN_setstatusreport(EN_ProjectHandle ph, int code) {
   else
     errcode = 202;
 
-  return set_error(p->error_handle, errcode);
+  return (errcode);
 }
 
 int DLLEXPORT EN_setqualtype(EN_ProjectHandle ph, int qualcode, char *chemname, char *chemunits, char *tracenode) {
-  
+
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
   report_options_t *rep = &p->report;
   quality_t *qu = &p->quality;
-  
+
   double *Ucf = p->Ucf;
   int i;
-  
+
   /*** Updated 3/1/01 ***/
   double ccf = 1.0;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (qualcode < EN_NONE || qualcode > EN_TRACE)
-    return set_error(p->error_handle, 251);
+    return (251);
   qu->Qualflag = (char)qualcode;
   qu->Ctol *= Ucf[QUALITY];
   if (qu->Qualflag == CHEM) /* Chemical constituent */
@@ -3915,7 +3881,7 @@ int DLLEXPORT EN_setqualtype(EN_ProjectHandle ph, int qualcode, char *chemname, 
   {
     qu->TraceNode = findnode(net,tracenode);
     if (qu->TraceNode == 0)
-      return set_error(p->error_handle, 203);
+      return (203);
     strncpy(qu->ChemName, u_PERCENT, MAXID);
     strncpy(qu->ChemUnits, tracenode, MAXID);
 
@@ -3930,7 +3896,7 @@ int DLLEXPORT EN_setqualtype(EN_ProjectHandle ph, int qualcode, char *chemname, 
     /*** Updated 3/1/01 ***/
     strcpy(rep->Field[QUALITY].Units, u_HOURS);
   }
-  
+
   /* when changing from CHEM to AGE or TRACE, nodes initial quality values must be returned to their original ones */
   if ((qu->Qualflag == AGE || qu->Qualflag == TRACE) & (Ucf[QUALITY] != 1)) {
     for (i=1; i<=p->network.Nnodes; i++) {
@@ -3944,48 +3910,48 @@ int DLLEXPORT EN_setqualtype(EN_ProjectHandle ph, int qualcode, char *chemname, 
   Ucf[REACTRATE] = ccf;
   qu->Ctol /= Ucf[QUALITY];
 
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getheadcurveindex(EN_ProjectHandle ph, int index, int *curveindex) {
-  
-  EN_Project *p = (EN_Project*)ph;
 
-  EN_Network *net = &p->network;  
-  Slink *Link = net->Link;
-  Spump *Pump = net->Pump;
-  const int Nlinks = net->Nlinks;
-  
-  if (!p->Openflag)
-    return set_error(p->error_handle, 102);
-  if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type)
-    return set_error(p->error_handle, 204);
-  *curveindex = Pump[findpump(net, index)].Hcurve;
-
-  return set_error(p->error_handle, 0);
-}
-
-int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveindex) {
-  
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
-  
+  Slink *Link = net->Link;
+  Spump *Pump = net->Pump;
+  const int Nlinks = net->Nlinks;
+
+  if (!p->Openflag)
+    return (102);
+  if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type)
+    return (204);
+  *curveindex = Pump[findpump(net, index)].Hcurve;
+
+  return (0);
+}
+
+int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveindex) {
+
+  EN_Project *p = (EN_Project*)ph;
+
+  EN_Network *net = &p->network;
+
   Slink *Link = net->Link;
   const int Nlinks = net->Nlinks;
   const int Ncurves = net->Ncurves;
-  
+
   double *Ucf = p->Ucf;
   int pIdx;
   Spump *pump;
 
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) {
-    return set_error(p->error_handle, 204);
+    return (204);
   }
   if (curveindex <= 0 || curveindex > Ncurves) {
-    return set_error(p->error_handle, 206);
+    return (206);
   }
   pIdx = findpump(net, index);
   pump = &p->network.Pump[pIdx];
@@ -4002,44 +3968,44 @@ int DLLEXPORT EN_setheadcurveindex(EN_ProjectHandle ph, int index, int curveinde
   pump->Q0 /= Ucf[FLOW];
   pump->Qmax /= Ucf[FLOW];
   pump->Hmax /= Ucf[HEAD];
-  
+
   p->network.Curve[curveindex].Type = P_CURVE;
 
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getpumptype(EN_ProjectHandle ph, int index, int *type) {
-  
+
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
-  
+
   Slink *Link = net->Link;
   Spump *Pump = net->Pump;
   const int Nlinks = net->Nlinks;
-  
+
   *type = -1;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type)
-    return set_error(p->error_handle, 204);
+    return (204);
   *type = Pump[findpump(&p->network, index)].Ptype;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getcurvetype(EN_ProjectHandle ph, int curveindex, int *type) {
-  
+
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
-    
+
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (curveindex < 1 || curveindex > net->Ncurves)
-    return set_error(p->error_handle, 206);
+    return (206);
   *type = net->Curve[curveindex].Type;
 
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 /*
@@ -4059,11 +4025,11 @@ int openfiles(EN_Project *p, const char *f1, const char *f2, const char *f3)
 **----------------------------------------------------------------
 */
 {
-  
+
   out_file_t *out = &p->out_files;
   report_options_t *rep = &p->report;
   parser_data_t *par = &p->parser;
-  
+
   /* Initialize file pointers to NULL */
   par->InFile = NULL;
   rep->RptFile = NULL;
@@ -4075,9 +4041,9 @@ int openfiles(EN_Project *p, const char *f1, const char *f2, const char *f3)
   strncpy(rep->Rpt1Fname, f2, MAXFNAME);
   strncpy(out->OutFname, f3, MAXFNAME);
   if (strlen(f3) > 0)
-    out->Outflag = SAVE; 
+    out->Outflag = SAVE;
   else
-    out->Outflag = SCRATCH; 
+    out->Outflag = SCRATCH;
 
   /* Check that file names are not identical */
   if (strcomp(f1, f2) || strcomp(f1, f3) ||
@@ -4108,17 +4074,17 @@ int openhydfile(EN_Project *p)
 **----------------------------------------------------------------
 */
 {
-  
+
   EN_Network *net = &p->network;
   out_file_t *out = &p->out_files;
   time_options_t *time = &p->time_options;
-  
+
   const int Nnodes = net->Nnodes;
   const int Ntanks = net->Ntanks;
   const int Nlinks = net->Nlinks;
   const int Nvalves = net->Nvalves;
   const int Npumps = net->Npumps;
-  
+
   INT4 nsize[6]; /* Temporary array */
   INT4 magic;
   INT4 version;
@@ -4127,7 +4093,7 @@ int openhydfile(EN_Project *p)
   /* If HydFile currently open, then close it if its not a scratch file */
   if (out->HydFile != NULL) {
     if (out->Hydflag == SCRATCH)
-      return set_error(p->error_handle, 0);
+      return (0);
     fclose(out->HydFile);
   }
 
@@ -4137,7 +4103,7 @@ int openhydfile(EN_Project *p)
   switch (out->Hydflag) {
   case SCRATCH:
     strcpy(out->HydFname, p->TmpHydFname);
-    out->HydFile = fopen(out->HydFname, "w+b"); 
+    out->HydFile = fopen(out->HydFname, "w+b");
     break;
   case SAVE:
     out->HydFile = fopen(out->HydFname, "w+b");
@@ -4147,7 +4113,7 @@ int openhydfile(EN_Project *p)
     break;
   }
   if (out->HydFile == NULL)
-    return set_error(p->error_handle, 305);
+    return (305);
 
   /* If a previous hydraulics solution is not being used, then */
   /* save the current network size parameters to the file.     */
@@ -4171,15 +4137,15 @@ int openhydfile(EN_Project *p)
   if (out->Hydflag == USE) {
     fread(&magic, sizeof(INT4), 1, out->HydFile);
     if (magic != MAGICNUMBER)
-      return set_error(p->error_handle, 306);
+      return (306);
     fread(&version, sizeof(INT4), 1, out->HydFile);
     if (version != ENGINE_VERSION)
-      return set_error(p->error_handle, 306);
+      return (306);
     if (fread(nsize, sizeof(INT4), 6, out->HydFile) < 6)
-      return set_error(p->error_handle, 306);
+      return (306);
     if (nsize[0] != Nnodes || nsize[1] != Nlinks || nsize[2] != Ntanks ||
         nsize[3] != Npumps || nsize[4] != Nvalves || nsize[5] != time->Dur)
-      return set_error(p->error_handle, 306);
+      return (306);
     p->save_options.SaveHflag = TRUE;
   }
 
@@ -4200,9 +4166,9 @@ int openoutfile(EN_Project *p)
 */
 {
     int errcode = 0;
-  
+
     out_file_t *out = &p->out_files;
-    report_options_t *rep = &p->report;  
+    report_options_t *rep = &p->report;
 
     // Close output file if already opened
     if (out->OutFile != NULL) fclose(out->OutFile);
@@ -4211,13 +4177,13 @@ int openoutfile(EN_Project *p)
     out->TmpOutFile = NULL;
 
     // If output file name was supplied, then attempt to
-    // open it. Otherwise open a temporary output file. 
-    if (out->Outflag == SAVE) 
+    // open it. Otherwise open a temporary output file.
+    if (out->Outflag == SAVE)
     {
         if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) errcode = 304;
     }
 
-    else 
+    else
     {
         strcpy(out->OutFname, p->TmpOutFname);
         if ((out->OutFile = fopen(out->OutFname, "w+b")) == NULL) errcode = 304;
@@ -4235,7 +4201,7 @@ int openoutfile(EN_Project *p)
         if (rep->Tstatflag != SERIES)
         {
           out->TmpOutFile = fopen(p->TmpStatFname, "w+b");
-          if (out->TmpOutFile == NULL) errcode = 304; 
+          if (out->TmpOutFile == NULL) errcode = 304;
         }
         else out->TmpOutFile = out->OutFile;
     }
@@ -4320,7 +4286,7 @@ int allocdata(EN_Project *p)
   hydraulics_t *hyd;
   quality_t *qu;
   parser_data_t *par;
-  
+
   /* Allocate node & link ID hash tables */
   p->network.NodeHashTable = hashtable_create();
   p->network.LinkHashTable = hashtable_create();
@@ -4331,7 +4297,7 @@ int allocdata(EN_Project *p)
   hyd = &p->hydraulics;
   qu = &p->quality;
   par = &p->parser;
-    
+
   /* Allocate memory for network nodes */
   /*************************************************************
    NOTE: Because network components of a given type are indexed
@@ -4460,12 +4426,12 @@ void freedata(EN_Project *p)
 **----------------------------------------------------------------
 */
 {
-  
+
   EN_Network *net = &p->network;
   hydraulics_t *hyd = &p->hydraulics;
   quality_t *qu = &p->quality;
   parser_data_t *par = &p->parser;
-    
+
   int j;
   Pdemand demand, nextdemand;
   Psource source;
@@ -4495,14 +4461,14 @@ void freedata(EN_Project *p)
     }
     free(net->Node);
   }
-  
+
   /* Free memory for other network objects */
   free(net->Link);
   free(net->Tank);
   free(net->Pump);
   free(net->Valve);
   free(net->Control);
-  
+
   /* Free memory for time patterns */
   if (net->Pattern != NULL) {
     for (j = 0; j <= par->MaxPats; j++)
@@ -4518,18 +4484,18 @@ void freedata(EN_Project *p)
     }
     free(net->Curve);
   }
-  
+
   /* Free memory for node coordinates */
   if (p->parser.Coordflag == TRUE) {
     free(net->Coord);
   }
-  
+
   /* Free memory for rule base (see RULES.C) */
   freerules(p);
 
   /* Free hash table memory */
-  if (net->NodeHashTable != NULL) hashtable_free(net->NodeHashTable);    
-    
+  if (net->NodeHashTable != NULL) hashtable_free(net->NodeHashTable);
+
   if (net->LinkHashTable != NULL) hashtable_free(net->LinkHashTable);
 }
 
@@ -4762,13 +4728,13 @@ int DLLEXPORT EN_getnumdemands(EN_ProjectHandle ph, int nodeIndex, int *numDeman
 
   /* Check for valid arguments */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes)
-    return set_error(p->error_handle, 203);
+    return (203);
   for (d = p->network.Node[nodeIndex].D; d != NULL; d = d->next)
     n++;
   *numDemands = n;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand) {
@@ -4779,50 +4745,50 @@ int DLLEXPORT EN_getbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx
 
   /* Check for valid arguments */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes)
-    return set_error(p->error_handle, 203);
+    return (203);
   if (nodeIndex <= p->network.Njuncs) {
     for (d = p->network.Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next) {
       n++;
     }
     if (n != demandIdx) {
-      return set_error(p->error_handle, 253);
+      return (253);
     }
     *baseDemand = (EN_API_FLOAT_TYPE)(d->Base * p->Ucf[FLOW]);
   } else {
     *baseDemand = (EN_API_FLOAT_TYPE)(0.0);
   }
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setbasedemand(EN_ProjectHandle ph, int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand) {
-  
+
   EN_Project *pr = (EN_Project*)ph;
 
   EN_Network *net = &pr->network;
   Snode *Node = net->Node;
-  
+
   const int Nnodes = net->Nnodes;
   const int Njuncs = net->Njuncs;
-  
+
   double *Ucf = pr->Ucf;
-  
+
   Pdemand d;
   int n = 1;
   /* Check for valid arguments */
   if (!pr->Openflag)
-    return set_error(pr->error_handle, 102);
+    return (102);
   if (nodeIndex <= 0 || nodeIndex > Nnodes)
-    return set_error(pr->error_handle, 203);
+    return (203);
   if (nodeIndex <= Njuncs) {
     for (d = Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next)
       n++;
     if (n != demandIdx)
-      return set_error(pr->error_handle, 253);
+      return (253);
     d->Base = baseDemand / Ucf[FLOW];
   }
-  return set_error(pr->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx, char *demandName) {
@@ -4834,42 +4800,42 @@ int DLLEXPORT EN_getdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx
   strcpy(demandName, "");
   /* Check for valid arguments */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs)
-    return set_error(p->error_handle, 203);
+    return (203);
   for (d = p->network.Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next) {
     n++;
   }
   if (n != demandIdx) {
-    return set_error(p->error_handle, 253);
+    return (253);
   }
   strcpy(demandName, d->Name);
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setdemandname(EN_ProjectHandle ph, int nodeIndex, int demandIdx, char *demandName) {
-  
+
   EN_Project *pr = (EN_Project*)ph;
 
   EN_Network *net = &pr->network;
   Snode *Node = net->Node;
-  
+
   const int Nnodes = net->Nnodes;
   const int Njuncs = net->Njuncs;
-  
+
   Pdemand d;
   int n = 1;
   /* Check for valid arguments */
   if (!pr->Openflag)
-    return set_error(pr->error_handle, 102);
+    return (102);
   if (nodeIndex <= 0 || nodeIndex > Njuncs)
-    return set_error(pr->error_handle, 203);
+    return (203);
   for (d = Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next)
     n++;
   if (n != demandIdx)
-    return set_error(pr->error_handle, 253);
+    return (253);
   strncpy(d->Name, demandName, MAXMSG);
-  return set_error(pr->error_handle, 0);
+  return (0);
 }
 
 int  DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIdx, int patIndex) {
@@ -4878,74 +4844,74 @@ int  DLLEXPORT EN_setdemandpattern(EN_ProjectHandle ph, int nodeIndex, int deman
 
   EN_Network *net = &pr->network;
   Snode *Node = net->Node;
-  
+
   const int Nnodes = net->Nnodes;
   const int Njuncs = net->Njuncs;
   const int Npats = net->Npats;
-    
+
   Pdemand d;
   int n = 1;
   /* Check for valid arguments */
   if (!pr->Openflag)
-    return set_error(pr->error_handle, 102);
+    return (102);
   if (nodeIndex <= 0 || nodeIndex > Nnodes)
-    return set_error(pr->error_handle, 203);
-  if (patIndex < 1 || patIndex > Npats) 
+    return (203);
+  if (patIndex < 1 || patIndex > Npats)
     return(205);
   if (nodeIndex <= Njuncs) {
     for (d = Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next)
       n++;
     if (n != demandIdx)
-      return set_error(pr->error_handle, 253);
+      return (253);
   d->Pat = patIndex;
   }
-  return set_error(pr->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getdemandpattern(EN_ProjectHandle ph, int nodeIndex, int demandIdx, int *pattIdx) {
-  
+
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
   Snode *Node = net->Node;
   const int Nnodes = net->Nnodes;
-  
+
   Pdemand d;
   int n = 1;
   /* Check for valid arguments */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (nodeIndex <= 0 || nodeIndex > Nnodes)
-    return set_error(p->error_handle, 203);
+    return (203);
   for (d = Node[nodeIndex].D; n < demandIdx && d->next != NULL; d = d->next)
     n++;
   if (n != demandIdx)
-    return set_error(p->error_handle, 253);
+    return (253);
   *pattIdx = d->Pat;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getaveragepatternvalue(EN_ProjectHandle ph, int index, EN_API_FLOAT_TYPE *value) {
-  
+
   EN_Project *p = (EN_Project*)ph;
 
   EN_Network *net = &p->network;
-  
+
   Spattern *Pattern = net->Pattern;
   const int Npats = net->Npats;
-  
+
   int i;
   *value = 0.0;
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (index < 1 || index > Npats)
-    return set_error(p->error_handle, 205);
+    return (205);
   // if (period < 1 || period > Pattern[index].Length) return(251);
   for (i = 0; i < Pattern[index].Length; i++) {
     *value += (EN_API_FLOAT_TYPE)Pattern[index].F[i];
   }
   *value /= (EN_API_FLOAT_TYPE)Pattern[index].Length;
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, int *index, EN_LinkType type,
@@ -4961,25 +4927,25 @@ int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, int *index, EN_LinkType type,
     EN_Network *net = &p->network;
 
     // Check for valid input parameters
-    if (!p->Openflag) return set_error(p->error_handle, 102);
+    if (!p->Openflag) return (102);
     if (type < 0 || type > GPV || actionCode < EN_UNCONDITIONAL ||
         actionCode > EN_CONDITIONAL)
     {
-        return set_error(p->error_handle, 251);
+        return (251);
     }
 
     // Check for valid link index
-    if (i <= 0 || i > net->Nlinks) return set_error(p->error_handle, 204);
+    if (i <= 0 || i > net->Nlinks) return (204);
 
     // Check if current link type equals new type
     EN_getlinktype(p, i, &oldtype);
-    if (oldtype == type) return set_error(p->error_handle, 0);
+    if (oldtype == type) return (0);
 
     // Type change will be cancelled if link appears in any controls
     if (actionCode == EN_CONDITIONAL)
     {
         actionCode = isInControls(p, LINK, i);
-        if (actionCode > 0) return set_error(p->error_handle, 261);
+        if (actionCode > 0) return (261);
     }
 
     // Pipe changing from or to having a check valve
@@ -4987,7 +4953,7 @@ int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, int *index, EN_LinkType type,
     {
         net->Link[i].Type = type;
         if (type == CVPIPE) net->Link[i].Stat = OPEN;
-        return set_error(p->error_handle, 0);
+        return (0);
     }
 
     // Get ID's of link & its end nodes
@@ -5001,10 +4967,10 @@ int DLLEXPORT EN_setlinktype(EN_ProjectHandle ph, int *index, EN_LinkType type,
 
     // Create a new link of new type and old id
     errcode = EN_addlink(ph, id, type, id1, id2);
-    
+
     // Find the index of this new link
     EN_getlinkindex(ph, id, index);
-    return set_error(p->error_handle, errcode);
+    return (errcode);
 }
 
 int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
@@ -5020,16 +4986,16 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   Snode *node;
   Scoord *coord;
   Scontrol *control;
-  
+
   /* Check if a node with same id already exists */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (EN_getnodeindex(p, id, &i) == 0)
-    return set_error(p->error_handle, 215);
+    return (215);
 
   /* Check that id name is not too long */
   if (strlen(id) > MAXID)
-    return set_error(p->error_handle, 250);
+    return (250);
 
   /* Grow arrays to accomodate the new values */
   net->Node = (Snode *)realloc(net->Node, (net->Nnodes + 2) * sizeof(Snode));
@@ -5037,14 +5003,14 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
   hyd->NodeDemand = (double *)realloc(hyd->NodeDemand, (net->Nnodes + 2) * sizeof(double));
   qu->NodeQual = (double *)realloc(qu->NodeQual, (net->Nnodes + 2) * sizeof(double));
   hyd->NodeHead = (double *)realloc(hyd->NodeHead, (net->Nnodes + 2) * sizeof(double));
-  
+
   // Actions taken when a new Junction is added
   if (nodeType == EN_JUNCTION) {
     net->Njuncs++;
     nIdx = net->Njuncs;
     node = &net->Node[nIdx];
     coord = &net->Coord[nIdx];
-    
+
     demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
     demand->Base = 0.0;
     demand->Pat = hyd->DefPat; // Use default pattern
@@ -5072,7 +5038,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
         net->Link[index].N2 += 1;
       }
     }
-    
+
     // shift indices of Controls,
     // for high-index nodes (tanks/reservoirs)
     for (index = 1; index <= net->Ncontrols; ++index) {
@@ -5081,7 +5047,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
         control->Node += 1;
       }
     }
-    
+
     // adjust indices of tanks/reservoirs in Rule premises (see RULES.C)
     adjusttankrules(p);
 
@@ -5091,12 +5057,12 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
     node = &net->Node[nIdx];
     coord = &net->Coord[nIdx];
     net->Ntanks++;
-    
+
     /* resize tanks array */
     net->Tank = (Stank *)realloc(net->Tank, (net->Ntanks + 1) * sizeof(Stank));
-    
+
     tank = &net->Tank[net->Ntanks];
-    
+
     /* set default values for new tank or reservoir */
     tank->Node = nIdx;
     tank->Pat = 0;
@@ -5138,7 +5104,7 @@ int DLLEXPORT EN_addnode(EN_ProjectHandle ph, char *id, EN_NodeType nodeType) {
 
   /* Insert new node into hash table */
   hashtable_insert(net->NodeHashTable, node->ID, nIdx); /* see HASH.C */
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, char *fromNode,
@@ -5155,21 +5121,21 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
 
   /* Check if a link with same id already exists */
   if (!p->Openflag)
-    return set_error(p->error_handle, 102);
+    return (102);
   if (EN_getlinkindex(p, id, &i) == 0)
-    return set_error(p->error_handle, 215);
+    return (215);
 
   /* Lookup the from and to nodes */
   N1 = hashtable_find(net->NodeHashTable, fromNode);
   N2 = hashtable_find(net->NodeHashTable, toNode);
 
   if (N1 == 0 || N2 == 0) {
-    return set_error(p->error_handle, 203);
+    return (203);
   }
 
   /* Check that id name is not too long */
   if (strlen(id) > MAXID)
-    return set_error(p->error_handle, 250);
+    return (250);
 
   net->Nlinks++;
   n = net->Nlinks;
@@ -5181,7 +5147,7 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
   hyd->LinkStatus = (StatType *)realloc(hyd->LinkStatus, (net->Nlinks + 1) * sizeof(StatType));
 
   link = &net->Link[net->Nlinks];
-  
+
   strncpy(net->Link[n].ID, id, MAXID);
 
   if (linkType <= EN_PIPE) {
@@ -5191,7 +5157,7 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
     /* Grow pump array to accomodate the new value */
     net->Pump = (Spump *)realloc(net->Pump, (net->Npumps + 1) * sizeof(Spump));
     pump = &net->Pump[net->Npumps];
-    
+
     pump->Link = n;
     pump->Ptype = 0;
     pump->Q0 = 0;
@@ -5242,9 +5208,9 @@ int DLLEXPORT EN_addlink(EN_ProjectHandle ph, char *id, EN_LinkType linkType, ch
   link->Rc = 0;
   link->Rpt = 0;
   strcpy(link->Comment, "");
-  
+
   hashtable_insert(net->LinkHashTable, link->ID, n);
-  return set_error(p->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index, int actionCode)
@@ -5263,31 +5229,31 @@ int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index, int actionCode)
     int i;
     int pumpindex;
     int valveindex;
-  
+
     EN_LinkType linkType;
     EN_Project *p = (EN_Project*)ph;
     EN_Network *net = &p->network;
     Slink *link;
-  
+
     // Check that link exists
-    if (!p->Openflag) return set_error(p->error_handle, 102);
-    if (index <= 0 || index > net->Nlinks ) return set_error(p->error_handle, 204);
+    if (!p->Openflag) return (102);
+    if (index <= 0 || index > net->Nlinks ) return (204);
     if (actionCode < EN_UNCONDITIONAL || actionCode > EN_CONDITIONAL)
     {
-        return set_error(p->error_handle, 251);
+        return (251);
     }
 
     // Deletion will be cancelled if link appears in any controls
     if (actionCode == EN_CONDITIONAL)
     {
         actionCode = isInControls(p, LINK, index);
-        if (actionCode > 0) return set_error(p->error_handle, 261);
+        if (actionCode > 0) return (261);
     }
 
     // Get references to the link and its type
     link = &net->Link[index];
     EN_getlinktype(p, index, &linkType);
-  
+
     // Remove link from hash table
     hashtable_delete(net->LinkHashTable, link->ID);
 
@@ -5319,7 +5285,7 @@ int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index, int actionCode)
         }
         net->Npumps--;
     }
-  
+
     // Delete any valve (linkType > EN_PUMP) associated with the deleted link
     if (linkType > PUMP)
     {
@@ -5348,7 +5314,7 @@ int DLLEXPORT EN_deletelink(EN_ProjectHandle ph, int index, int actionCode)
 
     // Reduce link count by one
     net->Nlinks--;
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int index, int actionCode)
@@ -5373,15 +5339,15 @@ int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int index, int actionCode)
     Psource source;
 
     // Check that node exists
-    if (!p->Openflag) return set_error(p->error_handle, 102);
-    if (index <= 0 || index > net->Nnodes) return set_error(p->error_handle, 204);
+    if (!p->Openflag) return (102);
+    if (index <= 0 || index > net->Nnodes) return (204);
     if (actionCode < EN_UNCONDITIONAL || actionCode > EN_CONDITIONAL)
     {
-        return set_error(p->error_handle, 251);
+        return (251);
     }
 
     // Can't delete a water quality trace node
-    if (index == p->quality.TraceNode) return set_error(p->error_handle, 260);
+    if (index == p->quality.TraceNode) return (260);
 
     // Count number of simple & rule-based controls that contain the node
     if (actionCode == EN_CONDITIONAL)
@@ -5392,7 +5358,7 @@ int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int index, int actionCode)
             if (net->Link[i].N1 == index ||
                 net->Link[i].N2 == index)  actionCode += isInControls(p, LINK, i);
         }
-        if (actionCode > 0) return set_error(p->error_handle, 261);
+        if (actionCode > 0) return (261);
     }
 
     // Get a reference to the node & its type
@@ -5412,7 +5378,7 @@ int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int index, int actionCode)
     }
     source = node->S;
     if (source != NULL) free(source);
-    
+
     // Shift position of higher entries in Node & Coord arrays down one
     for (i = index; i <= net->Nnodes - 1; i++)
     {
@@ -5446,7 +5412,7 @@ int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int index, int actionCode)
     // (Process links in reverse order to maintain their indexing)
     for (i = net->Nlinks; i >= 1; i--)
     {
-        if (net->Link[i].N1 == index || 
+        if (net->Link[i].N1 == index ||
             net->Link[i].N2 == index)  EN_deletelink(ph, i, EN_UNCONDITIONAL);
     }
 
@@ -5476,7 +5442,7 @@ int DLLEXPORT EN_deletenode(EN_ProjectHandle ph, int index, int actionCode)
     if (nodeType == EN_JUNCTION) net->Njuncs--;
     else net->Ntanks--;
     net->Nnodes--;
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 int isInControls(EN_Project *pr, int objType, int index)
@@ -5556,14 +5522,14 @@ int DLLEXPORT EN_deletecontrol(EN_ProjectHandle ph, int index)
 
     if (index <= 0 || index > net->Ncontrols)
     {
-        return set_error(p->error_handle, 241);
+        return (241);
     }
     for (i = index; i <= net->Ncontrols - 1; i++)
     {
         net->Control[i] = net->Control[i + 1];
     }
     net->Ncontrols--;
-    return set_error(p->error_handle, 0);
+    return (0);
 }
 
 /*
@@ -5603,12 +5569,12 @@ int DLLEXPORT EN_addrule(EN_ProjectHandle ph, char *rule)
         // Find where current line ends and next one begins
         nextline = strchr(line, '\n');
         if (nextline) *nextline = '\0';
-        
+
         // Copy and tokenize the current line
         strcpy(line2, line);
         strcat(line2, "\n");  // Tokenizer won't work without this
         parser->Ntokens = gettokens(line2, parser->Tok, MAXTOKS, parser->Comment);
-        
+
         // Process the line to build up the rule's contents
         if (parser->Ntokens > 0 && *parser->Tok[0] != ';')
         {
@@ -5651,9 +5617,9 @@ int DLLEXPORT EN_getrule(EN_ProjectHandle ph, int index, int *nPremises,
     Saction *a;
     EN_Network *net = &pr->network;
 
-    if (index < 1 || index > net->Nrules) return set_error(pr->error_handle, 257);
+    if (index < 1 || index > net->Nrules) return (257);
     *priority = (EN_API_FLOAT_TYPE)pr->network.Rule[index].priority;
-    
+
     count = 1;
     p = net->Rule[index].Premises;
     while (p->next != NULL)
@@ -5662,7 +5628,7 @@ int DLLEXPORT EN_getrule(EN_ProjectHandle ph, int index, int *nPremises,
         p = p->next;
     }
     *nPremises = count;
-  
+
     count = 1;
     a = net->Rule[index].ThenActions;
     while (a->next != NULL)
@@ -5684,7 +5650,7 @@ int DLLEXPORT EN_getrule(EN_ProjectHandle ph, int index, int *nPremises,
         }
     }
     *nElseActions = count;
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 
@@ -5698,15 +5664,15 @@ int DLLEXPORT EN_getpremise(EN_ProjectHandle ph, int ruleIndex, int premiseIndex
     EN_Project *pr = (EN_Project*)ph;
     Spremise *premises;
     Spremise *p;
-  
+
     if (ruleIndex < 1 || ruleIndex > pr->network.Nrules)
     {
-        return set_error(pr->error_handle, 257);
+        return (257);
     }
 
     premises = pr->network.Rule[ruleIndex].Premises;
     p = getpremise(premises, premiseIndex);
-    if (p == NULL)  return set_error(pr->error_handle, 258);
+    if (p == NULL)  return (258);
 
     *logop = p->logop;
     *object = p->object;
@@ -5715,7 +5681,7 @@ int DLLEXPORT EN_getpremise(EN_ProjectHandle ph, int ruleIndex, int premiseIndex
     *relop = p->relop;
     *status = p->status;
     *value = (EN_API_FLOAT_TYPE)p->value;
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 
@@ -5733,10 +5699,10 @@ int DLLEXPORT EN_setrulepriority(EN_ProjectHandle ph, int index,
 
     if (index <= 0 || index > pr->network.Nrules)
     {
-        return set_error(pr->error_handle, 257);
+        return (257);
     }
     pr->network.Rule[index].priority = priority;
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_setpremise(EN_ProjectHandle ph, int ruleIndex, int premiseIndex,
@@ -5744,20 +5710,20 @@ int DLLEXPORT EN_setpremise(EN_ProjectHandle ph, int ruleIndex, int premiseIndex
                             int relop, int status, EN_API_FLOAT_TYPE value)
 //-----------------------------------------------------------------------------
 //  Sets the properties of a particular rule premise.
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 {
     EN_Project *pr = (EN_Project*)ph;
     Spremise *premises;
     Spremise *p;
-  
+
     if (ruleIndex < 1 || ruleIndex > pr->network.Nrules)
     {
-        return set_error(pr->error_handle, 257);
+        return (257);
     }
 
     premises = pr->network.Rule[ruleIndex].Premises;
     p = getpremise(premises, premiseIndex);
-    if (p == NULL)  return set_error(pr->error_handle, 258);
+    if (p == NULL)  return (258);
 
     p->logop = logop;
     p->object = object;
@@ -5766,7 +5732,7 @@ int DLLEXPORT EN_setpremise(EN_ProjectHandle ph, int ruleIndex, int premiseIndex
     p->relop = relop;
     p->status = status;
     p->value = value;
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_setpremiseindex(EN_ProjectHandle ph, int ruleIndex,
@@ -5778,15 +5744,15 @@ int DLLEXPORT EN_setpremiseindex(EN_ProjectHandle ph, int ruleIndex,
 
     if (ruleIndex < 1 || ruleIndex > pr->network.Nrules)
     {
-        return set_error(pr->error_handle, 257);
+        return (257);
     }
 
     premises = pr->network.Rule[ruleIndex].Premises;
     p = getpremise(premises, premiseIndex);
-    if (p == NULL)  return set_error(pr->error_handle, 258);
+    if (p == NULL)  return (258);
 
     p->index = objIndex;
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_setpremisestatus(EN_ProjectHandle ph, int ruleIndex,
@@ -5798,15 +5764,15 @@ int DLLEXPORT EN_setpremisestatus(EN_ProjectHandle ph, int ruleIndex,
 
     if (ruleIndex < 1 || ruleIndex > pr->network.Nrules)
     {
-        return set_error(pr->error_handle, 257);
+        return (257);
     }
 
     premises = pr->network.Rule[ruleIndex].Premises;
     p = getpremise(premises, ruleIndex);
-    if (p == NULL) return set_error(pr->error_handle, 258);
+    if (p == NULL) return (258);
 
     p->status = status;
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_setpremisevalue(EN_ProjectHandle ph, int ruleIndex,
@@ -5818,15 +5784,15 @@ int DLLEXPORT EN_setpremisevalue(EN_ProjectHandle ph, int ruleIndex,
 
     if (ruleIndex < 1 || ruleIndex > pr->network.Nrules)
     {
-        return set_error(pr->error_handle, 257);
+        return (257);
     }
 
     premises = pr->network.Rule[ruleIndex].Premises;
     p = getpremise(premises, premiseIndex);
-    if (p == NULL) return set_error(pr->error_handle, 258);
+    if (p == NULL) return (258);
 
     p->value = value;
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_getthenaction(EN_ProjectHandle ph, int ruleIndex,
@@ -5839,17 +5805,17 @@ int DLLEXPORT EN_getthenaction(EN_ProjectHandle ph, int ruleIndex,
 
     if (ruleIndex < 1 || ruleIndex > pr->network.Nrules)
     {
-        return set_error(pr->error_handle, 257);
+        return (257);
     }
 
     actions = pr->network.Rule[ruleIndex].ThenActions;
     a = getaction(actions, actionIndex);
-    if (a == NULL) return set_error(pr->error_handle, 258);
-    
+    if (a == NULL) return (258);
+
     *linkIndex = a->link;
     *status = a->status;
     *setting = (EN_API_FLOAT_TYPE)a->setting;
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_setthenaction(EN_ProjectHandle ph, int ruleIndex,
@@ -5862,17 +5828,17 @@ int DLLEXPORT EN_setthenaction(EN_ProjectHandle ph, int ruleIndex,
 
     if (ruleIndex < 1 || ruleIndex > pr->network.Nrules)
     {
-        return set_error(pr->error_handle, 257);
+        return (257);
     }
 
     actions = pr->network.Rule[ruleIndex].ThenActions;
     a = getaction(actions, actionIndex);
-    if (a == NULL) return set_error(pr->error_handle, 258);
+    if (a == NULL) return (258);
 
     a->link = linkIndex;
     a->status = status;
     a->setting = setting;
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_getelseaction(EN_ProjectHandle ph, int ruleIndex,
@@ -5886,17 +5852,17 @@ int DLLEXPORT EN_getelseaction(EN_ProjectHandle ph, int ruleIndex,
 
   if (ruleIndex < 1 || ruleIndex > pr->network.Nrules)
   {
-      return set_error(pr->error_handle, 257);
+      return (257);
   }
 
   actions = pr->network.Rule[ruleIndex].ThenActions;
   a = getaction(actions, actionIndex);
-  if (a == NULL) return set_error(pr->error_handle, 258);
+  if (a == NULL) return (258);
 
   *linkIndex = a->link;
   *status = a->status;
   *setting = (EN_API_FLOAT_TYPE)a->setting;
-  return set_error(pr->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_setelseaction(EN_ProjectHandle ph, int ruleIndex,
@@ -5909,31 +5875,31 @@ int DLLEXPORT EN_setelseaction(EN_ProjectHandle ph, int ruleIndex,
 
   if (ruleIndex < 1 || ruleIndex > pr->network.Nrules)
   {
-      return set_error(pr->error_handle, 257);
+      return (257);
   }
 
   actions = pr->network.Rule[ruleIndex].ThenActions;
   a = getaction(actions, actionIndex);
-  if (a == NULL) return set_error(pr->error_handle, 258);
+  if (a == NULL) return (258);
 
   a->link = linkIndex;
   a->status = status;
   a->setting = setting;
-  return set_error(pr->error_handle, 0);
+  return (0);
 }
 
 int DLLEXPORT EN_getruleID(EN_ProjectHandle ph, int index, char *id)
 {
     EN_Project *pr = (EN_Project*)ph;
-    
+
     strcpy(id, "");
-    if (!pr->Openflag) return set_error(pr->error_handle, 102);
+    if (!pr->Openflag) return (102);
     if (index < 1 || index > pr->network.Nrules)
     {
-        return set_error(pr->error_handle, 257);
+        return (257);
     }
     strcpy(id, pr->network.Rule[index].label);
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 int DLLEXPORT EN_deleterule(EN_ProjectHandle ph, int index)
@@ -5942,10 +5908,10 @@ int DLLEXPORT EN_deleterule(EN_ProjectHandle ph, int index)
 
     if (index < 1 || index > pr->network.Nrules)
     {
-        return set_error(pr->error_handle, 257);
+        return (257);
     }
     deleterule(pr, index);
-    return set_error(pr->error_handle, 0);
+    return (0);
 }
 
 /*************************** END OF EPANET.C ***************************/
