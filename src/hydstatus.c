@@ -1,29 +1,34 @@
 /*
-*********************************************************************
-
-HYDSTATUS.C --  Hydraulic status updating for the EPANET Program
-
-*******************************************************************
+******************************************************************************
+Project:      OWA EPANET
+Version:      2.2
+Module:       hydstatus.c
+Description:  updates hydraulic status of network elements
+Authors:      see AUTHORS
+Copyright:    see AUTHORS
+License:      see LICENSE
+Last Updated: 11/27/2018
+******************************************************************************
 */
 
 #include <stdio.h>
 #include "types.h"
 #include "funcs.h"
 
-// External functions
-int  valvestatus(EN_Project *pr);
-int  linkstatus(EN_Project *pr);
+// Exported functions
+int  valvestatus(Project *);
+int  linkstatus(Project *);
 
 // Local functions
-static StatType cvstatus(EN_Project *pr, StatType, double, double);
-static StatType pumpstatus(EN_Project *pr, int, double);
-static StatType prvstatus(EN_Project *pr, int, StatType, double, double, double);
-static StatType psvstatus(EN_Project *pr, int, StatType, double, double, double);
-static StatType fcvstatus(EN_Project *pr, int, StatType, double, double);
-static void     tankstatus(EN_Project *pr, int, int, int);
+static StatusType cvstatus(Project *, StatusType, double, double);
+static StatusType pumpstatus(Project *, int, double);
+static StatusType prvstatus(Project *, int, StatusType, double, double, double);
+static StatusType psvstatus(Project *, int, StatusType, double, double, double);
+static StatusType fcvstatus(Project *, int, StatusType, double, double);
+static void       tankstatus(Project *, int, int, int);
 
 
-int  valvestatus(EN_Project *pr)
+int  valvestatus(Project *pr)
 /*
 **-----------------------------------------------------------------
 **  Input:   none
@@ -34,16 +39,16 @@ int  valvestatus(EN_Project *pr)
 **-----------------------------------------------------------------
 */
 {
-    int   change = FALSE,            // Status change flag
-          i, k,                      // Valve & link indexes
-          n1, n2;                    // Start & end nodes
-    StatType  status;                // Valve status settings
-    double hset;                     // Valve head setting
-    Slink *link;
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Report  *rpt = &pr->report;
 
-    EN_Network       *net = &pr->network;
-    hydraulics_t     *hyd = &pr->hydraulics;
-    report_options_t *rep = &pr->report;
+    int    change = FALSE,   // Status change flag
+           i, k,             // Valve & link indexes
+           n1, n2;           // Start & end nodes
+    double hset;             // Valve head setting
+    StatusType status;       // Valve status settings
+    Slink *link; 
 
     // Examine each valve
     for (i = 1; i <= net->Nvalves; i++)
@@ -80,7 +85,7 @@ int  valvestatus(EN_Project *pr)
         // Check for a status change
         if (status != hyd->LinkStatus[k])
         {
-            if (rep->Statflag == FULL)
+            if (rpt->Statflag == FULL)
             {
                 writestatchange(pr, k, status, hyd->LinkStatus[k]);
             }
@@ -88,10 +93,10 @@ int  valvestatus(EN_Project *pr)
         }
     }
     return change;
-}                       /* End of valvestatus() */
+}
 
 
-int  linkstatus(EN_Project *pr)
+int  linkstatus(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -101,16 +106,16 @@ int  linkstatus(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Report  *rpt = &pr->report;
+
     int change = FALSE,             // Status change flag
         k,                          // Link index
         n1,                         // Start node index
         n2;                         // End node index
     double dh;                      // Head difference across link
-    StatType  status;               // Current status
-
-    EN_Network       *net = &pr->network;
-    hydraulics_t     *hyd = &pr->hydraulics;
-    report_options_t *rep = &pr->report;
+    StatusType  status;             // Current status
     Slink *link;
 
     // Examine each link
@@ -132,7 +137,7 @@ int  linkstatus(EN_Project *pr)
         if (link->Type == CVPIPE)
         {
             hyd->LinkStatus[k] = cvstatus(pr, hyd->LinkStatus[k], dh,
-                                          hyd->LinkFlows[k]);
+                                          hyd->LinkFlow[k]);
         }
         if (link->Type == PUMP && hyd->LinkStatus[k] >= OPEN &&
             hyd->LinkSetting[k] > 0.0)
@@ -157,7 +162,7 @@ int  linkstatus(EN_Project *pr)
         if (status != hyd->LinkStatus[k])
         {
             change = TRUE;
-            if (rep->Statflag == FULL)
+            if (rpt->Statflag == FULL)
             {
                 writestatchange(pr, k, status, hyd->LinkStatus[k]);
             }
@@ -167,7 +172,7 @@ int  linkstatus(EN_Project *pr)
 }
 
 
-StatType  cvstatus(EN_Project *pr, StatType s, double dh, double q)
+StatusType  cvstatus(Project *pr, StatusType s, double dh, double q)
 /*
 **--------------------------------------------------
 **  Input:   s  = current link status
@@ -178,7 +183,7 @@ StatType  cvstatus(EN_Project *pr, StatType s, double dh, double q)
 **--------------------------------------------------
 */
 {
-    hydraulics_t *hyd = &pr->hydraulics;
+    Hydraul *hyd = &pr->hydraul;
 
     // Prevent reverse flow through CVs
     if (ABS(dh) > hyd->Htol)
@@ -195,7 +200,7 @@ StatType  cvstatus(EN_Project *pr, StatType s, double dh, double q)
 }
 
 
-StatType  pumpstatus(EN_Project *pr, int k, double dh)
+StatusType  pumpstatus(Project *pr, int k, double dh)
 /*
 **--------------------------------------------------
 **  Input:   k  = link index
@@ -205,10 +210,11 @@ StatType  pumpstatus(EN_Project *pr, int k, double dh)
 **--------------------------------------------------
 */
 {
+    Hydraul *hyd = &pr->hydraul;
+    Network *net = &pr->network;
+
     int   p;
     double hmax;
-    hydraulics_t *hyd = &pr->hydraulics;
-    EN_Network *net = &pr->network;
 
     // Find maximum head (hmax) pump can deliver
     p = findpump(net, k);
@@ -231,7 +237,7 @@ StatType  pumpstatus(EN_Project *pr, int k, double dh)
 }
 
 
-StatType  prvstatus(EN_Project *pr, int k, StatType s, double hset,
+StatusType  prvstatus(Project *pr, int k, StatusType s, double hset,
                     double h1, double h2)
 /*
 **-----------------------------------------------------------
@@ -245,28 +251,31 @@ StatType  prvstatus(EN_Project *pr, int k, StatType s, double hset,
 **-----------------------------------------------------------
 */
 {
-    StatType  status;             // Valve's new status
-    double hml;                   // Head loss when fully opened
-    hydraulics_t *hyd = &pr->hydraulics;
+    Hydraul *hyd = &pr->hydraul;
 
-    double htol = hyd->Htol;
-    Slink *link = &pr->network.Link[k];
+    StatusType status;             // Valve's new status
+    double  hml;                   // Head loss when fully opened
+    double  htol;
+    Slink   *link;
+
+    htol = hyd->Htol;
+    link = &pr->network.Link[k];
 
     // Head loss when fully open
-    hml = link->Km * SQR(hyd->LinkFlows[k]);
+    hml = link->Km * SQR(hyd->LinkFlow[k]);
 
     // Rules for updating valve's status from current value s
     status = s;
     switch (s)
     {
     case ACTIVE:
-        if (hyd->LinkFlows[k] < -hyd->Qtol)  status = CLOSED;
+        if (hyd->LinkFlow[k] < -hyd->Qtol)  status = CLOSED;
         else if (h1 - hml < hset - htol)     status = OPEN;
         else                                 status = ACTIVE;
         break;
 
     case OPEN:
-        if (hyd->LinkFlows[k] < -hyd->Qtol)  status = CLOSED;
+        if (hyd->LinkFlow[k] < -hyd->Qtol)  status = CLOSED;
         else if (h2 >= hset + htol)          status = ACTIVE;
         else                                 status = OPEN;
         break;
@@ -278,7 +287,7 @@ StatType  prvstatus(EN_Project *pr, int k, StatType s, double hset,
         break;
 
     case XPRESSURE:
-        if (hyd->LinkFlows[k] < -hyd->Qtol) status = CLOSED;
+        if (hyd->LinkFlow[k] < -hyd->Qtol) status = CLOSED;
         break;
 
     default:
@@ -288,7 +297,7 @@ StatType  prvstatus(EN_Project *pr, int k, StatType s, double hset,
 }
 
 
-StatType  psvstatus(EN_Project *pr, int k, StatType s, double hset,
+StatusType  psvstatus(Project *pr, int k, StatusType s, double hset,
                     double h1, double h2)
 /*
 **-----------------------------------------------------------
@@ -302,28 +311,31 @@ StatType  psvstatus(EN_Project *pr, int k, StatType s, double hset,
 **-----------------------------------------------------------
 */
 {
-    StatType  status;             // Valve's new status
-    double hml;                   // Head loss when fully opened
-    hydraulics_t *hyd = &pr->hydraulics;
+    Hydraul *hyd = &pr->hydraul;
 
-    double htol = hyd->Htol;
-    Slink *link = &pr->network.Link[k];
+    StatusType status;             // Valve's new status
+    double  hml;                   // Head loss when fully opened
+    double  htol;
+    Slink   *link;
+
+    htol = hyd->Htol;
+    link = &pr->network.Link[k];
 
     // Head loss when fully open
-    hml = link->Km * SQR(hyd->LinkFlows[k]);
+    hml = link->Km * SQR(hyd->LinkFlow[k]);
 
     // Rules for updating valve's status from current value s
     status = s;
     switch (s)
     {
     case ACTIVE:
-        if (hyd->LinkFlows[k] < -hyd->Qtol) status = CLOSED;
+        if (hyd->LinkFlow[k] < -hyd->Qtol) status = CLOSED;
         else if (h2 + hml > hset + htol)    status = OPEN;
         else                                status = ACTIVE;
         break;
 
     case OPEN:
-        if (hyd->LinkFlows[k] < -hyd->Qtol) status = CLOSED;
+        if (hyd->LinkFlow[k] < -hyd->Qtol) status = CLOSED;
         else if (h1 < hset - htol)          status = ACTIVE;
         else                                status = OPEN;
         break;
@@ -335,7 +347,7 @@ StatType  psvstatus(EN_Project *pr, int k, StatType s, double hset,
         break;
 
     case XPRESSURE:
-        if (hyd->LinkFlows[k] < -hyd->Qtol) status = CLOSED;
+        if (hyd->LinkFlow[k] < -hyd->Qtol) status = CLOSED;
         break;
 
     default:
@@ -345,7 +357,7 @@ StatType  psvstatus(EN_Project *pr, int k, StatType s, double hset,
 }
 
 
-StatType  fcvstatus(EN_Project *pr, int k, StatType s, double h1, double h2)
+StatusType  fcvstatus(Project *pr, int k, StatusType s, double h1, double h2)
 /*
 **-----------------------------------------------------------
 **  Input:   k    = link index
@@ -364,19 +376,19 @@ StatType  fcvstatus(EN_Project *pr, int k, StatType s, double h1, double h2)
 **-----------------------------------------------------------
 */
 {
-    StatType  status;             // New valve status
-    hydraulics_t *hyd = &pr->hydraulics;
+    Hydraul *hyd = &pr->hydraul;
+    StatusType status;            // New valve status
 
     status = s;
     if (h1 - h2 < -hyd->Htol)
     {
         status = XFCV;
     }
-    else if (hyd->LinkFlows[k] < -hyd->Qtol)
+    else if (hyd->LinkFlow[k] < -hyd->Qtol)
     {
         status = XFCV;
     }
-    else if (s == XFCV && hyd->LinkFlows[k] >= hyd->LinkSetting[k])
+    else if (s == XFCV && hyd->LinkFlow[k] >= hyd->LinkSetting[k])
     {
         status = ACTIVE;
     }
@@ -384,7 +396,7 @@ StatType  fcvstatus(EN_Project *pr, int k, StatType s, double h1, double h2)
 }
 
 
-void  tankstatus(EN_Project *pr, int k, int n1, int n2)
+void  tankstatus(Project *pr, int k, int n1, int n2)
 /*
 **----------------------------------------------------------------
 **  Input:   k  = link index
@@ -395,19 +407,19 @@ void  tankstatus(EN_Project *pr, int k, int n1, int n2)
 **----------------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+
     int   i, n;
     double h, q;
     Stank *tank;
-
-    hydraulics_t *hyd = &pr->hydraulics;
-    EN_Network *net = &pr->network;
     Slink *link = &net->Link[k];
 
     // Return if link is closed
     if (hyd->LinkStatus[k] <= CLOSED) return;
 
     // Make node n1 be the tank, reversing flow (q) if need be
-    q = hyd->LinkFlows[k];
+    q = hyd->LinkFlow[k];
     i = n1 - net->Njuncs;
     if (i <= 0)
     {

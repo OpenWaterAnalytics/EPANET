@@ -57,7 +57,7 @@ DAT(257,ENERR_NO_RULE,"function applied to nonexistent rule")
 DAT(258,ENERR_NO_CONDITION_ACTION,"function applied to nonexistent rule clause")
 
 DAT(260,ENERR_DEL_TRACE_NODE,"cannot delete node assigned as a Trace Node")
-DAT(261,ENERR_DEL_NODE_LINK, "cannot delete a node or link contained in a control or rule")
+DAT(261,ENERR_DEL_NODE_LINK, "cannot delete a node or link contained in a control")
 
 DAT(301,ENERR_FILES_ARE_SAME,"identical file names")
 DAT(302,ENERR_CANT_OPEN_INP,"cannot open input file")
@@ -68,9 +68,6 @@ DAT(306,ENERR_HYD_FILE_NOMATCH,"hydraulics file does not match network data")
 DAT(307,ENERR_CANT_READ_HYD,"cannot read hydraulics file")
 DAT(308,ENERR_CANT_SAVE_RES,"cannot save results to file")
 DAT(309,ENERR_CANT_SAVE_RPT,"cannot save results to report file")
-
-DAT(401,ENERR_QSTEP_NOT_DIVISIBLE,"Qstep is not dividable by Hstep")
-
 
 DAT(411,ENERR_NO_MEM_ALLOC,"no memory allocated for results")
 DAT(412,ENERR_NO_RESULTS_NO_FILE,"no results; binary file hasn't been opened")

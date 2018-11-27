@@ -1,13 +1,14 @@
 /*
-*********************************************************************
-
-QUALITY.C -- water quality engine module for the EPANET program
-
-This module works together with QUALROUTE.C and QUALREACT.C to
-compute transport and reaction of a water quality constituent within
-a pipe network over a series of time steps.
-
-*********************************************************************
+******************************************************************************
+Project:      OWA EPANET
+Version:      2.2
+Module:       quality.c
+Description:  implements EPANET's water quality engine
+Authors:      see AUTHORS
+Copyright:    see AUTHORS
+License:      see LICENSE
+Last Updated: 11/27/2018
+******************************************************************************
 */
 
 #include <stdio.h>
@@ -24,36 +25,35 @@ a pipe network over a series of time steps.
 #include "funcs.h"
 
 // Stagnant flow tolerance
-const double QZERO = 0.005 / GPMperCFS;     // 0.005 gpm = 1.114e-5 cfs
+const double Q_STAGNANT = 0.005 / GPMperCFS;     // 0.005 gpm = 1.114e-5 cfs
 
-// Exported Functions (declared in FUNCS.H)
-//int     openqual(EN_Project *pr);
-//void    initqual(EN_Project *pr);
-//int     runqual(EN_Project *pr, long *);
-//int     nextqual(EN_Project *pr, long *);
-//int     stepqual(EN_Project *pr, long *);
-//int     closequal(EN_Project *pr);
-//double  avgqual(EN_Project *pr, int);
-double  findsourcequal(EN_Project *pr, int, double, double, long);
+// Exported functions (declared in FUNCS.H)
+//int     openqual(Project *);
+//void    initqual(Project *);
+//int     runqual(Project *, long *);
+//int     nextqual(Project *, long *);
+//int     stepqual(Project *, long *);
+//int     closequal(Project *);
+//double  avgqual(Project *, int);
+double  findsourcequal(Project *, int, double, double, long);
 
-// Imported Functions
-extern char    setreactflag(EN_Project *pr);
+// Imported functions
+extern char    setreactflag(Project *);
 extern double  getucf(double);
-extern void    ratecoeffs(EN_Project *pr);
-extern int     buildilists(EN_Project *pr);
-extern void    initsegs(EN_Project *pr);
-extern void    reversesegs(EN_Project *pr, int);
-extern int     sortnodes(EN_Project *pr);
-extern void    transport(EN_Project *pr, long);
+extern void    ratecoeffs(Project *);
+extern void    initsegs(Project *);
+extern void    reversesegs(Project *, int);
+extern int     sortnodes(Project *);
+extern void    transport(Project *, long);
 
-// Local Functions
-static double  sourcequal(EN_Project *pr, Psource);
-static void    evalmassbalance(EN_Project *pr);
-static double  findstoredmass(EN_Project *pr);
-static int     flowdirchanged(EN_Project *pr);
+// Local functions
+static double  sourcequal(Project *, Psource);
+static void    evalmassbalance(Project *);
+static double  findstoredmass(Project *);
+static int     flowdirchanged(Project *);
 
 
-int openqual(EN_Project *pr)
+int openqual(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -62,16 +62,23 @@ int openqual(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
+    Network  *net = &pr->network;
+    Quality *qual = &pr->quality;
+
     int errcode = 0;
     int n;
 
-    quality_t *qual = &pr->quality;
-    EN_Network *net = &pr->network;
+    // Build nodal adjacency lists if they don't already exist
+    if (net->Adjlist == NULL)
+    {
+        errcode = buildadjlists(net);
+        if (errcode ) return errcode;
+    }
 
     // Create a memory pool for water quality segments
     qual->OutOfMemory = FALSE;
     qual->SegPool = mempool_create();
-    if (qual->SegPool == NULL) errcode = 101;; 
+    if (qual->SegPool == NULL) errcode = 101; 
 
     // Allocate arrays for link flow direction & reaction rates
     n = net->Nlinks + 1;
@@ -83,34 +90,19 @@ int openqual(EN_Project *pr)
     qual->FirstSeg = (Pseg *)calloc(n, sizeof(Pseg));
     qual->LastSeg = (Pseg *)calloc(n, sizeof(Pseg));
 
-    // Allocate memory for sorted nodes and link incidence lists
-    // ... Ilist contains the list of link indexes that are incident
-    //     on each node in compact format
-    n = 2 * net->Nlinks + 2;
-    qual->Ilist = (int *)calloc(n, sizeof(int));
-    // ... IlistPtr holds the position in Ilist where the
-    //     incidence list for each node begins
-    n = net->Nnodes + 1;
-    qual->IlistPtr = (int *)calloc(n + 2, sizeof(int));
-    // ... SortedNodes contains the list of node indexes in topological
-    //     order 
+    // Allocate memory for topologically sorted nodes 
     qual->SortedNodes = (int *)calloc(n, sizeof(int));
     
     ERRCODE(MEMCHECK(qual->FlowDir));
     ERRCODE(MEMCHECK(qual->PipeRateCoeff));
     ERRCODE(MEMCHECK(qual->FirstSeg));
     ERRCODE(MEMCHECK(qual->LastSeg));
-    ERRCODE(MEMCHECK(qual->Ilist));
-    ERRCODE(MEMCHECK(qual->IlistPtr));
     ERRCODE(MEMCHECK(qual->SortedNodes));
-
-    // Build link incidence lists
-    if (!errcode) errcode = buildilists(pr);
     return errcode;
 }
 
 
-int initqual(EN_Project *pr)
+int initqual(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -119,22 +111,24 @@ int initqual(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
+
     int i;
     int errcode = 0;
-    EN_Network   *net = &pr->network;
-    hydraulics_t *hyd = &pr->hydraulics;
-    quality_t    *qual = &pr->quality;
 
     // Re-position hydraulics file 
     if (!hyd->OpenHflag)
     {
-        fseek(pr->out_files.HydFile, pr->out_files.HydOffset, SEEK_SET);
+        fseek(pr->outfile.HydFile, pr->outfile.HydOffset, SEEK_SET);
     }
 
     // Set elapsed times to zero
-    qual->Qtime = 0;
-    pr->time_options.Htime = 0;
-    pr->time_options.Rtime = pr->time_options.Rstart;
+    time->Qtime = 0;
+    time->Htime = 0;
+    time->Rtime = time->Rstart;
     pr->report.Nperiods = 0;
 
     // Initialize node quality
@@ -183,17 +177,17 @@ int initqual(EN_Project *pr)
     qual->Wsource = 0.0;
 
     // Initialize mass balance components
-    qual->massbalance.initial = findstoredmass(pr);
-    qual->massbalance.inflow = 0.0;
-    qual->massbalance.outflow = 0.0;
-    qual->massbalance.reacted = 0.0;
-    qual->massbalance.final = 0.0;
-    qual->massbalance.ratio = 0.0;
+    qual->MassBalance.initial = findstoredmass(pr);
+    qual->MassBalance.inflow = 0.0;
+    qual->MassBalance.outflow = 0.0;
+    qual->MassBalance.reacted = 0.0;
+    qual->MassBalance.final = 0.0;
+    qual->MassBalance.ratio = 0.0;
     return errcode;
 }
 
 
-int runqual(EN_Project *pr, long *t)
+int runqual(Project *pr, long *t)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -204,19 +198,19 @@ int runqual(EN_Project *pr, long *t)
 **--------------------------------------------------------------
 */
 {
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
+
     long hydtime;       // Hydraulic solution time
     long hydstep;       // Hydraulic time step
     int errcode = 0;
 
-    hydraulics_t   *hyd = &pr->hydraulics;
-    quality_t      *qual = &pr->quality;
-    time_options_t *time = &pr->time_options;
-
     // Update reported simulation time
-    *t = qual->Qtime;
+    *t = time->Qtime;
 
     // Read hydraulic solution from hydraulics file 
-    if (qual->Qtime == time->Htime)
+    if (time->Qtime == time->Htime)
     {
         // Read hydraulic results from file 
         if (!hyd->OpenHflag)
@@ -229,7 +223,7 @@ int runqual(EN_Project *pr, long *t)
         // Save current results to output file 
         if (time->Htime >= time->Rtime)
         {
-            if (pr->save_options.Saveflag)
+            if (pr->outfile.Saveflag)
             {
                 errcode = saveoutput(pr);
                 pr->report.Nperiods++;
@@ -239,7 +233,7 @@ int runqual(EN_Project *pr, long *t)
         if (errcode) return errcode;
 
         // If simulating water quality
-        if (qual->Qualflag != NONE && qual->Qtime < time->Dur)
+        if (qual->Qualflag != NONE && time->Qtime < time->Dur)
         {
             // ... compute reaction rate coeffs.
             if (qual->Reactflag && qual->Qualflag != AGE) ratecoeffs(pr);
@@ -256,7 +250,7 @@ int runqual(EN_Project *pr, long *t)
 }
 
 
-int nextqual(EN_Project *pr, long *tstep)
+int nextqual(Project *pr, long *tstep)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -267,17 +261,17 @@ int nextqual(EN_Project *pr, long *tstep)
 **--------------------------------------------------------------
 */
 {
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
+  
     long hydstep;            // Time step until next hydraulic event
     long dt, qtime;
     int errcode = 0;
 
-    quality_t      *qual = &pr->quality;
-    time_options_t *time = &pr->time_options;
-  
     // Find time step till next hydraulic event
     *tstep = 0;
     hydstep = 0;
-    if (time->Htime <= time->Dur) hydstep = time->Htime - qual->Qtime;
+    if (time->Htime <= time->Dur) hydstep = time->Htime - time->Qtime;
 
     // Perform water quality routing over this time step
     if (qual->Qualflag != NONE && hydstep > 0)
@@ -286,7 +280,7 @@ int nextqual(EN_Project *pr, long *tstep)
         qtime = 0;
         while (!qual->OutOfMemory && qtime < hydstep)
         {
-            dt = MIN(qual->Qstep, hydstep - qtime);
+            dt = MIN(time->Qstep, hydstep - qtime);
             qtime += dt;
             transport(pr, dt);
         }
@@ -298,7 +292,7 @@ int nextqual(EN_Project *pr, long *tstep)
 
     // Update current time
     if (!errcode) *tstep = hydstep;
-    qual->Qtime += hydstep;
+    time->Qtime += hydstep;
 
     // If no more time steps remain
     if (!errcode && *tstep == 0)
@@ -310,13 +304,13 @@ int nextqual(EN_Project *pr, long *tstep)
         }
 
         // ... write the final portion of the binary output file
-        if (pr->save_options.Saveflag) errcode = savefinaloutput(pr);
+        if (pr->outfile.Saveflag) errcode = savefinaloutput(pr);
     }
     return errcode;
 }
 
 
-int stepqual(EN_Project *pr, long *tleft)
+int stepqual(Project *pr, long *tleft)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -327,19 +321,20 @@ int stepqual(EN_Project *pr, long *tleft)
 **--------------------------------------------------------------
 */
 {
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
+
     long dt, hstep, t, tstep;
     int errcode = 0;
 
-    quality_t *qual = &pr->quality;
-
-    tstep = qual->Qstep;
+    tstep = time->Qstep;
     do
     {
         // Set local time step to quality time step
         dt = tstep;
 
         // Find time step until next hydraulic event
-        hstep = pr->time_options.Htime - qual->Qtime;
+        hstep = time->Htime - time->Qtime;
 
         // If next hydraulic event occurs before end of local time step
         if (hstep < dt)
@@ -349,21 +344,21 @@ int stepqual(EN_Project *pr, long *tleft)
 
             // ... transport quality over local time step
             if (qual->Qualflag != NONE) transport(pr, dt);
-            qual->Qtime += dt;
+            time->Qtime += dt;
 
             // ... quit if running quality concurrently with hydraulics
-            if (pr->hydraulics.OpenHflag) break;
+            if (pr->hydraul.OpenHflag) break;
 
             // ... otherwise call runqual() to update hydraulics
             errcode = runqual(pr, &t);
-            qual->Qtime = t;
+            time->Qtime = t;
         }
 
         // Otherwise transport quality over current local time step
         else
         {
             if (qual->Qualflag != NONE) transport(pr, dt);
-            qual->Qtime += dt;
+            time->Qtime += dt;
         }
 
         // Reduce quality time step by local time step
@@ -376,7 +371,7 @@ int stepqual(EN_Project *pr, long *tleft)
     evalmassbalance(pr);
 
     // Update total simulation time left
-    *tleft = pr->time_options.Dur - qual->Qtime;
+    *tleft = time->Dur - time->Qtime;
 
     // If no more time steps remain
     if (!errcode && *tleft == 0)
@@ -388,13 +383,13 @@ int stepqual(EN_Project *pr, long *tleft)
         }
 
         // ... write the final portion of the binary output file
-        if (pr->save_options.Saveflag) errcode = savefinaloutput(pr);
+        if (pr->outfile.Saveflag) errcode = savefinaloutput(pr);
     }
     return errcode;
 }
 
 
-int closequal(EN_Project *pr)
+int closequal(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -403,7 +398,7 @@ int closequal(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
-    quality_t *qual = &pr->quality;
+    Quality *qual = &pr->quality;
     int errcode = 0;
 
     if (qual->SegPool) mempool_delete(qual->SegPool);
@@ -411,14 +406,12 @@ int closequal(EN_Project *pr)
     FREE(qual->LastSeg);
     FREE(qual->PipeRateCoeff);
     FREE(qual->FlowDir);
-    FREE(qual->Ilist);
-    FREE(qual->IlistPtr);
     FREE(qual->SortedNodes);
     return errcode;
 }
 
 
-double avgqual(EN_Project *pr, int k)
+double avgqual(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -427,11 +420,11 @@ double avgqual(EN_Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
+    Network  *net = &pr->network;
+    Quality  *qual = &pr->quality;
+
     double vsum = 0.0, msum = 0.0;
     Pseg seg;
-
-    EN_Network *net = &pr->network;
-    quality_t  *qual = &pr->quality;
 
     if (qual->Qualflag == NONE) return 0.0;
 
@@ -459,7 +452,7 @@ double avgqual(EN_Project *pr, int k)
 }
 
 
-double findsourcequal(EN_Project *pr, int n, double volin, double volout, long tstep)
+double findsourcequal(Project *pr, int n, double volin, double volout, long tstep)
 /*
 **---------------------------------------------------------------------
 **   Input:   n = node index
@@ -472,13 +465,13 @@ double findsourcequal(EN_Project *pr, int n, double volin, double volout, long t
 **---------------------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
+
     double massadded = 0.0, c;
     Psource source;
-
-    EN_Network     *net = &pr->network;
-    hydraulics_t   *hyd = &pr->hydraulics;
-    quality_t      *qual = &pr->quality;
-    time_options_t *time = &pr->time_options;
 
     // Sources only apply to CHEMICAL analyses
     if (qual->Qualflag != CHEM) return 0.0;
@@ -487,7 +480,7 @@ double findsourcequal(EN_Project *pr, int n, double volin, double volout, long t
     source = net->Node[n].S;
     if (source == NULL)    return 0.0;
     if (source->C0 == 0.0) return 0.0;
-    if (volout / tstep <= QZERO) return 0.0;
+    if (volout / tstep <= Q_STAGNANT) return 0.0;
 
     // Added source concentration depends on source type
     c = sourcequal(pr, source);
@@ -540,7 +533,7 @@ double findsourcequal(EN_Project *pr, int n, double volin, double volout, long t
 }
 
 
-double sourcequal(EN_Project *pr, Psource source)
+double sourcequal(Project *pr, Psource source)
 /*
 **--------------------------------------------------------------
 **   Input:   source = a water quality source object
@@ -549,13 +542,13 @@ double sourcequal(EN_Project *pr, Psource source)
 **--------------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
+
     int i;
     long k;
     double c;
-
-    EN_Network     *net = &pr->network;
-    quality_t      *qual = &pr->quality;
-    time_options_t *time = &pr->time_options;
 
     // Get source concentration (or mass flow) in original units
     c = source->C0;
@@ -568,13 +561,13 @@ double sourcequal(EN_Project *pr, Psource source)
     // Apply time pattern if assigned
     i = source->Pat;
     if (i == 0)  return c;
-    k = ((qual->Qtime + time->Pstart) / time->Pstep) %
+    k = ((time->Qtime + time->Pstart) / time->Pstep) %
         (long)net->Pattern[i].Length;
     return (c * net->Pattern[i].F[k]);
 }
 
 
-void  evalmassbalance(EN_Project *pr)
+void  evalmassbalance(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -584,27 +577,28 @@ void  evalmassbalance(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
+    Quality *qual = &pr->quality;
+
     double massin;
     double massout;
     double massreacted;
-    quality_t *qual = &pr->quality;
 
-    if (qual->Qualflag == NONE) qual->massbalance.ratio = 1.0;
+    if (qual->Qualflag == NONE) qual->MassBalance.ratio = 1.0;
     else
     {
-        qual->massbalance.final = findstoredmass(pr);
-        massin = qual->massbalance.initial + qual->massbalance.inflow;
-        massout = qual->massbalance.outflow + qual->massbalance.final;
-        massreacted = qual->massbalance.reacted;
+        qual->MassBalance.final = findstoredmass(pr);
+        massin = qual->MassBalance.initial + qual->MassBalance.inflow;
+        massout = qual->MassBalance.outflow + qual->MassBalance.final;
+        massreacted = qual->MassBalance.reacted;
         if (massreacted > 0.0) massout += massreacted;
         else                   massin -= massreacted;
-        if (massin == 0.0) qual->massbalance.ratio = 1.0;
-        else               qual->massbalance.ratio = massout / massin;
+        if (massin == 0.0) qual->MassBalance.ratio = 1.0;
+        else               qual->MassBalance.ratio = massout / massin;
     }
 }
 
 
-double  findstoredmass(EN_Project *pr)
+double  findstoredmass(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -614,12 +608,12 @@ double  findstoredmass(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
+    Network  *net = &pr->network;
+    Quality  *qual = &pr->quality;
+
     int    i, k;
     double totalmass = 0.0;
     Pseg   seg;
-
-    EN_Network *net = &pr->network;
-    quality_t  *qual = &pr->quality;
 
     // Mass residing in each pipe
     for (k = 1; k <= net->Nlinks; k++)
@@ -654,7 +648,7 @@ double  findstoredmass(EN_Project *pr)
     return totalmass;
 }
 
-int flowdirchanged(EN_Project *pr)
+int flowdirchanged(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -663,25 +657,25 @@ int flowdirchanged(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
+
     int k;
     int result = FALSE;
     int newdir;
     int olddir;
     double q;
 
-    hydraulics_t   *hyd = &pr->hydraulics;
-    quality_t      *qual = &pr->quality;
-
     // Examine each network link
     for (k = 1; k <= pr->network.Nlinks; k++)
     {
         // Determine sign (+1 or -1) of new flow rate
         olddir = qual->FlowDir[k];
-        q = (hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlows[k];
+        q = (hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlow[k];
         newdir = SGN(q);
 
         // Indicate if flow is negligible
-        if (fabs(q) < QZERO) newdir = 0;
+        if (fabs(q) < Q_STAGNANT) newdir = 0;
 
         // Reverse link's volume segments if flow direction changes sign
         if (newdir * olddir < 0) reversesegs(pr, k);
@@ -696,5 +690,3 @@ int flowdirchanged(EN_Project *pr)
     }
     return result;
 }
-
-/************************* End of QUALITY.C ***************************/

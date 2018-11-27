@@ -4,7 +4,6 @@
  *
  */
 
-
 #include <math.h>
 
 int genmmd(int* neqns, int* xadj, int* adjncy, int* invp, int* perm,
