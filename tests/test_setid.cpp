@@ -25,14 +25,15 @@ BOOST_AUTO_TEST_CASE(test_setid)
 	string path_inp(DATA_PATH_INP);
 	string path_rpt(DATA_PATH_RPT);
 	string path_out(DATA_PATH_OUT);
-
+	string inp_save("net1_setid.inp");
+    
     int error = 0;
     int index;
 
     EN_Project ph = NULL;
     EN_createproject(&ph);
     
-    error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
+    error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
     BOOST_REQUIRE(error == 0);
 
     // Test of illegal node name change
@@ -56,7 +57,7 @@ BOOST_AUTO_TEST_CASE(test_setid)
     BOOST_REQUIRE(error == 0);
 
     // Save the project
-    error = EN_saveinpfile(ph, "net1_setid.inp");
+    error = EN_saveinpfile(ph, inp_save.c_str());
     BOOST_REQUIRE(error == 0);
 
     error = EN_close(ph);
@@ -66,7 +67,7 @@ BOOST_AUTO_TEST_CASE(test_setid)
     
 	// Re-open the saved project
     EN_createproject(&ph);
-    error = EN_open(ph, "net1_setid.inp", path_rpt.c_str(), "");
+    error = EN_open(ph, inp_save.c_str(), path_rpt.c_str(), path_out.c_str());
     BOOST_REQUIRE(error == 0);
     
     // Check that 3rd node has its new name
