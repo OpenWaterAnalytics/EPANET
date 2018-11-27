@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(test_setid)
     int error = 0;
     int index;
 
-    EN_ProjectHandle ph = NULL;
+    EN_Project ph = NULL;
     EN_createproject(&ph);
     
     error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");

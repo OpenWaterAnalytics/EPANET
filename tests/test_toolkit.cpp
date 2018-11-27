@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_SUITE (test_toolkit)
 BOOST_AUTO_TEST_CASE (test_alloc_free)
 {
     int error = 0;
-    EN_ProjectHandle ph = NULL;
+    EN_Project ph = NULL;
 
     error = EN_createproject(&ph);
 
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE (test_open_close)
 	string path_rpt(DATA_PATH_RPT);
     string path_out(DATA_PATH_OUT);
 
-	EN_ProjectHandle ph = NULL;
+	EN_Project ph = NULL;
     EN_createproject(&ph);
 
     int error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
@@ -74,7 +74,8 @@ BOOST_AUTO_TEST_CASE(test_save_reopen)
 	string path_rpt(DATA_PATH_RPT);
 	string path_out(DATA_PATH_OUT);
 
-	EN_ProjectHandle ph_save, ph_reopen;
+	EN_Project ph_save;
+    EN_Project ph_reopen;
 
 	EN_createproject(&ph_save);
 
@@ -126,7 +127,7 @@ struct Fixture{
   string path_out;
 
   int error;
-  EN_ProjectHandle ph;
+  EN_Project ph;
 };
 
 BOOST_AUTO_TEST_SUITE(test_epanet_fixture)
