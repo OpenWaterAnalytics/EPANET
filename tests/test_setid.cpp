@@ -72,12 +72,12 @@ BOOST_AUTO_TEST_CASE(test_setid)
     // Check that 3rd node has its new name
     error = EN_getnodeindex(ph, newid_2, &index);
     BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(index == 3);
+    BOOST_REQUIRE(index == 3);
     
     // Check that 3rd link has its new name
     error = EN_getlinkindex(ph, newid_4, &index);
     BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(index == 3);
+    BOOST_REQUIRE(index == 3);
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
