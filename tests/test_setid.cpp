@@ -5,10 +5,14 @@
 This is a test for the API functions that change a node or link ID name.
 A node and link name are changed, the network is saved, reopened and the new names are checked.
 */
+//#define NO_BOOST
 
+#ifndef NO_BOOST
 #define BOOST_TEST_MODULE "toolkit"
 #include <boost/test/included/unit_test.hpp>
+#endif
 
+#include <iostream>
 #include <string>
 #include "epanet2.h"
 
@@ -16,11 +20,18 @@ A node and link name are changed, the network is saved, reopened and the new nam
 #define DATA_PATH_RPT "./test.rpt"
 #define DATA_PATH_OUT "./test.out"
 
+#ifdef NO_BOOST
+#define BOOST_REQUIRE(x) (((x)) ? cout << "\nPassed at line " << __LINE__ : cout << "\nFailed at line " << __LINE__ )
+#endif
+
 using namespace std;
 
+#ifndef NO_BOOST
 BOOST_AUTO_TEST_SUITE (test_toolkit)
-
 BOOST_AUTO_TEST_CASE(test_setid)
+#else
+int main(int argc, char *argv[])
+#endif
 {
 	string path_inp(DATA_PATH_INP);
 	string path_rpt(DATA_PATH_RPT);
@@ -33,7 +44,7 @@ BOOST_AUTO_TEST_CASE(test_setid)
     EN_Project ph = NULL;
     EN_createproject(&ph);
     
-    error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+    error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
     BOOST_REQUIRE(error == 0);
 
     // Test of illegal node name change
@@ -63,11 +74,10 @@ BOOST_AUTO_TEST_CASE(test_setid)
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
     EN_deleteproject(&ph);
-
     
-	// Re-open the saved project
+    // Re-open the saved project
     EN_createproject(&ph);
-    error = EN_open(ph, inp_save.c_str(), path_rpt.c_str(), path_out.c_str());
+    error = EN_open(ph, inp_save.c_str(), path_rpt.c_str(), "");
     BOOST_REQUIRE(error == 0);
     
     // Check that 3rd node has its new name
@@ -85,4 +95,6 @@ BOOST_AUTO_TEST_CASE(test_setid)
     EN_deleteproject(&ph);
 }
 
+#ifndef NO_BOOST
 BOOST_AUTO_TEST_SUITE_END()
+#endif

@@ -3455,7 +3455,7 @@ int DLLEXPORT EN_setlinkid(EN_Project p, int index, char *newid)
     if (index <= 0 || index > net->Nlinks) return 204;
     n = strlen(newid);
     if (n < 1 || n > MAXID) return 211;
-    if (strcspn(newid, " ;") < n) 211;
+    if (strcspn(newid, " ;") < n) return 211;
 
     // Check if another link with same name exists
     if (hashtable_find(net->LinkHashTable, newid) > 0) return 215;
