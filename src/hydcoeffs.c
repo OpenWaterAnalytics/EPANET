@@ -1,9 +1,14 @@
 /*
-*********************************************************************
-
-HYDCOEFFS.C --  hydraulic coefficients for the EPANET Program
-
-*******************************************************************
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       hydcoeffs.c
+ Description:  computes coefficients for a hydraulic solution matrix
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/27/2018
+ ******************************************************************************
 */
 
 #include <stdio.h>
@@ -29,40 +34,44 @@ const double AA = -1.5634601348517065795e+00;   // -2*.9*2/ln(10)
 const double AB = 3.28895476345399058690e-03;   // 5.74/(4000^.9)
 const double AC = -5.14214965799093883760e-03;  // AA*AB
 
-// External functions
-//void   resistcoeff(EN_Project *pr, int k);
-//void   headlosscoeffs(EN_Project *pr);
-//void   matrixcoeffs(EN_Project *pr);
-//void   emitheadloss(EN_Project *pr, int i, double *hloss, double *dhdq);
-//double demandflowchange(EN_Project *pr, int i, double dp, double n);
-//void   demandparams(EN_Project *pr, double *dp, double *n);
+// Definitions of very small and very big coefficients
+const double CSMALL = 1.e-6;
+const double CBIG   = 1.e8;
+
+// Exported functions
+//void   resistcoeff(Project *, int );
+//void   headlosscoeffs(Project *);
+//void   matrixcoeffs(Project *);
+//void   emitheadloss(Project *, int, double *, double *);
+//double demandflowchange(Project *, int, double, double);
+//void   demandparams(Project *, double *, double *);
 
 // Local functions
-static void    linkcoeffs(EN_Project *pr);
-static void    nodecoeffs(EN_Project *pr);
-static void    valvecoeffs(EN_Project *pr);
-static void    emittercoeffs(EN_Project *pr);
-static void    demandcoeffs(EN_Project *pr);
+static void    linkcoeffs(Project *pr);
+static void    nodecoeffs(Project *pr);
+static void    valvecoeffs(Project *pr);
+static void    emittercoeffs(Project *pr);
+static void    demandcoeffs(Project *pr);
 static void    demandheadloss(double d, double dfull, double dp,
                double n, double *hloss, double *hgrad);
 
-static void    pipecoeff(EN_Project *pr, int k);
-static void    DWpipecoeff(EN_Project *pr, int k);
+static void    pipecoeff(Project *pr, int k);
+static void    DWpipecoeff(Project *pr, int k);
 static double  frictionFactor(double q, double e, double s, double *dfdq);
 
-static void    pumpcoeff(EN_Project *pr, int k);
-static void    curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r);
+static void    pumpcoeff(Project *pr, int k);
+static void    curvecoeff(Project *pr, int i, double q, double *h0, double *r);
 
-static void    valvecoeff(EN_Project *pr, int k);
-static void    gpvcoeff(EN_Project *pr, int k);
-static void    pbvcoeff(EN_Project *pr, int k);
-static void    tcvcoeff(EN_Project *pr, int k);
-static void    prvcoeff(EN_Project *pr, int k, int n1, int n2);
-static void    psvcoeff(EN_Project *pr, int k, int n1, int n2);
-static void    fcvcoeff(EN_Project *pr, int k, int n1, int n2);
+static void    valvecoeff(Project *pr, int k);
+static void    gpvcoeff(Project *pr, int k);
+static void    pbvcoeff(Project *pr, int k);
+static void    tcvcoeff(Project *pr, int k);
+static void    prvcoeff(Project *pr, int k, int n1, int n2);
+static void    psvcoeff(Project *pr, int k, int n1, int n2);
+static void    fcvcoeff(Project *pr, int k, int n1, int n2);
 
 
-void  resistcoeff(EN_Project *pr, int k)
+void  resistcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------------
 **  Input:   k = link index
@@ -71,10 +80,10 @@ void  resistcoeff(EN_Project *pr, int k)
 **--------------------------------------------------------------------
 */
 {
-    double e, d, L;
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
 
-    EN_Network   *net = &pr->network;
-    hydraulics_t *hyd = &pr->hydraulics;
+    double e, d, L;
     Slink *link = &net->Link[k];
     
     link->Qa = 0.0;
@@ -121,7 +130,7 @@ void  resistcoeff(EN_Project *pr, int k)
 }
 
 
-void headlosscoeffs(EN_Project *pr)
+void headlosscoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -131,9 +140,10 @@ void headlosscoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+
     int k;
-    EN_Network   *net = &pr->network;
-    hydraulics_t *hyd = &pr->hydraulics;
 
     for (k = 1; k <= net->Nlinks; k++)
     {
@@ -159,13 +169,13 @@ void headlosscoeffs(EN_Project *pr)
         case PRV:
         case PSV:
             if (hyd->LinkSetting[k] == MISSING) valvecoeff(pr, k);
-            else hyd->solver.P[k] = 0.0;
+            else hyd->P[k] = 0.0;
         }
     }
 }
 
 
-void   matrixcoeffs(EN_Project *pr)
+void   matrixcoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **  Input:   none
@@ -174,16 +184,16 @@ void   matrixcoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
-    EN_Network   *net = &pr->network;
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Smatrix *sm = &hyd->smatrix;
 
     // Reset values of all diagonal coeffs. (Aii), off-diagonal
-    // coeffs. (Aij), r.h.s. coeffs. (F) and node flow balance (X_tmp)
-    memset(sol->Aii, 0, (net->Nnodes + 1) * sizeof(double));
-    memset(sol->Aij, 0, (hyd->Ncoeffs + 1) * sizeof(double));
-    memset(sol->F, 0, (net->Nnodes + 1) * sizeof(double));
-    memset(hyd->X_tmp, 0, (net->Nnodes + 1) * sizeof(double));
+    // coeffs. (Aij), r.h.s. coeffs. (F) and node excess flow (Xflow)
+    memset(sm->Aii, 0, (net->Nnodes + 1) * sizeof(double));
+    memset(sm->Aij, 0, (sm->Ncoeffs + 1) * sizeof(double));
+    memset(sm->F, 0, (net->Nnodes + 1) * sizeof(double));
+    memset(hyd->Xflow, 0, (net->Nnodes + 1) * sizeof(double));
 
     // Compute matrix coeffs. from links, emitters, and nodal demands
     linkcoeffs(pr);
@@ -199,7 +209,7 @@ void   matrixcoeffs(EN_Project *pr)
 }
 
 
-void  linkcoeffs(EN_Project *pr)
+void  linkcoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -209,80 +219,81 @@ void  linkcoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
-    int   k, n1, n2;
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Smatrix *sm = &hyd->smatrix;
 
-    EN_Network   *net = &pr->network;
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
+    int   k, n1, n2;
     Slink *link;
 
     // Examine each link of network
     for (k = 1; k <= net->Nlinks; k++)
     {
-        if (sol->P[k] == 0.0) continue;
+        if (hyd->P[k] == 0.0) continue;
         link = &net->Link[k];
         n1 = link->N1;           // Start node of link
         n2 = link->N2;           // End node of link
 
-        // Update nodal flow balance (X_tmp)
+        // Update nodal flow excess (Xflow)
         // (Flow out of node is (-), flow into node is (+))
-        hyd->X_tmp[n1] -= hyd->LinkFlows[k];
-        hyd->X_tmp[n2] += hyd->LinkFlows[k];
+        hyd->Xflow[n1] -= hyd->LinkFlow[k];
+        hyd->Xflow[n2] += hyd->LinkFlow[k];
 
         // Add to off-diagonal coeff. of linear system matrix
-        sol->Aij[sol->Ndx[k]] -= sol->P[k];
+        sm->Aij[sm->Ndx[k]] -= hyd->P[k];
 
         // Update linear system coeffs. associated with start node n1
         // ... node n1 is junction
         if (n1 <= net->Njuncs)                     
         {
-            sol->Aii[sol->Row[n1]] += sol->P[k];   // Diagonal coeff.
-            sol->F[sol->Row[n1]] += sol->Y[k];     // RHS coeff.
+            sm->Aii[sm->Row[n1]] += hyd->P[k];   // Diagonal coeff.
+            sm->F[sm->Row[n1]] += hyd->Y[k];     // RHS coeff.
         }
 
         // ... node n1 is a tank/reservoir
-        else sol->F[sol->Row[n2]] += (sol->P[k] * hyd->NodeHead[n1]); 
+        else sm->F[sm->Row[n2]] += (hyd->P[k] * hyd->NodeHead[n1]); 
 
         // Update linear system coeffs. associated with end node n2
         // ... node n2 is junction
         if (n2 <= net->Njuncs)
         {
-            sol->Aii[sol->Row[n2]] += sol->P[k];   // Diagonal coeff.
-            sol->F[sol->Row[n2]] -= sol->Y[k];     // RHS coeff.
+            sm->Aii[sm->Row[n2]] += hyd->P[k];   // Diagonal coeff.
+            sm->F[sm->Row[n2]] -= hyd->Y[k];     // RHS coeff.
         }
 
         // ... node n2 is a tank/reservoir
-        else sol->F[sol->Row[n1]] += (sol->P[k] * hyd->NodeHead[n2]); 
+        else sm->F[sm->Row[n1]] += (hyd->P[k] * hyd->NodeHead[n2]); 
     }
 }
 
 
-void  nodecoeffs(EN_Project *pr)
+void  nodecoeffs(Project *pr)
 /*
 **----------------------------------------------------------------
 **  Input:   none
 **  Output:  none
 **  Purpose: completes calculation of nodal flow balance array
-**           (X_tmp) & r.h.s. (F) of linearized hydraulic eqns.
+**           (Xflow) & r.h.s. (F) of linearized hydraulic eqns.
 **----------------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Smatrix *sm = &hyd->smatrix;
+
     int   i;
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
-    EN_Network   *net = &pr->network;
 
     // For junction nodes, subtract demand flow from net
-    // flow balance & add flow balance to RHS array F
+    // flow excess & add flow excess to RHS array F
     for (i = 1; i <= net->Njuncs; i++)
     {
-        hyd->X_tmp[i] -= hyd->DemandFlows[i];
-        sol->F[sol->Row[i]] += hyd->X_tmp[i];
+        hyd->Xflow[i] -= hyd->DemandFlow[i];
+        sm->F[sm->Row[i]] += hyd->Xflow[i];
     }
 }
 
 
-void  valvecoeffs(EN_Project *pr)
+void  valvecoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -293,10 +304,10 @@ void  valvecoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
-    int i, k, n1, n2;
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
 
-    hydraulics_t *hyd = &pr->hydraulics;
-    EN_Network   *net = &pr->network;
+    int i, k, n1, n2;
     Slink *link;
     Svalve *valve;
 
@@ -333,7 +344,7 @@ void  valvecoeffs(EN_Project *pr)
 }
 
 
-void  emittercoeffs(EN_Project *pr)
+void  emittercoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -348,13 +359,13 @@ void  emittercoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
-    int     i, row;
-    double  hloss, hgrad;
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Smatrix *sm = &hyd->smatrix;
 
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
-    EN_Network   *net = &pr->network;
-    Snode *node;
+    int    i, row;
+    double hloss, hgrad;
+    Snode  *node;
 
     for (i = 1; i <= net->Njuncs; i++)
     {
@@ -366,19 +377,19 @@ void  emittercoeffs(EN_Project *pr)
         emitheadloss(pr, i, &hloss, &hgrad);
 
         // Row of solution matrix
-        row = sol->Row[i];
+        row = sm->Row[i];
 
         // Addition to matrix diagonal & r.h.s
-        sol->Aii[row] += 1.0 / hgrad;
-        sol->F[row] += (hloss + node->El) / hgrad;
+        sm->Aii[row] += 1.0 / hgrad;
+        sm->F[row] += (hloss + node->El) / hgrad;
 
-        // Update to node flow balance
-        hyd->X_tmp[i] -= hyd->EmitterFlows[i];
+        // Update to node flow excess
+        hyd->Xflow[i] -= hyd->EmitterFlow[i];
     }
 }
 
 
-void emitheadloss(EN_Project *pr, int i, double *hloss, double *hgrad)
+void emitheadloss(Project *pr, int i, double *hloss, double *hgrad)
 /*
 **-------------------------------------------------------------
 **   Input:   i = node index
@@ -388,10 +399,11 @@ void emitheadloss(EN_Project *pr, int i, double *hloss, double *hgrad)
 **-------------------------------------------------------------
 */
 {
+    Hydraul *hyd = &pr->hydraul;
+
     double  ke;
     double  q;
     double  qa;
-    hydraulics_t *hyd = &pr->hydraulics;
 
     // Set adjusted emitter coeff.
     ke = MAX(CSMALL, pr->network.Node[i].Ke);
@@ -400,7 +412,7 @@ void emitheadloss(EN_Project *pr, int i, double *hloss, double *hgrad)
     qa = pow(hyd->RQtol / ke / hyd->Qexp, 1.0 / (hyd->Qexp - 1.0));
 
     // Use linear head loss relation for small flow
-    q = hyd->EmitterFlows[i];
+    q = hyd->EmitterFlow[i];
     if (fabs(q) <= qa)
     {
         *hgrad = hyd->RQtol;
@@ -416,7 +428,7 @@ void emitheadloss(EN_Project *pr, int i, double *hloss, double *hgrad)
 }
 
 
-void demandparams(EN_Project *pr, double *dp, double *n)
+void demandparams(Project *pr, double *dp, double *n)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -427,7 +439,7 @@ void demandparams(EN_Project *pr, double *dp, double *n)
 **--------------------------------------------------------------
 */
 {
-    hydraulics_t *hyd = &pr->hydraulics;
+    Hydraul *hyd = &pr->hydraul;
 
     // If required pressure equals minimum pressure, use a linear demand
     // curve with a 0.01 PSI pressure range to approximate an all or
@@ -447,7 +459,7 @@ void demandparams(EN_Project *pr, double *dp, double *n)
 }
 
 
-void  demandcoeffs(EN_Project *pr)
+void  demandcoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -462,15 +474,15 @@ void  demandcoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Smatrix *sm = &hyd->smatrix;
+
     int i, row;
     double  dp,         // pressure range over which demand can vary (ft)
             n,          // exponent in head loss v. demand function
             hloss,      // head loss in supplying demand (ft)
             hgrad;      // gradient of demand head loss (ft/cfs)    
-
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
-    EN_Network   *net = &pr->network;
 
     // Get demand function parameters
     if (hyd->DemandModel == DDA) return;
@@ -483,18 +495,18 @@ void  demandcoeffs(EN_Project *pr)
         if (hyd->NodeDemand[i] <= 0.0) continue;
 
         // Find head loss for demand outflow at node's elevation
-        demandheadloss(hyd->DemandFlows[i], hyd->NodeDemand[i], dp, n,
+        demandheadloss(hyd->DemandFlow[i], hyd->NodeDemand[i], dp, n,
                     &hloss, &hgrad);
 
         // Update row of solution matrix A & its r.h.s. F
-        row = sol->Row[i];
-        sol->Aii[row] += 1.0 / hgrad;
-        sol->F[row] += (hloss + net->Node[i].El + hyd->Pmin) / hgrad;
+        row = sm->Row[i];
+        sm->Aii[row] += 1.0 / hgrad;
+        sm->F[row] += (hloss + net->Node[i].El + hyd->Pmin) / hgrad;
     }
 }
 
 
-double demandflowchange(EN_Project *pr, int i, double dp, double n)
+double demandflowchange(Project *pr, int i, double dp, double n)
 /*
 **--------------------------------------------------------------
 **   Input:   i  = node index
@@ -506,16 +518,17 @@ double demandflowchange(EN_Project *pr, int i, double dp, double n)
 **--------------------------------------------------------------
 */
 {
-    double hloss, hgrad;
-    hydraulics_t *hyd = &pr->hydraulics;
+    Hydraul *hyd = &pr->hydraul;
 
-    demandheadloss(hyd->DemandFlows[i], hyd->NodeDemand[i], dp, n, &hloss, &hgrad);
+    double hloss, hgrad;
+
+    demandheadloss(hyd->DemandFlow[i], hyd->NodeDemand[i], dp, n, &hloss, &hgrad);
     return (hloss - hyd->NodeHead[i] + pr->network.Node[i].El + hyd->Pmin) / hgrad;
 }
 
 
 void demandheadloss(double d, double dfull, double dp, double n,
-    double *hloss, double *hgrad)
+                    double *hloss, double *hgrad)
     /*
     **--------------------------------------------------------------
     **   Input:   d     = actual junction demand (cfs)
@@ -563,7 +576,7 @@ void demandheadloss(double d, double dfull, double dp, double n,
 }
 
 
-void  pipecoeff(EN_Project *pr, int k)
+void  pipecoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -575,20 +588,19 @@ void  pipecoeff(EN_Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
+    Hydraul *hyd = &pr->hydraul;
+
     double  hloss,     // Head loss
             hgrad,     // Head loss gradient
             ml,        // Minor loss coeff.
             q,         // Abs. value of flow
             r;         // Resistance coeff.
 
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
-
     // For closed pipe use headloss formula: hloss = CBIG*q
     if (hyd->LinkStatus[k] <= CLOSED)
     {
-        sol->P[k] = 1.0 / CBIG;
-        sol->Y[k] = hyd->LinkFlows[k];
+        hyd->P[k] = 1.0 / CBIG;
+        hyd->Y[k] = hyd->LinkFlow[k];
         return;
     }
 
@@ -599,7 +611,7 @@ void  pipecoeff(EN_Project *pr, int k)
         return;
     }
 
-    q = ABS(hyd->LinkFlows[k]);
+    q = ABS(hyd->LinkFlow[k]);
     ml = pr->network.Link[k].Km;
     r = pr->network.Link[k].R;
 
@@ -625,15 +637,15 @@ void  pipecoeff(EN_Project *pr, int k)
     }
 
     // Adjust head loss sign for flow direction
-    hloss *= SGN(hyd->LinkFlows[k]);
+    hloss *= SGN(hyd->LinkFlow[k]);
 
     // P and Y coeffs.
-    sol->P[k] = 1.0 / hgrad;
-    sol->Y[k] = hloss / hgrad;
+    hyd->P[k] = 1.0 / hgrad;
+    hyd->Y[k] = hloss / hgrad;
 }
 
 
-void DWpipecoeff(EN_Project *pr, int k)
+void DWpipecoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -643,16 +655,14 @@ void DWpipecoeff(EN_Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
-    Slink *link = &pr->network.Link[k];
+    Hydraul *hyd = &pr->hydraul;
+    Slink   *link = &pr->network.Link[k];
 
-    double q = ABS(hyd->LinkFlows[k]);
+    double q = ABS(hyd->LinkFlow[k]);
     double r = link->R;                         // Resistance coeff. 
     double ml = link->Km;                       // Minor loss coeff. 
     double e = link->Kc / link->Diam;           // Relative roughness
     double s = hyd->Viscos * link->Diam;        // Viscosity / diameter
-    
     double hloss, hgrad, f, dfdq, r1;
     
     // Compute head loss and its derivative
@@ -660,7 +670,7 @@ void DWpipecoeff(EN_Project *pr, int k)
     if (q <= A2 * s)
     {
         r = 16.0 * PI * s * r;
-        hloss = hyd->LinkFlows[k] * (r + ml * q);
+        hloss = hyd->LinkFlow[k] * (r + ml * q);
         hgrad  = r + 2.0 * ml * q;
     }
     
@@ -670,13 +680,13 @@ void DWpipecoeff(EN_Project *pr, int k)
         dfdq = 0.0;
         f = frictionFactor(q, e, s, &dfdq);
         r1 = f * r + ml;
-        hloss = r1 * q * hyd->LinkFlows[k];
+        hloss = r1 * q * hyd->LinkFlow[k];
         hgrad = (2.0 * r1 * q) + (dfdq * r * q * q);
     }
     
     // Compute P and Y coefficients
-    sol->P[k] = 1.0 / hgrad;
-    sol->Y[k] = hloss / hgrad;
+    hyd->P[k] = 1.0 / hgrad;
+    hyd->Y[k] = hloss / hgrad;
 }
 
 
@@ -730,7 +740,7 @@ double frictionFactor(double q, double e, double s, double *dfdq)
 }
 
 
-void  pumpcoeff(EN_Project *pr, int k)
+void  pumpcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -739,6 +749,8 @@ void  pumpcoeff(EN_Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
+    Hydraul *hyd = &pr->hydraul;
+
     int    p;                // Pump index
     double h0,               // Shutoff head
            q,                // Abs. value of flow 
@@ -748,22 +760,19 @@ void  pumpcoeff(EN_Project *pr, int k)
            qa,               // Flow limit for linear head loss
            hloss,            // Head loss across pump
            hgrad;            // Head loss gradient
-
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
-    Spump        *pump;
+    Spump  *pump;
 
     // Use high resistance pipe if pump closed or cannot deliver head
     setting = hyd->LinkSetting[k];
     if (hyd->LinkStatus[k] <= CLOSED || setting == 0.0)
     {
-        sol->P[k] = 1.0 / CBIG;
-        sol->Y[k] = hyd->LinkFlows[k];
+        hyd->P[k] = 1.0 / CBIG;
+        hyd->Y[k] = hyd->LinkFlow[k];
         return;
     }
 
     // Obtain reference to pump object & its speed setting
-    q = ABS(hyd->LinkFlows[k]);
+    q = ABS(hyd->LinkFlow[k]);
     p = findpump(&pr->network, k);
     pump = &pr->network.Pump[p];
 
@@ -783,7 +792,7 @@ void  pumpcoeff(EN_Project *pr, int k)
 
         // Compute head loss and its gradient
         hgrad = pump->R * setting ;
-        hloss = pump->H0 * SQR(setting) + hgrad * hyd->LinkFlows[k];
+        hloss = pump->H0 * SQR(setting) + hgrad * hyd->LinkFlow[k];
     }
     else
     {
@@ -798,23 +807,23 @@ void  pumpcoeff(EN_Project *pr, int k)
         if (q <= qa)
         {
             hgrad = hyd->RQtol;
-            hloss = h0 + hgrad * hyd->LinkFlows[k];
+            hloss = h0 + hgrad * hyd->LinkFlow[k];
         }
         // ... use original pump curve for normal flows
         else
         {
             hgrad = n * r * pow(q, n - 1.0);
-            hloss = h0 + hgrad * hyd->LinkFlows[k] / n;
+            hloss = h0 + hgrad * hyd->LinkFlow[k] / n;
         }
     }
 
     // P and Y coeffs.
-    sol->P[k] = 1.0 / hgrad;
-    sol->Y[k] = hloss / hgrad;
+    hyd->P[k] = 1.0 / hgrad;
+    hyd->Y[k] = hloss / hgrad;
 }
 
 
-void  curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r)
+void  curvecoeff(Project *pr, int i, double q, double *h0, double *r)
 /*
 **-------------------------------------------------------------------
 **   Input:   i   = curve index
@@ -854,7 +863,7 @@ void  curvecoeff(EN_Project *pr, int i, double q, double *h0, double *r)
 }
 
 
-void  gpvcoeff(EN_Project *pr, int k)
+void  gpvcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -868,8 +877,7 @@ void  gpvcoeff(EN_Project *pr, int k)
            r,         // Slope of head loss curve segment
            q;         // Abs. value of flow
 
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
+    Hydraul *hyd = &pr->hydraul;
 
     // Treat as a pipe if valve closed
     if (hyd->LinkStatus[k] == CLOSED) valvecoeff(pr, k);                          
@@ -883,7 +891,7 @@ void  gpvcoeff(EN_Project *pr, int k)
         i = (int)ROUND(hyd->LinkSetting[k]);
 
         // Adjusted flow rate
-        q = ABS(hyd->LinkFlows[k]);
+        q = ABS(hyd->LinkFlow[k]);
         q = MAX(q, TINY);
 
         // Intercept and slope of curve segment containing q
@@ -891,13 +899,13 @@ void  gpvcoeff(EN_Project *pr, int k)
         r = MAX(r, TINY);
 
         // Resulting P and Y coeffs.
-        sol->P[k] = 1.0 / r;
-        sol->Y[k] = (h0 / r + q) * SGN(hyd->LinkFlows[k]);
+        hyd->P[k] = 1.0 / r;
+        hyd->Y[k] = (h0 / r + q) * SGN(hyd->LinkFlow[k]);
     }
 }
 
 
-void  pbvcoeff(EN_Project *pr, int k)
+void  pbvcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -906,8 +914,7 @@ void  pbvcoeff(EN_Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
+    Hydraul *hyd = &pr->hydraul;
     Slink *link = &pr->network.Link[k];
 
     // If valve fixed OPEN or CLOSED then treat as a pipe
@@ -920,21 +927,21 @@ void  pbvcoeff(EN_Project *pr, int k)
     else
     {
         // Treat as a pipe if minor loss > valve setting
-        if (link->Km * SQR(hyd->LinkFlows[k]) > hyd->LinkSetting[k])
+        if (link->Km * SQR(hyd->LinkFlow[k]) > hyd->LinkSetting[k])
         {
             valvecoeff(pr, k);        
         }
         // Otherwise force headloss across valve to be equal to setting
         else
         {
-            sol->P[k] = CBIG;
-            sol->Y[k] = hyd->LinkSetting[k] * CBIG;
+            hyd->P[k] = CBIG;
+            hyd->Y[k] = hyd->LinkSetting[k] * CBIG;
         }
     }
 }
 
 
-void  tcvcoeff(EN_Project *pr, int k)
+void  tcvcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -944,7 +951,7 @@ void  tcvcoeff(EN_Project *pr, int k)
 */
 {
     double km;
-    hydraulics_t *hyd = &pr->hydraulics;
+    Hydraul *hyd = &pr->hydraul;
     Slink *link = &pr->network.Link[k];
 
     // Save original loss coeff. for open valve
@@ -964,7 +971,7 @@ void  tcvcoeff(EN_Project *pr, int k)
 }
 
 
-void  prvcoeff(EN_Project *pr, int k, int n1, int n2)
+void  prvcoeff(Project *pr, int k, int n1, int n2)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -976,13 +983,14 @@ void  prvcoeff(EN_Project *pr, int k, int n1, int n2)
 **--------------------------------------------------------------
 */
 {
+    Hydraul *hyd = &pr->hydraul;
+    Smatrix *sm = &hyd->smatrix;
+
     int   i, j;                        // Rows of solution matrix
     double hset;                       // Valve head setting
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
 
-    i = sol->Row[n1];                  // Matrix rows of nodes
-    j = sol->Row[n2];
+    i = sm->Row[n1];                  // Matrix rows of nodes
+    j = sm->Row[n2];
     hset = pr->network.Node[n2].El +
            hyd->LinkSetting[k];        // Valve setting
 
@@ -991,15 +999,15 @@ void  prvcoeff(EN_Project *pr, int k, int n1, int n2)
 
         // Set coeffs. to force head at downstream
         // node equal to valve setting & force flow 
-        // to equal to flow imbalance at downstream node.
+        // to equal to flow excess at downstream node.
 
-        sol->P[k] = 0.0;
-        sol->Y[k] = hyd->LinkFlows[k] + hyd->X_tmp[n2];    // Force flow balance
-        sol->F[j] += (hset * CBIG);                        // Force head = hset
-        sol->Aii[j] += CBIG;                               // at downstream node
-        if (hyd->X_tmp[n2] < 0.0)
+        hyd->P[k] = 0.0;
+        hyd->Y[k] = hyd->LinkFlow[k] + hyd->Xflow[n2];   // Force flow balance
+        sm->F[j] += (hset * CBIG);                        // Force head = hset
+        sm->Aii[j] += CBIG;                               // at downstream node
+        if (hyd->Xflow[n2] < 0.0)
         {
-            sol->F[i] += hyd->X_tmp[n2];
+            sm->F[i] += hyd->Xflow[n2];
         }
         return;
     }
@@ -1008,15 +1016,15 @@ void  prvcoeff(EN_Project *pr, int k, int n1, int n2)
     // compute matrix coeffs. using the valvecoeff() function.
 
     valvecoeff(pr, k);
-    sol->Aij[sol->Ndx[k]] -= sol->P[k];
-    sol->Aii[i] += sol->P[k];
-    sol->Aii[j] += sol->P[k];
-    sol->F[i] += (sol->Y[k] - hyd->LinkFlows[k]);
-    sol->F[j] -= (sol->Y[k] - hyd->LinkFlows[k]);
+    sm->Aij[sm->Ndx[k]] -= hyd->P[k];
+    sm->Aii[i] += hyd->P[k];
+    sm->Aii[j] += hyd->P[k];
+    sm->F[i] += (hyd->Y[k] - hyd->LinkFlow[k]);
+    sm->F[j] -= (hyd->Y[k] - hyd->LinkFlow[k]);
 }
 
 
-void  psvcoeff(EN_Project *pr, int k, int n1, int n2)
+void  psvcoeff(Project *pr, int k, int n1, int n2)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -1028,13 +1036,14 @@ void  psvcoeff(EN_Project *pr, int k, int n1, int n2)
 **--------------------------------------------------------------
 */
 {
+    Hydraul *hyd = &pr->hydraul;
+    Smatrix *sm = &hyd->smatrix;
+
     int   i, j;                        // Rows of solution matrix
     double hset;                       // Valve head setting
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
 
-    i = sol->Row[n1];                  // Matrix rows of nodes
-    j = sol->Row[n2];
+    i = sm->Row[n1];                   // Matrix rows of nodes
+    j = sm->Row[n2];
     hset = pr->network.Node[n1].El +
            hyd->LinkSetting[k];        // Valve setting
 
@@ -1042,15 +1051,15 @@ void  psvcoeff(EN_Project *pr, int k, int n1, int n2)
     {
         // Set coeffs. to force head at upstream
         // node equal to valve setting & force flow 
-        // equal to flow imbalance at upstream node.
+        // equal to flow excess at upstream node.
 
-        sol->P[k] = 0.0;
-        sol->Y[k] = hyd->LinkFlows[k] - hyd->X_tmp[n1];    // Force flow balance
-        sol->F[i] += (hset * CBIG);                        // Force head = hset
-        sol->Aii[i] += CBIG;                               // at upstream node
-        if (hyd->X_tmp[n1] > 0.0)
+        hyd->P[k] = 0.0;
+        hyd->Y[k] = hyd->LinkFlow[k] - hyd->Xflow[n1];   // Force flow balance
+        sm->F[i] += (hset * CBIG);                        // Force head = hset
+        sm->Aii[i] += CBIG;                               // at upstream node
+        if (hyd->Xflow[n1] > 0.0)
         {
-            sol->F[j] += hyd->X_tmp[n1];
+            sm->F[j] += hyd->Xflow[n1];
         }
         return;
     }
@@ -1059,15 +1068,15 @@ void  psvcoeff(EN_Project *pr, int k, int n1, int n2)
     // compute matrix coeffs. using the valvecoeff() function.
 
     valvecoeff(pr, k);
-    sol->Aij[sol->Ndx[k]] -= sol->P[k];
-    sol->Aii[i] += sol->P[k];
-    sol->Aii[j] += sol->P[k];
-    sol->F[i] += (sol->Y[k] - hyd->LinkFlows[k]);
-    sol->F[j] -= (sol->Y[k] - hyd->LinkFlows[k]);
+    sm->Aij[sm->Ndx[k]] -= hyd->P[k];
+    sm->Aii[i] += hyd->P[k];
+    sm->Aii[j] += hyd->P[k];
+    sm->F[i] += (hyd->Y[k] - hyd->LinkFlow[k]);
+    sm->F[j] -= (hyd->Y[k] - hyd->LinkFlow[k]);
 }
 
 
-void  fcvcoeff(EN_Project *pr, int k, int n1, int n2)
+void  fcvcoeff(Project *pr, int k, int n1, int n2)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -1079,14 +1088,15 @@ void  fcvcoeff(EN_Project *pr, int k, int n1, int n2)
 **--------------------------------------------------------------
 */
 {
+    Hydraul *hyd = &pr->hydraul;
+    Smatrix *sm = &hyd->smatrix;
+
     int   i, j;                   // Rows in solution matrix
     double q;                     // Valve flow setting
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
 
     q = hyd->LinkSetting[k];
-    i = hyd->solver.Row[n1];
-    j = hyd->solver.Row[n2];
+    i = sm->Row[n1];
+    j = sm->Row[n2];
 
     // If valve active, break network at valve and treat
     // flow setting as external demand at upstream node
@@ -1094,15 +1104,15 @@ void  fcvcoeff(EN_Project *pr, int k, int n1, int n2)
 
     if (hyd->LinkStatus[k] == ACTIVE)
     {
-        hyd->X_tmp[n1] -= q;
-        sol->F[i] -= q;
-        hyd->X_tmp[n2] += q;
-        sol->F[j] += q;
-        sol->P[k] = 1.0 / CBIG;
-        sol->Aij[sol->Ndx[k]] -= sol->P[k];
-        sol->Aii[i] += sol->P[k];
-        sol->Aii[j] += sol->P[k];
-        sol->Y[k] = hyd->LinkFlows[k] - q;
+        hyd->Xflow[n1] -= q;
+        hyd->Xflow[n2] += q;
+        hyd->Y[k] = hyd->LinkFlow[k] - q;
+        sm->F[i] -= q;
+        sm->F[j] += q;
+        hyd->P[k] = 1.0 / CBIG;
+        sm->Aij[sm->Ndx[k]] -= hyd->P[k];
+        sm->Aii[i] += hyd->P[k];
+        sm->Aii[j] += hyd->P[k];
     }
 
     // Otherwise treat valve as an open pipe
@@ -1110,16 +1120,16 @@ void  fcvcoeff(EN_Project *pr, int k, int n1, int n2)
     else
     {
         valvecoeff(pr, k);                                          
-        sol->Aij[sol->Ndx[k]] -= sol->P[k];
-        sol->Aii[i] += sol->P[k];
-        sol->Aii[j] += sol->P[k];
-        sol->F[i] += (sol->Y[k] - hyd->LinkFlows[k]);
-        sol->F[j] -= (sol->Y[k] - hyd->LinkFlows[k]);
+        sm->Aij[sm->Ndx[k]] -= hyd->P[k];
+        sm->Aii[i] += hyd->P[k];
+        sm->Aii[j] += hyd->P[k];
+        sm->F[i] += (hyd->Y[k] - hyd->LinkFlow[k]);
+        sm->F[j] -= (hyd->Y[k] - hyd->LinkFlow[k]);
     }
 }
 
 
-void valvecoeff(EN_Project *pr, int k)
+void valvecoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
@@ -1129,20 +1139,18 @@ void valvecoeff(EN_Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
+    Hydraul *hyd = &pr->hydraul;
+    Slink *link = &pr->network.Link[k];
+
     double flow, q, y, qa, hgrad;
     
-    EN_Network   *net = &pr->network;
-    hydraulics_t *hyd = &pr->hydraulics;
-    solver_t     *sol = &hyd->solver;
-    Slink *link = &net->Link[k];
-
-    flow = hyd->LinkFlows[k];
+    flow = hyd->LinkFlow[k];
 
     // Valve is closed. Use a very small matrix coeff.
     if (hyd->LinkStatus[k] <= CLOSED)
     {
-        sol->P[k] = 1.0 / CBIG;
-        sol->Y[k] = flow;
+        hyd->P[k] = 1.0 / CBIG;
+        hyd->Y[k] = flow;
         return;
     }
 
@@ -1164,15 +1172,15 @@ void valvecoeff(EN_Project *pr, int k)
         }
 
         // P and Y coeffs.
-        sol->P[k] = 1.0 / hgrad;
-        sol->Y[k] = y;
+        hyd->P[k] = 1.0 / hgrad;
+        hyd->Y[k] = y;
     }
 
     // If no minor loss coeff. specified use a
     // low resistance linear head loss relation
     else
     {
-        sol->P[k] = 1.0 / CSMALL;
-        sol->Y[k] = flow;
+        hyd->P[k] = 1.0 / CSMALL;
+        hyd->Y[k] = flow;
     }
 }

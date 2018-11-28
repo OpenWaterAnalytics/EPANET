@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(test_setlinktype)
     int p113, n31, p121, n113_1, n113_2;
     float q113 = 0.0f, p31 = 0.0f, diam;
 
-    EN_ProjectHandle ph = NULL;
+    EN_Project ph = NULL;
     EN_createproject(&ph);
     
     std::string path_inp = std::string(DATA_PATH_INP);

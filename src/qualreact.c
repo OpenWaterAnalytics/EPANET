@@ -1,40 +1,45 @@
 /*
-*********************************************************************
-
-QUALREACT.C -- water quality reaction module for the EPANET program
-
-*********************************************************************
+******************************************************************************
+Project:      OWA EPANET
+Version:      2.2
+Module:       qualreact.c
+Description:  computes water quality reactions within pipes and tanks
+Authors:      see AUTHORS
+Copyright:    see AUTHORS
+License:      see LICENSE
+Last Updated: 11/27/2018
+******************************************************************************
 */
 
 #include <stdio.h>
 #include <math.h>
 #include "types.h"
 
-// Exported Functions
-char    setreactflag(EN_Project *pr);
+// Exported functions
+char    setreactflag(Project *);
 double  getucf(double);
-void    ratecoeffs(EN_Project *pr);
-void    reactpipes(EN_Project *pr, long);
-void    reacttanks(EN_Project *pr, long);
-double  mixtank(EN_Project *pr, int, double, double ,double);
+void    ratecoeffs(Project *);
+void    reactpipes(Project *, long);
+void    reacttanks(Project *, long);
+double  mixtank(Project *, int, double, double ,double);
 
-// Imported Functions
-extern  void addseg(EN_Project *pr, int, double, double);
+// Imported functions
+extern  void addseg(Project *, int, double, double);
 
-// Local Functions
-static double  piperate(EN_Project *pr, int);
-static double  pipereact(EN_Project *pr, int, double, double, long);
-static double  tankreact(EN_Project *pr, double, double, double, long);
-static double  bulkrate(EN_Project *pr, double, double, double);
-static double  wallrate(EN_Project *pr, double, double, double, double);
+// Local functions
+static double  piperate(Project *, int);
+static double  pipereact(Project *, int, double, double, long);
+static double  tankreact(Project *, double, double, double, long);
+static double  bulkrate(Project *, double, double, double);
+static double  wallrate(Project *, double, double, double, double);
 
-static void    tankmix1(EN_Project *pr, int, double, double, double);
-static void    tankmix2(EN_Project *pr, int, double, double, double);
-static void    tankmix3(EN_Project *pr, int, double, double, double);
-static void    tankmix4(EN_Project *pr, int, double, double, double);
+static void    tankmix1(Project *, int, double, double, double);
+static void    tankmix2(Project *, int, double, double, double);
+static void    tankmix3(Project *, int, double, double, double);
+static void    tankmix4(Project *, int, double, double, double);
 
 
-char setreactflag(EN_Project *pr)
+char setreactflag(Project *pr)
 /*
 **-----------------------------------------------------------
 **   Input:   none
@@ -43,8 +48,8 @@ char setreactflag(EN_Project *pr)
 **-----------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
     int i;
-    EN_Network *net = &pr->network;
 
     if (pr->quality.Qualflag == TRACE) return 0;
     else if (pr->quality.Qualflag == AGE)   return 1;
@@ -82,7 +87,7 @@ double getucf(double order)
 }
 
 
-void ratecoeffs(EN_Project *pr)
+void ratecoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
 **   Input:   none
@@ -91,11 +96,11 @@ void ratecoeffs(EN_Project *pr)
 **--------------------------------------------------------------
 */
 {
+    Network  *net = &pr->network;
+    Quality  *qual = &pr->quality;
+
     int k;
     double kw;
-
-    EN_Network *net = &pr->network;
-    quality_t  *qual = &pr->quality;
 
     for (k = 1; k <= net->Nlinks; k++)
     {
@@ -107,7 +112,7 @@ void ratecoeffs(EN_Project *pr)
 }
 
 
-void reactpipes(EN_Project *pr, long dt)
+void reactpipes(Project *pr, long dt)
 /*
 **--------------------------------------------------------------
 **   Input:   dt = time step
@@ -116,12 +121,12 @@ void reactpipes(EN_Project *pr, long dt)
 **--------------------------------------------------------------
 */
 {
+    Network  *net = &pr->network;
+    Quality  *qual = &pr->quality;
+
     int k;
     Pseg seg;
     double cseg, rsum, vsum;
-
-    EN_Network *net = &pr->network;
-    quality_t  *qual = &pr->quality;
 
     // Examine each link in network
     for (k = 1; k <= net->Nlinks; k++)
@@ -140,7 +145,7 @@ void reactpipes(EN_Project *pr, long dt)
             seg->c = pipereact(pr, k, seg->c, seg->v, dt);
 
             // Update reaction component of mass balance
-            qual->massbalance.reacted += (cseg - seg->c) * seg->v;
+            qual->MassBalance.reacted += (cseg - seg->c) * seg->v;
 
             // Accumulate volume-weighted reaction rate
             if (qual->Qualflag == CHEM)
@@ -158,7 +163,7 @@ void reactpipes(EN_Project *pr, long dt)
 }
 
 
-void reacttanks(EN_Project *pr, long dt)
+void reacttanks(Project *pr, long dt)
 /*
 **--------------------------------------------------------------
 **   Input:   dt = time step
@@ -167,13 +172,13 @@ void reacttanks(EN_Project *pr, long dt)
 **--------------------------------------------------------------
 */
 {
+    Network  *net = &pr->network;
+    Quality  *qual = &pr->quality;
+
     int i, k;
     double c;
     Pseg seg;
-
-    EN_Network *net = &pr->network;
-    quality_t  *qual = &pr->quality;
-    Stank      *tank;
+    Stank *tank;
 
     // Examine each tank in network
     for (i = 1; i <= net->Ntanks; i++)
@@ -191,14 +196,14 @@ void reacttanks(EN_Project *pr, long dt)
         {
             c = seg->c;
             seg->c = tankreact(pr, seg->c, seg->v, tank->Kb, dt);
-            qual->massbalance.reacted += (c - seg->c) * seg->v;
+            qual->MassBalance.reacted += (c - seg->c) * seg->v;
             seg = seg->prev;
         }
     }
 }
 
 
-double piperate(EN_Project *pr, int k)
+double piperate(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
@@ -209,11 +214,11 @@ double piperate(EN_Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    double a, d, u, q, kf, kw, y, Re, Sh;
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
 
-    EN_Network   *net = &pr->network;
-    hydraulics_t *hyd = &pr->hydraulics;
-    quality_t    *qual = &pr->quality;
+    double a, d, u, q, kf, kw, y, Re, Sh;
 
     d = net->Link[k].Diam;   // Pipe diameter, ft
 
@@ -226,7 +231,7 @@ double piperate(EN_Project *pr, int k)
 
     // Compute Reynolds No.
     // Flow rate made consistent with how its saved to hydraulics file
-    q = (hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlows[k];
+    q = (hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlow[k];
     a = PI * d * d / 4.0;         // pipe area
     u = fabs(q) / a;              // flow velocity
     Re = u * d / hyd->Viscos;     // Reynolds number
@@ -258,7 +263,7 @@ double piperate(EN_Project *pr, int k)
 }
 
 
-double pipereact(EN_Project *pr, int k, double c, double v, long dt)
+double pipereact(Project *pr, int k, double c, double v, long dt)
 /*
 **------------------------------------------------------------
 **   Input:   k = link index
@@ -271,10 +276,10 @@ double pipereact(EN_Project *pr, int k, double c, double v, long dt)
 **------------------------------------------------------------
 */
 {
-    double cnew, dc, dcbulk, dcwall, rbulk, rwall;
+    Network  *net = &pr->network;
+    Quality  *qual = &pr->quality;
 
-    EN_Network  *net = &pr->network;
-    quality_t   *qual = &pr->quality;
+    double cnew, dc, dcbulk, dcwall, rbulk, rwall;
 
     // For water age (hrs), update concentration by timestep
     if (qual->Qualflag == AGE)
@@ -294,7 +299,7 @@ double pipereact(EN_Project *pr, int k, double c, double v, long dt)
     dcwall = rwall * (double)dt;
 
     // Update cumulative mass reacted
-    if (pr->time_options.Htime >= pr->time_options.Rstart)
+    if (pr->times.Htime >= pr->times.Rstart)
     {
         qual->Wbulk += fabs(dcbulk) * v;
         qual->Wwall += fabs(dcwall) * v;
@@ -308,7 +313,7 @@ double pipereact(EN_Project *pr, int k, double c, double v, long dt)
 }
 
 
-double tankreact(EN_Project *pr, double c, double v, double kb, long dt)
+double tankreact(Project *pr, double c, double v, double kb, long dt)
 /*
 **-------------------------------------------------------
 **   Input:   c = current quality in tank
@@ -321,8 +326,9 @@ double tankreact(EN_Project *pr, double c, double v, double kb, long dt)
 **-------------------------------------------------------
 */
 {
+    Quality *qual = &pr->quality;
+
     double cnew, dc, rbulk;
-    quality_t *qual = &pr->quality;
 
     // For water age, update concentration by timestep
     if (qual->Qualflag == AGE)
@@ -338,7 +344,7 @@ double tankreact(EN_Project *pr, double c, double v, double kb, long dt)
 
         // Find concentration change & update quality
         dc = rbulk * (double)dt;
-        if (pr->time_options.Htime >= pr->time_options.Rstart)
+        if (pr->times.Htime >= pr->times.Rstart)
         {
             qual->Wtank += fabs(dc) * v;
         }
@@ -349,7 +355,7 @@ double tankreact(EN_Project *pr, double c, double v, double kb, long dt)
 }
 
 
-double bulkrate(EN_Project *pr, double c, double kb, double order)
+double bulkrate(Project *pr, double c, double kb, double order)
 /*
 **-----------------------------------------------------------
 **   Input:   c = current WQ concentration
@@ -360,8 +366,9 @@ double bulkrate(EN_Project *pr, double c, double kb, double order)
 **-----------------------------------------------------------
 */
 {
+    Quality *qual = &pr->quality;
+
     double c1;
-    quality_t *qual = &pr->quality;
 
     // Find bulk reaction potential taking into account
     // limiting potential & reaction order.
@@ -396,7 +403,7 @@ double bulkrate(EN_Project *pr, double c, double kb, double order)
 }
 
 
-double wallrate(EN_Project *pr, double c, double d, double kw, double kf)
+double wallrate(Project *pr, double c, double d, double kw, double kf)
 /*
 **------------------------------------------------------------
 **   Input:   c = current WQ concentration
@@ -410,7 +417,8 @@ double wallrate(EN_Project *pr, double c, double d, double kw, double kf)
 **------------------------------------------------------------
 */
 {
-    quality_t *qual = &pr->quality;
+    Quality *qual = &pr->quality;
+
     if (kw == 0.0 || d == 0.0) return (0.0);
 
     if (qual->WallOrder == 0.0)             // 0-order reaction */
@@ -424,7 +432,7 @@ double wallrate(EN_Project *pr, double c, double d, double kw, double kf)
 }
 
 
-double mixtank(EN_Project *pr, int n, double volin, double massin, double volout)
+double mixtank(Project *pr, int n, double volin, double massin, double volout)
 /*
 **------------------------------------------------------------
 **   Input:   n      = node index
@@ -436,11 +444,11 @@ double mixtank(EN_Project *pr, int n, double volin, double massin, double volout
 **------------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Quality *qual = &pr->quality;
+
     int i;
     double vnet;
-    EN_Network   *net = &pr->network;
-    quality_t    *qual = &pr->quality;
-
     i = n - net->Njuncs;
     vnet = volin - volout;
     switch (net->Tank[i].MixModel)
@@ -454,7 +462,7 @@ double mixtank(EN_Project *pr, int n, double volin, double massin, double volout
 }
 
 
-void tankmix1(EN_Project *pr, int i, double vin, double win, double vnet)
+void tankmix1(Project *pr, int i, double vin, double win, double vnet)
 /*
 **---------------------------------------------
 **   Input:   i = tank index
@@ -466,14 +474,14 @@ void tankmix1(EN_Project *pr, int i, double vin, double win, double vnet)
 **---------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
+
     int k;
     double vnew;
     Pseg seg;
-
-    EN_Network   *net = &pr->network;
-    hydraulics_t *hyd = &pr->hydraulics;
-    quality_t    *qual = &pr->quality;
-    Stank        *tank = &net->Tank[i];
+    Stank *tank = &net->Tank[i];
 
     k = net->Nlinks + i;
     seg = qual->FirstSeg[k];
@@ -488,7 +496,7 @@ void tankmix1(EN_Project *pr, int i, double vin, double win, double vnet)
 }
 
 
-void tankmix2(EN_Project *pr, int i, double vin, double win, double vnet)
+void tankmix2(Project *pr, int i, double vin, double win, double vnet)
 /*
 **------------------------------------------------
 **   Input:   i = tank index
@@ -500,15 +508,15 @@ void tankmix2(EN_Project *pr, int i, double vin, double win, double vnet)
 **------------------------------------------------
 */
 {
-    int k;
+    Network  *net = &pr->network;
+    Quality  *qual = &pr->quality;
+
+    int    k;
     double vt,          // Transferred volume
            vmz;         // Full mixing zone volume
     Pseg   mixzone,     // Mixing zone segment
            stagzone;    // Stagnant zone segment
-
-    EN_Network   *net = &pr->network;
-    quality_t    *qual = &pr->quality;
-    Stank        *tank = &pr->network.Tank[i];
+    Stank  *tank = &pr->network.Tank[i];
 
     // Identify segments for each compartment
     k = net->Nlinks + i;
@@ -568,7 +576,7 @@ void tankmix2(EN_Project *pr, int i, double vin, double win, double vnet)
 }
 
 
-void tankmix3(EN_Project *pr, int i, double vin, double win, double vnet)
+void tankmix3(Project *pr, int i, double vin, double win, double vnet)
 /*
 **----------------------------------------------------------
 **   Input:   i = tank index
@@ -580,15 +588,15 @@ void tankmix3(EN_Project *pr, int i, double vin, double win, double vnet)
 **----------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
+
     int k;
     double vout, vseg;
     double cin, vsum, wsum;
     Pseg seg;
-
-    EN_Network   *net = &pr->network;
-    hydraulics_t *hyd = &pr->hydraulics;
-    quality_t    *qual = &pr->quality;
-    Stank        *tank = &pr->network.Tank[i];
+    Stank *tank = &pr->network.Tank[i];
 
     k = net->Nlinks + i;
     if (qual->LastSeg[k] == NULL || qual->FirstSeg[k] == NULL) return;
@@ -639,7 +647,7 @@ void tankmix3(EN_Project *pr, int i, double vin, double win, double vnet)
 }
 
 
-void tankmix4(EN_Project *pr, int i, double vin, double win, double vnet)
+void tankmix4(Project *pr, int i, double vin, double win, double vnet)
 /*
 **----------------------------------------------------------
 **   Input:   i = tank index
@@ -651,13 +659,13 @@ void tankmix4(EN_Project *pr, int i, double vin, double win, double vnet)
 **----------------------------------------------------------
 */
 {
+    Network *net  = &pr->network;
+    Quality *qual = &pr->quality;
+
     int k, n;
     double cin, vsum, wsum, vseg;
     Pseg seg;
-
-    EN_Network   *net  = &pr->network;
-    quality_t    *qual = &pr->quality;
-    Stank        *tank = &pr->network.Tank[i];
+    Stank *tank = &pr->network.Tank[i];
 
     k = net->Nlinks + i;
     if (qual->LastSeg[k] == NULL || qual->FirstSeg[k] == NULL) return;

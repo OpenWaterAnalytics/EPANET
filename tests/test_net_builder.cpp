@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     float h_orig, h_build, h_build_loaded;
     
     // first we load Net1.inp, run it and record the head in Tank 2 at the end of the simulation (h_orig)
-    EN_ProjectHandle ph = NULL;
+    EN_Project ph = NULL;
     EN_createproject(&ph);
     
     std::string path_inp = std::string(DATA_PATH_INP);
