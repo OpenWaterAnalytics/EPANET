@@ -47,7 +47,9 @@ int  linsolve(Smatrix *, int);
 // Local functions
 static int     allocsmatrix(Smatrix *, int, int);
 static int     alloclinsolve(Smatrix *, int);
-static void    removeparalinks(Project *);
+static int     localadjlists(Network *, Smatrix *);
+static int     paralink(Network *, Smatrix *, int, int, int k);
+static void    xparalinks(Network *);
 static int     reordernodes(Project *);
 static int     factorize(Project *);
 static int     growlist(Project *, int);
@@ -97,12 +99,10 @@ int  createsparse(Project *pr)
     errcode = allocsmatrix(sm, net->Nnodes, net->Nlinks);
     if (errcode) return errcode;
 
-    // Build node-link adjacency lists
-    errcode = buildadjlists(net);
+    // Build a local version of node-link adjacency lists
+    // with parallel links removed
+    errcode = localadjlists(net, sm);
     if (errcode) return errcode;
-
-    // Remove parallel links from adjacency lists
-    removeparalinks(pr);
 
     // Re-order nodes to minimize number of non-zero coeffs. 
     // in factorized solution matrix
@@ -117,7 +117,7 @@ int  createsparse(Project *pr)
     // coeffs. and store these positions in vector NZSUB
     ERRCODE(storesparse(pr, net->Njuncs));
 
-    // Free memory used for adjacency lists and sort
+    // Free memory used for local adjacency lists and sort
     // row indexes in NZSUB to optimize linsolve()
     freeadjlists(net);
     ERRCODE(sortsparse(sm, net->Njuncs));
@@ -222,7 +222,87 @@ void  freesparse(Project *pr)
 }
 
 
-void removeparalinks(Project *pr)
+int  localadjlists(Network *net, Smatrix *sm)
+/*
+**--------------------------------------------------------------
+** Input:   none
+** Output:  returns error code
+** Purpose: builds linked list of non-parallel links adjacent to each node
+**--------------------------------------------------------------
+*/
+{
+    int    i, j, k;
+    int    pmark = 0;     // parallel link marker
+    int    errcode = 0;
+    Padjlist  alink;
+
+    // Create an array of adjacency lists
+    freeadjlists(net);
+    net->Adjlist = (Padjlist *)calloc(net->Nnodes + 1, sizeof(Padjlist));
+    if (net->Adjlist == NULL) return 101;
+
+    // For each link, update adjacency lists of its end nodes
+    for (k = 1; k <= net->Nlinks; k++)
+    {
+        i = net->Link[k].N1;
+        j = net->Link[k].N2;
+        pmark = paralink(net, sm, i, j, k);  // Parallel link check
+        
+        // Include link in start node i's list
+        alink = (struct Sadjlist *) malloc(sizeof(struct Sadjlist));
+        if (alink == NULL) return(101);
+        if (!pmark) alink->node = j;
+        else        alink->node = 0;         // Parallel link marker
+        alink->link = k;
+        alink->next = net->Adjlist[i];
+        net->Adjlist[i] = alink;
+
+        // Include link in end node j's list
+        alink = (struct Sadjlist *) malloc(sizeof(struct Sadjlist));
+        if (alink == NULL) return(101);
+        if (!pmark) alink->node = i;
+        else        alink->node = 0;         // Parallel link marker 
+        alink->link = k;
+        alink->next = net->Adjlist[j];
+        net->Adjlist[j] = alink;
+    }
+
+    // Remove parallel links from adjacency lists
+    xparalinks(net);
+    return errcode;
+}
+
+
+int  paralink(Network *net, Smatrix *sm, int i, int j, int k)
+/*
+**--------------------------------------------------------------
+** Input:   i = index of start node of link 
+**          j = index of end node of link
+**          k = link index
+** Output:  returns 1 if link k parallels another link, else 0
+** Purpose: checks for parallel links between nodes i and j
+**
+**--------------------------------------------------------------
+*/
+{
+    Padjlist alink;
+    for (alink = net->Adjlist[i]; alink != NULL; alink = alink->next)
+    {
+        // Link || to k (same end nodes)
+        if (alink->node == j)
+        {
+            // Assign Ndx entry to this link
+            sm->Ndx[k] = alink->link;
+            return(1);
+        }
+    }
+    // Ndx entry if link not parallel
+    sm->Ndx[k] = k;
+    return(0);
+}
+
+
+void  xparalinks(Network *net)
 /*
 **--------------------------------------------------------------
 ** Input:   none
@@ -231,35 +311,36 @@ void removeparalinks(Project *pr)
 **--------------------------------------------------------------
 */
 {
-    Network *net = &pr->network;
-    Smatrix *sm = &pr->hydraul.smatrix;
+    int    i;
+    Padjlist    alink,       // Current item in adjacency list
+                blink;       // Previous item in adjacency list
 
-    int i, k;
-    Padjlist  alink, blink;
-
-    // Assign indexes of off-diagonal coeffs. to each link
-    for (k = 1; k <= net->Nlinks; k++) sm->Ndx[k] = k;
-
-    // Check each node for parallel links
+    // Scan adjacency list of each node
     for (i = 1; i <= net->Nnodes; i++)
     {
-        // Traverse node's adjacency list
-        for (alink = net->Adjlist[i]; alink != NULL; alink = alink->next)
+        alink = net->Adjlist[i];               // First item in list
+        blink = NULL;
+        while (alink != NULL)
         {
-            // Skip link if it was already marked as parallel
-            if (alink->node == 0) continue;
-
-            // Check all adjacent links that follow alink
-            for (blink = alink->next; blink != NULL; blink = blink->next)
+            if (alink->node == 0)              // Parallel link marker found
             {
-                // If both links connect to same node, mark blink as parallel
-                k = blink->link;
-                if (k > 0 && blink->node == alink->node)
+                if (blink == NULL)             // This holds at start of list
                 {
-                    // Re-assign off-diag. index of parallel link
-                    sm->Ndx[k] = alink->link;
-                    blink->node = 0;
+                    net->Adjlist[i] = alink->next;
+                    free(alink);                // Remove item from list
+                    alink = net->Adjlist[i];
                 }
+                else                           // This holds for interior of list
+                {
+                    blink->next = alink->next;
+                    free(alink);                // Remove item from list
+                    alink = blink->next;
+                }
+            }
+            else
+            {
+                blink = alink;                // Move to next item in list
+                alink = alink->next;
             }
         }
     }
