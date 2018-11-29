@@ -7,13 +7,13 @@
 #
 # Modified by: Michael E. Tryby
 #              US EPA ORD/NRMRL
-# 
+#
 
 #Setup CMake to run tests
 enable_testing()
 
 
-# Sets for output directory for executables and libraries. 
+# Sets for output directory for executables and libraries.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 if(UNIX)
@@ -26,7 +26,7 @@ if(MSVC)
     set(Boost_DETAILED_FAILURE_MSG  OFF)
     set(Boost_USE_STATIC_LIBS       ON)
 endif(MSVC)
-set(Boost_THREAD_FOUND              OFF)    
+set(Boost_THREAD_FOUND              OFF)
 find_package(Boost COMPONENTS thread)
 include_directories (${Boost_INCLUDE_DIRS})
 
@@ -44,11 +44,11 @@ foreach(testSrc ${TEST_SRCS})
         add_executable(${testName} ${testSrc})
 
         #link to Boost libraries AND your targets and dependencies
-        target_link_libraries(${testName} ${Boost_LIBRARIES} epanet epanet-output)
+        target_link_libraries(${testName} ${Boost_LIBRARIES} epanet2 epanet-output)
 
         #Finally add it to test execution
         #Notice the WORKING_DIRECTORY and COMMAND
         add_test(NAME ${testName}
-                 COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${testName}  
+                 COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${testName}
                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
 endforeach(testSrc)
