@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
 	int error = 0;
     int Nindex, ndem;
 
-    EN_ProjectHandle ph = NULL;
+    EN_Project ph = NULL;
 	
     error = EN_createproject(&ph);
     error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());

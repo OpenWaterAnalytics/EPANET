@@ -1,14 +1,14 @@
 /*
-***********************************************************************
-                                                                     
-ENUMSTXT.H -- Text strings for enumerated data types in EPANET  
-                                                                     
-VERSION:    2.00                                               
-DATE:       5/8/00
-AUTHOR:     L. Rossman                                         
-            US EPA - NRMRL
-                                                                     
-**********************************************************************
+ *****************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       enumstxt.h
+ Description:  text strings for enumerated data types
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/27/2018
+ ******************************************************************************
 */
 
 #ifndef ENUMSTXT_H

@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     int link113, node23, link22, pump9_before, pump9_after;
     float priority;
 
-    EN_ProjectHandle ph = NULL;
+    EN_Project ph = NULL;
     EN_createproject(&ph);
     
     std::string path_inp = std::string(DATA_PATH_INP);
