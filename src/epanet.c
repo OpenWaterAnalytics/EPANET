@@ -20,7 +20,7 @@
 #include <float.h>
 #include <math.h>
 
-#include "epanet2.h"
+#include "epanet2_2.h"
 #include "types.h"
 #include "funcs.h"
 #include "text.h"

@@ -21,7 +21,7 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include <string>
-#include "epanet2.h"
+#include "epanet2_2.h"
 
 // NOTE: Project Home needs to be updated to run unit test
 #define DATA_PATH_INP "./net1.inp"

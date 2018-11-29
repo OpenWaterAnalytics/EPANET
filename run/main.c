@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "epanet2_1.h"
+#include "epanet2.h"
 
 #define   MAXMSG         255       /* Max. # characters in message text      */
 #define   MAXWARNCODE    99

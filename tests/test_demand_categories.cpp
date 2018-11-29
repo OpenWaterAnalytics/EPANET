@@ -11,7 +11,7 @@ A demand category name is set, the network is saved, reopened and the new demand
 #include <boost/test/included/unit_test.hpp>
 
 #include <string>
-#include "epanet2.h"
+#include "epanet2_2.h"
 
 // NOTE: Project Home needs to be updated to run unit test
 #define DATA_PATH_INP "./net1.inp"
@@ -41,12 +41,12 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
 	char demand_category[] = "Demand category name";
 	char demname[80];
 
-    
+
 	int error = 0;
     int Nindex, ndem;
 
     EN_Project ph = NULL;
-	
+
     error = EN_createproject(&ph);
     error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
 
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
     error = EN_getnumdemands(ph, Nindex, &ndem);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ndem == 1);
-    
+
 	error = EN_setdemandname(ph, Nindex, ndem, demand_category);
     BOOST_REQUIRE(error == 0);
     error = EN_saveinpfile(ph, inp_save.c_str());
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
 
 	BOOST_TEST_CHECKPOINT("Reopening saved input file");
     error = EN_createproject(&ph);
-	BOOST_REQUIRE(error == 0); 
+	BOOST_REQUIRE(error == 0);
 	error = EN_open(ph, inp_save.c_str(), path_rpt.c_str(), path_out.c_str());
 	BOOST_REQUIRE(error == 0);
 
@@ -81,9 +81,9 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
 	error = EN_getdemandname(ph, Nindex, ndem, demname);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(check_string(demname, demand_category));
-    
+
 	error = EN_close(ph);
-	BOOST_REQUIRE(error == 0); 
+	BOOST_REQUIRE(error == 0);
 	error = EN_deleteproject(&ph);
 	BOOST_REQUIRE(error == 0);
 }

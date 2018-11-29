@@ -3,7 +3,7 @@
  Project:      OWA EPANET
  Version:      2.2
  Module:       epanet.c
- Description:  implementation of the EPANET 2.1 API functions
+ Description:  implementation of the legacy EPANET API functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
@@ -15,8 +15,8 @@
 #include "types.h"
 #include "funcs.h"
 
-#include "epanet2_1.h"
 #include "epanet2.h"
+#include "epanet2_2.h"
 
 
 // This single global variable is used only when the library is called
