@@ -224,5 +224,6 @@ temp/
 nrtestsuite/
 tests/data/
 
-#Cmake generated export headers
+#Cmake stuff
+buildprod*/
 *_export.h
