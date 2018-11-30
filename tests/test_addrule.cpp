@@ -16,7 +16,7 @@ node or link appearing in any simple or rule-based controls.
 
 #include <iostream>
 #include <string>
-#include "epanet2.h"
+#include "epanet2_2.h"
 
 #define DATA_PATH_INP "./net1.inp"
 #define DATA_PATH_RPT "./test.rpt"
@@ -30,7 +30,7 @@ using namespace std;
 
 char R1[] = "RULE 1 \n IF NODE 2 LEVEL < 100 \n THEN LINK 9 STATUS = OPEN";
 char R2[] = "RULE 2\nIF SYSTEM TIME = 4\nTHEN LINK 9 STATUS = CLOSED\nAND LINK 31 STATUS = CLOSED";
-char R3[] = "RULE 3\nIF NODE 23 PRESSURE ABOVE 140\nAND NODE 2 LEVEL > 120\n" 
+char R3[] = "RULE 3\nIF NODE 23 PRESSURE ABOVE 140\nAND NODE 2 LEVEL > 120\n"
             "THEN LINK 113 STATUS = CLOSED\nELSE LINK 22 STATUS = CLOSED";
 
 #ifndef NO_BOOST
@@ -47,11 +47,11 @@ int main(int argc, char *argv[])
 
     EN_Project ph = NULL;
     EN_createproject(&ph);
-    
+
     std::string path_inp = std::string(DATA_PATH_INP);
     std::string path_rpt = std::string(DATA_PATH_RPT);
     std::string path_out = std::string(DATA_PATH_OUT);
-    
+
     error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
     BOOST_REQUIRE(error == 0);
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     // Check that rules were added
     error = EN_getcount(ph, EN_RULECOUNT, &ruleCount);
     BOOST_REQUIRE(ruleCount == 3);
-    
+
     // Check the number of clauses in rule 3
     error = EN_getrule(ph, 3, &nP, &nTA, &nEA, &priority);
     BOOST_REQUIRE(nP == 2);

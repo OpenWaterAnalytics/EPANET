@@ -1,22 +1,20 @@
-/** @file epanet2.h
- @see http://github.com/openwateranalytics/epanet
- */
-
 /*
  ******************************************************************************
  Project:      OWA EPANET
  Version:      2.2
  Module:       epanet2.h
- Description:  symbolic constants and function declarations for the EPANET API 
+ Description:  declarations for the legacy EPANET 2 API functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 11/29/2018
  ******************************************************************************
  */
 
+
 #ifndef EPANET2_H
 #define EPANET2_H
+
 
 // the toolkit can be compiled with support for double-precision as well.
 // just make sure that you use the correct #define in your client code.
@@ -25,8 +23,8 @@
 #endif
 
 #ifdef WITH_GENX
-   #include "epanet_export.h"
-#else 
+   #include "epanet2_export.h"
+#else
   // --- define WINDOWS
   #undef WINDOWS
   #ifdef _WIN32
@@ -58,301 +56,14 @@
   #endif
 #endif
 
+#include "epanet2_enums.h"
 
-// --- Define the EPANET toolkit constants
-
-#define  EN_MAXID  31  //!< Max. # characters in ID name
-#define  EN_MAXMSG 255 //!< Max. # characters in message text
-
-/// Node property codes
-typedef enum {
-  EN_ELEVATION    = 0, //!< Elevation
-  EN_BASEDEMAND   = 1, //!< Junction baseline demand, from last demand category
-  EN_PATTERN      = 2, //!< Junction baseline demand pattern
-  EN_EMITTER      = 3, //!< Junction emitter coefficient
-  EN_INITQUAL     = 4, //!< Initial quality
-  EN_SOURCEQUAL   = 5, //!< Quality source strength
-  EN_SOURCEPAT    = 6, //!< Quality source pattern
-  EN_SOURCETYPE   = 7, //!< Qualiy source type
-  EN_TANKLEVEL    = 8, //!< Tank water level
-  EN_DEMAND       = 9, //!< Current simulated demand
-  EN_HEAD         = 10, //!< Current hydraulic head
-  EN_PRESSURE     = 11, //!< Current pressure
-  EN_QUALITY      = 12, //!< Current quality
-  EN_SOURCEMASS   = 13, //!< Current source mass inflow
-  EN_INITVOLUME   = 14, //!< Tank initial volume
-  EN_MIXMODEL     = 15, //!< Tank mixing model
-  EN_MIXZONEVOL   = 16, //!< Tank mixing zone volume
-  EN_TANKDIAM     = 17, //!< Tank diameter
-  EN_MINVOLUME    = 18, //!< Tank minimum volume
-  EN_VOLCURVE     = 19, //!< Tank volume curve
-  EN_MINLEVEL     = 20, //!< Tank minimum level
-  EN_MAXLEVEL     = 21, //!< Tank maximum level
-  EN_MIXFRACTION  = 22, //!< Tank mixing fraction
-  EN_TANK_KBULK   = 23, //!< Tank bulk decay coefficient
-  EN_TANKVOLUME   = 24, //!< Tank current volume
-  EN_MAXVOLUME    = 25  //!< Tank maximum volume
-} EN_NodeProperty;
-
-/// Link property codes
-typedef enum {
-  EN_DIAMETER     = 0,  //!< Pipe/valve diameter
-  EN_LENGTH       = 1,  //!> Pipe length
-  EN_ROUGHNESS    = 2,  //!> Pipe roughness coefficient
-  EN_MINORLOSS    = 3,  //!> Pipe/valve minor loss coefficient
-  EN_INITSTATUS   = 4,  //!> Initial status (e.g., OPEN/CLOSED)
-  EN_INITSETTING  = 5,  //!> Initial pump speed or valve setting
-  EN_KBULK        = 6,  //!> Bulk chemical reaction coefficient
-  EN_KWALL        = 7,  //!> Pipe wall chemical reaction coefficient
-  EN_FLOW         = 8,  //!> Current link flow rate
-  EN_VELOCITY     = 9,  //!> Current link flow velocity
-  EN_HEADLOSS     = 10, //!> Current head loss across link
-  EN_STATUS       = 11, //!> Current link status
-  EN_SETTING      = 12, //!> Current link setting
-  EN_ENERGY       = 13, //!> Current pump energy usage
-  EN_LINKQUAL     = 14, //!> Current link quality
-  EN_LINKPATTERN  = 15, //!> Pump speed time pattern
-  EN_EFFICIENCY   = 16, //!> Current pump efficiency
-  EN_HEADCURVE    = 17, //!> Pump head v. flow curve
-  EN_EFFICIENCYCURVE = 18, //!> Pump efficiency v. flow curve
-  EN_PRICEPATTERN = 19,    //!> Pump energy price time pattern
-  EN_STATE        = 20,    //!> Current pump status
-  EN_CONST_POWER  = 21,    //!> Horsepower of constant horsepower pump
-  EN_SPEED        = 22     //!> Current pump speed setting
-} EN_LinkProperty;
-
-/// Time parameter codes
-typedef enum {
-  EN_DURATION     = 0,  //!> Total simulation duration
-  EN_HYDSTEP      = 1,  //!> Hydraulic time step
-  EN_QUALSTEP     = 2,  //!> Water quality time step
-  EN_PATTERNSTEP  = 3,  //!> Time pattern period
-  EN_PATTERNSTART = 4,  //!> Time when time patterns begin
-  EN_REPORTSTEP   = 5,  //!> Reporting time step
-  EN_REPORTSTART  = 6,  //!> Time when reporting starts
-  EN_RULESTEP     = 7,  //!> Rule evaluation time step
-  EN_STATISTIC    = 8,  //!> Reporting statistic code
-  EN_PERIODS      = 9,  //!> Number of reporting time periods
-  EN_STARTTIME    = 10, //!> Simulation starting time of day 
-  EN_HTIME        = 11, //!> Elapsed time of current hydraulic solution
-  EN_QTIME        = 12, //!> Elapsed time of current quality solution
-  EN_HALTFLAG     = 13, //!> Flag indicating if simulation halted
-  EN_NEXTEVENT    = 14, //!> Next time until a tank becomes empty or full
-  EN_NEXTEVENTIDX = 15  //!> Index of next tank that becomes empty or full
-} EN_TimeProperty;
-
-/// Analysis statistic codes
-typedef enum {
-  EN_ITERATIONS    = 0, //!< Number of hydraulic iterations
-  EN_RELATIVEERROR = 1, //!< Sum of all flow changes / total flow
-  EN_MAXHEADERROR  = 2, //!< Largest head loss error for links
-  EN_MAXFLOWCHANGE = 3, //!< Largest flow change in links
-  EN_MASSBALANCE   = 4  //!< Water quality mass balance ratio
-} EN_AnalysisStatistic;
-
-/// Object count codes
-typedef enum {
-  EN_NODECOUNT    = 0,  //!< Number of nodes (Juntions + Tanks + Reservoirs)
-  EN_TANKCOUNT    = 1,  //!< Number of tanks and Reservoirs
-  EN_LINKCOUNT    = 2,  //!< Number of links (Pipes + Pumps + Valves)
-  EN_PATCOUNT     = 3,  //!< Number of time patterns
-  EN_CURVECOUNT   = 4,  //!< Number of curves
-  EN_CONTROLCOUNT = 5,  //!< Number of simple controls
-  EN_RULECOUNT	  = 6   //!< Number of rule-based controls
-} EN_CountType;
-
-/// Node type codes
-typedef enum {
-  EN_JUNCTION    = 0,   //!< Junction node
-  EN_RESERVOIR   = 1,   //!< Reservoir node
-  EN_TANK        = 2    //!< Storage tank node
-} EN_NodeType;
-
-/// Link type codes
-typedef enum {
-  EN_CVPIPE       = 0,  //!< Pipe with check valve
-  EN_PIPE         = 1,  //!< Pipe
-  EN_PUMP         = 2,  //!< Pump
-  EN_PRV          = 3,  //!< Pressure reducing valve
-  EN_PSV          = 4,  //!< Pressure sustaining valve
-  EN_PBV          = 5,  //!< Pressure breaker valve
-  EN_FCV          = 6,  //!< Flow control valve
-  EN_TCV          = 7,  //!< Throttle control valve
-  EN_GPV          = 8   //!< General purpose valve
-} EN_LinkType;
-
-/// Water quality analysis types
-typedef enum {
-  EN_NONE        = 0,   //!< No quality analysis
-  EN_CHEM        = 1,   //!< Chemical fate and transport
-  EN_AGE         = 2,   //!< Water age analysis
-  EN_TRACE       = 3    //!< Source tracing analysis
-} EN_QualityType;
-
-/// Water quality source types
-typedef enum {
-  EN_CONCEN      = 0,   //!< Concentration inflow source
-  EN_MASS        = 1,   //!< Mass inflow source
-  EN_SETPOINT    = 2,   //!< Concentration setpoint source
-  EN_FLOWPACED   = 3    //!< Concentration flow paced source
-} EN_SourceType;
-
-/// Head loss formulas
-typedef enum {
-  EN_HW          = 0,   //!< Hazen-Williams
-  EN_DW          = 1,   //!< Darcy-Weisbach
-  EN_CM          = 2    //!< Chezy-Manning
-} EN_HeadLossType;
-
-/// Flow units types
-typedef enum {
-  EN_CFS         = 0,
-  EN_GPM         = 1,
-  EN_MGD         = 2,
-  EN_IMGD        = 3,
-  EN_AFD         = 4,
-  EN_LPS         = 5,
-  EN_LPM         = 6,
-  EN_MLD         = 7,
-  EN_CMH         = 8,
-  EN_CMD         = 9
-} EN_FlowUnits;
-
-/// Demand model types
-typedef enum {
-  EN_DDA         = 0,   //!< Demand driven analysis
-  EN_PDA         = 1    //!< Pressure driven analysis
-} EN_DemandModel;
-
-/// Simulation Option codes
-typedef enum {
-  EN_TRIALS       = 0,  //!> Maximum hydraulic trials allowed
-  EN_ACCURACY     = 1,  //!> Hydraulic convergence accuracy
-  EN_TOLERANCE    = 2,  //!> Water quality tolerance
-  EN_EMITEXPON    = 3,  //!> Exponent for emitter head loss formula
-  EN_DEMANDMULT   = 4,  //!> Global demand multiplier
-  EN_HEADERROR    = 5,  //!> Maximum allowable head loss error
-  EN_FLOWCHANGE   = 6,  //!> Maximum allowable flow change
-  EN_DEMANDDEFPAT = 7,  //!> Default demand time pattern
-  EN_HEADLOSSFORM = 8   //!> Head loss formula code
-} EN_Option;
-
-/// Simple control types
-typedef enum {
-  EN_LOWLEVEL    = 0,
-  EN_HILEVEL     = 1,
-  EN_TIMER       = 2,
-  EN_TIMEOFDAY   = 3
-} EN_ControlType;
-
-/// Reporting statistic types
-typedef enum {
-  EN_AVERAGE     = 1,   //!> Report average value over simulation period
-  EN_MINIMUM     = 2,   //!> Report minimum value over simulation period
-  EN_MAXIMUM     = 3,   //!> Report maximum value over simulation period
-  EN_RANGE       = 4    //!> Report maximum - minimum over simulation period
-} EN_StatisticType;
-
-/// Tank mixing models
-typedef enum {
-  EN_MIX1        = 0,   //!< Complete mix model
-  EN_MIX2        = 1,   //!< 2-compartment model
-  EN_FIFO        = 2,   //!< First in, first out model
-  EN_LIFO        = 3    //!< Last in, first out model
-} EN_MixingModel;
-
-/// Hydraulic initialization options
-typedef enum {
-  EN_NOSAVE        = 0,  //!> Don't save hydraulics; don't re-initialize flows
-  EN_SAVE          = 1,  //!> Save hydraulics to file, don't re-initialize flows
-  EN_INITFLOW      = 10, //!> Don't save hydraulics; re-initialize flows
-  EN_SAVE_AND_INIT = 11  //!> Save hydraulics; re-initialize flows
-} EN_SaveOption;
-
-/// Pump curve types
-typedef enum {
-  EN_CONST_HP    = 0,   //!< Constant horsepower
-  EN_POWER_FUNC  = 1,   //!< Power function
-  EN_CUSTOM      = 2,   //!< User-defined custom curve
-  EN_NOCURVE     = 3    //!< No curve
-} EN_PumpType;
-
-/// Data curve types
-typedef enum {
-  EN_V_CURVE     = 0,   //!< Tank volume curve
-  EN_P_CURVE     = 1,   //!< Pump characteristic curve
-  EN_E_CURVE     = 2,   //!< Pump efficiency curve
-  EN_H_CURVE     = 3,   //!< Valve head loss curve
-  EN_G_CURVE     = 4    //!< General\default curve
-} EN_CurveType;
-
-/// Deletion action types
-typedef enum {
-  EN_UNCONDITIONAL = 0, //!> Delete all controls that contain object
-  EN_CONDITIONAL   = 1  //!> Cancel object deletion if contained in controls
-} EN_ActionCodeType;
-
-/// Rule object codes
-typedef enum {
-  EN_R_NODE      = 6,
-  EN_R_LINK      = 7,
-  EN_R_SYSTEM    = 8
-} EN_RuleObject;
-
-/// Rule variable codes
-typedef enum {
-  EN_R_DEMAND    = 0,
-  EN_R_HEAD      = 1,
-  EN_R_GRADE     = 2,
-  EN_R_LEVEL     = 3, 
-  EN_R_PRESSURE  = 4,
-  EN_R_FLOW      = 5,
-  EN_R_STATUS    = 6,
-  EN_R_SETTING   = 7,
-  EN_R_POWER     = 8,
-  EN_R_TIME      = 9,
-  EN_R_CLOCKTIME = 10,
-  EN_R_FILLTIME  = 11,
-  EN_R_DRAINTIME = 12
-} EN_RuleVariable;
-
-/// Rule operator types
-typedef enum {
-  EN_R_EQ        = 0,
-  EN_R_NE        = 1,
-  EN_R_LE        = 2,
-  EN_R_GE        = 3,
-  EN_R_LT        = 4,
-  EN_R_GT        = 5,
-  EN_R_IS        = 6,
-  EN_R_NOT       = 7,
-  EN_R_BELOW     = 8,
-  EN_R_ABOVE     = 9
-} EN_RuleOperator;
-
-/// Rule status types
-typedef enum {
-  EN_R_IS_OPEN   = 1,
-  EN_R_IS_CLOSED = 2,
-  EN_R_IS_ACTIVE = 3
-} EN_RuleStatus;
-
-/// Status report types
-typedef enum {
-  EN_NO_REPORT     = 0,
-  EN_NORMAL_REPORT = 1,
-  EN_FULL_REPORT   = 2
-} EN_StatusReport;
 
 // --- Declare the EPANET toolkit functions
 #if defined(__cplusplus)
 extern "C" {
 #endif
-  
-/**
- @brief The EPANET Project wrapper object
-*/
-typedef struct Project *EN_Project;
+
 
 /********************************************************************
 
@@ -367,15 +78,15 @@ typedef struct Project *EN_Project;
   param binOutFile pointer to name of binary output file (to be created)
   param callback a callback function that takes a character string (char *) as its only parameter.
   return error code
-   
+
   The callback function should reside in and be used by the calling
   code to display the progress messages that EPANET generates
   as it carries out its computations. If this feature is not
   needed then the argument should be NULL.
   */
-  int  DLLEXPORT ENepanet(const char *inpFile, const char *rptFile, 
+  int  DLLEXPORT ENepanet(const char *inpFile, const char *rptFile,
                  const char *binOutFile, void (*callback) (char *));
-  
+
   /**
    @brief Initializes an EPANET session
    @param rptFile pointer to name of report file (to be created)
@@ -384,9 +95,9 @@ typedef struct Project *EN_Project;
    @param HeadlossFormula headloss formula flag
    @return error code
    */
-  int  DLLEXPORT ENinit(const char *rptFile, const char *binOutFile, 
+  int  DLLEXPORT ENinit(const char *rptFile, const char *binOutFile,
                  int UnitsType, int HeadlossFormula);
-  
+
   /**
    @brief Opens EPANET input file & reads in network data
    @param inpFile pointer to name of input file (must exist)
@@ -396,14 +107,14 @@ typedef struct Project *EN_Project;
    */
   int  DLLEXPORT ENopen(const char *inpFile, const char *rptFile,
                  const char *binOutFile);
-  
+
   /**
    @brief Saves current data to "INP" formatted text file.
    @param filename The file path to create
    @return Error code
    */
   int  DLLEXPORT ENsaveinpfile(const char *filename);
-  
+
   /**
    @brief Frees all memory and files used by EPANET
    @return Error code
@@ -421,22 +132,22 @@ typedef struct Project *EN_Project;
    @return Error code
    */
   int  DLLEXPORT ENsolveH();
-  
+
   /**
    @brief Saves hydraulic results to binary file
    @return Error code
-   
+
    Must be called before ENreport() if no WQ simulation has been made.
    Should not be called if ENsolveQ() will be used.
    */
   int  DLLEXPORT ENsaveH();
-  
+
   /**
    @brief Sets up data structures for hydraulic analysis
    @return Error code
    */
   int  DLLEXPORT ENopenH();
-  
+
   /**
    @brief Initializes hydraulic analysis
    @param initFlag 2-digit initialization flag
@@ -447,43 +158,43 @@ typedef struct Project *EN_Project;
    2nd digit indicates if hydraulic results should be saved to file (1) or not (0).
    */
   int  DLLEXPORT ENinitH(int initFlag);
-  
+
   /**
    @brief Run a hydraulic solution period
    @param[out] currentTime The current simulation time in seconds
    @return Error or warning code
    @see ENsolveH
-   
+
    This function is used in a loop with ENnextH() to run
    an extended period hydraulic simulation.
    See ENsolveH() for an example.
    */
   int  DLLEXPORT ENrunH(long *currentTime);
-  
+
   /**
    @brief Determine time (in seconds) until next hydraulic event
    @param[out] tStep Time (seconds) until next hydraulic event. 0 marks end of simulation period.
    @return Error code
-   
+
    This function is used in a loop with ENrunH() to run an extended period hydraulic simulation.
    See ENsolveH() for an example.
    */
   int  DLLEXPORT ENnextH(long *tStep);
-  
-  
+
+
   /**
    @brief Frees data allocated by hydraulics solver
    @return Error code
    */
   int  DLLEXPORT ENcloseH();
-  
+
   /**
    @brief Copies binary hydraulics file to disk
    @param filename Name of file to be created
    @return Error code
    */
   int  DLLEXPORT ENsavehydfile(char *filename);
-  
+
   /**
    @brief Opens previously saved binary hydraulics file
    @param filename Name of file to be used
@@ -496,64 +207,64 @@ typedef struct Project *EN_Project;
     Water Quality Analysis Functions
 
 ********************************************************************/
-  
+
   /**
    @brief Solves for network water quality in all time periods
    @return Error code
    */
   int  DLLEXPORT ENsolveQ();
-  
+
   /**
    @brief Sets up data structures for WQ analysis
    @return Error code
    */
   int  DLLEXPORT ENopenQ();
-  
+
   /**
    @brief Initializes water quality analysis
    @param saveFlag EN_SAVE (1) if results saved to file, EN_NOSAVE (0) if not
    @return Error code
    */
   int  DLLEXPORT ENinitQ(int saveFlag);
-  
+
   /**
    @brief Retrieves hydraulic & WQ results at time t.
    @param[out] currentTime Current simulation time, in seconds.
    @return Error code
-   
+
    This function is used in a loop with ENnextQ() to run
    an extended period WQ simulation. See ENsolveQ() for
    an example.
    */
   int  DLLEXPORT ENrunQ(long *currentTime);
-  
+
   /**
    @brief Advances WQ simulation to next hydraulic event.
    @param[out] tStep Time in seconds until next hydraulic event. 0 marks end of simulation period.
    @return Error code
-   
+
    This function is used in a loop with ENrunQ() to run
    an extended period WQ simulation. See ENsolveQ() for
    an example.
    */
   int  DLLEXPORT ENnextQ(long *tStep);
-  
+
   /**
    @brief Advances WQ simulation by a single WQ time step
    @param[out] timeLeft Time left in overall simulation (in seconds)
    @return Error code
-   
+
    This function is used in a loop with ENrunQ() to run
    an extended period WQ simulation.
    */
   int  DLLEXPORT ENstepQ(long *timeLeft);
-  
+
   /**
    @brief Frees data allocated by water quality solver.
    @return Error code.
    */
   int  DLLEXPORT ENcloseQ();
-  
+
 /********************************************************************
 
     Reporting Functions
@@ -566,19 +277,19 @@ typedef struct Project *EN_Project;
    @return Error code.
    */
   int  DLLEXPORT ENwriteline(char *line);
-  
+
   /**
    @brief Writes simulation report to the report file
    @return Error code
    */
   int  DLLEXPORT ENreport();
-  
+
   /**
    @brief Resets report options to default values
    @return Error code
    */
   int  DLLEXPORT ENresetreport();
-  
+
   /**
    @brief Processes a reporting format command
    @return Error code
@@ -1343,7 +1054,7 @@ typedef struct Project *EN_Project;
    @param variable[out] Index of the variable to be checked (see EN_RuleVariable).
    @param relop[out] Relationship operator in the premise (see EN_RuleOperator).
    @param status[out] Status of the object being checked (see EN_RuleStatus).
-   @param value[out] Setting of the variable being checked (e.g. 5.5) 
+   @param value[out] Setting of the variable being checked (e.g. 5.5)
    @return Error code.
    */
   int  DLLEXPORT ENgetpremise(int ruleIndex, int premiseIndex, int *logop,
@@ -1360,7 +1071,7 @@ typedef struct Project *EN_Project;
    @param variable Index of the variable to be checked (see EN_RuleVariable).
    @param relop Relationship operator in the premise (see EN_RuleOperator).
    @param status Status of the object being checked (see EN_RuleStatus).
-   @param value Setting of the variable being checked (e.g. 5.5) 
+   @param value Setting of the variable being checked (e.g. 5.5)
    @return Error code.
    */
   int  DLLEXPORT ENsetpremise(int ruleIndex, int premiseIndex, int logop,
@@ -1389,12 +1100,12 @@ typedef struct Project *EN_Project;
    @brief Set the value in a premise of a rule-based control.
    @param ruleIndex The rule's index.
    @param premiseIndex The premise's index.
-   @param value The value of the premise's variable being checked (e.g. 5.5) 
+   @param value The value of the premise's variable being checked (e.g. 5.5)
    @return Error code.
    */
   int  DLLEXPORT ENsetpremisevalue(int ruleIndex, int premiseIndex,
                  EN_API_FLOAT_TYPE value);
-  
+
   /**
    @brief Get the properties of a THEN action in a rule-based control.
    @param ruleIndex The rule's index.
@@ -1418,7 +1129,7 @@ typedef struct Project *EN_Project;
    */
   int  DLLEXPORT ENsetthenaction(int ruleIndex, int actionIndex, int linkIndex,
                  int status, EN_API_FLOAT_TYPE setting);
-  
+
   /**
    @brief Get the properties of an ELSE action in a rule-based control.
    @param ruleIndex The rule's index.
@@ -1450,175 +1161,10 @@ typedef struct Project *EN_Project;
   @return Error code.
   */
   int  DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
-  
-/********************************************************************
-   
-    Threadsafe versions of all EPANET functions
-   
-********************************************************************/
 
-  int DLLEXPORT EN_createproject(EN_Project *ph);
-  int DLLEXPORT EN_deleteproject(EN_Project *ph);
-  int DLLEXPORT EN_runproject(EN_Project ph, const char *f1, const char *f2, const char *f3,
-                void (*pviewprog)(char *));
-  int DLLEXPORT EN_init(EN_Project ph, const char *rptFile, const char *outFile,
-                EN_FlowUnits unitsType, EN_HeadLossType headLossType);
-  int DLLEXPORT EN_open(EN_Project ph, const char *inpFile,
-                const char *rptFile, const char *binOutFile);
-  int DLLEXPORT EN_saveinpfile(EN_Project ph, const char *filename);
-  int DLLEXPORT EN_close(EN_Project ph);
 
-  int DLLEXPORT EN_solveH(EN_Project ph);
-  int DLLEXPORT EN_saveH(EN_Project ph);
-  int DLLEXPORT EN_openH(EN_Project ph);
-  int DLLEXPORT EN_initH(EN_Project ph, int saveFlag);
-  int DLLEXPORT EN_runH(EN_Project ph, long *currentTime);
-  int DLLEXPORT EN_nextH(EN_Project ph, long *tStep);
-  int DLLEXPORT EN_closeH(EN_Project ph);
-  int DLLEXPORT EN_savehydfile(EN_Project ph, char *filename);
-  int DLLEXPORT EN_usehydfile(EN_Project ph, char *filename);
-
-  int DLLEXPORT EN_solveQ(EN_Project ph);
-  int DLLEXPORT EN_openQ(EN_Project ph);
-  int DLLEXPORT EN_initQ(EN_Project ph, int saveFlag);
-  int DLLEXPORT EN_runQ(EN_Project ph, long *currentTime);
-  int DLLEXPORT EN_nextQ(EN_Project ph, long *tStep);
-  int DLLEXPORT EN_stepQ(EN_Project ph, long *timeLeft);
-  int DLLEXPORT EN_closeQ(EN_Project ph);
-
-  int DLLEXPORT EN_writeline(EN_Project ph, char *line);
-  int DLLEXPORT EN_report(EN_Project ph);
-  int DLLEXPORT EN_resetreport(EN_Project ph);
-  int DLLEXPORT EN_setreport(EN_Project ph, char *reportCommand);
-  int DLLEXPORT EN_setstatusreport(EN_Project ph, int code);
-  int DLLEXPORT EN_getversion(int *version);
-  int DLLEXPORT EN_getcount(EN_Project ph, EN_CountType code, int *count);
-  int DLLEXPORT EN_geterror(int errcode, char *errmsg, int maxLen);
-  int DLLEXPORT EN_getstatistic(EN_Project ph, int code, EN_API_FLOAT_TYPE* value);
-
-  int DLLEXPORT EN_getoption(EN_Project ph, EN_Option opt, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_setoption(EN_Project ph, int code, EN_API_FLOAT_TYPE v);
-  int DLLEXPORT EN_getflowunits(EN_Project ph, int *code);
-  int DLLEXPORT EN_setflowunits(EN_Project ph, int code);
-  int DLLEXPORT EN_gettimeparam(EN_Project ph, int code, long *value);
-  int DLLEXPORT EN_settimeparam(EN_Project ph, int code, long value);
-  int DLLEXPORT EN_getqualinfo(EN_Project ph, int *qualcode, char *chemname,
-                char *chemunits, int *tracenode);
-  int DLLEXPORT EN_getqualtype(EN_Project ph, int *qualcode, int *tracenode);
-  int DLLEXPORT EN_setqualtype(EN_Project ph, int qualcode, char *chemname,
-                char *chemunits, char *tracenode);
-
-  int DLLEXPORT EN_addnode(EN_Project ph, char *id, EN_NodeType nodeType);
-  int DLLEXPORT EN_deletenode(EN_Project ph, int index, int actionCode);
-  int DLLEXPORT EN_getnodeindex(EN_Project ph, char *id, int *index);
-  int DLLEXPORT EN_getnodeid(EN_Project ph, int index, char *id);
-  int DLLEXPORT EN_setnodeid(EN_Project ph, int index, char *newid);
-  int DLLEXPORT EN_getnodetype(EN_Project ph, int index, int *code);
-  int DLLEXPORT EN_getnodevalue(EN_Project ph, int index, int code, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_setnodevalue(EN_Project ph, int index, int code, EN_API_FLOAT_TYPE v);
-  int DLLEXPORT EN_getcoord(EN_Project ph, int index, EN_API_FLOAT_TYPE *x,
-                EN_API_FLOAT_TYPE *y);
-  int DLLEXPORT EN_setcoord(EN_Project ph, int index, EN_API_FLOAT_TYPE x,
-                EN_API_FLOAT_TYPE y);
-
-  int DLLEXPORT EN_getdemandmodel(EN_Project ph, int *type, EN_API_FLOAT_TYPE *pmin,
-                EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp);
-  int DLLEXPORT EN_setdemandmodel(EN_Project ph, int type, EN_API_FLOAT_TYPE pmin,
-                EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
-  int DLLEXPORT EN_getnumdemands(EN_Project ph, int nodeIndex, int *numDemands);
-  int DLLEXPORT EN_getbasedemand(EN_Project ph, int nodeIndex,
-                int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
-  int DLLEXPORT EN_setbasedemand(EN_Project ph, int nodeIndex,
-                int demandIndex, EN_API_FLOAT_TYPE baseDemand);
-  int DLLEXPORT EN_getdemandpattern(EN_Project ph, int nodeIndex, int demandIndex,
-                int *pattIndex);
-  int DLLEXPORT EN_setdemandpattern(EN_Project ph, int nodeIndex, int demandIndex,
-                int patIndex);
-  int DLLEXPORT EN_getdemandname(EN_Project ph, int nodeIndex, int demandIdx,
-                char *demandName);
-  int DLLEXPORT EN_setdemandname(EN_Project ph, int nodeIndex, int demandIdx,
-                char *demandName);
-
-  int DLLEXPORT EN_addlink(EN_Project ph, char *id, EN_LinkType linkType,
-                char *fromNode, char *toNode);
-  int DLLEXPORT EN_deletelink(EN_Project ph, int index, int actionCode);
-  int DLLEXPORT EN_getlinkindex(EN_Project ph, char *id, int *index);
-  int DLLEXPORT EN_getlinkid(EN_Project ph, int index, char *id);
-  int DLLEXPORT EN_setlinkid(EN_Project ph, int index, char *newid);
-  int DLLEXPORT EN_getlinktype(EN_Project ph, int index, EN_LinkType *code);
-  int DLLEXPORT EN_setlinktype(EN_Project ph, int *index, EN_LinkType type, int actionCode);
-  int DLLEXPORT EN_getlinknodes(EN_Project ph, int index, int *node1, int *node2);
-  int DLLEXPORT EN_setlinknodes(EN_Project ph, int index, int node1, int node2);
-  int DLLEXPORT EN_getlinkvalue(EN_Project ph, int index, EN_LinkProperty code,
-                EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_setlinkvalue(EN_Project ph, int index, int code, EN_API_FLOAT_TYPE v);
-
-  int DLLEXPORT EN_getpumptype(EN_Project ph, int linkIndex, int *outType);
-  int DLLEXPORT EN_getheadcurveindex(EN_Project ph, int pumpIndex, int *curveIndex);
-  int DLLEXPORT EN_setheadcurveindex(EN_Project ph, int pumpIndex, int curveIndex);
-
-  int DLLEXPORT EN_addpattern(EN_Project ph, char *id);
-  int DLLEXPORT EN_getpatternindex(EN_Project ph, char *id, int *index);
-  int DLLEXPORT EN_getpatternid(EN_Project ph, int index, char *id);
-  int DLLEXPORT EN_getpatternlen(EN_Project ph, int index, int *len);
-  int DLLEXPORT EN_getpatternvalue(EN_Project ph, int index, int period, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_setpatternvalue(EN_Project ph, int index, int period, EN_API_FLOAT_TYPE value);
-  int DLLEXPORT EN_getaveragepatternvalue(EN_Project ph, int index, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_setpattern(EN_Project ph, int index, EN_API_FLOAT_TYPE *f, int len);
-
-  int DLLEXPORT EN_addcurve(EN_Project ph, char *id);
-  int DLLEXPORT EN_getcurveindex(EN_Project ph, char *id, int *index);
-  int DLLEXPORT EN_getcurveid(EN_Project ph, int index, char *id);
-  int DLLEXPORT EN_getcurvelen(EN_Project ph, int index, int *len);
-  int DLLEXPORT EN_getcurvetype(EN_Project ph, int curveIndex, int *outType);
-  int DLLEXPORT EN_getcurvevalue(EN_Project ph, int curveIndex, int pointIndex,
-                EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
-  int DLLEXPORT EN_setcurvevalue(EN_Project ph, int curveIndex, int pointIndex,
-                EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
-  int DLLEXPORT EN_getcurve(EN_Project ph, int curveIndex, char* id,
-                int *nValues, EN_API_FLOAT_TYPE **xValues,
-                EN_API_FLOAT_TYPE **yValues);
-  int DLLEXPORT EN_setcurve(EN_Project ph, int index, EN_API_FLOAT_TYPE *x,
-                EN_API_FLOAT_TYPE *y, int len);
-
-  int DLLEXPORT EN_addcontrol(EN_Project ph, int *cindex, int ctype, int lindex,
-                EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
-  int DLLEXPORT EN_deletecontrol(EN_Project ph, int index);
-  int DLLEXPORT EN_getcontrol(EN_Project ph, int controlIndex,
-                int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting,
-                int *nodeIndex, EN_API_FLOAT_TYPE *level);
-  int DLLEXPORT EN_setcontrol(EN_Project ph, int cindex, int ctype, int lindex,
-                EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
-
-  int DLLEXPORT EN_addrule(EN_Project ph, char *rule);
-  int DLLEXPORT EN_deleterule(EN_Project ph, int index);
-  int DLLEXPORT EN_getrule(EN_Project ph, int index, int *nPremises,
-                int *nThenActions, int *nElseActions, EN_API_FLOAT_TYPE *priority);
-  int DLLEXPORT EN_getruleID(EN_Project ph, int index, char* id);
-  int DLLEXPORT EN_getpremise(EN_Project ph, int ruleIndex, int premiseIndex,
-                int *logop, int *object, int *objIndex, int *variable, int *relop,
-                int *status, EN_API_FLOAT_TYPE *value);
-  int DLLEXPORT EN_setpremise(EN_Project ph, int ruleIndex, int premiseIndex,
-                int logop, int object, int objIndex, int variable, int relop,
-                int status, EN_API_FLOAT_TYPE value);
-  int DLLEXPORT EN_setpremiseindex(EN_Project ph, int ruleIndex,
-                int premiseIndex, int objIndex);
-  int DLLEXPORT EN_setpremisestatus(EN_Project ph, int ruleIndex,
-                int premiseIndex, int status);
-  int DLLEXPORT EN_setpremisevalue(EN_Project ph, int ruleIndex,
-                int premiseIndex, EN_API_FLOAT_TYPE value);
-  int DLLEXPORT EN_getthenaction(EN_Project ph, int ruleIndex, int actionIndex,
-                int *linkIndex, int *status, EN_API_FLOAT_TYPE *setting);
-  int DLLEXPORT EN_setthenaction(EN_Project ph, int ruleIndex, int actionIndex,
-                int linkIndex, int status, EN_API_FLOAT_TYPE setting);
-  int DLLEXPORT EN_getelseaction(EN_Project ph, int ruleIndex, int actionIndex,
-                int *linkIndex, int *status, EN_API_FLOAT_TYPE *setting);
-  int DLLEXPORT EN_setelseaction(EN_Project ph, int ruleIndex, int actionIndex,
-                int linkIndex, int status, EN_API_FLOAT_TYPE setting);
-  int DLLEXPORT EN_setrulepriority(EN_Project ph, int index, EN_API_FLOAT_TYPE priority);
-  
-#if defined(__cplusplus)
-}
-#endif
+  #if defined(__cplusplus)
+  }
+  #endif
 
 #endif //EPANET2_H

@@ -17,7 +17,7 @@ The test ends with a check that the three head values are equal.
 #include <boost/test/included/unit_test.hpp>
 
 #include <string>
-#include "epanet2.h"
+#include "epanet2_2.h"
 
 // NOTE: Project Home needs to be updated to run unit test
 #define DATA_PATH_INP "./net1.inp"
@@ -35,11 +35,11 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     long t, tstep;
     int i, ind, Lindex, Nindex, Cindex;
     float h_orig, h_build, h_build_loaded;
-    
+
     // first we load Net1.inp, run it and record the head in Tank 2 at the end of the simulation (h_orig)
     EN_Project ph = NULL;
     EN_createproject(&ph);
-    
+
     std::string path_inp = std::string(DATA_PATH_INP);
     std::string path_rpt = std::string(DATA_PATH_RPT);
     std::string path_out = std::string(DATA_PATH_OUT);
@@ -59,19 +59,19 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     do {
         error = EN_runH(ph, &t);
         BOOST_REQUIRE(error == 0);
-        
+
         // this is the head at the end of the simulation after loading the original Net1.inp
         error = EN_getnodevalue(ph, Nindex, EN_HEAD, &h_orig);
         BOOST_REQUIRE(error == 0);
-        
+
         error = EN_nextH(ph, &tstep);
         BOOST_REQUIRE(error == 0);
 
-    } while (tstep > 0);    
+    } while (tstep > 0);
 
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
-  
+
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
 
@@ -200,17 +200,17 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
       error = EN_runH(ph, &t);
       BOOST_REQUIRE(error == 0);
       // this is the head at the end of the simulation after building the network *without* saving it to file
-      error = EN_getnodevalue(ph, Nindex, EN_HEAD, &h_build); 
+      error = EN_getnodevalue(ph, Nindex, EN_HEAD, &h_build);
       BOOST_REQUIRE(error == 0);
       error = EN_nextH(ph, &tstep);
       BOOST_REQUIRE(error == 0);
     } while (tstep > 0);
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
-    
+
     error = EN_saveinpfile(ph, "net_builder.inp");
     BOOST_REQUIRE(error == 0);
-    
+
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
     error = EN_deleteproject(&ph);
@@ -238,17 +238,17 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
         BOOST_REQUIRE(error == 0);
 
     } while (tstep > 0);
-    
+
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
-    
+
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
 
-    EN_deleteproject(&ph); 
+    EN_deleteproject(&ph);
     //---------------------------------------------------------------------
     // if we got this far we can compare results
-    
+
     // compare the original to the build & saved network
     BOOST_REQUIRE(h_orig == h_build_loaded);
 

@@ -1,9 +1,25 @@
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       main.c
+ Description:  implementation of the CLI for EPANET
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/27/2018
+ ******************************************************************************
+*/
+
+
+
 #include <stdio.h>
 #include <string.h>
+
 #include "epanet2.h"
 
 #define   MAXMSG         255       /* Max. # characters in message text      */
-#define   MAXWARNCODE    99      
+#define   MAXWARNCODE    99
 /* text copied here, no more need of include "text.h" */
 #define FMT01  "\nEPANET Version %d.%d.%d\n"
 #define FMT03 "\nUsage:\n %s <input_filename> <report_filename> [<binary_filename>]\n"
@@ -54,7 +70,7 @@ int   main(int argc, char *argv[])
   minor=  (version%10000)/100;
   patch=  version%100;
   printf(FMT01, major, minor, patch);
-  
+
   /* Check for proper number of command line arguments */
   if (argc < 2) {
     printf(FMT03, argv[0]);
