@@ -219,3 +219,10 @@ temp/
 .project
 .cproject
 .pydevproject
+
+# Testing Stuff
+nrtestsuite/
+tests/data/
+
+#Cmake generated export headers
+*_export.h
