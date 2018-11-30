@@ -2,7 +2,7 @@
  ******************************************************************************
  Project:      OWA EPANET
  Version:      2.2
- Module:       epanet.c
+ Module:       epanet2.c
  Description:  implementation of the legacy EPANET API functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
