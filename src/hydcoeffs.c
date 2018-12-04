@@ -799,21 +799,32 @@ void  pumpcoeff(Project *pr, int k)
         // Adjust head loss coefficients for pump speed
         h0 = SQR(setting) * pump->H0;
         n = pump->N;
+        if (ABS(n - 1.0) < TINY) n = 1.0;
         r = pump->R * pow(setting, 2.0 - n);
 
         // Compute head loss and its gradient
-        // ... use linear approx. to pump curve for small flows
-        qa = pow(hyd->RQtol / n / r, 1.0 / (n - 1.0));
-        if (q <= qa)
+        // ... pump curve is nonlinear
+        if (n != 1.0)
         {
-            hgrad = hyd->RQtol;
-            hloss = h0 + hgrad * hyd->LinkFlow[k];
+             // ... use linear approx. to pump curve for small flows
+            qa = pow(hyd->RQtol / n / r, 1.0 / (n - 1.0));
+            if (q <= qa)
+            {
+                hgrad = hyd->RQtol;
+                hloss = h0 + hgrad * hyd->LinkFlow[k];
+            }
+            // ... use original pump curve for normal flows
+            else
+            {
+                hgrad = n * r * pow(q, n - 1.0);
+                hloss = h0 + hgrad * hyd->LinkFlow[k] / n;
+            }
         }
-        // ... use original pump curve for normal flows
+        // ... pump curve is linear
         else
         {
-            hgrad = n * r * pow(q, n - 1.0);
-            hloss = h0 + hgrad * hyd->LinkFlow[k] / n;
+            hgrad = r;
+            hloss = h0 + hgrad * hyd->LinkFlow[k];
         }
     }
 
