@@ -80,6 +80,7 @@ typedef struct Project *EN_Project;
 
   int DLLEXPORT EN_createproject(EN_Project *ph);
   int DLLEXPORT EN_deleteproject(EN_Project *ph);
+
   int DLLEXPORT EN_runproject(EN_Project ph, const char *f1, const char *f2, const char *f3,
                 void (*pviewprog)(char *));
   int DLLEXPORT EN_init(EN_Project ph, const char *rptFile, const char *outFile,
