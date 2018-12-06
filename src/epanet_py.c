@@ -87,55 +87,55 @@ int DLLEXPORT proj_close(Handle ph)
 
 
 
-int DLLEXPORT hyd_solve(Handle ph)
+int DLLEXPORT hydr_solve(Handle ph)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_solveH(pr->project));
 }
 
-int DLLEXPORT hyd_save(Handle ph)
+int DLLEXPORT hydr_save(Handle ph)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_saveH(pr->project));
 }
 
-int DLLEXPORT hyd_open(Handle ph)
+int DLLEXPORT hydr_open(Handle ph)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_openH(pr->project));
 }
 
-int DLLEXPORT hyd_init(Handle ph, EN_SaveOption saveFlag)
+int DLLEXPORT hydr_init(Handle ph, EN_SaveOption saveFlag)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_initH(pr->project, saveFlag));
 }
 
-int DLLEXPORT hyd_run(Handle ph, long *currentTime)
+int DLLEXPORT hydr_run(Handle ph, long *currentTime)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_runH(pr->project, currentTime));
 }
 
-int DLLEXPORT hyd_next(Handle ph, long *tStep)
+int DLLEXPORT hydr_next(Handle ph, long *tStep)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_nextH(pr->project, tStep));
 }
 
-int DLLEXPORT hyd_close(Handle ph)
+int DLLEXPORT hydr_close(Handle ph)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_closeH(pr->project));
 }
 
-int DLLEXPORT hyd_savefile(Handle ph, char *filename)
+int DLLEXPORT hydr_savefile(Handle ph, char *filename)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_savehydfile(pr->project, filename));
 }
 
-int DLLEXPORT hyd_usefile(Handle ph, char *filename)
+int DLLEXPORT hydr_usefile(Handle ph, char *filename)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_usehydfile(pr->project, filename));
@@ -189,43 +189,43 @@ int DLLEXPORT qual_close(Handle ph)
 
 
 
-int DLLEXPORT rpt_writeline(Handle ph, char *line)
+int DLLEXPORT rprt_writeline(Handle ph, char *line)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_writeline(pr->project, line));
 }
 
-int DLLEXPORT rpt_writeresults(Handle ph)
+int DLLEXPORT rprt_writeresults(Handle ph)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_report(pr->project));
 }
 
-int DLLEXPORT rpt_reset(Handle ph)
+int DLLEXPORT rprt_reset(Handle ph)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_resetreport(pr->project));
 }
 
-int DLLEXPORT rpt_set(Handle ph, char *reportCommand)
+int DLLEXPORT rprt_set(Handle ph, char *reportCommand)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setreport(pr->project, reportCommand));
 }
 
-int DLLEXPORT rpt_setlevel(Handle ph, EN_StatusReport code)
+int DLLEXPORT rprt_setlevel(Handle ph, EN_StatusReport code)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setstatusreport(pr->project, code));
 }
 
-int DLLEXPORT rpt_getcount(Handle ph, EN_CountType code, int *count)
+int DLLEXPORT rprt_getcount(Handle ph, EN_CountType code, int *count)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getcount(pr->project, code, count));
 }
 
-int DLLEXPORT rpt_anlysstats(Handle ph, EN_AnalysisStatistic code, EN_API_FLOAT_TYPE* value)
+int DLLEXPORT rprt_anlysstats(Handle ph, EN_AnalysisStatistic code, EN_API_FLOAT_TYPE* value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getstatistic(pr->project, code, value));
@@ -289,6 +289,322 @@ int DLLEXPORT anlys_setqualtype(Handle ph, EN_QualityType qualcode, char *chemna
 }
 
 
+
+
+int DLLEXPORT node_add(Handle ph, char *id, EN_NodeType nodeType)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_addnode(pr->project, id, nodeType));
+}
+
+int DLLEXPORT node_delete(Handle ph, int index, int actionCode)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_deletenode(pr->project, index, actionCode));
+}
+
+int DLLEXPORT node_getindex(Handle ph, char *id, int *index)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getnodeindex(pr->project, id, index));
+}
+
+int DLLEXPORT node_getid(Handle ph, int index, char *id)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getnodeid(pr->project, index, id));
+}
+
+int DLLEXPORT node_setid(Handle ph, int index, char *newid)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getnodeid(pr->project, index, newid));
+}
+
+int DLLEXPORT node_gettype(Handle ph, int index, int *code)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getnodetype(pr->project, index, code));
+}
+
+int DLLEXPORT node_getvalue(Handle ph, int index, EN_NodeProperty code, EN_API_FLOAT_TYPE *value)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getnodevalue(pr->project, index, code, value));
+}
+
+int DLLEXPORT node_setvalue(Handle ph, int index, EN_NodeProperty code, EN_API_FLOAT_TYPE value)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setnodevalue(pr->project, index, code, value));
+}
+
+int DLLEXPORT node_getcoord(Handle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getcoord(pr->project, index, x, y));
+}
+
+int DLLEXPORT node_setcoord(Handle ph, int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setcoord(pr->project, index, x, y));
+}
+
+
+
+
+int DLLEXPORT dmnd_getmodel(Handle ph, int *type, EN_API_FLOAT_TYPE *pmin, EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getdemandmodel(pr->project, type, pmin, preq, pexp));
+}
+
+int DLLEXPORT dmnd_setmodel(Handle ph, int type, EN_API_FLOAT_TYPE pmin, EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setdemandmodel(pr->project, type, pmin, preq, pexp));
+}
+
+int DLLEXPORT dmnd_getcount(Handle ph, int nodeIndex, int *numDemands)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getnumdemands(pr->project, nodeIndex, numDemands));
+}
+
+int DLLEXPORT dmnd_getbase(Handle ph, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getbasedemand(pr->project, nodeIndex, demandIndex, baseDemand));
+}
+
+int DLLEXPORT dmnd_setbase(Handle ph, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE baseDemand)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setbasedemand(pr->project, nodeIndex, demandIndex, baseDemand));
+}
+
+int DLLEXPORT dmnd_getpattern(Handle ph, int nodeIndex, int demandIndex, int *patIndex)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getdemandpattern(pr->project, nodeIndex, demandIndex, patIndex));
+}
+
+int DLLEXPORT dmnd_setpattern(Handle ph, int nodeIndex, int demandIndex, int patIndex)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setdemandpattern(pr->project, nodeIndex, demandIndex, patIndex));
+}
+
+int DLLEXPORT dmnd_getname(Handle ph, int nodeIndex, int demandIdx, char *demandName)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getdemandname(pr->project, nodeIndex, demandIdx, demandName));
+}
+
+int DLLEXPORT dmnd_setname(Handle ph, int nodeIndex, int demandIdx, char *demandName)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setdemandname(pr->project, nodeIndex, demandIdx, demandName));
+}
+
+
+
+
+int DLLEXPORT link_add(Handle ph, char *id, EN_LinkType linkType, char *fromNode, char *toNode)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_addlink(pr->project, id, linkType, fromNode, toNode));
+}
+
+int DLLEXPORT link_delete(Handle ph, int index, int actionCode)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_deletelink(pr->project, index, actionCode));
+}
+
+int DLLEXPORT link_getindex(Handle ph, char *id, int *index)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getlinkindex(pr->project, id, index));
+}
+
+int DLLEXPORT link_getid(Handle ph, int index, char *id)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getlinkid(pr->project, index, id));
+}
+
+int DLLEXPORT link_setid(Handle ph, int index, char *newid)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setlinkid(pr->project, index, newid));
+}
+
+int DLLEXPORT link_gettype(Handle ph, int index, int *code)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getlinktype(pr->project, index, (EN_LinkType *)code));
+}
+
+int DLLEXPORT link_settype(Handle ph, int *index, EN_LinkType type, int actionCode)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setlinktype(pr->project, index, type, actionCode));
+}
+
+int DLLEXPORT link_getnodes(Handle ph, int index, int *node1, int *node2)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getlinknodes(pr->project, index, node1, node2));
+}
+
+int DLLEXPORT link_setnodes(Handle ph, int index, int node1, int node2)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setlinknodes(pr->project, index, node1, node2));
+}
+
+int DLLEXPORT link_getvalue(Handle ph, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getlinkvalue(pr->project, index, code, value));
+}
+
+int DLLEXPORT link_setvalue(Handle ph, int index, int code, EN_API_FLOAT_TYPE value)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setlinkvalue(pr->project, index, code, value));
+}
+
+
+
+
+int DLLEXPORT pump_gettype(Handle ph, int linkIndex, int *outType)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getpumptype(pr->project, linkIndex, outType));
+}
+
+int DLLEXPORT pump_getheadcurveindex(Handle ph, int pumpIndex, int *curveIndex)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getheadcurveindex(pr->project, pumpIndex, curveIndex));
+}
+
+int DLLEXPORT pump_setheadcurveindex(Handle ph, int pumpIndex, int curveIndex)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setheadcurveindex(pr->project, pumpIndex, curveIndex));
+}
+
+
+
+
+int DLLEXPORT ptrn_add(Handle ph, char *id)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_addpattern(pr->project, id));
+}
+
+int DLLEXPORT ptrn_getindex(Handle ph, char *id, int *index)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getpatternindex(pr->project, id, index));
+}
+
+int DLLEXPORT ptrn_getid(Handle ph, int index, char *id)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getpatternid(pr->project, index, id));
+}
+
+int DLLEXPORT ptrn_getlength(Handle ph, int index, int *len)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getpatternlen(pr->project, index, len));
+}
+
+int DLLEXPORT ptrn_getvalue(Handle ph, int index, int period, EN_API_FLOAT_TYPE *value)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getpatternvalue(pr->project, index, period, value));
+}
+
+int DLLEXPORT ptrn_setvalue(Handle ph, int index, int period, EN_API_FLOAT_TYPE value)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setpatternvalue(pr->project, index, period, value));
+}
+
+int DLLEXPORT ptrn_getavgvalue(Handle ph, int index, EN_API_FLOAT_TYPE *value)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getaveragepatternvalue(pr->project, index, value));
+}
+
+int DLLEXPORT ptrn_set(Handle ph, int index, EN_API_FLOAT_TYPE *values, int len)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setpattern(pr->project, index, values, len));
+}
+
+
+
+
+int DLLEXPORT curv_add(Handle ph, char *id)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_addcurve(pr->project, id));
+}
+
+int DLLEXPORT curv_getindex(Handle ph, char *id, int *index)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getcurveindex(pr->project, id, index));
+}
+
+int DLLEXPORT curv_getid(Handle ph, int index, char *id)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getcurveid(pr->project, index, id));
+}
+
+int DLLEXPORT curv_getlength(Handle ph, int index, int *len)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getcurvelen(pr->project, index, len));
+}
+
+int DLLEXPORT curv_gettype(Handle ph, int index, int *type)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getcurvetype(pr->project, index, type));
+}
+
+int DLLEXPORT curv_getvalue(Handle ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getcurvevalue(pr->project, curveIndex, pointIndex, x, y));
+}
+
+int DLLEXPORT curv_setvalue(Handle ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setcurvevalue(pr->project, curveIndex, pointIndex, x, y));
+}
+
+int DLLEXPORT curv_get(Handle ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getcurve(pr->project, curveIndex, id, nValues, xValues, yValues));
+}
+
+int DLLEXPORT curv_set(Handle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setcurve(pr->project, index, x, y, len));
+}
 
 
 
