@@ -792,8 +792,8 @@ char *geterrmsg(int errcode, char *msg)
 */
 {
     switch (errcode) { /* Warnings */
-#define DAT(code,enumer,string) case code: strcpy(msg, string); break;
-//#define DAT(code,enumer,string) case code: sprintf(msg, "Error %d: %s", code, string); break;
+//#define DAT(code,enumer,string) case code: strcpy(msg, string); break;
+#define DAT(code,enumer,string) case code: sprintf(msg, "Error %d: %s", code, string); break;
 #include "errors.dat"
 #undef DAT
     default:
