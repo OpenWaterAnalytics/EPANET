@@ -77,15 +77,17 @@ int  main(int argc, char *argv[])
     if (errcode == 0)
     {
         printf("\n... EPANET ran successfully.\n");
+        return 0;
     }
     else if (errcode < 100)
     {
         printf("\n... EPANET ran with warnings - check the Status Report.\n");
+        return 0;
     }
     else
     {
-        ENgeterror(errcode, errmsg, 256);
+        ENgeterror(errcode, errmsg, 255);
         printf("\n... EPANET failed with ERROR %d: %s.\n", errcode, errmsg);
+        return errcode;
     }
-    return errcode;
 }
