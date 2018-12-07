@@ -64,7 +64,7 @@ int DLLEXPORT rprt_anlysstats(Handle ph, EN_AnalysisStatistic code, EN_API_FLOAT
 
 int DLLEXPORT anlys_getoption(Handle ph, EN_Option opt, EN_API_FLOAT_TYPE *value);
 int DLLEXPORT anlys_setoption(Handle ph, int code, EN_API_FLOAT_TYPE value);
-int DLLEXPORT anlys_getflowunits(Handle ph, EN_FlowUnits *code);
+int DLLEXPORT anlys_getflowunits(Handle ph, int *code);
 int DLLEXPORT anlys_setflowunits(Handle ph, EN_FlowUnits code);
 int DLLEXPORT anlys_gettimeparam(Handle ph, EN_TimeProperty code, long *value);
 int DLLEXPORT anlys_settimeparam(Handle ph, EN_TimeProperty code, long value);

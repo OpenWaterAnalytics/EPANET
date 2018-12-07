@@ -246,10 +246,10 @@ int DLLEXPORT anlys_setoption(Handle ph, EN_Option code, EN_API_FLOAT_TYPE value
     return error_set(pr->error, EN_setoption(pr->project, code, value));
 }
 
-int DLLEXPORT anlys_getflowunits(Handle ph, EN_FlowUnits *code)
+int DLLEXPORT anlys_getflowunits(Handle ph, int *code)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_getflowunits(pr->project, (int *)code));
+    return error_set(pr->error, EN_getflowunits(pr->project, code));
 }
 
 int DLLEXPORT anlys_setflowunits(Handle ph, EN_FlowUnits code)
