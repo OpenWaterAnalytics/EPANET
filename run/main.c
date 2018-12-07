@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 12/06/2018
+ Last Updated: 12/07/2018
  ******************************************************************************
 */
 
@@ -87,7 +87,7 @@ int  main(int argc, char *argv[])
     else
     {
         ENgeterror(errcode, errmsg, 255);
-        printf("\n... EPANET failed with ERROR %d: %s.\n", errcode, errmsg);
-        return errcode;
+        printf("\n... EPANET failed with %s.\n", errmsg);
+        return 100;
     }
 }
