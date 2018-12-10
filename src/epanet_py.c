@@ -270,16 +270,16 @@ int DLLEXPORT anlys_settimeparam(Handle ph, EN_TimeProperty code, long value)
     return error_set(pr->error, EN_settimeparam(pr->project, code, value));
 }
 
-int DLLEXPORT anlys_getqualinfo(Handle ph, EN_QualityType *qualcode, char *chemname, char *chemunits, int *tracenode)
+int DLLEXPORT anlys_getqualinfo(Handle ph, int *qualcode, char *chemname, char *chemunits, int *tracenode)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_getqualinfo(pr->project, (int *)qualcode, chemname, chemunits, tracenode));
+    return error_set(pr->error, EN_getqualinfo(pr->project, qualcode, chemname, chemunits, tracenode));
 }
 
-int DLLEXPORT anlys_getqualtype(Handle ph, EN_QualityType *qualcode, int *tracenode)
+int DLLEXPORT anlys_getqualtype(Handle ph, int *qualcode, int *tracenode)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_getqualtype(pr->project, (int *)qualcode, tracenode));
+    return error_set(pr->error, EN_getqualtype(pr->project, qualcode, tracenode));
 }
 
 int DLLEXPORT anlys_setqualtype(Handle ph, EN_QualityType qualcode, char *chemname, char *chemunits, char *tracenode)
@@ -609,12 +609,125 @@ int DLLEXPORT curv_set(Handle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_
 
 
 
+int DLLEXPORT scntl_add(Handle ph, int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_addcontrol(pr->project, cindex, ctype, lindex, setting, nindex, level));
+}
+
+int DLLEXPORT scntl_delete(Handle ph, int index)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_deletecontrol(pr->project, index));
+}
+
+int DLLEXPORT scntl_get(Handle ph, int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getcontrol(pr->project, controlIndex, controlType, linkIndex, setting, nodeIndex, level));
+}
+
+int DLLEXPORT scntl_set(Handle ph, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setcontrol(pr->project, cindex, ctype, lindex, setting, nindex, level));
+}
+
+
+
+
+int DLLEXPORT rcntl_add(Handle ph, char *rule)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_addrule(pr->project, rule));
+}
+
+int DLLEXPORT rcntl_delete(Handle ph, int index)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_deleterule(pr->project, index));
+}
+
+int DLLEXPORT rcntl_get(Handle ph, int index, int *nPremises, int *nThenActions, int *nElseActions, EN_API_FLOAT_TYPE *priority)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getrule(pr->project, index, nPremises, nThenActions, nElseActions, priority));
+}
+
+int DLLEXPORT rcntl_getid(Handle ph, int index, char *id)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getruleID(pr->project, index, id));
+}
+
+int DLLEXPORT rcntl_getpremise(Handle ph, int ruleIndex, int premiseIndex, int *logop, int *object, int *objIndex, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getpremise(pr->project, ruleIndex, premiseIndex, logop, object, objIndex, variable, relop, status, value));
+}
+
+int DLLEXPORT rcntl_setpremise(Handle ph, int ruleIndex, int premiseIndex, int logop, int object, int objIndex, int variable, int relop, int status, EN_API_FLOAT_TYPE value)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setpremise(pr->project, ruleIndex, premiseIndex, logop, object, objIndex, variable, relop, status, value));
+}
+
+int DLLEXPORT rcntl_setpremiseindex(Handle ph, int ruleIndex, int premiseIndex, int objIndex)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setpremiseindex(pr->project, ruleIndex, premiseIndex, objIndex));
+}
+
+int DLLEXPORT rcntl_setpremisestatus(Handle ph, int ruleIndex, int premiseIndex, int status)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setpremisestatus(pr->project, ruleIndex, premiseIndex, status));
+}
+
+int DLLEXPORT rcntl_setpremisevalue(Handle ph, int ruleIndex, int premiseIndex, EN_API_FLOAT_TYPE value)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setpremisevalue(pr->project, ruleIndex, premiseIndex, value));
+}
+
+int DLLEXPORT rcntl_getthenaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, EN_API_FLOAT_TYPE *setting)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getthenaction(pr->project, ruleIndex, actionIndex, linkIndex, status, setting));
+}
+
+int DLLEXPORT rcntl_setthenaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, EN_API_FLOAT_TYPE setting)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setthenaction(pr->project, ruleIndex, actionIndex, linkIndex, status, setting));
+}
+
+int DLLEXPORT rcntl_getelseaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, EN_API_FLOAT_TYPE *setting)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_getelseaction(pr->project, ruleIndex, actionIndex, linkIndex, status, setting));
+}
+
+int DLLEXPORT rcntl_setelseaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, EN_API_FLOAT_TYPE setting)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setelseaction(pr->project, ruleIndex, actionIndex, linkIndex, status, setting));
+}
+
+int DLLEXPORT rcntl_setrulepriority(Handle ph, int index, EN_API_FLOAT_TYPE priority)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_setrulepriority(pr->project, index, priority));
+}
+
+
+
+
 void DLLEXPORT err_clear(Handle ph)
 {
     handle_t *pr = (handle_t *)ph;
     error_clear(pr->error);
 }
-
 
 int DLLEXPORT err_check(Handle ph, char** msg_buffer)
 //
@@ -672,7 +785,7 @@ void error_lookup(int errcode, char *dest_msg, int dest_len)
     break;
     case 6: msg = WARN6;
     break;
-    default: 
+    default:
 	{
 		char new_msg[MAXMSG + 1];
 		msg = geterrmsg(errcode, new_msg);
@@ -680,5 +793,3 @@ void error_lookup(int errcode, char *dest_msg, int dest_len)
     }
     strncpy(dest_msg, msg, dest_len);
 }
-
-

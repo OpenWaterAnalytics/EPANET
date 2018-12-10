@@ -68,8 +68,8 @@ int DLLEXPORT anlys_getflowunits(Handle ph, int *code);
 int DLLEXPORT anlys_setflowunits(Handle ph, EN_FlowUnits code);
 int DLLEXPORT anlys_gettimeparam(Handle ph, EN_TimeProperty code, long *value);
 int DLLEXPORT anlys_settimeparam(Handle ph, EN_TimeProperty code, long value);
-int DLLEXPORT anlys_getqualinfo(Handle ph, EN_QualityType *qualcode, char *chemname, char *chemunits, int *tracenode);
-int DLLEXPORT anlys_getqualtype(Handle ph, EN_QualityType *qualcode, int *tracenode);
+int DLLEXPORT anlys_getqualinfo(Handle ph, int *qualcode, char *chemname, char *chemunits, int *tracenode);
+int DLLEXPORT anlys_getqualtype(Handle ph, int *qualcode, int *tracenode);
 int DLLEXPORT anlys_setqualtype(Handle ph, EN_QualityType qualcode, char *chemname, char *chemunits, char *tracenode);
 
 
@@ -133,6 +133,28 @@ int DLLEXPORT curv_getvalue(Handle ph, int curveIndex, int pointIndex, EN_API_FL
 int DLLEXPORT curv_setvalue(Handle ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
 int DLLEXPORT curv_get(Handle ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
 int DLLEXPORT curv_set(Handle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
+
+
+int DLLEXPORT scntl_add(Handle ph, int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+int DLLEXPORT scntl_delete(Handle ph, int index);
+int DLLEXPORT scntl_get(Handle ph, int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level);
+int DLLEXPORT scntl_set(Handle ph, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+
+
+int DLLEXPORT rcntl_add(Handle ph, char *rule);
+int DLLEXPORT rcntl_delete(Handle ph, int index);
+int DLLEXPORT rcntl_get(Handle ph, int index, int *nPremises, int *nThenActions, int *nElseActions, EN_API_FLOAT_TYPE *priority);
+int DLLEXPORT rcntl_getid(Handle ph, int index, char* id);
+int DLLEXPORT rcntl_getpremise(Handle ph, int ruleIndex, int premiseIndex, int *logop, int *object, int *objIndex, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value);
+int DLLEXPORT rcntl_setpremise(Handle ph, int ruleIndex, int premiseIndex, int logop, int object, int objIndex, int variable, int relop, int status, EN_API_FLOAT_TYPE value);
+int DLLEXPORT rcntl_setpremiseindex(Handle ph, int ruleIndex, int premiseIndex, int objIndex);
+int DLLEXPORT rcntl_setpremisestatus(Handle ph, int ruleIndex, int premiseIndex, int status);
+int DLLEXPORT rcntl_setpremisevalue(Handle ph, int ruleIndex, int premiseIndex, EN_API_FLOAT_TYPE value);
+int DLLEXPORT rcntl_getthenaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, EN_API_FLOAT_TYPE *setting);
+int DLLEXPORT rcntl_setthenaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, EN_API_FLOAT_TYPE setting);
+int DLLEXPORT rcntl_getelseaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, EN_API_FLOAT_TYPE *setting);
+int DLLEXPORT rcntl_setelseaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, EN_API_FLOAT_TYPE setting);
+int DLLEXPORT rcntl_setrulepriority(Handle ph, int index, EN_API_FLOAT_TYPE priority);
 
 
 void DLLEXPORT err_clear(Handle ph);
