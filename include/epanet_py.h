@@ -1,5 +1,15 @@
-
-
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       epanet_py.h
+ Description:  EPANET API functions for Python SWIG wrap
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 12/10/2018
+ ******************************************************************************
+*/
 
 
 #ifndef EPANET_PY_H
