@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/10/2018
+Last Updated: 12/15/2018
 ******************************************************************************
 */
 
@@ -179,6 +179,7 @@ int readdata(Project *pr)
                                     parser->Comment);
 
         // Skip blank lines and comments
+        parser->ErrTok = -1;
         if (parser->Ntokens == 0) continue;
         if (*parser->Tok[0] == ';') continue;
 
@@ -218,7 +219,7 @@ int readdata(Project *pr)
                 inperr = newline(pr, sect, line);
                 if (inperr > 0)
                 {
-                    inperrmsg(pr,inperr, sect, line);
+                    inperrmsg(pr, inperr, sect, line);
                     errsum++;
                 }
             }
@@ -326,7 +327,8 @@ int getpumpparams(Project *pr)
 */
 {
     Network *net = &pr->network;
-    int i, k, errcode = 0;  
+    int i, k, errcode = 0;
+    char errmsg[MAXMSG+1];
 
     for (i = 1; i <= net->Npumps; i++)
     {
@@ -334,8 +336,8 @@ int getpumpparams(Project *pr)
         if (errcode)
         {
             k = net->Pump[i].Link;
-            sprintf(pr->Msg, "%s link: %s", geterrmsg(errcode, pr->Msg),
-                    net->Link[k].ID);
+            sprintf(pr->Msg, "Error %d: %s %s",
+                    errcode, geterrmsg(errcode, errmsg), net->Link[k].ID);
             writeline(pr, pr->Msg);
             return 200;
         }
@@ -596,8 +598,7 @@ int unlinked(Project *pr)
         if (marked[i] == 0) 
         {
             err++;
-            sprintf(pr->Msg, "%s link: %s", geterrmsg(233, pr->Msg),
-                    net->Node[i].ID);
+            sprintf(pr->Msg, "Error 233: %s %s", geterrmsg(233, pr->Msg), net->Node[i].ID);
             writeline(pr, pr->Msg);
         }
         if (err >= MAXERRS) break;
@@ -685,6 +686,7 @@ int getcurves(Project *pr)
   
     int i, j;
     double x;
+    char errmsg[MAXMSG+1];
     SFloatlist *fx, *fy;
     STmplist *tmpcurve;
     Scurve *curve;
@@ -705,10 +707,9 @@ int getcurves(Project *pr)
             // Check that network curve has data points
             if (curve->Npts <= 0)
             {
-                sprintf(pr->Msg, "%s link: %s", geterrmsg(230, pr->Msg),
-                        curve->ID);
+                sprintf(pr->Msg, "Error 230: %s %s", geterrmsg(230, errmsg), curve->ID);
                 writeline(pr, pr->Msg);
-                return (200);
+                return 200;
             }
 
             // Allocate memory for network's curve data
@@ -726,10 +727,9 @@ int getcurves(Project *pr)
                 // Check that x data is in ascending order
                 if (fx->value >= x)
                 {
-                    sprintf(pr->Msg, "%s link: %s", geterrmsg(230, pr->Msg),
-                            curve->ID);
+                    sprintf(pr->Msg, "Error 230: %s %s", geterrmsg(230, errmsg), curve->ID);
                     writeline(pr, pr->Msg);
-                    return (200);
+                    return 200;
                 }
                 x = fx->value;
 
@@ -967,33 +967,18 @@ void inperrmsg(Project *pr, int err, int sect, char *line)
 {
     Parser *parser = &pr->parser;
   
-    char errStr[MAXMSG + 1];
-    char id[MAXMSG + 1];
+    char errStr[MAXMSG + 1] = "";
+    char tok[MAXMSG + 1];
+
+    // Get token associated with input error
+    if (parser->ErrTok >= 0) strcpy(tok, parser->Tok[parser->ErrTok]);
+    else strcpy(tok, "");
   
-    // get text for error message
-    sprintf(pr->Msg, "%s - section: %s", geterrmsg(err, errStr), SectTxt[sect]);
-  
-    // Retrieve ID label of object with input error
-    // (No ID used for CONTROLS or REPORT sections)
-    switch (sect)
-    {
-        case _CONTROLS:
-        case _REPORT:
-          // don't append
-          break;
-        case _ENERGY:
-          sprintf(id, " id: %s", parser->Tok[1]);
-          break;
-        default:
-          sprintf(id, " id: %s", parser->Tok[0]);
-          break;
-    }
-    
-    strcat(pr->Msg, id);
+    // write error message to report file
+    sprintf(pr->Msg, "Error %d: %s %s in %s section:",
+            err, geterrmsg(err, errStr), tok, SectTxt[sect]);
     writeline(pr, pr->Msg);
 
-    // Echo input line for syntax errors, and 
-    // errors in CONTROLS and OPTIONS sections
-    if (sect == _CONTROLS || err == 201 || err == 213) writeline(pr, line);
-    else writeline(pr, "");
+    // Echo input line
+    writeline(pr, line);
 }

@@ -7,7 +7,7 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/10/2018
+Last Updated: 12/15/2018
 ******************************************************************************
 */
 
@@ -353,10 +353,11 @@ int inittanks(Project *pr)
 */
 {
     Network *net = &pr->network;
-
+    
     int i, j, n = 0;
     double a;
     int errcode = 0, levelerr;
+    char errmsg[MAXMSG+1] = "";
     Stank *tank;
     Scurve *curve;
 
@@ -383,14 +384,6 @@ int inittanks(Project *pr)
                 levelerr = 1;
             }
 
-            // Report error in levels if found
-            if (levelerr)
-            {
-                sprintf(pr->Msg, "%s node: %s", geterrmsg(225, pr->Msg),
-                        net->Node[tank->Node].ID);
-                writeline(pr, pr->Msg);
-                errcode = 200;
-            }
             else
             {
                 // Find min., max., and initial volumes from curve
@@ -402,6 +395,15 @@ int inittanks(Project *pr)
                 a = (curve->Y[n] - curve->Y[0]) / (curve->X[n] - curve->X[0]);
                 tank->A = sqrt(4.0 * a / PI);
             }
+        }
+
+        // Report error in levels if found
+        if (levelerr)
+        {
+            sprintf(pr->Msg, "Error 225: %s node %s", geterrmsg(225, errmsg),
+                    net->Node[tank->Node].ID);
+            writeline(pr, pr->Msg);
+            errcode = 200;
         }
     }
     return errcode;

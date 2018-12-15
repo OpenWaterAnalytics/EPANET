@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 12/15/2018
  ******************************************************************************
 */
 
@@ -17,16 +17,651 @@
 #ifndef __APPLE__
 #include <malloc.h>
 #endif
-#include <float.h>
+#include <float.h> 
 #include <math.h>
 
-#include "epanet2_2.h"
+#include "epanet2.h"
 #include "types.h"
 #include "funcs.h"
 #include "text.h"
 #include "enumstxt.h"
 
+#ifdef WINDOWS
+#define snprintf _snprintf
+#endif
 
+// This single global variable is used only when the library is called
+// in "legacy mode" with the 2.1-style API.
+Project __defaultProject;
+Project *_defaultProject = &__defaultProject;
+
+// Functions for creating and removing default temporary files
+void createtmpfiles()
+{
+    getTmpName(_defaultProject->TmpHydFname);
+    getTmpName(_defaultProject->TmpOutFname);
+    getTmpName(_defaultProject->TmpStatFname);
+}
+void removetmpfiles()
+{
+    remove(_defaultProject->TmpHydFname);
+    remove(_defaultProject->TmpOutFname);
+    remove(_defaultProject->TmpStatFname);
+}
+
+
+/********************************************************************
+
+    System Functions
+
+********************************************************************/
+
+int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3,
+                       void (*pviewprog)(char *))
+{
+/*------------------------------------------------------------------------
+ **   Input:   f1 = name of EPANET formatted input file
+ **            f2 = name of report file
+ **            f3 = name of binary output file
+ **            pviewprog = see note below
+ **   Output:  none
+ **   Returns: error code
+ **   Purpose: runs a complete EPANET simulation
+ **
+ **  The pviewprog() argument is a pointer to a callback function
+ **  that takes a character string (char *) as its only parameter.
+ **  The function would reside in and be used by the calling
+ **  program to display the progress messages that EPANET generates
+ **  as it carries out its computations. If this feature is not
+ **  needed then the argument should be NULL.
+ **-------------------------------------------------------------------------
+ */
+    int errcode = 0;
+    int warncode = 0;
+
+    // Run the project and record any warning
+    createtmpfiles();
+    errcode = EN_runproject(_defaultProject, f1, f2, f3, pviewprog);
+    if (errcode < 100) warncode = errcode;
+    removetmpfiles();
+
+    // Return the warning code if the run had no errors
+    if (warncode) errcode = MAX(errcode, warncode);
+    return errcode;
+}
+
+int DLLEXPORT ENinit(const char *f2, const char *f3, int UnitsType,
+                     int HeadlossFormula)
+{
+    int errcode = 0;
+    createtmpfiles();
+    errcode = EN_init(_defaultProject, f2, f3, UnitsType, HeadlossFormula);
+    return errcode;
+}
+
+int DLLEXPORT ENopen(const char *f1, const char *f2, const char *f3)
+{
+    int errcode = 0;
+    createtmpfiles();
+    errcode = EN_open(_defaultProject, f1, f2, f3);
+    return errcode;
+}
+
+int DLLEXPORT ENsaveinpfile(const char *filename)
+{
+    return EN_saveinpfile(_defaultProject, filename);
+}
+
+int DLLEXPORT ENclose()
+{
+    EN_close(_defaultProject);
+    removetmpfiles();
+    return 0;
+}
+
+/********************************************************************
+
+    Hydraulic Analysis Functions
+
+********************************************************************/
+
+int DLLEXPORT ENsolveH() { return EN_solveH(_defaultProject); }
+
+int DLLEXPORT ENsaveH() { return EN_saveH(_defaultProject); }
+
+int DLLEXPORT ENopenH() { return EN_openH(_defaultProject); }
+
+int DLLEXPORT ENinitH(int flag) { return EN_initH(_defaultProject, flag); }
+
+int DLLEXPORT ENrunH(long *t) { return EN_runH(_defaultProject, t); }
+
+int DLLEXPORT ENnextH(long *tstep) { return EN_nextH(_defaultProject, tstep); }
+
+int DLLEXPORT ENcloseH() { return EN_closeH(_defaultProject); }
+
+int DLLEXPORT ENsavehydfile(char *filename)
+{
+    return EN_savehydfile(_defaultProject, filename);
+}
+
+int DLLEXPORT ENusehydfile(char *filename)
+{
+    return EN_usehydfile(_defaultProject, filename);
+}
+
+/********************************************************************
+
+    Water Quality Analysis Functions
+
+********************************************************************/
+
+int DLLEXPORT ENsolveQ() { return EN_solveQ(_defaultProject); }
+
+int DLLEXPORT ENopenQ() { return EN_openQ(_defaultProject); }
+
+int DLLEXPORT ENinitQ(int saveflag) { return EN_initQ(_defaultProject, saveflag); }
+
+int DLLEXPORT ENrunQ(long *t) { return EN_runQ(_defaultProject, t); }
+
+int DLLEXPORT ENnextQ(long *tstep) { return EN_nextQ(_defaultProject, tstep); }
+
+int DLLEXPORT ENstepQ(long *tleft) { return EN_stepQ(_defaultProject, tleft); }
+
+int DLLEXPORT ENcloseQ() { return EN_closeQ(_defaultProject); }
+
+/********************************************************************
+
+    Reporting Functions
+
+********************************************************************/
+
+int DLLEXPORT ENwriteline(char *line) { return EN_writeline(_defaultProject, line); }
+
+int DLLEXPORT ENreport() { return EN_report(_defaultProject); }
+
+int DLLEXPORT ENresetreport() { return EN_resetreport(_defaultProject); }
+
+int DLLEXPORT ENsetreport(char *s) { return EN_setreport(_defaultProject, s); }
+
+int DLLEXPORT ENsetstatusreport(int code)
+{
+    return EN_setstatusreport(_defaultProject, code); 
+}
+
+int DLLEXPORT ENgetversion(int *v) { return EN_getversion(v); }
+
+int DLLEXPORT ENgetcount(int code, int *count)
+{
+    return EN_getcount(_defaultProject, (EN_CountType)code, count);
+}
+
+int DLLEXPORT ENgeterror(int errcode, char *errmsg, int n)
+{ 
+    return EN_geterror(errcode, errmsg, n);
+}
+
+int DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE *value)
+{
+    return EN_getstatistic(_defaultProject, code, value);
+}
+
+/********************************************************************
+
+    Analysis Options Functions
+
+********************************************************************/
+
+int DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value)
+{
+    return EN_getoption(_defaultProject, (EN_Option)code, value);
+}
+
+int DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v)
+{
+    return EN_setoption(_defaultProject, code, v);
+}
+
+int DLLEXPORT ENgetflowunits(int *code) { return EN_getflowunits(_defaultProject, code); }
+
+int DLLEXPORT ENsetflowunits(int code) { return EN_setflowunits(_defaultProject, code); }
+
+int DLLEXPORT ENgettimeparam(int code, long *value)
+{
+    return EN_gettimeparam(_defaultProject, code, value);
+}
+
+int DLLEXPORT ENsettimeparam(int code, long value)
+{
+    return EN_settimeparam(_defaultProject, code, value);
+}
+
+int DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits,
+                            int *tracenode)
+{
+    return EN_getqualinfo(_defaultProject, qualcode, chemname, chemunits, tracenode);
+}
+
+int DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode)
+{
+    return EN_getqualtype(_defaultProject, qualcode, tracenode);
+}
+
+int DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits,
+                            char *tracenode)
+{
+    return EN_setqualtype(_defaultProject, qualcode, chemname, chemunits, tracenode);
+}
+
+/********************************************************************
+
+    Node Functions
+
+********************************************************************/
+
+int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType)
+{
+    return EN_addnode(_defaultProject, id, nodeType);
+}
+
+int DLLEXPORT ENdeletenode(int index, int actionCode)
+{
+    return EN_deletenode(_defaultProject, index, actionCode);
+}
+
+int DLLEXPORT ENgetnodeindex(char *id, int *index)
+{
+    return EN_getnodeindex(_defaultProject, id, index);
+}
+
+int DLLEXPORT ENgetnodeid(int index, char *id)
+{
+    return EN_getnodeid(_defaultProject, index, id);
+}
+
+int DLLEXPORT ENsetnodeid(int index, char *newid)
+{
+    return EN_setnodeid(_defaultProject, index, newid);
+}
+
+int DLLEXPORT ENgetnodetype(int index, int *code)
+{
+    return EN_getnodetype(_defaultProject, index, code);
+}
+
+int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
+{
+    return EN_getnodevalue(_defaultProject, index, code, value);
+}
+
+int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
+{
+    return EN_setnodevalue(_defaultProject, index, code, v);
+}
+
+int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+{
+    return EN_getcoord(_defaultProject, index, x, y);
+}
+
+int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
+{
+    return EN_setcoord(_defaultProject, index, x, y);
+}
+
+/********************************************************************
+
+    Nodal Demand Functions
+
+********************************************************************/
+
+int DLLEXPORT ENgetdemandmodel(int *type, EN_API_FLOAT_TYPE *pmin,
+                               EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp)
+{
+    return EN_getdemandmodel(_defaultProject, type, pmin, preq, pexp);
+}
+
+int DLLEXPORT ENsetdemandmodel(int type, EN_API_FLOAT_TYPE pmin,
+                               EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp)
+{
+    return EN_setdemandmodel(_defaultProject, type, pmin, preq, pexp);
+}
+
+int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
+{
+    return EN_getnumdemands(_defaultProject, nodeIndex, numDemands);
+}
+
+int DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand)
+{
+    return EN_getbasedemand(_defaultProject, nodeIndex, demandIdx, baseDemand);
+}
+
+int DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand)
+{
+    return EN_setbasedemand(_defaultProject, nodeIndex, demandIdx, baseDemand);
+}
+
+int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, int patIndex)
+{
+    return EN_setdemandpattern(_defaultProject, nodeIndex, demandIdx, patIndex);
+}
+
+int DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
+{
+    return EN_getdemandpattern(_defaultProject, nodeIndex, demandIdx, pattIdx);
+}
+
+int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIdx, char *demandName)
+{
+    return EN_getdemandname(_defaultProject, nodeIndex, demandIdx, demandName);
+}
+
+int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIdx, char *demandName)
+{
+    return EN_setdemandname(_defaultProject, nodeIndex, demandIdx, demandName);
+}
+
+/********************************************************************
+
+    Link Functions
+
+********************************************************************/
+
+int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode)
+{
+    return EN_addlink(_defaultProject, id, linkType, fromNode, toNode);
+}
+
+int DLLEXPORT ENdeletelink(int index, int actionCode)
+{
+    return EN_deletelink(_defaultProject, index, actionCode);
+}
+
+int DLLEXPORT ENgetlinkindex(char *id, int *index)
+{
+    return EN_getlinkindex(_defaultProject, id, index);
+}
+
+int DLLEXPORT ENgetlinkid(int index, char *id)
+{
+    return EN_getlinkid(_defaultProject, index, id);
+}
+
+int DLLEXPORT ENsetlinkid(int index, char *newid)
+{
+    return EN_setlinkid(_defaultProject, index, newid);
+}
+
+int DLLEXPORT ENgetlinktype(int index, EN_LinkType *code)
+{
+    return EN_getlinktype(_defaultProject, index, code);
+}
+
+int DLLEXPORT ENsetlinktype(int *index, EN_LinkType type, int actionCode)
+{
+    return EN_setlinktype(_defaultProject, index, type, actionCode);
+}
+
+int DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2)
+{
+    return EN_getlinknodes(_defaultProject, index, node1, node2);
+}
+
+int DLLEXPORT ENsetlinknodes(int index, int node1, int node2)
+{
+    return EN_setlinknodes(_defaultProject, index, node1, node2);
+}
+
+int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
+{
+    return EN_getlinkvalue(_defaultProject, index, (EN_LinkProperty)code, value);
+}
+
+int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
+{
+    return EN_setlinkvalue(_defaultProject, index, code, v);
+}
+
+/********************************************************************
+
+    Pump Functions
+
+********************************************************************/
+
+int DLLEXPORT ENgetpumptype(int index, int *type)
+{
+    return EN_getpumptype(_defaultProject, index, type);
+}
+
+int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
+{
+    return EN_getheadcurveindex(_defaultProject, index, curveindex);
+}
+
+int DLLEXPORT ENsetheadcurveindex(int index, int curveindex)
+{
+    return EN_setheadcurveindex(_defaultProject, index, curveindex);
+}
+
+/********************************************************************
+
+    Time Pattern Functions
+
+********************************************************************/
+
+int DLLEXPORT ENaddpattern(char *id)
+{
+    return EN_addpattern(_defaultProject, id);
+}
+
+int DLLEXPORT ENgetpatternindex(char *id, int *index)
+{
+    return EN_getpatternindex(_defaultProject, id, index);
+}
+
+int DLLEXPORT ENgetpatternid(int index, char *id)
+{
+    return EN_getpatternid(_defaultProject, index, id);
+}
+
+int DLLEXPORT ENgetpatternlen(int index, int *len)
+{
+    return EN_getpatternlen(_defaultProject, index, len);
+}
+
+int DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value)
+{
+    return EN_getpatternvalue(_defaultProject, index, period, value);
+}
+
+int DLLEXPORT ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value)
+{
+    return EN_setpatternvalue(_defaultProject, index, period, value);
+}
+
+int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
+{
+    return EN_getaveragepatternvalue(_defaultProject, index, value);
+}
+
+int DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n)
+{
+    return EN_setpattern(_defaultProject, index, f, n);
+}
+
+/********************************************************************
+
+    Data Curve Functions
+
+********************************************************************/
+
+int DLLEXPORT ENaddcurve(char *id)
+{
+    return EN_addcurve(_defaultProject, id);
+}
+
+int DLLEXPORT ENgetcurveindex(char *id, int *index)
+{
+    return EN_getcurveindex(_defaultProject, id, index);
+}
+
+int DLLEXPORT ENgetcurveid(int index, char *id)
+{
+    return EN_getcurveid(_defaultProject, index, id);
+}
+
+int DLLEXPORT ENgetcurvelen(int index, int *len)
+{
+    return EN_getcurvelen(_defaultProject, index, len);
+}
+
+int DLLEXPORT ENgetcurvetype(int curveindex, int *type)
+{
+    return EN_getcurvetype(_defaultProject, curveindex, type);
+}
+
+int DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x,
+                              EN_API_FLOAT_TYPE *y)
+{
+    return EN_getcurvevalue(_defaultProject, index, pnt, x, y);
+}
+
+int DLLEXPORT ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x,
+                              EN_API_FLOAT_TYPE y)
+{
+    return EN_setcurvevalue(_defaultProject, index, pnt, x, y);
+}
+
+int DLLEXPORT ENgetcurve(int curveIndex, char *id, int *nValues,
+                         EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
+{
+    return EN_getcurve(_defaultProject, curveIndex, id, nValues, xValues, yValues);
+}
+
+int DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int n)
+{
+    return EN_setcurve(_defaultProject, index, x, y, n);
+}
+
+/********************************************************************
+
+    Simple Controls Functions
+
+********************************************************************/
+
+int DLLEXPORT ENaddcontrol(int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting,
+                           int nindex, EN_API_FLOAT_TYPE level)
+{
+    return EN_addcontrol(_defaultProject, cindex, ctype, lindex, setting, nindex, level);
+}
+
+int  DLLEXPORT ENdeletecontrol(int cindex)
+{
+    return EN_deletecontrol(_defaultProject, cindex);
+}
+
+int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex, EN_API_FLOAT_TYPE *setting,
+                           int *nindex, EN_API_FLOAT_TYPE *level)
+{
+    return EN_getcontrol(_defaultProject, cindex, ctype, lindex, setting, nindex, level);
+}
+
+int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting,
+                           int nindex, EN_API_FLOAT_TYPE level)
+{
+    return EN_setcontrol(_defaultProject, cindex, ctype, lindex, setting, nindex, level);
+}
+
+/********************************************************************
+
+    Rule-Based Controls Functions
+
+********************************************************************/
+
+int DLLEXPORT ENaddrule(char *rule)
+{
+    return EN_addrule(_defaultProject, rule);
+}
+
+int DLLEXPORT ENdeleterule(int index)
+{
+    return EN_deleterule(_defaultProject, index);
+}
+
+int DLLEXPORT ENgetrule(int index, int *nPremises, int *nThenActions, int *nElseActions,
+                        EN_API_FLOAT_TYPE *priority)
+{
+    return EN_getrule(_defaultProject, index, nPremises, nThenActions, nElseActions, priority);
+}
+
+int DLLEXPORT ENgetruleID(int index, char* id)
+{
+    return EN_getruleID(_defaultProject, index, id);
+}
+
+int DLLEXPORT ENgetpremise(int ruleIndex, int premiseIndex, int *logop,
+                           int *object, int *objIndex, int *variable,
+                           int *relop, int *status, EN_API_FLOAT_TYPE *value)
+{
+    return EN_getpremise(_defaultProject, ruleIndex, premiseIndex, logop, object,
+                         objIndex, variable, relop, status, value);
+}
+
+int DLLEXPORT ENsetpremise(int ruleIndex, int premiseIndex, int logop,
+                           int object, int objIndex, int variable, int relop,
+                           int status, EN_API_FLOAT_TYPE value)
+{
+    return EN_setpremise(_defaultProject, ruleIndex, premiseIndex, logop, object,
+                         objIndex, variable, relop, status, value);
+}
+
+int DLLEXPORT ENsetpremiseindex(int ruleIndex, int premiseIndex, int objIndex)
+{
+    return EN_setpremiseindex(_defaultProject, ruleIndex, premiseIndex, objIndex);
+}
+
+int DLLEXPORT ENsetpremisestatus(int ruleIndex, int premiseIndex, int status)
+{
+    return EN_setpremisestatus(_defaultProject, ruleIndex, premiseIndex, status);
+}
+
+int DLLEXPORT ENsetpremisevalue(int ruleIndex, int premiseIndex, EN_API_FLOAT_TYPE value)
+{
+    return EN_setpremisevalue(_defaultProject, ruleIndex, premiseIndex, value);
+}
+
+int DLLEXPORT ENgetthenaction(int ruleIndex, int actionIndex, int *linkIndex,
+                              int *status, EN_API_FLOAT_TYPE *setting)
+{
+    return EN_getthenaction(_defaultProject, ruleIndex, actionIndex, linkIndex,
+                            status, setting);
+}
+
+int DLLEXPORT ENsetthenaction(int ruleIndex, int actionIndex, int linkIndex,
+                              int status, EN_API_FLOAT_TYPE setting)
+{
+    return EN_setthenaction(_defaultProject, ruleIndex, actionIndex, linkIndex,
+                            status, setting);
+}
+
+int DLLEXPORT ENgetelseaction(int ruleIndex, int actionIndex, int *linkIndex,
+                              int *status, EN_API_FLOAT_TYPE *setting)
+{
+    return EN_getelseaction(_defaultProject, ruleIndex, actionIndex, linkIndex,
+                            status, setting);
+}
+
+int DLLEXPORT ENsetelseaction(int ruleIndex, int actionIndex, int linkIndex,
+                              int status, EN_API_FLOAT_TYPE setting)
+{
+    return EN_setelseaction(_defaultProject, ruleIndex, actionIndex, linkIndex,
+                            status, setting);
+}
+
+int DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority)
+{
+    return EN_setrulepriority(_defaultProject, index, priority);
+}
 
 /********************************************************************
 
@@ -71,7 +706,7 @@ int DLLEXPORT EN_deleteproject(EN_Project *p)
     return 0;
 }
 
-int DLLEXPORT EN_runproject(EN_Project p, const char *f1, const char *f2,
+int DLLEXPORT EN_runproject(EN_Project p, const char *f1, const char *f2, 
                             const char *f3, void (*pviewprog)(char *))
 /*------------------------------------------------------------------------
 **   Input:   f1 = name of EPANET formatted input file
@@ -143,7 +778,7 @@ int DLLEXPORT EN_init(EN_Project p, const char *f2, const char *f3,
 
     // Open files
     errcode = openfiles(p, "", f2, f3);
-
+   
     // Initialize memory used for project's data objects
     initpointers(p);
     ERRCODE(netsize(p));
@@ -256,7 +891,7 @@ int DLLEXPORT EN_close(EN_Project p)
     // Free all project data
     if (p->Openflag) writetime(p, FMT105);
     freedata(p);
-
+  
     // Close output file
     out = &p->outfile;
     if (out->TmpOutFile != out->OutFile)
@@ -334,7 +969,7 @@ int DLLEXPORT EN_solveH(EN_Project p)
             sprintf(p->Msg, FMT101, p->report.Atime);
             writewin(p->viewprog, p->Msg);
 
-            // Solve for hydraulics & advance to next time period
+            // Solve for hydraulics & advance to next time period 
             tstep = 0;
             ERRCODE(EN_runH(p, &t));
             ERRCODE(EN_nextH(p, &tstep));
@@ -515,11 +1150,11 @@ int DLLEXPORT EN_savehydfile(EN_Project p, char *filename)
     FILE *f;
     FILE *HydFile;
     int c;
-
+  
     // Check that hydraulics results exist
     if (p->outfile.HydFile == NULL || !p->outfile.SaveHflag) return 104;
 
-    // Open the permanent hydraulics file
+    // Open the permanent hydraulics file 
     if ((f = fopen(filename, "w+b")) == NULL) return 305;
 
     // Copy from the scratch file to f
@@ -841,7 +1476,7 @@ int DLLEXPORT EN_setstatusreport(EN_Project p, int code)
     {
         p->report.Statflag = (char)code;
     }
-    else errcode = 202;
+    else errcode = 251;
     return errcode;
 }
 
@@ -915,7 +1550,8 @@ int DLLEXPORT EN_geterror(int errcode, char *errmsg, int n)
 **----------------------------------------------------------------
 */
 {
-    char newMsg[MAXMSG + 1];
+    char msg1[MAXMSG+1] = "";
+    char msg2[MAXMSG+1] = "";
 
     switch (errcode)
     {
@@ -938,8 +1574,10 @@ int DLLEXPORT EN_geterror(int errcode, char *errmsg, int n)
         strncpy(errmsg, WARN6, n);
         break;
     default:
-        geterrmsg(errcode, newMsg);
-        strncpy(errmsg, newMsg, n);
+        sprintf(msg1, "Error %d: ", errcode);
+        if ((errcode >= 202 && errcode <= 222) ||
+            (errcode >= 240 && errcode <= 261)) strcat(msg1, "function call contains ");
+        snprintf(errmsg, n, "%s%s", msg1, geterrmsg(errcode, msg2));
     }
     if (strlen(errmsg) == 0)
         return 251;
@@ -974,6 +1612,7 @@ int DLLEXPORT EN_getstatistic(EN_Project p, int code, EN_API_FLOAT_TYPE *value)
         *value = (EN_API_FLOAT_TYPE)(p->quality.MassBalance.ratio);
         break;
     default:
+        *value = 0.0;
         break;
     }
     return 0;
@@ -1067,22 +1706,22 @@ int DLLEXPORT EN_setoption(EN_Project p, int code, EN_API_FLOAT_TYPE v)
     switch (code)
     {
     case EN_TRIALS:
-        if (value < 1.0) return 202;
+        if (value < 1.0) return 213;
         hyd->MaxIter = (int)value;
         break;
 
     case EN_ACCURACY:
-        if (value < 1.e-5 || value > 1.e-1) return 202;
+        if (value < 1.e-5 || value > 1.e-1) return 213;
         hyd->Hacc = value;
         break;
 
     case EN_TOLERANCE:
-        if (value < 0.0) return 202;
+        if (value < 0.0) return 213;
         qual->Ctol = value / Ucf[QUALITY];
         break;
 
     case EN_EMITEXPON:
-        if (value <= 0.0) return 202;
+        if (value <= 0.0) return 213;
         n = 1.0 / value;
         ucf = pow(Ucf[FLOW], n) / Ucf[PRESSURE];
         for (i = 1; i <= Njuncs; i++)
@@ -1095,17 +1734,17 @@ int DLLEXPORT EN_setoption(EN_Project p, int code, EN_API_FLOAT_TYPE v)
         break;
 
     case EN_DEMANDMULT:
-        if (value <= 0.0) return 202;
+        if (value <= 0.0) return 213;
         hyd->Dmult = value;
         break;
 
     case EN_HEADERROR:
-        if (value < 0.0) return 202;
+        if (value < 0.0) return 213;
         hyd->HeadErrorLimit = value / Ucf[HEAD];
         break;
 
     case EN_FLOWCHANGE:
-        if (value < 0.0) return 202;
+        if (value < 0.0) return 213;
         hyd->FlowChangeLimit = value / Ucf[FLOW];
         break;
 
@@ -1249,7 +1888,7 @@ int DLLEXPORT EN_gettimeparam(EN_Project p, int code, long *value)
     Times  *time = &p->times;
 
     int i;
-
+ 
     *value = 0;
     if (!p->Openflag) return 102;
     if (code < EN_DURATION || code > EN_NEXTEVENTIDX) return 251;
@@ -1319,7 +1958,7 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int code, long value)
     Times  *time = &p->times;
 
     if (!p->Openflag) return 102;
-    if (value < 0) return 202;
+    if (value < 0) return 213;
     switch (code)
     {
     case EN_DURATION:
@@ -1328,7 +1967,7 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int code, long value)
         break;
 
     case EN_HYDSTEP:
-        if (value == 0) return 202;
+        if (value == 0) return 213;
         time->Hstep = value;
         time->Hstep = MIN(time->Pstep, time->Hstep);
         time->Hstep = MIN(time->Rstep, time->Hstep);
@@ -1336,13 +1975,13 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int code, long value)
         break;
 
     case EN_QUALSTEP:
-        if (value == 0) return 202;
+        if (value == 0) return 213;
         time->Qstep = value;
         time->Qstep = MIN(time->Qstep, time->Hstep);
         break;
 
     case EN_PATTERNSTEP:
-        if (value == 0) return 202;
+        if (value == 0) return 213;
         time->Pstep = value;
         if (time->Hstep > time->Pstep) time->Hstep = time->Pstep;
         break;
@@ -1352,24 +1991,24 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int code, long value)
         break;
 
     case EN_REPORTSTEP:
-        if (value == 0) return 202;
+        if (value == 0) return 213;
         time->Rstep = value;
         if (time->Hstep > time->Rstep) time->Hstep = time->Rstep;
         break;
 
     case EN_REPORTSTART:
-        if (time->Rstart > time->Dur) return 202;
+        if (time->Rstart > time->Dur) return 213;
         time->Rstart = value;
         break;
 
     case EN_RULESTEP:
-        if (value == 0) return 202;
+        if (value == 0) return 213;
         time->Rulestep = value;
         time->Rulestep = MIN(time->Rulestep, time->Hstep);
         break;
 
     case EN_STATISTIC:
-        if (value > RANGE) return 202;
+        if (value > RANGE) return 213;
         rpt->Tstatflag = (char)value;
         break;
 
@@ -1401,15 +2040,25 @@ int DLLEXPORT EN_getqualinfo(EN_Project p, int *qualcode, char *chemname,
 */
 {
     EN_getqualtype(p, qualcode, tracenode);
-    if (p->quality.Qualflag == TRACE)
-    {
-        strncpy(chemname, "", MAXID);
-        strncpy(chemunits, "dimensionless", MAXID);
-    }
-    else
+    if (p->quality.Qualflag == CHEM)
     {
         strncpy(chemname, p->quality.ChemName, MAXID);
         strncpy(chemunits, p->quality.ChemUnits, MAXID);
+    }
+    else if (p->quality.Qualflag == TRACE)
+    {
+        strncpy(chemname, w_TRACE, MAXID);
+        strncpy(chemunits, u_PERCENT, MAXID);
+    }
+    else if (p->quality.Qualflag == AGE)
+    {
+        strncpy(chemname, w_AGE, MAXID);
+        strncpy(chemunits, u_HOURS, MAXID);
+    }
+    else
+    {
+        strncpy(chemname, "", MAXID);
+        strncpy(chemunits, "", MAXID);
     }
     return 0;
 }
@@ -1469,9 +2118,9 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualcode, char *chemname,
     if (qual->Qualflag == TRACE) // Source trace analysis
     {
         qual->TraceNode = findnode(net, tracenode);
-        if (qual->TraceNode == 0) return 203;
-        strncpy(qual->ChemName, u_PERCENT, MAXID);
-        strncpy(qual->ChemUnits, tracenode, MAXID);
+        if (qual->TraceNode == 0) return 212;
+        strncpy(qual->ChemName, w_TRACE, MAXID);
+        strncpy(qual->ChemUnits, u_PERCENT, MAXID);
         strcpy(rpt->Field[QUALITY].Units, u_PERCENT);
     }
     if (qual->Qualflag == AGE) // Water age analysis
@@ -1656,7 +2305,7 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
 
     // Check that node exists
     if (!p->Openflag) return 102;
-    if (index <= 0 || index > net->Nnodes) return 204;
+    if (index <= 0 || index > net->Nnodes) return 203;
     if (actionCode < EN_UNCONDITIONAL || actionCode > EN_CONDITIONAL) return 251;
 
     // Can't delete a water quality trace node
@@ -1930,7 +2579,7 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
         break;
 
     case EN_TANKLEVEL:
-        if (index <= nJuncs) return 251;
+        if (index <= nJuncs) return 0;
         v = (Tank[index - nJuncs].H0 - Node[index].El) * Ucf[ELEV];
         break;
 
@@ -2018,7 +2667,7 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
         break;
 
     case EN_TANKVOLUME:
-        if (index <= nJuncs) return 251;
+        if (index <= nJuncs) return 0;
         v = tankvolume(p, index - nJuncs, NodeHead[index]) * Ucf[VOLUME];
         break;
 
@@ -2103,14 +2752,14 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
         break;
 
     case EN_EMITTER:
-        if (index > nJuncs) return 203;
-        if (value < 0.0) return 202;
+        if (index > nJuncs) return 0;
+        if (value < 0.0) return 209;
         if (value > 0.0) value = pow((Ucf[FLOW] / value), hyd->Qexp) / Ucf[PRESSURE];
         Node[index].Ke = value;
         break;
 
     case EN_INITQUAL:
-        if (value < 0.0) return 202;
+        if (value < 0.0) return 209;
         Node[index].C0 = value / Ucf[QUALITY];
         if (index > nJuncs) Tank[index - nJuncs].C = Node[index].C0;
         break;
@@ -2118,7 +2767,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
     case EN_SOURCEQUAL:
     case EN_SOURCETYPE:
     case EN_SOURCEPAT:
-        if (value < 0.0) return 202;
+        if (value < 0.0) return 209;
         source = Node[index].S;
         if (source == NULL)
         {
@@ -2142,10 +2791,10 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
             if (j < CONCEN || j > FLOWPACED) return 251;
             else source->Type = (char)j;
         }
-        return 0;
+        break;
 
     case EN_TANKLEVEL:
-        if (index <= nJuncs) return 251;
+        if (index <= nJuncs) return 0;
         j = index - nJuncs;
         if (Tank[j].A == 0.0) /* Tank is a reservoir */
         {
@@ -2158,7 +2807,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
         else
         {
             value = Node[index].El + value / Ucf[ELEV];
-            if (value > Tank[j].Hmax || value < Tank[j].Hmin) return 202;
+            if (value > Tank[j].Hmax || value < Tank[j].Hmin) return 209;
             Tank[j].H0 = value;
             Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
             // Resetting Volume in addition to initial volume
@@ -2168,10 +2817,10 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
         break;
 
     case EN_TANKDIAM:
-        if (value <= 0.0) return 202;
-        if (index <= nJuncs) return 251;
+        if (value <= 0.0) return 209;
+        if (index <= nJuncs) return 0;
         j = index - nJuncs;
-        if (j > 0 && Tank[j].A > 0.0)
+        if (Tank[j].A > 0.0)
         {
             value /= Ucf[ELEV];
             Tank[j].A = PI * SQR(value) / 4.0;
@@ -2179,82 +2828,78 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
             Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
             Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
         }
-        else return 251;
         break;
 
     case EN_MINVOLUME:
-        if (value < 0.0) return 202;
-        if (index <= nJuncs) return 251;
+        if (value < 0.0) return 209;
+        if (index <= nJuncs) return 0;
         j = index - nJuncs;
-        if (j > 0 && Tank[j].A > 0.0)
+        if (Tank[j].A > 0.0)
         {
             Tank[j].Vmin = value / Ucf[VOLUME];
             Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
             Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
         }
-        else return 251;
         break;
 
     case EN_MINLEVEL:
-        if (value < 0.0) return 202;
-        if (index <= nJuncs) return 251; // not a tank or reservoir
+        if (value < 0.0) return 209;
+        if (index <= nJuncs) return 0; // not a tank or reservoir
         j = index - nJuncs;
-        if (Tank[j].A == 0.0) return  251; // node is a reservoir
+        if (Tank[j].A == 0.0) return  0; // node is a reservoir
         hTmp = value / Ucf[ELEV] + Node[index].El;
         if (hTmp < Tank[j].Hmax && hTmp <= Tank[j].H0)
         {
-            if (Tank[j].Vcurve > 0) return 202;
+            if (Tank[j].Vcurve > 0) return 0;
             Tank[j].Hmin = hTmp;
             Tank[j].Vmin = (Tank[j].Hmin - Node[index].El) * Tank[j].A;
         }
-        else return 251;
+        else return 209;
         break;
 
     case EN_MAXLEVEL:
-        if (value < 0.0) return 202;
-        if (index <= nJuncs) return 251; // not a tank or reservoir
+        if (value < 0.0) return 209;
+        if (index <= nJuncs) return 0; // not a tank or reservoir
         j = index - nJuncs;
-        if (Tank[j].A == 0.0) return 251; // node is a reservoir
+        if (Tank[j].A == 0.0) return 0; // node is a reservoir
         hTmp = value / Ucf[ELEV] + Node[index].El;
         if (hTmp > Tank[j].Hmin && hTmp >= Tank[j].H0)
         {
-            if (Tank[j].Vcurve > 0) return 202;
+            if (Tank[j].Vcurve > 0) return 0;
             Tank[j].Hmax = hTmp;
             Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
         }
-        else return 251;
+        else return 209;
         break;
 
     case EN_MIXMODEL:
         j = ROUND(value);
-        if (index <= nJuncs) return 251;
-        if (j < MIX1 || j > LIFO) return 202;
-        if (index > nJuncs && Tank[index - nJuncs].A > 0.0)
+        if (index <= nJuncs) return 0;
+        if (j < MIX1 || j > LIFO) return 251;
+        if (Tank[index - nJuncs].A > 0.0)
         {
             Tank[index - nJuncs].MixModel = (char)j;
         }
-        else return 251;
         break;
 
     case EN_MIXFRACTION:
-        if (value < 0.0 || value > 1.0) return 202;
-        if (index <= nJuncs) return 251;
+        if (index <= nJuncs) return 0;
+        if (value < 0.0 || value > 1.0) return 209;
         j = index - nJuncs;
-        if (j > 0 && Tank[j].A > 0.0)
+        if (Tank[j].A > 0.0)
         {
             Tank[j].V1max = value * Tank[j].Vmax;
         }
         break;
 
     case EN_TANK_KBULK:
-        if (index <= nJuncs) return 251;
+        if (index <= nJuncs) return 0;
         j = index - nJuncs;
-        if (j > 0 && Tank[j].A > 0.0)
+        if (Tank[j].A > 0.0)
         {
             Tank[j].Kb = value / SECperDAY;
             qual->Reactflag = 1;
         }
-        else return 251;
         break;
 
     default:
@@ -2280,7 +2925,7 @@ int DLLEXPORT EN_getcoord(EN_Project p, int index, EN_API_FLOAT_TYPE *x,
     if (!p->Openflag) return 102;
     if (index < 1 || index > p->network.Nnodes) return 203;
 
-    // check if node have coords
+    // check if node has coords
     node = &net->Node[index];
     if (node->X == MISSING ||
         node->Y == MISSING) return 254;
@@ -2353,7 +2998,7 @@ int DLLEXPORT EN_setdemandmodel(EN_Project p, int type, EN_API_FLOAT_TYPE pmin,
 */
 {
     if (type < 0 || type > EN_PDA) return 251;
-    if (pmin > preq || pexp <= 0.0) return 202;
+    if (pmin > preq || pexp <= 0.0) return 209;
     p->hydraul.DemandModel = type;
     p->hydraul.Pmin = pmin / p->Ucf[PRESSURE];
     p->hydraul.Preq = preq / p->Ucf[PRESSURE];
@@ -2458,7 +3103,7 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIdx, char 
 
     strcpy(demandName, "");
 
-    // Check for valid arguments
+    // Check for valid arguments 
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs) return 203;
 
@@ -2958,6 +3603,9 @@ int DLLEXPORT EN_setlinknodes(EN_Project p, int index, int node1, int node2)
     if (node1 < 0 || node1 > net->Nnodes) return 203;
     if (node2 < 0 || node2 > net->Nnodes) return 203;
 
+    // Check that nodes are not the same
+    if (node1 == node2) return 222;
+
     // Check for illegal valve connection
     type = net->Link[index].Type;
     if (type == EN_PRV || type == EN_PSV || type == EN_FCV)
@@ -2991,7 +3639,6 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, EN_LinkProperty code,
     Hydraul *hyd = &p->hydraul;
 
     double a, h, q, v = 0.0;
-    int returnValue = 0;
     int pmp;
     Slink *Link = net->Link;
     Spump *Pump = net->Pump;
@@ -3184,12 +3831,6 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, EN_LinkProperty code,
         if (Link[index].Type == EN_PUMP)
         {
             v = (double)Pump[findpump(&p->network, index)].Hcurve;
-            if (v == 0) returnValue = 226;
-        }
-        else
-        {
-            v = 0;
-            returnValue = 211;
         }
         break;
 
@@ -3197,20 +3838,14 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, EN_LinkProperty code,
         if (Link[index].Type == EN_PUMP)
         {
             v = (double)Pump[findpump(&p->network, index)].Ecurve;
-            if (v == 0) returnValue = 268;
         }
-        else
-        {
-            v = 0;
-            returnValue = 211;
-        }
+        break;
 
     default:
-        v = 0;
-        returnValue = 251;
+        return 251;
     }
     *value = (EN_API_FLOAT_TYPE)v;
-    return returnValue;
+    return 0;
 }
 
 int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TYPE v)
@@ -3241,7 +3876,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
     case EN_DIAMETER:
         if (Link[index].Type != EN_PUMP)
         {
-            if (value <= 0.0) return 202;
+            if (value <= 0.0) return 211;
             value /= Ucf[DIAM];                // Convert to feet
             r = Link[index].Diam / value;      // Ratio of old to new diam
             Link[index].Km *= SQR(r) * SQR(r); // Adjust minor loss factor
@@ -3253,7 +3888,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
     case EN_LENGTH:
         if (Link[index].Type <= EN_PIPE)
         {
-            if (value <= 0.0) return 202;
+            if (value <= 0.0) return 211;
             Link[index].Len = value / Ucf[ELEV];
             resistcoeff(p, index);
         }
@@ -3262,7 +3897,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
     case EN_ROUGHNESS:
         if (Link[index].Type <= EN_PIPE)
         {
-            if (value <= 0.0) return 202;
+            if (value <= 0.0) return 211;
             Link[index].Kc = value;
             if (hyd->Formflag == DW) Link[index].Kc /= (1000.0 * Ucf[ELEV]);
             resistcoeff(p, index);
@@ -3272,7 +3907,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
     case EN_MINORLOSS:
         if (Link[index].Type != EN_PUMP)
         {
-            if (value <= 0.0) return 202;
+            if (value <= 0.0) return 211;
             Link[index].Km = 0.02517 * value / SQR(Link[index].Diam) /
                              SQR(Link[index].Diam);
         }
@@ -3283,7 +3918,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
         // Cannot set status for a check valve
         if (Link[index].Type == EN_CVPIPE) return 207;
         s = (char)ROUND(value);
-        if (s < 0 || s > 1) return 251;
+        if (s < 0 || s > 1) return 211;
         if (code == EN_INITSTATUS)
         {
             setlinkstatus(p, index, s, &Link[index].Status, &Link[index].Kc);
@@ -3296,7 +3931,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
 
     case EN_INITSETTING:
     case EN_SETTING:
-        if (value < 0.0) return 202;
+        if (value < 0.0) return 211;
         if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
         {
             return EN_setlinkvalue(p, index, EN_ROUGHNESS, v);
@@ -3318,9 +3953,9 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
             case EN_TCV:
                 break;
             case EN_GPV:
-                return 202; // Cannot modify setting for GPV
+                return 207; // Cannot modify setting for GPV
             default:
-                return 251;
+                return 0;
             }
             if (code == EN_INITSETTING)
             {
@@ -3379,7 +4014,8 @@ int DLLEXPORT EN_getpumptype(EN_Project p, int index, int *type)
 
     *type = -1;
     if (!p->Openflag) return 102;
-    if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) return 204;
+    if (index < 1 || index > Nlinks) return 204;
+    if (EN_PUMP != Link[index].Type) return 0;
     *type = Pump[findpump(&p->network, index)].Ptype;
     return 0;
 }
@@ -3399,8 +4035,10 @@ int DLLEXPORT EN_getheadcurveindex(EN_Project p, int index, int *curveindex)
     Spump *Pump = net->Pump;
     const int Nlinks = net->Nlinks;
 
+    *curveindex = 0;
     if (!p->Openflag) return 102;
-    if (index < 1 || index > Nlinks || EN_PUMP != Link[index].Type) return 204;
+    if (index < 1 || index > Nlinks) return 204;
+    if (EN_PUMP != Link[index].Type) return 0;
     *curveindex = Pump[findpump(net, index)].Hcurve;
     return 0;
 }
@@ -3426,7 +4064,8 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int index, int curveindex)
 
     // Check for valid parameters
     if (!p->Openflag) return 102;
-    if (index < 1 || index > net->Nlinks || EN_PUMP != net->Link[index].Type) return 204;
+    if (index < 1 || index > net->Nlinks) return 204;
+    if (EN_PUMP != net->Link[index].Type) return 0;
     if (curveindex <= 0 || curveindex > net->Ncurves) return 206;
 
     // Assign the new curve to the pump
@@ -3645,11 +4284,11 @@ int DLLEXPORT EN_setpattern(EN_Project p, int index, EN_API_FLOAT_TYPE *f, int n
 
     int j;
     Spattern *Pattern = net->Pattern;
-
+    
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Npats) return 205;
-    if (n <= 0) return 202;
+    if (n <= 0) return 251;
 
     // Re-set number of time periods & reallocate memory for multipliers
     Pattern[index].Length = n;
@@ -3681,14 +4320,14 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
     int i, n, err = 0;
     Scurve *curve;
 
-    // Check if a curve with same id already exists
+    // Check if a curve with same id already exists 
     if (!p->Openflag) return 102;
     if (EN_getcurveindex(p, id, &i) == 0) return 215;
 
     // Check that id name is not too long
     if (strlen(id) > MAXID) return 250;
 
-    // Expand the array of curves
+    // Expand the array of curves 
     n = net->Ncurves + 1;
     net->Curve = (Scurve *) realloc(net->Curve, (n + 1) * sizeof(Scurve));
 
@@ -3707,7 +4346,7 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
         curve->Y[0] = 1.0;
     }
 
-    // Abort if memory allocation error
+    // Abort if memory allocation error 
     if (err)
     {
         free(curve->X);
@@ -3892,6 +4531,9 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, EN_API_FLOAT_TYPE *x,
     if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Ncurves) return 206;
     if (n <= 0) return 202;
+
+    // Check that x values are increasing
+    for (j = 1; j < n; j++) if (x[j-1] >= x[j]) return 230;
 
     // Re-set number of points & reallocate memory for values
     curve = &net->Curve[index];
@@ -4257,12 +4899,12 @@ int DLLEXPORT EN_addrule(EN_Project p, char *rule)
         // Find where current line ends and next one begins
         nextline = strchr(line, '\n');
         if (nextline) *nextline = '\0';
-
+        
         // Copy and tokenize the current line
         strcpy(line2, line);
         strcat(line2, "\n");  // Tokenizer won't work without this
         parser->Ntokens = gettokens(line2, parser->Tok, MAXTOKS, parser->Comment);
-
+        
         // Process the line to build up the rule's contents
         if (parser->Ntokens > 0 && *parser->Tok[0] != ';')
         {
@@ -4319,7 +4961,7 @@ int DLLEXPORT EN_getrule(EN_Project p, int index, int *nPremises,
 
     if (index < 1 || index > net->Nrules) return 257;
     *priority = (EN_API_FLOAT_TYPE)p->network.Rule[index].priority;
-
+    
     count = 1;
     premise = net->Rule[index].Premises;
     while (premise->next != NULL)
@@ -4328,7 +4970,7 @@ int DLLEXPORT EN_getrule(EN_Project p, int index, int *nPremises,
         premise = premise->next;
     }
     *nPremises = count;
-
+  
     count = 1;
     action = net->Rule[index].ThenActions;
     while (action->next != NULL)
@@ -4389,7 +5031,7 @@ int DLLEXPORT EN_getpremise(EN_Project p, int ruleIndex, int premiseIndex,
 {
     Spremise *premises;
     Spremise *premise;
-
+  
     if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
     premises = p->network.Rule[ruleIndex].Premises;
@@ -4428,7 +5070,7 @@ int DLLEXPORT EN_setpremise(EN_Project p, int ruleIndex, int premiseIndex,
 {
     Spremise *premises;
     Spremise *premise;
-
+  
     if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
     premises = p->network.Rule[ruleIndex].Premises;
@@ -4542,7 +5184,7 @@ int DLLEXPORT EN_getthenaction(EN_Project p, int ruleIndex, int actionIndex,
     actions = p->network.Rule[ruleIndex].ThenActions;
     action = getaction(actions, actionIndex);
     if (action == NULL) return 258;
-
+    
     *linkIndex = action->link;
     *status = action->status;
     *setting = (EN_API_FLOAT_TYPE)action->setting;
