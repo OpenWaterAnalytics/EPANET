@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/10/2018
+Last Updated: 12/15/2018
 ******************************************************************************
 */
 
@@ -43,7 +43,23 @@ static int  optionchoice(Project *, int);
 static int  optionvalue(Project *, int);
 static int  getpumpcurve(Project *, int);
 static void changestatus(Network *, int, StatusType, double);
+static int  setError(Parser *, int, int);
 
+ 
+int setError(Parser *parser, int tokindex, int errcode)
+/*
+**--------------------------------------------------------------
+**  Input:   tokindex = index of input line token
+**           errcode = an error code
+**  Output:  returns error code
+**  Purpose: records index of token from line of input associated
+**           with an error
+**--------------------------------------------------------------
+*/
+{
+    parser->ErrTok = tokindex;
+    return errcode;
+}
 
 int juncdata(Project *pr)
 /*
@@ -76,16 +92,16 @@ int juncdata(Project *pr)
     net->Njuncs++;
     net->Nnodes++;
     njuncs = net->Njuncs;
-    if (!addnodeID(net, net->Njuncs, parser->Tok[0])) return 215;
+    if (!addnodeID(net, net->Njuncs, parser->Tok[0])) return setError(parser, 0, 215);
 
     // Check for valid data
     if (n < 2) return 201;
-    if (!getfloat(parser->Tok[1], &el)) return 202;
-    if (n >= 3 && !getfloat(parser->Tok[2], &y)) return 202;
+    if (!getfloat(parser->Tok[1], &el)) return setError(parser, 1, 202);
+    if (n >= 3 && !getfloat(parser->Tok[2], &y)) return setError(parser, 2, 202);
     if (n >= 4)
     {
         patlist = getlistitem(parser->Tok[3], parser->Patlist);
-        if (patlist == NULL) return 205;
+        if (patlist == NULL) return setError(parser, 3, 205);
         p = patlist->i;
     }
 
@@ -155,11 +171,11 @@ int tankdata(Project *pr)
     net->Nnodes++;
 
     i = parser->MaxJuncs + net->Ntanks;
-    if (!addnodeID(net, i, parser->Tok[0])) return 215;
+    if (!addnodeID(net, i, parser->Tok[0])) return setError(parser, 0, 215);
 
     // Check for valid data
-    if (n < 2) return (201);
-    if (!getfloat(parser->Tok[1], &el)) return 202;
+    if (n < 2) return 201;
+    if (!getfloat(parser->Tok[1], &el)) return setError(parser, 1, 202);
 
     // Tank is reservoir
     if (n <= 3)
@@ -168,7 +184,7 @@ int tankdata(Project *pr)
         if (n == 3)
         {
             tmplist = getlistitem(parser->Tok[2], parser->Patlist);
-            if (tmplist == NULL) return 205;
+            if (tmplist == NULL) return setError(parser, 2, 205);
             pattern = tmplist->i;
         }
     }
@@ -177,21 +193,25 @@ int tankdata(Project *pr)
     // Tank is a storage tank
     else
     {
-        if (!getfloat(parser->Tok[2], &initlevel)) return 202;
-        if (!getfloat(parser->Tok[3], &minlevel))  return 202;
-        if (!getfloat(parser->Tok[4], &maxlevel))  return 202;
-        if (!getfloat(parser->Tok[5], &diam))      return 202;
-        if (diam < 0.0) return 202;
-        if (n >= 7 && !getfloat(parser->Tok[6], &minvol)) return 202;
+        if (!getfloat(parser->Tok[2], &initlevel)) return setError(parser, 2, 202);
+        if (!getfloat(parser->Tok[3], &minlevel))  return setError(parser, 3, 202);
+        if (!getfloat(parser->Tok[4], &maxlevel))  return setError(parser, 4, 202);
+        if (!getfloat(parser->Tok[5], &diam))      return setError(parser, 5, 202);
+        if (n >= 7 && !getfloat(parser->Tok[6], &minvol)) return setError(parser, 6, 202);
 
         // If volume curve supplied check it exists
         if (n == 8)
         {
             tmplist = getlistitem(parser->Tok[7], parser->Curvelist);
-            if (tmplist == NULL) return 202;
+            if (tmplist == NULL) return setError(parser, 7, 206);
             curve = tmplist->i;
             net->Curve[curve].Type = V_CURVE;
         }
+        if (initlevel < 0.0) return setError(parser, 2, 209);
+        if (minlevel  < 0.0) return setError(parser, 3, 209);
+        if (maxlevel  < 0.0) return setError(parser, 4, 209);
+        if (diam      < 0.0) return setError(parser, 5, 209);
+        if (minvol    < 0.0) return setError(parser, 6, 209);
     }
     node = &net->Node[i];
     tank = &net->Tank[net->Ntanks];
@@ -261,18 +281,20 @@ int pipedata(Project *pr)
     if (net->Nlinks == parser->MaxLinks) return 200;
     net->Npipes++;
     net->Nlinks++;
-    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return 215;
+    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return setError(parser, 0, 215);
 
     // Check for valid data
     if (n < 6) return 201;
-    if ((j1 = findnode(net, parser->Tok[1])) == 0 ||
-        (j2 = findnode(net, parser->Tok[2])) == 0) return 203;
-    if (j1 == j2) return 222;
+    if ((j1 = findnode(net, parser->Tok[1])) == 0) return setError(parser, 1, 203);
+    if ((j2 = findnode(net, parser->Tok[2])) == 0) return setError(parser, 2, 203);
+    if (j1 == j2) return setError(parser, 0, 222);
 
-    if (!getfloat(parser->Tok[3], &length) ||
-        !getfloat(parser->Tok[4], &diam) ||
-        !getfloat(parser->Tok[5], &rcoeff)) return 202;
-    if (length <= 0.0 || diam <= 0.0 || rcoeff <= 0.0) return 202;
+    if (!getfloat(parser->Tok[3], &length)) return setError(parser, 3, 202);
+    if (length <= 0.0) return setError(parser, 3, 211);
+    if (!getfloat(parser->Tok[4], &diam)) return  setError(parser, 4, 202);
+    if (diam <= 0.0) return setError(parser, 4, 211);
+    if (!getfloat(parser->Tok[5], &rcoeff)) return setError(parser, 5, 202);
+    if (rcoeff <= 0.0) setError(parser, 5, 211);
 
     // Either a loss coeff. or a status is supplied
     if (n == 7)
@@ -280,19 +302,19 @@ int pipedata(Project *pr)
         if (match(parser->Tok[6], w_CV)) type = CVPIPE;
         else if (match(parser->Tok[6], w_CLOSED)) status = CLOSED;
         else if (match(parser->Tok[6], w_OPEN))   status = OPEN;
-        else if (!getfloat(parser->Tok[6], &lcoeff)) return (202);
+        else if (!getfloat(parser->Tok[6], &lcoeff)) return setError(parser, 6, 202);
     }
 
     // Both a loss coeff. and a status is supplied
     if (n == 8)
     {
-        if (!getfloat(parser->Tok[6], &lcoeff)) return 202;
+        if (!getfloat(parser->Tok[6], &lcoeff)) return setError(parser, 6, 202);
         if (match(parser->Tok[7], w_CV))  type = CVPIPE;
         else if (match(parser->Tok[7], w_CLOSED)) status = CLOSED;
         else if (match(parser->Tok[7], w_OPEN))   status = OPEN;
-        else return 202;
+        else return setError(parser, 7, 213);
     }
-    if (lcoeff < 0.0) return 202;
+    if (lcoeff < 0.0) return setError(parser, 6, 211);
 
     // Save pipe data
     link = &net->Link[net->Nlinks];
@@ -347,13 +369,13 @@ int pumpdata(Project *pr)
         net->Npumps == parser->MaxPumps) return 200;
     net->Nlinks++;
     net->Npumps++;
-    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return 215;
+    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return setError(parser, 0, 215);
 
     // Check for valid data
-    if (n < 4) return 201;
-    if ((j1 = findnode(net, parser->Tok[1])) == 0 ||
-        (j2 = findnode(net, parser->Tok[2])) == 0)  return 203;
-    if (j1 == j2) return 222;
+    if (n < 3) return 201;
+    if ((j1 = findnode(net, parser->Tok[1])) == 0) return setError(parser, 1, 203);
+    if ((j2 = findnode(net, parser->Tok[2])) == 0) return setError(parser, 2, 203);
+    if (j1 == j2) return setError(parser, 0, 222);
 
     // Save pump data
     link = &net->Link[net->Nlinks];
@@ -378,6 +400,7 @@ int pumpdata(Project *pr)
     pump->Upat = 0;
     pump->Ecost = 0.0;
     pump->Epat = 0;
+    if (n < 4) return 0;
 
     // If 4-th token is a number then input follows Version 1.x format
     // so retrieve pump curve parameters
@@ -386,10 +409,10 @@ int pumpdata(Project *pr)
         m = 1;
         for (j = 4; j < n; j++)
         {
-            if (!getfloat(parser->Tok[j], &parser->X[m])) return 202;
+            if (!getfloat(parser->Tok[j], &parser->X[m])) return setError(parser, j, 202);
             m++;
         }
-        return (getpumpcurve(pr,m));
+        return (getpumpcurve(pr, m));
     }
 
     // Otherwise input follows Version 2 format
@@ -400,26 +423,26 @@ int pumpdata(Project *pr)
         if (match(parser->Tok[m - 1], w_POWER)) // Const. HP curve
         {
             y = atof(parser->Tok[m]);
-            if (y <= 0.0) return (202);
+            if (y <= 0.0) return setError(parser, m, 202);
             pump->Ptype = CONST_HP;
             link->Km = y;
         } 
         else if (match(parser->Tok[m - 1], w_HEAD))  // Custom pump curve
         {
             tmplist = getlistitem(parser->Tok[m], parser->Curvelist);
-            if (tmplist == NULL) return 206;
+            if (tmplist == NULL) return setError(parser, m, 206);
             pump->Hcurve = tmplist->i;
         }    
         else if (match(parser->Tok[m - 1], w_PATTERN))  // Speed/status pattern
         {
             tmplist = getlistitem(parser->Tok[m], parser->Patlist);
-            if (tmplist == NULL) return 205;
+            if (tmplist == NULL) return setError(parser, m, 205);
             pump->Upat = tmplist->i;
         } 
         else if (match(parser->Tok[m - 1], w_SPEED))   // Speed setting
         {
-            if (!getfloat(parser->Tok[m], &y)) return 202;
-            if (y < 0.0) return 202;
+            if (!getfloat(parser->Tok[m], &y)) return setError(parser, m, 202);
+            if (y < 0.0) return setError(parser, m, 211);
             link->Kc = y;
         } 
         else return 201;
@@ -460,13 +483,13 @@ int valvedata(Project *pr)
         net->Nvalves == parser->MaxValves) return 200;
     net->Nvalves++;
     net->Nlinks++;
-    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return 215;
+    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return setError(parser, 0, 215);
 
     // Check for valid data
     if (n < 6) return 201;
-    if ((j1 = findnode(net, parser->Tok[1])) == 0 ||
-        (j2 = findnode(net, parser->Tok[2])) == 0) return (203);
-    if (j1 == j2) return 222;
+    if ((j1 = findnode(net, parser->Tok[1])) == 0) return setError(parser, 1, 203);
+    if ((j2 = findnode(net, parser->Tok[2])) == 0) return setError(parser, 2, 203);
+    if (j1 == j2) return setError(parser, 0, 222);
 
     if (match(parser->Tok[4], w_PRV))       type = PRV;
     else if (match(parser->Tok[4], w_PSV))  type = PSV;
@@ -474,28 +497,31 @@ int valvedata(Project *pr)
     else if (match(parser->Tok[4], w_FCV))  type = FCV;
     else if (match(parser->Tok[4], w_TCV))  type = TCV;
     else if (match(parser->Tok[4], w_GPV))  type = GPV;
-    else return 201;
+    else return setError(parser, 4, 213);
 
-    if (!getfloat(parser->Tok[3], &diam)) return 202;
-    if (diam <= 0.0) return 202;
+    if (!getfloat(parser->Tok[3], &diam)) return setError(parser, 3, 202); 202;
+    if (diam <= 0.0) return setError(parser, 3, 211);
 
     // Find headloss curve for GPV 
     if (type == GPV)
     { 
         tmplist = getlistitem(parser->Tok[5], parser->Curvelist);
-        if (tmplist == NULL) return 206;
+        if (tmplist == NULL) return setError(parser, 5, 206);
         setting = tmplist->i;
         net->Curve[tmplist->i].Type = H_CURVE;
         status = OPEN;
     }
-    else if (!getfloat(parser->Tok[5], &setting)) return 202;
-    if (n >= 7 && !getfloat(parser->Tok[6], &lcoeff)) return 202;
+    else if (!getfloat(parser->Tok[5], &setting)) return setError(parser, 5, 202);
+    if (n >= 7 && !getfloat(parser->Tok[6], &lcoeff)) return setError(parser, 6, 202);
 
     // Check that PRV, PSV, or FCV not connected to a tank & 
     // check for illegal connections between pairs of valves
-    if ((j1 > net->Njuncs || j2 > net->Njuncs) &&
-        (type == PRV || type == PSV || type == FCV)) return 219;
-    if (!valvecheck(pr, type, j1, j2)) return 220;
+    if (type == PRV || type == PSV || type == FCV)
+    {
+        if (j1 > net->Njuncs) return setError(parser, 1, 219);
+        if (j2 > net->Njuncs) return setError(parser, 2, 219);
+    }
+    if (!valvecheck(pr, type, j1, j2)) return setError(parser, -1, 220);
 
     // Save valve data
     link = &net->Link[net->Nlinks];
@@ -542,12 +568,12 @@ int patterndata(Project *pr)
     if (parser->PrevPat != NULL &&
         strcmp(parser->Tok[0], parser->PrevPat->ID) == 0) p = parser->PrevPat;
     else p = getlistitem(parser->Tok[0], parser->Patlist);
-    if (p == NULL) return 205;
+    if (p == NULL) return setError(parser, 0, 205);
 
     // Add parsed multipliers to the pattern
     for (i = 1; i <= n; i++)
     {
-        if (!getfloat(parser->Tok[i], &x)) return 202;
+        if (!getfloat(parser->Tok[i], &x)) return setError(parser, i, 202);
         f = (SFloatlist *)malloc(sizeof(SFloatlist));
         if (f == NULL) return 101;
         f->value = x;
@@ -587,11 +613,11 @@ int curvedata(Project *pr)
     if (parser->PrevCurve != NULL &&
         strcmp(parser->Tok[0], parser->PrevCurve->ID) == 0) c = parser->PrevCurve;
     else c = getlistitem(parser->Tok[0], parser->Curvelist);
-    if (c == NULL) return 205;
+    if (c == NULL) return setError(parser, 0, 206);
 
     // Check for valid data
-    if (!getfloat(parser->Tok[1], &x)) return 202;
-    if (!getfloat(parser->Tok[2], &y)) return 202;
+    if (!getfloat(parser->Tok[1], &x)) return setError(parser, 1, 202);
+    if (!getfloat(parser->Tok[2], &y)) return setError(parser, 2, 202);
 
     // Add new data point to curve
     fx = (SFloatlist *)malloc(sizeof(SFloatlist));
@@ -636,11 +662,11 @@ int coordata(Project *pr)
   
     // Check for valid node ID
     if (parser->Ntokens < 3) return 201;
-    if ((j = findnode(net, parser->Tok[0])) == 0) return 203;
+    if ((j = findnode(net, parser->Tok[0])) == 0) return setError(parser, 0, 203);
   
     // Check for valid data
-    if (!getfloat(parser->Tok[1], &x)) return 202;
-    if (!getfloat(parser->Tok[2], &y)) return 202;
+    if (!getfloat(parser->Tok[1], &x)) return setError(parser, 1, 202);
+    if (!getfloat(parser->Tok[2], &y)) return setError(parser, 2, 202);
 
     // Save coord data
     node = &net->Node[j];
@@ -678,23 +704,23 @@ int demanddata(Project *pr)
     // Extract data from tokens
     n = parser->Ntokens;
     if (n < 2) return 201;
-    if (!getfloat(parser->Tok[1], &y)) return 202;
+    if (!getfloat(parser->Tok[1], &y)) return setError(parser, 1, 202);
 
     // If MULTIPLY command, save multiplier
     if (match(parser->Tok[0], w_MULTIPLY))
     {
-        if (y <= 0.0) return 202;
+        if (y <= 0.0) return setError(parser, 1, 213);
         else hyd->Dmult = y;
         return 0;
     }
 
     // Otherwise find node (and pattern) being referenced
-    if ((j = findnode(net, parser->Tok[0])) == 0) return 208;
-    if (j > net->Njuncs) return 208;
+    if ((j = findnode(net, parser->Tok[0])) == 0) return setError(parser, 0, 203);
+    if (j > net->Njuncs) return 0;
     if (n >= 3)
     {
         patlist = getlistitem(parser->Tok[2], parser->Patlist);
-        if (patlist == NULL) return 205;
+        if (patlist == NULL) return setError(parser, 2, 205);
         p = patlist->i;
     }
 
@@ -761,11 +787,11 @@ int controldata(Project *pr)
 
     // Check that controlled link exists
     k = findlink(net, parser->Tok[1]);
-    if (k == 0) return 204;
+    if (k == 0) return setError(parser, 1, 204);
 
     // Cannot control a check valve
     linktype = net->Link[k].Type;
-    if (linktype == CVPIPE)  return 207;
+    if (linktype == CVPIPE)  return setError(parser, 1, 207);
 
     // Parse control setting into a status level or numerical setting
     if (match(parser->Tok[2], w_OPEN))
@@ -780,8 +806,8 @@ int controldata(Project *pr)
         if (linktype == PUMP) setting = 0.0;
         if (linktype == GPV)  setting = net->Link[k].Kc;
     }
-    else if (linktype == GPV) return 206;
-    else if (!getfloat(parser->Tok[2], &setting)) return 202;
+    else if (linktype == GPV) return setError(parser, 1, 207);
+    else if (!getfloat(parser->Tok[2], &setting)) return setError(parser, 2, 202);
 
     // Set status for pump in case speed setting was supplied
     // or for pipe if numerical setting was supplied
@@ -789,7 +815,7 @@ int controldata(Project *pr)
     {
         if (setting != MISSING)
         {
-            if (setting < 0.0)       return 202;
+            if (setting < 0.0)       return setError(parser, 2, 211);
             else if (setting == 0.0) status = CLOSED;
             else                     status = OPEN;
         }
@@ -801,10 +827,10 @@ int controldata(Project *pr)
     else
     {
         if (n < 8) return 201;
-        if ((i = findnode(net, parser->Tok[5])) == 0) return 203;
+        if ((i = findnode(net, parser->Tok[5])) == 0) return setError(parser, 5, 203);
         if (match(parser->Tok[6], w_BELOW))      ctltype = LOWLEVEL;
         else if (match(parser->Tok[6], w_ABOVE)) ctltype = HILEVEL;
-        else return 201;
+        else return setError(parser, 6, 213);
   }
 
     // Parse control level or time
@@ -814,11 +840,11 @@ int controldata(Project *pr)
         case TIMEOFDAY:
           if (n == 6) time = hour(parser->Tok[5], "");
           if (n == 7) time = hour(parser->Tok[5], parser->Tok[6]);
-          if (time < 0.0) return 201;
+          if (time < 0.0) return setError(parser, 5, 213);
           break;
         case LOWLEVEL:
         case HILEVEL:
-          if (!getfloat(parser->Tok[7], &level)) return 202;
+          if (!getfloat(parser->Tok[7], &level)) return setError(parser, 7, 202);
           break;
     }
 
@@ -866,7 +892,7 @@ int sourcedata(Project *pr)
     // Check for enough tokens & that source node exists
     n = parser->Ntokens;
     if (n < 2) return 201;
-    if ((j = findnode(net, parser->Tok[0])) == 0) return 203;
+    if ((j = findnode(net, parser->Tok[0])) == 0) return setError(parser, 0, 203);
 
     // Parse source type
     // NOTE: Under old 1.1 format, SourceType not supplied so
@@ -879,14 +905,18 @@ int sourcedata(Project *pr)
     else i = 1;
 
     // Parse source quality
-    if (!getfloat(parser->Tok[i], &c0)) return 202;
+    if (!getfloat(parser->Tok[i], &c0))
+    {
+        if (i == 1) return setError(parser, i, 213);
+        else        return setError(parser, i, 202);
+    }
 
     // Parse optional source time pattern
     if (n > i + 1 && strlen(parser->Tok[i + 1]) > 0 &&
         strcmp(parser->Tok[i + 1], "*") != 0) 
     {
         patlist = getlistitem(parser->Tok[i + 1], parser->Patlist);
-        if (patlist == NULL) return (205);
+        if (patlist == NULL) return setError(parser, i+1, 205);
         p = patlist->i;
     }
 
@@ -925,12 +955,12 @@ int emitterdata(Project *pr)
     // Check that node exists & is a junction
     n = parser->Ntokens;
     if (n < 2) return 201;
-    if ((j = findnode(net, parser->Tok[0])) == 0) return 203;
-    if (j > net->Njuncs) return 209;
+    if ((j = findnode(net, parser->Tok[0])) == 0) return setError(parser, 0, 203);
+    if (j > net->Njuncs) return 0;
 
     // Parse emitter flow coeff.
-    if (!getfloat(parser->Tok[1], &k)) return 202;
-    if (k < 0.0) return 202;
+    if (!getfloat(parser->Tok[1], &k)) return setError(parser, 1, 202);
+    if (k < 0.0) return setError(parser, 1, 209);
     net->Node[j].Ke = k;
     return 0;
 }
@@ -956,15 +986,16 @@ int qualdata(Project *pr)
     double c0;
     Snode *Node = net->Node;
   
-    if (net->Nnodes == 0) return 208;  // No nodes defined yet
+    if (net->Nnodes == 0) return setError(parser, 0, 203);  // No nodes defined yet
     n = parser->Ntokens;
     if (n < 2) return 0;
 
     // Single node name supplied
     if (n == 2)
     {
-        if ((j = findnode(net,parser->Tok[0])) == 0) return 0;
-        if (!getfloat(parser->Tok[1], &c0)) return 209;
+        if ((j = findnode(net,parser->Tok[0])) == 0) return setError(parser, 0, 203);
+        if (!getfloat(parser->Tok[1], &c0)) return setError(parser, 1, 202);
+        if (c0 < 0.0) return setError(parser, 1, 209);
         Node[j].C0 = c0;
     }
 
@@ -972,7 +1003,8 @@ int qualdata(Project *pr)
     else
     {
         // Parse quality value
-        if (!getfloat(parser->Tok[2], &c0)) return 209;
+        if (!getfloat(parser->Tok[2], &c0)) return setError(parser, 2, 202);
+        if (c0 < 0.0) return setError(parser, 2, 209);
 
         // If numerical node names supplied, then use numerical comparison
         // to find which nodes are assigned the quality value
@@ -1034,23 +1066,23 @@ int reactdata(Project *pr)
     // Keyword is ORDER
     if (match(parser->Tok[0], w_ORDER))
     {
-        if (!getfloat(parser->Tok[n - 1], &y))  return 213;
+        if (!getfloat(parser->Tok[n - 1], &y))  return setError(parser, n-1, 202);
         if (match(parser->Tok[1], w_BULK))      qual->BulkOrder = y;
         else if (match(parser->Tok[1], w_TANK)) qual->TankOrder = y;
         else if (match(parser->Tok[1], w_WALL))
         {
             if (y == 0.0)      qual->WallOrder = 0.0;
             else if (y == 1.0) qual->WallOrder = 1.0;
-            else return 213;
+            else return setError(parser, n-1, 213);
         }
-        else return 213;
+        else return setError(parser, 1, 213);
         return 0;
     }
 
     // Keyword is ROUGHNESS
     if (match(parser->Tok[0], w_ROUGHNESS))
     {
-        if (!getfloat(parser->Tok[n - 1], &y)) return 213;
+        if (!getfloat(parser->Tok[n - 1], &y)) return setError(parser, n-1, 202);
         qual->Rfactor = y;
         return 0;
     }
@@ -1058,7 +1090,7 @@ int reactdata(Project *pr)
     // Keyword is LIMITING
     if (match(parser->Tok[0], w_LIMITING))
     {
-        if (!getfloat(parser->Tok[n - 1], &y)) return 213;
+        if (!getfloat(parser->Tok[n - 1], &y)) return setError(parser, n-1, 202);
         qual->Climit = y;
         return 0;
     }
@@ -1066,10 +1098,10 @@ int reactdata(Project *pr)
     // Keyword is GLOBAL
     if (match(parser->Tok[0], w_GLOBAL))
     {
-        if (!getfloat(parser->Tok[n - 1], &y)) return 213;
+        if (!getfloat(parser->Tok[n - 1], &y)) return setError(parser, n-1, 202);
         if (match(parser->Tok[1], w_BULK))      qual->Kbulk = y;
         else if (match(parser->Tok[1], w_WALL)) qual->Kwall = y;
-        else return 201;
+        else return setError(parser, 1, 213);
         return 0;
     }
 
@@ -1077,7 +1109,7 @@ int reactdata(Project *pr)
     if (match(parser->Tok[0], w_BULK))      item = 1;
     else if (match(parser->Tok[0], w_WALL)) item = 2;
     else if (match(parser->Tok[0], w_TANK)) item = 3;
-    else return 201;
+    else return setError(parser, 0, 213);
 
     // Save the first link/node ID in the first token
     strcpy(parser->Tok[0], parser->Tok[1]);
@@ -1086,7 +1118,7 @@ int reactdata(Project *pr)
     if (item == 3)
     {
         // Get the rate coeff. value
-        if (!getfloat(parser->Tok[n - 1], &y)) return 209;
+        if (!getfloat(parser->Tok[n - 1], &y)) return setError(parser, n-1, 202);
 
         // Case where just a single tank is specified
         if (n == 3)
@@ -1119,7 +1151,7 @@ int reactdata(Project *pr)
     else
     {
         // Get the rate coeff. value
-        if (!getfloat(parser->Tok[n - 1], &y)) return 211; /* Rate coeff. */
+        if (!getfloat(parser->Tok[n - 1], &y)) return setError(parser, n-1, 202);
         if (net->Nlinks == 0) return 0;
 
         // Case where just a single link is specified
@@ -1181,15 +1213,18 @@ int mixingdata(Project *pr)
     double v;     // Mixing zone volume fraction
   
     // Check for valid data
-    if (net->Nnodes == 0) return 208;
+    if (net->Nnodes == 0) return setError(parser, 0, 203);
     n = parser->Ntokens;
     if (n < 2) return 0;
-    if ((j = findnode(net, parser->Tok[0])) <= net->Njuncs) return 0;
-    if ((m = findmatch(parser->Tok[1], MixTxt)) < 0) return 201;
+    j = findnode(net, parser->Tok[0]);
+    if (j == 0) return setError(parser, 0, 203);
+    if (j <= net->Njuncs) return 0;
+    if ((m = findmatch(parser->Tok[1], MixTxt)) < 0) return setError(parser, 1, 213);
 
     // Find mixing zone volume fraction (which can't be 0)
     v = 1.0;
-    if ((m == MIX2) && (n == 3) && (!getfloat(parser->Tok[2], &v))) return 209;
+    if ((m == MIX2) && (n == 3) &&
+        (!getfloat(parser->Tok[2], &v))) return setError(parser, 2, 202);
     if (v == 0.0) v = 1.0;
 
     // Assign mixing data to tank (return if tank is a reservoir)
@@ -1221,26 +1256,29 @@ int statusdata(Project *pr)
     double y = 0.0;
     char status = ACTIVE;
   
-    if (net->Nlinks == 0) return 210;
+    if (net->Nlinks == 0) return setError(parser, 0, 204);
     n = parser->Ntokens - 1;
     if (n < 1) return 201;
 
     // Check for legal status setting
     if (match(parser->Tok[n], w_OPEN))  status = OPEN;
     else if (match(parser->Tok[n], w_CLOSED)) status = CLOSED;
-    else if (!getfloat(parser->Tok[n], &y)) return 211;
-    if (y < 0.0) return 211;
+    else
+    {
+        if (!getfloat(parser->Tok[n], &y)) return setError(parser, n, 202);
+        if (y < 0.0) return setError(parser, n, 211);
+    }
 
     // A single link ID was supplied
     if (n == 1)
     {
-        if ((j = findlink(net, parser->Tok[0])) == 0) return 0;
+        if ((j = findlink(net, parser->Tok[0])) == 0) return setError(parser, 0, 204);
     
         // Cannot change status of a Check Valve
-        if (net->Link[j].Type == CVPIPE) return 211;
+        if (net->Link[j].Type == CVPIPE) return setError(parser, 0, 207);
 
         // Cannot change setting for a GPV
-        if (net->Link[j].Type == GPV && status == ACTIVE) return 211;
+        if (net->Link[j].Type == GPV && status == ACTIVE) return setError(parser, 0, 207);
         changestatus(net, j, status, y);
     }
 
@@ -1297,7 +1335,8 @@ int energydata(Project *pr)
     // First keyword is DEMAND
     if (match(parser->Tok[0], w_DMNDCHARGE))
     {
-        if (!getfloat(parser->Tok[2], &y)) return 213;
+        if (!getfloat(parser->Tok[2], &y)) return setError(parser, 2, 202);
+        if (y < 0.0) return setError(parser, 2, 213);
         hyd->Dcost = y;
         return 0;
     }
@@ -1313,20 +1352,17 @@ int energydata(Project *pr)
     {
         if (n < 4) return 201;
         k = findlink(net,parser->Tok[1]);
-        if (k == 0) return 216;
-        if (Link[k].Type != PUMP) return 216;
+        if (k == 0) return setError(parser, 1, 216);
+        if (Link[k].Type != PUMP) return setError(parser, 1, 216);
         j = findpump(net, k);
     }
-    else return 201;
+    else return setError(parser, 0, 213);
 
     // PRICE parameter being set
     if (match(parser->Tok[n - 2], w_PRICE))
     {
-        if (!getfloat(parser->Tok[n - 1], &y))
-        {
-            if (j == 0) return 213;
-            else        return 217;
-        }
+        if (!getfloat(parser->Tok[n - 1], &y)) return setError(parser, n-1, 202);
+        if (y < 0.0) return setError(parser, n-1, 217);
         if (j == 0) hyd->Ecost = y;
         else        Pump[j].Ecost = y;
         return 0;
@@ -1336,11 +1372,7 @@ int energydata(Project *pr)
     else if (match(parser->Tok[n - 2], w_PATTERN))
     {
         listitem = getlistitem(parser->Tok[n - 1], parser->Patlist);
-        if (listitem == NULL)
-        {
-            if (j == 0) return 213;
-            else        return 217;
-        }
+        if (listitem == NULL) return setError(parser, n - 1, 205);
         if (j == 0) hyd->Epat = listitem->i;
         else        Pump[j].Epat = listitem->i;
         return 0;
@@ -1351,14 +1383,14 @@ int energydata(Project *pr)
     {
         if (j == 0)
         {
-            if (!getfloat(parser->Tok[n - 1], &y)) return 213;
-            if (y <= 0.0) return 213;
+            if (!getfloat(parser->Tok[n - 1], &y)) return setError(parser, n - 1, 202);
+            if (y <= 0.0) return setError(parser, n - 1, 217);
             hyd->Epump = y;
         }
         else
         {
             listitem = getlistitem(parser->Tok[n - 1], parser->Curvelist);
-            if (listitem == NULL) return 217;
+            if (listitem == NULL) return setError(parser, n - 1, 206); 
             Pump[j].Ecurve = listitem->i;
             net->Curve[listitem->i].Type = E_CURVE;
         }
@@ -1402,8 +1434,8 @@ int reportdata(Project *pr)
     // Value for page size
     if (match(parser->Tok[0], w_PAGE))
     {
-        if (!getfloat(parser->Tok[n], &y)) return 213;
-        if (y < 0.0 || y > 255.0) return 213;
+        if (!getfloat(parser->Tok[n], &y)) return setError(parser, n, 202);
+        if (y < 0.0 || y > 255.0) return setError(parser, n, 213);
         rpt->PageSize = (int)y;
         return 0;
     }
@@ -1448,10 +1480,10 @@ int reportdata(Project *pr)
         else if (match(parser->Tok[n], w_ALL)) rpt->Nodeflag = 1; // All nodes
         else
         {
-            if (net->Nnodes == 0) return 208;
+            if (net->Nnodes == 0) return setError(parser, 1, 208);
             for (i = 1; i <= n; i++)
             {
-                if ((j = findnode(net, parser->Tok[i])) == 0) return 208;
+                if ((j = findnode(net, parser->Tok[i])) == 0) return setError(parser, i, 208);
                 net->Node[j].Rpt = 1;
             }
             rpt->Nodeflag = 2;
@@ -1466,10 +1498,10 @@ int reportdata(Project *pr)
         else if (match(parser->Tok[n], w_ALL)) rpt->Linkflag = 1;
         else
         {
-            if (net->Nlinks == 0) return 210;
+            if (net->Nlinks == 0) return setError(parser, 1, 210);
             for (i = 1; i <= n; i++)
             {
-                if ((j = findlink(net, parser->Tok[i])) == 0) return 210;
+                if ((j = findlink(net, parser->Tok[i])) == 0) return setError(parser, i, 210);
                 net->Link[j].Rpt = 1;
             }
             rpt->Linkflag = 2;
@@ -1483,7 +1515,7 @@ int reportdata(Project *pr)
     else i = findmatch(parser->Tok[0], Fldname); 
     if (i >= 0)                            
     {
-        if (i > FRICTION) return 201;
+        if (i > FRICTION) return setError(parser, 0, 213);
         if (parser->Ntokens == 1 || match(parser->Tok[1], w_YES))
         {
             rpt->Field[i].Enabled = TRUE;
@@ -1497,14 +1529,14 @@ int reportdata(Project *pr)
         }
 
         // Get field qualifier type
-        if (parser->Ntokens < 3) return (201);
+        if (parser->Ntokens < 3) return 201;
         if      (match(parser->Tok[1], w_BELOW))     j = LOW;
         else if (match(parser->Tok[1], w_ABOVE))     j = HI;
         else if (match(parser->Tok[1], w_PRECISION)) j = PREC;
-        else return 201;
+        else return setError(parser, 1, 213);
 
         // Get field qualifier value
-        if (!getfloat(parser->Tok[2], &y)) return 201;
+        if (!getfloat(parser->Tok[2], &y)) return setError(parser, 2, 202);
         if (j == PREC)
         {
             rpt->Field[i].Enabled = TRUE;
@@ -1566,7 +1598,7 @@ int timedata(Project *pr)
         else if (match(parser->Tok[n], w_MIN))   rpt->Tstatflag = MIN;
         else if (match(parser->Tok[n], w_MAX))   rpt->Tstatflag = MAX;
         else if (match(parser->Tok[n], w_RANGE)) rpt->Tstatflag = RANGE;
-        else return 201;
+        else return setError(parser, n, 213);
         return 0;
     }
 
@@ -1581,7 +1613,10 @@ int timedata(Project *pr)
     {
         if ((y = hour(parser->Tok[n], "")) < 0.0)
         {
-            if ((y = hour(parser->Tok[n - 1], parser->Tok[n])) < 0.0) return 213;
+            if ((y = hour(parser->Tok[n - 1], parser->Tok[n])) < 0.0)
+            {
+                return setError(parser, n-1, 213);
+            }
         }
     }
     t = (long)(3600.0 * y + 0.5);
@@ -1596,16 +1631,16 @@ int timedata(Project *pr)
     {
         if      (match(parser->Tok[1], w_TIME))  time->Pstep = t;
         else if (match(parser->Tok[1], w_START)) time->Pstart = t;
-        else return 201;
+        else return setError(parser, 1, 213);
     }
     else if (match(parser->Tok[0], w_REPORT))
     {
         if      (match(parser->Tok[1], w_TIME))  time->Rstep = t;
         else if (match(parser->Tok[1], w_START)) time->Rstart = t;
-        else return 201;
+        else return setError(parser, 1, 213);
     }
     else if (match(parser->Tok[0], w_START)) time->Tstart = t % SECperDAY;
-    else return 201;
+    else return setError(parser, 0, 213);
     return 0;
 }
 
@@ -1633,7 +1668,7 @@ int optiondata(Project *pr)
 int optionchoice(Project *pr, int n)
 /*
 **--------------------------------------------------------------
-**  Input:   n = index of last input token saved in par->Tok[]
+**  Input:   n = index of last input token
 **  Output:  returns error code or 0 if option belongs to
 **           those listed below, or -1 otherwise
 **  Purpose: processes fixed choice [OPTIONS] data
@@ -1678,7 +1713,7 @@ int optionchoice(Project *pr, int n)
         else if (match(parser->Tok[1], w_CMD))  parser->Flowflag = CMD;
         else if (match(parser->Tok[1], w_MLD))  parser->Flowflag = MLD;
         else if (match(parser->Tok[1], w_SI))   parser->Flowflag = LPS;
-        else return 201;
+        else return setError(parser, 1, 213);
     }
 
     // PRESSURE units
@@ -1689,7 +1724,7 @@ int optionchoice(Project *pr, int n)
         else if (match(parser->Tok[1], w_PSI))    parser->Pressflag = PSI;
         else if (match(parser->Tok[1], w_KPA))    parser->Pressflag = KPA;
         else if (match(parser->Tok[1], w_METERS)) parser->Pressflag = METERS;
-        else return 201;
+        else return setError(parser, 1, 213);
     }
   
     // HEADLOSS formula
@@ -1699,7 +1734,7 @@ int optionchoice(Project *pr, int n)
         else if (match(parser->Tok[1], w_HW))   hyd->Formflag = HW;
         else if (match(parser->Tok[1], w_DW))   hyd->Formflag = DW;
         else if (match(parser->Tok[1], w_CM))   hyd->Formflag = CM;
-        else return 201;
+        else return setError(parser, 1, 213);
     }
   
     // HYDRUALICS USE/SAVE file option
@@ -1708,14 +1743,14 @@ int optionchoice(Project *pr, int n)
         if (n < 2) return 0;
         else if (match(parser->Tok[1], w_USE))  out->Hydflag = USE;
         else if (match(parser->Tok[1], w_SAVE)) out->Hydflag = SAVE;
-        else return 201;
+        else return setError(parser, 1, 213);
         strncpy(out->HydFname, parser->Tok[2], MAXFNAME);
     }
 
     // Water QUALITY option
     else if (match(parser->Tok[0], w_QUALITY))
     {
-        if (n < 1) return (0);
+        if (n < 1) return 0;
         else if (match(parser->Tok[1], w_NONE))  qual->Qualflag = NONE;
         else if (match(parser->Tok[1], w_CHEM))  qual->Qualflag = CHEM;
         else if (match(parser->Tok[1], w_AGE))   qual->Qualflag = AGE;
@@ -1730,10 +1765,10 @@ int optionchoice(Project *pr, int n)
         {
             // Copy Trace Node ID to parser->Tok[0] for error reporting
             strcpy(parser->Tok[0], "");
-            if (n < 2) return 212;
+            if (n < 2) return 201;
             strcpy(parser->Tok[0], parser->Tok[2]);
             qual->TraceNode = findnode(net, parser->Tok[2]);
-            if (qual->TraceNode == 0) return 212;
+            if (qual->TraceNode == 0) return setError(parser, 2, 212);
             strncpy(qual->ChemName, u_PERCENT, MAXID);
             strncpy(qual->ChemUnits, parser->Tok[2], MAXID);
         }
@@ -1766,7 +1801,7 @@ int optionchoice(Project *pr, int n)
             if (n >= 2)  hyd->ExtraIter = atoi(parser->Tok[2]);
             else         hyd->ExtraIter = 0;
         }
-        else return 201;
+        else return setError(parser, 1, 213);
     }
   
     // Default demand PATTERN
@@ -1782,7 +1817,7 @@ int optionchoice(Project *pr, int n)
         if (n < 2) return 0;
         if (!match(parser->Tok[1], w_MODEL)) return -1;
         choice = findmatch(parser->Tok[2], DemandModelTxt);
-        if (choice < 0) return 201;
+        if (choice < 0) return setError(parser, 2, 213);
         hyd->DemandModel = choice;
     }
 
@@ -1844,12 +1879,12 @@ int optionvalue(Project *pr, int n)
     if (n < nvalue) return 0;
 
     // Check for valid numerical input
-    if (!getfloat(parser->Tok[nvalue], &y)) return 213;
+    if (!getfloat(parser->Tok[nvalue], &y)) return setError(parser, nvalue, 202);
 
     // Quality tolerance option (which can be 0)
     if (match(tok0, w_TOLERANCE))
     {
-        if (y < 0.0) return 213;
+        if (y < 0.0) return setError(parser, nvalue, 213);
         qual->Ctol = y;
         return 0;
     }
@@ -1857,7 +1892,7 @@ int optionvalue(Project *pr, int n)
     // Diffusivity
     if (match(tok0, w_DIFFUSIVITY))
     { 
-        if (y < 0.0) return 213;
+        if (y < 0.0) return setError(parser, nvalue, 213);
         qual->Diffus = y;
         return 0;
     }
@@ -1872,7 +1907,7 @@ int optionvalue(Project *pr, int n)
     // Flow change limit
     else if (match(tok0, w_FLOWCHANGE))
     {
-          if (y < 0.0) return 213;
+          if (y < 0.0) return setError(parser, nvalue, 213);
           hyd->FlowChangeLimit = y;
           return 0;
     }
@@ -1880,7 +1915,7 @@ int optionvalue(Project *pr, int n)
     // Head loss error limit
     else if (match(tok0, w_HEADERROR))
     {
-        if (y < 0.0) return 213;
+        if (y < 0.0) return setError(parser, nvalue, 213);
         hyd->HeadErrorLimit = y;
         return 0;
     }
@@ -1888,25 +1923,25 @@ int optionvalue(Project *pr, int n)
     // Pressure dependent demand parameters
     else if (match(tok0, w_MINIMUM))
     {
-        if (y < 0.0) return 213;
+        if (y < 0.0) return setError(parser, nvalue, 213);
         hyd->Pmin = y;
         return 0;
     }
     else if (match(tok0, w_REQUIRED))
     {
-        if (y < 0.0) return 213;
+        if (y < 0.0) return setError(parser, nvalue, 213);
         hyd->Preq = y;
         return 0;
     }
     else if (match(tok0, w_PRESSURE))
     {
-        if (y < 0.0) return 213;
+        if (y < 0.0) return setError(parser, nvalue, 213);
         hyd->Pexp = y;
         return 0;
     }
 
     // All other options must be > 0
-    if (y <= 0.0) return 213;
+    if (y <= 0.0) return setError(parser, nvalue, 213);
 
     // Assign value to all other options
     if (match(tok0, w_VISCOSITY))     hyd->Viscos = y;

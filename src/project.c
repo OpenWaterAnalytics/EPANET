@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 12/15/2018
  ******************************************************************************
 */
 
@@ -791,11 +791,14 @@ char *geterrmsg(int errcode, char *msg)
 **----------------------------------------------------------------
 */
 {
-    switch (errcode) { /* Warnings */
-//#define DAT(code,enumer,string) case code: strcpy(msg, string); break;
-#define DAT(code,enumer,string) case code: sprintf(msg, "Error %d: %s", code, string); break;
+    switch (errcode)
+    {
+
+//#define DAT(code,string) case code: sprintf(msg, "%s", string); break;
+#define DAT(code,string) case code: strcpy(msg, string); break;
 #include "errors.dat"
 #undef DAT
+
     default:
         strcpy(msg, "");
     }
@@ -810,13 +813,15 @@ void errmsg(Project *pr, int errcode)
 **----------------------------------------------------------------
 */
 {
+    char errmsg[MAXMSG + 1] = "";
     if (errcode == 309) /* Report file write error -  */
     {                   /* Do not write msg to file.  */
 
     }
-    else if (pr->report.RptFile != NULL && pr->report.Messageflag)
+    else if (pr->report.RptFile != NULL && pr->report.Messageflag && errcode > 100)
     {
-        writeline(pr, geterrmsg(errcode, pr->Msg));
+        sprintf(pr->Msg, "Error %d: %s", errcode, geterrmsg(errcode, errmsg));
+        writeline(pr, pr->Msg);
     }
 }
 

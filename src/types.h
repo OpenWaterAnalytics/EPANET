@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 12/15/2018
  ******************************************************************************
 */
 
@@ -565,7 +565,8 @@ typedef struct {
     MaxPats,               // Pattern count "   "     "
     MaxCurves,             // Curve count   "   "     "
     Ntokens,               // Number of tokens in line of input
-    Ntitle;                // Number of title lines
+    Ntitle,                // Number of title lines
+    ErrTok;                // Index of error-producing token
   
   STmplist 
     *Patlist,              // Temporary time pattern list
