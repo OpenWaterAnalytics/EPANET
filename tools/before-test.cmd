@@ -1,21 +1,21 @@
 ::
 ::  before-test.cmd - Prepares AppVeyor CI worker to run epanet regression tests
-::  
+::
 ::  Date Created: 4/3/2018
 ::
 ::  Author: Michael E. Tryby
 ::          US EPA - ORD/NRMRL
 ::
-::  Arguments: 
-::    1 - relative path regression test file staging location 
+::  Arguments:
+::    1 - relative path regression test file staging location
 ::    2 - absolute path to location of software under test
 ::    3 - build identifier for software under test
-::  
-::  Note: 
+::
+::  Note:
 ::    Tests and benchmark files are stored in the epanet-example-networks repo.
-::    This script retreives them using a stable URL associated with a release on 
-::    GitHub and stages the files for nrtest to run. The script assumes that 
-::    before-test.cmd and gen-config.cmd are located together in the same folder. 
+::    This script retreives them using a stable URL associated with a release on
+::    GitHub and stages the files for nrtest to run. The script assumes that
+::    before-test.cmd and gen-config.cmd are located together in the same folder.
 ::
 
 @echo off
@@ -25,8 +25,8 @@ set SCRIPT_HOME=%~dp0
 set TEST_HOME=%~1
 
 
-set EXAMPLES_VER=1.0.2-dev.4
-set BENCHMARK_VER=220dev4
+set EXAMPLES_VER=1.0.2-dev.5
+set BENCHMARK_VER=220dev5
 
 
 set TESTFILES_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/v%EXAMPLES_VER%.zip
