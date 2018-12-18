@@ -1542,8 +1542,11 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, EN_NodeType nodeType)
     Snode *node;
     Scontrol *control;
 
-    // Check if a node with same id already exists
+    // Cannot modify network structure while solvers are active
     if (!p->Openflag) return 102;
+    if (hyd->OpenHflag || qual->OpenQflag) return 262;
+
+    // Check if a node with same id already exists
     if (EN_getnodeindex(p, id, &i) == 0) return 215;
 
     // Check that id name is not too long
@@ -1670,8 +1673,11 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
     Pdemand demand, nextdemand;
     Psource source;
 
-    // Check that node exists
+    // Cannot modify network structure while solvers are active
     if (!p->Openflag) return 102;
+    if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
+
+    // Check that node exists
     if (index <= 0 || index > net->Nnodes) return 203;
     if (actionCode < EN_UNCONDITIONAL || actionCode > EN_CONDITIONAL) return 251;
 
@@ -2591,8 +2597,11 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, EN_LinkType linkType,
     Slink *link;
     Spump *pump;
 
-    // Check if a link with same id already exists
+    // Cannot modify network structure while solvers are active
     if (!p->Openflag) return 102;
+    if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
+
+    // Check if a link with same id already exists
     if (EN_getlinkindex(p, id, &i) == 0) return 215;
 
     // Lookup the link's from and to nodes
@@ -2708,8 +2717,11 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
     EN_LinkType linkType;
     Slink *link;
 
-    // Check that link exists
+    // Cannot modify network structure while solvers are active
     if (!p->Openflag) return 102;
+    if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
+
+    // Check that link exists
     if (index <= 0 || index > net->Nlinks) 204;
     if (actionCode < EN_UNCONDITIONAL || actionCode > EN_CONDITIONAL) return 251;
 
@@ -2887,8 +2899,11 @@ int DLLEXPORT EN_setlinktype(EN_Project p, int *index, EN_LinkType type, int act
     int errcode;
     EN_LinkType oldtype;
 
-    // Check for valid input parameters
+    // Cannot modify network structure while solvers are active
     if (!p->Openflag) return 102;
+    if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
+
+    // Check for valid input parameters
     if (type < 0 || type > GPV || actionCode < EN_UNCONDITIONAL ||
         actionCode > EN_CONDITIONAL)
     {
@@ -2965,6 +2980,9 @@ int DLLEXPORT EN_setlinknodes(EN_Project p, int index, int node1, int node2)
 {
     Network *net = &p->network;
     int type;
+
+    // Cannot modify network structure while solvers are active
+    if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
 
     // Check that nodes exist
     if (node1 < 0 || node1 > net->Nnodes) return 203;
