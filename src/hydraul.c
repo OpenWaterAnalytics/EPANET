@@ -58,11 +58,25 @@ int  openhyd(Project *pr)
     int  errcode = 0;
     Slink *link;
 
+    // Check for too few nodes & no fixed grade nodes
+    if (pr->network.Nnodes < 2) errcode = 223;
+    else if (pr->network.Ntanks == 0) errcode = 224;
+
     // Allocate memory for sparse matrix structures (see SMATRIX.C)
     ERRCODE(createsparse(pr));
 
     // Allocate memory for hydraulic variables
     ERRCODE(allocmatrix(pr));
+
+    // Check for unconnected nodes
+    if (!errcode) for (i = 1; i <= pr->network.Njuncs; i++)
+    {
+        if (pr->network.Adjlist[i] == NULL)
+        {
+            errcode = 233;
+            break;
+        }
+    }
 
     // Initialize link flows
     if (!errcode) for (i = 1; i <= pr->network.Nlinks; i++)

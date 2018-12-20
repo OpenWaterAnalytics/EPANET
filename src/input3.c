@@ -514,14 +514,13 @@ int valvedata(Project *pr)
     else if (!getfloat(parser->Tok[5], &setting)) return setError(parser, 5, 202);
     if (n >= 7 && !getfloat(parser->Tok[6], &lcoeff)) return setError(parser, 6, 202);
 
-    // Check that PRV, PSV, or FCV not connected to a tank & 
-    // check for illegal connections between pairs of valves
-    if (type == PRV || type == PSV || type == FCV)
+    // Check for illegal connections
+    if (valvecheck(pr, type, j1, j2))
     {
-        if (j1 > net->Njuncs) return setError(parser, 1, 219);
-        if (j2 > net->Njuncs) return setError(parser, 2, 219);
+        if      (j1 > net->Njuncs) return setError(parser, 1, 219);
+        else if (j2 > net->Njuncs) return setError(parser, 2, 219);
+        else                       return setError(parser, -1, 220);
     }
-    if (!valvecheck(pr, type, j1, j2)) return setError(parser, -1, 220);
 
     // Save valve data
     link = &net->Link[net->Nlinks];
@@ -2061,59 +2060,6 @@ int powercurve(double h0, double h1, double h2, double q1, double q2,
     if (*c <= 0.0 || *c > 20.0) return 0;
     *b = -h4 / pow(q1, *c);
     if (*b >= 0.0) return 0;
-    return 1;
-}
-
-int valvecheck(Project *pr, int type, int j1, int j2)
-/*
-**--------------------------------------------------------------
-**  Input:   type = valve type
-**           j1   = index of upstream node
-**           j2   = index of downstream node
-**  Output:  returns 1 for legal connection, 0 otherwise
-**  Purpose: checks for legal connections between PRVs & PSVs
-**--------------------------------------------------------------
-*/
-{
-    Network *net = &pr->network;
-
-    int k, vj1, vj2;
-    LinkType vtype;
-    Slink *link;
-    Svalve *valve;
-
-    // Examine each existing valve
-    for (k = 1; k <= net->Nvalves; k++)
-    {
-        valve = &net->Valve[k];
-        link = &net->Link[valve->Link];
-        vj1 = link->N1;
-        vj2 = link->N2;
-        vtype = link->Type;
-
-        // Cannot have two PRVs sharing downstream nodes or in series
-        if (vtype == PRV && type == PRV)
-        {
-            if (vj2 == j2 || vj2 == j1 || vj1 == j2) return 0;
-        }
-
-        // Cannot have two PSVs sharing upstream nodes or in series
-        if (vtype == PSV && type == PSV)
-        {
-            if (vj1 == j1 || vj1 == j2 || vj2 == j1) return 0;
-        }
-
-        // Cannot have PSV connected to downstream node of PRV
-        if (vtype == PSV && type == PRV && vj1 == j2) return 0;
-        if (vtype == PRV && type == PSV && vj2 == j1) return 0;
-
-        // Cannot have PSV connected to downstream node of FCV
-        // nor have PRV connected to upstream node of FCV
-        if (vtype == FCV && type == PSV && vj2 == j1) return 0;
-        if (vtype == FCV && type == PRV && vj1 == j2) return 0;
-        if (vtype == PSV && type == FCV && vj1 == j2) return 0;
-        if (vtype == PRV && type == FCV && vj2 == j1) return 0;
-    }
     return 1;
 }
 

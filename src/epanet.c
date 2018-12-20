@@ -203,7 +203,6 @@ int DLLEXPORT EN_open(EN_Project p, const char *f1, const char *f2, const char *
     errmsg(p, errcode);
     return errcode;
   }
-  writelogo(p);
 
   // Allocate memory for project's data arrays
   writewin(p->viewprog, FMT100);
@@ -2592,7 +2591,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, EN_LinkType linkType,
     Network *net = &p->network;
     Hydraul *hyd = &p->hydraul;
 
-    int i, n, size;
+    int i, n, size, errcode;
     int n1, n2;
     Slink *link;
     Spump *pump;
@@ -2604,6 +2603,9 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, EN_LinkType linkType,
     // Check if a link with same id already exists
     if (EN_getlinkindex(p, id, &i) == 0) return 215;
 
+    // Check for valid link type
+    if (linkType < CVPIPE || linkType > GPV) return 251;
+
     // Lookup the link's from and to nodes
     n1 = hashtable_find(net->NodeHashTable, fromNode);
     n2 = hashtable_find(net->NodeHashTable, toNode);
@@ -2612,10 +2614,16 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, EN_LinkType linkType,
     // Check that id name is not too long
     if (strlen(id) > MAXID) return 250;
 
-    net->Nlinks++;
-    n = net->Nlinks;
+    // Check that valve link has legal connections
+    if (linkType > PUMP)
+    {
+        errcode = valvecheck(p, linkType, n1, n2);
+        if (errcode) return errcode;
+    }
 
     // Grow link-related arrays to accomodate the new link
+    net->Nlinks++;
+    n = net->Nlinks;
     size = (n + 1) * sizeof(Slink);
     net->Link = (Slink *)realloc(net->Link, size);
     size = (n + 1) * sizeof(double);
@@ -2624,6 +2632,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, EN_LinkType linkType,
     size = (n + 1) * sizeof(StatusType);
     hyd->LinkStatus = (StatusType *)realloc(hyd->LinkStatus, size);
 
+    // Set properties for the new link
     link = &net->Link[n];
     strncpy(link->ID, id, MAXID);
 
@@ -2636,7 +2645,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, EN_LinkType linkType,
         net->Pump = (Spump *)realloc(net->Pump, size);
         pump = &net->Pump[net->Npumps];
         pump->Link = n;
-        pump->Ptype = 0;
+        pump->Ptype = NOCURVE;
         pump->Q0 = 0;
         pump->Qmax = 0;
         pump->Hmax = 0;
@@ -2938,6 +2947,10 @@ int DLLEXPORT EN_setlinktype(EN_Project p, int *index, EN_LinkType type, int act
     EN_getnodeid(p, n1, id1);
     EN_getnodeid(p, n2, id2);
 
+    // Check for illegal valve connections
+    errcode = valvecheck(p, type, n1, n2);
+    if (errcode) return errcode;
+
     // Delete the original link (and any controls containing it)
     EN_deletelink(p, i, actionCode);
 
@@ -2979,7 +2992,7 @@ int DLLEXPORT EN_setlinknodes(EN_Project p, int index, int node1, int node2)
 */
 {
     Network *net = &p->network;
-    int type;
+    int type, errcode;
 
     // Cannot modify network structure while solvers are active
     if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
@@ -2993,14 +3006,10 @@ int DLLEXPORT EN_setlinknodes(EN_Project p, int index, int node1, int node2)
 
     // Check for illegal valve connection
     type = net->Link[index].Type;
-    if (type == EN_PRV || type == EN_PSV || type == EN_FCV)
+    if (type > PUMP)
     {
-        // Can't be connected to a fixed grade node
-        if (node1 > net->Njuncs ||
-            node2 > net->Njuncs) return 219;
-
-        // Can't be connected to another pressure/flow control valve
-        if (!valvecheck(p, type, node1, node2)) return 220;
+        errcode = valvecheck(p, type, node1, node2);
+        if (errcode) return errcode;
     }
 
     // Assign new end nodes to link
