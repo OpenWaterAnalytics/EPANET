@@ -60,8 +60,8 @@ int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
     else                pr->outfile.Outflag = SCRATCH;
 
     // Check that file names are not identical
-    if (strcomp(f1, f2) || strcomp(f1, f3) ||
-        (strcomp(f2, f3) && (strlen(f2) > 0 || strlen(f3) > 0))) return 301;
+    if (strlen(f1) > 0 && (strcomp(f1, f2) || strcomp(f1, f3))) return 301;
+    if (strlen(f3) > 0 && strcomp(f2, f3)) return 301;
 
     // Attempt to open input and report files
     if (strlen(f1) > 0)
@@ -69,7 +69,12 @@ int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
         if ((pr->parser.InFile = fopen(f1, "rt")) == NULL) return 302;
     }
     if (strlen(f2) == 0) pr->report.RptFile = stdout;
-    else if ((pr->report.RptFile = fopen(f2, "wt")) == NULL) return 303;
+    else
+    {
+        pr->report.RptFile = fopen(f2, "wt");
+        if (pr->report.RptFile == NULL) return 303;
+    }
+    writelogo(pr);
     return 0;
 }
 
@@ -620,6 +625,65 @@ int incontrols(Project *pr, int objType, int index)
                 if (action->link == index) return 1;
                 action = action->next;
             }
+        }
+    }
+    return 0;
+}
+
+int valvecheck(Project *pr, int type, int j1, int j2)
+/*
+**--------------------------------------------------------------
+**  Input:   type = valve type
+**           j1   = index of upstream node
+**           j2   = index of downstream node
+**  Output:  returns an error code
+**  Purpose: checks for illegal connections between valves
+**--------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+
+    int k, vj1, vj2;
+    LinkType vtype;
+    Slink *link;
+    Svalve *valve;
+
+    if (type == PRV || type == PSV || type == FCV)
+    {
+        // Can't be connected to a fixed grade node
+        if (j1 > net->Njuncs || j2 > net->Njuncs) return 219;
+        
+        // Examine each existing valve
+        for (k = 1; k <= net->Nvalves; k++)
+        {
+            valve = &net->Valve[k];
+            link = &net->Link[valve->Link];
+            vj1 = link->N1;
+            vj2 = link->N2;
+            vtype = link->Type;
+
+            // Cannot have two PRVs sharing downstream nodes or in series
+            if (vtype == PRV && type == PRV)
+            {
+                if (vj2 == j2 || vj2 == j1 || vj1 == j2) return 220;
+            }
+
+            // Cannot have two PSVs sharing upstream nodes or in series
+            if (vtype == PSV && type == PSV)
+            {
+                if (vj1 == j1 || vj1 == j2 || vj2 == j1) return 220;
+            }
+
+            // Cannot have PSV connected to downstream node of PRV
+            if (vtype == PSV && type == PRV && vj1 == j2) return 220;
+            if (vtype == PRV && type == PSV && vj2 == j1) return 220;
+
+            // Cannot have PSV connected to downstream node of FCV
+            // nor have PRV connected to upstream node of FCV
+            if (vtype == FCV && type == PSV && vj2 == j1) return 220;
+            if (vtype == FCV && type == PRV && vj1 == j2) return 220;
+            if (vtype == PSV && type == FCV && vj1 == j2) return 220;
+            if (vtype == PRV && type == FCV && vj2 == j1) return 220;
         }
     }
     return 0;
