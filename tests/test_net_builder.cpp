@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     BOOST_REQUIRE(error == 0);
     error = EN_setpattern(ph, 1, P, 12);
     BOOST_REQUIRE(error == 0);
-    error = EN_setoption(ph, EN_DEMANDDEFPAT, 1);
+    error = EN_setoption(ph, EN_DEFDEMANDPAT, 1);
     BOOST_REQUIRE(error == 0);
     for (i = 0; i < 9; i++)
     {

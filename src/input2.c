@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 12/15/2018
+Last Updated: 01/01/2019
 ******************************************************************************
 */
 
@@ -381,7 +381,7 @@ int updatepumpparams(Project *pr, int pumpindex)
         curveindex = pump->Hcurve;
         if (curveindex == 0) return 226;
         curve = &net->Curve[curveindex];
-        curve->Type = P_CURVE;
+        curve->Type = PUMP_CURVE;
         npts = curve->Npts;
 
         // Generic power function curve 

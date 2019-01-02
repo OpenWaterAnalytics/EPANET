@@ -4,7 +4,7 @@
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL) for use with VB.Net.
 
-'Last updated on 7/19/15 - LR
+'Last updated on 01/01/2019
 
 Imports System.Runtime.InteropServices
 Imports System.Text
@@ -55,15 +55,16 @@ Public Const EN_HEADLOSS = 10
 Public Const EN_STATUS = 11
 Public Const EN_SETTING = 12
 Public Const EN_ENERGY = 13
-Public Const EN_LINKQUAL = 14   'ES
+Public Const EN_LINKQUAL = 14
 Public Const EN_LINKPATTERN = 15
-Public Const EN_EFFICIENCY = 16
-Public Const EN_HEADCURVE = 17
-Public Const EN_EFFICIENCYCURVE = 18
-Public Const EN_PRICEPATTERN = 19
-Public Const EN_STATE = 20
-Public Const EN_CONST_POWER = 21
-Public Const EN_SPEED = 22
+
+Public Const EN_PUMP_STATE = 16
+Public Const EN_PUMP_EFFIC = 17
+Public Const EN_PUMP_POWER = 18
+Public Const EN_PUMP_HCURVE = 19
+Public Const EN_PUMP_ECURVE = 20
+Public Const EN_PUMP_ECOST = 21
+Public Const EN_PUMP_EPAT = 22
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
@@ -75,7 +76,7 @@ Public Const EN_REPORTSTART = 6
 Public Const EN_RULESTEP = 7
 Public Const EN_STATISTIC = 8
 Public Const EN_PERIODS = 9
-Public Const EN_STARTTIME = 10    'ES
+Public Const EN_STARTTIME = 10
 Public Const EN_HTIME = 11
 Public Const EN_QTIME = 12
 Public Const EN_HALTFLAG = 13
@@ -119,7 +120,7 @@ Public Const EN_MASS = 1
 Public Const EN_SETPOINT = 2
 Public Const EN_FLOWPACED = 3
 
-Public Const EN_HW = 0            ' Head loss formula
+Public Const EN_HW = 0            ' Head loss formulas
 Public Const EN_DW = 1
 Public Const EN_CM = 2
 
@@ -137,7 +138,7 @@ Public Const EN_CMD = 9
 Public Const EN_DDA = 0           ' Demand driven analysis
 Public Const EN_PDA = 1           ' Pressure driven analysis
 
-Public Const EN_TRIALS = 0       ' Misc. options
+Public Const EN_TRIALS = 0        ' Hydraulic options
 Public Const EN_ACCURACY = 1
 Public Const EN_TOLERANCE = 2
 Public Const EN_EMITEXPON = 3
@@ -146,38 +147,81 @@ Public Const EN_HEADERROR = 5
 Public Const EN_FLOWCHANGE = 6
 Public Const EN_DEMANDDEFPAT = 7
 Public Const EN_HEADLOSSFORM = 8
+Public Const EN_GLOBALEFFIC = 9
+Public Const EN_GLOBALPRICE = 10
+Public Const EN_GLOBALPATTERN = 11
+Public Const EN_DEMANDCHARGE = 12
 
-Public Const EN_LOWLEVEL = 0     ' Control types
+Public Const EN_LOWLEVEL = 0      ' Control types
 Public Const EN_HILEVEL = 1
 Public Const EN_TIMER = 2
 Public Const EN_TIMEOFDAY = 3
 
-Public Const EN_AVERAGE = 1      'Time statistic types
+Public Const EN_AVERAGE = 1       ' Time statistic types
 Public Const EN_MINIMUM = 2
 Public Const EN_MAXIMUM = 3
 Public Const EN_RANGE = 4
 
-Public Const EN_MIX1 = 0         'Tank mixing models
+Public Const EN_MIX1 = 0          ' Tank mixing models
 Public Const EN_MIX2 = 1
 Public Const EN_FIFO = 2
 Public Const EN_LIFO = 3
 
-Public Const EN_NOSAVE = 0       ' Save-results-to-file flag
+Public Const EN_NOSAVE = 0        ' Save-results-to-file flag
 Public Const EN_SAVE = 1
-Public Const EN_INITFLOW = 10    ' Re-initialize flow flag
+Public Const EN_INITFLOW = 10     ' Re-initialize flow flag
+Public Const EN_SAVE_AND_INIT = 11
 
-Public Const EN_CONST_HP = 0      ' constant horsepower
-Public Const EN_POWER_FUNC = 1    ' power function
-Public Const EN_CUSTOM = 2        ' user-defined custom curve
+Public Const EN_CONST_HP = 0      ' Constant horsepower pump curve
+Public Const EN_POWER_FUNC = 1    ' Power function pump curve
+Public Const EN_CUSTOM = 2        ' User-defined custom pump curve
+Public Const EN_NOCURVE = 3       ' No pump curve
 
-Public Const EN_V_CURVE = 0       ' volume curve
-Public Const EN_P_CURVE = 1       ' pump curve
-Public Const EN_E_CURVE = 2       ' efficiency curve
-Public Const EN_H_CURVE = 3       ' head loss curve
-Public Const EN_G_CURVE = 4       ' General\default curve
+Public Const EN_VOLUME_CURVE = 0  ' Volume curve
+Public Const EN_PUMP_CURVE = 1    ' Pump curve
+Public Const EN_EFFIC_CURVE = 2   ' Efficiency curve
+Public Const EN_HLOSS_CURVE = 3   ' Head loss curve
+Public Const EN_GENERIC_CURVE = 4 ' Generic curve
 
 Public Const EN_UNCONDITIONAL = 0 ' Unconditional object deletion
 Public Const EN_CONDITIONAL   = 1 ' Conditional object deletion
+
+Public Const EN_NO_REPORT = 0     ' No status report
+Public Const EN_NORMAL_REPORT = 1 ' Normal status report
+Public Const EN_FULL_REPORT = 2   ' Full status report
+
+Public Const EN_R_NODE   = 6      ' Rule objects
+Public Const EN_R_LINK   = 7
+Public Const EN_R_SYSTEM = 8
+
+Public Const EN_R_DEMAND    = 0   ' Rule variables
+Public Const EN_R_HEAD      = 1
+Public Const EN_R_GRADE     = 2
+Public Const EN_R_LEVEL     = 3
+Public Const EN_R_PRESSURE  = 4
+Public Const EN_R_FLOW      = 5
+Public Const EN_R_STATUS    = 6
+Public Const EN_R_SETTING   = 7
+Public Const EN_R_POWER     = 8
+Public Const EN_R_TIME      = 9
+Public Const EN_R_CLOCKTIME = 10
+Public Const EN_R_FILLTIME  = 11
+Public Const EN_R_DRAINTIME = 12
+
+Public Const EN_R_EQ    = 0       ' Rule operators
+Public Const EN_R_NE    = 1
+Public Const EN_R_LE    = 2
+Public Const EN_R_GE    = 3
+Public Const EN_R_LT    = 4
+Public Const EN_R_GT    = 5
+Public Const EN_R_IS    = 6
+Public Const EN_R_NOT   = 7
+Public Const EN_R_BELOW = 8
+Public Const EN_R_ABOVE = 9
+
+Public Const EN_R_IS_OPEN   = 1   ' Rule status types
+Public Const EN_R_IS_CLOSED = 2
+Public Const EN_R_IS_ACTIVE = 3
 
 'These are the external functions that comprise the DLL
 
@@ -239,6 +283,8 @@ Public Const EN_CONDITIONAL   = 1 ' Conditional object deletion
  Declare Function ENgetnodetype Lib "epanet2.dll" (ByVal Index As Int32, ByRef Code As Int32) As Int32
  Declare Function ENgetnodevalue Lib "epanet2.dll" (ByVal Index As Int32, ByVal Code As Int32, ByRef Value As Single) As Int32
  Declare Function ENsetnodevalue Lib "epanet2.dll" (ByVal Index As Int32, ByVal Code As Int32, ByVal Value As Single) As Int32
+ Declare Function ENsetjuncdata Lib "epanet2.dll" (ByVal index As Int32, ByVal elev As Single, ByVal dmnd As Single, ByVal dmndpat As String) As Int32
+ Declare Function ENsettankdata Lib "epanet2.dll" (ByVal index As Int32, ByVal elev As Single, ByVal initlvl As Single, ByVal minlvl As Single, ByVal maxlvl As Single, ByVal diam As Single, ByVal minvol As Single, ByVal volcurve As String) As Int32
  Declare Function ENgetcoord Lib "epanet2.dll" (ByVal Index As Int32, ByRef X As Single, ByRef Y As Single) As Int32
  Declare Function ENsetcoord Lib "epanet2.dll" (ByVal Index As Int32, ByVal X As Single, ByVal Y As Single) As Int32
 
@@ -265,6 +311,7 @@ Public Const EN_CONDITIONAL   = 1 ' Conditional object deletion
  Declare Function ENsetlinknodes Lib "epanet2.dll" (ByVal index As Int32, ByVal node1 As Int32, ByVal node2 As Int32) As Int32
  Declare Function ENgetlinkvalue Lib "epanet2.dll" (ByVal Index As Int32, ByVal Code As Int32, ByRef Value As Single) As Int32
  Declare Function ENsetlinkvalue Lib "epanet2.dll" (ByVal Index As Int32, ByVal Code As Int32, ByVal Value As Single) As Int32
+ Declare Function ENsetpipedata Lib "epanet2.dll" (ByVal index As Int32, ByVal length As Single, ByVal diam As Single, ByVal rough As Single, ByVal mloss As Single) As Int32
  
 'Pump Functions
  Declare Function ENgetheadcurveindex Lib "epanet2.dll" (ByVal Index As Int32, ByVal CurveIndex As int32) As Int32  'ES

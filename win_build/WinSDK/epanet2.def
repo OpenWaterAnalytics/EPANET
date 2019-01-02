@@ -85,6 +85,7 @@ EXPORTS
     ENsetelseaction               = _ENsetelseaction@20
     ENsetflowunits                = _ENsetflowunits@4
     ENsetheadcurveindex           = _ENsetheadcurveindex@8
+    ENsetjuncdata                 = _ENsetjuncdata@16
     ENsetlinkid                   = _ENsetlinkid@8
     ENsetlinknodes                = _ENsetlinknodes@12
     ENsetlinktype                 = _ENsetlinktype@12
@@ -93,7 +94,8 @@ EXPORTS
     ENsetnodevalue                = _ENsetnodevalue@12                  
     ENsetoption                   = _ENsetoption@8                      
     ENsetpattern                  = _ENsetpattern@12                    
-    ENsetpatternvalue             = _ENsetpatternvalue@12               
+    ENsetpatternvalue             = _ENsetpatternvalue@12
+    ENsetpipedata                 = _ENsetpipedata@20
     ENsetpremise                  = _ENsetpremise@36
     ENsetpremiseindex             = _ENsetpremiseindex@12
     ENsetpremisestatus            = _ENsetpremisestatus@12
@@ -101,7 +103,8 @@ EXPORTS
     ENsetqualtype                 = _ENsetqualtype@16                   
     ENsetreport                   = _ENsetreport@4                      
     ENsetrulepriority             = _ENsetrulepriority@8
-    ENsetstatusreport             = _ENsetstatusreport@4                
+    ENsetstatusreport             = _ENsetstatusreport@4
+    ENsettankdata                 = _ENsettankdata@32
     ENsetthenaction               = _ENsetthenaction@20
     ENsettimeparam                = _ENsettimeparam@8                   
     ENsolveH                      = _ENsolveH@0                         
