@@ -288,6 +288,20 @@ int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
     return EN_setnodevalue(_defaultProject, index, code, v);
 }
 
+int DLLEXPORT ENsetjuncdata(int index, EN_API_FLOAT_TYPE elev, EN_API_FLOAT_TYPE dmnd,
+              char *dmndpat)
+{
+    return EN_setjuncdata(_defaultProject, index, elev, dmnd, dmndpat);
+}
+
+int  DLLEXPORT ENsettankdata(int index, EN_API_FLOAT_TYPE elev, EN_API_FLOAT_TYPE initlvl,
+               EN_API_FLOAT_TYPE minlvl, EN_API_FLOAT_TYPE maxlvl, EN_API_FLOAT_TYPE diam,
+               EN_API_FLOAT_TYPE minvol, char *volcurve)
+{
+    return EN_settankdata(_defaultProject, index, elev, initlvl, minlvl, maxlvl,
+                          diam, minvol, volcurve);
+}
+
 int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
 {
     return EN_getcoord(_defaultProject, index, x, y);
@@ -411,6 +425,13 @@ int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
 {
     return EN_setlinkvalue(_defaultProject, index, code, v);
 }
+
+int DLLEXPORT ENsetpipedata(int index, EN_API_FLOAT_TYPE length, EN_API_FLOAT_TYPE diam,
+              EN_API_FLOAT_TYPE rough, EN_API_FLOAT_TYPE mloss)
+{
+    return EN_setpipedata(_defaultProject, index, length, diam, rough, mloss);
+}
+
 
 /********************************************************************
 

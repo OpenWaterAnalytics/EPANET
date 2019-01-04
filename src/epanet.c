@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 12/15/2018
+ Last Updated: 01/01/2019
  ******************************************************************************
 */
 
@@ -134,7 +134,7 @@ int DLLEXPORT EN_init(EN_Project p, const char *f2, const char *f3,
     int errcode = 0;
 
     // Set system flags
-    p->Openflag = TRUE;
+    p->Openflag = FALSE;
     p->hydraul.OpenHflag = FALSE;
     p->quality.OpenQflag = FALSE;
     p->outfile.SaveHflag = FALSE;
@@ -142,6 +142,10 @@ int DLLEXPORT EN_init(EN_Project p, const char *f2, const char *f3,
     p->Warnflag = FALSE;
     p->report.Messageflag = TRUE;
     p->report.Rptflag = 1;
+
+    // Check for valid arguments
+    if (unitsType < 0 || unitsType > CMD) return 251;
+    if (headLossType < 0 || headLossType > CM) return 251;
 
     // Open files
     errcode = openfiles(p, "", f2, f3);
@@ -167,6 +171,7 @@ int DLLEXPORT EN_init(EN_Project p, const char *f2, const char *f3,
     // Initialize the default demand pattern
     p->parser.MaxPats = 0;
     getpatterns(p);
+    p->Openflag = TRUE;
     return errcode;
 }
 
@@ -1032,12 +1037,25 @@ int DLLEXPORT EN_getoption(EN_Project p, EN_Option code,
     case EN_FLOWCHANGE:
         v = hyd->FlowChangeLimit * Ucf[FLOW];
         break;
-    case EN_DEMANDDEFPAT:
+    case EN_DEFDEMANDPAT:
         v = hyd->DefPat;
         break;
     case EN_HEADLOSSFORM:
         v = hyd->Formflag;
         break;
+    case EN_GLOBALEFFIC:
+        v = hyd->Epump;
+        break;
+    case EN_GLOBALPRICE:
+        v = hyd->Ecost;
+        break;
+    case EN_GLOBALPATTERN:
+        v = hyd->Epat;
+        break;
+    case EN_DEMANDCHARGE:
+        v = hyd->Dcost;
+        break;
+
     default:
         return 251;
     }
@@ -1114,7 +1132,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int code, EN_API_FLOAT_TYPE v)
         hyd->FlowChangeLimit = value / Ucf[FLOW];
         break;
 
-    case EN_DEMANDDEFPAT:
+    case EN_DEFDEMANDPAT:
         //check that the pattern exists or is set to zero to delete the default pattern
         if (value < 0 || value > net->Npats) return 205;
         tmpPat = hyd->DefPat;
@@ -1143,6 +1161,27 @@ int DLLEXPORT EN_setoption(EN_Project p, int code, EN_API_FLOAT_TYPE v)
         }
         strncpy(p->parser.DefPatID, tmpId, MAXID);
         hyd->DefPat = (int)value;
+        break;
+
+    case EN_GLOBALEFFIC:
+        if (value <= 0.0 || value > 100.0) return 213;
+        hyd->Epump = value;
+        break;
+
+    case EN_GLOBALPRICE:
+        if (value < 0.0) return 213;
+        hyd->Ecost = value;
+        break;
+
+    case EN_GLOBALPATTERN:
+        tmpPat = (int)(value + 0.5);
+        if (tmpPat < 0 || tmpPat > net->Npats) return 205;
+        hyd->Epat = tmpPat;
+        break;
+
+    case EN_DEMANDCHARGE:
+        if (value < 0.0) return 213;
+        hyd->Dcost = value;
         break;
 
     default:
@@ -1214,16 +1253,16 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int code)
     {
         switch (net->Curve[i].Type)
         {
-        case V_CURVE:
+        case VOLUME_CURVE:
             xfactor = efactor / Ucf[ELEV];
             yfactor = vfactor / Ucf[VOLUME];
             break;
-        case H_CURVE:
-        case P_CURVE:
+        case HLOSS_CURVE:
+        case PUMP_CURVE:
             xfactor = qfactor / Ucf[FLOW];
             yfactor = hfactor / Ucf[HEAD];
             break;
-        case E_CURVE:
+        case EFFIC_CURVE:
             xfactor = qfactor / Ucf[FLOW];
             yfactor = 1;
             break;
@@ -2067,6 +2106,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
 
     Snode *Node = net->Node;
     Stank *Tank = net->Tank;
+    Scurve *curve;
 
     const int nNodes = net->Nnodes;
     const int nJuncs = net->Njuncs;
@@ -2074,7 +2114,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
 
     double *Ucf = p->Ucf;
 
-    int j;
+    int i, j, n;
     Pdemand demand;
     Psource source;
     double hTmp;
@@ -2179,7 +2219,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
         else
         {
             value = Node[index].El + value / Ucf[ELEV];
-            if (value > Tank[j].Hmax || value < Tank[j].Hmin) return 209;
+            if (value > Tank[j].Hmax || value < Tank[j].Hmin) return 225;
             Tank[j].H0 = value;
             Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
             // Resetting Volume in addition to initial volume
@@ -2199,6 +2239,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
             Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
             Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
             Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
+            Tank[j].Vcurve = 0;
         }
         break;
 
@@ -2214,6 +2255,23 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
         }
         break;
 
+    case EN_VOLCURVE:
+        if (index < nJuncs) return 0;
+        i = ROUND(value);
+        if (i < 0 || i > net->Ncurves) return 205;
+        curve = &net->Curve[i];
+        j = index - nJuncs;
+        if (Tank[j].A == 0.0) return 0;
+        n = curve->Npts - 1;
+        if (Tank[j].Vmin * Ucf[VOLUME] < curve->Y[0] ||
+            Tank[j].Vmax * Ucf[VOLUME] > curve->Y[n]) return 225;
+        Tank[j].Vcurve = i;
+        Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
+        Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
+        Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
+        Tank[j].A = (curve->Y[n] - curve->Y[0]) / (curve->X[n] - curve->X[0]);
+        break;
+
     case EN_MINLEVEL:
         if (value < 0.0) return 209;
         if (index <= nJuncs) return 0; // not a tank or reservoir
@@ -2226,7 +2284,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
             Tank[j].Hmin = hTmp;
             Tank[j].Vmin = (Tank[j].Hmin - Node[index].El) * Tank[j].A;
         }
-        else return 209;
+        else return 225;
         break;
 
     case EN_MAXLEVEL:
@@ -2241,7 +2299,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
             Tank[j].Hmax = hTmp;
             Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
         }
-        else return 209;
+        else return 225;
         break;
 
     case EN_MIXMODEL:
@@ -2279,6 +2337,130 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
     }
     return 0;
 }
+
+int DLLEXPORT EN_setjuncdata(EN_Project p, int index, EN_API_FLOAT_TYPE elev,
+                             EN_API_FLOAT_TYPE dmnd, char *patID)
+/*----------------------------------------------------------------
+**  Input:   index = junction node index
+**           elev = junction elevation
+**           dmnd = junction primary base demand
+**           patID = name of primary demand time pattern
+**  Output:  none
+**  Returns: error code
+**  Purpose: sets several properties for a junction node.
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+
+    int i, patIndex = 0;
+    Snode *Node = net->Node;
+    Pdemand demand;
+
+    // Check that junction exists
+    if (!p->Openflag) return 102;
+    if (index <= 0 || index > net->Njuncs) return 203;
+
+    // Check that demand pattern exists
+    if (strlen(patID) > 0)
+    {
+        for (i = 1; i <= net->Npats; i++)
+        {
+            if (strcmp(patID, net->Pattern[i].ID) == 0)
+            {
+                patIndex = i;
+                break;
+            }
+        }
+        if (patIndex == 0) return 205;
+    }
+
+    // Assign values to junction's parameters
+    Node[index].El = elev / p->Ucf[ELEV];
+    for (demand = Node[index].D; demand != NULL; demand = demand->next)
+    {
+        if (demand->next == NULL)
+        {
+            demand->Base = dmnd / p->Ucf[FLOW];
+            demand->Pat = patIndex;
+        }
+    }
+    return 0;
+}
+
+int DLLEXPORT EN_settankdata(EN_Project p, int index, EN_API_FLOAT_TYPE elev,
+                             EN_API_FLOAT_TYPE initlvl, EN_API_FLOAT_TYPE minlvl,
+                             EN_API_FLOAT_TYPE maxlvl, EN_API_FLOAT_TYPE diam,
+                             EN_API_FLOAT_TYPE minvol, char *volcurve)
+/*----------------------------------------------------------------
+**  Input:   index = tank node index
+**           elev = tank bottom elevation
+**           initlvl = initial water depth
+**           minlvl = minimum water depth
+**           maxlvl = maximum water depth
+**           diam = tank diameter
+**           minvol = tank volume at minimum level
+**           volCurve = name of curve for volume v. level
+**  Output:  none
+**  Returns: error code
+**  Purpose: sets several properties for a tank node.
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+
+    int i, j, n, curveIndex = 0;
+    double area, elevation = elev;
+    double *Ucf = p->Ucf;
+    Snode *Node = net->Node;
+    Stank *Tank = net->Tank;
+    Scurve *curve;
+
+    // Check that tank exists
+    if (!p->Openflag) return 102;
+    if (index <= net->Njuncs || index > net->Nnodes) return 203;
+    j = index - net->Njuncs;
+    if (Tank[j].A == 0) return 0;  // Tank is a Reservoir
+
+    // Check for valid parameter values
+    if (initlvl < 0.0 || minlvl < 0.0 || maxlvl < 0.0) return 209;
+    if (minlvl > initlvl || minlvl > maxlvl || initlvl > maxlvl) return 225;
+    if (diam < 0.0 || minvol < 0.0) return 209;
+                            
+    // volume curve supplied
+    if (strlen(volcurve) > 0)
+    {
+        for (i = 1; i <= net->Ncurves; i++)
+        {
+            if (strcmp(volcurve, net->Curve[i].ID) == 0)
+            {
+                curveIndex = i;
+                break;
+            }
+        }
+        if (curveIndex == 0) return 206;
+        curve = &net->Curve[curveIndex];
+        n = curve->Npts - 1;
+        if (minlvl < curve->X[0] || maxlvl > curve->X[n]) return 225;
+        area = (curve->Y[n] - curve->Y[0]) / (curve->X[n] - curve->X[0]);
+    }
+
+    // Tank diameter supplied
+    else area = PI * diam * diam / 4.0;
+
+    // Assign parameters to tank object
+    net->Node[Tank[j].Node].El = elevation;
+    Tank[j].A = area / Ucf[ELEV] / Ucf[ELEV];
+    Tank[j].H0 = elevation + initlvl / Ucf[ELEV];
+    Tank[j].Hmin = elevation + minlvl / Ucf[ELEV];
+    Tank[j].Hmax = elevation + maxlvl / Ucf[ELEV];
+    Tank[j].Vcurve = curveIndex;
+    Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
+    Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
+    Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
+    return 0;
+}
+
 
 int DLLEXPORT EN_getcoord(EN_Project p, int index, EN_API_FLOAT_TYPE *x,
                           EN_API_FLOAT_TYPE *y)
@@ -3139,7 +3321,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, EN_LinkProperty code,
         else v = 1.0;
         break;
 
-    case EN_STATE:
+    case EN_PUMP_STATE:
         v = hyd->LinkStatus[index];
 
         if (Link[index].Type == EN_PUMP)
@@ -3156,21 +3338,12 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, EN_LinkProperty code,
         }
         break;
 
-    case EN_CONST_POWER:
+    case EN_PUMP_POWER:
         v = 0;
         if (Link[index].Type == EN_PUMP)
         {
             pmp = findpump(net, index);
-            if (Pump[pmp].Ptype == CONST_HP) v = Link[index].Km; // Power in HP
-        }
-        break;
-
-    case EN_SPEED:
-        v = 0;
-        if (Link[index].Type == EN_PUMP)
-        {
-            pmp = findpump(net, index);
-            v = Link[index].Kc;
+            if (Pump[pmp].Ptype == CONST_HP) v = Link[index].Km; // Power in HP or KW
         }
         break;
 
@@ -3210,25 +3383,25 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, EN_LinkProperty code,
         }
         break;
 
-    case EN_EFFICIENCY:
+    case EN_PUMP_EFFIC:
         getenergy(p, index, &a, &v);
         break;
 
-    case EN_PRICEPATTERN:
+    case EN_PUMP_EPAT:
         if (Link[index].Type == EN_PUMP)
         {
             v = (double)Pump[findpump(&p->network, index)].Epat;
         }
         break;
 
-    case EN_HEADCURVE:
+    case EN_PUMP_HCURVE:
         if (Link[index].Type == EN_PUMP)
         {
             v = (double)Pump[findpump(&p->network, index)].Hcurve;
         }
         break;
 
-    case EN_EFFICIENCYCURVE:
+    case EN_PUMP_ECURVE:
         if (Link[index].Type == EN_PUMP)
         {
             v = (double)Pump[findpump(&p->network, index)].Ecurve;
@@ -3262,6 +3435,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
     double *LinkSetting = hyd->LinkSetting;
     char s;
     double r, value = v;
+    int pumpIndex, patIndex, curveIndex;
 
     if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Nlinks) return 204;
@@ -3379,11 +3553,115 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
         }
         break;
 
+    case EN_LINKPATTERN:
+        if (Link[index].Type == EN_PUMP)
+        {
+            patIndex = (int) (value + 0.5);
+            if (patIndex <= 0 || patIndex > net->Npats) return 205;
+            pumpIndex = findpump(&p->network, index);
+            net->Pump[pumpIndex].Upat = patIndex;
+        }
+        break;
+
+    case EN_PUMP_ECOST:
+        if (Link[index].Type == EN_PUMP)
+        {
+            if (value < 0.0) return 211;
+            pumpIndex = findpump(&p->network, index);
+            net->Pump[pumpIndex].Ecost = value;
+        }
+        break;
+
+    case EN_PUMP_EPAT:
+        if (Link[index].Type == EN_PUMP)
+        {
+            patIndex = (int)(value + 0.5);
+            if (patIndex <= 0 || patIndex > net->Npats) return 205;
+            pumpIndex = findpump(&p->network, index);
+            net->Pump[pumpIndex].Epat = patIndex;
+        }
+        break;
+
+    case EN_PUMP_HCURVE:
+        if (Link[index].Type == EN_PUMP)
+        {
+            return EN_setheadcurveindex(p, index, (int)(value + 0.5));
+        }
+        break;
+
+    case EN_PUMP_POWER:
+        if (Link[index].Type == EN_PUMP)
+        {
+            if (value <= 0.0) return 211;
+            pumpIndex = findpump(&p->network, index);
+            net->Pump[pumpIndex].Ptype = CONST_HP;
+            net->Pump[pumpIndex].Hcurve = 0;
+            net->Link[index].Km = v;
+            updatepumpparams(p, pumpIndex);
+            net->Pump[pumpIndex].R /= Ucf[POWER];
+            net->Pump[pumpIndex].Q0 /= Ucf[FLOW];
+            net->Pump[pumpIndex].Qmax /= Ucf[FLOW];
+            net->Pump[pumpIndex].Hmax /= Ucf[HEAD];
+        }
+        break;
+
+    case EN_PUMP_ECURVE:
+        if (Link[index].Type == EN_PUMP)
+        {
+            curveIndex = (int)(v + 0.5);
+            if (curveIndex <= 0 || curveIndex > net->Ncurves) return 205;
+            pumpIndex = findpump(&p->network, index);
+            net->Pump[pumpIndex].Ecurve = curveIndex;
+        }
+        break;
+
     default:
         return 251;
     }
     return 0;
 }
+
+int DLLEXPORT EN_setpipedata(EN_Project p, int index, EN_API_FLOAT_TYPE length,
+              EN_API_FLOAT_TYPE diam, EN_API_FLOAT_TYPE rough, EN_API_FLOAT_TYPE mloss)
+    /*----------------------------------------------------------------
+    **  Input:   index = pipe link index
+    **           length = pipe length
+    **           diam = pipe diameter
+    **           rough = pipe roughness coefficient
+    **           mloss = minor loss coefficient
+    **  Output:  none
+    **  Returns: error code
+    **  Purpose: sets several properties for a pipe link.
+    **----------------------------------------------------------------
+    */
+{
+    Network *net = &p->network;
+
+    Slink *Link = net->Link;
+    double *Ucf = p->Ucf;
+    double diameter = diam;
+
+    // Check that pipe exists
+    if (!p->Openflag) return 102;
+    if (index <= 0 || index > net->Nlinks) return 204;
+    if (Link[index].Type > EN_PIPE) return 0;
+
+    // Check for valid parameters
+    if (length <= 0.0 || diam <= 0.0 || rough <= 0.0 || mloss < 0.0) return 211;
+
+    // Assign parameters to pipe
+    Link[index].Len = length / Ucf[ELEV];
+    diameter /= Ucf[DIAM];
+    Link[index].Diam = diameter;
+    Link[index].Kc = rough;
+    if (p->hydraul.Formflag == DW) Link[index].Kc /= (1000.0 * Ucf[ELEV]);
+
+    // Update minor loss factor & pipe flow resistance
+    Link[index].Km = 0.02517 * mloss / SQR(Link[index].Diam) / SQR(Link[index].Diam);
+    resistcoeff(p, index);
+    return 0;
+}
+
 
 /********************************************************************
 
@@ -3391,7 +3669,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int code, EN_API_FLOAT_TY
 
 ********************************************************************/
 
-int DLLEXPORT EN_getpumptype(EN_Project p, int index, int *type)
+int DLLEXPORT EN_getpumptype(EN_Project p, int index, int *type)   //2.1
 /*----------------------------------------------------------------
 **  Input:   index = index of a pump link
 **  Output:  type = type of pump characteristic curve (see EN_PumpType)
@@ -3414,7 +3692,7 @@ int DLLEXPORT EN_getpumptype(EN_Project p, int index, int *type)
     return 0;
 }
 
-int DLLEXPORT EN_getheadcurveindex(EN_Project p, int index, int *curveindex)
+int DLLEXPORT EN_getheadcurveindex(EN_Project p, int index, int *curveindex)  //2.1
 /*----------------------------------------------------------------
 **  Input:   index = index of a pump link
 **  Output:  curveindex = index of a pump's characteristic curve
@@ -3480,7 +3758,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int index, int curveindex)
     pump->Hmax /= Ucf[HEAD];
 
     // Designate the newly assigned curve as being a Pump Curve
-    p->network.Curve[curveindex].Type = P_CURVE;
+    p->network.Curve[curveindex].Type = PUMP_CURVE;
     return 0;
 }
 
@@ -3729,7 +4007,7 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
     curve = &net->Curve[n];
     strcpy(curve->ID, id);
     curve->Npts = 1;
-    curve->Type = G_CURVE;
+    curve->Type = GENERIC_CURVE;
     curve->X = (double *)calloc(1, sizeof(double));
     curve->Y = (double *)calloc(1, sizeof(double));
     if (curve->X == NULL) err = 1;

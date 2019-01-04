@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 12/15/2018
+ Last Updated: 01/01/2019
  ******************************************************************************
 */
 
@@ -157,11 +157,11 @@ typedef enum {
 } QualType;
 
 typedef enum {
-  V_CURVE,       // volume curve
-  P_CURVE,       // pump curve
-  E_CURVE,       // efficiency curve
-  H_CURVE,       // head loss curve
-  G_CURVE        // general\default curve
+  VOLUME_CURVE,  // volume curve
+  PUMP_CURVE,    // pump curve
+  EFFIC_CURVE,   // efficiency curve
+  HLOSS_CURVE,   // head loss curve
+  GENERIC_CURVE  // generic curve
 } CurveType;
 
 typedef enum {

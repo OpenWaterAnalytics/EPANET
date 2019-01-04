@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/29/2018
+ Last Updated: 12/31/2018
  ******************************************************************************
  */
 
@@ -44,12 +44,6 @@
       #endif // __cplusplus
     #elif defined(CYGWIN)
       #define DLLEXPORT __stdcall
-    #elif defined(__APPLE__)
-      #ifdef __cplusplus
-        #define DLLEXPORT
-      #else
-        #define DLLEXPORT
-      #endif
     #else
       #define DLLEXPORT
     #endif
@@ -511,6 +505,34 @@ extern "C" {
   int  DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v);
 
   /**
+  @brief Set a group of properties for a junction node.
+  @param index The index of a junction node.
+  @param elev The junction's elevation.
+  @param dmnd The junction's primary base demand.
+  @param dmndpat The name of the demand's time pattern ("" for no pattern)
+  @return Error code.
+  */
+  int  DLLEXPORT ENsetjuncdata(int index, EN_API_FLOAT_TYPE elev,
+                 EN_API_FLOAT_TYPE dmnd, char *dmndpat);
+
+  /**
+  @brief Set a group of properties for a tank node.
+  @param index The index of a tank node.
+  @param elev The tank's bottom elevation.
+  @param initlvl The initial water level in the tank.
+  @param minlvl The minimum water level for the tank.
+  @param maxlvl The maximum water level for the tank.
+  @param diam The tank's diameter (0 if volume curve used).
+  @param minvol The volume of the tank at its minimum water level.
+  @param volcurve The name of the tank's volume curve ("" for no curve)
+  @return Error code.
+  */
+  int  DLLEXPORT ENsettankdata(int index, EN_API_FLOAT_TYPE elev,
+                 EN_API_FLOAT_TYPE initlvl, EN_API_FLOAT_TYPE minlvl,
+                 EN_API_FLOAT_TYPE maxlvl, EN_API_FLOAT_TYPE diam,
+                 EN_API_FLOAT_TYPE minvol, char *volcurve);
+
+  /**
   @brief Get coordinates (x,y) for a node.
   @param index The index of a node (first node is index 1).
   @param[out] x X-value of node's coordinate
@@ -742,6 +764,20 @@ extern "C" {
   @see EN_LinkProperty
   */
   int  DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v);
+
+  /**
+  @brief Set a collection of property values for a pipe link.
+  @param index The index of a pipe link.
+  @param length The pipe's length.
+  @param diam The pipe's diameter.
+  @param rough The pipe's roughness coefficient.
+  @param mloss The pipe's minor loss coefficient.
+  @return Error code.
+  */
+  int DLLEXPORT ENsetpipedata(int index, EN_API_FLOAT_TYPE length,
+                EN_API_FLOAT_TYPE diam, EN_API_FLOAT_TYPE rough,
+                EN_API_FLOAT_TYPE mloss);
+
 
 /********************************************************************
 

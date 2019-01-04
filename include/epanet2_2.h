@@ -11,7 +11,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/29/2018
+ Last Updated: 12/31/2018
  ******************************************************************************
  */
 
@@ -46,21 +46,13 @@
       #endif // __cplusplus
     #elif defined(CYGWIN)
       #define DLLEXPORT __stdcall
-    #elif defined(__APPLE__)
-      #ifdef __cplusplus
-        #define DLLEXPORT
-      #else
-        #define DLLEXPORT
-      #endif
     #else
       #define DLLEXPORT
     #endif
   #endif
 #endif
 
-
 #include "epanet2_enums.h"
-
 
 // --- Declare the EPANET toolkit functions
 #if defined(__cplusplus)
@@ -137,6 +129,12 @@ typedef struct Project *EN_Project;
   int DLLEXPORT EN_getnodetype(EN_Project ph, int index, int *code);
   int DLLEXPORT EN_getnodevalue(EN_Project ph, int index, int code, EN_API_FLOAT_TYPE *value);
   int DLLEXPORT EN_setnodevalue(EN_Project ph, int index, int code, EN_API_FLOAT_TYPE v);
+  int DLLEXPORT EN_setjuncdata(EN_Project ph, int index, EN_API_FLOAT_TYPE elev,
+                EN_API_FLOAT_TYPE dmnd, char *dmndpat);
+  int DLLEXPORT EN_settankdata(EN_Project ph, int index, EN_API_FLOAT_TYPE elev,
+                EN_API_FLOAT_TYPE initlvl, EN_API_FLOAT_TYPE minlvl,
+                EN_API_FLOAT_TYPE maxlvl,  EN_API_FLOAT_TYPE diam,
+                EN_API_FLOAT_TYPE minvol, char *volcurve);
   int DLLEXPORT EN_getcoord(EN_Project ph, int index, EN_API_FLOAT_TYPE *x,
                 EN_API_FLOAT_TYPE *y);
   int DLLEXPORT EN_setcoord(EN_Project ph, int index, EN_API_FLOAT_TYPE x,
@@ -173,6 +171,9 @@ typedef struct Project *EN_Project;
   int DLLEXPORT EN_getlinkvalue(EN_Project ph, int index, EN_LinkProperty code,
                 EN_API_FLOAT_TYPE *value);
   int DLLEXPORT EN_setlinkvalue(EN_Project ph, int index, int code, EN_API_FLOAT_TYPE v);
+  int DLLEXPORT EN_setpipedata(EN_Project ph, int index, EN_API_FLOAT_TYPE length,
+                EN_API_FLOAT_TYPE diam, EN_API_FLOAT_TYPE rough, EN_API_FLOAT_TYPE mloss);
+
 
   int DLLEXPORT EN_getpumptype(EN_Project ph, int linkIndex, int *outType);
   int DLLEXPORT EN_getheadcurveindex(EN_Project ph, int pumpIndex, int *curveIndex);

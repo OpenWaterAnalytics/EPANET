@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/29/2018
+ Last Updated: 01/01/2019
  ******************************************************************************
 */
 
@@ -69,13 +69,14 @@ typedef enum {
   EN_ENERGY       = 13, //!> Current pump energy usage
   EN_LINKQUAL     = 14, //!> Current link quality
   EN_LINKPATTERN  = 15, //!> Pump speed time pattern
-  EN_EFFICIENCY   = 16, //!> Current pump efficiency
-  EN_HEADCURVE    = 17, //!> Pump head v. flow curve
-  EN_EFFICIENCYCURVE = 18, //!> Pump efficiency v. flow curve
-  EN_PRICEPATTERN = 19,    //!> Pump energy price time pattern
-  EN_STATE        = 20,    //!> Current pump status
-  EN_CONST_POWER  = 21,    //!> Horsepower of constant horsepower pump
-  EN_SPEED        = 22     //!> Current pump speed setting
+
+  EN_PUMP_STATE   = 16, //!> Current pump status
+  EN_PUMP_EFFIC   = 17, //!> Current pump efficiency
+  EN_PUMP_POWER   = 18, //!> Pump constant power rating
+  EN_PUMP_HCURVE  = 19, //!> Pump head v. flow curve
+  EN_PUMP_ECURVE  = 20, //!> Pump efficiency v. flow curve
+  EN_PUMP_ECOST   = 21, //!> Pump average energy price
+  EN_PUMP_EPAT    = 22  //!> Pump energy price time pattern
 } EN_LinkProperty;
 
 /// Time parameter codes
@@ -181,17 +182,21 @@ typedef enum {
   EN_PDA         = 1    //!< Pressure driven analysis
 } EN_DemandModel;
 
-/// Simulation Option codes
+/// Simulation option codes
 typedef enum {
-  EN_TRIALS       = 0,  //!> Maximum hydraulic trials allowed
-  EN_ACCURACY     = 1,  //!> Hydraulic convergence accuracy
-  EN_TOLERANCE    = 2,  //!> Water quality tolerance
-  EN_EMITEXPON    = 3,  //!> Exponent for emitter head loss formula
-  EN_DEMANDMULT   = 4,  //!> Global demand multiplier
-  EN_HEADERROR    = 5,  //!> Maximum allowable head loss error
-  EN_FLOWCHANGE   = 6,  //!> Maximum allowable flow change
-  EN_DEMANDDEFPAT = 7,  //!> Default demand time pattern
-  EN_HEADLOSSFORM = 8   //!> Head loss formula code
+  EN_TRIALS         = 0,  //!> Maximum hydraulic trials allowed
+  EN_ACCURACY       = 1,  //!> Hydraulic convergence accuracy
+  EN_TOLERANCE      = 2,  //!> Water quality tolerance
+  EN_EMITEXPON      = 3,  //!> Exponent for emitter head loss formula
+  EN_DEMANDMULT     = 4,  //!> Global demand multiplier
+  EN_HEADERROR      = 5,  //!> Maximum allowable head loss error
+  EN_FLOWCHANGE     = 6,  //!> Maximum allowable flow change
+  EN_DEFDEMANDPAT   = 7,  //!> Default demand time pattern
+  EN_HEADLOSSFORM   = 8,  //!> Head loss formula code
+  EN_GLOBALEFFIC    = 9,  //!> Global pump efficiency
+  EN_GLOBALPRICE    = 10, //!> Global energy price per KWH
+  EN_GLOBALPATTERN  = 11, //!> Global energy price pattern
+  EN_DEMANDCHARGE   = 12  //!> Energy charge per max. KW usage
 } EN_Option;
 
 /// Simple control types
@@ -236,18 +241,25 @@ typedef enum {
 
 /// Data curve types
 typedef enum {
-  EN_V_CURVE     = 0,   //!< Tank volume curve
-  EN_P_CURVE     = 1,   //!< Pump characteristic curve
-  EN_E_CURVE     = 2,   //!< Pump efficiency curve
-  EN_H_CURVE     = 3,   //!< Valve head loss curve
-  EN_G_CURVE     = 4    //!< General\default curve
+  EN_VOLUME_CURVE  = 0,   //!< Tank volume curve
+  EN_PUMP_CURVE    = 1,   //!< Pump head curve
+  EN_EFFIC_CURVE   = 2,   //!< Pump efficiency curve
+  EN_HLOSS_CURVE   = 3,   //!< Valve head loss curve
+  EN_GENERIC_CURVE = 4    //!< Generic curve
 } EN_CurveType;
 
-/// Deletion action types
+/// Deletion action codes
 typedef enum {
   EN_UNCONDITIONAL = 0, //!> Delete all controls that contain object
   EN_CONDITIONAL   = 1  //!> Cancel object deletion if contained in controls
 } EN_ActionCodeType;
+
+/// Status report options
+typedef enum {
+  EN_NO_REPORT = 0,
+  EN_NORMAL_REPORT = 1,
+  EN_FULL_REPORT = 2
+} EN_StatusReport;
 
 /// Rule object codes
 typedef enum {
@@ -293,13 +305,6 @@ typedef enum {
   EN_R_IS_CLOSED = 2,
   EN_R_IS_ACTIVE = 3
 } EN_RuleStatus;
-
-/// Status report types
-typedef enum {
-  EN_NO_REPORT     = 0,
-  EN_NORMAL_REPORT = 1,
-  EN_FULL_REPORT   = 2
-} EN_StatusReport;
 
 
 #endif //EPANET2_ENUMS_H

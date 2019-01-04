@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 12/15/2018
+Last Updated: 01/01/2019
 ******************************************************************************
 */
 
@@ -205,7 +205,7 @@ int tankdata(Project *pr)
             tmplist = getlistitem(parser->Tok[7], parser->Curvelist);
             if (tmplist == NULL) return setError(parser, 7, 206);
             curve = tmplist->i;
-            net->Curve[curve].Type = V_CURVE;
+            net->Curve[curve].Type = VOLUME_CURVE;
         }
         if (initlevel < 0.0) return setError(parser, 2, 209);
         if (minlevel  < 0.0) return setError(parser, 3, 209);
@@ -508,7 +508,7 @@ int valvedata(Project *pr)
         tmplist = getlistitem(parser->Tok[5], parser->Curvelist);
         if (tmplist == NULL) return setError(parser, 5, 206);
         setting = tmplist->i;
-        net->Curve[tmplist->i].Type = H_CURVE;
+        net->Curve[tmplist->i].Type = HLOSS_CURVE;
         status = OPEN;
     }
     else if (!getfloat(parser->Tok[5], &setting)) return setError(parser, 5, 202);
@@ -1391,7 +1391,7 @@ int energydata(Project *pr)
             listitem = getlistitem(parser->Tok[n - 1], parser->Curvelist);
             if (listitem == NULL) return setError(parser, n - 1, 206); 
             Pump[j].Ecurve = listitem->i;
-            net->Curve[listitem->i].Type = E_CURVE;
+            net->Curve[listitem->i].Type = EFFIC_CURVE;
         }
         return 0;
     }
