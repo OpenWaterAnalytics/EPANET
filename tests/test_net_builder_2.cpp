@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
 
     int index;
     char id[EN_MAXID+1];
-    float p1_1, p2_1, p1_2, p2_2;
-    float q1_1, q2_1, q1_2, q2_2;
+    double p1_1, p2_1, p1_2, p2_2;
+    double q1_1, q2_1, q1_2, q2_2;
 
     // Create & initialize a project
     EN_Project ph = NULL;
@@ -100,10 +100,10 @@ int main(int argc, char *argv[])
     cout << "\n  Link L2 Flow:     " << q2_1 << "  " << q2_2;
 
     // Compare old & new results
-    BOOST_REQUIRE(p1_1 == p1_2);
-    BOOST_REQUIRE(p2_1 == p2_2);
-    BOOST_REQUIRE(q1_1 == q1_2);
-    BOOST_REQUIRE(q2_1 == q2_2);
+    BOOST_REQUIRE(abs(p1_1 - p1_2) < 1.e-5);
+    BOOST_REQUIRE(abs(p2_1 - p2_2) < 1.e-5);
+    BOOST_REQUIRE(abs(q1_1 - q1_2) < 1.e-5);
+    BOOST_REQUIRE(abs(q2_1 - q2_2) < 1.e-5);
 
     // Close project
     EN_close(ph);
