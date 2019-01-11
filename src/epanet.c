@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/09/2019
+ Last Updated: 01/11/2019
  ******************************************************************************
 */
 
@@ -3325,32 +3325,6 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         else v = 1.0;
         break;
 
-    case EN_PUMP_STATE:
-        v = hyd->LinkStatus[index];
-
-        if (Link[index].Type == EN_PUMP)
-        {
-            pmp = findpump(net, index);
-            if (hyd->LinkStatus[index] >= OPEN)
-            {
-                if (hyd->LinkFlow[index] > hyd->LinkSetting[index] * Pump[pmp].Qmax)
-                {
-                    v = XFLOW;
-                }
-                if (hyd->LinkFlow[index] < 0.0) v = XHEAD;
-            }
-        }
-        break;
-
-    case EN_PUMP_POWER:
-        v = 0;
-        if (Link[index].Type == EN_PUMP)
-        {
-            pmp = findpump(net, index);
-            if (Pump[pmp].Ptype == CONST_HP) v = Link[index].Km; // Power in HP or KW
-        }
-        break;
-
     case EN_SETTING:
         if (Link[index].Type == EN_PIPE || Link[index].Type == EN_CVPIPE)
         {
@@ -3387,14 +3361,33 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         }
         break;
 
+    case EN_PUMP_STATE:
+        v = hyd->LinkStatus[index];
+
+        if (Link[index].Type == EN_PUMP)
+        {
+            pmp = findpump(net, index);
+            if (hyd->LinkStatus[index] >= OPEN)
+            {
+                if (hyd->LinkFlow[index] > hyd->LinkSetting[index] * Pump[pmp].Qmax)
+                {
+                    v = XFLOW;
+                }
+                if (hyd->LinkFlow[index] < 0.0) v = XHEAD;
+            }
+        }
+        break;
+
     case EN_PUMP_EFFIC:
         getenergy(p, index, &a, &v);
         break;
 
-    case EN_PUMP_EPAT:
+    case EN_PUMP_POWER:
+        v = 0;
         if (Link[index].Type == EN_PUMP)
         {
-            v = (double)Pump[findpump(&p->network, index)].Epat;
+            pmp = findpump(net, index);
+            if (Pump[pmp].Ptype == CONST_HP) v = Link[index].Km; // Power in HP or KW
         }
         break;
 
@@ -3409,6 +3402,20 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         if (Link[index].Type == EN_PUMP)
         {
             v = (double)Pump[findpump(&p->network, index)].Ecurve;
+        }
+        break;
+        
+    case EN_PUMP_ECOST:
+        if  (Link[index].Type == EN_PUMP)
+        {
+            v = (double)Pump[findpump(&p->network, index)].Ecost;
+        }
+        break;    
+
+    case EN_PUMP_EPAT:
+        if (Link[index].Type == EN_PUMP)
+        {
+            v = (double)Pump[findpump(&p->network, index)].Epat;
         }
         break;
 
@@ -3567,32 +3574,6 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         }
         break;
 
-    case EN_PUMP_ECOST:
-        if (Link[index].Type == EN_PUMP)
-        {
-            if (value < 0.0) return 211;
-            pumpIndex = findpump(&p->network, index);
-            net->Pump[pumpIndex].Ecost = value;
-        }
-        break;
-
-    case EN_PUMP_EPAT:
-        if (Link[index].Type == EN_PUMP)
-        {
-            patIndex = ROUND(value);
-            if (patIndex <= 0 || patIndex > net->Npats) return 205;
-            pumpIndex = findpump(&p->network, index);
-            net->Pump[pumpIndex].Epat = patIndex;
-        }
-        break;
-
-    case EN_PUMP_HCURVE:
-        if (Link[index].Type == EN_PUMP)
-        {
-            return EN_setheadcurveindex(p, index, ROUND(value));
-        }
-        break;
-
     case EN_PUMP_POWER:
         if (Link[index].Type == EN_PUMP)
         {
@@ -3609,6 +3590,13 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         }
         break;
 
+    case EN_PUMP_HCURVE:
+        if (Link[index].Type == EN_PUMP)
+        {
+            return EN_setheadcurveindex(p, index, ROUND(value));
+        }
+        break;
+
     case EN_PUMP_ECURVE:
         if (Link[index].Type == EN_PUMP)
         {
@@ -3616,6 +3604,25 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             if (curveIndex <= 0 || curveIndex > net->Ncurves) return 205;
             pumpIndex = findpump(&p->network, index);
             net->Pump[pumpIndex].Ecurve = curveIndex;
+        }
+        break;
+
+    case EN_PUMP_ECOST:
+        if (Link[index].Type == EN_PUMP)
+        {
+            if (value < 0.0) return 211;
+            pumpIndex = findpump(&p->network, index);
+            net->Pump[pumpIndex].Ecost = value;
+        }
+        break;
+
+    case EN_PUMP_EPAT:
+        if (Link[index].Type == EN_PUMP)
+        {
+            patIndex = ROUND(value);
+            if (patIndex <= 0 || patIndex > net->Npats) return 205;
+            pumpIndex = findpump(&p->network, index);
+            net->Pump[pumpIndex].Epat = patIndex;
         }
         break;
 
