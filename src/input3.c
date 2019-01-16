@@ -1479,10 +1479,10 @@ int reportdata(Project *pr)
         else if (match(parser->Tok[n], w_ALL)) rpt->Nodeflag = 1; // All nodes
         else
         {
-            if (net->Nnodes == 0) return setError(parser, 1, 208);
+            if (net->Nnodes == 0) return setError(parser, 1, 203);
             for (i = 1; i <= n; i++)
             {
-                if ((j = findnode(net, parser->Tok[i])) == 0) return setError(parser, i, 208);
+                if ((j = findnode(net, parser->Tok[i])) == 0) return setError(parser, i, 203);
                 net->Node[j].Rpt = 1;
             }
             rpt->Nodeflag = 2;
@@ -1497,10 +1497,10 @@ int reportdata(Project *pr)
         else if (match(parser->Tok[n], w_ALL)) rpt->Linkflag = 1;
         else
         {
-            if (net->Nlinks == 0) return setError(parser, 1, 210);
+            if (net->Nlinks == 0) return setError(parser, 1, 204);
             for (i = 1; i <= n; i++)
             {
-                if ((j = findlink(net, parser->Tok[i])) == 0) return setError(parser, i, 210);
+                if ((j = findlink(net, parser->Tok[i])) == 0) return setError(parser, i, 204);
                 net->Link[j].Rpt = 1;
             }
             rpt->Linkflag = 2;

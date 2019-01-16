@@ -116,7 +116,7 @@ int saveinpfile(Project *pr, const char *fname)
     Scurve *curve;
 
     // Open the new text file
-    if ((f = fopen(fname, "wt")) == NULL) return (308);
+    if ((f = fopen(fname, "wt")) == NULL) return 302;
 
     // Write [TITLE] section 
     fprintf(f, s_TITLE);

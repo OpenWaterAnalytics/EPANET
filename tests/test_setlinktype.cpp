@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(test_setlinktype)
 {
     int error = 0;
     int p113, n31, p121, n113_1, n113_2;
-    float q113 = 0.0f, p31 = 0.0f, diam;
+    double q113 = 0.0, p31 = 0.0, diam;
 
     EN_Project ph = NULL;
     EN_createproject(&ph);
