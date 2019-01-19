@@ -262,11 +262,11 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENsetstatusreport Lib "epanet2.dll" (ByVal level As Int32) As Int32
  Declare Function ENgetcount Lib "epanet2.dll" (ByVal object As Int32, count As Int32) As Int32
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal errcode As Int32, ByVal errmsg As String, ByVal maxLen As Int32) As Int32
- Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal type As Int32, ByRef value As Single) As Int32
+ Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal type_ As Int32, ByRef value As Single) As Int32
 
 'Analysis Options Functions
- Declare Function ENgetoption Lib "epanet2.dll" (ByVal option As Int32, value As Single) As Int32
- Declare Function ENsetoption Lib "epanet2.dll" (ByVal option As Int32, ByVal value As Single) As Int32
+ Declare Function ENgetoption Lib "epanet2.dll" (ByVal option_ As Int32, value As Single) As Int32
+ Declare Function ENsetoption Lib "epanet2.dll" (ByVal option_ As Int32, ByVal value As Single) As Int32
  Declare Function ENgetflowunits Lib "epanet2.dll" (units As Int32) As Int32
  Declare Function ENsetflowunits Lib "epanet2.dll" (ByVal units As Int32) As Int32
  Declare Function ENgettimeparam Lib "epanet2.dll" (ByVal param As Int32, value As Int32) As Int32
@@ -290,8 +290,8 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENsetcoord Lib "epanet2.dll" (ByVal index As Int32, ByVal x As Single, ByVal y As Single) As Int32
  
 'Nodal Demand Functions
- Declare Function ENgetdemandmodel Lib "epanet2.dll" (type As Int32, pmin As Single, preq As Single, pexp As Single) As Int32
- Declare Function ENsetdemandmodel Lib "epanet2.dll" (ByVal type As Int32, ByVal pmin As Single, ByVal preq As Single, ByVal pexp As Single) As Int32
+ Declare Function ENgetdemandmodel Lib "epanet2.dll" (type_ As Int32, pmin As Single, preq As Single, pexp As Single) As Int32
+ Declare Function ENsetdemandmodel Lib "epanet2.dll" (ByVal type_ As Int32, ByVal pmin As Single, ByVal preq As Single, ByVal pexp As Single) As Int32
  Declare Function ENgetnumdemands Lib "epanet2.dll" (ByVal nodeIndex As Int32, numDemands As Int32) As Int32
  Declare Function ENgetbasedemand Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32, value As Single) As Int32
  Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32, ByVal BaseDemand As Single) As Int32
@@ -323,28 +323,28 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENaddpattern Lib "epanet2.dll" (ByVal id As String) As Int32
  Declare Function ENgetpatternindex Lib "epanet2.dll" (ByVal id As String, index As Int32) As Int32
  Declare Function ENgetpatternid Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String) As Int32
- Declare Function ENgetpatternlen Lib "epanet2.dll" (ByVal index As Int32, len As Int32) As Int32
+ Declare Function ENgetpatternlen Lib "epanet2.dll" (ByVal index As Int32, len_ As Int32) As Int32
  Declare Function ENgetpatternvalue Lib "epanet2.dll" (ByVal index As Int32, ByVal period As Int32, value As Single) As Int32
  Declare Function ENsetpatternvalue Lib "epanet2.dll" (ByVal index As Int32, ByVal period As Int32, ByVal value As Single) As Int32
  Declare Function ENgetaveragepatternvalue Lib "epanet2.dll" (ByVal index As Int32, value As Single) As Int32
- Declare Function ENsetpattern Lib "epanet2.dll" (ByVal index As Int32, values As Any, ByVal len As Int32) As Int32
+ Declare Function ENsetpattern Lib "epanet2.dll" (ByVal index As Int32, values As Any, ByVal len_ As Int32) As Int32
 
 'Data Curve Functions
  Declare Function ENaddcurve Lib "epanet2.dll" (ByVal id As String) As Int32
  Declare Function ENgetcurveindex Lib "epanet2.dll" (ByVal id As String, index As Int32) As Int32
  Declare Function ENgetcurveid Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String) As Int32
- Declare Function ENgetcurvelen Lib "epanet2.dll" (ByVal index As Int32, len As Int32) As Int32
- Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal index As Int32, type As Int32) As Int32
+ Declare Function ENgetcurvelen Lib "epanet2.dll" (ByVal index As Int32, len_ As Int32) As Int32
+ Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal index As Int32, type_ As Int32) As Int32
  Declare Function ENgetcurvevalue Lib "epanet2.dll" (ByVal curveIndex As Int32, ByVal pointIndex As Int32, x As Single, y As Single) As Int32
  Declare Function ENsetcurvevalue Lib "epanet2.dll" (ByVal curveIndex As Int32, ByVal pointIndex As Int32, ByVal x As Single, ByVal y As Single) As Int32
  Declare Function ENgetcurve Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String, nPoints As Int32, xValues As Any, yValues As Any) As Int32
  Declare Function ENsetcurve Lib "epanet2.dll" (ByVal index As Int32, xValues As Any, yValues As Any, ByVal nPoints As Int32) As Int32
 
 'Simple Control Functions
- Declare Function ENaddcontrol Lib "epanet2.dll" (ByVal type As Int32, ByVal linkIndex As Int32, ByVal setting As Single, ByVal nodeIndex As Int32, ByVal level As Single, index As Int32) As Int32
+ Declare Function ENaddcontrol Lib "epanet2.dll" (ByVal type_ As Int32, ByVal linkIndex As Int32, ByVal setting As Single, ByVal nodeIndex As Int32, ByVal level As Single, index As Int32) As Int32
  Declare Function ENdeletecontrol Lib "epanet2.dll" (ByVal index As Int32) As Int32
  Declare Function ENgetcontrol Lib "epanet2.dll" (ByVal index As Int32, type As Int32, linkIndex As Int32, setting As Single, nodeIndex As Int32, level As Single) As Int32
- Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal index As Int32, ByVal type As Int32, ByVal linkIndex As Int32, ByVal setting As Single, ByVal nodeIndex As Int32, ByVal level As Single) As Int32
+ Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal index As Int32, ByVal type_ As Int32, ByVal linkIndex As Int32, ByVal setting As Single, ByVal nodeIndex As Int32, ByVal level As Single) As Int32
 
 'Rule-Based Control Functions
  Declare Function ENaddrule Lib "epanet2.dll" (ByVal rule As String) As Int32

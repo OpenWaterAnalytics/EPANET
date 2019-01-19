@@ -3362,7 +3362,6 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
 
     case EN_PUMP_STATE:
         v = hyd->LinkStatus[index];
-
         if (Link[index].Type == PUMP)
         {
             pmp = findpump(net, index);
@@ -3401,6 +3400,20 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         if (Link[index].Type == PUMP)
         {
             v = (double)Pump[findpump(&p->network, index)].Ecurve;
+        }
+        break;
+        
+    case EN_PUMP_ECOST:
+        if  (Link[index].Type == PUMP)
+        {
+            v = (double)Pump[findpump(&p->network, index)].Ecost;
+        }
+        break;    
+
+    case EN_PUMP_EPAT:
+        if (Link[index].Type == PUMP)
+        {
+            v = (double)Pump[findpump(&p->network, index)].Epat;
         }
         break;
 

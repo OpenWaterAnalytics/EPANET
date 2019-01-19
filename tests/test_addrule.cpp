@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     int error = 0;
     int ruleCount, nP, nTA, nEA;
     int link113, node23, link22, pump9_before, pump9_after;
-    float priority;
+    double priority;
 
     EN_Project ph = NULL;
     EN_createproject(&ph);
