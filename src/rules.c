@@ -193,7 +193,7 @@ int ruledata(Project *pr)
     switch (key)
     {
         case -1:
-          err = 201;   // Unrecognized keyword 
+          err = 201;   // Unrecognized keyword
           break;
 
         case r_RULE:
@@ -328,7 +328,6 @@ void adjustrules(Project *pr, int objtype, int index)
 //-----------------------------------------------------------
 {
     Network *net = &pr->network;
-    Rules   *rules = &pr->rules;
 
     int i, delete;
     Spremise *p;
@@ -453,7 +452,6 @@ int writerule(Project *pr, FILE *f, int ruleIndex)
 //-----------------------------------------------------------------------------
 {
     Network  *net = &pr->network;
-    Rules    *rules = &pr->rules;
 
     Srule      *rule = &net->Rule[ruleIndex];
     Spremise   *p;
@@ -678,7 +676,7 @@ int newpremise(Project *pr, int logop)
     {
         if (!getfloat(Tok[parser->Ntokens - 1], &x))
         return (202);
-        if (v == r_FILLTIME || v == r_DRAINTIME) x = x * 3600.0; 
+        if (v == r_FILLTIME || v == r_DRAINTIME) x = x * 3600.0;
     }
 
     // Create new premise structure
@@ -715,7 +713,7 @@ int newaction(Project *pr)
     double x;
     Saction *a;
     char **Tok = parser->Tok;
-    
+
     // Check for correct number of tokens
     if (parser->Ntokens != 6) return 201;
 
@@ -848,7 +846,7 @@ int checktime(Project *pr, Spremise *p)
     {
         t1 = rules->Time1;
         t2 = time->Htime;
-    } 
+    }
     else if (p->variable == r_CLOCKTIME)
     {
         t1 = (rules->Time1 + time->Tstart) % SECperDAY;
@@ -878,7 +876,7 @@ int checktime(Project *pr, Spremise *p)
       case EQ:
       case NE:
         flag = FALSE;
-        if (t2 < t1) // E.g., 11:00 am to 1:00 am 
+        if (t2 < t1) // E.g., 11:00 am to 1:00 am
         {
             if (x >= t1 || x <= t2)
             flag = TRUE;
@@ -893,7 +891,7 @@ int checktime(Project *pr, Spremise *p)
         break;
     }
 
-    // If we get to here then premise was satisfied 
+    // If we get to here then premise was satisfied
     return 1;
 }
 
@@ -906,7 +904,7 @@ int checkstatus(Project *pr, Spremise *p)
 
     char i;
     int j;
-  
+
     switch (p->status)
     {
       case IS_OPEN:
@@ -930,7 +928,7 @@ int checkvalue(Project *pr, Spremise *p)
 {
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
-  
+
     int     i, j, v;
     double  x,            // A variable's value
             tol = 1.e-3;  // Equality tolerance
@@ -942,7 +940,7 @@ int checkvalue(Project *pr, Spremise *p)
     Snode  *Node = net->Node;
     Slink  *Link = net->Link;
     Stank  *Tank = net->Tank;
-  
+
     // Find the value being checked
     i = p->index;
     v = p->variable;
@@ -1099,13 +1097,13 @@ int takeactions(Project *pr)
     Hydraul *hyd = &pr->hydraul;
     Report  *rpt = &pr->report;
     Rules   *rules = &pr->rules;
-  
+
     char flag;
     int k, s, n;
     double tol = 1.e-3, v, x;
     Saction *a;
     SactionList *actionItem;
-  
+
     n = 0;
     actionItem = rules->ActionList;
     while (actionItem != NULL)
