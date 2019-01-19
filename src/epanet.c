@@ -3417,20 +3417,6 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         }
         break;
 
-    case EN_PUMP_ECOST:
-        if  (Link[index].Type == PUMP)
-        {
-            v = (double)Pump[findpump(&p->network, index)].Ecost;
-        }
-        break;
-
-    case EN_PUMP_EPAT:
-        if (Link[index].Type == PUMP)
-        {
-            v = (double)Pump[findpump(&p->network, index)].Epat;
-        }
-        break;
-
     default:
         return 251;
     }
