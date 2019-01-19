@@ -7,10 +7,15 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/29/2018
+ Last Updated: 01/11/2019
  ******************************************************************************
 */
-
+#ifndef __APPLE__
+#include <malloc.h>
+#else
+#include <stdlib.h>
+#endif
+#include <string.h>
 
 #include "types.h"
 #include "funcs.h"
@@ -46,13 +51,13 @@ void removetmpfiles()
 
 ********************************************************************/
 
-int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3,
-                       void (*pviewprog)(char *))
+int DLLEXPORT ENepanet(const char *inpFile, const char *rptFile,
+              const char *outFile,  void (*pviewprog)(char *))
 {
 /*------------------------------------------------------------------------
- **   Input:   f1 = name of EPANET formatted input file
- **            f2 = name of report file
- **            f3 = name of binary output file
+ **   Input:   inpFile = name of EPANET formatted input file
+ **            rptFile = name of report file
+ **            outFile = name of binary output file
  **            pviewprog = see note below
  **   Output:  none
  **   Returns: error code
@@ -71,7 +76,7 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3,
 
     // Run the project and record any warning
     createtmpfiles();
-    errcode = EN_runproject(_defaultProject, f1, f2, f3, pviewprog);
+    errcode = EN_runproject(_defaultProject, inpFile, rptFile, outFile, pviewprog);
     if (errcode < 100) warncode = errcode;
     removetmpfiles();
 
@@ -80,20 +85,20 @@ int DLLEXPORT ENepanet(const char *f1, const char *f2, const char *f3,
     return errcode;
 }
 
-int DLLEXPORT ENinit(const char *f2, const char *f3, int UnitsType,
-                     int HeadlossFormula)
+int DLLEXPORT ENinit(const char *rptFile, const char *outFile, int unitsType,
+                     int headlossType)
 {
     int errcode = 0;
     createtmpfiles();
-    errcode = EN_init(_defaultProject, f2, f3, UnitsType, HeadlossFormula);
+    errcode = EN_init(_defaultProject, rptFile, outFile, unitsType, headlossType);
     return errcode;
 }
 
-int DLLEXPORT ENopen(const char *f1, const char *f2, const char *f3)
+int DLLEXPORT ENopen(const char *inpFile, const char *rptFile, const char *outFile)
 {
     int errcode = 0;
     createtmpfiles();
-    errcode = EN_open(_defaultProject, f1, f2, f3);
+    errcode = EN_open(_defaultProject, inpFile, rptFile, outFile);
     return errcode;
 }
 
@@ -121,11 +126,11 @@ int DLLEXPORT ENsaveH() { return EN_saveH(_defaultProject); }
 
 int DLLEXPORT ENopenH() { return EN_openH(_defaultProject); }
 
-int DLLEXPORT ENinitH(int flag) { return EN_initH(_defaultProject, flag); }
+int DLLEXPORT ENinitH(int initFlag) { return EN_initH(_defaultProject, initFlag); }
 
-int DLLEXPORT ENrunH(long *t) { return EN_runH(_defaultProject, t); }
+int DLLEXPORT ENrunH(long *currentTime) { return EN_runH(_defaultProject, currentTime); }
 
-int DLLEXPORT ENnextH(long *tstep) { return EN_nextH(_defaultProject, tstep); }
+int DLLEXPORT ENnextH(long *tStep) { return EN_nextH(_defaultProject, tStep); }
 
 int DLLEXPORT ENcloseH() { return EN_closeH(_defaultProject); }
 
@@ -149,13 +154,13 @@ int DLLEXPORT ENsolveQ() { return EN_solveQ(_defaultProject); }
 
 int DLLEXPORT ENopenQ() { return EN_openQ(_defaultProject); }
 
-int DLLEXPORT ENinitQ(int saveflag) { return EN_initQ(_defaultProject, saveflag); }
+int DLLEXPORT ENinitQ(int saveFlag) { return EN_initQ(_defaultProject, saveFlag); }
 
-int DLLEXPORT ENrunQ(long *t) { return EN_runQ(_defaultProject, t); }
+int DLLEXPORT ENrunQ(long *currentTime) { return EN_runQ(_defaultProject, currentTime); }
 
-int DLLEXPORT ENnextQ(long *tstep) { return EN_nextQ(_defaultProject, tstep); }
+int DLLEXPORT ENnextQ(long *tStep) { return EN_nextQ(_defaultProject, tStep); }
 
-int DLLEXPORT ENstepQ(long *tleft) { return EN_stepQ(_defaultProject, tleft); }
+int DLLEXPORT ENstepQ(long *timeLeft) { return EN_stepQ(_defaultProject, timeLeft); }
 
 int DLLEXPORT ENcloseQ() { return EN_closeQ(_defaultProject); }
 
@@ -171,28 +176,31 @@ int DLLEXPORT ENreport() { return EN_report(_defaultProject); }
 
 int DLLEXPORT ENresetreport() { return EN_resetreport(_defaultProject); }
 
-int DLLEXPORT ENsetreport(char *s) { return EN_setreport(_defaultProject, s); }
+int DLLEXPORT ENsetreport(char *format) { return EN_setreport(_defaultProject, format); }
 
-int DLLEXPORT ENsetstatusreport(int code)
+int DLLEXPORT ENsetstatusreport(int level)
 {
-    return EN_setstatusreport(_defaultProject, code);
+    return EN_setstatusreport(_defaultProject, level);
 }
 
-int DLLEXPORT ENgetversion(int *v) { return EN_getversion(v); }
+int DLLEXPORT ENgetversion(int *version) { return EN_getversion(version); }
 
-int DLLEXPORT ENgetcount(int code, int *count)
+int DLLEXPORT ENgetcount(int object, int *count)
 {
-    return EN_getcount(_defaultProject, (EN_CountType)code, count);
+    return EN_getcount(_defaultProject, object, count);
 }
 
-int DLLEXPORT ENgeterror(int errcode, char *errmsg, int n)
+int DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen)
 {
-    return EN_geterror(errcode, errmsg, n);
+    return EN_geterror(errcode, errmsg, maxLen);
 }
 
-int DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT ENgetstatistic(int type, EN_API_FLOAT_TYPE *value)
 {
-    return EN_getstatistic(_defaultProject, code, value);
+    double v = 0.0;
+    int errcode = EN_getstatistic(_defaultProject, type, &v);
+    *value = (EN_API_FLOAT_TYPE)v;
+    return errcode;
 }
 
 /********************************************************************
@@ -201,45 +209,54 @@ int DLLEXPORT ENgetstatistic(int code, EN_API_FLOAT_TYPE *value)
 
 ********************************************************************/
 
-int DLLEXPORT ENgetoption(int code, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT ENgetoption(int option, EN_API_FLOAT_TYPE *value)
 {
-    return EN_getoption(_defaultProject, (EN_Option)code, value);
+    double v = 0.0;
+    int errcode = EN_getoption(_defaultProject, option, &v);
+    *value = (EN_API_FLOAT_TYPE)v;
+    return errcode;
 }
 
-int DLLEXPORT ENsetoption(int code, EN_API_FLOAT_TYPE v)
+int DLLEXPORT ENsetoption(int option, EN_API_FLOAT_TYPE value)
 {
-    return EN_setoption(_defaultProject, code, v);
+    return EN_setoption(_defaultProject, option, value);
 }
 
-int DLLEXPORT ENgetflowunits(int *code) { return EN_getflowunits(_defaultProject, code); }
-
-int DLLEXPORT ENsetflowunits(int code) { return EN_setflowunits(_defaultProject, code); }
-
-int DLLEXPORT ENgettimeparam(int code, long *value)
+int DLLEXPORT ENgetflowunits(int *units)
 {
-    return EN_gettimeparam(_defaultProject, code, value);
+    return EN_getflowunits(_defaultProject, units);
 }
 
-int DLLEXPORT ENsettimeparam(int code, long value)
+int DLLEXPORT ENsetflowunits(int units)
 {
-    return EN_settimeparam(_defaultProject, code, value);
+    return EN_setflowunits(_defaultProject, units);
 }
 
-int DLLEXPORT ENgetqualinfo(int *qualcode, char *chemname, char *chemunits,
-                            int *tracenode)
+int DLLEXPORT ENgettimeparam(int param, long *value)
 {
-    return EN_getqualinfo(_defaultProject, qualcode, chemname, chemunits, tracenode);
+    return EN_gettimeparam(_defaultProject, param, value);
 }
 
-int DLLEXPORT ENgetqualtype(int *qualcode, int *tracenode)
+int DLLEXPORT ENsettimeparam(int param, long value)
 {
-    return EN_getqualtype(_defaultProject, qualcode, tracenode);
+    return EN_settimeparam(_defaultProject, param, value);
 }
 
-int DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits,
-                            char *tracenode)
+int DLLEXPORT ENgetqualinfo(int *qualType, char *chemName, char *chemUnits,
+              int *traceNode)
 {
-    return EN_setqualtype(_defaultProject, qualcode, chemname, chemunits, tracenode);
+    return EN_getqualinfo(_defaultProject, qualType, chemName, chemUnits, traceNode);
+}
+
+int DLLEXPORT ENgetqualtype(int *qualType, int *traceNode)
+{
+    return EN_getqualtype(_defaultProject, qualType, traceNode);
+}
+
+int DLLEXPORT ENsetqualtype(int qualType, char *chemName, char *chemUnits,
+              char *traceNode)
+{
+    return EN_setqualtype(_defaultProject, qualType, chemName, chemUnits, traceNode);
 }
 
 /********************************************************************
@@ -248,7 +265,7 @@ int DLLEXPORT ENsetqualtype(int qualcode, char *chemname, char *chemunits,
 
 ********************************************************************/
 
-int DLLEXPORT ENaddnode(char *id, EN_NodeType nodeType)
+int DLLEXPORT ENaddnode(char *id, int nodeType)
 {
     return EN_addnode(_defaultProject, id, nodeType);
 }
@@ -273,19 +290,22 @@ int DLLEXPORT ENsetnodeid(int index, char *newid)
     return EN_setnodeid(_defaultProject, index, newid);
 }
 
-int DLLEXPORT ENgetnodetype(int index, int *code)
+int DLLEXPORT ENgetnodetype(int index, int *nodeType)
 {
-    return EN_getnodetype(_defaultProject, index, code);
+    return EN_getnodetype(_defaultProject, index, nodeType);
 }
 
-int DLLEXPORT ENgetnodevalue(int index, int code, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT ENgetnodevalue(int index, int property, EN_API_FLOAT_TYPE *value)
 {
-    return EN_getnodevalue(_defaultProject, index, code, value);
+    double v = 0.0;
+    int errcode = EN_getnodevalue(_defaultProject, index, property, &v);
+    *value = (EN_API_FLOAT_TYPE)v;
+    return errcode;
 }
 
-int DLLEXPORT ENsetnodevalue(int index, int code, EN_API_FLOAT_TYPE v)
+int DLLEXPORT ENsetnodevalue(int index, int property, EN_API_FLOAT_TYPE value)
 {
-    return EN_setnodevalue(_defaultProject, index, code, v);
+    return EN_setnodevalue(_defaultProject, index, property, value);
 }
 
 int DLLEXPORT ENsetjuncdata(int index, EN_API_FLOAT_TYPE elev, EN_API_FLOAT_TYPE dmnd,
@@ -294,8 +314,9 @@ int DLLEXPORT ENsetjuncdata(int index, EN_API_FLOAT_TYPE elev, EN_API_FLOAT_TYPE
     return EN_setjuncdata(_defaultProject, index, elev, dmnd, dmndpat);
 }
 
-int  DLLEXPORT ENsettankdata(int index, EN_API_FLOAT_TYPE elev, EN_API_FLOAT_TYPE initlvl,
-               EN_API_FLOAT_TYPE minlvl, EN_API_FLOAT_TYPE maxlvl, EN_API_FLOAT_TYPE diam,
+int  DLLEXPORT ENsettankdata(int index, EN_API_FLOAT_TYPE elev,
+               EN_API_FLOAT_TYPE initlvl, EN_API_FLOAT_TYPE minlvl,
+               EN_API_FLOAT_TYPE maxlvl, EN_API_FLOAT_TYPE diam,
                EN_API_FLOAT_TYPE minvol, char *volcurve)
 {
     return EN_settankdata(_defaultProject, index, elev, initlvl, minlvl, maxlvl,
@@ -304,7 +325,11 @@ int  DLLEXPORT ENsettankdata(int index, EN_API_FLOAT_TYPE elev, EN_API_FLOAT_TYP
 
 int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
 {
-    return EN_getcoord(_defaultProject, index, x, y);
+    double xx = 0.0, yy = 0.0;
+    int errcode = EN_getcoord(_defaultProject, index, &xx, &yy);
+    *x = (EN_API_FLOAT_TYPE)xx;
+    *y = (EN_API_FLOAT_TYPE)yy;
+    return errcode; 
 }
 
 int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
@@ -318,16 +343,21 @@ int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
 
 ********************************************************************/
 
-int DLLEXPORT ENgetdemandmodel(int *type, EN_API_FLOAT_TYPE *pmin,
-                               EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp)
+int DLLEXPORT ENgetdemandmodel(int *model, EN_API_FLOAT_TYPE *pmin,
+              EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp)
 {
-    return EN_getdemandmodel(_defaultProject, type, pmin, preq, pexp);
+    double pmin2 = 0.0, preq2 = 0.0, pexp2 = 0.0;
+    int errcode = EN_getdemandmodel(_defaultProject, model, &pmin2, &preq2, &pexp2);
+    *pmin = (EN_API_FLOAT_TYPE)pmin2;
+    *preq = (EN_API_FLOAT_TYPE)preq2;
+    *pexp = (EN_API_FLOAT_TYPE)pexp2;
+    return errcode;
 }
 
-int DLLEXPORT ENsetdemandmodel(int type, EN_API_FLOAT_TYPE pmin,
-                               EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp)
+int DLLEXPORT ENsetdemandmodel(int model, EN_API_FLOAT_TYPE pmin,
+              EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp)
 {
-    return EN_setdemandmodel(_defaultProject, type, pmin, preq, pexp);
+    return EN_setdemandmodel(_defaultProject, model, pmin, preq, pexp);
 }
 
 int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
@@ -335,34 +365,39 @@ int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
     return EN_getnumdemands(_defaultProject, nodeIndex, numDemands);
 }
 
-int DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE *baseDemand)
+int DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex,
+              EN_API_FLOAT_TYPE *baseDemand)
 {
-    return EN_getbasedemand(_defaultProject, nodeIndex, demandIdx, baseDemand);
+    double bd2 = 0.0;
+    int errcode = EN_getbasedemand(_defaultProject, nodeIndex, demandIndex, &bd2);
+    *baseDemand = (EN_API_FLOAT_TYPE)bd2;
+    return errcode;
 }
 
-int DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIdx, EN_API_FLOAT_TYPE baseDemand)
+int DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIndex,
+              EN_API_FLOAT_TYPE baseDemand)
 {
-    return EN_setbasedemand(_defaultProject, nodeIndex, demandIdx, baseDemand);
+    return EN_setbasedemand(_defaultProject, nodeIndex, demandIndex, baseDemand);
 }
 
-int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIdx, int patIndex)
+int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIndex, int patIndex)
 {
-    return EN_setdemandpattern(_defaultProject, nodeIndex, demandIdx, patIndex);
+    return EN_setdemandpattern(_defaultProject, nodeIndex, demandIndex, patIndex);
 }
 
-int DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIdx, int *pattIdx)
+int DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIndex, int *pattIdx)
 {
-    return EN_getdemandpattern(_defaultProject, nodeIndex, demandIdx, pattIdx);
+    return EN_getdemandpattern(_defaultProject, nodeIndex, demandIndex, pattIdx);
 }
 
-int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIdx, char *demandName)
+int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIndex, char *demandName)
 {
-    return EN_getdemandname(_defaultProject, nodeIndex, demandIdx, demandName);
+    return EN_getdemandname(_defaultProject, nodeIndex, demandIndex, demandName);
 }
 
-int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIdx, char *demandName)
+int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, char *demandName)
 {
-    return EN_setdemandname(_defaultProject, nodeIndex, demandIdx, demandName);
+    return EN_setdemandname(_defaultProject, nodeIndex, demandIndex, demandName);
 }
 
 /********************************************************************
@@ -371,7 +406,7 @@ int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIdx, char *demandName)
 
 ********************************************************************/
 
-int DLLEXPORT ENaddlink(char *id, EN_LinkType linkType, char *fromNode, char *toNode)
+int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode)
 {
     return EN_addlink(_defaultProject, id, linkType, fromNode, toNode);
 }
@@ -396,14 +431,14 @@ int DLLEXPORT ENsetlinkid(int index, char *newid)
     return EN_setlinkid(_defaultProject, index, newid);
 }
 
-int DLLEXPORT ENgetlinktype(int index, EN_LinkType *code)
+int DLLEXPORT ENgetlinktype(int index, int *linkType)
 {
-    return EN_getlinktype(_defaultProject, index, code);
+    return EN_getlinktype(_defaultProject, index, linkType);
 }
 
-int DLLEXPORT ENsetlinktype(int *index, EN_LinkType type, int actionCode)
+int DLLEXPORT ENsetlinktype(int *index, int linkType, int actionCode)
 {
-    return EN_setlinktype(_defaultProject, index, type, actionCode);
+    return EN_setlinktype(_defaultProject, index, linkType, actionCode);
 }
 
 int DLLEXPORT ENgetlinknodes(int index, int *node1, int *node2)
@@ -416,18 +451,21 @@ int DLLEXPORT ENsetlinknodes(int index, int node1, int node2)
     return EN_setlinknodes(_defaultProject, index, node1, node2);
 }
 
-int DLLEXPORT ENgetlinkvalue(int index, int code, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT ENgetlinkvalue(int index, int property, EN_API_FLOAT_TYPE *value)
 {
-    return EN_getlinkvalue(_defaultProject, index, (EN_LinkProperty)code, value);
+    double v = 0.0;
+    int errcode = EN_getlinkvalue(_defaultProject, index, property, &v);
+    *value = (EN_API_FLOAT_TYPE)v;
+    return errcode;
 }
 
-int DLLEXPORT ENsetlinkvalue(int index, int code, EN_API_FLOAT_TYPE v)
+int DLLEXPORT ENsetlinkvalue(int index, int property, EN_API_FLOAT_TYPE value)
 {
-    return EN_setlinkvalue(_defaultProject, index, code, v);
+    return EN_setlinkvalue(_defaultProject, index, property, value);
 }
 
-int DLLEXPORT ENsetpipedata(int index, EN_API_FLOAT_TYPE length, EN_API_FLOAT_TYPE diam,
-              EN_API_FLOAT_TYPE rough, EN_API_FLOAT_TYPE mloss)
+int DLLEXPORT ENsetpipedata(int index, EN_API_FLOAT_TYPE length,
+              EN_API_FLOAT_TYPE diam, EN_API_FLOAT_TYPE rough, EN_API_FLOAT_TYPE mloss)
 {
     return EN_setpipedata(_defaultProject, index, length, diam, rough, mloss);
 }
@@ -439,19 +477,19 @@ int DLLEXPORT ENsetpipedata(int index, EN_API_FLOAT_TYPE length, EN_API_FLOAT_TY
 
 ********************************************************************/
 
-int DLLEXPORT ENgetpumptype(int index, int *type)
+int DLLEXPORT ENgetpumptype(int linkIndex, int *pumpType)
 {
-    return EN_getpumptype(_defaultProject, index, type);
+    return EN_getpumptype(_defaultProject, linkIndex, pumpType);
 }
 
-int DLLEXPORT ENgetheadcurveindex(int index, int *curveindex)
+int DLLEXPORT ENgetheadcurveindex(int linkIndex, int *curveIndex)
 {
-    return EN_getheadcurveindex(_defaultProject, index, curveindex);
+    return EN_getheadcurveindex(_defaultProject, linkIndex, curveIndex);
 }
 
-int DLLEXPORT ENsetheadcurveindex(int index, int curveindex)
+int DLLEXPORT ENsetheadcurveindex(int linkIndex, int curveIndex)
 {
-    return EN_setheadcurveindex(_defaultProject, index, curveindex);
+    return EN_setheadcurveindex(_defaultProject, linkIndex, curveIndex);
 }
 
 /********************************************************************
@@ -482,7 +520,10 @@ int DLLEXPORT ENgetpatternlen(int index, int *len)
 
 int DLLEXPORT ENgetpatternvalue(int index, int period, EN_API_FLOAT_TYPE *value)
 {
-    return EN_getpatternvalue(_defaultProject, index, period, value);
+    double v = 0.0;
+    int errcode = EN_getpatternvalue(_defaultProject, index, period, &v);
+    *value = (EN_API_FLOAT_TYPE)v;
+    return errcode;
 }
 
 int DLLEXPORT ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value)
@@ -492,12 +533,25 @@ int DLLEXPORT ENsetpatternvalue(int index, int period, EN_API_FLOAT_TYPE value)
 
 int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value)
 {
-    return EN_getaveragepatternvalue(_defaultProject, index, value);
+    double v;
+    int errcode = EN_getaveragepatternvalue(_defaultProject, index, &v);
+    *value = (EN_API_FLOAT_TYPE)v;
+    return errcode;
 }
 
-int DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *f, int n)
+int DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *values, int len)
 {
-    return EN_setpattern(_defaultProject, index, f, n);
+    double *v = NULL;
+    int i, errcode;
+    v = (double *)calloc(len, sizeof(double));
+    if (v)
+    {
+        for (i = 0; i < len; i++) v[i] = values[i];
+        errcode = EN_setpattern(_defaultProject, index, v, len);
+    }
+    else errcode = 101;
+    free(v);
+    return errcode;
 }
 
 /********************************************************************
@@ -526,32 +580,67 @@ int DLLEXPORT ENgetcurvelen(int index, int *len)
     return EN_getcurvelen(_defaultProject, index, len);
 }
 
-int DLLEXPORT ENgetcurvetype(int curveindex, int *type)
+int DLLEXPORT ENgetcurvetype(int index, int *type)
 {
-    return EN_getcurvetype(_defaultProject, curveindex, type);
+    return EN_getcurvetype(_defaultProject, index, type);
 }
 
-int DLLEXPORT ENgetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE *x,
-                              EN_API_FLOAT_TYPE *y)
+int DLLEXPORT ENgetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x,
+              EN_API_FLOAT_TYPE *y)
 {
-    return EN_getcurvevalue(_defaultProject, index, pnt, x, y);
+    double xx = 0.0, yy = 0.0;
+    int errcode = EN_getcurvevalue(_defaultProject, curveIndex, pointIndex, &xx, &yy);
+    *x = (EN_API_FLOAT_TYPE)xx;
+    *y = (EN_API_FLOAT_TYPE)yy;
+    return errcode;
 }
 
-int DLLEXPORT ENsetcurvevalue(int index, int pnt, EN_API_FLOAT_TYPE x,
-                              EN_API_FLOAT_TYPE y)
+int DLLEXPORT ENsetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x,
+              EN_API_FLOAT_TYPE y)
 {
-    return EN_setcurvevalue(_defaultProject, index, pnt, x, y);
+    return EN_setcurvevalue(_defaultProject, curveIndex, pointIndex, x, y);
 }
 
-int DLLEXPORT ENgetcurve(int curveIndex, char *id, int *nValues,
-                         EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
+int DLLEXPORT ENgetcurve(int index, char *id, int *nPoints,
+              EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
 {
-    return EN_getcurve(_defaultProject, curveIndex, id, nValues, xValues, yValues);
+    int i;
+    Network *net = &_defaultProject->network;
+    Scurve *curve;
+
+    if (index <= 0 || index > net->Ncurves) return 206;
+    curve = &net->Curve[index];
+    strncpy(id, curve->ID, MAXID);
+    *nPoints = curve->Npts;
+    for (i = 0; i < curve->Npts; i++)
+    {
+        *xValues[i] = (EN_API_FLOAT_TYPE)curve->X[i];
+        *yValues[i] = (EN_API_FLOAT_TYPE)curve->Y[i];
+    }
+    return 0;
 }
 
-int DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int n)
+int DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *xValues,
+              EN_API_FLOAT_TYPE *yValues, int nPoints)
 {
-    return EN_setcurve(_defaultProject, index, x, y, n);
+    double *xx = NULL;
+    double *yy = NULL;
+    int i, errcode;
+    xx = (double *)calloc(nPoints, sizeof(double));
+    yy = (double *)calloc(nPoints, sizeof(double));
+    if (xx && yy)
+    {
+        for (i = 0; i < nPoints; i++)
+        {
+            xx[i] = xValues[i];
+            yy[i] = yValues[i];
+        }
+        errcode = EN_setcurve(_defaultProject, index, xx, yy, nPoints);
+    }
+    else errcode = 101;
+    free(xx);
+    free(yy);
+    return errcode;
 }
 
 /********************************************************************
@@ -560,27 +649,34 @@ int DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, 
 
 ********************************************************************/
 
-int DLLEXPORT ENaddcontrol(int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting,
-                           int nindex, EN_API_FLOAT_TYPE level)
+int DLLEXPORT ENaddcontrol(int type, int linkIndex, EN_API_FLOAT_TYPE setting,
+              int nodeIndex, EN_API_FLOAT_TYPE level, int *index)
 {
-    return EN_addcontrol(_defaultProject, cindex, ctype, lindex, setting, nindex, level);
+    return EN_addcontrol(_defaultProject, type, linkIndex, setting, nodeIndex,
+                         level, index);
 }
 
-int  DLLEXPORT ENdeletecontrol(int cindex)
+int  DLLEXPORT ENdeletecontrol(int index)
 {
-    return EN_deletecontrol(_defaultProject, cindex);
+    return EN_deletecontrol(_defaultProject, index);
 }
 
-int DLLEXPORT ENgetcontrol(int cindex, int *ctype, int *lindex, EN_API_FLOAT_TYPE *setting,
-                           int *nindex, EN_API_FLOAT_TYPE *level)
+int DLLEXPORT ENgetcontrol(int index, int *type, int *linkIndex,
+              EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level)
 {
-    return EN_getcontrol(_defaultProject, cindex, ctype, lindex, setting, nindex, level);
+    double setting2 = 0.0, level2 = 0.0;
+    int errcode = EN_getcontrol(_defaultProject, index, type, linkIndex, &setting2,
+                                nodeIndex, &level2);
+    *setting = (EN_API_FLOAT_TYPE)setting2;
+    *level = (EN_API_FLOAT_TYPE)level2;
+    return errcode;
 }
 
-int DLLEXPORT ENsetcontrol(int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting,
-                           int nindex, EN_API_FLOAT_TYPE level)
+int DLLEXPORT ENsetcontrol(int index, int type, int linkIndex,
+              EN_API_FLOAT_TYPE setting, int nodeIndex, EN_API_FLOAT_TYPE level)
 {
-    return EN_setcontrol(_defaultProject, cindex, ctype, lindex, setting, nindex, level);
+    return EN_setcontrol(_defaultProject, index, type, linkIndex, setting,
+                         nodeIndex, level);
 }
 
 /********************************************************************
@@ -599,10 +695,14 @@ int DLLEXPORT ENdeleterule(int index)
     return EN_deleterule(_defaultProject, index);
 }
 
-int DLLEXPORT ENgetrule(int index, int *nPremises, int *nThenActions, int *nElseActions,
-                        EN_API_FLOAT_TYPE *priority)
+int DLLEXPORT ENgetrule(int index, int *nPremises, int *nThenActions,
+              int *nElseActions, EN_API_FLOAT_TYPE *priority)
 {
-    return EN_getrule(_defaultProject, index, nPremises, nThenActions, nElseActions, priority);
+    double priority2 = 0.0;
+    int errcode = EN_getrule(_defaultProject, index, nPremises, nThenActions,
+                             nElseActions, &priority2);
+    *priority = (EN_API_FLOAT_TYPE)priority2;
+    return errcode;
 }
 
 int DLLEXPORT ENgetruleID(int index, char* id)
@@ -610,17 +710,19 @@ int DLLEXPORT ENgetruleID(int index, char* id)
     return EN_getruleID(_defaultProject, index, id);
 }
 
-int DLLEXPORT ENgetpremise(int ruleIndex, int premiseIndex, int *logop,
-                           int *object, int *objIndex, int *variable,
-                           int *relop, int *status, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT ENgetpremise(int ruleIndex, int premiseIndex, int *logop, int *object,
+              int *objIndex, int *variable, int *relop, int *status,
+              EN_API_FLOAT_TYPE *value)
 {
-    return EN_getpremise(_defaultProject, ruleIndex, premiseIndex, logop, object,
-                         objIndex, variable, relop, status, value);
+    double v = 0.0;
+    int errcode = EN_getpremise(_defaultProject, ruleIndex, premiseIndex, logop,
+                                object, objIndex, variable, relop, status, &v);
+    *value = (EN_API_FLOAT_TYPE)v;
+    return errcode;
 }
 
-int DLLEXPORT ENsetpremise(int ruleIndex, int premiseIndex, int logop,
-                           int object, int objIndex, int variable, int relop,
-                           int status, EN_API_FLOAT_TYPE value)
+int DLLEXPORT ENsetpremise(int ruleIndex, int premiseIndex, int logop, int object,
+              int objIndex, int variable, int relop, int status, EN_API_FLOAT_TYPE value)
 {
     return EN_setpremise(_defaultProject, ruleIndex, premiseIndex, logop, object,
                          objIndex, variable, relop, status, value);
@@ -642,28 +744,34 @@ int DLLEXPORT ENsetpremisevalue(int ruleIndex, int premiseIndex, EN_API_FLOAT_TY
 }
 
 int DLLEXPORT ENgetthenaction(int ruleIndex, int actionIndex, int *linkIndex,
-                              int *status, EN_API_FLOAT_TYPE *setting)
+              int *status, EN_API_FLOAT_TYPE *setting)
 {
-    return EN_getthenaction(_defaultProject, ruleIndex, actionIndex, linkIndex,
-                            status, setting);
+    double setting2 = 0.0;
+    int errcode = EN_getthenaction(_defaultProject, ruleIndex, actionIndex, linkIndex,
+                                   status, &setting2);
+    *setting = (EN_API_FLOAT_TYPE)setting2;
+    return errcode;
 }
 
 int DLLEXPORT ENsetthenaction(int ruleIndex, int actionIndex, int linkIndex,
-                              int status, EN_API_FLOAT_TYPE setting)
+              int status, EN_API_FLOAT_TYPE setting)
 {
     return EN_setthenaction(_defaultProject, ruleIndex, actionIndex, linkIndex,
                             status, setting);
 }
 
 int DLLEXPORT ENgetelseaction(int ruleIndex, int actionIndex, int *linkIndex,
-                              int *status, EN_API_FLOAT_TYPE *setting)
+              int *status, EN_API_FLOAT_TYPE *setting)
 {
-    return EN_getelseaction(_defaultProject, ruleIndex, actionIndex, linkIndex,
-                            status, setting);
+    double setting2 = 0.0;
+    int errcode = EN_getelseaction(_defaultProject, ruleIndex, actionIndex, linkIndex,
+                                   status, &setting2);
+    *setting = (EN_API_FLOAT_TYPE)setting2;
+    return errcode;
 }
 
 int DLLEXPORT ENsetelseaction(int ruleIndex, int actionIndex, int linkIndex,
-                              int status, EN_API_FLOAT_TYPE setting)
+              int status, EN_API_FLOAT_TYPE setting)
 {
     return EN_setelseaction(_defaultProject, ruleIndex, actionIndex, linkIndex,
                             status, setting);

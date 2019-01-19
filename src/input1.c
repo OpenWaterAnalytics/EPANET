@@ -3,11 +3,11 @@
 Project:      OWA EPANET
 Version:      2.2
 Module:       input1.c
-Description:  retrieves network data from an EPANET input file 
+Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 12/15/2018
+Last Updated: 01/17/2019
 ******************************************************************************
 */
 
@@ -56,7 +56,7 @@ int getdata(Project *pr)
     int errcode = 0;
 
     // Assign default data values & reporting options
-    setdefaults(pr);           
+    setdefaults(pr);
     initreport(&pr->report);
 
     // Read in network data
@@ -102,7 +102,7 @@ void setdefaults(Project *pr)
     parser->Pressflag = PSI;    // Pressure units are psi
     out->Hydflag = SCRATCH;     // No external hydraulics file
     rpt->Tstatflag = SERIES;    // Generate time series output
-    
+
     hyd->Formflag = HW;         // Use Hazen-Williams formula
     hyd->Htol = HTOL;           // Default head tolerance
     hyd->Qtol = QTOL;           // Default flow tolerance
@@ -353,7 +353,7 @@ int inittanks(Project *pr)
 */
 {
     Network *net = &pr->network;
-    
+
     int i, j, n = 0;
     double a;
     int errcode = 0, levelerr;
@@ -433,14 +433,14 @@ void initunits(Project *pr)
 
     if (parser->Unitsflag == SI)  // SI units
     {
-        strcpy(rpt->Field[DEMAND].Units, RptFlowUnitsTxt[parser->Flowflag]);
+        strcpy(rpt->Field[DEMAND].Units, RptFlowUnitsTxt[(int)parser->Flowflag]);
         strcpy(rpt->Field[ELEV].Units, u_METERS);
         strcpy(rpt->Field[HEAD].Units, u_METERS);
         if (parser->Pressflag == METERS) strcpy(rpt->Field[PRESSURE].Units, u_METERS);
         else                             strcpy(rpt->Field[PRESSURE].Units, u_KPA);
         strcpy(rpt->Field[LENGTH].Units, u_METERS);
         strcpy(rpt->Field[DIAM].Units, u_MMETERS);
-        strcpy(rpt->Field[FLOW].Units, RptFlowUnitsTxt[parser->Flowflag]);
+        strcpy(rpt->Field[FLOW].Units, RptFlowUnitsTxt[(int)parser->Flowflag]);
         strcpy(rpt->Field[VELOCITY].Units, u_MperSEC);
         strcpy(rpt->Field[HEADLOSS].Units, u_per1000M);
         strcpy(rpt->Field[FRICTION].Units, "");
@@ -460,13 +460,13 @@ void initunits(Project *pr)
     }
     else  // US units
     {
-        strcpy(rpt->Field[DEMAND].Units, RptFlowUnitsTxt[parser->Flowflag]);
+        strcpy(rpt->Field[DEMAND].Units, RptFlowUnitsTxt[(int)parser->Flowflag]);
         strcpy(rpt->Field[ELEV].Units, u_FEET);
         strcpy(rpt->Field[HEAD].Units, u_FEET);
         strcpy(rpt->Field[PRESSURE].Units, u_PSI);
         strcpy(rpt->Field[LENGTH].Units, u_FEET);
         strcpy(rpt->Field[DIAM].Units, u_INCHES);
-        strcpy(rpt->Field[FLOW].Units, RptFlowUnitsTxt[parser->Flowflag]);
+        strcpy(rpt->Field[FLOW].Units, RptFlowUnitsTxt[(int)parser->Flowflag]);
         strcpy(rpt->Field[VELOCITY].Units, u_FTperSEC);
         strcpy(rpt->Field[HEADLOSS].Units, u_per1000FT);
         strcpy(rpt->Field[FRICTION].Units, "");
@@ -546,7 +546,7 @@ void convertunits(Project *pr)
     Slink *link;
     Spump *pump;
     Scontrol *control;
-  
+
     // Convert nodal elevations & initial WQ
     // (WQ source units are converted in QUALITY.C
     for (i = 1; i <= net->Nnodes; i++)
@@ -644,7 +644,7 @@ void convertunits(Project *pr)
                     pump->H0 /= pr->Ucf[HEAD];
                     pump->R *= (pow(pr->Ucf[FLOW], pump->N) / pr->Ucf[HEAD]);
                 }
-        
+
                 // Convert flow range & max. head units
                 pump->Q0 /= pr->Ucf[FLOW];
                 pump->Qmax /= pr->Ucf[FLOW];
@@ -653,7 +653,7 @@ void convertunits(Project *pr)
         }
         else
         {
-            // For flow control valves, convert flow setting 
+            // For flow control valves, convert flow setting
             // while for other valves convert pressure setting
             link->Diam /= pr->Ucf[DIAM];
             link->Km = 0.02517 * link->Km / SQR(link->Diam) / SQR(link->Diam);

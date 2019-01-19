@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/01/2019
+ Last Updated: 01/17/2019
  ******************************************************************************
 */
 
@@ -151,7 +151,7 @@ int openhydfile(Project *pr)
         if (version != ENGINE_VERSION) return 306;
         if (fread(nsize, sizeof(INT4), 6, pr->outfile.HydFile) < 6) return 306;
         if (nsize[0] != Nnodes || nsize[1] != Nlinks || nsize[2] != Ntanks ||
-            nsize[3] != Npumps || nsize[4] != Nvalves || 
+            nsize[3] != Npumps || nsize[4] != Nvalves ||
             nsize[5] != pr->times.Dur
            ) return 306;
         pr->outfile.SaveHflag = TRUE;
@@ -187,7 +187,7 @@ int openoutfile(Project *pr)
     }
 
     // If output file name was supplied, then attempt to
-    // open it. Otherwise open a temporary output file. 
+    // open it. Otherwise open a temporary output file.
     if (pr->outfile.Outflag == SAVE)
     {
         pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
@@ -305,7 +305,7 @@ int allocdata(Project *pr)
         ERRCODE(MEMCHECK(pr->quality.NodeQual));
     }
 
-    // Allocate memory for network links 
+    // Allocate memory for network links
     if (!errcode)
     {
         n = pr->parser.MaxLinks + 1;
@@ -442,7 +442,7 @@ void freedata(Project *pr)
                 free(demand);
                 demand = nextdemand;
             }
-            // Free memory used for WQ source data 
+            // Free memory used for WQ source data
             source = pr->network.Node[j].S;
             if (source != NULL) free(source);
         }
@@ -579,7 +579,6 @@ int incontrols(Project *pr, int objType, int index)
 */
 {
     Network *net = &pr->network;
-    Rules *rules = &pr->rules;
 
     int i, ruleObject;
     Spremise *premise;
@@ -652,7 +651,7 @@ int valvecheck(Project *pr, int type, int j1, int j2)
     {
         // Can't be connected to a fixed grade node
         if (j1 > net->Njuncs || j2 > net->Njuncs) return 219;
-        
+
         // Examine each existing valve
         for (k = 1; k <= net->Nvalves; k++)
         {
@@ -832,7 +831,7 @@ double interp(int n, double x[], double y[], double xx)
     double dx, dy;
 
     m = n - 1;                        // Highest data index
-    if (xx <= x[0]) return (y[0]);    // xx off low end of curve 
+    if (xx <= x[0]) return (y[0]);    // xx off low end of curve
     for (k = 1; k <= m; k++)          // Bracket xx on curve
     {
         if (x[k] >= xx)               // Interp. over interval

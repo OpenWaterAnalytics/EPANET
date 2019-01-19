@@ -7,7 +7,7 @@ Description:  computes water quality transport over a single time step
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/27/2018
+Last Updated: 01/17/2019
 ******************************************************************************
 */
 
@@ -147,7 +147,6 @@ void  evalnodeinflow(Project *pr, int k, long tstep, double *volin,
 **--------------------------------------------------------------
 */
 {
-    Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
     Quality *qual = &pr->quality;
 
@@ -285,7 +284,6 @@ double  noflowqual(Project *pr, int n)
 */
 {
     Network *net = &pr->network;
-    Hydraul *hyd = &pr->hydraul;
     Quality *qual = &pr->quality;
 
     int k, inflow, kount = 0;
@@ -300,7 +298,7 @@ double  noflowqual(Project *pr, int n)
         k = alink->link;
         dir = qual->FlowDir[k];
 
-        // Node n is link's downstream node - add quality 
+        // Node n is link's downstream node - add quality
         // of link's first segment to average
         if (net->Link[k].N2 == n && dir >= 0) inflow = TRUE;
         else if (net->Link[k].N1 == n && dir < 0)  inflow = TRUE;
@@ -311,7 +309,7 @@ double  noflowqual(Project *pr, int n)
             kount++;
         }
 
-        // Node n is link's upstream node - add quality 
+        // Node n is link's upstream node - add quality
         // of link's last segment to average
         else if (inflow == FALSE && qual->LastSeg[k] != NULL)
         {
@@ -428,7 +426,6 @@ int sortnodes(Project *pr)
 */
 {
     Network *net = &pr->network;
-    Hydraul *hyd = &pr->hydraul;
     Quality *qual = &pr->quality;
 
     int i, j, k, n;
@@ -578,7 +575,6 @@ void initsegs(Project *pr)
 */
 {
     Network *net = &pr->network;
-    Hydraul *hyd = &pr->hydraul;
     Quality *qual = &pr->quality;
 
     int j, k;

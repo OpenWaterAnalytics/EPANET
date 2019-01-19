@@ -7,7 +7,7 @@ Description:  implements EPANET's water quality engine
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/27/2018
+Last Updated: 01/17/2019
 ******************************************************************************
 */
 
@@ -78,21 +78,21 @@ int openqual(Project *pr)
     // Create a memory pool for water quality segments
     qual->OutOfMemory = FALSE;
     qual->SegPool = mempool_create();
-    if (qual->SegPool == NULL) errcode = 101; 
+    if (qual->SegPool == NULL) errcode = 101;
 
     // Allocate arrays for link flow direction & reaction rates
     n = net->Nlinks + 1;
     qual->FlowDir = (FlowDirection *)calloc(n, sizeof(FlowDirection));
     qual->PipeRateCoeff = (double *)calloc(n, sizeof(double));
 
-    // Allocate arrays used for volume segments in links & tanks 
+    // Allocate arrays used for volume segments in links & tanks
     n = net->Nlinks + net->Ntanks + 1;
     qual->FirstSeg = (Pseg *)calloc(n, sizeof(Pseg));
     qual->LastSeg = (Pseg *)calloc(n, sizeof(Pseg));
 
-    // Allocate memory for topologically sorted nodes 
+    // Allocate memory for topologically sorted nodes
     qual->SortedNodes = (int *)calloc(n, sizeof(int));
-    
+
     ERRCODE(MEMCHECK(qual->FlowDir));
     ERRCODE(MEMCHECK(qual->PipeRateCoeff));
     ERRCODE(MEMCHECK(qual->FirstSeg));
@@ -119,7 +119,7 @@ int initqual(Project *pr)
     int i;
     int errcode = 0;
 
-    // Re-position hydraulics file 
+    // Re-position hydraulics file
     if (!hyd->OpenHflag)
     {
         fseek(pr->outfile.HydFile, pr->outfile.HydOffset, SEEK_SET);
@@ -148,7 +148,7 @@ int initqual(Project *pr)
 
     // Initialize quality at trace node (if applicable)
     if (qual->Qualflag == TRACE) qual->NodeQual[qual->TraceNode] = 100.0;
-    
+
     // Compute Schmidt number
     if (qual->Diffus > 0.0) qual->Sc = hyd->Viscos / qual->Diffus;
     else                    qual->Sc = 0.0;
@@ -209,10 +209,10 @@ int runqual(Project *pr, long *t)
     // Update reported simulation time
     *t = time->Qtime;
 
-    // Read hydraulic solution from hydraulics file 
+    // Read hydraulic solution from hydraulics file
     if (time->Qtime == time->Htime)
     {
-        // Read hydraulic results from file 
+        // Read hydraulic results from file
         if (!hyd->OpenHflag)
         {
             if (!readhyd(pr, &hydtime)) return 307;
@@ -220,7 +220,7 @@ int runqual(Project *pr, long *t)
             time->Htime = hydtime;
         }
 
-        // Save current results to output file 
+        // Save current results to output file
         if (time->Htime >= time->Rtime)
         {
             if (pr->outfile.Saveflag)
@@ -263,7 +263,7 @@ int nextqual(Project *pr, long *tstep)
 {
     Quality *qual = &pr->quality;
     Times   *time = &pr->times;
-  
+
     long hydstep;            // Time step until next hydraulic event
     long dt, qtime;
     int errcode = 0;
@@ -316,7 +316,7 @@ int stepqual(Project *pr, long *tleft)
 **   Input:   none
 **   Output:  tleft = time left in simulation
 **   Returns: error code
-**   Purpose: updates quality conditions over a single 
+**   Purpose: updates quality conditions over a single
 **            quality time step
 **--------------------------------------------------------------
 */
@@ -402,7 +402,7 @@ int closequal(Project *pr)
     int errcode = 0;
 
     if (qual->SegPool) mempool_delete(qual->SegPool);
-    FREE(qual->FirstSeg); 
+    FREE(qual->FirstSeg);
     FREE(qual->LastSeg);
     FREE(qual->PipeRateCoeff);
     FREE(qual->FlowDir);
@@ -543,7 +543,6 @@ double sourcequal(Project *pr, Psource source)
 */
 {
     Network *net = &pr->network;
-    Quality *qual = &pr->quality;
     Times   *time = &pr->times;
 
     int i;

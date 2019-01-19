@@ -8,7 +8,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 01/17/2019
  ******************************************************************************
 */
 
@@ -100,6 +100,8 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     // Initialize status checking & relaxation factor
     nextcheck = hyd->CheckFreq;
     hyd->RelaxFactor = 1.0;
+    hydbal.maxheaderror = 0.0;
+    hydbal.maxflowchange = 0.0;
 
     // Repeat iterations until convergence or trial limit is exceeded.
     // (ExtraIter used to increase trials in case of status cycling.)
@@ -121,7 +123,7 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
         // Matrix ill-conditioning problem - if control valve causing problem,
         // fix its status & continue, otherwise quit with no solution.
         if (errcode > 0)
-        {                      
+        {
             if (badvalve(pr, sm->Order[errcode])) continue;
             else break;
         }
@@ -360,7 +362,6 @@ double newflows(Project *pr, Hydbalance *hbal)
 **----------------------------------------------------------------
 */
 {
-    Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
 
     double  dqsum,                 // Network flow change
@@ -452,7 +453,7 @@ void  newlinkflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
             hbal->maxflownode = -1;
         }
 
-        // Update net flows to fixed grade nodes 
+        // Update net flows to fixed grade nodes
         if (hyd->LinkStatus[k] > CLOSED)
         {
             if (n1 > net->Njuncs) hyd->NodeDemand[n1] -= hyd->LinkFlow[k];
@@ -486,7 +487,7 @@ void newemitterflows(Project *pr, Hydbalance *hbal, double *qsum,
         // Skip junction if it does not have an emitter
         if (net->Node[i].Ke == 0.0) continue;
 
-        // Find emitter head loss and gradient 
+        // Find emitter head loss and gradient
         emitheadloss(pr, i, &hloss, &hgrad);
 
         // Find emitter flow change

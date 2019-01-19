@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/27/2018
+Last Updated: 01/17/2019
 ******************************************************************************
 */
 
@@ -38,7 +38,7 @@ extern char *TstatTxt[];
 extern char *RptFlagTxt[];
 extern char *SectTxt[];
 
-void saveauxdata(Parser *parser, FILE *f) 
+void saveauxdata(Parser *parser, FILE *f)
 /*
 ------------------------------------------------------------
   Writes auxilary data from original input file to new file.
@@ -50,7 +50,7 @@ void saveauxdata(Parser *parser, FILE *f)
     char line[MAXLINE + 1];
     char s[MAXLINE + 1];
     FILE *InFile = parser->InFile;
-  
+
     sect = -1;
     if (InFile == NULL) return;
     rewind(InFile);
@@ -70,7 +70,7 @@ void saveauxdata(Parser *parser, FILE *f)
                 if (sect == _END) break;
             }
         }
-         
+
         // Write line of auxilary data to file
         switch (sect)
         {
@@ -78,7 +78,7 @@ void saveauxdata(Parser *parser, FILE *f)
             case _LABELS:
             case _BACKDROP:
             case _TAGS:
-              fprintf(f, "%s", line); 
+              fprintf(f, "%s", line);
               break;
             default:
               break;
@@ -102,7 +102,6 @@ int saveinpfile(Project *pr, const char *fname)
     Times   *time = &pr->times;
 
     int i, j, n;
-    int errcode;
     double d, kc, ke, km, ucf;
     char s[MAXLINE + 1], s1[MAXLINE + 1], s2[MAXLINE + 1];
     Pdemand demand;
@@ -116,9 +115,9 @@ int saveinpfile(Project *pr, const char *fname)
     Scurve *curve;
 
     // Open the new text file
-    if ((f = fopen(fname, "wt")) == NULL) return (308);
+    if ((f = fopen(fname, "wt")) == NULL) return 302;
 
-    // Write [TITLE] section 
+    // Write [TITLE] section
     fprintf(f, s_TITLE);
     for (i = 0; i < 3; i++)
     {
@@ -174,7 +173,7 @@ int saveinpfile(Project *pr, const char *fname)
         }
     }
 
-    // Write [PIPES] section 
+    // Write [PIPES] section
     fprintf(f, "\n\n");
     fprintf(f, s_PIPES);
     for (i = 1; i <= net->Nlinks; i++)
@@ -215,7 +214,7 @@ int saveinpfile(Project *pr, const char *fname)
         // Pump has constant power
         if (pump->Ptype == CONST_HP) sprintf(s1, "  POWER %.4f", link->Km);
 
-        // Pump has a head curve 
+        // Pump has a head curve
         else if ((j = pump->Hcurve) > 0)
         {
             sprintf(s1, "  HEAD %s", net->Curve[j].ID);
@@ -451,7 +450,7 @@ int saveinpfile(Project *pr, const char *fname)
     for (i = 1; i <= net->Nrules; i++)
     {
         fprintf(f, "\nRULE %s", pr->network.Rule[i].label);
-        errcode = writerule(pr, f, i);  // see RULES.C
+        writerule(pr, f, i);  // see RULES.C
         fprintf(f, "\n");
     }
 
@@ -505,7 +504,7 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, "\n ORDER  TANK            %-.2f", qual->TankOrder);
     fprintf(f, "\n GLOBAL BULK            %-.6f", qual->Kbulk * SECperDAY);
     fprintf(f, "\n GLOBAL WALL            %-.6f", qual->Kwall * SECperDAY);
-    
+
     if (qual->Climit > 0.0)
     {
         fprintf(f, "\n LIMITING POTENTIAL     %-.6f", qual->Climit);
@@ -514,7 +513,7 @@ int saveinpfile(Project *pr, const char *fname)
     {
         fprintf(f, "\n ROUGHNESS CORRELATION  %-.6f", qual->Rfactor);
     }
-    
+
     // Pipe-specific parameters
     for (i = 1; i <= net->Nlinks; i++)
     {
@@ -591,14 +590,14 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, "\n PATTERN START       %s", clocktime(rpt->Atime, time->Pstart));
     fprintf(f, "\n RULE TIMESTEP       %s", clocktime(rpt->Atime, time->Rulestep));
     fprintf(f, "\n START CLOCKTIME     %s", clocktime(rpt->Atime, time->Tstart));
-    fprintf(f, "\n STATISTIC           %s", TstatTxt[rpt->Tstatflag]);
+    fprintf(f, "\n STATISTIC           %s", TstatTxt[(int)rpt->Tstatflag]);
 
     // Write [OPTIONS] section
     fprintf(f, "\n\n");
     fprintf(f, s_OPTIONS);
-    fprintf(f, "\n UNITS               %s", FlowUnitsTxt[parser->Flowflag]);
-    fprintf(f, "\n PRESSURE            %s", PressUnitsTxt[parser->Pressflag]);
-    fprintf(f, "\n HEADLOSS            %s", FormTxt[hyd->Formflag]);
+    fprintf(f, "\n UNITS               %s", FlowUnitsTxt[(int)parser->Flowflag]);
+    fprintf(f, "\n PRESSURE            %s", PressUnitsTxt[(int)parser->Pressflag]);
+    fprintf(f, "\n HEADLOSS            %s", FormTxt[(int)hyd->Formflag]);
     if (hyd->DefPat >= 1 && hyd->DefPat <= net->Npats)
     {
         fprintf(f, "\n PATTERN             %s", net->Pattern[hyd->DefPat].ID);
@@ -674,10 +673,10 @@ int saveinpfile(Project *pr, const char *fname)
 
     // General options
     fprintf(f, "\n PAGESIZE            %d", rpt->PageSize);
-    fprintf(f, "\n STATUS              %s", RptFlagTxt[rpt->Statflag]);
-    fprintf(f, "\n SUMMARY             %s", RptFlagTxt[rpt->Summaryflag]);
-    fprintf(f, "\n ENERGY              %s", RptFlagTxt[rpt->Energyflag]);
-    fprintf(f, "\n MESSAGES            %s", RptFlagTxt[rpt->Messageflag]);
+    fprintf(f, "\n STATUS              %s", RptFlagTxt[(int)rpt->Statflag]);
+    fprintf(f, "\n SUMMARY             %s", RptFlagTxt[(int)rpt->Summaryflag]);
+    fprintf(f, "\n ENERGY              %s", RptFlagTxt[(int)rpt->Energyflag]);
+    fprintf(f, "\n MESSAGES            %s", RptFlagTxt[(int)rpt->Messageflag]);
     if (strlen(rpt->Rpt2Fname) > 0)
     {
         fprintf(f, "\n FILE                %s", rpt->Rpt2Fname);
