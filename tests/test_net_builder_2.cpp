@@ -45,14 +45,14 @@ int main(int argc, char *argv[])
     EN_init(ph, "", "", EN_GPM, EN_HW);
     
     // Build a network
-    EN_addnode(ph, "N1", EN_JUNCTION);
-    EN_addnode(ph, "N2", EN_JUNCTION);
-    EN_addnode(ph, "N3", EN_RESERVOIR);
-    EN_addnode(ph, "N4", EN_TANK);
-    EN_addlink(ph, "L1", EN_PUMP, "N3", "N1");
-    EN_addlink(ph, "L2", EN_PIPE, "N1", "N3");
-    EN_addlink(ph, "L3", EN_PIPE, "N1", "N2");
-    EN_addcurve(ph, "C1");
+    EN_addnode(ph, (char *)"N1", EN_JUNCTION);
+    EN_addnode(ph, (char *)"N2", EN_JUNCTION);
+    EN_addnode(ph, (char *)"N3", EN_RESERVOIR);
+    EN_addnode(ph, (char *)"N4", EN_TANK);
+    EN_addlink(ph, (char *)"L1", EN_PUMP, (char *)"N3", (char *)"N1");
+    EN_addlink(ph, (char *)"L2", EN_PIPE, (char *)"N1", (char *)"N3");
+    EN_addlink(ph, (char *)"L3", EN_PIPE, (char *)"N1", (char *)"N2");
+    EN_addcurve(ph, (char *)"C1");
 
     // Set network data using the new helper functions
     EN_setcurvevalue(ph, 1, 1, 1500, 250);
@@ -88,9 +88,9 @@ int main(int argc, char *argv[])
     // Save these new results
     EN_getnodevalue(ph, 1, EN_PRESSURE, &p1_2);
     EN_getnodevalue(ph, 2, EN_PRESSURE, &p2_2);
-    EN_getlinkindex(ph, "L1", &index);
+    EN_getlinkindex(ph, (char *)"L1", &index);
     EN_getlinkvalue(ph, index, EN_FLOW, &q1_2);
-    EN_getlinkindex(ph, "L2", &index);
+    EN_getlinkindex(ph, (char *)"L2", &index);
     EN_getlinkvalue(ph, index, EN_FLOW, &q2_2);
 
     // Display old & new results

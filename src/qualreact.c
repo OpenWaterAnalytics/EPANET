@@ -222,7 +222,7 @@ double piperate(Project *pr, int k)
 
     d = net->Link[k].Diam;   // Pipe diameter, ft
 
-    // Ignore mass transfer if Schmidt No. is 0 
+    // Ignore mass transfer if Schmidt No. is 0
     if (qual->Sc == 0.0)
     {
         if (qual->WallOrder == 0.0) return BIG;
@@ -445,7 +445,6 @@ double mixtank(Project *pr, int n, double volin, double massin, double volout)
 */
 {
     Network *net = &pr->network;
-    Quality *qual = &pr->quality;
 
     int i;
     double vnet;
@@ -475,7 +474,6 @@ void tankmix1(Project *pr, int i, double vin, double win, double vnet)
 */
 {
     Network *net = &pr->network;
-    Hydraul *hyd = &pr->hydraul;
     Quality *qual = &pr->quality;
 
     int k;
@@ -544,7 +542,7 @@ void tankmix2(Project *pr, int i, double vin, double win, double vnet)
         }
     }
 
-    // Tank is emptying 
+    // Tank is emptying
     else if (vnet < 0.0)
     {
         if (stagzone->v > 0.0) vt = MIN(stagzone->v, (-vnet));
@@ -555,7 +553,7 @@ void tankmix2(Project *pr, int i, double vin, double win, double vnet)
         }
     }
 
-    // Update segment volumes 
+    // Update segment volumes
     if (vt > 0.0)
     {
         mixzone->v = vmz;
@@ -589,7 +587,6 @@ void tankmix3(Project *pr, int i, double vin, double win, double vnet)
 */
 {
     Network *net = &pr->network;
-    Hydraul *hyd = &pr->hydraul;
     Quality *qual = &pr->quality;
 
     int k;
@@ -640,7 +637,7 @@ void tankmix3(Project *pr, int i, double vin, double win, double vnet)
     }
 
     // Use quality withdrawn from 1st segment
-    // to represent overall quality of tank 
+    // to represent overall quality of tank
     if      (vsum > 0.0)                tank->C = wsum / vsum;
     else if (qual->FirstSeg[k] == NULL) tank->C = 0.0;
     else                                tank->C = qual->FirstSeg[k]->c;
@@ -662,7 +659,7 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
     Network *net  = &pr->network;
     Quality *qual = &pr->quality;
 
-    int k, n;
+    int k;
     double cin, vsum, wsum, vseg;
     Pseg seg;
     Stank *tank = &pr->network.Tank[i];
@@ -671,7 +668,6 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
     if (qual->LastSeg[k] == NULL || qual->FirstSeg[k] == NULL) return;
 
     // Find inflows & outflows
-    n = tank->Node;
     if (vin > 0.0) cin = win / vin;
     else           cin = 0.0;
 
@@ -691,7 +687,7 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
             qual->LastSeg[k]->prev = seg;
         }
 
-        // ... update reported tank quality 
+        // ... update reported tank quality
         tank->C = qual->LastSeg[k]->c;
     }
 

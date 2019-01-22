@@ -102,7 +102,6 @@ int saveinpfile(Project *pr, const char *fname)
     Times   *time = &pr->times;
 
     int i, j, n;
-    int errcode;
     double d, kc, ke, km, ucf;
     char s[MAXLINE + 1], s1[MAXLINE + 1], s2[MAXLINE + 1];
     Pdemand demand;
@@ -451,7 +450,7 @@ int saveinpfile(Project *pr, const char *fname)
     for (i = 1; i <= net->Nrules; i++)
     {
         fprintf(f, "\nRULE %s", pr->network.Rule[i].label);
-        errcode = writerule(pr, f, i);  // see RULES.C
+        writerule(pr, f, i);  // see RULES.C
         fprintf(f, "\n");
     }
 
@@ -489,7 +488,7 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, s_MIXING);
     for (i = 1; i <= net->Ntanks; i++)
     {
-        Stank *tank = &net->Tank[i];
+        tank = &net->Tank[i];
         if (tank->A == 0.0) continue;
         fprintf(f, "\n %-31s %-8s %12.4f", net->Node[tank->Node].ID,
                 MixTxt[tank->MixModel], (tank->V1max / tank->Vmax));
@@ -719,7 +718,7 @@ int saveinpfile(Project *pr, const char *fname)
           j = 0;
           for (i = 1; i <= net->Nlinks; i++)
           {
-              Slink *link = &net->Link[i];
+              link = &net->Link[i];
               if (link->Rpt == 1)
               {
                   if (j % 5 == 0) fprintf(f, "\n LINKS               ");
