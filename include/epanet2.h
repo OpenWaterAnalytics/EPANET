@@ -36,38 +36,34 @@ function in epanet2_2.h.
   #define EN_API_FLOAT_TYPE float
 #endif
 
-#ifdef WITH_GENX
-   #include "epanet2_export.h"
-#else
-  // --- define WINDOWS
-  #undef WINDOWS
-  #ifdef _WIN32
-    #define WINDOWS
-  #endif
-  #ifdef __WIN32__
-    #define WINDOWS
-  #endif
+// --- define WINDOWS
+#undef WINDOWS
+#ifdef _WIN32
+  #define WINDOWS
+#endif
+#ifdef __WIN32__
+  #define WINDOWS
+#endif
 
-  // --- define DLLEXPORT
-  #ifndef DLLEXPORT
-    #ifdef WINDOWS
-      #ifdef __cplusplus
-        #define DLLEXPORT __declspec(dllexport)
-      #else
-        #define DLLEXPORT __declspec(dllexport) __stdcall
-      #endif // __cplusplus
-    #elif defined(CYGWIN)
-      #define DLLEXPORT __stdcall
+// --- define DLLEXPORT
+#ifndef DLLEXPORT
+  #ifdef WINDOWS
+    #ifdef epanet2_EXPORTS
+      #define DLLEXPORT __declspec(dllexport) __stdcall
     #else
-      #define DLLEXPORT
+      #define DLLEXPORT __declspec(dllimport) __stdcall
     #endif
+  #elif defined(CYGWIN)
+    #define DLLEXPORT __stdcall
+  #else
+    #define DLLEXPORT
   #endif
 #endif
 
 #include "epanet2_enums.h"
 
 // --- Declare the EPANET toolkit functions
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -404,7 +400,7 @@ extern "C" {
   int DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
 
 
-  #if defined(__cplusplus)
+  #ifdef __cplusplus
   }
   #endif
 

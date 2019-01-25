@@ -18,38 +18,34 @@
 #ifndef EPANET2_2_H
 #define EPANET2_2_H
 
-#ifdef WITH_GENX
-   #include "epanet2_export.h"
-#else
-  // --- define WINDOWS
-  #undef WINDOWS
-  #ifdef _WIN32
-    #define WINDOWS
-  #endif
-  #ifdef __WIN32__
-    #define WINDOWS
-  #endif
+// --- define WINDOWS
+#undef WINDOWS
+#ifdef _WIN32
+  #define WINDOWS
+#endif
+#ifdef __WIN32__
+  #define WINDOWS
+#endif
 
-  // --- define DLLEXPORT
-  #ifndef DLLEXPORT
-    #ifdef WINDOWS
-      #ifdef __cplusplus
-        #define DLLEXPORT __declspec(dllexport)
-      #else
-        #define DLLEXPORT __declspec(dllexport) __stdcall
-      #endif // __cplusplus
-    #elif defined(CYGWIN)
-      #define DLLEXPORT __stdcall
+// --- define DLLEXPORT
+#ifndef DLLEXPORT
+  #ifdef WINDOWS
+    #ifdef epanet2_EXPORTS
+      #define DLLEXPORT __declspec(dllexport) __stdcall
     #else
-      #define DLLEXPORT
+      #define DLLEXPORT __declspec(dllimport) __stdcall
     #endif
+  #elif defined(CYGWIN)
+    #define DLLEXPORT __stdcall
+  #else
+    #define DLLEXPORT
   #endif
 #endif
 
 #include "epanet2_enums.h"
 
 // --- Declare the EPANET toolkit functions
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -1601,7 +1597,7 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_setrulepriority(EN_Project ph, int index, double priority);
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif
 
