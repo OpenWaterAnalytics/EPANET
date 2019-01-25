@@ -1,0 +1,140 @@
+/**
+@addtogroup OutFileFormat
+@{
+ The Toolkit uses an unformatted binary output file to store both hydraulic and water quality results at uniform reporting intervals. Data written to the file is either 4-byte integers, 4-byte floats, or fixed-size strings whose size is a multiple of 4 bytes. This allows the file to be divided conveniently into 4-byte records. The file consists of four sections of the following sizes in bytes:
+
+| Section        | Size in Bytes                          |
+|----------------|----------------------------------------|
+|Prolog          | 884 + 36*Nnodes + 52*Nlinks + 8*Ntanks |
+|Energy Usage    | 28*Npumps + 4                          |
+|Dynamic Results | (16*Nnodes + 32*Nlinks)*Nperiods       |
+|Epilog          | 28                                     |
+
+where:
+- Nnodes = number of nodes (junctions + reservoirs + tanks),
+- Nlinks = number of links (pipes + pumps + valves),
+- Ntanks = number of tanks and reservoirs,
+- Npumps =  number of pumps,
+- Nperiods = number of reporting periods.
+
+All of these counts are themselves written to the file's Prolog or Epilog sections. 
+@}
+*/
+
+/** 
+@page Output_Prolog Prolog Section
+@ingroup OutFileFormat
+
+The Prolog section of an EPANET binary output file contains the following data:
+
+|Item            | Type      | # Bytes   |
+|----------------|-----------|-----------|
+| Magic Number = 516114521   | Integer | 4 |
+| Version (= 200)            | Integer | 4 |
+| Number of Nodes            | Integer | 4 |
+| Number of Reservoirs & Tanks | Integer | 4|
+| Number of Links              | Integer | 4 |
+| Number of Pumps              | Integer | 4 |
+| Number of Valves             | Integer | 4 |
+| Water Quality Option - see @ref EN_QualityType | Integer | 4 |
+| Traced Node Index            | Integer | 4 |
+| Flow Units Option            | Integer | 4 |
+| Pressure Units Option        | Integer | 4 |
+| 0 = psi || |
+| 1 = meters || |
+| 2 = kPa || |
+| Report Statistic Type - see @ref EN_StatisticType | Integer | 4 |
+| Reporting Start Time (sec)   | Integer | 4 |
+| Reporting Time Step (sec)    | Integer | 4 |
+| Simulation Duration (sec)    | Integer | 4 |
+| Project Title (1st line)     | Char    | 80 |
+| Project Title (2nd line)     | Char    | 80 |
+| Project Title (3rd line)     | Char    | 80 |
+| Name of Input File           | Char    | 260 |
+| Name of Report File          | Char    | 260 |
+| Name of Quality Chemical     | Char    | 32 |
+| Chemical Concentration Units | Char    | 32 |
+| ID String of Each Node       | Char    | 32*Nnodes |
+| ID String of Each Link       | Char    | 32*Nlinks |
+| Index of Head Node of Each Link | Integer | 4*Nlinks |
+| Index of Tail Node of Each Link | Integer | 4*Nlinks |
+| Type Code of Each Link (see @ref EN_LinkType)  | Integer | 4*Nlinks |
+| Node Index of Each Tank   |  Integer | 4*Ntanks |
+| Surface Area of Each Tank | Float | 4*Ntanks |
+| Elevation of Each Node  | Float | 4*Nnodes |
+| Length of Each Link | Float | 4*Nlinks |
+| Diameter of Each Link | Float | 4*Nlinks | 
+
+*/
+
+/**
+@page Output_Energy Energy Usage Section
+@ingroup OutFileFormat
+
+The Energy Usage section of an EPANET binary output file contains the following data: 
+
+|Item (Repeated for Each Pump) | Type    | # Bytes |
+|------------------------------|---------|---------| 
+| Pump Index in list of links  | Integer | 4 |
+| Pump Utilization (%)         | Float   | 4 |
+| Average Efficiency (%)       | Float | 4 |
+| Average kwatts/MGal (or kwatts/cu m) | Float | 4 |
+| Average kwatts | Float | 4 |
+| Peak kwatts | Float | 4 |
+| Average Cost per Day | Float | 4 |
+| Peak Energy Usage (kw-hrs) | Float | 4 |
+
+*/
+
+/**
+@page Output_Results Dynamic Results Section
+@ingroup OutFileFormat
+
+The Dynamic Results section of an EPANET binary output file contains the following set of data for each reporting period (the reporting time step is written to the Output File's @ref Output_Prolog and the number of such steps is written to the @ref Output_Epilog): 
+
+| Item | Type | # Bytes |
+|------|------|---------| 
+|Demand at Each Node | Float | 4*Nnodes |
+|Head (Grade) at Each Node | Float | 4*Nnodes |
+|Pressure at Each Node | Float | 4*Nnodes |
+|Water Quality at Each Node | Float | 4*Nnodes |
+|Flow in Each Link | Float | 4*Nlinks |
+|(negative for reverse flow) || |
+|Velocity in Each Link | Float | 4*Nlinks |
+|Headloss per 1000 Units of Length for Each Link | Float | 4*Nlinks |
+|(total head for pumps and head loss for valves) || |
+|Average Water Quality in Each Link | Float | 4*Nlinks |
+| Status Code for Each Link | Float | 4*Nlinks |
+| 0 = closed (pump shutoff head exceeded) || |
+| 1 = temporarily closed || |
+| 2 = closed || |
+| 3 = open || |
+| 4 = active (partially open || |
+| 5 = open (pump max. flow exceeded) || |
+| 6 = open (FCV can't supply flow || |
+| 7 = open (PRV/PSV can't supply pressure) || |
+| Setting for Each Link | Float | 4*Nlinks |
+|Reaction Rate for Each Link (mass/L/day) | Float | 4*Nlinks |
+|Friction Factor for Each Link | Float | 4*Nlinks |
+
+*/
+
+/**
+@page Output_Epilog Epilog Section
+@ingroup OutFileFormat
+
+The Epilog section of an EPANET binary output file contains the following data: 
+
+|Item | Type | # Bytes |
+|-----|------|---------| 
+|Average bulk reaction rate (mass/hr) | Float | 4 |
+|Average wall reaction rate (mass/hr) | Float | 4 |
+|Average tank reaction rate (mass/hr) | Float | 4 |
+|Average source inflow rate (mass/hr) | Float | 4 |
+|Number of Reporting Periods | Integer | 4 |
+|Warning Flag: | Integer | 4 |
+|0 = no warnings || |
+|1 = warnings were generated || |
+|Magic Number = 516114521 | Integer | 4 |
+
+*/
