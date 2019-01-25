@@ -81,12 +81,12 @@ target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 # create export lib so we can link against dll using Visual Studio
 #add_definitions(-DWITH_GENX)
-#include(GenerateExportHeader)
-#GENERATE_EXPORT_HEADER(epanet2
-#    BASE_NAME epanet2
-#    EXPORT_MACRO_NAME DLLEXPORT
-#    EXPORT_FILE_NAME epanet2_export.h
-#    STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC)
+include(GenerateExportHeader)
+GENERATE_EXPORT_HEADER(epanet2
+    BASE_NAME epanet2
+    EXPORT_MACRO_NAME DLLEXPORT
+    EXPORT_FILE_NAME epanet2_export.h
+    STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC)
 
-#file(COPY ${CMAKE_CURRENT_BINARY_DIR}/epanet2_export.h
-#    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include)
+file(COPY ${CMAKE_CURRENT_BINARY_DIR}/epanet2_export.h
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include)
