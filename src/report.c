@@ -69,8 +69,8 @@ int writereport(Project *pr)
 {
     Report *rpt = &pr->report;
     Parser *parser = &pr->parser;
-  
-    char tflag;
+
+    int tflag;
     FILE *tfile;
     int errcode = 0;
 
@@ -82,7 +82,7 @@ int writereport(Project *pr)
         if (rpt->Energyflag) writeenergy(pr);
         errcode = writeresults(pr);
     }
-   
+
     // A secondary report file was specified
     else if (strlen(rpt->Rpt2Fname) > 0)
     {
@@ -145,7 +145,7 @@ void writelogo(Project *pr)
     char s[80];
     time_t timer; // time_t structure & functions time() &
                   // ctime() are defined in time.h
-    
+
     version = CODEVERSION;
     major = version / 10000;
     minor = (version % 10000) / 100;
@@ -230,12 +230,12 @@ void writesummary(Project *pr)
     writeline(pr, s);
   }
 
-  sprintf(s, FMT27a, hyd->CheckFreq); 
-  writeline(pr, s);                   
-  sprintf(s, FMT27b, hyd->MaxCheck);       
-  writeline(pr, s);                   
-  sprintf(s, FMT27c, hyd->DampLimit);      
-  writeline(pr, s);                   
+  sprintf(s, FMT27a, hyd->CheckFreq);
+  writeline(pr, s);
+  sprintf(s, FMT27b, hyd->MaxCheck);
+  writeline(pr, s);
+  sprintf(s, FMT27c, hyd->DampLimit);
+  writeline(pr, s);
   sprintf(s, FMT28, hyd->MaxIter);
   writeline(pr, s);
 
@@ -341,7 +341,7 @@ void writehydstat(Project *pr, int iter, double relerr)
     }
   }
 
-  // Display status changes for links 
+  // Display status changes for links
   for (i = 1; i <= net->Nlinks; i++)
   {
     if (hyd->LinkStatus[i] != hyd->OldStatus[i])
@@ -399,7 +399,7 @@ void writemassbalance(Project *pr)
     writeline(pr, s1);
     snprintf(s1, MAXMSG, "Final Mass:        %12.5e", qual->MassBalance.final);
     writeline(pr, s1);
-    snprintf(s1, MAXMSG, "Mass Ratio:         %-0.5f", qual->MassBalance.ratio);
+    snprintf(s1, MAXMSG, "Mass Ratio:         %-.5f", qual->MassBalance.ratio);
     writeline(pr, s1);
     snprintf(s1, MAXMSG, "================================\n");
     writeline(pr, s1);
@@ -426,7 +426,7 @@ void writeenergy(Project *pr)
     if (net->Npumps == 0) return;
     writeline(pr, " ");
     writeheader(pr,ENERHDR, 0);
-    
+
     csum = 0.0;
     for (j = 1; j <= net->Npumps; j++)
     {
@@ -534,7 +534,7 @@ int writeresults(Project *pr)
         }
     }
 
-    // Free allocated memory 
+    // Free allocated memory
     for (j = 0; j < m; j++) free(x[j]);
     free(x);
     return errcode;
@@ -572,7 +572,7 @@ void writenodetable(Project *pr, Pfloat *x)
         if ((rpt->Nodeflag == 1 || node->Rpt) &&
              checklimits(rpt, y, ELEV, QUALITY))
         {
-            // Check if new page needed 
+            // Check if new page needed
             if (rpt->LineNum == (long)rpt->PageSize) writeheader(pr, NODEHDR, 1);
 
             // Add node ID and each reported field to string s
@@ -618,7 +618,7 @@ void writelinktable(Project *pr, Pfloat *x)
     double y[MAXVAR];
     double *Ucf = pr->Ucf;
     Slink *Link = net->Link;
-    
+
     // Write table header
     writeheader(pr, LINKHDR, 0);
 
@@ -686,7 +686,7 @@ void writeheader(Project *pr, int type, int contin)
     Quality *qual = &pr->quality;
     Parser  *parser = &pr->parser;
     Times   *time = &pr->times;
-  
+
     char s[MAXLINE + 1], s1[MAXLINE + 1], s2[MAXLINE + 1], s3[MAXLINE + 1];
     int i, n;
 
@@ -697,7 +697,7 @@ void writeheader(Project *pr, int type, int contin)
     }
     writeline(pr, " ");
 
-    // Hydraulic Status Table 
+    // Hydraulic Status Table
     if (type == STATHDR)
     {
         sprintf(s, FMT49);
@@ -737,12 +737,12 @@ void writeheader(Project *pr, int type, int contin)
         else sprintf(s, FMT78, clocktime(rpt->Atime, time->Htime));
         if (contin) strcat(s, t_CONTINUED);
         writeline(pr, s);
-        
+
         n = 15;
         sprintf(s2, "%15s", "");
         strcpy(s, t_NODEID);
         sprintf(s3, "%-15s", s);
-    
+
         for (i = ELEV; i < QUALITY; i++)
         {
             if (rpt->Field[i].Enabled == TRUE)
@@ -846,7 +846,7 @@ void writerelerr(Project *pr, int iter, double relerr)
 {
     Report *rpt = &pr->report;
     Times *time = &pr->times;
-  
+
     if (iter == 0)
     {
         sprintf(pr->Msg, FMT64, clocktime(rpt->Atime, time->Htime));
@@ -878,7 +878,7 @@ void writestatchange(Project *pr, int k, char s1, char s2)
     double *Ucf = pr->Ucf;
     double *LinkSetting = hyd->LinkSetting;
     Slink *Link = net->Link;
-  
+
     // We have a pump/valve setting change instead of a status change
     if (s1 == s2)
     {
@@ -934,7 +934,7 @@ void writecontrolaction(Project *pr, int k, int i)
     Snode *Node = net->Node;
     Slink *Link = net->Link;
     Scontrol *Control = net->Control;
-  
+
     switch (Control[i].Type)
     {
       case LOWLEVEL:
@@ -944,7 +944,7 @@ void writecontrolaction(Project *pr, int k, int i)
                 LinkTxt[Link[k].Type], Link[k].ID,
                 NodeTxt[getnodetype(net, n)], Node[n].ID);
         break;
-      
+
       case TIMER:
       case TIMEOFDAY:
         sprintf(pr->Msg, FMT55, clocktime(rpt->Atime, time->Htime),
@@ -1001,7 +1001,7 @@ int writehydwarn(Project *pr, int iter, double relerr)
 
     int i, j;
     char flag = 0;
-    char s; 
+    int s;
     Snode *Node = net->Node;
     Slink *Link = net->Link;
     Spump *Pump = net->Pump;
@@ -1010,7 +1010,7 @@ int writehydwarn(Project *pr, int iter, double relerr)
     double *NodeDemand = hyd->NodeDemand;
     double *LinkFlow = hyd->LinkFlow;
     double *LinkSetting = hyd->LinkSetting;
-  
+
     // Check if system unstable
     if (iter > hyd->MaxIter && relerr <= hyd->Hacc)
     {
@@ -1046,19 +1046,19 @@ int writehydwarn(Project *pr, int iter, double relerr)
         }
     }
 
-    // Check for abnormal pump condition 
+    // Check for abnormal pump condition
     for (i = 1; i <= net->Npumps; i++)
     {
         j = Pump[i].Link;
-        s = hyd->LinkStatus[j];         
-        if (hyd->LinkStatus[j] >= OPEN) 
-        {                               
-            if (LinkFlow[j] > LinkSetting[j] * Pump[i].Qmax) s = XFLOW; 
-            if (LinkFlow[j] < 0.0) s = XHEAD;                
-        }                             
-        if (s == XHEAD || s == XFLOW) 
+        s = hyd->LinkStatus[j];
+        if (hyd->LinkStatus[j] >= OPEN)
         {
-            sprintf(pr->Msg, WARN04, Link[j].ID, StatTxt[s], 
+            if (LinkFlow[j] > LinkSetting[j] * Pump[i].Qmax) s = XFLOW;
+            if (LinkFlow[j] < 0.0) s = XHEAD;
+        }
+        if (s == XHEAD || s == XFLOW)
+        {
+            sprintf(pr->Msg, WARN04, Link[j].ID, StatTxt[s],
                     clocktime(rpt->Atime, time->Htime));
             if (rpt->Messageflag) writeline(pr, pr->Msg);
             flag = 4;
@@ -1098,7 +1098,7 @@ void writehyderr(Project *pr, int errnode)
     Times   *time = &pr->times;
 
     Snode *Node = net->Node;
-  
+
     sprintf(pr->Msg, FMT62, clocktime(rpt->Atime, time->Htime),
             Node[errnode].ID);
     if (rpt->Messageflag) writeline(pr, pr->Msg);
@@ -1218,7 +1218,7 @@ void marknodes(Project *pr, int m, int *nodelist, char *marked)
 
     int i, j, k, n;
     Padjlist alink;
-  
+
     // Scan each successive entry of node list
     n = 1;
     while (n <= m)
@@ -1232,7 +1232,7 @@ void marknodes(Project *pr, int m, int *nodelist, char *marked)
             j = alink->node;
             if (marked[j]) continue;
 
-            // Check if valve connection is in correct direction 
+            // Check if valve connection is in correct direction
             switch (net->Link[k].Type)
             {
               case CVPIPE:
@@ -1299,7 +1299,7 @@ void writelimits(Project *pr, int j1, int j2)
 {
     Report *rpt = &pr->report;
     int j;
-  
+
     for (j = j1; j <= j2; j++)
     {
         if (rpt->Field[j].RptLim[LOW] < BIG)
