@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 01/01/2019
  ******************************************************************************
 */
 
@@ -60,8 +60,8 @@ int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
     else                pr->outfile.Outflag = SCRATCH;
 
     // Check that file names are not identical
-    if (strcomp(f1, f2) || strcomp(f1, f3) ||
-        (strcomp(f2, f3) && (strlen(f2) > 0 || strlen(f3) > 0))) return 301;
+    if (strlen(f1) > 0 && (strcomp(f1, f2) || strcomp(f1, f3))) return 301;
+    if (strlen(f3) > 0 && strcomp(f2, f3)) return 301;
 
     // Attempt to open input and report files
     if (strlen(f1) > 0)
@@ -69,7 +69,12 @@ int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
         if ((pr->parser.InFile = fopen(f1, "rt")) == NULL) return 302;
     }
     if (strlen(f2) == 0) pr->report.RptFile = stdout;
-    else if ((pr->report.RptFile = fopen(f2, "wt")) == NULL) return 303;
+    else
+    {
+        pr->report.RptFile = fopen(f2, "wt");
+        if (pr->report.RptFile == NULL) return 303;
+    }
+    writelogo(pr);
     return 0;
 }
 
@@ -146,7 +151,7 @@ int openhydfile(Project *pr)
         if (version != ENGINE_VERSION) return 306;
         if (fread(nsize, sizeof(INT4), 6, pr->outfile.HydFile) < 6) return 306;
         if (nsize[0] != Nnodes || nsize[1] != Nlinks || nsize[2] != Ntanks ||
-            nsize[3] != Npumps || nsize[4] != Nvalves || 
+            nsize[3] != Npumps || nsize[4] != Nvalves ||
             nsize[5] != pr->times.Dur
            ) return 306;
         pr->outfile.SaveHflag = TRUE;
@@ -182,7 +187,7 @@ int openoutfile(Project *pr)
     }
 
     // If output file name was supplied, then attempt to
-    // open it. Otherwise open a temporary output file. 
+    // open it. Otherwise open a temporary output file.
     if (pr->outfile.Outflag == SAVE)
     {
         pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
@@ -300,7 +305,7 @@ int allocdata(Project *pr)
         ERRCODE(MEMCHECK(pr->quality.NodeQual));
     }
 
-    // Allocate memory for network links 
+    // Allocate memory for network links
     if (!errcode)
     {
         n = pr->parser.MaxLinks + 1;
@@ -349,7 +354,7 @@ int allocdata(Project *pr)
         for (n = 0; n <= pr->parser.MaxCurves; n++)
         {
             pr->network.Curve[n].Npts = 0;
-            pr->network.Curve[n].Type = G_CURVE;
+            pr->network.Curve[n].Type = GENERIC_CURVE;
             pr->network.Curve[n].X = NULL;
             pr->network.Curve[n].Y = NULL;
         }
@@ -437,7 +442,7 @@ void freedata(Project *pr)
                 free(demand);
                 demand = nextdemand;
             }
-            // Free memory used for WQ source data 
+            // Free memory used for WQ source data
             source = pr->network.Node[j].S;
             if (source != NULL) free(source);
         }
@@ -574,7 +579,6 @@ int incontrols(Project *pr, int objType, int index)
 */
 {
     Network *net = &pr->network;
-    Rules *rules = &pr->rules;
 
     int i, ruleObject;
     Spremise *premise;
@@ -620,6 +624,65 @@ int incontrols(Project *pr, int objType, int index)
                 if (action->link == index) return 1;
                 action = action->next;
             }
+        }
+    }
+    return 0;
+}
+
+int valvecheck(Project *pr, int type, int j1, int j2)
+/*
+**--------------------------------------------------------------
+**  Input:   type = valve type
+**           j1   = index of upstream node
+**           j2   = index of downstream node
+**  Output:  returns an error code
+**  Purpose: checks for illegal connections between valves
+**--------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+
+    int k, vj1, vj2;
+    LinkType vtype;
+    Slink *link;
+    Svalve *valve;
+
+    if (type == PRV || type == PSV || type == FCV)
+    {
+        // Can't be connected to a fixed grade node
+        if (j1 > net->Njuncs || j2 > net->Njuncs) return 219;
+
+        // Examine each existing valve
+        for (k = 1; k <= net->Nvalves; k++)
+        {
+            valve = &net->Valve[k];
+            link = &net->Link[valve->Link];
+            vj1 = link->N1;
+            vj2 = link->N2;
+            vtype = link->Type;
+
+            // Cannot have two PRVs sharing downstream nodes or in series
+            if (vtype == PRV && type == PRV)
+            {
+                if (vj2 == j2 || vj2 == j1 || vj1 == j2) return 220;
+            }
+
+            // Cannot have two PSVs sharing upstream nodes or in series
+            if (vtype == PSV && type == PSV)
+            {
+                if (vj1 == j1 || vj1 == j2 || vj2 == j1) return 220;
+            }
+
+            // Cannot have PSV connected to downstream node of PRV
+            if (vtype == PSV && type == PRV && vj1 == j2) return 220;
+            if (vtype == PRV && type == PSV && vj2 == j1) return 220;
+
+            // Cannot have PSV connected to downstream node of FCV
+            // nor have PRV connected to upstream node of FCV
+            if (vtype == FCV && type == PSV && vj2 == j1) return 220;
+            if (vtype == FCV && type == PRV && vj1 == j2) return 220;
+            if (vtype == PSV && type == FCV && vj1 == j2) return 220;
+            if (vtype == PRV && type == FCV && vj2 == j1) return 220;
         }
     }
     return 0;
@@ -768,7 +831,7 @@ double interp(int n, double x[], double y[], double xx)
     double dx, dy;
 
     m = n - 1;                        // Highest data index
-    if (xx <= x[0]) return (y[0]);    // xx off low end of curve 
+    if (xx <= x[0]) return (y[0]);    // xx off low end of curve
     for (k = 1; k <= m; k++)          // Bracket xx on curve
     {
         if (x[k] >= xx)               // Interp. over interval
@@ -791,11 +854,14 @@ char *geterrmsg(int errcode, char *msg)
 **----------------------------------------------------------------
 */
 {
-    switch (errcode) { /* Warnings */
-//#define DAT(code,enumer,string) case code: strcpy(msg, string); break;
-#define DAT(code,enumer,string) case code: sprintf(msg, "Error %d: %s", code, string); break;
+    switch (errcode)
+    {
+
+//#define DAT(code,string) case code: sprintf(msg, "%s", string); break;
+#define DAT(code,string) case code: strcpy(msg, string); break;
 #include "errors.dat"
 #undef DAT
+
     default:
         strcpy(msg, "");
     }
@@ -810,13 +876,15 @@ void errmsg(Project *pr, int errcode)
 **----------------------------------------------------------------
 */
 {
+    char errmsg[MAXMSG + 1] = "";
     if (errcode == 309) /* Report file write error -  */
     {                   /* Do not write msg to file.  */
 
     }
-    else if (pr->report.RptFile != NULL && pr->report.Messageflag)
+    else if (pr->report.RptFile != NULL && pr->report.Messageflag && errcode > 100)
     {
-        writeline(pr, geterrmsg(errcode, pr->Msg));
+        sprintf(pr->Msg, "Error %d: %s", errcode, geterrmsg(errcode, errmsg));
+        writeline(pr, pr->Msg);
     }
 }
 

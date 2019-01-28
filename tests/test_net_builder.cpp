@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     int flag = 00;
     long t, tstep;
     int i, ind, Lindex, Nindex, Cindex;
-    float h_orig, h_build, h_build_loaded;
+    double h_orig, h_build, h_build_loaded;
 
     // first we load Net1.inp, run it and record the head in Tank 2 at the end of the simulation (h_orig)
     EN_Project ph = NULL;
@@ -80,13 +80,13 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     // ------------------------------------------------------------------------
     // now we build Net1 from scratch...
     char juncs[9][10] = { "10", "11", "12", "13", "21", "22", "23", "31", "32" };
-    float e[9] = {710, 710, 700, 695, 700, 695, 690, 700, 710};
-    float d[9] = {0, 150, 150, 100, 150, 200, 150, 100, 100 };
-    float X[9] = {20, 30, 50, 70, 30, 50, 70, 30, 50};
-    float Y[9] = {70, 70, 70, 70, 40, 40, 40, 10, 10 };
-    float L[12] = {10530, 5280, 5280, 5280, 5280, 5280, 200, 5280, 5280, 5280, 5280, 5280};
-    float dia[12] = { 18, 14, 10, 10, 12, 6, 18, 10, 12, 8, 8, 6 };
-    float P[12] = { 1.0f, 1.2f, 1.4f, 1.6f, 1.4f, 1.2f, 1.0f, 0.8f, 0.6f, 0.4f, 0.6f, 0.8f };
+    double e[9] = {710, 710, 700, 695, 700, 695, 690, 700, 710};
+    double d[9] = {0, 150, 150, 100, 150, 200, 150, 100, 100 };
+    double X[9] = {20, 30, 50, 70, 30, 50, 70, 30, 50};
+    double Y[9] = {70, 70, 70, 70, 40, 40, 40, 10, 10 };
+    double L[12] = {10530, 5280, 5280, 5280, 5280, 5280, 200, 5280, 5280, 5280, 5280, 5280};
+    double dia[12] = { 18, 14, 10, 10, 12, 6, 18, 10, 12, 8, 8, 6 };
+    double P[12] = { 1.0f, 1.2f, 1.4f, 1.6f, 1.4f, 1.2f, 1.0f, 0.8f, 0.6f, 0.4f, 0.6f, 0.8f };
 
     error = EN_createproject(&ph);
     error = EN_init(ph, "net.rpt", "net.out", EN_GPM, EN_HW);
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     BOOST_REQUIRE(error == 0);
     error = EN_setpattern(ph, 1, P, 12);
     BOOST_REQUIRE(error == 0);
-    error = EN_setoption(ph, EN_DEMANDDEFPAT, 1);
+    error = EN_setoption(ph, EN_DEFDEMANDPAT, 1);
     BOOST_REQUIRE(error == 0);
     for (i = 0; i < 9; i++)
     {
@@ -187,9 +187,9 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     BOOST_REQUIRE(error == 0);
 
     // Add controls
-    error = EN_addcontrol(ph, &Cindex, EN_LOWLEVEL, Lindex, 1, Nindex, 110);
+    error = EN_addcontrol(ph, EN_LOWLEVEL, Lindex, 1, Nindex, 110, &Cindex);
     BOOST_REQUIRE(error == 0);
-    error = EN_addcontrol(ph, &Cindex, EN_HILEVEL, Lindex, 0, Nindex, 140);
+    error = EN_addcontrol(ph, EN_HILEVEL, Lindex, 0, Nindex, 140, &Cindex);
     BOOST_REQUIRE(error == 0);
 
     error = EN_openH(ph);
@@ -250,10 +250,10 @@ BOOST_AUTO_TEST_CASE(test_net_builder)
     // if we got this far we can compare results
 
     // compare the original to the build & saved network
-    BOOST_REQUIRE(h_orig == h_build_loaded);
+    BOOST_REQUIRE(abs(h_orig - h_build_loaded) < 0.0001);
 
     // compare the original to the build without saving
-    BOOST_REQUIRE(h_orig == h_build); // this seems to fail :(
+    BOOST_REQUIRE(abs(h_orig - h_build) < 0.0001); 
 
 }
 

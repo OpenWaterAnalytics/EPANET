@@ -301,7 +301,7 @@ BOOST_FIXTURE_TEST_CASE(test_add_control, Fixture)
 {
     int flag = 00;
     long t, tstep;
-    float h1, h2;
+    double h1, h2;
     int Cindex;
 
     // run with original controls
@@ -328,10 +328,10 @@ BOOST_FIXTURE_TEST_CASE(test_add_control, Fixture)
     BOOST_REQUIRE(error == 0);
 
     // add new controls
-    error = EN_addcontrol(ph, &Cindex, 0, 13, 1, 11, 110);
+    error = EN_addcontrol(ph, 0, 13, 1, 11, 110, &Cindex);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(Cindex == 3);
-    error = EN_addcontrol(ph, &Cindex, 1, 13, 0, 11, 140);
+    error = EN_addcontrol(ph, 1, 13, 0, 11, 140, &Cindex);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(Cindex == 4);
 
@@ -352,7 +352,7 @@ BOOST_FIXTURE_TEST_CASE(test_add_control, Fixture)
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
 
-    BOOST_CHECK(h1 == h2); // end head should be the same with new controls
+    BOOST_CHECK(abs(h1 - h2) < 1.e-5); // end head should be the same with new controls
 }
 
 BOOST_AUTO_TEST_SUITE_END()

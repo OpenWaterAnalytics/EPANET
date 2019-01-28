@@ -29,6 +29,7 @@ int     buildadjlists(Network *);
 void    freeadjlists(Network *);
 
 int     incontrols(Project *, int, int);
+int     valvecheck(Project *, int, int, int);
 int     findnode(Network *, char *);
 int     findlink(Network *, char *);
 int     findtank(Network *, int);
@@ -88,7 +89,6 @@ int     statusdata(Project *);
 int     reportdata(Project *);
 int     timedata(Project *);
 int     optiondata(Project *);
-int     valvecheck(Project *, int, int, int);
 
 // ------- RULES.C ------------------
 

@@ -1,12 +1,12 @@
 ::
 ::  run_nrtest.cmd - Runs numerical regression test
-::  
+::
 ::  Date Created: 1/8/2018
 ::
 ::  Author: Michael E. Tryby
 ::          US EPA - ORD/NRMRL
 ::
-::  Arguments: 
+::  Arguments:
 ::    1 - nrtest script path
 ::    2 - test suite path
 ::    3 - version/build identifier
@@ -18,7 +18,7 @@ setlocal
 set NRTEST_SCRIPT_PATH=%~1
 set TEST_SUITE_PATH=%~2
 
-set BENCHMARK_VER=220dev4
+set BENCHMARK_VER=220dev5
 
 
 set NRTEST_EXECUTE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest execute

@@ -771,10 +771,18 @@ void  pumpcoeff(Project *pr, int k)
         return;
     }
 
-    // Obtain reference to pump object & its speed setting
+    // Obtain reference to pump object
     q = ABS(hyd->LinkFlow[k]);
     p = findpump(&pr->network, k);
     pump = &pr->network.Pump[p];
+
+    // If no pump curve treat pump as an open valve
+    if (pump->Ptype == NOCURVE)
+    {
+        hyd->P[k] = 1.0 / CSMALL;
+        hyd->Y[k] = hyd->LinkFlow[k];
+        return;
+    }
 
     // Get pump curve coefficients for custom pump curve
     // (Other pump types have pre-determined coeffs.)

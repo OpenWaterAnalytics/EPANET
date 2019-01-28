@@ -100,6 +100,8 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     // Initialize status checking & relaxation factor
     nextcheck = hyd->CheckFreq;
     hyd->RelaxFactor = 1.0;
+    hydbal.maxheaderror = 0.0;
+    hydbal.maxflowchange = 0.0;
 
     // Repeat iterations until convergence or trial limit is exceeded.
     // (ExtraIter used to increase trials in case of status cycling.)
@@ -121,7 +123,7 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
         // Matrix ill-conditioning problem - if control valve causing problem,
         // fix its status & continue, otherwise quit with no solution.
         if (errcode > 0)
-        {                      
+        {
             if (badvalve(pr, sm->Order[errcode])) continue;
             else break;
         }
@@ -360,7 +362,6 @@ double newflows(Project *pr, Hydbalance *hbal)
 **----------------------------------------------------------------
 */
 {
-    Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
 
     double  dqsum,                 // Network flow change

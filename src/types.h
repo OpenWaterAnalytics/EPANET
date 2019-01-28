@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 01/01/2019
  ******************************************************************************
 */
 
@@ -157,11 +157,11 @@ typedef enum {
 } QualType;
 
 typedef enum {
-  V_CURVE,       // volume curve
-  P_CURVE,       // pump curve
-  E_CURVE,       // efficiency curve
-  H_CURVE,       // head loss curve
-  G_CURVE        // general\default curve
+  VOLUME_CURVE,  // volume curve
+  PUMP_CURVE,    // pump curve
+  EFFIC_CURVE,   // efficiency curve
+  HLOSS_CURVE,   // head loss curve
+  GENERIC_CURVE  // generic curve
 } CurveType;
 
 typedef enum {
@@ -384,7 +384,7 @@ typedef struct             // Node Object
   Psource  S;              // source pointer
   double   C0;             // initial quality
   double   Ke;             // emitter coeff.
-  char     Rpt;            // reporting flag
+  int      Rpt;            // reporting flag
   NodeType Type;           // node type
   char Comment[MAXMSG+1];  // node comment
 } Snode;
@@ -405,7 +405,7 @@ typedef struct             // Link Object
   double   Qa;             // low flow limit
   LinkType Type;           // link type
   StatusType Status;       // initial status
-  char Rpt;                // reporting flag
+  int      Rpt;            // reporting flag
   char Comment[MAXMSG+1];  // link Comment
 } Slink;
 
@@ -466,7 +466,7 @@ typedef struct             // Field Object of Report Table
 {
     char   Name[MAXID+1];  // name of reported variable
     char   Units[MAXID+1]; // units of reported variable
-    char   Enabled;        // enabled if in table
+    int    Enabled;        // enabled if in table
     int    Precision;      // number of decimal places
     double RptLim[2];      // lower/upper report limits
 } SField;
@@ -544,9 +544,6 @@ typedef struct {
   FILE *InFile;            // Input file handle
   
   char
-    Unitsflag,             // Unit system flag
-    Flowflag,              // Flow units flag
-    Pressflag,             // Pressure units flag
     DefPatID[MAXID+1],     // Default demand pattern ID
     InpFname[MAXFNAME+1],  // Input file name
     *Tok[MAXTOKS],         // Array of token strings
@@ -565,7 +562,11 @@ typedef struct {
     MaxPats,               // Pattern count "   "     "
     MaxCurves,             // Curve count   "   "     "
     Ntokens,               // Number of tokens in line of input
-    Ntitle;                // Number of title lines
+    Ntitle,                // Number of title lines
+    ErrTok,                // Index of error-producing token
+    Unitsflag,             // Unit system flag
+    Flowflag,              // Flow units flag
+    Pressflag;             // Pressure units flag
   
   STmplist 
     *Patlist,              // Temporary time pattern list
@@ -604,13 +605,7 @@ typedef struct {
   
   int
     Nperiods,              // Number of reporting periods
-    PageSize;              // Lines/page in output report/
-
-  long
-    LineNum,               // Current line number
-    PageNum;               // Current page number
-  
-  char
+    PageSize,              // Lines/page in output report/
     Rptflag,               // Report flag
     Tstatflag,             // Report time series statistic flag
     Summaryflag,           // Report summary flag
@@ -619,11 +614,17 @@ typedef struct {
     Energyflag,            // Energy report flag
     Nodeflag,              // Node report flag
     Linkflag,              // Link report flag
+    Fprinterr;             // File write error flag
+
+  long
+    LineNum,               // Current line number
+    PageNum;               // Current page number
+  
+  char
     Atime[13],             // Clock time (hrs:min:sec)
     Rpt1Fname[MAXFNAME+1], // Primary report file name
     Rpt2Fname[MAXFNAME+1], // Secondary report file name
-    DateStamp[26],         // Current date & time
-    Fprinterr;             // File write error flag
+    DateStamp[26];         // Current date & time
   
   SField   Field[MAXVAR];  // Output reporting fields
 
@@ -634,7 +635,9 @@ typedef struct {
 
   char
     HydFname[MAXFNAME+1],  // Hydraulics file name
-    OutFname[MAXFNAME+1],  // Binary output file name
+    OutFname[MAXFNAME+1];  // Binary output file name
+    
+  int
     Outflag,               // Output file flag
     Hydflag,               // Hydraulics flag
     SaveHflag,             // Hydraulic results saved flag
@@ -731,22 +734,20 @@ typedef struct {
     DefPat,                // Default demand pattern
     Epat,                  // Energy cost time pattern
     DemandModel,           // Fixed or pressure dependent
+    Formflag,              // Head loss formula flag
     Iterations,            // Number of hydraulic trials taken
     MaxIter,               // Max. hydraulic trials allowed
     ExtraIter,             // Extra hydraulic trials
     CheckFreq,             // Hydraulic trials between status checks
     MaxCheck,              // Hydraulic trials limit on status checks
+    OpenHflag,             // Hydraulic system opened flag
     Haltflag;              // Flag to halt simulation
 
   StatusType  
     *LinkStatus,           // Link status
     *OldStatus;            // Previous link/tank status
   
-  char
-    OpenHflag,             // Hydraulic system opened flag
-    Formflag;              // Head loss formula flag
-                         
-  Smatrix smatrix;       // Sparse matrix storage
+  Smatrix smatrix;         // Sparse matrix storage
 
 } Hydraul;
 
@@ -756,19 +757,17 @@ struct Mempool;
 // Water Quality Solver Wrapper
 typedef struct {
 
-  char
+  int
     Qualflag,              // Water quality analysis flag
     OpenQflag,             // Quality system opened flag
     Reactflag,             // Reaction indicator 
-    OutOfMemory;           // Out of memory indicator
+    OutOfMemory,           // Out of memory indicator
+    TraceNode,             // Source node for flow tracing
+    *SortedNodes;          // Topologically sorted node indexes
 
   char
     ChemName[MAXID + 1],   // Name of chemical
     ChemUnits[MAXID + 1];  // Units of chemical
-
-  int
-    TraceNode,             // Source node for flow tracing
-    *SortedNodes;          // Topologically sorted node indexes
 
   double
     Ctol,                  // Water quality tolerance
@@ -853,9 +852,11 @@ typedef struct Project {
   
   double Ucf[MAXVAR];            // Unit conversion factors
   
-  char
+  int
     Openflag,                    // Project open flag
-    Warnflag,                    // Warning flag
+    Warnflag;                    // Warning flag
+    
+  char
     Msg[MAXMSG+1],               // General-purpose string: errors, messages
     Title[MAXTITLE][TITLELEN+1], // Project title
     MapFname[MAXFNAME+1],        // Map file name
