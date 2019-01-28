@@ -237,7 +237,7 @@ int DLLEXPORT rprt_getcount(Handle ph, EN_CountType code, int *count)
     return error_set(pr->error, EN_getcount(pr->project, code, count));
 }
 
-int DLLEXPORT rprt_anlysstats(Handle ph, EN_AnalysisStatistic code, EN_API_FLOAT_TYPE* value)
+int DLLEXPORT rprt_anlysstats(Handle ph, EN_AnalysisStatistic code, double* value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getstatistic(pr->project, code, value));
@@ -246,13 +246,13 @@ int DLLEXPORT rprt_anlysstats(Handle ph, EN_AnalysisStatistic code, EN_API_FLOAT
 
 
 
-int DLLEXPORT anlys_getoption(Handle ph, EN_Option code, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT anlys_getoption(Handle ph, EN_Option code, double *value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getoption(pr->project, code, value));
 }
 
-int DLLEXPORT anlys_setoption(Handle ph, EN_Option code, EN_API_FLOAT_TYPE value)
+int DLLEXPORT anlys_setoption(Handle ph, EN_Option code, double value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setoption(pr->project, code, value));
@@ -339,25 +339,25 @@ int DLLEXPORT node_gettype(Handle ph, int index, int *code)
     return error_set(pr->error, EN_getnodetype(pr->project, index, code));
 }
 
-int DLLEXPORT node_getvalue(Handle ph, int index, EN_NodeProperty code, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT node_getvalue(Handle ph, int index, EN_NodeProperty code, double *value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getnodevalue(pr->project, index, code, value));
 }
 
-int DLLEXPORT node_setvalue(Handle ph, int index, EN_NodeProperty code, EN_API_FLOAT_TYPE value)
+int DLLEXPORT node_setvalue(Handle ph, int index, EN_NodeProperty code, double value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setnodevalue(pr->project, index, code, value));
 }
 
-int DLLEXPORT node_getcoord(Handle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+int DLLEXPORT node_getcoord(Handle ph, int index, double *x, double *y)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getcoord(pr->project, index, x, y));
 }
 
-int DLLEXPORT node_setcoord(Handle ph, int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
+int DLLEXPORT node_setcoord(Handle ph, int index, double x, double y)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setcoord(pr->project, index, x, y));
@@ -366,13 +366,13 @@ int DLLEXPORT node_setcoord(Handle ph, int index, EN_API_FLOAT_TYPE x, EN_API_FL
 
 
 
-int DLLEXPORT dmnd_getmodel(Handle ph, int *type, EN_API_FLOAT_TYPE *pmin, EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp)
+int DLLEXPORT dmnd_getmodel(Handle ph, int *type, double *pmin, double *preq, double *pexp)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getdemandmodel(pr->project, type, pmin, preq, pexp));
 }
 
-int DLLEXPORT dmnd_setmodel(Handle ph, int type, EN_API_FLOAT_TYPE pmin, EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp)
+int DLLEXPORT dmnd_setmodel(Handle ph, int type, double pmin, double preq, double pexp)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setdemandmodel(pr->project, type, pmin, preq, pexp));
@@ -384,13 +384,13 @@ int DLLEXPORT dmnd_getcount(Handle ph, int nodeIndex, int *numDemands)
     return error_set(pr->error, EN_getnumdemands(pr->project, nodeIndex, numDemands));
 }
 
-int DLLEXPORT dmnd_getbase(Handle ph, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand)
+int DLLEXPORT dmnd_getbase(Handle ph, int nodeIndex, int demandIndex, double *baseDemand)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getbasedemand(pr->project, nodeIndex, demandIndex, baseDemand));
 }
 
-int DLLEXPORT dmnd_setbase(Handle ph, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE baseDemand)
+int DLLEXPORT dmnd_setbase(Handle ph, int nodeIndex, int demandIndex, double baseDemand)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setbasedemand(pr->project, nodeIndex, demandIndex, baseDemand));
@@ -477,13 +477,13 @@ int DLLEXPORT link_setnodes(Handle ph, int index, int node1, int node2)
     return error_set(pr->error, EN_setlinknodes(pr->project, index, node1, node2));
 }
 
-int DLLEXPORT link_getvalue(Handle ph, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT link_getvalue(Handle ph, int index, EN_LinkProperty code, double *value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getlinkvalue(pr->project, index, code, value));
 }
 
-int DLLEXPORT link_setvalue(Handle ph, int index, int code, EN_API_FLOAT_TYPE value)
+int DLLEXPORT link_setvalue(Handle ph, int index, int code, double value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setlinkvalue(pr->project, index, code, value));
@@ -537,25 +537,25 @@ int DLLEXPORT ptrn_getlength(Handle ph, int index, int *len)
     return error_set(pr->error, EN_getpatternlen(pr->project, index, len));
 }
 
-int DLLEXPORT ptrn_getvalue(Handle ph, int index, int period, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT ptrn_getvalue(Handle ph, int index, int period, double *value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getpatternvalue(pr->project, index, period, value));
 }
 
-int DLLEXPORT ptrn_setvalue(Handle ph, int index, int period, EN_API_FLOAT_TYPE value)
+int DLLEXPORT ptrn_setvalue(Handle ph, int index, int period, double value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setpatternvalue(pr->project, index, period, value));
 }
 
-int DLLEXPORT ptrn_getavgvalue(Handle ph, int index, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT ptrn_getavgvalue(Handle ph, int index, double *value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getaveragepatternvalue(pr->project, index, value));
 }
 
-int DLLEXPORT ptrn_set(Handle ph, int index, EN_API_FLOAT_TYPE *values, int len)
+int DLLEXPORT ptrn_set(Handle ph, int index, double *values, int len)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setpattern(pr->project, index, values, len));
@@ -594,25 +594,25 @@ int DLLEXPORT curv_gettype(Handle ph, int index, int *type)
     return error_set(pr->error, EN_getcurvetype(pr->project, index, type));
 }
 
-int DLLEXPORT curv_getvalue(Handle ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+int DLLEXPORT curv_getvalue(Handle ph, int curveIndex, int pointIndex, double *x, double *y)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getcurvevalue(pr->project, curveIndex, pointIndex, x, y));
 }
 
-int DLLEXPORT curv_setvalue(Handle ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
+int DLLEXPORT curv_setvalue(Handle ph, int curveIndex, int pointIndex, double x, double y)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setcurvevalue(pr->project, curveIndex, pointIndex, x, y));
 }
 
-int DLLEXPORT curv_get(Handle ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
+int DLLEXPORT curv_get(Handle ph, int curveIndex, char* id, int *nValues, double **xValues, double **yValues)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getcurve(pr->project, curveIndex, id, nValues, xValues, yValues));
 }
 
-int DLLEXPORT curv_set(Handle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len)
+int DLLEXPORT curv_set(Handle ph, int index, double *x, double *y, int len)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setcurve(pr->project, index, x, y, len));
@@ -633,13 +633,13 @@ int DLLEXPORT scntl_delete(Handle ph, int index)
     return error_set(pr->error, EN_deletecontrol(pr->project, index));
 }
 
-int DLLEXPORT scntl_get(Handle ph, int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level)
+int DLLEXPORT scntl_get(Handle ph, int controlIndex, int *controlType, int *linkIndex, double *setting, int *nodeIndex, double *level)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getcontrol(pr->project, controlIndex, controlType, linkIndex, setting, nodeIndex, level));
 }
 
-int DLLEXPORT scntl_set(Handle ph, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level)
+int DLLEXPORT scntl_set(Handle ph, int cindex, int ctype, int lindex, double setting, int nindex, double level)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setcontrol(pr->project, cindex, ctype, lindex, setting, nindex, level));
@@ -660,7 +660,7 @@ int DLLEXPORT rcntl_delete(Handle ph, int index)
     return error_set(pr->error, EN_deleterule(pr->project, index));
 }
 
-int DLLEXPORT rcntl_get(Handle ph, int index, int *nPremises, int *nThenActions, int *nElseActions, EN_API_FLOAT_TYPE *priority)
+int DLLEXPORT rcntl_get(Handle ph, int index, int *nPremises, int *nThenActions, int *nElseActions, double *priority)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getrule(pr->project, index, nPremises, nThenActions, nElseActions, priority));
@@ -672,13 +672,13 @@ int DLLEXPORT rcntl_getid(Handle ph, int index, char *id)
     return error_set(pr->error, EN_getruleID(pr->project, index, id));
 }
 
-int DLLEXPORT rcntl_getpremise(Handle ph, int ruleIndex, int premiseIndex, int *logop, int *object, int *objIndex, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value)
+int DLLEXPORT rcntl_getpremise(Handle ph, int ruleIndex, int premiseIndex, int *logop, int *object, int *objIndex, int *variable, int *relop, int *status, double *value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getpremise(pr->project, ruleIndex, premiseIndex, logop, object, objIndex, variable, relop, status, value));
 }
 
-int DLLEXPORT rcntl_setpremise(Handle ph, int ruleIndex, int premiseIndex, int logop, int object, int objIndex, int variable, int relop, int status, EN_API_FLOAT_TYPE value)
+int DLLEXPORT rcntl_setpremise(Handle ph, int ruleIndex, int premiseIndex, int logop, int object, int objIndex, int variable, int relop, int status, double value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setpremise(pr->project, ruleIndex, premiseIndex, logop, object, objIndex, variable, relop, status, value));
@@ -696,37 +696,37 @@ int DLLEXPORT rcntl_setpremisestatus(Handle ph, int ruleIndex, int premiseIndex,
     return error_set(pr->error, EN_setpremisestatus(pr->project, ruleIndex, premiseIndex, status));
 }
 
-int DLLEXPORT rcntl_setpremisevalue(Handle ph, int ruleIndex, int premiseIndex, EN_API_FLOAT_TYPE value)
+int DLLEXPORT rcntl_setpremisevalue(Handle ph, int ruleIndex, int premiseIndex, double value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setpremisevalue(pr->project, ruleIndex, premiseIndex, value));
 }
 
-int DLLEXPORT rcntl_getthenaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, EN_API_FLOAT_TYPE *setting)
+int DLLEXPORT rcntl_getthenaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, double *setting)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getthenaction(pr->project, ruleIndex, actionIndex, linkIndex, status, setting));
 }
 
-int DLLEXPORT rcntl_setthenaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, EN_API_FLOAT_TYPE setting)
+int DLLEXPORT rcntl_setthenaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, double setting)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setthenaction(pr->project, ruleIndex, actionIndex, linkIndex, status, setting));
 }
 
-int DLLEXPORT rcntl_getelseaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, EN_API_FLOAT_TYPE *setting)
+int DLLEXPORT rcntl_getelseaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, double *setting)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getelseaction(pr->project, ruleIndex, actionIndex, linkIndex, status, setting));
 }
 
-int DLLEXPORT rcntl_setelseaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, EN_API_FLOAT_TYPE setting)
+int DLLEXPORT rcntl_setelseaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, double setting)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setelseaction(pr->project, ruleIndex, actionIndex, linkIndex, status, setting));
 }
 
-int DLLEXPORT rcntl_setrulepriority(Handle ph, int index, EN_API_FLOAT_TYPE priority)
+int DLLEXPORT rcntl_setrulepriority(Handle ph, int index, double priority)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_setrulepriority(pr->project, index, priority));

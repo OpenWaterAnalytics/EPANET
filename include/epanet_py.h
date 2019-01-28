@@ -16,16 +16,11 @@
 #define EPANET_PY_H
 
 
-#ifndef EN_API_FLOAT_TYPE
-  #define EN_API_FLOAT_TYPE double
-#endif
-
 // Opaque pointer to project
 typedef void *Handle;
 
 
 #include "epanet2_enums.h"
-
 #include "epanet2_export.h"
 
 
@@ -69,11 +64,11 @@ int DLLEXPORT rprt_reset(Handle ph);
 int DLLEXPORT rprt_set(Handle ph, char *reportCommand);
 int DLLEXPORT rprt_setlevel(Handle ph, EN_StatusReport code);
 int DLLEXPORT rprt_getcount(Handle ph, EN_CountType code, int *count);
-int DLLEXPORT rprt_anlysstats(Handle ph, EN_AnalysisStatistic code, EN_API_FLOAT_TYPE* value);
+int DLLEXPORT rprt_anlysstats(Handle ph, EN_AnalysisStatistic code, double* value);
 
 
-int DLLEXPORT anlys_getoption(Handle ph, EN_Option opt, EN_API_FLOAT_TYPE *value);
-int DLLEXPORT anlys_setoption(Handle ph, int code, EN_API_FLOAT_TYPE value);
+int DLLEXPORT anlys_getoption(Handle ph, EN_Option opt, double *value);
+int DLLEXPORT anlys_setoption(Handle ph, int code, double value);
 int DLLEXPORT anlys_getflowunits(Handle ph, int *code);
 int DLLEXPORT anlys_setflowunits(Handle ph, EN_FlowUnits code);
 int DLLEXPORT anlys_gettimeparam(Handle ph, EN_TimeParameter code, long *value);
@@ -89,17 +84,17 @@ int DLLEXPORT node_getindex(Handle ph, char *id, int *index);
 int DLLEXPORT node_getid(Handle ph, int index, char *id);
 int DLLEXPORT node_setid(Handle ph, int index, char *newid);
 int DLLEXPORT node_gettype(Handle ph, int index, int *code);
-int DLLEXPORT node_getvalue(Handle ph, int index, int code, EN_API_FLOAT_TYPE *value);
-int DLLEXPORT node_setvalue(Handle ph, int index, int code, EN_API_FLOAT_TYPE value);
-int DLLEXPORT node_getcoord(Handle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
-int DLLEXPORT node_setcoord(Handle ph, int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
+int DLLEXPORT node_getvalue(Handle ph, int index, int code, double *value);
+int DLLEXPORT node_setvalue(Handle ph, int index, int code, double value);
+int DLLEXPORT node_getcoord(Handle ph, int index, double *x, double *y);
+int DLLEXPORT node_setcoord(Handle ph, int index, double x, double y);
 
 
-int DLLEXPORT dmnd_getmodel(Handle ph, int *type, EN_API_FLOAT_TYPE *pmin, EN_API_FLOAT_TYPE *preq, EN_API_FLOAT_TYPE *pexp);
-int DLLEXPORT dmnd_setmodel(Handle ph, int type, EN_API_FLOAT_TYPE pmin, EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
+int DLLEXPORT dmnd_getmodel(Handle ph, int *type, double *pmin, double *preq, double *pexp);
+int DLLEXPORT dmnd_setmodel(Handle ph, int type, double pmin, double preq, double pexp);
 int DLLEXPORT dmnd_getcount(Handle ph, int nodeIndex, int *numDemands);
-int DLLEXPORT dmnd_getbase(Handle ph, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE *baseDemand);
-int DLLEXPORT dmnd_setbase(Handle ph, int nodeIndex, int demandIndex, EN_API_FLOAT_TYPE baseDemand);
+int DLLEXPORT dmnd_getbase(Handle ph, int nodeIndex, int demandIndex, double *baseDemand);
+int DLLEXPORT dmnd_setbase(Handle ph, int nodeIndex, int demandIndex, double baseDemand);
 int DLLEXPORT dmnd_getpattern(Handle ph, int nodeIndex, int demandIndex, int *pattIndex);
 int DLLEXPORT dmnd_setpattern(Handle ph, int nodeIndex, int demandIndex, int patIndex);
 int DLLEXPORT dmnd_getname(Handle ph, int nodeIndex, int demandIdx, char *demandName);
@@ -115,8 +110,8 @@ int DLLEXPORT link_gettype(Handle ph, int index, int *code);
 int DLLEXPORT link_settype(Handle ph, int *index, EN_LinkType type, int actionCode);
 int DLLEXPORT link_getnodes(Handle ph, int index, int *node1, int *node2);
 int DLLEXPORT link_setnodes(Handle ph, int index, int node1, int node2);
-int DLLEXPORT link_getvalue(Handle ph, int index, EN_LinkProperty code, EN_API_FLOAT_TYPE *value);
-int DLLEXPORT link_setvalue(Handle ph, int index, int code, EN_API_FLOAT_TYPE v);
+int DLLEXPORT link_getvalue(Handle ph, int index, EN_LinkProperty code, double *value);
+int DLLEXPORT link_setvalue(Handle ph, int index, int code, double v);
 
 
 int DLLEXPORT pump_gettype(Handle ph, int linkIndex, int *outType);
@@ -128,10 +123,10 @@ int DLLEXPORT ptrn_add(Handle ph, char *id);
 int DLLEXPORT ptrn_getindex(Handle ph, char *id, int *index);
 int DLLEXPORT ptrn_getid(Handle ph, int index, char *id);
 int DLLEXPORT ptrn_getlength(Handle ph, int index, int *len);
-int DLLEXPORT ptrn_getvalue(Handle ph, int index, int period, EN_API_FLOAT_TYPE *value);
-int DLLEXPORT ptrn_setvalue(Handle ph, int index, int period, EN_API_FLOAT_TYPE value);
-int DLLEXPORT ptrn_getavgvalue(Handle ph, int index, EN_API_FLOAT_TYPE *value);
-int DLLEXPORT ptrn_set(Handle ph, int index, EN_API_FLOAT_TYPE *f, int len);
+int DLLEXPORT ptrn_getvalue(Handle ph, int index, int period, double *value);
+int DLLEXPORT ptrn_setvalue(Handle ph, int index, int period, double value);
+int DLLEXPORT ptrn_getavgvalue(Handle ph, int index, double *value);
+int DLLEXPORT ptrn_set(Handle ph, int index, double *f, int len);
 
 
 int DLLEXPORT curv_add(Handle ph, char *id);
@@ -139,31 +134,31 @@ int DLLEXPORT curv_getindex(Handle ph, char *id, int *index);
 int DLLEXPORT curv_getid(Handle ph, int index, char *id);
 int DLLEXPORT curv_getlength(Handle ph, int index, int *len);
 int DLLEXPORT curv_gettype(Handle ph, int curveIndex, int *outType);
-int DLLEXPORT curv_getvalue(Handle ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
-int DLLEXPORT curv_setvalue(Handle ph, int curveIndex, int pointIndex, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
-int DLLEXPORT curv_get(Handle ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
-int DLLEXPORT curv_set(Handle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
+int DLLEXPORT curv_getvalue(Handle ph, int curveIndex, int pointIndex, double *x, double *y);
+int DLLEXPORT curv_setvalue(Handle ph, int curveIndex, int pointIndex, double x, double y);
+int DLLEXPORT curv_get(Handle ph, int curveIndex, char* id, int *nValues, double **xValues, double **yValues);
+int DLLEXPORT curv_set(Handle ph, int index, double *x, double *y, int len);
 
 int DLLEXPORT scntl_add(Handle ph, int type, int linkIndex, double setting, int nodeIndex, double level, int *index);
 int DLLEXPORT scntl_delete(Handle ph, int index);
-int DLLEXPORT scntl_get(Handle ph, int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level);
-int DLLEXPORT scntl_set(Handle ph, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+int DLLEXPORT scntl_get(Handle ph, int controlIndex, int *controlType, int *linkIndex, double *setting, int *nodeIndex, double *level);
+int DLLEXPORT scntl_set(Handle ph, int cindex, int ctype, int lindex, double setting, int nindex, double level);
 
 
 int DLLEXPORT rcntl_add(Handle ph, char *rule);
 int DLLEXPORT rcntl_delete(Handle ph, int index);
-int DLLEXPORT rcntl_get(Handle ph, int index, int *nPremises, int *nThenActions, int *nElseActions, EN_API_FLOAT_TYPE *priority);
+int DLLEXPORT rcntl_get(Handle ph, int index, int *nPremises, int *nThenActions, int *nElseActions, double *priority);
 int DLLEXPORT rcntl_getid(Handle ph, int index, char* id);
-int DLLEXPORT rcntl_getpremise(Handle ph, int ruleIndex, int premiseIndex, int *logop, int *object, int *objIndex, int *variable, int *relop, int *status, EN_API_FLOAT_TYPE *value);
-int DLLEXPORT rcntl_setpremise(Handle ph, int ruleIndex, int premiseIndex, int logop, int object, int objIndex, int variable, int relop, int status, EN_API_FLOAT_TYPE value);
+int DLLEXPORT rcntl_getpremise(Handle ph, int ruleIndex, int premiseIndex, int *logop, int *object, int *objIndex, int *variable, int *relop, int *status, double *value);
+int DLLEXPORT rcntl_setpremise(Handle ph, int ruleIndex, int premiseIndex, int logop, int object, int objIndex, int variable, int relop, int status, double value);
 int DLLEXPORT rcntl_setpremiseindex(Handle ph, int ruleIndex, int premiseIndex, int objIndex);
 int DLLEXPORT rcntl_setpremisestatus(Handle ph, int ruleIndex, int premiseIndex, int status);
-int DLLEXPORT rcntl_setpremisevalue(Handle ph, int ruleIndex, int premiseIndex, EN_API_FLOAT_TYPE value);
-int DLLEXPORT rcntl_getthenaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, EN_API_FLOAT_TYPE *setting);
-int DLLEXPORT rcntl_setthenaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, EN_API_FLOAT_TYPE setting);
-int DLLEXPORT rcntl_getelseaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, EN_API_FLOAT_TYPE *setting);
-int DLLEXPORT rcntl_setelseaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, EN_API_FLOAT_TYPE setting);
-int DLLEXPORT rcntl_setrulepriority(Handle ph, int index, EN_API_FLOAT_TYPE priority);
+int DLLEXPORT rcntl_setpremisevalue(Handle ph, int ruleIndex, int premiseIndex, double value);
+int DLLEXPORT rcntl_getthenaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, double *setting);
+int DLLEXPORT rcntl_setthenaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, double setting);
+int DLLEXPORT rcntl_getelseaction(Handle ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, double *setting);
+int DLLEXPORT rcntl_setelseaction(Handle ph, int ruleIndex, int actionIndex, int linkIndex, int status, double setting);
+int DLLEXPORT rcntl_setrulepriority(Handle ph, int index, double priority);
 
 
 void DLLEXPORT err_clear(Handle ph);
