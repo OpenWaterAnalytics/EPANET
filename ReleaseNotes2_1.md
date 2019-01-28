@@ -80,6 +80,7 @@ Contributors to this version (listed in order of first contribution):
 
 ```
 	ENopenH();
+	ENopenQ();
 	ENinitH(0);
 	ENinitQ(EN_NOSAVE);
 	do {
