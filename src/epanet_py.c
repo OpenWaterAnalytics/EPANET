@@ -117,7 +117,7 @@ int DLLEXPORT hydr_open(Handle ph)
     return error_set(pr->error, EN_openH(pr->project));
 }
 
-int DLLEXPORT hydr_init(Handle ph, EN_SaveOption saveFlag)
+int DLLEXPORT hydr_init(Handle ph, EN_InitHydOption saveFlag)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_initH(pr->project, saveFlag));
@@ -168,7 +168,7 @@ int DLLEXPORT qual_open(Handle ph)
     return error_set(pr->error, EN_openQ(pr->project));
 }
 
-int DLLEXPORT qual_init(Handle ph, EN_SaveOption saveFlag)
+int DLLEXPORT qual_init(Handle ph, EN_InitHydOption saveFlag)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_initQ(pr->project, saveFlag));
@@ -270,13 +270,13 @@ int DLLEXPORT anlys_setflowunits(Handle ph, EN_FlowUnits code)
     return error_set(pr->error, EN_setflowunits(pr->project, code));
 }
 
-int DLLEXPORT anlys_gettimeparam(Handle ph, EN_TimeProperty code, long *value)
+int DLLEXPORT anlys_gettimeparam(Handle ph, EN_TimeParameter code, long *value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_gettimeparam(pr->project, code, value));
 }
 
-int DLLEXPORT anlys_settimeparam(Handle ph, EN_TimeProperty code, long value)
+int DLLEXPORT anlys_settimeparam(Handle ph, EN_TimeParameter code, long value)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_settimeparam(pr->project, code, value));
@@ -456,7 +456,7 @@ int DLLEXPORT link_setid(Handle ph, int index, char *newid)
 int DLLEXPORT link_gettype(Handle ph, int index, int *code)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_getlinktype(pr->project, index, (EN_LinkType *)code));
+    return error_set(pr->error, EN_getlinktype(pr->project, index, code));
 }
 
 int DLLEXPORT link_settype(Handle ph, int *index, EN_LinkType type, int actionCode)
@@ -621,10 +621,10 @@ int DLLEXPORT curv_set(Handle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_
 
 
 
-int DLLEXPORT scntl_add(Handle ph, int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level)
+int DLLEXPORT scntl_add(Handle ph, int type, int linkIndex, double setting, int nodeIndex, double level, int *index)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_addcontrol(pr->project, cindex, ctype, lindex, setting, nindex, level));
+    return error_set(pr->error, EN_addcontrol(pr->project, type, linkIndex, setting, nodeIndex, level, index));
 }
 
 int DLLEXPORT scntl_delete(Handle ph, int index)

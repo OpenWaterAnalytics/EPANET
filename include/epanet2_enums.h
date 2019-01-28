@@ -191,7 +191,7 @@ typedef enum {
   EN_PUMP_CLOSED  = 2,  //!< Pump closed
   EN_PUMP_OPEN    = 3,  //!< Pump open
   EN_PUMP_XFLOW   = 5   //!< Pump open - cannot supply flow
-} EN_PumpStateType;  
+} EN_PumpStateType;
 
 /// Types of water quality analyses
 /**
@@ -249,7 +249,7 @@ typedef enum {
   EN_LPM         = 6,   //!< Liters per minute
   EN_MLD         = 7,   //!< Million liters per day
   EN_CMH         = 8,   //!< Cubic meters per hour
-  EN_CMD         = 9    //!< Cubic meters per day 
+  EN_CMD         = 9    //!< Cubic meters per day
 } EN_FlowUnits;
 
 /// Types of demand models
@@ -261,7 +261,7 @@ A demand driven analysis requires that a junction's full demand be supplied
 in each time period independent of how much pressure is available. A pressure
 driven analysis makes demand be a power function of pressure, up to the point
 where the full demand is met.
-*/ 
+*/
 typedef enum {
   EN_DDA         = 0,   //!< Demand driven analysis
   EN_PDA         = 1    //!< Pressure driven analysis
@@ -272,7 +272,7 @@ typedef enum {
 These options specify hydraulic convergence criteria, choice of head loss formula, and
 several other parameters applied on a network-wide basis. They are accessed using the
 @ref EN_getoption and @ref EN_setoption functions.
-*/ 
+*/
 typedef enum {
   EN_TRIALS         = 0,  //!< Maximum hydraulic trials allowed
   EN_ACCURACY       = 1,  //!< Maximum total relative flow change for hydraulic convergence
@@ -308,7 +308,7 @@ These options determine what kind of statistical post-processing should be done 
 the time series of simulation results generated before they are reported using
 @ref EN_report. An option can be chosen by using `STATISTIC option` as the argument
 to @ref EN_setreport.
-*/ 
+*/
 typedef enum {
   EN_SERIES      = 0,   //!< Report all time series points
   EN_AVERAGE     = 1,   //!< Report average value over simulation period
@@ -408,7 +408,7 @@ typedef enum {
   EN_R_TIME      = 9,   //!< Elapsed simulation time
   EN_R_CLOCKTIME = 10,  //!< Time of day
   EN_R_FILLTIME  = 11,  //!< Time to fill a tank
-  EN_R_DRAINTIME = 12   //!< Time to drain a tank 
+  EN_R_DRAINTIME = 12   //!< Time to drain a tank
 } EN_RuleVariable;
 
 /// Comparison operators used in rule-based controls
@@ -422,7 +422,7 @@ typedef enum {
   EN_R_IS        = 6,   //!< Is equal to
   EN_R_NOT       = 7,   //!< Is not equal to
   EN_R_BELOW     = 8,   //!< Is below
-  EN_R_ABOVE     = 9    //!< Is above 
+  EN_R_ABOVE     = 9    //!< Is above
 } EN_RuleOperator;
 
 /// Link status codes used in rule-based controls

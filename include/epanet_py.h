@@ -17,7 +17,7 @@
 
 
 #ifndef EN_API_FLOAT_TYPE
-  #define EN_API_FLOAT_TYPE float
+  #define EN_API_FLOAT_TYPE double
 #endif
 
 // Opaque pointer to project
@@ -46,7 +46,7 @@ int DLLEXPORT proj_close(Handle ph);
 int DLLEXPORT hydr_solve(Handle ph);
 int DLLEXPORT hydr_save(Handle ph);
 int DLLEXPORT hydr_open(Handle ph);
-int DLLEXPORT hydr_init(Handle ph, EN_SaveOption saveFlag);
+int DLLEXPORT hydr_init(Handle ph, EN_InitHydOption saveFlag);
 int DLLEXPORT hydr_run(Handle ph, long *currentTime);
 int DLLEXPORT hydr_next(Handle ph, long *tStep);
 int DLLEXPORT hydr_close(Handle ph);
@@ -56,7 +56,7 @@ int DLLEXPORT hydr_usefile(Handle ph, char *filename);
 
 int DLLEXPORT qual_solve(Handle ph);
 int DLLEXPORT qual_open(Handle ph);
-int DLLEXPORT qual_init(Handle ph, EN_SaveOption saveFlag);
+int DLLEXPORT qual_init(Handle ph, EN_InitHydOption saveFlag);
 int DLLEXPORT qual_run(Handle ph, long *currentTime);
 int DLLEXPORT qual_next(Handle ph, long *tStep);
 int DLLEXPORT qual_step(Handle ph, long *timeLeft);
@@ -76,8 +76,8 @@ int DLLEXPORT anlys_getoption(Handle ph, EN_Option opt, EN_API_FLOAT_TYPE *value
 int DLLEXPORT anlys_setoption(Handle ph, int code, EN_API_FLOAT_TYPE value);
 int DLLEXPORT anlys_getflowunits(Handle ph, int *code);
 int DLLEXPORT anlys_setflowunits(Handle ph, EN_FlowUnits code);
-int DLLEXPORT anlys_gettimeparam(Handle ph, EN_TimeProperty code, long *value);
-int DLLEXPORT anlys_settimeparam(Handle ph, EN_TimeProperty code, long value);
+int DLLEXPORT anlys_gettimeparam(Handle ph, EN_TimeParameter code, long *value);
+int DLLEXPORT anlys_settimeparam(Handle ph, EN_TimeParameter code, long value);
 int DLLEXPORT anlys_getqualinfo(Handle ph, int *qualcode, char *chemname, char *chemunits, int *tracenode);
 int DLLEXPORT anlys_getqualtype(Handle ph, int *qualcode, int *tracenode);
 int DLLEXPORT anlys_setqualtype(Handle ph, EN_QualityType qualcode, char *chemname, char *chemunits, char *tracenode);
@@ -144,8 +144,7 @@ int DLLEXPORT curv_setvalue(Handle ph, int curveIndex, int pointIndex, EN_API_FL
 int DLLEXPORT curv_get(Handle ph, int curveIndex, char* id, int *nValues, EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
 int DLLEXPORT curv_set(Handle ph, int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y, int len);
 
-
-int DLLEXPORT scntl_add(Handle ph, int *cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
+int DLLEXPORT scntl_add(Handle ph, int type, int linkIndex, double setting, int nodeIndex, double level, int *index);
 int DLLEXPORT scntl_delete(Handle ph, int index);
 int DLLEXPORT scntl_get(Handle ph, int controlIndex, int *controlType, int *linkIndex, EN_API_FLOAT_TYPE *setting, int *nodeIndex, EN_API_FLOAT_TYPE *level);
 int DLLEXPORT scntl_set(Handle ph, int cindex, int ctype, int lindex, EN_API_FLOAT_TYPE setting, int nindex, EN_API_FLOAT_TYPE level);
