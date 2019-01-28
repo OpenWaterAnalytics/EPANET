@@ -86,8 +86,8 @@ Contributors to this version (listed in order of first contribution):
 	do {
 	  ENrunH(&t);
 	  ENrunQ(&qt);
-	  ENnextQ(&qstep);
 	  // collect results
+	  ENnextQ(&qstep);
 	  ENnextH(&tstep);
 	} while (tstep > 0);
 	ENcloseQ();
