@@ -80,14 +80,15 @@ Contributors to this version (listed in order of first contribution):
 
 ```
 	ENopenH();
+	ENopenQ();
 	ENinitH(0);
 	ENinitQ(EN_NOSAVE);
 	do {
 	  ENrunH(&t);
 	  ENrunQ(&qt);
-	  ENnextQ(&qstep);
 	  // collect results
 	  ENnextH(&tstep);
+	  ENnextQ(&qstep);
 	} while (tstep > 0);
 	ENcloseQ();
 	ENcloseH();
