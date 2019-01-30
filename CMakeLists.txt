@@ -75,12 +75,12 @@ source_group("Library" FILES ${EPANET_LIB_ALL})
 
 
 # the shared library
-add_library(epanet2 SHARED ${EPANET_LIB_ALL})
+add_library(epanet2 SHARED ${EPANET_LIB_ALL} ${PROJECT_SOURCE_DIR}/include/epanet2.def)
 target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 
 # create export lib so we can link against dll using Visual Studio
-add_definitions(-DWITH_GENX)
+#add_definitions(-DWITH_GENX)
 include(GenerateExportHeader)
 GENERATE_EXPORT_HEADER(epanet2
     BASE_NAME epanet2
