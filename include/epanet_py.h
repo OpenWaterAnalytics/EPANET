@@ -67,8 +67,8 @@ int DLLEXPORT rprt_getcount(Handle ph, EN_CountType code, int *count);
 int DLLEXPORT rprt_anlysstats(Handle ph, EN_AnalysisStatistic code, double* value);
 
 
-int DLLEXPORT anlys_getoption(Handle ph, EN_Option opt, double *value);
-int DLLEXPORT anlys_setoption(Handle ph, int code, double value);
+int DLLEXPORT anlys_getoption(Handle ph, EN_Option code, double *value);
+int DLLEXPORT anlys_setoption(Handle ph, EN_Option code, double value);
 int DLLEXPORT anlys_getflowunits(Handle ph, int *code);
 int DLLEXPORT anlys_setflowunits(Handle ph, EN_FlowUnits code);
 int DLLEXPORT anlys_gettimeparam(Handle ph, EN_TimeParameter code, long *value);
@@ -84,8 +84,8 @@ int DLLEXPORT node_getindex(Handle ph, char *id, int *index);
 int DLLEXPORT node_getid(Handle ph, int index, char *id);
 int DLLEXPORT node_setid(Handle ph, int index, char *newid);
 int DLLEXPORT node_gettype(Handle ph, int index, int *code);
-int DLLEXPORT node_getvalue(Handle ph, int index, int code, double *value);
-int DLLEXPORT node_setvalue(Handle ph, int index, int code, double value);
+int DLLEXPORT node_getvalue(Handle ph, int index, EN_NodeProperty code, double *value);
+int DLLEXPORT node_setvalue(Handle ph, int index, EN_NodeProperty code, double value);
 int DLLEXPORT node_getcoord(Handle ph, int index, double *x, double *y);
 int DLLEXPORT node_setcoord(Handle ph, int index, double x, double y);
 

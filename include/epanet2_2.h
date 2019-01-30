@@ -68,7 +68,7 @@ typedef struct Project *EN_Project;
   @brief Creates an EPANET project.
   @param[out] ph an EPANET project handle that is passed into all other API functions.
   @return an error code.
-  
+
   EN_createproject must be called before any other API functions are used.
   */
   int DLLEXPORT EN_createproject(EN_Project *ph);
@@ -129,9 +129,9 @@ typedef struct Project *EN_Project;
   @param rptFile the name of a report file to be created (or "" if not needed).
   @param outFile the name of a binary output file to be created (or "" if not needed).
   @return an error code.
-  
+
   This function should be called immediately after ::EN_createproject if an EPANET-formatted
-  input file will be used to supply network data. 
+  input file will be used to supply network data.
   */
   int DLLEXPORT EN_open(EN_Project ph, const char *inpFile, const char *rptFile,
                 const char *outFile);
@@ -163,19 +163,19 @@ typedef struct Project *EN_Project;
 
   /**
   @brief Runs a complete hydraulic simulation with results for all time periods
-  written to a temporary hydraulics file.  
+  written to a temporary hydraulics file.
   @param ph an EPANET project handle.
   @return an error code.
 
   Use ::EN_solveH to generate a complete hydraulic solution which can stand alone
-  or be used as input to a water quality analysis. This function will not allow one to 
+  or be used as input to a water quality analysis. This function will not allow one to
   examine intermediate hydraulic results as they are generated. It can also be followed by calls
   to ::EN_saveH and ::EN_report to write hydraulic results to the report file.
-  
-  The sequence ::EN_openH - ::EN_initH - ::EN_runH - ::EN_nextH - ::EN_closeH 
+
+  The sequence ::EN_openH - ::EN_initH - ::EN_runH - ::EN_nextH - ::EN_closeH
   can be used instead to gain access to results at intermediate time periods and
   directly adjust link status and control settings as a simulation proceeds.
-  
+
  <b>Example:</b>
   \code {.c}
   EN_Project ph;
@@ -211,7 +211,7 @@ typedef struct Project *EN_Project;
   Call ::EN_openH prior to running the first hydraulic analysis using the
   ::EN_initH - ::EN_runH - ::EN_nextH sequence. Multiple analyses can be made before
   calling ::EN_closeH to close the hydraulic solver.
-  
+
   Do not call this function if ::EN_solveH is being used to run a complete hydraulic
   analysis or if hydraulics are being supplied by a previously saved hydraulics file
   using ::EN_usehydfile.
@@ -219,14 +219,14 @@ typedef struct Project *EN_Project;
   int DLLEXPORT EN_openH(EN_Project ph);
 
   /**
-  @brief Initializes a network prior to running a hydraulic analysis.  
+  @brief Initializes a network prior to running a hydraulic analysis.
   @param ph an EPANET project handle.
   @param initFlag a 2-digit initialization flag (see @ref EN_InitHydOption).
   @return an error code.
 
   This function initializes storage tank levels, link status and settings, and
   the simulation time clock prior to running a hydraulic analysis.
-  
+
   The initialization flag is a two digit number where the 1st (left) digit
   indicates if link flows should be re-initialized (1) or not (0), and the
   2nd digit indicates if hydraulic results should be saved to a temporary
@@ -239,7 +239,7 @@ typedef struct Project *EN_Project;
   - making a subsequent water quality run,
   - using ::EN_report to generate a report
   - using ::EN_savehydfile to save the binary hydraulics file.
-  
+
   There is no need to save hydraulics if you will be writing custom code to
   process hydraulic results as they are generated using the functions ::EN_getnodevalue
   and ::EN_getlinkvalue.
@@ -257,7 +257,7 @@ typedef struct Project *EN_Project;
   should be treated as a read-only variable.
 
   ::EN_initH must have been called prior to running the ::EN_runH - ::EN_nextH loop.
-  
+
   See ::EN_nextH for an example of using this function.
   */
   int DLLEXPORT EN_runH(EN_Project ph, long *currentTime);
@@ -280,25 +280,25 @@ typedef struct Project *EN_Project;
     - the time interval until the next change in demands occurs
     - the time interval until a tank becomes full or empty
     - the time interval until a control or rule fires.
-    
+
  <B>Example:</B>
   \code {.c}
   long t, tstep;
-  EN_openH(ph);  
-  EN_initH(ph, EN_NOSAVE);  
-  do {  
-    EN_runH(ph, &t);  
+  EN_openH(ph);
+  EN_initH(ph, EN_NOSAVE);
+  do {
+    EN_runH(ph, &t);
     // Retrieve hydraulic results for time t
-    EN_nextH(ph, &tstep);  
-  } while (tstep > 0);  
-  EN_closeH(ph);       
+    EN_nextH(ph, &tstep);
+  } while (tstep > 0);
+  EN_closeH(ph);
   \endcode
   */
   int DLLEXPORT EN_nextH(EN_Project ph, long *tStep);
 
   /**
   @brief Transfers a project's hydraulics results from its temporary hydraulics file
-  to its binary output file, where results are only reported at uniform reporting intervals. 
+  to its binary output file, where results are only reported at uniform reporting intervals.
   @param ph an EPANET project handle.
   @return an error code.
 
@@ -316,20 +316,20 @@ typedef struct Project *EN_Project;
 
   Use this function to save the current set of hydraulics results to a file, either for
   post-processing or to be used at a later time by calling the ::EN_usehydfile function.
-  
+
   The hydraulics file contains nodal demands and heads and link flows, status, and settings
   for all hydraulic time steps, even intermediate ones.
-  
+
   Before calling this function hydraulic results must have been generated and saved by having
   called ::EN_solveH or the ::EN_initH - ::EN_runH - ::EN_nextH sequence with the initflag
-  argument of ::EN_initH set to `EN_SAVE` or `EN_SAVE_AND_INIT`. 
+  argument of ::EN_initH set to `EN_SAVE` or `EN_SAVE_AND_INIT`.
   */
   int DLLEXPORT EN_savehydfile(EN_Project ph, char *filename);
 
   /**
   @brief Closes the hydraulic solver freeing all of its allocated memory.
   @return an error code.
-  
+
   Call ::EN_closeH after all hydraulics analyses have been made using
   ::EN_initH - ::EN_runH - ::EN_nextH. Do not call this function if ::EN_solveH is being used.
   */
@@ -343,10 +343,10 @@ typedef struct Project *EN_Project;
 
   /**
   @brief Runs a complete water quality simulation with results at uniform
-  reporting intervals written to the project's binary output file.  
+  reporting intervals written to the project's binary output file.
   @param ph an EPANET project handle.
   @return an error code.
-  
+
   A hydraulic analysis must have been run and saved to a hydraulics file before
   calling ::EN_solveQ. This function will not allow one to examine intermediate water
   quality results as they are generated. It can be followed by a call to ::EN_report
@@ -355,7 +355,7 @@ typedef struct Project *EN_Project;
   One can instead use the ::EN_openQ - ::EN_initQ - ::EN_runQ - ::EN_nextQ - ::EN_closeQ
   sequence to gain access to gain access to water quality results at intermediate time
   periods.
-  
+
    <b>Example:</b> see ::EN_solveH.
   */
   int DLLEXPORT EN_solveQ(EN_Project ph);
@@ -376,7 +376,7 @@ typedef struct Project *EN_Project;
   int DLLEXPORT EN_openQ(EN_Project ph);
 
   /**
-  @brief Initializes a network prior to running a water quality analysis. 
+  @brief Initializes a network prior to running a water quality analysis.
   @param ph n EPANET project handle.
   @param saveFlag set to `EN_SAVE` (1) if results are to be saved to the project's
   binary output file, or to `EN_NOSAVE` (0) if not.
@@ -384,16 +384,16 @@ typedef struct Project *EN_Project;
 
   Call ::EN_initQ prior to running a water quality analysis using ::EN_runQ in
   conjunction with either ::EN_nextQ or ::EN_stepQ.
-  
+
   ::EN_openQ must have been called prior to calling EN_initQ.
-  
+
   Do not call ::EN_initQ if a complete water quality analysis will be made using ::EN_solveQ.
   */
   int DLLEXPORT EN_initQ(EN_Project ph, int saveFlag);
 
   /**
   @brief Makes hydraulic and water quality results at the start of the current time
-  period available to a project's water quality solver. 
+  period available to a project's water quality solver.
   @param ph an EPANET project handle.
   @param[out] currentTime current simulation time in seconds.
   @return an error code.
@@ -402,10 +402,10 @@ typedef struct Project *EN_Project;
   start of each hydraulic period in an extended period simulation. Or use it in a loop
   with ::EN_stepQ to access results at the start of each water quality time step. See
   each of these functions for examples of how to code such loops.
-  
+
   ::EN_initQ must have been called prior to running an ::EN_runQ - ::EN_nextQ
   (or ::EN_stepQ) loop.
-  
+
   The current time of the simulation is determined from information saved with the
   hydraulic analysis that preceded the water quality analysis. Treat it as a read-only
   variable.
@@ -415,7 +415,7 @@ typedef struct Project *EN_Project;
   /**
   @brief Advances a water quality simulation over the time until the next hydraulic event.
   @param ph an EPANET project handle.
-  @param[out] tStep time (in seconds) until the next hydraulic event or 0 if at the end 
+  @param[out] tStep time (in seconds) until the next hydraulic event or 0 if at the end
   of the full simulation duration.
   @return an error code.
 
@@ -426,20 +426,20 @@ typedef struct Project *EN_Project;
 
   The value of `tStep` is determined from information produced by the hydraulic analysis
   that preceded the water quality analysis. Treat it as a read-only variable.
-  
+
  <b>Example:</b>
   \code {.c}
   long t, tStep;
   EN_solveH(ph);  // Generate & save hydraulics
   EN_openQ(ph);
-  EN_initQ(ph, EN_NOSAVE);  
-  do {  
-    EN_runQ(ph, &t);  
+  EN_initQ(ph, EN_NOSAVE);
+  do {
+    EN_runQ(ph, &t);
     // Monitor results at time t, which
     // begins a new hydraulic time period
-    EN_nextQ(ph, &tStep);  
-  } while (tStep > 0);  
-  EN_closeQ(ph);       
+    EN_nextQ(ph, &tStep);
+  } while (tStep > 0);
+  EN_closeQ(ph);
   \endcode
   */
   int DLLEXPORT EN_nextQ(EN_Project ph, long *tStep);
@@ -454,7 +454,7 @@ typedef struct Project *EN_Project;
   quality simulation. It allows one to generate water quality results at each water
   quality time step of the simulation, rather than over each hydraulic event period
   as with ::EN_nextQ.
-  
+
   Use the argument `timeLeft` to determine when no more calls to ::EN_runQ are needed
   because the end of the simulation period has been reached (i.e., when `timeLeft = 0`).
   */
@@ -464,11 +464,11 @@ typedef struct Project *EN_Project;
   @brief Closes the water quality solver, freeing all of its allocated memory.
   @param ph an EPANET project handle.
   @return an error code.
-  
+
   Call ::EN_closeQ after all water quality analyses have been made using the
   ::EN_initQ - ::EN_runQ - ::EN_nextQ (or ::EN_stepQ) sequence of function calls.
-  
-  Do not call this function if ::EN_solveQ is being used.  
+
+  Do not call this function if ::EN_solveQ is being used.
   */
   int DLLEXPORT EN_closeQ(EN_Project ph);
 
@@ -490,12 +490,12 @@ typedef struct Project *EN_Project;
   @brief Writes simulation results in a tabular format to a project's report file.
   @param ph an EPANET project handle.
   @return an error code
-  
+
   Either a full hydraulic analysis or full hydraulic and water quality analysis must
   have been run, with results saved to file, before ::EN_report is called. In the
   former case, ::EN_saveH must also be called first to transfer results from the
-  project's intermediate hydraulics file to its output file.  
- 
+  project's intermediate hydraulics file to its output file.
+
   The format of the report is controlled by commands issued with ::EN_setreport.
   */
   int  DLLEXPORT EN_report(EN_Project ph);
@@ -504,15 +504,15 @@ typedef struct Project *EN_Project;
   @brief Resets a project's report options to their default values.
   @param ph an EPANET project handle.
   @return an error code
-  
-  After calling this function the default reporting options are in effect. These are:   
-  - no status report  
-  - no energy report  
-  - no nodes reported on  
-  - no links reported on  
-  - node variables reported to 2 decimal places  
-  - link variables reported to 2 decimal places (3 for friction factor)  
-  - node variables reported are elevation, head, pressure, and quality  
+
+  After calling this function the default reporting options are in effect. These are:
+  - no status report
+  - no energy report
+  - no nodes reported on
+  - no links reported on
+  - node variables reported to 2 decimal places
+  - link variables reported to 2 decimal places (3 for friction factor)
+  - node variables reported are elevation, head, pressure, and quality
   - link variables reported are flow, velocity, and head loss.
   */
   int  DLLEXPORT EN_resetreport(EN_Project ph);
@@ -522,10 +522,10 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param format a report formatting command.
   @return an error code
-  
+
   Acceptable report formatting commands are described in Appendix C of the
   <a href="https://nepis.epa.gov/Adobe/PDF/P1007WWU.pdf">EPANET 2 Users Manual</a>.
-  
+
   Formatted results of a simulation can be written to a project's report file
   using the ::EN_report function.
   */
@@ -536,18 +536,18 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param level a status reporting level code (see @ref EN_StatusReport).
   @return an error code.
-  
+
   Status reporting writes changes in the hydraulics status of network elements to a
   project's  report file as a hydraulic simulation unfolds. There are three levels
   of reporting: `EN_NO_REPORT` (no status reporting), `EN_NORMAL_REPORT` (normal
   reporting) `EN_FULL_REPORT` (full status reporting).
-   
+
   The full status report contains information at each trial of the solution to the
   system hydraulic equations at each time step of a simulation. It is useful mainly
-  for debugging purposes.  
- 
+  for debugging purposes.
+
   If many hydraulic analyses will be run in the application it is recommended that
-  status reporting be turned off (`level = EN_NO_REPORT`).   
+  status reporting be turned off (`level = EN_NO_REPORT`).
   */
   int  DLLEXPORT EN_setstatusreport(EN_Project ph, int level);
 
@@ -576,7 +576,7 @@ typedef struct Project *EN_Project;
   @param[out] errmsg the error message generated by the error code
   @param maxLen maximum number of characters that errmsg can hold
   @return an error code
-  
+
   Error message strings should be at least @ref EN_MAXMSG characters in length.
   */
   int  DLLEXPORT EN_geterror(int errcode, char *errmsg, int maxLen);
@@ -620,9 +620,9 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param[out] units a flow units code (see @ref EN_FlowUnits)
   @return an error code.
-  
+
   Flow units in liters or cubic meters implies that SI metric units are used for all
-  other quantities in addition to flow. Otherwise US Customary units are employed.  
+  other quantities in addition to flow. Otherwise US Customary units are employed.
   */
   int  DLLEXPORT EN_getflowunits(EN_Project ph, int *units);
 
@@ -631,9 +631,9 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param units a flow units code (see @ref EN_FlowUnits)
   @return an error code.
-  
+
   Flow units in liters or cubic meters implies that SI metric units are used for all
-  other quantities in addition to flow. Otherwise US Customary units are employed.  
+  other quantities in addition to flow. Otherwise US Customary units are employed.
   */
   int  DLLEXPORT EN_setflowunits(EN_Project ph, int units);
 
@@ -684,11 +684,11 @@ typedef struct Project *EN_Project;
   @param chemUnits the concentration units of the constituent.
   @param traceNode the ID name of the node being traced if `qualType = EN_TRACE`.
   @return an error code.
-  
+
   Chemical name and units can be an empty string if the analysis is not for a chemical.
-  The same holds for the trace node if the analysis is not for source tracing.  
-  
-  Note that the trace node is specified by ID name and not by index.  
+  The same holds for the trace node if the analysis is not for source tracing.
+
+  Note that the trace node is specified by ID name and not by index.
   */
   int  DLLEXPORT EN_setqualtype(EN_Project ph, int qualType, char *chemName,
                  char *chemUnits, char *traceNode);
@@ -705,7 +705,7 @@ typedef struct Project *EN_Project;
   @param id the ID name of the node to be added.
   @param nodeType the type of node being added (see @ref EN_NodeType)
   @return an error code.
-  
+
   When a new node is created all of it's properties (see @ref EN_NodeProperty) are set to 0.
   */
   int DLLEXPORT EN_addnode(EN_Project ph, char *id, int nodeType);
@@ -769,10 +769,10 @@ typedef struct Project *EN_Project;
   @brief Retrieves a property value for a node.
   @param ph an EPANET project handle.
   @param index a node's index.
-  @param property the property to retrieve (see @ref EN_NodeProperty). 
+  @param property the property to retrieve (see @ref EN_NodeProperty).
   @param[out] value the current value of the property.
   @return an error code.
-  
+
   Values are returned in units that depend on the units used for flow rate
   (see @ref Units).
   */
@@ -785,7 +785,7 @@ typedef struct Project *EN_Project;
   @param property the property to set (see @ref EN_NodeProperty).
   @param value the new value for the property.
   @return an error code.
-  
+
   Values are in units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_setnodevalue(EN_Project ph, int index, int property, double value);
@@ -798,7 +798,7 @@ typedef struct Project *EN_Project;
   @param dmnd the value of the junction's primary base demand.
   @param dmndpat the ID name of the demand's time pattern ("" for no pattern)
   @return an error code.
-  
+
   These properties have units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_setjuncdata(EN_Project ph, int index, double elev, double dmnd,
@@ -816,7 +816,7 @@ typedef struct Project *EN_Project;
   @param minvol the volume of the tank at its minimum water level.
   @param volcurve the name of the tank's volume curve ("" for no curve)
   @return an error code.
-  
+
   These properties have units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_settankdata(EN_Project ph, int index, double elev, double initlvl,
@@ -856,7 +856,7 @@ typedef struct Project *EN_Project;
   @param[out] preq  Pressure required to deliver full demand.
   @param[out] pexp  Pressure exponent in demand function.
   @return an error code.
-  
+
   Parameters `pmin`, `preq`, and `pexp` are only used when the demand model is `EN_PDA`.
   */
   int DLLEXPORT EN_getdemandmodel(EN_Project ph, int *type, double *pmin,
@@ -870,13 +870,13 @@ typedef struct Project *EN_Project;
   @param preq  Pressure required to deliver full demand.
   @param pexp  Pressure exponent in demand function.
   @return an error code.
-  
+
   Set `type` to `EN_DDA` for a traditional demand driven analysis (in which case the
   remaining three parameter values are ignored) or to `EN_PDA` for a pressure driven
   analysis. In the latter case a node's demand is computed as:
   >  `Dfull * [ (P - pmin) / (preq - pmin) ] ^ pexp`
   where `Dfull` is the full demand and `P` is the current pressure.
-  
+
   Setting `preq` equal to `pmin` will result in a solution with the smallest amount of
   demand reductions needed to insure that no node delivers positive demand at a pressure
   below `pmin`.
@@ -922,7 +922,7 @@ typedef struct Project *EN_Project;
   @param demandIndex the index of a demand category for the node (starting from 1).
   @param[out] patIndex the index of the category's time pattern.
   @return an error code.
-  
+
   A returned pattern index of 0 indicates that no time pattern has been assigned to the
   demand category.
   */
@@ -936,7 +936,7 @@ typedef struct Project *EN_Project;
   @param demandIndex the index of one of the node's demand categories (starting from 1).
   @param patIndex the index of the time pattern assigned to the category.
   @return an error code.
-  
+
   Specifying a pattern index of 0 indicates that no time pattern is assigned to the
   demand category.
   */
@@ -949,7 +949,7 @@ typedef struct Project *EN_Project;
   @param demandIndex the index of one of the node's demand categories (starting from 1).
   @param[out] demandName The name of the selected category.
   @return an error code.
-  
+
   `demandName` must be sized to contain at least @ref EN_MAXID characters.
   */
   int DLLEXPORT EN_getdemandname(EN_Project ph, int nodeIndex, int demandIndex, char *demandName);
@@ -961,7 +961,7 @@ typedef struct Project *EN_Project;
   @param demandIdx the index of one of the node's demand categories (starting from 1).
   @param demandName the new name assigned to the category.
   @return Error code.
-  
+
   The category name must contain no more than @ref EN_MAXID characters.
   */
   int DLLEXPORT EN_setdemandname(EN_Project ph, int nodeIndex, int demandIdx, char *demandName);
@@ -980,15 +980,15 @@ typedef struct Project *EN_Project;
   @param fromNode The ID name of the link's starting node.
   @param toNode The ID name of the link's ending node.
   @return an error code.
-  
+
   A new pipe is assigned a diameter of 10 inches (or 254 mm), a length of 100
   feet (or meters), a roughness coefficient of 100 and 0 for all other properties.
-  
+
   A new pump has a status of `EN_OPEN`, a speed setting of 1, and has no pump
   curve or power rating assigned to it.
-  
+
   A new valve has a diameter of 10 inches (or 254 mm) and all other properties set to 0.
-  
+
   See @ref EN_LinkProperty.
   */
   int DLLEXPORT EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode, char *toNode);
@@ -1088,7 +1088,7 @@ typedef struct Project *EN_Project;
   @param property the property to retrieve (see @ref EN_LinkProperty).
   @param[out] value the current value of the property.
   @return an error code.
-  
+
   Values are returned in units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_getlinkvalue(EN_Project ph, int index, int property, double *value);
@@ -1100,7 +1100,7 @@ typedef struct Project *EN_Project;
   @param property the property to set (see @ref EN_LinkProperty).
   @param value the new value for the property.
   @return an error code.
-  
+
   Values are in units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_setlinkvalue(EN_Project ph, int index, int property, double value);
@@ -1114,7 +1114,7 @@ typedef struct Project *EN_Project;
   @param rough the pipe's roughness coefficient.
   @param mloss the pipe's minor loss coefficient.
   @return an error code.
-  
+
   These properties have units that depend on the units used for flow rate (see @ref Units).
   */
   int DLLEXPORT EN_setpipedata(EN_Project ph, int index, double length, double diam,
@@ -1165,7 +1165,7 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param id the ID name of the pattern to add.
   @return an error code.
-  
+
   The new pattern contains a single time period whose factor is 1.0.
   */
   int  DLLEXPORT EN_addpattern(EN_Project ph, char *id);
@@ -1235,11 +1235,11 @@ typedef struct Project *EN_Project;
   @param values an array of new pattern factor values.
   @param len the number of factor values supplied.
   @return an error code.
-  
-  `values` is a zero-based array that contains `len` elements.  
-  
+
+  `values` is a zero-based array that contains `len` elements.
+
   Use this function to redefine (and resize) a time pattern all at once;
-  use @ref EN_setpatternvalue to revise pattern factors one at a time.   
+  use @ref EN_setpatternvalue to revise pattern factors one at a time.
   */
   int  DLLEXPORT EN_setpattern(EN_Project ph, int index, double *values, int len);
 
@@ -1254,7 +1254,7 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param id The ID name of the curve to be added.
   @return an error code.
-  
+
   The new curve contains a single data point (1.0, 1.0).
   */
   int  DLLEXPORT EN_addcurve(EN_Project ph, char *id);
@@ -1346,11 +1346,11 @@ typedef struct Project *EN_Project;
   @param yValues an array of new y-values for the curve.
   @param nPoints the new number of data points for the curve.
   @return an error code.
-  
-  `xValues` and `yValues` are zero-based arrays that contains `nPoints` elements.  
-  
+
+  `xValues` and `yValues` are zero-based arrays that contains `nPoints` elements.
+
   Use this function to redefine (and resize) a curve all at once;
-  use @ref EN_setcurvevalue to revise a curve's data points one at a time.   
+  use @ref EN_setcurvevalue to revise a curve's data points one at a time.
   */
   int  DLLEXPORT EN_setcurve(EN_Project ph, int index, double *xValues,
                  double *yValues, int nPoints);
@@ -1429,7 +1429,7 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param rule text of the rule following the format used in an EPANET input file.
   @return an error code.
-  
+
   Consult Appendix C of the <a href="https://nepis.epa.gov/Adobe/PDF/P1007WWU.pdf">EPANET 2 Users Manual</a>
   to learn about a rule's format. Each clause of the rule must end with a newline character `\n`.
   */
@@ -1462,8 +1462,8 @@ typedef struct Project *EN_Project;
   @param index the rule's index (starting from 1).
   @param[out] id the rule's ID name.
   @return Error code.
-  
-  The ID name must be sized to hold at least @ref EN_MAXID characters.  
+
+  The ID name must be sized to hold at least @ref EN_MAXID characters.
   */
   int  DLLEXPORT EN_getruleID(EN_Project ph, int index, char* id);
 

@@ -249,13 +249,13 @@ int DLLEXPORT rprt_anlysstats(Handle ph, EN_AnalysisStatistic code, double* valu
 int DLLEXPORT anlys_getoption(Handle ph, EN_Option code, double *value)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_getoption(pr->project, code, value));
+    return error_set(pr->error, EN_getoption(pr->project, (int)code, value));
 }
 
 int DLLEXPORT anlys_setoption(Handle ph, EN_Option code, double value)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_setoption(pr->project, code, value));
+    return error_set(pr->error, EN_setoption(pr->project, (int)code, value));
 }
 
 int DLLEXPORT anlys_getflowunits(Handle ph, int *code)
@@ -342,13 +342,13 @@ int DLLEXPORT node_gettype(Handle ph, int index, int *code)
 int DLLEXPORT node_getvalue(Handle ph, int index, EN_NodeProperty code, double *value)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_getnodevalue(pr->project, index, code, value));
+    return error_set(pr->error, EN_getnodevalue(pr->project, index, (int)code, value));
 }
 
 int DLLEXPORT node_setvalue(Handle ph, int index, EN_NodeProperty code, double value)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_setnodevalue(pr->project, index, code, value));
+    return error_set(pr->error, EN_setnodevalue(pr->project, index, (int)code, value));
 }
 
 int DLLEXPORT node_getcoord(Handle ph, int index, double *x, double *y)
