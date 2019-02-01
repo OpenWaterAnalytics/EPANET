@@ -88,7 +88,7 @@ void changeDiameters(EN_Project ph)
     for (i = 1; i <= nLinks; i++)
     { 
         EN_getlinkvalue(ph, i, EN_DIAMETER, &diam); 
-        if (diam == 10) ENsetlinkvalue(i, EN_DIAMETER, 12); 
+        if (diam == 10) EN_setlinkvalue(ph, i, EN_DIAMETER, 12); 
     }
 }    
 \endcode

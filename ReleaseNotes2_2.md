@@ -109,8 +109,8 @@ int ENgetdemandmodel(int *modelType, double *pMin, double *pReq, double *pExp);
 ```
 for the legacy API and
 ```
-int EN_setdemandmodel(EN_Project *pr, int modelType, double pMin, double pReq, double pExp);
-int EN_getdemandmodel(EN_Project *pr, int *modelType, double *pMin, double *pReq, double *pExp);
+int EN_setdemandmodel(EN_Project ph, int modelType, double pMin, double pReq, double pExp);
+int EN_getdemandmodel(EN_Project ph, int *modelType, double *pMin, double *pReq, double *pExp);
 ```
 for the thread-safe API. Some additional points regarding the new **PDA** option are:
 
