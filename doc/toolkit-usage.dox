@@ -1,0 +1,241 @@
+/** 
+@page toolkit-usage Usage
+
+The following topics briefly describe how to accomplish some basic tasks using the OWA-EPANET Toolkit. See the @ref ToolkitExamples  topic for code listings of complete applications of the Toolkit. 
+
+@section CreateProject Creating a Project
+
+Before any use is made of the Toolkit, a project and its handle must be created. After all processing is
+completed the project should be deleted. See the code snippet below:
+
+\code {.c}
+EN_Project ph;  // a project handle
+EN_createproject(&ph);
+
+// Call functions that perform desired analysis
+
+EN_deleteproject(&ph);
+\endcode
+
+@section DetectingErrors Detecting Error Conditions
+
+All of the Toolkit functions return an error/warning code. A 0 indicates that the function ran successfully. A number greater than 0 but less than 100 indicates that a warning condition was generated while a number higher than 100 indicates that the function failed.
+The meaning of specific error and warning codes are listed in the @ref ErrorCodes and @ref WarningCodes sections of this guide. The Toolkit function @ref EN_geterror can be used to obtain the text of a specific error/warning code. The following example uses a macro named `ERRCODE` along with a variable named `errcode` to execute Toolkit commands only if no fatal errors have already been detected: 
+
+\code {.c}
+#define ERRCODE(x) (errcode = ((errcode > 100) ? (errcode) : (x)))
+
+void runHydraulics(EN_Project ph, char *inputFile, char *reportFile)
+{
+    int errcode = 0;
+    char errmsg[EN_MAXMSG + 1];
+    
+    ERRCODE(EN_open(ph, inputFile, reportFile, ""));
+    ERRCODE(EN_solveH(ph));
+    ERRCODE(EN_saveH(ph));
+    ERRCODE(EN_report(ph));
+    EN_geterror(ph, errcode, errmsg);
+    if (errcode) printf("\n%s\n", errmsg);
+}
+\endcode    
+
+@section NetworkData Providing Network Data
+
+Once a project is created there are two ways in which it can be populated with data. The first is to use the @ref EN_open function to load an EPANET-formatted input file that provides a description of the network to be analyzed. The format of this file is described in Appendix C of the <a href="https://nepis.epa.gov/Adobe/PDF/P1007WWU.pdf">EPANET 2 Users Manual</a>. This function should be called immediately after a project is created. It takes as arguments the name of the input file to open and the names of a report file and a binary output file, both of which are optional. Here is a code sample showing this approach:
+
+\code {.c}
+EN_Project ph;
+int  errcode; 
+EN_createproject(&ph);
+errcode = EN_open(ph, "net1.inp", "net1.rpt", ""); 
+if (errcode == 0)
+{ 
+    // Call functions that perform desired analysis 
+} 
+EN_deleteproject(&ph);
+\endcode
+
+Note that after an input file has been loaded in this fashion the resulting network can have objects added or deleted, and their properties set using various Toolkit functions .
+
+The second method for supplying network data to a project is to use the Toolkit's functions to add objects and to set their properties via code. In this case the @ref EN_init function should be called immediately after creating a project, passing in the names of a report and binary output files (both optional) as well as the choices of flow units and head loss formulas to use. After that the various `EN_add` functions, such as @ref EN_addnode, @ref EN_addlink, @ref EN_addpattern, @ref EN_addcontrol, etc., can be called to add new objects to the network. Here is a partial example:
+
+\code {.c}
+EN_Project ph;
+EN_createproject(&ph);
+EN_init(ph, "net1.rpt", "", EN_GPM, EN_HW);
+EN_addnode(ph, "J1", EN_JUNCTION);
+EN_addnode(ph, "J2", EN_JUNCTION);
+EN_addlink(ph, "P1", EN_PIPE, "J1", "J2");
+// additional function calls to complete building the network
+\endcode
+
+See the @ref Example2 for a more complete example. While adding objects their properties can be set as described in the next section. Attemtping to change a network's structure by adding or deleting nodes and links while the Toolkit's hydraulic or water quality solvers are open will result in an error condition.
+
+@section Properties Setting Object Properties
+
+The Toolkit contains several functions for retrieving and setting the properties of a network's objects and its analysis options. The names of retrieval functions all begin with `EN_get` (e.g., @ref EN_getnodevalue, @ref EN_getoption, etc.) while the functions used for setting parameter values begin with `EN_set` (e.g., @ref EN_setnodevalue, @ref EN_setoption, etc.).
+
+Most of these functions use an index number to refer to a specific network component (such as a node, link, time pattern or data curve). This number is simply the position of the component in the list of all components of similar type (e.g., node 10 is the tenth node, starting from 1, in the network) and is not the same as the ID label assigned to the component. A series of functions exist to determine a component's index number given its ID label (see @ref EN_getnodeindex, @ref EN_getlinkindex, @ref  EN_getpatternindex, and @ref EN_getcurveindex). Likewise, functions exist to retrieve a component's ID label given its index number (see @ref EN_getlinkid, @ref EN_getnodeid, @ref EN_getpatternid, and @ref EN_getcurveid). The @ref EN_getcount function can be used to determine the number of different components in the network. Be aware that a component's index can change as elements are added or deleted from the network.
+
+The code below is an example of using the property retrieval and setting functions. It changes all links with diameter of 10 inches to 12 inches. 
+
+\code {.c}
+void changeDiameters(EN_Project ph)
+{
+    int   i, nLinks; 
+    double diam; 
+    EN_getcount(ph, EN_LINKCOUNT, &nLinks); 
+    for (i = 1; i <= nLinks; i++)
+    { 
+        EN_getlinkvalue(ph, i, EN_DIAMETER, &diam); 
+        if (diam == 10) EN_setlinkvalue(ph, i, EN_DIAMETER, 12); 
+    }
+}    
+\endcode
+
+@section hydraulics Computing Hydraulics
+
+There are two ways to use the Toolkit to run a hydraulic analysis: 
+-# Use the @ref EN_solveH function to run a complete extended period analysis, without having access to intermediate results.  
+-# Use the @ref EN_openH - @ref EN_initH - @ref EN_runH - @ref EN_nextH - @ref EN_closeH series of functions to step through the simulation one hydraulic time step at a time.  
+ 
+Method 1 is useful if you only want to run a single hydraulic analysis, perhaps to provide input to a water quality analysis. With this method hydraulic results are always saved to an intermediate hydraulics file at every time step. 
+
+Method 2 must be used if you need to access results between time steps or if you wish to run many analyses efficiently. To accomplish the latter, you would make only one call to `EN_openH` to begin the process, then make successive calls to `EN_initH` - `EN_runH` - `EN_nextH` to perform each analysis, and finally call EN_closeH to close down the hydraulics system. An example of this is shown below (calls to `EN_nextH` are not needed because we are only making a single period analysis in this example). 
+
+\code {.c}
+void runHydraulics(EN_Project ph, int nRuns)
+{
+    int  i; 
+    long t;
+    EN_openH(ph);
+    for (i = 1; i <= nRuns; i++)
+    {
+        // user-supplied function to set parameters
+        setparams(ph, i);
+        // initialize hydraulics; don't save them to file
+        EN_initH(ph, EN_NOSAVE);
+        // solve hydraulics
+        EN_runH(ph, &t);
+        // user-supplied function to process results
+        getresults(ph, i);
+    }
+    EN_closeH(ph);
+}
+\endcode
+
+@section quality Computing Water Quality
+
+As with a hydraulic analysis, there are two ways to carry out a water quality analysis: 
+
+-# Use the @ref EN_solveQ function to run a complete extended period analysis, without having access to intermediate results. A complete set of hydraulic results must have been generated either from running a hydraulic analysis or from importing a saved hydraulics file from a previous run.
+-# Use the @ref EN_openQ - @ref EN_initQ - @ref EN_runQ - @ref EN_nextQ - @ref EN_closeQ series of functions to step through the simulation one hydraulic time step at a time. (Replacing `EN_nextQ` with @ref EN_stepQ will step through one water quality time step at a time.)
+
+The second option can either be carried out after a hydraulic analysis has been run or simultaneously as hydraulics are being computed. Example code for these two alternatives is shown below:
+
+\code {.c}
+int runSequentialQuality(EN_Project ph)
+{
+    int err;
+    long t, tStep;
+    err = EN_solveH(ph);
+    if (err > 100) return err;
+    EN_openQ(ph);
+    EN_initQ(ph, EN_NOSAVE);
+    do {
+        EN_runQ(ph, &t);    
+        // Access quality results for time t here
+        EN_nextQ(ph, &tStep);
+    } while (tStep > 0);
+    EN_closeQ(ph);
+    return 0;
+}
+
+int runConcurrentQuality(EN_Project ph)
+{
+    int err = 0;
+    long t, tStep;
+    EN_openH(ph);
+    EN_initH(ph, EN_NOSAVE);
+    EN_openQ(ph);
+    EN_initQ(ph, EN_NOSAVE);
+    do {
+        err = EN_runH(ph, &t);
+        if (err > 100) break;
+        EN_runQ(ph, &t);
+        // Access hydraulic & quality results for time t here
+        EN_nextH(ph, &tStep);
+        EN_nextQ(ph, &tStep);
+    } while (tStep > 0);
+    EN_closeH(ph);
+    EN_closeQ(ph);
+    return err;
+}
+\endcode
+
+@section results Retrieving Computed Results
+
+The @ref EN_getnodevalue and @ref EN_getlinkvalue functions can also be used to retrieve the results of hydraulic and water quality simulations. The computed parameters (and their Toolkit codes) that can be retrieved are as follows: 
+|For Nodes:                          | For Links:                                |
+|----------------------------------- | ----------------------------------------- | 
+|`EN_DEMAND` (demand)                |`EN_FLOW` (flow rate)                      |
+|`EN_HEAD` (hydraulic head)          |`EN_VELOCITY` (flow velocity)              |
+|`EN_PRESSURE` (pressure)            |`EN_HEADLOSS` (head loss)                  |
+|`EN_TANKLEVEL` (tank water level)   |`EN_STATUS` (link status)                  |
+|`EN_TANKVOLUME` (tank water volume) |`EN_SETTING` (pump speed or valve setting) |
+|`EN_QUALITY` (water quality)        |`EN_ENERGY` (pump energy usage)            |
+|`EN_SOURCEMASS` (source mass inflow)|`EN_PUMP_EFFIC` (pump efficiency)          |
+             
+The following code shows how to retrieve the pressure at each node of a network after each time step of a hydraulic analysis (`writetofile` is a user-defined function that will write a record to a file): 
+\code {.c}
+void getPressures(EN_Project ph)
+{
+    int   i, numNodes; 
+    long  t, tStep; 
+    double p; 
+    char  id[EN_MAXID + 1]; 
+    EN_getcount(ph, EN_NODECOUNT, &numNodes); 
+    EN_openH(ph); 
+    ENinitH(ph, EN_NOSAVE); 
+    do { 
+        ENrunH(ph, &t); 
+        for (i = 1; i <= NumNodes; i++) { 
+            EN_getnodevalue(ph, i, EN_PRESSURE, &p); 
+            EN_getnodeid(ph, i, id); 
+            writetofile(t, id, p); 
+        } 
+        EN_nextH(&tStep); 
+    } while (tStep > 0); 
+    ENcloseH(ph);
+}
+\endcode
+
+@section report Writing a Report
+
+The Toolkit has some built-in capabilities to produce formatted output results saved to a file. More specialized reporting needs can always be handled by writing custom code. 
+
+The @ref EN_setreport function is used to define the format of a report while the @ref EN_report function actually writes the report. The latter should be called only after a hydraulic or water quality analysis has been made. An example of creating a report that lists all nodes where the pressure variation over the duration of the simulation exceeds 20 psi is shown below: 
+
+\code {.c}
+void reportPressureVariation(EN_Project ph)
+{
+    // Compute ranges (max - min)
+    EN_settimeparam(ph, EN_STATISTIC, EN_RANGE); 
+
+    // Solve and save hydraulics
+    EN_solveH(ph); 
+    EN_saveH(ph); 
+
+    // Define contents of the report
+    EN_resetreport(ph); 
+    ENsetreport(ph, "FILE myfile.rpt"); 
+    EN_setreport(ph, "NODES ALL"); 
+    EN_setreport(ph, "PRESSURE PRECISION 1"); 
+    EN_setreport(ph, "PRESSURE ABOVE 20"); 
+
+    // Write the report to file
+    EN_report(ph);    
+}   
+\endcode
+
+*/

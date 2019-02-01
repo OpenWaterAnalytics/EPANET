@@ -1,13 +1,15 @@
+/** @file epanet2_enums.h
+*/
 /*
  ******************************************************************************
  Project:      OWA EPANET
  Version:      2.2
  Module:       epanet2_enums.h
- Description:  enums shared between API versions
+ Description:  enumerations of symbolic constants used by the API functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/29/2018
+ Last Updated: 01/14/2019
  ******************************************************************************
 */
 
@@ -21,111 +23,139 @@
 #define  EN_MAXID  31  //!< Max. # characters in ID name
 #define  EN_MAXMSG 255 //!< Max. # characters in message text
 
-/// Node property codes
+/// Node properties
+/**
+These node properties can be accessed with @ref EN_getnodevalue and
+@ref EN_setnodevalue. Those marked as read only are computed values that can
+only be retrieved.
+*/
 typedef enum {
   EN_ELEVATION    = 0, //!< Elevation
-  EN_BASEDEMAND   = 1, //!< Junction baseline demand, from last demand category
-  EN_PATTERN      = 2, //!< Junction baseline demand pattern
-  EN_EMITTER      = 3, //!< Junction emitter coefficient
+  EN_BASEDEMAND   = 1, //!< Primary demand baseline value
+  EN_PATTERN      = 2, //!< Primary demand time pattern index
+  EN_EMITTER      = 3, //!< Emitter flow coefficient
   EN_INITQUAL     = 4, //!< Initial quality
   EN_SOURCEQUAL   = 5, //!< Quality source strength
-  EN_SOURCEPAT    = 6, //!< Quality source pattern
-  EN_SOURCETYPE   = 7, //!< Qualiy source type
-  EN_TANKLEVEL    = 8, //!< Tank water level
-  EN_DEMAND       = 9, //!< Current simulated demand
-  EN_HEAD         = 10, //!< Current hydraulic head
-  EN_PRESSURE     = 11, //!< Current pressure
-  EN_QUALITY      = 12, //!< Current quality
-  EN_SOURCEMASS   = 13, //!< Current source mass inflow
-  EN_INITVOLUME   = 14, //!< Tank initial volume
-  EN_MIXMODEL     = 15, //!< Tank mixing model
-  EN_MIXZONEVOL   = 16, //!< Tank mixing zone volume
+  EN_SOURCEPAT    = 6, //!< Quality source pattern index
+  EN_SOURCETYPE   = 7, //!< Quality source type (see @ref EN_SourceType)
+  EN_TANKLEVEL    = 8, //!< Current computed tank water level (read only)
+  EN_DEMAND       = 9, //!< Current computed demand (read only)
+  EN_HEAD         = 10, //!< Current computed hydraulic head (read only)
+  EN_PRESSURE     = 11, //!< Current computed pressure (read only)
+  EN_QUALITY      = 12, //!< Current computed quality (read only)
+  EN_SOURCEMASS   = 13, //!< Current computed quality source mass inflow (read only)
+  EN_INITVOLUME   = 14, //!< Tank initial volume (read only)
+  EN_MIXMODEL     = 15, //!< Tank mixing model (see @ref EN_MixingModel)
+  EN_MIXZONEVOL   = 16, //!< Tank mixing zone volume (read only)
   EN_TANKDIAM     = 17, //!< Tank diameter
   EN_MINVOLUME    = 18, //!< Tank minimum volume
-  EN_VOLCURVE     = 19, //!< Tank volume curve
+  EN_VOLCURVE     = 19, //!< Tank volume curve index
   EN_MINLEVEL     = 20, //!< Tank minimum level
   EN_MAXLEVEL     = 21, //!< Tank maximum level
   EN_MIXFRACTION  = 22, //!< Tank mixing fraction
   EN_TANK_KBULK   = 23, //!< Tank bulk decay coefficient
-  EN_TANKVOLUME   = 24, //!< Tank current volume
-  EN_MAXVOLUME    = 25  //!< Tank maximum volume
+  EN_TANKVOLUME   = 24, //!< Current computed tank volume (read only)
+  EN_MAXVOLUME    = 25  //!< Tank maximum volume (read only)
 } EN_NodeProperty;
 
-/// Link property codes
+/// Link properties
+/**
+These link properties can be accessed with @ref EN_getlinkvalue and @ref EN_setlinkvalue.
+Those marked as read only are computed values that can only be retrieved.
+*/
 typedef enum {
   EN_DIAMETER     = 0,  //!< Pipe/valve diameter
-  EN_LENGTH       = 1,  //!> Pipe length
-  EN_ROUGHNESS    = 2,  //!> Pipe roughness coefficient
-  EN_MINORLOSS    = 3,  //!> Pipe/valve minor loss coefficient
-  EN_INITSTATUS   = 4,  //!> Initial status (e.g., OPEN/CLOSED)
-  EN_INITSETTING  = 5,  //!> Initial pump speed or valve setting
-  EN_KBULK        = 6,  //!> Bulk chemical reaction coefficient
-  EN_KWALL        = 7,  //!> Pipe wall chemical reaction coefficient
-  EN_FLOW         = 8,  //!> Current link flow rate
-  EN_VELOCITY     = 9,  //!> Current link flow velocity
-  EN_HEADLOSS     = 10, //!> Current head loss across link
-  EN_STATUS       = 11, //!> Current link status
-  EN_SETTING      = 12, //!> Current link setting
-  EN_ENERGY       = 13, //!> Current pump energy usage
-  EN_LINKQUAL     = 14, //!> Current link quality
-  EN_LINKPATTERN  = 15, //!> Pump speed time pattern
-  EN_EFFICIENCY   = 16, //!> Current pump efficiency
-  EN_HEADCURVE    = 17, //!> Pump head v. flow curve
-  EN_EFFICIENCYCURVE = 18, //!> Pump efficiency v. flow curve
-  EN_PRICEPATTERN = 19,    //!> Pump energy price time pattern
-  EN_STATE        = 20,    //!> Current pump status
-  EN_CONST_POWER  = 21,    //!> Horsepower of constant horsepower pump
-  EN_SPEED        = 22     //!> Current pump speed setting
+  EN_LENGTH       = 1,  //!< Pipe length
+  EN_ROUGHNESS    = 2,  //!< Pipe roughness coefficient
+  EN_MINORLOSS    = 3,  //!< Pipe/valve minor loss coefficient
+  EN_INITSTATUS   = 4,  //!< Initial status (see @ref EN_LinkStatusType)
+  EN_INITSETTING  = 5,  //!< Initial pump speed or valve setting
+  EN_KBULK        = 6,  //!< Bulk chemical reaction coefficient
+  EN_KWALL        = 7,  //!< Pipe wall chemical reaction coefficient
+  EN_FLOW         = 8,  //!< Current computed flow rate (read only)
+  EN_VELOCITY     = 9,  //!< Current computed flow velocity (read only)
+  EN_HEADLOSS     = 10, //!< Current computed head loss (read only)
+  EN_STATUS       = 11, //!< Current link status (see @ref EN_LinkStatusType)
+  EN_SETTING      = 12, //!< Current link setting
+  EN_ENERGY       = 13, //!< Current computed pump energy usage (read only)
+  EN_LINKQUAL     = 14, //!< Current computed link quality (read only)
+  EN_LINKPATTERN  = 15, //!< Pump speed time pattern index
+  EN_PUMP_STATE   = 16, //!< Current computed pump state (read only) (see @ref EN_PumpStateType)
+  EN_PUMP_EFFIC   = 17, //!< Current computed pump efficiency (read only)
+  EN_PUMP_POWER   = 18, //!< Pump constant power rating
+  EN_PUMP_HCURVE  = 19, //!< Pump head v. flow curve index
+  EN_PUMP_ECURVE  = 20, //!< Pump efficiency v. flow curve index
+  EN_PUMP_ECOST   = 21, //!< Pump average energy price
+  EN_PUMP_EPAT    = 22  //!< Pump energy price time pattern index
 } EN_LinkProperty;
 
-/// Time parameter codes
+/// Time parameters
+/**
+These time parameters are accessed using @ref EN_gettimeparam and@ref EN_settimeparam.
+All times are expressed in seconds The parameters marked as read only are
+computed values that can only be retrieved.
+*/
 typedef enum {
-  EN_DURATION     = 0,  //!> Total simulation duration
-  EN_HYDSTEP      = 1,  //!> Hydraulic time step
-  EN_QUALSTEP     = 2,  //!> Water quality time step
-  EN_PATTERNSTEP  = 3,  //!> Time pattern period
-  EN_PATTERNSTART = 4,  //!> Time when time patterns begin
-  EN_REPORTSTEP   = 5,  //!> Reporting time step
-  EN_REPORTSTART  = 6,  //!> Time when reporting starts
-  EN_RULESTEP     = 7,  //!> Rule evaluation time step
-  EN_STATISTIC    = 8,  //!> Reporting statistic code
-  EN_PERIODS      = 9,  //!> Number of reporting time periods
-  EN_STARTTIME    = 10, //!> Simulation starting time of day
-  EN_HTIME        = 11, //!> Elapsed time of current hydraulic solution
-  EN_QTIME        = 12, //!> Elapsed time of current quality solution
-  EN_HALTFLAG     = 13, //!> Flag indicating if simulation halted
-  EN_NEXTEVENT    = 14, //!> Next time until a tank becomes empty or full
-  EN_NEXTEVENTIDX = 15  //!> Index of next tank that becomes empty or full
-} EN_TimeProperty;
+  EN_DURATION     = 0,  //!< Total simulation duration
+  EN_HYDSTEP      = 1,  //!< Hydraulic time step
+  EN_QUALSTEP     = 2,  //!< Water quality time step
+  EN_PATTERNSTEP  = 3,  //!< Time pattern period
+  EN_PATTERNSTART = 4,  //!< Time when time patterns begin
+  EN_REPORTSTEP   = 5,  //!< Reporting time step
+  EN_REPORTSTART  = 6,  //!< Time when reporting starts
+  EN_RULESTEP     = 7,  //!< Rule-based control evaluation time step
+  EN_STATISTIC    = 8,  //!< Reporting statistic code (see @ref EN_StatisticType)
+  EN_PERIODS      = 9,  //!< Number of reporting time periods (read only)
+  EN_STARTTIME    = 10, //!< Simulation starting time of day
+  EN_HTIME        = 11, //!< Elapsed time of current hydraulic solution (read only)
+  EN_QTIME        = 12, //!< Elapsed time of current quality solution (read only)
+  EN_HALTFLAG     = 13, //!< Flag indicating if the simulation was halted (read only)
+  EN_NEXTEVENT    = 14, //!< Shortest time until a tank becomes empty or full (read only)
+  EN_NEXTEVENTTANK = 15  //!< Index of tank with shortest time to become empty or full (read only)
+} EN_TimeParameter;
 
-/// Analysis statistic codes
+/// Analysis convergence statistics
+/**
+These statistics report the convergence criteria for the most current hydraulic analysis
+and the cumulative water quality mass balance error at the current simulation time. They
+can be retrieved with @ref EN_getstatistic.
+*/
 typedef enum {
-  EN_ITERATIONS    = 0, //!< Number of hydraulic iterations
-  EN_RELATIVEERROR = 1, //!< Sum of all flow changes / total flow
+  EN_ITERATIONS    = 0, //!< Number of hydraulic iterations taken
+  EN_RELATIVEERROR = 1, //!< Sum of link flow changes / sum of link flows
   EN_MAXHEADERROR  = 2, //!< Largest head loss error for links
   EN_MAXFLOWCHANGE = 3, //!< Largest flow change in links
-  EN_MASSBALANCE   = 4  //!< Water quality mass balance ratio
+  EN_MASSBALANCE   = 4  //!< Cumulative water quality mass balance ratio
 } EN_AnalysisStatistic;
 
-/// Object count codes
+/// Types of objects to count
+/**
+These options tell @ref EN_getcount which type of object to count.
+*/
 typedef enum {
-  EN_NODECOUNT    = 0,  //!< Number of nodes (Juntions + Tanks + Reservoirs)
-  EN_TANKCOUNT    = 1,  //!< Number of tanks and Reservoirs
-  EN_LINKCOUNT    = 2,  //!< Number of links (Pipes + Pumps + Valves)
+  EN_NODECOUNT    = 0,  //!< Number of nodes (junctions + tanks + reservoirs)
+  EN_TANKCOUNT    = 1,  //!< Number of tanks and reservoirs
+  EN_LINKCOUNT    = 2,  //!< Number of links (pipes + pumps + valves)
   EN_PATCOUNT     = 3,  //!< Number of time patterns
-  EN_CURVECOUNT   = 4,  //!< Number of curves
+  EN_CURVECOUNT   = 4,  //!< Number of data curves
   EN_CONTROLCOUNT = 5,  //!< Number of simple controls
   EN_RULECOUNT	  = 6   //!< Number of rule-based controls
 } EN_CountType;
 
-/// Node type codes
+/// Types of nodes
+/**
+These are the different types of nodes that can be returned by calling @ref EN_getnodetype.
+*/
 typedef enum {
   EN_JUNCTION    = 0,   //!< Junction node
   EN_RESERVOIR   = 1,   //!< Reservoir node
   EN_TANK        = 2    //!< Storage tank node
 } EN_NodeType;
 
-/// Link type codes
+/// Types of links
+/**
+These are the different types of links that can be returned by calling @ref EN_getlinktype.
+*/
 typedef enum {
   EN_CVPIPE       = 0,  //!< Pipe with check valve
   EN_PIPE         = 1,  //!< Pipe
@@ -138,7 +168,36 @@ typedef enum {
   EN_GPV          = 8   //!< General purpose valve
 } EN_LinkType;
 
-/// Water quality analysis types
+/// Link status
+/**
+One of these values is returned when @ref EN_getlinkvalue is used to retrieve a link's
+initial status (EN_INITSTATUS) or its current status (EN_STATUS). These options are
+also used with @ref EN_setlinkvalue to set values for these same properties.
+*/
+typedef enum {
+  EN_CLOSED       = 0,
+  EN_OPEN         = 1
+} EN_LinkStatusType;
+
+/// Pump states
+/**
+One of these codes is returned when @ref EN_getlinkvalue is used to retrieve a pump's
+current operating state (EN_PUMP_STATE). EN_PUMP_XHEAD indicates that the pump has been
+shut down because it is being asked to deliver more than its shutoff head. EN_PUMP_XFLOW
+indicates that the pump is being asked to deliver more than its maximum flow.
+*/
+typedef enum {
+  EN_PUMP_XHEAD   = 0,  //!< Pump closed - cannot supply head
+  EN_PUMP_CLOSED  = 2,  //!< Pump closed
+  EN_PUMP_OPEN    = 3,  //!< Pump open
+  EN_PUMP_XFLOW   = 5   //!< Pump open - cannot supply flow
+} EN_PumpStateType;
+
+/// Types of water quality analyses
+/**
+These are the different types of water quality analyses that EPANET can run. They
+are used with @ref EN_getqualinfo, @ref EN_getqualtype, and @ref EN_setqualtype.
+*/
 typedef enum {
   EN_NONE        = 0,   //!< No quality analysis
   EN_CHEM        = 1,   //!< Chemical fate and transport
@@ -146,71 +205,124 @@ typedef enum {
   EN_TRACE       = 3    //!< Source tracing analysis
 } EN_QualityType;
 
-/// Water quality source types
+/// Types of water quality sources
+/**
+These are the options for EN_SOURCETYPE, the type of external water quality
+source assigned to a node. They are used in @ref EN_getnodevalue and @ref EN_setnodevalue.
+The EN_SOURCEQUAL property is used in these functions to access a source's strength
+and EN_SOURCEPATTERN to access a time pattern applied to the source.
+*/
 typedef enum {
-  EN_CONCEN      = 0,   //!< Concentration inflow source
-  EN_MASS        = 1,   //!< Mass inflow source
-  EN_SETPOINT    = 2,   //!< Concentration setpoint source
-  EN_FLOWPACED   = 3    //!< Concentration flow paced source
+  EN_CONCEN      = 0,   //!< Concentration of any external inflow entering a node
+  EN_MASS        = 1,   //!< Injects a given mass/minute into a node
+  EN_SETPOINT    = 2,   //!< Sets the concentration leaving a node to a given value
+  EN_FLOWPACED   = 3    //!< Adds a given value to the concentration leaving a node
 } EN_SourceType;
 
-/// Head loss formulas
+/// Head loss formula choices
+/**
+These are the choices for the EN_HEADLOSSFORM option in @ref EN_getoption and
+@ref EN_setoption. They are also used for the head loss type argument in @ref EN_init.
+Each head loss formula uses a different type of roughness coefficient (EN_ROUGHNESS)
+that can be set with @ref EN_setlinkvalue.
+*/
 typedef enum {
   EN_HW          = 0,   //!< Hazen-Williams
   EN_DW          = 1,   //!< Darcy-Weisbach
   EN_CM          = 2    //!< Chezy-Manning
 } EN_HeadLossType;
 
-/// Flow units types
+/// Flow units choices
+/**
+These choices for flow units are used with @ref EN_getflowunits and @ref EN_setflowunits.
+They are also used for the flow units type argument in @ref EN_init. If flow units are
+expressed in US Customary units (EN_CFS through EN_AFD) then all other quantities are
+in US Customary units. Otherwise they are in metric units.
+*/
 typedef enum {
-  EN_CFS         = 0,
-  EN_GPM         = 1,
-  EN_MGD         = 2,
-  EN_IMGD        = 3,
-  EN_AFD         = 4,
-  EN_LPS         = 5,
-  EN_LPM         = 6,
-  EN_MLD         = 7,
-  EN_CMH         = 8,
-  EN_CMD         = 9
+  EN_CFS         = 0,   //!< Cubic feet per second
+  EN_GPM         = 1,   //!< Gallons per minute
+  EN_MGD         = 2,   //!< Million gallons per day
+  EN_IMGD        = 3,   //!< Imperial million gallons per day
+  EN_AFD         = 4,   //!< Acre-feet per day
+  EN_LPS         = 5,   //!< Liters per second
+  EN_LPM         = 6,   //!< Liters per minute
+  EN_MLD         = 7,   //!< Million liters per day
+  EN_CMH         = 8,   //!< Cubic meters per hour
+  EN_CMD         = 9    //!< Cubic meters per day
 } EN_FlowUnits;
 
-/// Demand model types
+/// Types of demand models
+/**
+These choices for representing consumer demands are used with @ref EN_getdemandmodel
+and @ref EN_setdemandmodel.
+
+A demand driven analysis requires that a junction's full demand be supplied
+in each time period independent of how much pressure is available. A pressure
+driven analysis makes demand be a power function of pressure, up to the point
+where the full demand is met.
+*/
 typedef enum {
   EN_DDA         = 0,   //!< Demand driven analysis
   EN_PDA         = 1    //!< Pressure driven analysis
 } EN_DemandModel;
 
-/// Simulation Option codes
+/// Simulation options
+/**
+These options specify hydraulic convergence criteria, choice of head loss formula, and
+several other parameters applied on a network-wide basis. They are accessed using the
+@ref EN_getoption and @ref EN_setoption functions.
+*/
 typedef enum {
-  EN_TRIALS       = 0,  //!> Maximum hydraulic trials allowed
-  EN_ACCURACY     = 1,  //!> Hydraulic convergence accuracy
-  EN_TOLERANCE    = 2,  //!> Water quality tolerance
-  EN_EMITEXPON    = 3,  //!> Exponent for emitter head loss formula
-  EN_DEMANDMULT   = 4,  //!> Global demand multiplier
-  EN_HEADERROR    = 5,  //!> Maximum allowable head loss error
-  EN_FLOWCHANGE   = 6,  //!> Maximum allowable flow change
-  EN_DEMANDDEFPAT = 7,  //!> Default demand time pattern
-  EN_HEADLOSSFORM = 8   //!> Head loss formula code
+  EN_TRIALS         = 0,  //!< Maximum hydraulic trials allowed
+  EN_ACCURACY       = 1,  //!< Maximum total relative flow change for hydraulic convergence
+  EN_TOLERANCE      = 2,  //!< Water quality tolerance
+  EN_EMITEXPON      = 3,  //!< Exponent in emitter discharge formula
+  EN_DEMANDMULT     = 4,  //!< Global demand multiplier
+  EN_HEADERROR      = 5,  //!< Maximum head loss error for hydraulic convergence
+  EN_FLOWCHANGE     = 6,  //!< Maximum flow change for hydraulic convergence
+  EN_DEFDEMANDPAT   = 7,  //!< Index of the default demand time pattern
+  EN_HEADLOSSFORM   = 8,  //!< Head loss formula (see @ref EN_HeadLossType)
+  EN_GLOBALEFFIC    = 9,  //!< Global pump efficiency (percent)
+  EN_GLOBALPRICE    = 10, //!< Global energy price per KWH
+  EN_GLOBALPATTERN  = 11, //!< Index of a global energy price pattern
+  EN_DEMANDCHARGE   = 12  //!< Energy charge per max. KW usage
 } EN_Option;
 
-/// Simple control types
+/// Types of simple controls
+/**
+These are the different types of simple (single statement) controls that can be applied
+to network links. They are used as an argument to @ref EN_addcontrol,@ref EN_getcontrol,
+and @ref EN_setcontrol.
+*/
 typedef enum {
-  EN_LOWLEVEL    = 0,
-  EN_HILEVEL     = 1,
-  EN_TIMER       = 2,
-  EN_TIMEOFDAY   = 3
+  EN_LOWLEVEL    = 0,   //!< Act when pressure or tank level drops below a setpoint
+  EN_HILEVEL     = 1,   //!< Act when pressure or tank level rises above a setpoint
+  EN_TIMER       = 2,   //!< Act at a prescribed elapsed amount of time
+  EN_TIMEOFDAY   = 3    //!< Act at a particular time of day
 } EN_ControlType;
 
-/// Reporting statistic types
+/// Reporting statistic choices
+/**
+These options determine what kind of statistical post-processing should be done on
+the time series of simulation results generated before they are reported using
+@ref EN_report. An option can be chosen by using `STATISTIC option` as the argument
+to @ref EN_setreport.
+*/
 typedef enum {
-  EN_AVERAGE     = 1,   //!> Report average value over simulation period
-  EN_MINIMUM     = 2,   //!> Report minimum value over simulation period
-  EN_MAXIMUM     = 3,   //!> Report maximum value over simulation period
-  EN_RANGE       = 4    //!> Report maximum - minimum over simulation period
+  EN_SERIES      = 0,   //!< Report all time series points
+  EN_AVERAGE     = 1,   //!< Report average value over simulation period
+  EN_MINIMUM     = 2,   //!< Report minimum value over simulation period
+  EN_MAXIMUM     = 3,   //!< Report maximum value over simulation period
+  EN_RANGE       = 4    //!< Report maximum - minimum over simulation period
 } EN_StatisticType;
 
 /// Tank mixing models
+/**
+These are the different types of models that describe water quality mixing in storage tanks.
+The choice of model is accessed with the EN_MIXMODEL property of a Tank node using
+@ref EN_getnodevalue and @ref EN_setnodevalue.
+*/
 typedef enum {
   EN_MIX1        = 0,   //!< Complete mix model
   EN_MIX2        = 1,   //!< 2-compartment model
@@ -219,14 +331,20 @@ typedef enum {
 } EN_MixingModel;
 
 /// Hydraulic initialization options
+/**
+These options are used to initialize a new hydraulic analysis when @ref EN_initH is called.
+*/
 typedef enum {
-  EN_NOSAVE        = 0,  //!> Don't save hydraulics; don't re-initialize flows
-  EN_SAVE          = 1,  //!> Save hydraulics to file, don't re-initialize flows
-  EN_INITFLOW      = 10, //!> Don't save hydraulics; re-initialize flows
-  EN_SAVE_AND_INIT = 11  //!> Save hydraulics; re-initialize flows
-} EN_SaveOption;
+  EN_NOSAVE        = 0,  //!< Don't save hydraulics; don't re-initialize flows
+  EN_SAVE          = 1,  //!< Save hydraulics to file, don't re-initialize flows
+  EN_INITFLOW      = 10, //!< Don't save hydraulics; re-initialize flows
+  EN_SAVE_AND_INIT = 11  //!< Save hydraulics; re-initialize flows
+} EN_InitHydOption;
 
-/// Pump curve types
+/// Types of pump curves
+/**
+@ref EN_getpumptype returns one of these values when it is called.
+*/
 typedef enum {
   EN_CONST_HP    = 0,   //!< Constant horsepower
   EN_POWER_FUNC  = 1,   //!< Power function
@@ -234,72 +352,85 @@ typedef enum {
   EN_NOCURVE     = 3    //!< No curve
 } EN_PumpType;
 
-/// Data curve types
+/// Types of data curves
+/**
+These are the different types of physical relationships that a data curve could
+represent as returned by calling @ref EN_getcurvetype.
+*/
 typedef enum {
-  EN_V_CURVE     = 0,   //!< Tank volume curve
-  EN_P_CURVE     = 1,   //!< Pump characteristic curve
-  EN_E_CURVE     = 2,   //!< Pump efficiency curve
-  EN_H_CURVE     = 3,   //!< Valve head loss curve
-  EN_G_CURVE     = 4    //!< General\default curve
+  EN_VOLUME_CURVE  = 0,   //!< Tank volume v. depth curve
+  EN_PUMP_CURVE    = 1,   //!< Pump head v. flow curve
+  EN_EFFIC_CURVE   = 2,   //!< Pump efficiency v. flow curve
+  EN_HLOSS_CURVE   = 3,   //!< Valve head loss v. flow curve
+  EN_GENERIC_CURVE = 4    //!< Generic curve
 } EN_CurveType;
 
-/// Deletion action types
+/// Deletion action codes
+/**
+These codes are used in @ref EN_deletenode and @ref EN_deletelink to indicate what action
+should be taken if the node or link being deleted appears in any simple or rule-based
+controls.
+*/
 typedef enum {
-  EN_UNCONDITIONAL = 0, //!> Delete all controls that contain object
-  EN_CONDITIONAL   = 1  //!> Cancel object deletion if contained in controls
+  EN_UNCONDITIONAL = 0, //!< Delete all controls that contain object
+  EN_CONDITIONAL   = 1  //!< Cancel object deletion if contained in controls
 } EN_ActionCodeType;
 
-/// Rule object codes
+/// Status reporting levels
+/**
+These choices specify the level of status reporting written to a project's report
+file during a hydraulic analysis. The level is set using the @ref EN_setstatusreport function.
+*/
 typedef enum {
-  EN_R_NODE      = 6,
-  EN_R_LINK      = 7,
-  EN_R_SYSTEM    = 8
+  EN_NO_REPORT = 0,     //!< No status reporting
+  EN_NORMAL_REPORT = 1, //!< Normal level of status reporting
+  EN_FULL_REPORT = 2    //!< Full level of status reporting
+} EN_StatusReport;
+
+/// Network objects used in rule-based controls
+typedef enum {
+  EN_R_NODE      = 6,   //!< Clause refers to a node
+  EN_R_LINK      = 7,   //!< Clause refers to a link
+  EN_R_SYSTEM    = 8    //!< Clause refers to a system parameter (e.g., time)
 } EN_RuleObject;
 
-/// Rule variable codes
+/// Object variables used in rule-based controls
 typedef enum {
-  EN_R_DEMAND    = 0,
-  EN_R_HEAD      = 1,
-  EN_R_GRADE     = 2,
-  EN_R_LEVEL     = 3,
-  EN_R_PRESSURE  = 4,
-  EN_R_FLOW      = 5,
-  EN_R_STATUS    = 6,
-  EN_R_SETTING   = 7,
-  EN_R_POWER     = 8,
-  EN_R_TIME      = 9,
-  EN_R_CLOCKTIME = 10,
-  EN_R_FILLTIME  = 11,
-  EN_R_DRAINTIME = 12
+  EN_R_DEMAND    = 0,   //!< Nodal demand
+  EN_R_HEAD      = 1,   //!< Nodal hydraulic head
+  EN_R_GRADE     = 2,   //!< Nodal hydraulic grade
+  EN_R_LEVEL     = 3,   //!< Tank water level
+  EN_R_PRESSURE  = 4,   //!< Nodal pressure
+  EN_R_FLOW      = 5,   //!< Link flow rate
+  EN_R_STATUS    = 6,   //!< Link status
+  EN_R_SETTING   = 7,   //!< Link setting
+  EN_R_POWER     = 8,   //!< Pump power output
+  EN_R_TIME      = 9,   //!< Elapsed simulation time
+  EN_R_CLOCKTIME = 10,  //!< Time of day
+  EN_R_FILLTIME  = 11,  //!< Time to fill a tank
+  EN_R_DRAINTIME = 12   //!< Time to drain a tank
 } EN_RuleVariable;
 
-/// Rule operator types
+/// Comparison operators used in rule-based controls
 typedef enum {
-  EN_R_EQ        = 0,
-  EN_R_NE        = 1,
-  EN_R_LE        = 2,
-  EN_R_GE        = 3,
-  EN_R_LT        = 4,
-  EN_R_GT        = 5,
-  EN_R_IS        = 6,
-  EN_R_NOT       = 7,
-  EN_R_BELOW     = 8,
-  EN_R_ABOVE     = 9
+  EN_R_EQ        = 0,   //!< Equal to
+  EN_R_NE        = 1,   //!< Not equal
+  EN_R_LE        = 2,   //!< Less than or equal to
+  EN_R_GE        = 3,   //!< Greater than or equal to
+  EN_R_LT        = 4,   //!< Less than
+  EN_R_GT        = 5,   //!< Greater than
+  EN_R_IS        = 6,   //!< Is equal to
+  EN_R_NOT       = 7,   //!< Is not equal to
+  EN_R_BELOW     = 8,   //!< Is below
+  EN_R_ABOVE     = 9    //!< Is above
 } EN_RuleOperator;
 
-/// Rule status types
+/// Link status codes used in rule-based controls
 typedef enum {
-  EN_R_IS_OPEN   = 1,
-  EN_R_IS_CLOSED = 2,
-  EN_R_IS_ACTIVE = 3
+  EN_R_IS_OPEN   = 1,   //!< Link is open
+  EN_R_IS_CLOSED = 2,   //!< Link is closed
+  EN_R_IS_ACTIVE = 3    //!< Control valve is active
 } EN_RuleStatus;
-
-/// Status report types
-typedef enum {
-  EN_NO_REPORT     = 0,
-  EN_NORMAL_REPORT = 1,
-  EN_FULL_REPORT   = 2
-} EN_StatusReport;
 
 
 #endif //EPANET2_ENUMS_H
