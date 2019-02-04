@@ -5,17 +5,17 @@
 #
 #  Author: Michael E. Tryby
 #          US EPA - ORD/NRMRL
-# 
+#
 
 version: 2.0.{build}
 
-matrix: 
+matrix:
   allow_failures:
   #GROUP: (SUPPORTED/EXPERIMENTAL)
   #EXPERIMENTAL is allowed to fail under build matrix
   - GROUP: "EXPERIMENTAL"
 
-environment: 
+environment:
   matrix:
   - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     GENERATOR: "Visual Studio 15 2017"
@@ -28,7 +28,7 @@ environment:
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
 
 # called before repo cloning
-init: 
+init:
   - set EPANET_HOME=%APPVEYOR_BUILD_FOLDER%
   - set BUILD_HOME=buildprod
   - set TEST_HOME=nrtestsuite
@@ -40,21 +40,21 @@ init:
   - echo %BOOST_ROOT%
 
 # called after repo clone
-install: 
+install:
   - python -m pip install -r tools\requirements-appveyor.txt
 
 # called before build
 before_build:
   - mkdir %BUILD_HOME%
   - cd %BUILD_HOME%
-  - cmake -G "%GENERATOR%" 
-    -DBUILD_TESTS=1
+  - cmake -G "%GENERATOR%"
+    -DBUILD_TESTS=ON
     -DBOOST_ROOT="%BOOST_ROOT%"
     -DBoost_USE_STATIC_LIBS="ON" ..
 
 # run custom build script
-build_script: 
-  - cmake --build . --config Release 
+build_script:
+  - cmake --build . --config Release
 
 before_test:
   - cd %EPANET_HOME%
@@ -69,8 +69,8 @@ test_script:
   - cd %EPANET_HOME%
   - tools\run-nrtest.cmd %NRTEST_SCRIPT% %TEST_HOME% %APPVEYOR_REPO_COMMIT%
 
-after_test: 
-  # zip up the SUT benchmarks 
+after_test:
+  # zip up the SUT benchmarks
   - 7z a benchmarks.zip %TEST_HOME%\benchmark\epanet-%APPVEYOR_REPO_COMMIT%\
 
 artifacts:

@@ -1,7 +1,7 @@
 language: python
 
-env: 
-  global: 
+env:
+  global:
     - EPANET_HOME=`pwd`
     - BUILD_HOME=buildprod
     - TEST_HOME=nrtestsuite
@@ -10,17 +10,17 @@ before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y libboost-test-dev
   - sudo apt-get install -y libboost-thread-dev
-  - sudo apt-get install -y swig 
+  - sudo apt-get install -y swig
 
 #install:
 
 before_script:
   - mkdir -p $BUILD_HOME
   - cd $BUILD_HOME
-  - cmake -DBUILD_TESTS=1 .. 
+  - cmake -DBUILD_TESTS=ON .. 
 
 script:
-  - cmake --build . 
+  - cmake --build .
   # run unit tests
   - cd tests
   - ctest
