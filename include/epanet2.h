@@ -30,37 +30,23 @@ function in epanet2_2.h.
 // The legacy style EPANET API can be compiled with support for either single
 // precision or double precision floating point arguments, with the default
 // being single precision. To compile for double precision one must #define
-// EN_API_FLOAT_TYPE as double both here and in any client code that uses the 
+// EN_API_FLOAT_TYPE as double both here and in any client code that uses the
 // API.
 #ifndef EN_API_FLOAT_TYPE
   #define EN_API_FLOAT_TYPE float
 #endif
 
-#ifdef WITH_GENX
-   #include "epanet2_export.h"
-#else
-  // --- define WINDOWS
-  #undef WINDOWS
+#ifndef DLLEXPORT
   #ifdef _WIN32
-    #define WINDOWS
-  #endif
-  #ifdef __WIN32__
-    #define WINDOWS
-  #endif
-
-  // --- define DLLEXPORT
-  #ifndef DLLEXPORT
-    #ifdef WINDOWS
-      #ifdef __cplusplus
-        #define DLLEXPORT __declspec(dllexport)
-      #else
-        #define DLLEXPORT __declspec(dllexport) __stdcall
-      #endif // __cplusplus
-    #elif defined(CYGWIN)
-      #define DLLEXPORT __stdcall
+    #ifdef epanet2_EXPORTS
+      #define DLLEXPORT __declspec(dllexport) __stdcall
     #else
-      #define DLLEXPORT
+      #define DLLEXPORT __declspec(dllimport) __stdcall
     #endif
+  #elif defined(CYGWIN)
+    #define DLLEXPORT __stdcall
+  #else
+    #define DLLEXPORT
   #endif
 #endif
 

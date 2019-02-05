@@ -18,26 +18,16 @@
 #ifndef EPANET2_2_H
 #define EPANET2_2_H
 
-#ifdef WITH_GENX
-   #include "epanet2_export.h"
+#ifdef epanet_py_EXPORTS
+  #define DLLEXPORT
 #else
-  // --- define WINDOWS
-  #undef WINDOWS
-  #ifdef _WIN32
-    #define WINDOWS
-  #endif
-  #ifdef __WIN32__
-    #define WINDOWS
-  #endif
-
-  // --- define DLLEXPORT
   #ifndef DLLEXPORT
-    #ifdef WINDOWS
-      #ifdef __cplusplus
-        #define DLLEXPORT __declspec(dllexport)
-      #else
+    #ifdef _WIN32
+      #ifdef epanet2_EXPORTS
         #define DLLEXPORT __declspec(dllexport) __stdcall
-      #endif // __cplusplus
+      #else
+        #define DLLEXPORT __declspec(dllimport) __stdcall
+      #endif
     #elif defined(CYGWIN)
       #define DLLEXPORT __stdcall
     #else

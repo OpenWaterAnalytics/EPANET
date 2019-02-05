@@ -9,26 +9,14 @@
 # Note: CMake requires that your platform build system and compiler are
 # properly installed. Build using Visual Studio requires msbuild shell.
 #
-# Example Usage:
-#   mkdir buildproducts
-#   cd buildproducts
-#   cmake ..
-#   make
-#
-# Building MSYS on Windows:
-#   ...
-#   cmake -G "MSYS Makefiles" ..
-#   make
-#
-# Building Visual Studio on Windows:
-#   ...
-#   cmake -G "Visual Studio 10 2010" ..
-#   msbuild /p:Configuration=Release ALL_BUILD.vcxproj
+# Build Options:
+#   BUILD_TESTS = ON/OFF
+#   BUILD_PY_LIB = ON/OFF
 #
 # Generic Invocation:
 #   cmake -E make_directory buildprod
 #   cd build
-#   cmake -G GENERATOR -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=1 ..
+#   cmake -G GENERATOR -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON ..
 #   cmake --build . --target SOME_TARGET --config Release
 #
 # More information:
@@ -40,7 +28,13 @@
 cmake_minimum_required (VERSION 2.8.8)
 
 project(EPANET)
-add_subdirectory(run)
+
+option(BUILD_TESTS "Build unit tests (requires Boost test)" OFF)
+option(BUILD_PY_LIB "Build library for Python wrapper" OFF)
+
+IF (NOT BUILD_PY_LIB)
+  add_subdirectory(run)
+ENDIF (NOT BUILD_PY_LIB)
 add_subdirectory(tools/epanet-output)
 
 IF (BUILD_TESTS)
@@ -58,8 +52,8 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 
 IF (APPLE)
-SET(INSTALL_NAME_DIR @executable_path/../lib)
-SET(CMAKE_MACOSX_RPATH 1)
+  set(INSTALL_NAME_DIR @executable_path/../lib)
+  set(CMAKE_MACOSX_RPATH 1)
 ENDIF (APPLE)
 
 IF (MSVC)
@@ -69,24 +63,41 @@ ENDIF (MSVC)
 
 
 # configure file groups
-file(GLOB EPANET_SOURCES src/*.c src/util/*.c)
-file(GLOB EPANET_LIB_ALL src/* src/util/*)
+file(GLOB EPANET_SOURCES RELATIVE ${PROJECT_SOURCE_DIR} src/*.c)
+file(GLOB EPANET_LIB_ALL RELATIVE ${PROJECT_SOURCE_DIR} src/*)
+# exclude epanet python API from the default build
+list(REMOVE_ITEM EPANET_LIB_ALL "src/epanet_py.c")
 source_group("Library" FILES ${EPANET_LIB_ALL})
 
 
-# the shared library
-add_library(epanet2 SHARED ${EPANET_LIB_ALL})
-target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
+# create build target for epanet library with python API
+IF (BUILD_PY_LIB)
 
+  # exclude legacy epanet 2.0 API and include epanet py API
+  list(REMOVE_ITEM EPANET_LIB_ALL "src/epanet2.c")
+  add_library(epanet_py SHARED ${EPANET_LIB_ALL} src/epanet_py.c src/util/errormanager.c)
+  target_include_directories(epanet_py PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
-# create export lib so we can link against dll using Visual Studio
-add_definitions(-DWITH_GENX)
-include(GenerateExportHeader)
-GENERATE_EXPORT_HEADER(epanet2
-    BASE_NAME epanet2
-    EXPORT_MACRO_NAME DLLEXPORT
-    EXPORT_FILE_NAME epanet2_export.h
+  include(GenerateExportHeader)
+  GENERATE_EXPORT_HEADER(epanet_py
+    BASE_NAME epanet_py
+    EXPORT_MACRO_NAME EXPORT_PY_API
+    EXPORT_FILE_NAME epanet_py_export.h
     STATIC_DEFINE SHARED_EXPORTS_BUILT_AS_STATIC)
 
-file(COPY ${CMAKE_CURRENT_BINARY_DIR}/epanet2_export.h
+  file(COPY ${CMAKE_CURRENT_BINARY_DIR}/epanet_py_export.h
     DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+
+# create build target for default epanet library with 2.0 and 2.2 API
+ELSE (BUILD_PY_LIB)
+
+  # the shared library
+  if(NOT WIN32)
+    add_library(epanet2 SHARED ${EPANET_LIB_ALL})
+  else(NOT WIN32)
+    add_library(epanet2 SHARED ${EPANET_LIB_ALL} ${PROJECT_SOURCE_DIR}/include/epanet2.def)
+  endif(NOT WIN32)
+  target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
+
+ENDIF (BUILD_PY_LIB)
