@@ -590,6 +590,24 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_getstatistic(EN_Project ph, int type, double* value);
 
+  /**
+  @brief Retrieves the title lines of the project
+  @param[out] titleline1 first title line
+  @param[out] titleline2 second title line
+  @param[out] titleline3 third title line
+  @return an error code
+  */
+  int  DLLEXPORT EN_gettitle(EN_Project ph, char *titleline1, char *titleline2, char *titleline3);
+
+  /**
+  @brief Sets the title lines of the project
+  @param titleline1 first title line
+  @param titleline2 second title line
+  @param titleline3 third title line
+  @return an error code
+  */
+  int  DLLEXPORT EN_settitle(EN_Project ph, char *titleline1, char *titleline2, char *titleline3);
+  
   /********************************************************************
 
   Analysis Options Functions
