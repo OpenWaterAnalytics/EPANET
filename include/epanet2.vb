@@ -262,6 +262,8 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENgetcount Lib "epanet2.dll" (ByVal object As Int32, count As Int32) As Int32
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal errcode As Int32, ByVal errmsg As String, ByVal maxLen As Int32) As Int32
  Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal type_ As Int32, ByRef value As Single) As Int32
+ Declare Function ENgettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Int32
+ Declare Function ENsettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Int32
 
 'Analysis Options Functions
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal option As Int32, value As Single) As Int32

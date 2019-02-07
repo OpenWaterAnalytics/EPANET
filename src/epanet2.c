@@ -203,6 +203,16 @@ int DLLEXPORT ENgetstatistic(int type, EN_API_FLOAT_TYPE *value)
     return errcode;
 }
 
+int DLLEXPORT ENgettitle(char *titleline1, char *titleline2, char *titleline3)
+{
+    return EN_gettitle(_defaultProject, titleline1, titleline2, titleline3) ;
+}
+
+int DLLEXPORT ENsettitle(char *titleline1, char *titleline2, char *titleline3)
+{
+    return EN_settitle(_defaultProject, titleline1, titleline2, titleline3) ;
+}
+
 /********************************************************************
 
     Analysis Options Functions
