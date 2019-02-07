@@ -29,8 +29,14 @@ cmake_minimum_required (VERSION 2.8.8)
 
 project(EPANET)
 
+# Append local dir to module search path
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+
 option(BUILD_TESTS "Build unit tests (requires Boost test)" OFF)
 option(BUILD_PY_LIB "Build library for Python wrapper" OFF)
+option(BUILD_COVERAGE "Build library for coverage" OFF)
+
 
 IF (NOT BUILD_PY_LIB)
   add_subdirectory(run)
@@ -40,6 +46,7 @@ add_subdirectory(tools/epanet-output)
 IF (BUILD_TESTS)
   add_subdirectory(tests)
 ENDIF (BUILD_TESTS)
+
 
 # Sets for output directory for executables and libraries.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -87,6 +94,18 @@ IF (BUILD_PY_LIB)
 
   file(COPY ${CMAKE_CURRENT_BINARY_DIR}/epanet_py_export.h
     DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+
+# create build target for code coverage
+ELSEIF (BUILD_COVERAGE)
+
+include(CodeCoverage)
+set(CMAKE_BUILD_TYPE "Debug")
+APPEND_COVERAGE_COMPILER_FLAGS()
+set(CMAKE_C_FLAGS_DEBUG "-O0")
+
+add_library(epanet2 SHARED ${EPANET_LIB_ALL})
+target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 
 # create build target for default epanet library with 2.0 and 2.2 API
