@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 12/10/2018
+ Last Updated: 02/08/2019
  ******************************************************************************
 */
 
@@ -34,6 +34,8 @@ int EXPORT_PY_API proj_delete(Handle *ph_inout);
 int EXPORT_PY_API proj_run(Handle ph, const char *input_path, const char *report_path, const char *output_path);
 int EXPORT_PY_API proj_init(Handle ph, const char *rptFile, const char *outFile, EN_FlowUnits unitsType, EN_HeadLossType headLossType);
 int EXPORT_PY_API proj_open(Handle ph, const char *inpFile, const char *rptFile, const char *binOutFile);
+int EXPORT_PY_API proj_gettitle(Handle ph, char *line1, char *line2, char *line3);
+int EXPORT_PY_API proj_settitle(Handle ph, const char *line1, const char *line2, const char *line3);
 int EXPORT_PY_API proj_savefile(Handle ph, const char *inpfilename);
 int EXPORT_PY_API proj_close(Handle ph);
 
@@ -60,6 +62,7 @@ int EXPORT_PY_API qual_close(Handle ph);
 
 int EXPORT_PY_API rprt_writeline(Handle ph, char *line);
 int EXPORT_PY_API rprt_writeresults(Handle ph);
+int EXPORT_PY_API rprt_clear(Handle ph);
 int EXPORT_PY_API rprt_reset(Handle ph);
 int EXPORT_PY_API rprt_set(Handle ph, char *reportCommand);
 int EXPORT_PY_API rprt_setlevel(Handle ph, EN_StatusReport code);

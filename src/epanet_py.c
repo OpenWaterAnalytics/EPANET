@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 12/10/2018
+ Last Updated: 02/08/2019
  ******************************************************************************
 */
 
@@ -82,6 +82,18 @@ int EXPORT_PY_API proj_open(Handle ph, const char *inpFile, const char *rptFile,
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_open(pr->project, inpFile, rptFile, binOutFile));
+}
+
+int EXPORT_PY_API proj_gettitle(Handle ph, char *line1, char *line2, char *line3)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_gettitle(pr->project, line1, line2, line3));
+}
+
+int EXPORT_PY_API proj_settitle(Handle ph, const char *line1, const char *line2, const char *line3)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_settitle(pr->project, line1, line2, line3));
 }
 
 int EXPORT_PY_API proj_savefile(Handle ph, const char *filename)
@@ -211,6 +223,12 @@ int EXPORT_PY_API rprt_writeresults(Handle ph)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_report(pr->project));
+}
+
+int EXPORT_PY_API rprt_clear(Handle ph)
+{
+    handle_t *pr = (handle_t *)ph;
+    return error_set(pr->error, EN_clearreport(pr->project));
 }
 
 int EXPORT_PY_API rprt_reset(Handle ph)

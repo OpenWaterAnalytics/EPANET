@@ -4,7 +4,7 @@
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL) for use with VB.Net.
 
-'Last updated on 01/08/2019
+'Last updated on 02/08/2019
 
 Imports System.Runtime.InteropServices
 Imports System.Text
@@ -225,11 +225,13 @@ Public Const EN_R_IS_ACTIVE = 3
 
 'These are the external functions that comprise the DLL
 
-'System Functions
+'Project Functions
  Declare Function ENgetversion Lib "epanet2.dll" (value As Int32) As Int32
  Declare Function ENepanet Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String, ByVal pviewprog As Any) As Int32
  Declare Function ENinit Lib "epanet2.dll" (ByVal rptFile As String, ByVal outFile As String, ByVal unitsType As Int32, ByVal headlossType As Int32) As Int32
  Declare Function ENopen Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String) As Int32
+ Declare Function ENgettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Int32
+ Declare Function ENsettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Int32
  Declare Function ENsaveinpfile Lib "epanet2.dll" (ByVal filename As String) As Int32
  Declare Function ENclose Lib "epanet2.dll" () As Int32
 
@@ -256,14 +258,13 @@ Public Const EN_R_IS_ACTIVE = 3
 'Reporting Functions
  Declare Function ENwriteline Lib "epanet2.dll" (ByVal line As String) As Int32
  Declare Function ENreport Lib "epanet2.dll" () As Int32
+ Declare Function ENclearreport Lib "epanet2.dll" () As Int32
  Declare Function ENresetreport Lib "epanet2.dll" () As Int32
  Declare Function ENsetreport Lib "epanet2.dll" (ByVal format As String) As Int32
  Declare Function ENsetstatusreport Lib "epanet2.dll" (ByVal level As Int32) As Int32
  Declare Function ENgetcount Lib "epanet2.dll" (ByVal object As Int32, count As Int32) As Int32
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal errcode As Int32, ByVal errmsg As String, ByVal maxLen As Int32) As Int32
  Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal type_ As Int32, ByRef value As Single) As Int32
- Declare Function ENgettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Int32
- Declare Function ENsettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Int32
 
 'Analysis Options Functions
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal option As Int32, value As Single) As Int32

@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 01/08/2019
+'Last updated on 02/08/2019
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -220,11 +220,13 @@ Public Const EN_R_IS_ACTIVE = 3
 
 'These are the external functions that comprise the DLL
 
-'System Functions
+'Project Functions
  Declare Function ENgetversion Lib "epanet2.dll" (value As Long) As Long
  Declare Function ENepanet Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String, ByVal pviewprog As Any) As Long
  Declare Function ENinit Lib "epanet2.dll" (ByVal rptFile As String, ByVal outFile As String, ByVal unitsType As Long, ByVal headlossType As Long) As Long
  Declare Function ENopen Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String) As Long
+ Declare Function ENgettitle Lib "epanet2.dll" (ByVal line1 As String, ByVal line2 As String, ByVal line3 As String) As Long
+ Declare Function ENsettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Long
  Declare Function ENsaveinpfile Lib "epanet2.dll" (ByVal filename As String) As Long
  Declare Function ENclose Lib "epanet2.dll" () As Long
 
@@ -251,14 +253,13 @@ Public Const EN_R_IS_ACTIVE = 3
 'Reporting Functions
  Declare Function ENwriteline Lib "epanet2.dll" (ByVal line As String) As Long
  Declare Function ENreport Lib "epanet2.dll" () As Long
+ Declare Function ENclearreport Lib "epanet2.dll" () As Long
  Declare Function ENresetreport Lib "epanet2.dll" () As Long
  Declare Function ENsetreport Lib "epanet2.dll" (ByVal format As String) As Long
  Declare Function ENsetstatusreport Lib "epanet2.dll" (ByVal level As Long) As Long
  Declare Function ENgetcount Lib "epanet2.dll" (ByVal object As Long, count As Long) As Long
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal errcode As Long, ByVal errmsg As String, ByVal maxLen As Long) As Long
  Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal type_ As Long, ByRef value As Single) As Long
- Declare Function ENgettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Long
- Declare Function ENsettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Long
 
 'Analysis Options Functions
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal option_ As Long, value As Single) As Long
