@@ -1,17 +1,17 @@
 #
-# requirements.txt 
+# requirements.txt
 #
 # Date Created: 10/10/2017
 # Author: Michael E. Tryby
 #         US EPA ORD/NRMRL
 #
-# Useful for configuring a python environment to run epanet-nrtestsuite. 
+# Useful for configuring a python environment to run epanet-nrtestsuite.
 #
-# command: 
+# command:
 #  $ pip install --src build/packages -r tools/requirements.txt
 #
 
-#-e  git+https://github.com/OpenWaterAnalytics/nrtest.git@master#egg=nrtest 
+cpp-coveralls
 nrtest>=0.2.3
--e ./tools/epanet-output
--e ./tools/nrtest-epanet
+#-e ./tools/epanet-output
+#-e ./tools/nrtest-epanet
