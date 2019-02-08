@@ -112,3 +112,5 @@ EXPORTS
     ENstepQ                       = _ENstepQ@4
     ENusehydfile                  = _ENusehydfile@4
     ENwriteline                   = _ENwriteline@4
+    ENgettitle                    = _ENgettitle@12
+    ENsettitle                    = _ENsettitle@12

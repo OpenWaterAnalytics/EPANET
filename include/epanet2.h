@@ -144,6 +144,10 @@ extern "C" {
   int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen);
 
   int  DLLEXPORT ENgetstatistic(int type, EN_API_FLOAT_TYPE* value);
+  
+  int DLLEXPORT ENgettitle(char *titleline1, char *titleline2, char *titleline3);
+  
+  int DLLEXPORT ENsettitle(char *titleline1, char *titleline2, char *titleline3);
 
 /********************************************************************
 

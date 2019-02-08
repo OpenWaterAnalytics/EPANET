@@ -991,6 +991,37 @@ int DLLEXPORT EN_getstatistic(EN_Project p, int type, double *value)
     return 0;
 }
 
+int DLLEXPORT EN_gettitle(EN_Project p, char *titleline1, char *titleline2, char *titleline3)
+/*----------------------------------------------------------------
+**  Input:   None
+**  Output:  titleline1-3 = project's title lines
+**  Returns: error code
+**  Purpose: retrieves the title lines of the project
+**----------------------------------------------------------------
+*/
+{
+    if (!p->Openflag) return 102;
+    strcpy(titleline1, p->Title[0]);
+    strcpy(titleline2, p->Title[1]);
+    strcpy(titleline3, p->Title[2]);
+    return 0;
+}
+
+int DLLEXPORT EN_settitle(EN_Project p, char *titleline1, char *titleline2, char *titleline3)
+/*----------------------------------------------------------------
+**  Input:  titleline1-3 = project's title lines
+**  Returns: error code
+**  Purpose: sets the title lines of the project
+**----------------------------------------------------------------
+*/
+{
+    if (!p->Openflag) return 102;
+    strncpy(p->Title[0], titleline1, TITLELEN);
+    strncpy(p->Title[1], titleline2, TITLELEN);
+    strncpy(p->Title[2], titleline3, TITLELEN);
+    return 123;
+}
+
 /********************************************************************
 
     Analysis Options Functions
