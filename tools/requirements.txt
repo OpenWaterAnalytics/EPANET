@@ -11,7 +11,6 @@
 #  $ pip install --src build/packages -r tools/requirements.txt
 #
 
-cpp-coveralls
 nrtest>=0.2.3
 #-e ./tools/epanet-output
 #-e ./tools/nrtest-epanet

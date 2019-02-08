@@ -5,7 +5,7 @@ EPANET {#epanet-readme}
 [![Build status](https://ci.appveyor.com/api/projects/status/19wpg4g2cmj3oihl?svg=true)](https://ci.appveyor.com/project/OpenWaterAnalytics/epanet/branch/dev)
 [![Build Status](https://travis-ci.org/OpenWaterAnalytics/EPANET.svg?branch=dev)](https://travis-ci.org/OpenWaterAnalytics/EPANET)
 
-[![Coverage Status](https://coveralls.io/repos/github/michaeltryby/EPANET/badge.svg?branch=dev)](https://coveralls.io/github/michaeltryby/EPANET?branch=dev)
+[![codecov](https://codecov.io/gh/michaeltryby/EPANET/branch/dev/graph/badge.svg)](https://codecov.io/gh/michaeltryby/EPANET)
 
 
 ## For EPANET-related questions and discussion

@@ -11,7 +11,6 @@ env:
 
 before_install:
   - sudo apt-get -qq update
-  - openssl aes-256-cbc -K $encrypted_be4ca4937ddf_key -iv $encrypted_be4ca4937ddf_iv -in .coveralls.yml.enc -out .coveralls.yml -d
 
 install:
   - sudo apt-get install -y libboost-test-dev
@@ -35,5 +34,4 @@ script:
   #- tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
 
 after_success:
-  - coveralls -r $TRAVIS_BUILD_DIR
   - bash <(curl -s https://codecov.io/bash)
