@@ -36,3 +36,4 @@ script:
 
 after_success:
   - coveralls -r $TRAVIS_BUILD_DIR
+  - bash <(curl -s https://codecov.io/bash)
