@@ -1,5 +1,8 @@
 language: python
 
+python:
+    - "3.6"
+
 env:
   global:
     - EPANET_HOME=`pwd`
@@ -8,16 +11,17 @@ env:
 
 before_install:
   - sudo apt-get -qq update
+
+
+install:
   - sudo apt-get install -y libboost-test-dev
   - sudo apt-get install -y libboost-thread-dev
-  - sudo apt-get install -y swig
-
-#install:
+  - pip install -r tools/requirements.txt
 
 before_script:
   - mkdir -p $BUILD_HOME
   - cd $BUILD_HOME
-  - cmake -DBUILD_TESTS=ON .. 
+  - cmake -DBUILD_TESTS=ON -DBUILD_COVERAGE=ON ..
 
 script:
   - cmake --build .
