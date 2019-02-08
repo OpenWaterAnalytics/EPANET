@@ -35,4 +35,4 @@ script:
   #- tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
 
 after_success:
-  - coveralls -r $TRAVIS_BUILD_DIR -e $BUILD_HOME
+  - coveralls -r $TRAVIS_BUILD_DIR
