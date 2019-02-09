@@ -178,6 +178,9 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`EN_getelseaction`|Gets the contents of an ELSE action in a rule-based control|
 |`EN_setelseaction`|Set the contents of an ELSE action in a rule-based control|
 |`EN_setrulepriority`|Sets the priority of a rule-based control|
+|`EN_gettitle` |Gets a project's title |
+|`EN_settitle` |Sets a project's title |
+|`EN_clearreport` |Clears the contents of a project's report file |
 In addition to these new functions, a tank's volume curve `EN_VOLCURVE` can be set using `EN_setnodevalue` and `EN_setlinkvalue` can now be used to set the following pump properties:
  - `EN_PUMP_POWER` (constant power rating)
  - `EN_PUMP_HCURVE` (head characteristic curve)
