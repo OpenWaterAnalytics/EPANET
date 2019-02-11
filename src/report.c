@@ -57,6 +57,21 @@ static int  checklimits(Report *, double *, int, int);
 static char *fillstr(char *, char, int);
 static int  getnodetype(Network *, int);
 
+int clearreport(Project *pr)
+/*
+**------------------------------------------------------
+**   Input:   none
+**   Output:  returns error code
+**   Purpose: clears contents of a project's report file
+**------------------------------------------------------
+*/
+{
+    Report *rpt = &pr->report;
+    if (rpt->RptFile == NULL) return 0;
+    if (freopen(rpt->Rpt1Fname, "w", rpt->RptFile) == NULL) return 303;
+    writelogo(pr);
+    return 0;
+}
 
 int writereport(Project *pr)
 /*

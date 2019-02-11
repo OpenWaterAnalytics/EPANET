@@ -71,6 +71,9 @@ These are symbolic constants used as function arguments.
 @fn int EN_runproject(EN_Project ph, const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
 @fn int EN_init(EN_Project ph, const char *rptFile, const char *outFile, int unitsType, int headLossType)
 @fn int EN_open(EN_Project ph, const char *inpFile, const char *rptFile, const char *binOutFile)
+@fn int EN_getcount(EN_Project ph, int code, int *count)
+@fn int EN_gettitle(EN_Project ph, char *line1, char *line2, char *line3)
+@fn int EN_settitle(EN_Project ph, char *line1, char *line2, char *line3)
 @fn int EN_saveinpfile(EN_Project ph, const char *filename)
 @fn int EN_close(EN_Project ph)
 @}
@@ -109,11 +112,11 @@ These are symbolic constants used as function arguments.
 @{
 @fn int EN_writeline(EN_Project ph, char *line)
 @fn int EN_report(EN_Project ph)
+@fn int EN_clearreport(EN_Project ph)
 @fn int EN_resetreport(EN_Project ph)
 @fn int EN_setreport(EN_Project ph, char *reportFormat)
 @fn int EN_setstatusreport(EN_Project ph, int code)
 @fn int EN_getversion(int *version)
-@fn int EN_getcount(EN_Project ph, int code, int *count)
 @fn int EN_geterror(int errcode, char *errmsg, int maxLen)
 @fn int EN_getstatistic(EN_Project ph, int type, double* value)
 @}
