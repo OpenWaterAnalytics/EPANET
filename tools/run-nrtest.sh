@@ -24,7 +24,7 @@ benchmark_ver="220dev1"
 
 nrtest_execute_cmd="nrtest execute"
 test_app_path="apps/epanet-$3.json"
-tests="tests/examples" # tests/exeter tests/large tests/network_one tests/small tests/tanks tests/valves"
+tests="tests/examples tests/exeter tests/large tests/network_one tests/small tests/tanks tests/valves"
 test_output_path="benchmark/epanet-$3"
 
 nrtest_compare_cmd="nrtest compare"

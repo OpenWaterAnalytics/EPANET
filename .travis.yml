@@ -15,7 +15,6 @@ before_install:
 install:
   - sudo apt-get install -y libboost-test-dev
   - sudo apt-get install -y libboost-thread-dev
-  - pip install -r tools/requirements.txt
 
 before_script:
   - mkdir -p $BUILD_HOME
