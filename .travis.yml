@@ -15,7 +15,6 @@ before_install:
 install:
   - sudo apt-get install -y libboost-test-dev
   - sudo apt-get install -y libboost-thread-dev
-  - pip install -r tools/requirements.txt
 
 before_script:
   - mkdir -p $BUILD_HOME
@@ -28,10 +27,10 @@ script:
   - cd tests
   - ctest
   # run regression tests
-  #- cd $EPANET_HOME
-  #- pip install -r tools/requirements.txt
-  #- tools/before-test.sh $TEST_HOME $EPANET_HOME/$BUILD_HOME/bin $TRAVIS_COMMIT
-  #- tools/run-nrtest.sh $TEST_HOME $TRAVIS_COMMIT
+  - cd $EPANET_HOME
+  - pip install -r tools/requirements.txt
+  - tools/before-test.sh $TEST_HOME $EPANET_HOME/$BUILD_HOME/bin $TRAVIS_COMMIT
+  - tools/run-nrtest.sh -c -t $TEST_HOME -v $TRAVIS_COMMIT
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
