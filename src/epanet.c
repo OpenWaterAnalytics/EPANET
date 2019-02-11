@@ -26,7 +26,7 @@
 #include "text.h"
 #include "enumstxt.h"
 
-#ifdef WINDOWS
+#ifdef _WIN32
 #define snprintf _snprintf
 #endif
 

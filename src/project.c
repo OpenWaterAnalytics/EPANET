@@ -19,16 +19,8 @@
 #include <stdlib.h>
 #endif
 
-//*** Need to define WINDOWS to use the getTmpName function ***//
-// --- define WINDOWS
-#undef WINDOWS
+//*** For the Windows SDK _tempnam function ***//
 #ifdef _WIN32
-#define WINDOWS
-#endif
-#ifdef __WIN32__
-#define WINDOWS
-#endif
-#ifdef WINDOWS
 #include <windows.h>
 #endif
 
