@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/08/2019
+ Last Updated: 02/08/2019
  ******************************************************************************
  */
 
@@ -60,7 +60,7 @@ extern "C" {
 
 /********************************************************************
 
-    System Functions
+    Project Functions
 
 ********************************************************************/
 
@@ -72,6 +72,12 @@ extern "C" {
 
   int  DLLEXPORT ENopen(const char *inpFile, const char *rptFile,
                  const char *outFile);
+  
+  int  DLLEXPORT ENgettitle(char *line1, char *line2, char *line3);
+  
+  int  DLLEXPORT ENsettitle(char *line1, char *line2, char *line3);
+
+  int  DLLEXPORT ENgetcount(int object, int *count);
 
   int  DLLEXPORT ENsaveinpfile(const char *filename);
 
@@ -131,6 +137,8 @@ extern "C" {
 
   int  DLLEXPORT ENreport();
 
+  int  DLLEXPORT ENclearreport();
+
   int  DLLEXPORT ENresetreport();
 
   int  DLLEXPORT ENsetreport(char *format);
@@ -139,15 +147,10 @@ extern "C" {
 
   int  DLLEXPORT ENgetversion(int *version);
 
-  int  DLLEXPORT ENgetcount(int object, int *count);
-
   int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen);
 
   int  DLLEXPORT ENgetstatistic(int type, EN_API_FLOAT_TYPE* value);
   
-  int DLLEXPORT ENgettitle(char *titleline1, char *titleline2, char *titleline3);
-  
-  int DLLEXPORT ENsettitle(char *titleline1, char *titleline2, char *titleline3);
 
 /********************************************************************
 

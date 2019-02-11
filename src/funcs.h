@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 02/08/2019
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -108,6 +108,7 @@ int     checkrules(Project *, long);
 
 // ------- REPORT.C -----------------
 
+int     clearreport(Project *);
 int     writereport(Project *);
 void    writelogo(Project *);
 void    writesummary(Project *);

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/09/2019
+ Last Updated: 02/08/2019
  ******************************************************************************
 */
 #ifndef __APPLE__
@@ -47,7 +47,7 @@ void removetmpfiles()
 
 /********************************************************************
 
-    System Functions
+    Project Functions
 
 ********************************************************************/
 
@@ -100,6 +100,21 @@ int DLLEXPORT ENopen(const char *inpFile, const char *rptFile, const char *outFi
     createtmpfiles();
     errcode = EN_open(_defaultProject, inpFile, rptFile, outFile);
     return errcode;
+}
+
+int DLLEXPORT ENgettitle(char *line1, char *line2, char *line3)
+{
+    return EN_gettitle(_defaultProject, line1, line2, line3) ;
+}
+
+int DLLEXPORT ENsettitle(char *line1, char *line2, char *line3)
+{
+    return EN_settitle(_defaultProject, line1, line2, line3) ;
+}
+
+int DLLEXPORT ENgetcount(int object, int *count)
+{
+    return EN_getcount(_defaultProject, object, count);
 }
 
 int DLLEXPORT ENsaveinpfile(const char *filename)
@@ -174,6 +189,8 @@ int DLLEXPORT ENwriteline(char *line) { return EN_writeline(_defaultProject, lin
 
 int DLLEXPORT ENreport() { return EN_report(_defaultProject); }
 
+int DLLEXPORT ENclearreport() { return EN_clearreport(_defaultProject); }
+
 int DLLEXPORT ENresetreport() { return EN_resetreport(_defaultProject); }
 
 int DLLEXPORT ENsetreport(char *format) { return EN_setreport(_defaultProject, format); }
@@ -184,11 +201,6 @@ int DLLEXPORT ENsetstatusreport(int level)
 }
 
 int DLLEXPORT ENgetversion(int *version) { return EN_getversion(version); }
-
-int DLLEXPORT ENgetcount(int object, int *count)
-{
-    return EN_getcount(_defaultProject, object, count);
-}
 
 int DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen)
 {
@@ -201,16 +213,6 @@ int DLLEXPORT ENgetstatistic(int type, EN_API_FLOAT_TYPE *value)
     int errcode = EN_getstatistic(_defaultProject, type, &v);
     *value = (EN_API_FLOAT_TYPE)v;
     return errcode;
-}
-
-int DLLEXPORT ENgettitle(char *titleline1, char *titleline2, char *titleline3)
-{
-    return EN_gettitle(_defaultProject, titleline1, titleline2, titleline3) ;
-}
-
-int DLLEXPORT ENsettitle(char *titleline1, char *titleline2, char *titleline3)
-{
-    return EN_settitle(_defaultProject, titleline1, titleline2, titleline3) ;
 }
 
 /********************************************************************

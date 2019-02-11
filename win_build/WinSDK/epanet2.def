@@ -7,6 +7,7 @@ EXPORTS
     ENaddnode                     = _ENaddnode@8
     ENaddpattern                  = _ENaddpattern@4
     ENaddrule                     = _ENaddrule@4
+    ENclearreport                 = _ENclearreport@0
     ENclose                       = _ENclose@0                          
     ENcloseH                      = _ENcloseH@0                         
     ENcloseQ                      = _ENcloseQ@0
@@ -58,6 +59,7 @@ EXPORTS
     ENgetstatistic                = _ENgetstatistic@8
     ENgetthenaction               = _ENgetthenaction@20
     ENgettimeparam                = _ENgettimeparam@8                   
+    ENgettitle                    = _ENgettitle@12    
     ENgetversion                  = _ENgetversion@4
     ENinit                        = _ENinit@16
     ENinitH                       = _ENinitH@4                          
@@ -107,6 +109,7 @@ EXPORTS
     ENsettankdata                 = _ENsettankdata@32
     ENsetthenaction               = _ENsetthenaction@20
     ENsettimeparam                = _ENsettimeparam@8                   
+    ENsettitle                    = _ENsettitle@12    
     ENsolveH                      = _ENsolveH@0                         
     ENsolveQ                      = _ENsolveQ@0                         
     ENstepQ                       = _ENstepQ@4

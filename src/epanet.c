@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/11/2019
+ Last Updated: 02/08/2019
  ******************************************************************************
 */
 
@@ -32,7 +32,7 @@
 
 /********************************************************************
 
-    System Functions
+    Project Functions
 
 ********************************************************************/
 
@@ -235,6 +235,79 @@ int DLLEXPORT EN_open(EN_Project p, const char *inpFile, const char *rptFile,
   }
   else errmsg(p, errcode);
   return errcode;
+}
+
+int DLLEXPORT EN_gettitle(EN_Project p, char *line1, char *line2, char *line3)
+/*----------------------------------------------------------------
+**  Input:   None
+**  Output:  line1, line2, line3 = project's title lines
+**  Returns: error code
+**  Purpose: retrieves the title lines of the project
+**----------------------------------------------------------------
+*/
+{
+    if (!p->Openflag) return 102;
+    strcpy(line1, p->Title[0]);
+    strcpy(line2, p->Title[1]);
+    strcpy(line3, p->Title[2]);
+    return 0;
+}
+
+int DLLEXPORT EN_settitle(EN_Project p, char *line1, char *line2, char *line3)
+/*----------------------------------------------------------------
+**  Input:  line1, line2, line3 = project's title lines
+**  Returns: error code
+**  Purpose: sets the title lines of the project
+**----------------------------------------------------------------
+*/
+{
+    if (!p->Openflag) return 102;
+    strncpy(p->Title[0], line1, TITLELEN);
+    strncpy(p->Title[1], line2, TITLELEN);
+    strncpy(p->Title[2], line3, TITLELEN);
+    return 123;
+}
+
+int DLLEXPORT EN_getcount(EN_Project p, int object, int *count)
+/*----------------------------------------------------------------
+**  Input:   object = type of object to count (see EN_CountType)
+**  Output:  count = number of objects of the specified type
+**  Returns: error code
+**  Purpose: Retrieves number of network objects of a given type
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+
+    *count = 0;
+    if (!p->Openflag) return 102;
+    switch (object)
+    {
+    case EN_NODECOUNT:
+        *count = net->Nnodes;
+        break;
+    case EN_TANKCOUNT:
+        *count = net->Ntanks;
+        break;
+    case EN_LINKCOUNT:
+        *count = net->Nlinks;
+        break;
+    case EN_PATCOUNT:
+        *count = net->Npats;
+        break;
+    case EN_CURVECOUNT:
+        *count = net->Ncurves;
+        break;
+    case EN_CONTROLCOUNT:
+        *count = net->Ncontrols;
+        break;
+    case EN_RULECOUNT:
+        *count = net->Nrules;
+        break;
+    default:
+        return 251;
+    }
+    return 0;
 }
 
 int DLLEXPORT EN_saveinpfile(EN_Project p, const char *filename)
@@ -791,6 +864,19 @@ int DLLEXPORT EN_report(EN_Project p)
     return errcode;
 }
 
+int DLLEXPORT EN_clearreport(EN_Project p)
+/*----------------------------------------------------------------
+**  Input:   none
+**  Output:  none
+**  Returns: error code
+**  Purpose: clears the contents of a project's report file
+**----------------------------------------------------------------
+*/
+{
+    if (!p->Openflag) return 102;
+    return clearreport(p);
+}
+
 int DLLEXPORT EN_resetreport(EN_Project p)
 /*----------------------------------------------------------------
 **  Input:   none
@@ -867,48 +953,6 @@ int DLLEXPORT EN_getversion(int *version)
 */
 {
     *version = CODEVERSION;
-    return 0;
-}
-
-int DLLEXPORT EN_getcount(EN_Project p, int object, int *count)
-/*----------------------------------------------------------------
-**  Input:   object = type of object to count (see EN_CountType)
-**  Output:  count = number of objects of the specified type
-**  Returns: error code
-**  Purpose: Retrieves number of network objects of a given type
-**----------------------------------------------------------------
-*/
-{
-    Network *net = &p->network;
-
-    *count = 0;
-    if (!p->Openflag) return 102;
-    switch (object)
-    {
-    case EN_NODECOUNT:
-        *count = net->Nnodes;
-        break;
-    case EN_TANKCOUNT:
-        *count = net->Ntanks;
-        break;
-    case EN_LINKCOUNT:
-        *count = net->Nlinks;
-        break;
-    case EN_PATCOUNT:
-        *count = net->Npats;
-        break;
-    case EN_CURVECOUNT:
-        *count = net->Ncurves;
-        break;
-    case EN_CONTROLCOUNT:
-        *count = net->Ncontrols;
-        break;
-    case EN_RULECOUNT:
-        *count = net->Nrules;
-        break;
-    default:
-        return 251;
-    }
     return 0;
 }
 
@@ -989,37 +1033,6 @@ int DLLEXPORT EN_getstatistic(EN_Project p, int type, double *value)
         break;
     }
     return 0;
-}
-
-int DLLEXPORT EN_gettitle(EN_Project p, char *titleline1, char *titleline2, char *titleline3)
-/*----------------------------------------------------------------
-**  Input:   None
-**  Output:  titleline1-3 = project's title lines
-**  Returns: error code
-**  Purpose: retrieves the title lines of the project
-**----------------------------------------------------------------
-*/
-{
-    if (!p->Openflag) return 102;
-    strcpy(titleline1, p->Title[0]);
-    strcpy(titleline2, p->Title[1]);
-    strcpy(titleline3, p->Title[2]);
-    return 0;
-}
-
-int DLLEXPORT EN_settitle(EN_Project p, char *titleline1, char *titleline2, char *titleline3)
-/*----------------------------------------------------------------
-**  Input:  titleline1-3 = project's title lines
-**  Returns: error code
-**  Purpose: sets the title lines of the project
-**----------------------------------------------------------------
-*/
-{
-    if (!p->Openflag) return 102;
-    strncpy(p->Title[0], titleline1, TITLELEN);
-    strncpy(p->Title[1], titleline2, TITLELEN);
-    strncpy(p->Title[2], titleline3, TITLELEN);
-    return 123;
 }
 
 /********************************************************************
