@@ -43,7 +43,7 @@ function in epanet2_2.h.
     #else
       #define DLLEXPORT __declspec(dllimport) __stdcall
     #endif
-  #elif defined(CYGWIN)
+  #elif defined(__CYGWIN__)
     #define DLLEXPORT __stdcall
   #else
     #define DLLEXPORT
