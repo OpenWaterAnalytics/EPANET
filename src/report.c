@@ -19,9 +19,7 @@
 #include <stdlib.h>
 #endif
 
-#undef WINDOWS
 #ifdef _WIN32
-#define WINDOWS
 #define snprintf _snprintf
 #endif
 
