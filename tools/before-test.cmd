@@ -27,7 +27,7 @@ set BENCHMARK_VER=220dev5
 
 
 set "SCRIPT_HOME=%~dp0"
-set "EXE_HOME=buildprod\bin\Release"
+set "EXE_HOME=Release"
 
 ::: Determine SUT executable path
 :: TODO: This may fail when there is more than one cmake buildprod folder
