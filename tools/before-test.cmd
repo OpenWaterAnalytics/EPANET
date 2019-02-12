@@ -21,8 +21,10 @@
 setlocal
 
 
+:: CHANGE THESE VARIABLES TO UPDATE BENCHMARK
 set EXAMPLES_VER=1.0.2-dev.5
 set BENCHMARK_VER=220dev5
+
 
 set "SCRIPT_HOME=%~dp0"
 set "EXE_HOME=buildprod\bin\Release"
