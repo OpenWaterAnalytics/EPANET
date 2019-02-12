@@ -70,9 +70,10 @@ test_script:
   - tools\run-nrtest.cmd %APPVEYOR_REPO_COMMIT%
 
 after_test:
+  - cd %TEST_HOME%\benchmark
   # zip up the SUT benchmarks
-  - 7z a benchmarks.zip %TEST_HOME%\benchmark\epanet-%APPVEYOR_REPO_COMMIT%\
+  - 7z a epanet-benchmark.zip \epanet-%APPVEYOR_REPO_COMMIT%\
 
 artifacts:
-  - path: benchmarks.zip
-    name: benchmarks
+  - path: epanet-benchmark.zip
+    name: epanet-benchmark.zip
