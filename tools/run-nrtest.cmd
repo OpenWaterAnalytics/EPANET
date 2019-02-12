@@ -7,24 +7,35 @@
 ::          US EPA - ORD/NRMRL
 ::
 ::  Arguments:
-::    1 - nrtest script path
-::    2 - test suite path
-::    3 - version/build identifier
+::    1 - version/build identifier
+::    2 - (test suite path)
 ::
 
 @echo off
 setlocal
 
-set NRTEST_SCRIPT_PATH=%~1
-set TEST_SUITE_PATH=%~2
 
 set BENCHMARK_VER=220dev5
 
 
+:: Determine location of python Scripts folder
+FOR /F "tokens=*" %%G IN ('where python') DO (
+  set PYTHON_DIR=%%~dpG
+)
+set "NRTEST_SCRIPT_PATH=%PYTHON_DIR%Scripts"
+
+:: Check existence and apply default arguments
+IF NOT [%1]==[] ( set "SUT_VER=%~1"
+) ELSE ( set "SUT_VER=vXXX" )
+
+IF NOT [%2]==[] ( set "TEST_SUITE_PATH=%~2"
+) ELSE ( set "TEST_SUITE_PATH=nrtestsuite" )
+
+
 set NRTEST_EXECUTE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest execute
-set TEST_APP_PATH=apps\epanet-%3.json
+set TEST_APP_PATH=apps\epanet-%SUT_VER%.json
 set TESTS=tests\examples tests\exeter tests\large tests\network_one tests\press_depend tests\small tests\tanks tests\valves
-set TEST_OUTPUT_PATH=benchmark\epanet-%3
+set TEST_OUTPUT_PATH=benchmark\epanet-%SUT_VER%
 
 set NRTEST_COMPARE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest compare
 set REF_OUTPUT_PATH=benchmark\epanet-%BENCHMARK_VER%

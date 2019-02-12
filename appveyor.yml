@@ -32,7 +32,7 @@ init:
   - set EPANET_HOME=%APPVEYOR_BUILD_FOLDER%
   - set BUILD_HOME=buildprod
   - set TEST_HOME=nrtestsuite
-  - set NRTEST_SCRIPT=C:\Python27\Scripts
+
   # See values set
   - echo %APPVEYOR_BUILD_WORKER_IMAGE%
   - echo %BUILD_HOME%
@@ -67,7 +67,7 @@ test_script:
   - ctest -C Release
   # run regression tests
   - cd %EPANET_HOME%
-  - tools\run-nrtest.cmd %NRTEST_SCRIPT% %TEST_HOME% %APPVEYOR_REPO_COMMIT%
+  - tools\run-nrtest.cmd %APPVEYOR_REPO_COMMIT%
 
 after_test:
   # zip up the SUT benchmarks
