@@ -12,8 +12,8 @@
 ::
 ::  Note:
 ::    Tests and benchmark files are stored in the epanet-example-networks repo.
-::    This script retreives them using a stable URL associated with a release on
-::    GitHub and stages the files for nrtest to run. The script assumes that
+::    This script retreives them using a stable URL associated with a GitHub
+::    release and stages the files for nrtest to run. The script assumes that
 ::    before-test.cmd and gen-config.cmd are located together in the same folder.
 ::
 
