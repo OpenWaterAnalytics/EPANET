@@ -21,15 +21,18 @@
 setlocal
 
 
+:: CHANGE THESE VARIABLES TO UPDATE BENCHMARK
 set EXAMPLES_VER=1.0.2-dev.5
 set BENCHMARK_VER=220dev5
 
-set "SCRIPT_HOME=%~dp0"
-set "EXE_HOME=buildprod\bin\Release"
 
-:: Determine SUT executable path
-for %%a in ("%SCRIPT_HOME:~0,-1%") do set "SUT_PATH=%%~dpa"
-set SUT_PATH=%SUT_PATH%%EXE_HOME%
+set "SCRIPT_HOME=%~dp0"
+set "EXE_HOME=Release"
+
+::: Determine SUT executable path
+:: TODO: This may fail when there is more than one cmake buildprod folder
+for /d /r "%SCRIPT_HOME%..\" %%a in (*) do if /i "%%~nxa"=="bin" set "BUILD_HOME=%%a"
+set SUT_PATH=%BUILD_HOME%\%EXE_HOME%
 
 :: Check existence and apply default arguments
 IF NOT [%1]==[] ( set "SUT_VER=%~1"
