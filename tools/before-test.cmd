@@ -7,26 +7,36 @@
 ::          US EPA - ORD/NRMRL
 ::
 ::  Arguments:
-::    1 - relative path regression test file staging location
-::    2 - absolute path to location of software under test
-::    3 - build identifier for software under test
+::    1 - build identifier for software under test
+::    2 - (relative path regression test file staging location)
 ::
 ::  Note:
 ::    Tests and benchmark files are stored in the epanet-example-networks repo.
-::    This script retreives them using a stable URL associated with a release on
-::    GitHub and stages the files for nrtest to run. The script assumes that
+::    This script retrieves them using a stable URL associated with a GitHub
+::    release and stages the files for nrtest to run. The script assumes that
 ::    before-test.cmd and gen-config.cmd are located together in the same folder.
 ::
 
 @echo off
 setlocal
 
-set SCRIPT_HOME=%~dp0
-set TEST_HOME=%~1
-
 
 set EXAMPLES_VER=1.0.2-dev.5
 set BENCHMARK_VER=220dev5
+
+set "SCRIPT_HOME=%~dp0"
+set "EXE_HOME=buildprod\bin\Release"
+
+:: Determine SUT executable path
+for %%a in ("%SCRIPT_HOME:~0,-1%") do set "SUT_PATH=%%~dpa"
+set SUT_PATH=%SUT_PATH%%EXE_HOME%
+
+:: Check existence and apply default arguments
+IF NOT [%1]==[] ( set "SUT_VER=%~1"
+) ELSE ( set "SUT_VER=vXXX" )
+
+IF NOT [%2]==[] ( set "TEST_HOME=%~2"
+) ELSE ( set "TEST_HOME=nrtestsuite" )
 
 
 set TESTFILES_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/v%EXAMPLES_VER%.zip
@@ -59,4 +69,4 @@ mklink /D .\tests .\epanet-example-networks-%EXAMPLES_VER%\epanet-tests
 
 :: generate json configuration file for software under test
 mkdir apps
-%SCRIPT_HOME%\gen-config.cmd %~2 > apps\epanet-%~3.json
+%SCRIPT_HOME%\gen-config.cmd %SUT_PATH% > apps\epanet-%SUT_VER%.json
