@@ -1,6 +1,6 @@
 ﻿Release Notes for EPANET 2.2 (Draft)
 ============================
-This document describes the changes and updates that have been made to version 2.2 of EPANET.
+This document describes the changes and updates that have been made in version 2.2 of EPANET.
 
 ## Thread-Safe API Functions
 
@@ -140,8 +140,8 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 ## New API functions
 |Function|Description|
 |--|--|
-|`EN_createproject` | creates a new EPANET project |
-|`EN_deleteproject` | deletes an EPANET project |
+|`EN_createproject` | Creates a new EPANET project |
+|`EN_deleteproject` | Deletes an EPANET project |
 |`EN_init`|Initializes an EPANET project|
 |`EN_setflowunits`|Sets the project's flow units|
 |`EN_addnode`|Adds a new node to a project|
@@ -150,6 +150,8 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`EN_addrule`|Adds a new control rule to a project|
 |`EN_deletenode`|Deletes a node from the project|
 |`EN_deletelink`|Deletes a link from the project|
+|`EN_deletepattern`|Deletes a time pattern from the project|
+|`EN_deletecurve`|Deletes a data curve from the project|
 |`EN_deletecontrol`|Deletes a simple control from the project|
 |`EN_deleterule`|Deletes a rule-based control from the project|
 |`EN_setnodeid`|Changes the ID name for a node|
@@ -164,6 +166,8 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`EN_getdemandname`|Gets the name of a node's demand category|
 |`EN_setdemandname`|Sets the name of a node's demand category|
 |`EN_setdemandpattern`|Assigns a time pattern to a node's demand category |
+|`EN_setpatternid`|Changes the ID name of a time pattern|
+|`EN_setcurveid`|Changes the ID name of a data curve|
 |`EN_getcurvetype`|Gets a curve's type|
 |`EN_setheadcurveindex`|Sets the index of a head curve used by a pump |
 |`EN_getrule`|Gets the number of elements in a rule-based control |
@@ -176,11 +180,12 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`EN_getthenaction`|Gets the contents of a THEN action in a rule-based control|
 |`EN_setthenaction`|Sets the contents of a THEN action in a rule-based control|
 |`EN_getelseaction`|Gets the contents of an ELSE action in a rule-based control|
-|`EN_setelseaction`|Set the contents of an ELSE action in a rule-based control|
+|`EN_setelseaction`|Sets the contents of an ELSE action in a rule-based control|
 |`EN_setrulepriority`|Sets the priority of a rule-based control|
 |`EN_gettitle` |Gets a project's title |
 |`EN_settitle` |Sets a project's title |
 |`EN_clearreport` |Clears the contents of a project's report file |
+|`EN_copyreport` | Copies the contents of a project's report file |
 In addition to these new functions, a tank's volume curve `EN_VOLCURVE` can be set using `EN_setnodevalue` and `EN_setlinkvalue` can now be used to set the following pump properties:
  - `EN_PUMP_POWER` (constant power rating)
  - `EN_PUMP_HCURVE` (head characteristic curve)

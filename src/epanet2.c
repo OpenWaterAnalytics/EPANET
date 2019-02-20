@@ -189,6 +189,11 @@ int DLLEXPORT ENwriteline(char *line) { return EN_writeline(_defaultProject, lin
 
 int DLLEXPORT ENreport() { return EN_report(_defaultProject); }
 
+int DLLEXPORT ENcopyreport(char *filename)
+{
+    return EN_copyreport(_defaultProject, filename);
+}
+
 int DLLEXPORT ENclearreport() { return EN_clearreport(_defaultProject); }
 
 int DLLEXPORT ENresetreport() { return EN_resetreport(_defaultProject); }
@@ -515,6 +520,11 @@ int DLLEXPORT ENaddpattern(char *id)
     return EN_addpattern(_defaultProject, id);
 }
 
+int DLLEXPORT ENdeletepattern(int index)
+{
+    return EN_deletepattern(_defaultProject, index);
+}
+
 int DLLEXPORT ENgetpatternindex(char *id, int *index)
 {
     return EN_getpatternindex(_defaultProject, id, index);
@@ -523,6 +533,11 @@ int DLLEXPORT ENgetpatternindex(char *id, int *index)
 int DLLEXPORT ENgetpatternid(int index, char *id)
 {
     return EN_getpatternid(_defaultProject, index, id);
+}
+
+int DLLEXPORT ENsetpatternid(int index, char *id)
+{
+    return EN_setpatternid(_defaultProject, index, id);
 }
 
 int DLLEXPORT ENgetpatternlen(int index, int *len)
@@ -577,6 +592,11 @@ int DLLEXPORT ENaddcurve(char *id)
     return EN_addcurve(_defaultProject, id);
 }
 
+int DLLEXPORT ENdeletecurve(int index)
+{
+    return EN_deletecurve(_defaultProject, index);
+}
+
 int DLLEXPORT ENgetcurveindex(char *id, int *index)
 {
     return EN_getcurveindex(_defaultProject, id, index);
@@ -585,6 +605,11 @@ int DLLEXPORT ENgetcurveindex(char *id, int *index)
 int DLLEXPORT ENgetcurveid(int index, char *id)
 {
     return EN_getcurveid(_defaultProject, index, id);
+}
+
+int DLLEXPORT ENsetcurveid(int index, char *id)
+{
+    return EN_setcurveid(_defaultProject, index, id);
 }
 
 int DLLEXPORT ENgetcurvelen(int index, int *len)

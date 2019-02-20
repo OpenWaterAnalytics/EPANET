@@ -128,6 +128,7 @@ typedef struct Project *EN_Project;
 
   /**
   @brief Retrieves the title lines of the project
+  @param ph an EPANET project handle.
   @param[out] line1 first title line
   @param[out] line2 second title line
   @param[out] line3 third title line
@@ -137,6 +138,7 @@ typedef struct Project *EN_Project;
 
   /**
   @brief Sets the title lines of the project
+  @param ph an EPANET project handle.
   @param line1 first title line
   @param line2 second title line
   @param line3 third title line
@@ -518,9 +520,20 @@ typedef struct Project *EN_Project;
   int  DLLEXPORT EN_report(EN_Project ph);
 
   /**
+  @brief Copies the current contents of a project's report file to another file.
+  @param ph an EPANET project handle.
+  @param filename the full path name of the destination file.
+  @return an error code.
+
+  This function allows toolkit clients to retrieve the contents of a project's
+  report file while the project is still open.
+  */
+  int  DLLEXPORT EN_copyreport(EN_Project ph, char *filename);
+
+  /**
   @brief Clears the contents of a project's report file.
   @param ph an EPANET project handle.
-  @return and error code.
+  @return an error code.
   */
   int DLLEXPORT EN_clearreport(EN_Project ph);
 
@@ -1186,6 +1199,14 @@ typedef struct Project *EN_Project;
   int  DLLEXPORT EN_addpattern(EN_Project ph, char *id);
 
   /**
+  @brief Deletes a time pattern from a project.
+  @param ph an EPANET project handle.
+  @param index the time pattern's index (starting from 1).
+  @return an error code.
+  */
+  int  DLLEXPORT EN_deletepattern(EN_Project ph, int index);
+
+  /**
   @brief Retrieves the index of a time pattern given its ID name.
   @param ph an EPANET project handle.
   @param id the ID name of a time pattern.
@@ -1204,6 +1225,17 @@ typedef struct Project *EN_Project;
   The ID name must be sized to hold at least @ref EN_MAXID characters.
   */
   int  DLLEXPORT EN_getpatternid(EN_Project ph, int index, char *id);
+
+  /**
+  @brief Changes the ID name of a time pattern given its index.
+  @param ph an EPANET project handle.
+  @param index a time pattern index (starting from 1).
+  @param id the time pattern's new ID name.
+  @return an error code.
+
+  The new ID name must not exceed @ref EN_MAXID characters.
+  */
+  int  DLLEXPORT EN_setpatternid(EN_Project ph, int index, char *id);
 
   /**
   @brief Retrieves the number of time periods in a time pattern.
@@ -1275,6 +1307,14 @@ typedef struct Project *EN_Project;
   int  DLLEXPORT EN_addcurve(EN_Project ph, char *id);
 
   /**
+  @brief Deletes a data curve from a project.
+  @param ph an EPANET project handle.
+  @param index the data curve's index (starting from 1).
+  @return an error code.
+  */
+  int  DLLEXPORT EN_deletecurve(EN_Project ph, int index);
+
+  /**
   @brief Retrieves the index of a curve given its ID name.
   @param ph an EPANET project handle.
   @param id the ID name of a curve.
@@ -1293,6 +1333,17 @@ typedef struct Project *EN_Project;
   The ID name must be sized to hold at least @ref EN_MAXID characters.
   */
   int  DLLEXPORT EN_getcurveid(EN_Project ph, int index, char *id);
+
+  /**
+  @brief Changes the ID name of a data curve given its index.
+  @param ph an EPANET project handle.
+  @param index a data curve index (starting from 1).
+  @param id the data curve's new ID name.
+  @return an error code.
+
+  The new ID name must not exceed @ref EN_MAXID characters.
+  */
+  int  DLLEXPORT EN_setcurveid(EN_Project ph, int index, char *id);
 
   /**
   @brief Retrieves the number of points in a curve.

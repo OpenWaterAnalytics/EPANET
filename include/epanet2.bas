@@ -253,6 +253,7 @@ Public Const EN_R_IS_ACTIVE = 3
 'Reporting Functions
  Declare Function ENwriteline Lib "epanet2.dll" (ByVal line As String) As Long
  Declare Function ENreport Lib "epanet2.dll" () As Long
+ Declare Function ENcopyreport Lib "epanet2.dll" (ByVal filename As String) As Long
  Declare Function ENclearreport Lib "epanet2.dll" () As Long
  Declare Function ENresetreport Lib "epanet2.dll" () As Long
  Declare Function ENsetreport Lib "epanet2.dll" (ByVal format As String) As Long
@@ -318,8 +319,10 @@ Public Const EN_R_IS_ACTIVE = 3
 
 'Time Pattern Functions
  Declare Function ENaddpattern Lib "epanet2.dll" (ByVal id As String) As Long
+ Declare Function ENdeletepattern Lib "epanet2.dll" (ByVal index As Long) As Long
  Declare Function ENgetpatternindex Lib "epanet2.dll" (ByVal id As String, index As Long) As Long
  Declare Function ENgetpatternid Lib "epanet2.dll" (ByVal index As Long, ByVal id As String) As Long
+ Declare Function ENsetpatternid Lib "epanet2.dll" (ByVal index As Long, ByVal newid As String) As Long
  Declare Function ENgetpatternlen Lib "epanet2.dll" (ByVal index As Long, len_ As Long) As Long
  Declare Function ENgetpatternvalue Lib "epanet2.dll" (ByVal index As Long, ByVal period As Long, value As Single) As Long
  Declare Function ENsetpatternvalue Lib "epanet2.dll" (ByVal index As Long, ByVal period As Long, ByVal value As Single) As Long
@@ -328,8 +331,10 @@ Public Const EN_R_IS_ACTIVE = 3
 
 'Data Curve Functions
  Declare Function ENaddcurve Lib "epanet2.dll" (ByVal id As String) As Long
+ Declare Function ENdeletecurve Lib "epanet2.dll" (ByVal index As Long) As Long
  Declare Function ENgetcurveindex Lib "epanet2.dll" (ByVal id As String, index As Long) As Long
  Declare Function ENgetcurveid Lib "epanet2.dll" (ByVal index As Long, ByVal id As String) As Long
+ Declare Function ENsetcurveid Lib "epanet2.dll" (ByVal index As Long, ByVal newid As String) As Long
  Declare Function ENgetcurvelen Lib "epanet2.dll" (ByVal index As Long, len_ As Long) As Long
  Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal index As Long, type_ As Long) As Long
  Declare Function ENgetcurvevalue Lib "epanet2.dll" (ByVal curveIndex As Long, ByVal pointIndex As Long, x As Single, y As Single) As Long
