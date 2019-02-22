@@ -137,6 +137,8 @@ extern "C" {
 
   int  DLLEXPORT ENreport();
 
+  int  DLLEXPORT ENcopyreport(char *filename);
+
   int  DLLEXPORT ENclearreport();
 
   int  DLLEXPORT ENresetreport();
@@ -292,9 +294,13 @@ extern "C" {
 
   int DLLEXPORT ENaddpattern(char *id);
 
+  int DLLEXPORT ENdeletepattern(int index);
+
   int DLLEXPORT ENgetpatternindex(char *id, int *index);
 
   int DLLEXPORT ENgetpatternid(int index, char *id);
+
+  int DLLEXPORT ENsetpatternid(int index, char *id);
 
   int DLLEXPORT ENgetpatternlen(int index, int *len);
 
@@ -314,9 +320,13 @@ extern "C" {
 
   int DLLEXPORT ENaddcurve(char *id);
 
+  int DLLEXPORT ENdeletecurve(int index);
+
   int DLLEXPORT ENgetcurveindex(char *id, int *index);
 
   int DLLEXPORT ENgetcurveid(int index, char *id);
+
+  int DLLEXPORT ENsetcurveid(int index, char *id);
 
   int DLLEXPORT ENgetcurvelen(int index, int *len);
 

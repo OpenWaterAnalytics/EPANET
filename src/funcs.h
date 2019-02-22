@@ -35,6 +35,8 @@ int     findlink(Network *, char *);
 int     findtank(Network *, int);
 int     findvalve(Network *, int);
 int     findpump(Network *, int);
+void    adjustpatterns(Network *, int);
+void    adjustcurves(Network *, int);
 
 char    *getTmpName(char *);
 int     strcomp(const char *, const char *);
@@ -109,6 +111,7 @@ int     checkrules(Project *, long);
 // ------- REPORT.C -----------------
 
 int     clearreport(Project *);
+int     copyreport(Project *, char *);
 int     writereport(Project *);
 void    writelogo(Project *);
 void    writesummary(Project *);

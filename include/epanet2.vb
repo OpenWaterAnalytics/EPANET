@@ -258,6 +258,7 @@ Public Const EN_R_IS_ACTIVE = 3
 'Reporting Functions
  Declare Function ENwriteline Lib "epanet2.dll" (ByVal line As String) As Int32
  Declare Function ENreport Lib "epanet2.dll" () As Int32
+ Declare Function ENcopyreport Lib "epanet2.dll" (ByVal filename As String) As Int32
  Declare Function ENclearreport Lib "epanet2.dll" () As Int32
  Declare Function ENresetreport Lib "epanet2.dll" () As Int32
  Declare Function ENsetreport Lib "epanet2.dll" (ByVal format As String) As Int32
@@ -323,8 +324,10 @@ Public Const EN_R_IS_ACTIVE = 3
 
 'Time Pattern Functions
  Declare Function ENaddpattern Lib "epanet2.dll" (ByVal id As String) As Int32
+ Declare Function ENdeletepattern Lib "epanet2.dll" (ByVal index As Int32) As Int32
  Declare Function ENgetpatternindex Lib "epanet2.dll" (ByVal id As String, index As Int32) As Int32
  Declare Function ENgetpatternid Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String) As Int32
+ Declare Function ENsetpatternid Lib "epanet2.dll" (ByVal index As Int32, ByVal newid As String) As Int32
  Declare Function ENgetpatternlen Lib "epanet2.dll" (ByVal index As Int32, len_ As Int32) As Int32
  Declare Function ENgetpatternvalue Lib "epanet2.dll" (ByVal index As Int32, ByVal period As Int32, value As Single) As Int32
  Declare Function ENsetpatternvalue Lib "epanet2.dll" (ByVal index As Int32, ByVal period As Int32, ByVal value As Single) As Int32
@@ -333,8 +336,10 @@ Public Const EN_R_IS_ACTIVE = 3
 
 'Data Curve Functions
  Declare Function ENaddcurve Lib "epanet2.dll" (ByVal id As String) As Int32
+ Declare Function ENdeletecurve Lib "epanet2.dll" (ByVal index As Int32) As Int32
  Declare Function ENgetcurveindex Lib "epanet2.dll" (ByVal id As String, index As Int32) As Int32
  Declare Function ENgetcurveid Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String) As Int32
+ Declare Function ENsetcurveid Lib "epanet2.dll" (ByVal index As Int32, ByVal newid As String) As Int32
  Declare Function ENgetcurvelen Lib "epanet2.dll" (ByVal index As Int32, len_ As Int32) As Int32
  Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal index As Int32, type_ As Int32) As Int32
  Declare Function ENgetcurvevalue Lib "epanet2.dll" (ByVal curveIndex As Int32, ByVal pointIndex As Int32, x As Single, y As Single) As Int32

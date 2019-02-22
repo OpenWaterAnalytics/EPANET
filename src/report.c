@@ -71,6 +71,51 @@ int clearreport(Project *pr)
     return 0;
 }
 
+int copyreport(Project* pr, char *filename)
+/*
+**------------------------------------------------------
+**   Input:   filename = name of file to copy to
+**   Output:  returns error code
+**   Purpose: copies contents of a project's report file
+**------------------------------------------------------
+*/
+{
+    FILE *tfile;
+    int c;
+    Report *rpt = &pr->report;
+    
+    // Check that project's report file exists
+    if (rpt->RptFile == NULL) return 0;
+
+    // Open the new destination file
+    tfile = fopen(filename, "w");
+    if (tfile == NULL) return 303;
+
+    // Re-open project's report file in read mode
+    fclose(rpt->RptFile);
+    rpt->RptFile = fopen(rpt->Rpt1Fname, "r");
+
+    // Copy contents of project's report file
+    if (rpt->RptFile)
+    {
+        c = fgetc(rpt->RptFile);
+        while (c != EOF)
+        {
+            fputc(c, tfile);
+            c = fgetc(rpt->RptFile);
+        }
+        fclose(rpt->RptFile);
+    }
+    
+    // Close destination file
+    fclose(tfile);
+
+    // Re-open project's report file in append mode
+    rpt->RptFile = fopen(rpt->Rpt1Fname, "a");
+    if (rpt->RptFile == NULL) return 303;
+    return 0;
+}
+
 int writereport(Project *pr)
 /*
 **------------------------------------------------------

@@ -864,6 +864,19 @@ int DLLEXPORT EN_report(EN_Project p)
     return errcode;
 }
 
+int  DLLEXPORT EN_copyreport(EN_Project p, char *filename)
+/*----------------------------------------------------------------
+**  Input:   filename = name of file to receive copy of report
+**  Output:  none
+**  Returns: error code
+**  Purpose: copies the contents of a project's report file to
+**           another file
+**----------------------------------------------------------------
+*/
+{
+    return copyreport(p, filename);
+}
+
 int DLLEXPORT EN_clearreport(EN_Project p)
 /*----------------------------------------------------------------
 **  Input:   none
@@ -873,7 +886,6 @@ int DLLEXPORT EN_clearreport(EN_Project p)
 **----------------------------------------------------------------
 */
 {
-    if (!p->Openflag) return 102;
     return clearreport(p);
 }
 
@@ -3870,6 +3882,53 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
     return 0;
 }
 
+int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
+/*----------------------------------------------------------------
+**  Input:   index  = index of the pattern to delete
+**  Output:  none
+**  Returns: error code
+**  Purpose: deletes a time pattern from a project
+**----------------------------------------------------------------
+*/
+{
+    int i;
+
+    Network *net = &p->network;
+    Parser  *parser = &p->parser;
+    Hydraul *hyd = &p->hydraul;
+
+    // Can't delete a pattern while a solver is active
+    if (!p->Openflag)return 102;
+    if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
+
+    // Check that pattern exists
+    if (index < 1 || index > p->network.Npats) return 205;
+
+    // Adjust references by other objects to patterns
+    adjustpatterns(net, index);
+
+    // Modify default demand pattern
+    if (hyd->DefPat == index)
+    {
+        hyd->DefPat = 0;
+        strcpy(parser->DefPatID, "");
+    }
+    else if (hyd->DefPat > index) hyd->DefPat--;
+
+    // Modify global energy price pattern
+    if (hyd->Epat == index)  hyd->Epat = 0;
+    else if (hyd->Epat > index) hyd->Epat--;
+
+    // Free the pattern's factor array
+    FREE(net->Pattern[index].F);
+
+    // Shift the entries in the network's Pattern array
+    for (i = index; i < net->Npats; i++) net->Pattern[i] = net->Pattern[i+1];
+    net->Npats--;
+    parser->MaxPats--;
+    return 0;
+}
+
 int DLLEXPORT EN_getpatternindex(EN_Project p, char *id, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = time pattern name
@@ -3908,6 +3967,28 @@ int DLLEXPORT EN_getpatternid(EN_Project p, int index, char *id)
     if (!p->Openflag)return 102;
     if (index < 1 || index > p->network.Npats) return 205;
     strcpy(id, p->network.Pattern[index].ID);
+    return 0;
+}
+
+int DLLEXPORT EN_setpatternid(EN_Project p, int index, char *id)
+/*----------------------------------------------------------------
+**  Input:   index = time pattern index
+**           id = time pattern ID name
+**  Returns: error code
+**  Purpose: changes the ID name of a time pattern
+**----------------------------------------------------------------
+*/
+{
+    int i;
+
+    if (!p->Openflag) return 102;
+    if (index < 1 || index > p->network.Npats) return 205;
+    if (strlen(id) > MAXID) return 250;
+    for (i = 1; i <= p->network.Npats; i++)
+    {
+        if (i != index && strcmp(id, p->network.Pattern[i].ID) == 0) return 215;
+    }
+    strcpy(p->network.Pattern[index].ID, id);
     return 0;
 }
 
@@ -4083,6 +4164,41 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
     return 0;
 }
 
+int  DLLEXPORT EN_deletecurve(EN_Project p, int index)
+/*----------------------------------------------------------------
+**  Input:   index  = index of the curve to delete
+**  Output:  none
+**  Returns: error code
+**  Purpose: deletes a data curve from a project
+**----------------------------------------------------------------
+*/
+{
+    int i;
+
+    Network *net = &p->network;
+    Parser  *parser = &p->parser;
+
+    // Can't delete a curve while a solver is active
+    if (!p->Openflag)return 102;
+    if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
+
+    // Check that curve exists
+    if (index < 1 || index > p->network.Ncurves) return 205;
+
+    // Adjust references by other objects to curves
+    adjustcurves(net, index);
+
+    // Free the curve's data arrays
+    FREE(net->Curve[index].X);
+    FREE(net->Curve[index].Y);
+
+    // Shift the entries in the network's Curve array
+    for (i = index; i < net->Ncurves; i++) net->Curve[i] = net->Curve[i + 1];
+    net->Ncurves--;
+    parser->MaxCurves--;
+    return 0;
+}
+
 int DLLEXPORT EN_getcurveindex(EN_Project p, char *id, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = data curve name
@@ -4121,6 +4237,28 @@ int DLLEXPORT EN_getcurveid(EN_Project p, int index, char *id)
     if (!p->Openflag) return 102;
     if (index < 1 || index > p->network.Ncurves) return 206;
     strcpy(id, p->network.Curve[index].ID);
+    return 0;
+}
+
+int DLLEXPORT EN_setcurveid(EN_Project p, int index, char *id)
+/*----------------------------------------------------------------
+**  Input:   index = data curve index
+**           id = data curve ID name
+**  Returns: error code
+**  Purpose: changes the ID name of a data curve
+**----------------------------------------------------------------
+*/
+{
+    int i;
+
+    if (!p->Openflag) return 102;
+    if (index < 1 || index > p->network.Ncurves) return 205;
+    if (strlen(id) > MAXID) return 250;
+    for (i = 1; i <= p->network.Ncurves; i++)
+    {
+        if (i != index && strcmp(id, p->network.Curve[i].ID) == 0) return 215;
+    }
+    strcpy(p->network.Curve[index].ID, id);
     return 0;
 }
 
