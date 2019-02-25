@@ -112,6 +112,7 @@ These are symbolic constants used as function arguments.
 @{
 @fn int EN_writeline(EN_Project ph, char *line)
 @fn int EN_report(EN_Project ph)
+@fn int EN_copyreport(EN_Project ph, char *filename)
 @fn int EN_clearreport(EN_Project ph)
 @fn int EN_resetreport(EN_Project ph)
 @fn int EN_setreport(EN_Project ph, char *reportFormat)
@@ -196,8 +197,10 @@ These are symbolic constants used as function arguments.
 @addtogroup Patterns
 @{
 @fn int EN_addpattern(EN_Project ph, char *id)
+@fn int EN_deletepattern(EN_Project ph, int index)
 @fn int EN_getpatternindex(EN_Project ph, char *id, int *index)
 @fn int EN_getpatternid(EN_Project ph, int index, char *id)
+@fn int EN_setpatternid(EN_Project ph, int index, char *id)
 @fn int EN_getpatternlen(EN_Project ph, int index, int *len)
 @fn int EN_getpatternvalue(EN_Project ph, int index, int period, double *value)
 @fn int EN_setpatternvalue(EN_Project ph, int index, int period, double value)
@@ -210,8 +213,10 @@ These are symbolic constants used as function arguments.
 @addtogroup Curves
 @{
 @fn int EN_addcurve(EN_Project ph, char *id)
+@fn int EN_deletecurve(EN_Project ph, int index)
 @fn int EN_getcurveindex(EN_Project ph, char *id, int *index)
 @fn int EN_getcurveid(EN_Project ph, int index, char *id)
+@fn int EN_setcurveid(EN_Project ph, int index, char *id)
 @fn int EN_getcurvelen(EN_Project ph, int index, int *len)
 @fn int EN_getcurvetype(EN_Project ph, int index, int *type)
 @fn int EN_getcurvevalue(EN_Project ph, int curveIndex, int pointIndex, double *x, double *y)
@@ -301,6 +306,8 @@ The Report file is the second file name supplied to the @ref EN_open function (o
 To suppress the writing of all error and warning messages to the Report file either include the command `MESSAGES NO` in the [REPORT] section of the Input file or call the Toolkit function `EN_setreport("MESSAGES NO")`. 
 
 To route a formatted report to a different file than the Report file either include the command `FILE filename` in the [REPORT] section of the Input file or call the Toolkit function `EN_setreport("FILE filename")`, where `filename` is the name of the file to use. 
+
+Toolkit clients will not be able to access the contents of a Report file until a project is closed. If access is needed before then, the @ref EN_copyreport function can be used to copy its current contents to another file. A @ref EN_clearreport function is also available to clear the current contents of the Report file.
 
 @section OutputFile Output File
 

@@ -219,6 +219,19 @@ void initpointers(Project *pr)
 **----------------------------------------------------------------
 */
 {
+    Network* nw = &pr->network;
+    nw->Nnodes = 0;
+    nw->Ntanks = 0;
+    nw->Njuncs = 0;
+    nw->Nlinks = 0;
+    nw->Npipes = 0;
+    nw->Npumps = 0;
+    nw->Nvalves = 0;
+    nw->Ncontrols = 0;
+    nw->Nrules = 0;
+    nw->Npats = 0;
+    nw->Ncurves = 0;
+
     pr->hydraul.NodeDemand = NULL;
     pr->hydraul.NodeHead = NULL;
     pr->hydraul.LinkFlow = NULL;
@@ -754,6 +767,102 @@ int findvalve(Network *network, int index)
     }
     return NOTFOUND;
 }
+
+void adjustpattern(int *pat, int index)
+/*----------------------------------------------------------------
+** Local function that modifies a reference to a deleted time pattern
+**----------------------------------------------------------------
+*/
+{
+    if (*pat == index) *pat = 0;
+    else if (*pat > index) (*pat)--;
+}
+
+void adjustpatterns(Network *network, int index)
+/*----------------------------------------------------------------
+**  Input:   index = index of time pattern being deleted
+**  Output:  none
+**  Purpose: modifies references made to a deleted time pattern
+**----------------------------------------------------------------
+*/
+{
+    int j;
+    Pdemand demand;
+    Psource source;
+
+    // Adjust patterns used by junctions
+    for (j = 1; j <= network->Njuncs; j++)
+    {
+        // Adjust demand patterns
+        for (demand = network->Node[j].D; demand != NULL; demand = demand->next)
+        {
+            adjustpattern(&demand->Pat, index);
+        }
+        // Adjust WQ source patterns
+        source = network->Node[j].S;
+        if (source) adjustpattern(&source->Pat, index);
+    }
+
+    // Adjust patterns used by reservoir tanks
+    for (j = 1; j <= network->Ntanks; j++)
+    {
+        adjustpattern(&network->Tank[j].Pat, index);
+    }
+
+    // Adjust patterns used by pumps
+    for (j = 1; j <= network->Npumps; j++)
+    {
+        adjustpattern(&network->Pump[j].Upat, index);
+        adjustpattern(&network->Pump[j].Epat, index);
+    }
+}
+
+void adjustcurve(int *curve, int index)
+/*----------------------------------------------------------------
+** Local function that modifies a reference to a deleted data curve
+**----------------------------------------------------------------
+*/
+{
+    if (*curve == index) *curve = 0;
+    else if (*curve > index) (*curve)--;
+}
+
+void adjustcurves(Network *network, int index)
+/*----------------------------------------------------------------
+**  Input:   index = index of data curve being deleted
+**  Output:  none
+**  Purpose: modifies references made to a deleted data curve
+**----------------------------------------------------------------
+*/
+{
+    int j, k, setting;
+
+    // Adjust tank volume curves
+    for (j = 1; j <= network->Ntanks; j++)
+    {
+        adjustcurve(&network->Tank[j].Vcurve, index);
+    }
+
+    // Adjust pump curves
+    for (j = 1; j <= network->Npumps; j++)
+    {
+        adjustcurve(&network->Pump[j].Hcurve, index);
+        adjustcurve(&network->Pump[j].Ecurve, index);
+    }
+
+    // Adjust GPV curves
+    for (j = 1; j <= network->Nvalves; j++)
+    {
+        k = network->Valve[j].Link;
+        if (network->Link[k].Type == GPV)
+        {
+            setting = INT(network->Link[k].Kc);
+            adjustcurve(&setting, index);
+            network->Link[k].Kc = setting;
+        }
+    }
+}
+
 
 char *getTmpName(char *fname)
 //----------------------------------------------------------------
