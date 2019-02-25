@@ -7,39 +7,40 @@
 ::          US EPA - ORD/NRMRL
 ::
 ::  Arguments:
-::    1 - version/build identifier
-::    2 - (test suite path)
+::    1 - (REF build identifier)
+::    2 - (SUT build identifier)
+::    3 - (test suite path)
 ::
 
 @echo off
 setlocal
 
 
-:: CHANGE THIS VARIABLES TO UPDATE BENCHMARK
-set BENCHMARK_VER=220dev5
+:: Check existence and apply default arguments
+IF [%1]==[] ( echo "ERROR: REF_BUILD_ID must be defined" & exit /B 1
+) ELSE ( set "REF_BUILD_ID=%~1" )
+
+IF [%2]==[] ( set "SUT_BUILD_ID=local"
+) ELSE ( set "SUT_BUILD_ID=%~2" )
+
+IF [%3]==[] ( set "TEST_SUITE_PATH=nrtestsuite"
+) ELSE ( set "TEST_SUITE_PATH=%~3" )
 
 
-:: Determine location of python Scripts folder
+:: determine location of python Scripts folder
 FOR /F "tokens=*" %%G IN ('where python') DO (
   set PYTHON_DIR=%%~dpG
 )
 set "NRTEST_SCRIPT_PATH=%PYTHON_DIR%Scripts"
 
-:: Check existence and apply default arguments
-IF NOT [%1]==[] ( set "SUT_VER=%~1"
-) ELSE ( set "SUT_VER=vXXX" )
-
-IF NOT [%2]==[] ( set "TEST_SUITE_PATH=%~2"
-) ELSE ( set "TEST_SUITE_PATH=nrtestsuite" )
-
 
 set NRTEST_EXECUTE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest execute
-set TEST_APP_PATH=apps\epanet-%SUT_VER%.json
+set TEST_APP_PATH=apps\epanet-%SUT_BUILD_ID%.json
 set TESTS=tests\examples tests\exeter tests\large tests\network_one tests\press_depend tests\small tests\tanks tests\valves
-set TEST_OUTPUT_PATH=benchmark\epanet-%SUT_VER%
+set TEST_OUTPUT_PATH=benchmark\epanet-%SUT_BUILD_ID%
 
 set NRTEST_COMPARE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest compare
-set REF_OUTPUT_PATH=benchmark\epanet-%BENCHMARK_VER%
+set REF_OUTPUT_PATH=benchmark\epanet-%REF_BUILD_ID%
 set RTOL_VALUE=0.01
 set ATOL_VALUE=0.0
 
@@ -51,13 +52,13 @@ if exist %TEST_OUTPUT_PATH% (
   rmdir /s /q %TEST_OUTPUT_PATH%
 )
 
-echo INFO: Creating test benchmark
+echo INFO: Creating SUT %SUT_BUILD_ID% artifacts
 set NRTEST_COMMAND=%NRTEST_EXECUTE_CMD% %TEST_APP_PATH% %TESTS% -o %TEST_OUTPUT_PATH%
 :: if there is an error exit the script with error value 1
 %NRTEST_COMMAND% || exit /B 1
 
 echo.
 
-echo INFO: Comparing test and ref benchmark
+echo INFO: Comparing SUT artifacts to REF %REF_BUILD_ID%
 set NRTEST_COMMAND=%NRTEST_COMPARE_CMD% %TEST_OUTPUT_PATH% %REF_OUTPUT_PATH% --rtol %RTOL_VALUE% --atol %ATOL_VALUE% -o receipt.json
 %NRTEST_COMMAND%

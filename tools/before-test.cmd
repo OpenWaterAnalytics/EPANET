@@ -7,8 +7,11 @@
 ::          US EPA - ORD/NRMRL
 ::
 ::  Arguments:
-::    1 - build identifier for software under test
-::    2 - (relative path regression test file staging location)
+::    1 - (platform)
+::    2 - (build identifier for reference)
+::    3 - (build identifier for software under test)
+::    4 - (version identifier for software under test)
+::    5 - (relative path regression test file staging location)
 ::
 ::  Note:
 ::    Tests and benchmark files are stored in the epanet-example-networks repo.
@@ -18,35 +21,49 @@
 ::
 
 @echo off
-setlocal
+setlocal EnableExtensions
 
 
-:: CHANGE THESE VARIABLES TO UPDATE BENCHMARK
-set EXAMPLES_VER=1.0.2-dev.5
-set BENCHMARK_VER=220dev5
+IF [%1]==[] ( set PLATFORM=
+) ELSE ( set "PLATFORM=%~1" )
 
+IF [%2]==[] ( echo "ERROR: REF_BUILD_ID must be defined" & exit /B 1
+) ELSE (set "REF_BUILD_ID=%~2" )
 
-set "SCRIPT_HOME=%~dp0"
-set "EXE_HOME=Release"
+IF [%3]==[] ( set "SUT_BUILD_ID=local"
+) ELSE ( set "SUT_BUILD_ID=%~3" )
 
-::: Determine SUT executable path
-:: TODO: This may fail when there is more than one cmake buildprod folder
-for /d /r "%SCRIPT_HOME%..\" %%a in (*) do if /i "%%~nxa"=="bin" set "BUILD_HOME=%%a"
-set SUT_PATH=%BUILD_HOME%\%EXE_HOME%
+IF [%4]==[] (set SUT_VERSION=
+) ELSE ( set "SUT_VERSION=%~4" )
 
-:: Check existence and apply default arguments
-IF NOT [%1]==[] ( set "SUT_VER=%~1"
-) ELSE ( set "SUT_VER=vXXX" )
-
-IF NOT [%2]==[] ( set "TEST_HOME=%~2"
-) ELSE ( set "TEST_HOME=nrtestsuite" )
-
-
-set TESTFILES_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/v%EXAMPLES_VER%.zip
-set BENCHFILES_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/v%EXAMPLES_VER%/epanet-benchmark-%BENCHMARK_VER%.zip
+IF [%5]==[] ( set "TEST_HOME=nrtestsuite"
+) ELSE ( set "TEST_HOME=%~5" )
 
 
 echo INFO: Staging files for regression testing
+
+
+:: determine SUT executable path
+set "SCRIPT_HOME=%~dp0"
+:: TODO: This may fail when there is more than one cmake buildprod folder
+FOR /D /R "%SCRIPT_HOME%..\" %%a IN (*) DO IF /i "%%~nxa"=="bin" set "BUILD_HOME=%%a"
+set "SUT_PATH=%BUILD_HOME%\Release"
+
+
+:: determine platform from CMakeCache.txt
+IF NOT DEFINED PLATFORM (
+  FOR /F "tokens=*" %%p IN ( 'findstr CMAKE_SHARED_LINKER_FLAGS:STRING %BUILD_HOME%\..\CmakeCache.txt' ) DO ( set "FLAG=%%p" )
+  FOR /F "delims=: tokens=3" %%m IN ( 'echo %FLAG%' ) DO IF "%%m"=="x64" ( set "PLATFORM=win64" ) ELSE ( set "PLATFORM=win32" )
+)
+
+:: hack to determine latest tag in epanet-example-networks repo
+:: TODO: use GitHub api instead
+set "LATEST_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/latest"
+FOR /F delims^=^"^ tokens^=2 %%g IN ('curl --silent %LATEST_URL%') DO ( set "LATEST_TAG=%%~nxg" )
+
+set "TESTFILES_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/%LATEST_TAG%.zip"
+set "BENCHFILES_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/%LATEST_TAG%/benchmark-%PLATFORM%-%REF_BUILD_ID%.zip"
+
 
 :: create a clean directory for staging regression tests
 if exist %TEST_HOME% (
@@ -54,6 +71,7 @@ if exist %TEST_HOME% (
 )
 mkdir %TEST_HOME%
 cd %TEST_HOME%
+
 
 :: retrieve epanet-examples for regression testing
 curl -fsSL -o examples.zip %TESTFILES_URL%
@@ -67,9 +85,9 @@ curl -fsSL -o benchmark.zip %BENCHFILES_URL%
 7z x benchmark.zip -obenchmark\ > nul
 
 :: set up symlink for tests directory
-mklink /D .\tests .\epanet-example-networks-%EXAMPLES_VER%\epanet-tests
+mklink /D .\tests .\epanet-example-networks-%LATEST_TAG:~1%\epanet-tests > nul
 
 
 :: generate json configuration file for software under test
 mkdir apps
-%SCRIPT_HOME%\gen-config.cmd %SUT_PATH% > apps\epanet-%SUT_VER%.json
+%SCRIPT_HOME%\gen-config.cmd %SUT_PATH% %PLATFORM% %SUT_BUILD_ID% %SUT_VERSION% > apps\epanet-%SUT_BUILD_ID%.json
