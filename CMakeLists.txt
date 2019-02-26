@@ -112,12 +112,13 @@ target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
 ELSE (BUILD_PY_LIB)
 
   # the shared library
-  if(NOT WIN32)
+  IF("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)" OR NOT MSVC)
     add_library(epanet2 SHARED ${EPANET_LIB_ALL})
-  else(NOT WIN32)
+  ELSE(TRUE)
     add_library(epanet2 SHARED ${EPANET_LIB_ALL} ${PROJECT_SOURCE_DIR}/include/epanet2.def)
     set_source_files_properties(${PROJECT_SOURCE_DIR}/include/epanet2.def PROPERTIES_HEADER_FILE_ONLY TRUE)
-  endif(NOT WIN32)
+  ENDIF("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)" OR NOT MSVC)
+
   target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 ENDIF (BUILD_PY_LIB)
