@@ -29,7 +29,7 @@ environment:
     GROUP: "EXPERIMENTAL"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
     PLATFORM: "win64"
-    REF_BUILD_ID:
+    REF_BUILD_ID: "381_2"
 
 # called before repo cloning
 init:
