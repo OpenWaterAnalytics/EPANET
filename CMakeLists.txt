@@ -1,7 +1,7 @@
 # CMakeLists.txt - CMake configuration file for EPANET 2.0
 #
 # CMake is a cross-platform build tool. CMake generates platform native
-# makefiles that can be used with your compiler of choice. CMake uses a
+# build systems that can be used with your compiler of choice. CMake uses a
 # generator concept to represent different build tooling. CMake automatically
 # detects the platform it is running on and generates the appropriate makefiles
 # for the platform default compiler. Different generators can also be specified.
@@ -112,12 +112,13 @@ target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
 ELSE (BUILD_PY_LIB)
 
   # the shared library
-  if(NOT WIN32)
+  IF("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)" OR NOT MSVC)
     add_library(epanet2 SHARED ${EPANET_LIB_ALL})
-  else(NOT WIN32)
+  ELSE(TRUE)
     add_library(epanet2 SHARED ${EPANET_LIB_ALL} ${PROJECT_SOURCE_DIR}/include/epanet2.def)
     set_source_files_properties(${PROJECT_SOURCE_DIR}/include/epanet2.def PROPERTIES_HEADER_FILE_ONLY TRUE)
-  endif(NOT WIN32)
+  ENDIF("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)" OR NOT MSVC)
+
   target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 ENDIF (BUILD_PY_LIB)
