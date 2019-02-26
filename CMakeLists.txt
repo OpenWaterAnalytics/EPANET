@@ -1,7 +1,7 @@
 # CMakeLists.txt - CMake configuration file for EPANET 2.0
 #
 # CMake is a cross-platform build tool. CMake generates platform native
-# makefiles that can be used with your compiler of choice. CMake uses a
+# build systems that can be used with your compiler of choice. CMake uses a
 # generator concept to represent different build tooling. CMake automatically
 # detects the platform it is running on and generates the appropriate makefiles
 # for the platform default compiler. Different generators can also be specified.
