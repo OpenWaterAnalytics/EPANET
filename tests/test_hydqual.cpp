@@ -19,6 +19,7 @@
 
 #define BOOST_TEST_MODULE "hydqual"
 #include <boost/test/included/unit_test.hpp>
+#include <boost/filesystem.hpp>
 
 #include "test_fixtures.hpp"
 
@@ -26,7 +27,7 @@ using namespace std;
 using namespace boost;
 
 
-BOOST_AUTO_TEST_SUITE (test_hydraulics_quality)
+BOOST_AUTO_TEST_SUITE (test_hyd_qual)
 
 BOOST_FIXTURE_TEST_CASE(test_solveH_solveQ, FixtureOpenClose)
 {
@@ -129,6 +130,32 @@ BOOST_FIXTURE_TEST_CASE(test_progressive_step, FixtureOpenClose)
     error = EN_closeQ(ph);
     BOOST_REQUIRE(error == 0);
 
+}
+
+// saveH
+
+BOOST_FIXTURE_TEST_CASE(test_hydr_savefile, FixtureOpenClose)
+{
+    string hyd_file("test_savefile.hyd");
+
+    error = EN_solveH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_savehydfile(ph, hyd_file.c_str());
+    BOOST_REQUIRE(error == 0);
+
+    BOOST_CHECK(filesystem::exists(hyd_file) == true);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_hydr_usefile, FixtureOpenClose, * unit_test::depends_on("test_hyd_qual/test_hydr_savefile"))
+{
+    string hyd_file("test_savefile.hyd");
+
+    error = EN_usehydfile(ph, hyd_file.c_str());
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_solveQ(ph);
+    BOOST_REQUIRE(error == 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

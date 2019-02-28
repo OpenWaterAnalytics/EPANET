@@ -583,7 +583,7 @@ int DLLEXPORT EN_closeH(EN_Project p)
   return 0;
 }
 
-int DLLEXPORT EN_savehydfile(EN_Project p, char *filename)
+int DLLEXPORT EN_savehydfile(EN_Project p, const char *filename)
 /*----------------------------------------------------------------
 **  Input:   filename = name of file to which hydraulic results are saved
 **  Output:  none
@@ -611,7 +611,7 @@ int DLLEXPORT EN_savehydfile(EN_Project p, char *filename)
     return 0;
 }
 
-int DLLEXPORT EN_usehydfile(EN_Project p, char *filename)
+int DLLEXPORT EN_usehydfile(EN_Project p, const char *filename)
 /*----------------------------------------------------------------
 **  Input:   filename = name of previously saved hydraulics file
 **  Output:  none
@@ -2484,7 +2484,7 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     if (initlvl < 0.0 || minlvl < 0.0 || maxlvl < 0.0) return 209;
     if (minlvl > initlvl || minlvl > maxlvl || initlvl > maxlvl) return 225;
     if (diam < 0.0 || minvol < 0.0) return 209;
-                            
+
     // volume curve supplied
     if (strlen(volcurve) > 0)
     {
@@ -3459,13 +3459,13 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
             v = (double)Pump[findpump(&p->network, index)].Ecurve;
         }
         break;
-        
+
     case EN_PUMP_ECOST:
         if  (Link[index].Type == PUMP)
         {
             v = (double)Pump[findpump(&p->network, index)].Ecost;
         }
-        break;    
+        break;
 
     case EN_PUMP_EPAT:
         if (Link[index].Type == PUMP)
@@ -4392,7 +4392,7 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
     if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Ncurves) return 206;
     if (nPoints <= 0) return 202;
-    
+
     // Check that x values are increasing
     for (j = 1; j < nPoints; j++) if (xValues[j-1] >= xValues[j]) return 230;
 

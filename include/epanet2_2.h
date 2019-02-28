@@ -220,7 +220,7 @@ typedef struct Project *EN_Project;
 
   Do not call this function while the hydraulics solver is open.
   */
-  int DLLEXPORT EN_usehydfile(EN_Project ph, char *filename);
+  int DLLEXPORT EN_usehydfile(EN_Project ph, const char *filename);
 
   /**
   @brief Opens a project's hydraulic solver.
@@ -343,7 +343,7 @@ typedef struct Project *EN_Project;
   called ::EN_solveH or the ::EN_initH - ::EN_runH - ::EN_nextH sequence with the initflag
   argument of ::EN_initH set to `EN_SAVE` or `EN_SAVE_AND_INIT`.
   */
-  int DLLEXPORT EN_savehydfile(EN_Project ph, char *filename);
+  int DLLEXPORT EN_savehydfile(EN_Project ph, const char *filename);
 
   /**
   @brief Closes the hydraulic solver freeing all of its allocated memory.
@@ -617,7 +617,7 @@ typedef struct Project *EN_Project;
   @return an error code
   */
   int  DLLEXPORT EN_getstatistic(EN_Project ph, int type, double* value);
-  
+
   /********************************************************************
 
   Analysis Options Functions
