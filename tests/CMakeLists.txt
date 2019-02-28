@@ -44,7 +44,11 @@ foreach(testSrc ${TEST_SRCS})
         add_executable(${testName} ${testSrc})
 
         #link to Boost libraries AND your targets and dependencies
-        target_link_libraries(${testName} ${Boost_LIBRARIES} pthread epanet2 epanet-output)
+        IF(MSVC)
+            target_link_libraries(${testName} ${Boost_LIBRARIES} epanet2 epanet-output)
+        ELSE(TRUE)
+            target_link_libraries(${testName} ${Boost_LIBRARIES} pthread epanet2 epanet-output)
+        ENDIF(MSVC)
 
         #Finally add it to test execution
         #Notice the WORKING_DIRECTORY and COMMAND
