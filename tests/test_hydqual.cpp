@@ -24,7 +24,7 @@
 #include "test_fixtures.hpp"
 
 using namespace std;
-using namespace utf = boost::unit_test;
+namespace utf = boost::unit_test;
 
 
 BOOST_AUTO_TEST_SUITE (test_hyd_qual)
