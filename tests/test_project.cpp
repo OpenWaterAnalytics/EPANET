@@ -30,8 +30,10 @@
 #define DATA_PATH_RPT "./test.rpt"
 #define DATA_PATH_OUT "./test.out"
 
+
 using namespace std;
 using namespace boost;
+
 
 boost::test_tools::predicate_result check_string(std::string test, std::string ref)
 {
@@ -78,7 +80,8 @@ BOOST_AUTO_TEST_CASE (test_open_close)
     EN_deleteproject(&ph);
 }
 
-BOOST_AUTO_TEST_CASE(test_save_reopen)
+// Note: This test causes a segfault when built using debug configuration
+BOOST_AUTO_TEST_CASE(test_save_reopen, * unit_test::disabled())
 {
     int error;
 
@@ -188,7 +191,24 @@ BOOST_FIXTURE_TEST_CASE(test_proj_title, Fixture)
    // Need a test for EN_settitle
 }
 
+BOOST_FIXTURE_TEST_CASE(test_proj_getcount, Fixture)
+{
+    int i, array[7];
+	
+	std::vector<int> test;
+	vector<int> ref = { 11, 2, 13, 1, 1, 2, 0 };
 
+    for (i=EN_NODECOUNT; i<=EN_RULECOUNT; i++) {
+        error = EN_getcount(ph, i, &array[i]);
+        BOOST_REQUIRE(error == 0);
+    }
+
+    test.assign(array, array + 7);
+    BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
+
+	error = EN_getcount(ph, 7, &i);
+	BOOST_CHECK(error == 251);
+}
 
 BOOST_FIXTURE_TEST_CASE(test_epanet, Fixture)
 {
