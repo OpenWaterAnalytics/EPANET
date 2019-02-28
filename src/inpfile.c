@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/27/2018
+Last Updated: 02/28/2019
 ******************************************************************************
 */
 
@@ -52,8 +52,8 @@ void saveauxdata(Parser *parser, FILE *f)
     FILE *InFile = parser->InFile;
   
     sect = -1;
+    InFile = fopen(parser->InpFname, "rt");
     if (InFile == NULL) return;
-    rewind(InFile);
     while (fgets(line, MAXLINE, InFile) != NULL)
     {
         strcpy(s, line);
@@ -84,6 +84,7 @@ void saveauxdata(Parser *parser, FILE *f)
               break;
         }
     }
+    fclose(InFile);
 }
 
 int saveinpfile(Project *pr, const char *fname)

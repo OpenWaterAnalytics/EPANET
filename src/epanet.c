@@ -218,6 +218,7 @@ int DLLEXPORT EN_open(EN_Project p, const char *inpFile, const char *rptFile,
 
   // Read input data
   ERRCODE(getdata(p));
+  fclose(p->parser.InFile);
 
   // Free temporary linked lists used for Patterns & Curves
   freeTmplist(p->parser.Patlist);
