@@ -1,5 +1,18 @@
 language: python
 
+matrix:
+  include:
+    # works on Precise and Trusty
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
 python:
     - "3.6"
 
@@ -11,6 +24,7 @@ env:
 
 before_install:
   - sudo apt-get -qq update
+  - eval "${MATRIX_EVAL}"
 
 install:
   - sudo apt-get install -y libboost-test-dev
