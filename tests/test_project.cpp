@@ -19,6 +19,8 @@
 
 #define BOOST_TEST_MODULE "toolkit"
 #include <boost/test/included/unit_test.hpp>
+#include <boost/filesystem.hpp>
+
 
 #include <string>
 #include "epanet2_2.h"
@@ -29,11 +31,20 @@
 #define DATA_PATH_OUT "./test.out"
 
 using namespace std;
+using namespace boost;
+
+boost::test_tools::predicate_result check_string(std::string test, std::string ref)
+{
+    if (ref.compare(test) == 0)
+        return true;
+    else
+        return false;
+}
 
 
 BOOST_AUTO_TEST_SUITE (test_toolkit)
 
-BOOST_AUTO_TEST_CASE (test_alloc_free)
+BOOST_AUTO_TEST_CASE (test_create_delete)
 {
     int error = 0;
     EN_Project ph = NULL;
@@ -69,7 +80,9 @@ BOOST_AUTO_TEST_CASE (test_open_close)
 
 BOOST_AUTO_TEST_CASE(test_save_reopen)
 {
-	string path_inp(DATA_PATH_INP);
+    int error;
+
+    string path_inp(DATA_PATH_INP);
 	string inp_save("test_reopen.inp");
 	string path_rpt(DATA_PATH_RPT);
 	string path_out(DATA_PATH_OUT);
@@ -78,23 +91,27 @@ BOOST_AUTO_TEST_CASE(test_save_reopen)
     EN_Project ph_reopen;
 
 	EN_createproject(&ph_save);
+    error = EN_open(ph_save, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+    BOOST_REQUIRE(error == 0);
 
-	EN_open(ph_save, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
-	EN_saveinpfile(ph_save, inp_save.c_str());
-	EN_close(ph_save);
+    error = EN_saveinpfile(ph_save, inp_save.c_str());
+    BOOST_REQUIRE(error == 0);
 
-	EN_deleteproject(&ph_save);
-	BOOST_TEST_CHECKPOINT("Saved input file");
+	error = EN_close(ph_save);
+	BOOST_REQUIRE(error == 0);
+    EN_deleteproject(&ph_save);
+    BOOST_TEST_CHECKPOINT("Saved input file");
 
 	EN_createproject(&ph_reopen);
+	error = EN_open(ph_reopen, inp_save.c_str(), path_rpt.c_str(), path_out.c_str());
+    BOOST_REQUIRE(error == 0);
 
-	EN_open(ph_reopen, inp_save.c_str(), path_rpt.c_str(), path_out.c_str());
-	EN_close(ph_reopen);
-
+    error = EN_close(ph_reopen);
+    BOOST_REQUIRE(error == 0);
 	EN_deleteproject(&ph_reopen);
 }
 
-BOOST_AUTO_TEST_CASE(test_epanet)
+BOOST_AUTO_TEST_CASE(test_runproject)
 {
     string path_inp(DATA_PATH_INP);
     string path_rpt(DATA_PATH_RPT);
@@ -136,7 +153,42 @@ struct Fixture{
   EN_Project ph;
 };
 
+
 BOOST_AUTO_TEST_SUITE(test_epanet_fixture)
+
+
+BOOST_FIXTURE_TEST_CASE(test_proj_save, Fixture)
+{
+	string inp_save("test_projsave.inp");
+
+	error = EN_saveinpfile(ph, inp_save.c_str());
+    BOOST_REQUIRE(error == 0);
+
+	BOOST_CHECK(filesystem::exists(inp_save) == true);
+
+}
+
+BOOST_FIXTURE_TEST_CASE(test_proj_title, Fixture)
+{
+    char c_test[3][80], c_ref[3][80];
+
+    strncpy(c_ref[0], " EPANET Example Network 1", 26);
+    strncpy(c_ref[1], "A simple example of modeling chlorine decay. Both bulk and", 59);
+    strncpy(c_ref[2], "wall reactions are included. ", 30);
+
+    error = EN_gettitle(ph, c_test[0], c_test[1], c_test[2]);
+    BOOST_REQUIRE(error == 0);
+
+   for (int i = 0; i < 3; i++) {
+       string test (c_test[i]);
+       string ref (c_ref[i]);
+       BOOST_CHECK(check_string(test, ref));
+   }
+
+   // Need a test for EN_settitle
+}
+
+
 
 BOOST_FIXTURE_TEST_CASE(test_epanet, Fixture)
 {

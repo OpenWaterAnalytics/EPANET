@@ -247,9 +247,9 @@ int DLLEXPORT EN_gettitle(EN_Project p, char *line1, char *line2, char *line3)
 */
 {
     if (!p->Openflag) return 102;
-    strcpy(line1, p->Title[0]);
-    strcpy(line2, p->Title[1]);
-    strcpy(line3, p->Title[2]);
+    strncpy(line1, p->Title[0], TITLELEN);
+    strncpy(line2, p->Title[1], TITLELEN);
+    strncpy(line3, p->Title[2], TITLELEN);
     return 0;
 }
 
@@ -265,7 +265,7 @@ int DLLEXPORT EN_settitle(EN_Project p, char *line1, char *line2, char *line3)
     strncpy(p->Title[0], line1, TITLELEN);
     strncpy(p->Title[1], line2, TITLELEN);
     strncpy(p->Title[2], line3, TITLELEN);
-    return 123;
+    return 0;
 }
 
 int DLLEXPORT EN_getcount(EN_Project p, int object, int *count)
