@@ -7,9 +7,11 @@ matrix:
       addons:
         apt:
           sources:
+            - sourceline: 'ppa:mhier/libboost-latest'
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
+            - boost1.67
       env:
          - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
@@ -27,8 +29,8 @@ before_install:
   - eval "${MATRIX_EVAL}"
 
 install:
-  - sudo apt-get install -y libboost-test-dev
-  - sudo apt-get install -y libboost-thread-dev
+#  - sudo apt-get install -y libboost-test-dev
+#  - sudo apt-get install -y libboost-thread-dev
 
 before_script:
   - mkdir -p $BUILD_HOME
