@@ -33,7 +33,10 @@ install:
 before_script:
   - mkdir -p $BUILD_HOME
   - cd $BUILD_HOME
-  - cmake -DBUILD_TESTS=ON -DBUILD_COVERAGE=ON ..
+  - cmake -DCMAKE_C_COMPILER=${CC}
+          -DCMAKE_CXX_COMPILER=${CXX}
+          -DBUILD_TESTS=ON
+          -DBUILD_COVERAGE=ON ..
 
 script:
   - cmake --build .
