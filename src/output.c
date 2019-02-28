@@ -7,7 +7,7 @@ Description:  binary file read/write routines
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/27/2018
+Last Updated: 02/24/2019
 ******************************************************************************
 */
 

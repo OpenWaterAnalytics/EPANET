@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/08/2019
+ Last Updated: 02/28/2019
  ******************************************************************************
 */
 
@@ -1566,6 +1566,11 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
 
     if (!p->Openflag) return 102;
     if (qualType < EN_NONE || qualType > EN_TRACE) return 251;
+    
+    // Cannot change quality choice if solver currently open under the no
+    // quality option since required memory was not allocated
+    if (qual->OpenQflag && qual->Qualflag == NONE) return 262;
+
     qual->Qualflag = (char)qualType;
     qual->Ctol *= Ucf[QUALITY];
     if (qual->Qualflag == CHEM) // Chemical analysis
