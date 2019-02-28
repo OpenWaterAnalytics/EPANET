@@ -132,7 +132,17 @@ BOOST_FIXTURE_TEST_CASE(test_progressive_step, FixtureOpenClose)
 
 }
 
-// saveH
+BOOST_FIXTURE_TEST_CASE(test_hydr_save, FixtureOpenClose)
+{
+    error = EN_solveH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_saveH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_report(ph);
+    BOOST_REQUIRE(error == 0);
+}
 
 BOOST_FIXTURE_TEST_CASE(test_hydr_savefile, FixtureOpenClose)
 {
@@ -157,5 +167,7 @@ BOOST_FIXTURE_TEST_CASE(test_hydr_usefile, FixtureOpenClose, * unit_test::depend
     error = EN_solveQ(ph);
     BOOST_REQUIRE(error == 0);
 }
+
+
 
 BOOST_AUTO_TEST_SUITE_END()
