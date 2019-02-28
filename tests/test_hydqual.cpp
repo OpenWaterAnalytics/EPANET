@@ -24,7 +24,7 @@
 #include "test_fixtures.hpp"
 
 using namespace std;
-namespace utf = boost::unit_test;
+using namespace boost;
 
 
 BOOST_AUTO_TEST_SUITE (test_hyd_qual)
@@ -157,7 +157,7 @@ BOOST_FIXTURE_TEST_CASE(test_hydr_savefile, FixtureOpenClose)
     BOOST_CHECK(filesystem::exists(hyd_file) == true);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_hydr_usefile, FixtureOpenClose, * utf::depends_on("test_hyd_qual/test_hydr_savefile"))
+BOOST_FIXTURE_TEST_CASE(test_hydr_usefile, FixtureOpenClose, * unit_test::depends_on("test_hyd_qual/test_hydr_savefile"))
 {
     string hyd_file("test_savefile.hyd");
 
