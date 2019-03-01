@@ -1377,11 +1377,11 @@ int DLLEXPORT EN_gettimeparam(EN_Project p, int param, long *value)
     case EN_REPORTSTART:
         *value = time->Rstart;
         break;
-    case EN_STATISTIC:
-        *value = rpt->Tstatflag;
-        break;
     case EN_RULESTEP:
         *value = time->Rulestep;
+        break;
+    case EN_STATISTIC:
+        *value = rpt->Tstatflag;
         break;
     case EN_PERIODS:
         *value = rpt->Nperiods;
@@ -1391,6 +1391,10 @@ int DLLEXPORT EN_gettimeparam(EN_Project p, int param, long *value)
         break;
     case EN_HTIME:
         *value = time->Htime;
+        break;
+    case EN_QTIME:
+        *value = time->Qtime;
+    case EN_HALTFLAG:
         break;
     case EN_NEXTEVENT:
         *value = time->Hstep; // find the lesser of the hydraulic time step length,
@@ -1402,6 +1406,8 @@ int DLLEXPORT EN_gettimeparam(EN_Project p, int param, long *value)
         i = tanktimestep(p, value);
         *value = i;
         break;
+    default:
+        return 251;
     }
     return 0;
 }

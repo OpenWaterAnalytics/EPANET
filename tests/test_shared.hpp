@@ -13,7 +13,7 @@
 // the test and the ref vectors.
 boost::test_tools::predicate_result check_cdd_double(std::vector<double>& test,
     std::vector<double>& ref, long cdd_tol){
-    float tmp, min_cdd = 10.0;
+    double tmp, min_cdd = 10.0;
 
     // TODO: What if the vectors aren't the same length?
 
