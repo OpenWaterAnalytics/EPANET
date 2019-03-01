@@ -23,10 +23,6 @@
 
 #include "test_shared.hpp"
 
-#include "epanet_output.h"
-
-#define DATA_PATH_OUTPUT "./example1.out"
-
 
 BOOST_AUTO_TEST_SUITE (test_output_auto)
 
@@ -47,33 +43,10 @@ BOOST_AUTO_TEST_CASE(OpenCloseTest) {
 BOOST_AUTO_TEST_SUITE_END()
 
 
-struct Fixture{
-    Fixture() {
-        path = std::string(DATA_PATH_OUTPUT);
-
-        error = ENR_init(&p_handle);
-        ENR_clearError(p_handle);
-        error = ENR_open(p_handle, path.c_str());
-
-        array = NULL;
-        array_dim = 0;
-    }
-    ~Fixture() {
-        free((void*)array);
-        error = ENR_close(&p_handle);
-    }
-
-    std::string path;
-    int error;
-    ENR_Handle p_handle;
-
-    float* array;
-    int array_dim;
-};
 
 BOOST_AUTO_TEST_SUITE(test_output_fixture)
 
-BOOST_FIXTURE_TEST_CASE(test_getNetSize, Fixture)
+BOOST_FIXTURE_TEST_CASE(test_getNetSize, FixtureOutput)
 {
     int *i_array = NULL;
 
@@ -91,7 +64,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNetSize, Fixture)
     free((void*)i_array);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_getUnits, Fixture) {
+BOOST_FIXTURE_TEST_CASE(test_getUnits, FixtureOutput) {
     int flag;
 
     error = ENR_getUnits(p_handle, ENR_qualUnits, &flag);
@@ -100,7 +73,7 @@ BOOST_FIXTURE_TEST_CASE(test_getUnits, Fixture) {
 	BOOST_CHECK_EQUAL(flag, ENR_MGL);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_getElementName, Fixture) {
+BOOST_FIXTURE_TEST_CASE(test_getElementName, FixtureOutput) {
     char* name;
     int length, index = 1;
 
@@ -114,7 +87,7 @@ BOOST_FIXTURE_TEST_CASE(test_getElementName, Fixture) {
     free((void *)name);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_getNodeAttribute, Fixture) {
+BOOST_FIXTURE_TEST_CASE(test_getNodeAttribute, FixtureOutput) {
 
     error = ENR_getNodeAttribute(p_handle, 1, ENR_quality, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
@@ -137,7 +110,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeAttribute, Fixture) {
     BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
-BOOST_FIXTURE_TEST_CASE(test_getLinkAttribute, Fixture) {
+BOOST_FIXTURE_TEST_CASE(test_getLinkAttribute, FixtureOutput) {
 
     error = ENR_getLinkAttribute(p_handle, 1, ENR_flow, &array ,&array_dim);
     BOOST_REQUIRE(error == 0);
@@ -162,7 +135,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkAttribute, Fixture) {
     BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
-BOOST_FIXTURE_TEST_CASE(test_getNodeResult, Fixture) {
+BOOST_FIXTURE_TEST_CASE(test_getNodeResult, FixtureOutput) {
 
     error = ENR_getNodeResult(p_handle, 1, 2, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
@@ -178,7 +151,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeResult, Fixture) {
     BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
-BOOST_FIXTURE_TEST_CASE(test_getLinkResult, Fixture) {
+BOOST_FIXTURE_TEST_CASE(test_getLinkResult, FixtureOutput) {
 
     error = ENR_getLinkResult(p_handle, 24, 13, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
@@ -198,7 +171,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkResult, Fixture) {
     BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
-BOOST_FIXTURE_TEST_CASE(test_getNodeSeries, Fixture){
+BOOST_FIXTURE_TEST_CASE(test_getNodeSeries, FixtureOutput){
 
     error = ENR_getNodeSeries(p_handle, 2, ENR_pressure, 0, 10, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
@@ -220,7 +193,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeSeries, Fixture){
     BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
-BOOST_FIXTURE_TEST_CASE(test_getLinkSeries, Fixture) {
+BOOST_FIXTURE_TEST_CASE(test_getLinkSeries, FixtureOutput) {
 
     error = ENR_getLinkSeries(p_handle, 2, ENR_flow, 0, 10, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
@@ -242,7 +215,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkSeries, Fixture) {
     BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
-BOOST_FIXTURE_TEST_CASE(test_getNetReacts, Fixture) {
+BOOST_FIXTURE_TEST_CASE(test_getNetReacts, FixtureOutput) {
 
     error = ENR_getNetReacts(p_handle, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
@@ -258,7 +231,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNetReacts, Fixture) {
     BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 2));
 }
 
-BOOST_FIXTURE_TEST_CASE(test_getEnergyUsage, Fixture) {
+BOOST_FIXTURE_TEST_CASE(test_getEnergyUsage, FixtureOutput) {
 
     int linkIdx;
 

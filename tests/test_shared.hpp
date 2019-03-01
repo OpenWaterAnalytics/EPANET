@@ -7,6 +7,7 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include "epanet2_2.h"
+#include "epanet_output.h"
 
 
 // Custom test to check the minimum number of correct decimal digits between
@@ -93,7 +94,6 @@ boost::test_tools::predicate_result check_string(std::string test, std::string r
 #define DATA_PATH_RPT "./test.rpt"
 #define DATA_PATH_OUT "./test.out"
 
-
 struct FixtureOpenClose{
     FixtureOpenClose() {
         path_inp = std::string(DATA_PATH_INP);
@@ -115,4 +115,31 @@ struct FixtureOpenClose{
 
   int error;
   EN_Project ph;
+};
+
+
+#define DATA_PATH_OUTPUT "./example1.out"
+
+struct FixtureOutput{
+    FixtureOutput() {
+        path = std::string(DATA_PATH_OUTPUT);
+
+        error = ENR_init(&p_handle);
+        ENR_clearError(p_handle);
+        error = ENR_open(p_handle, path.c_str());
+
+        array = NULL;
+        array_dim = 0;
+    }
+    ~FixtureOutput() {
+        free((void*)array);
+        error = ENR_close(&p_handle);
+    }
+
+    std::string path;
+    int error;
+    ENR_Handle p_handle;
+
+    float* array;
+    int array_dim;
 };
