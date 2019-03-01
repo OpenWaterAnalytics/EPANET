@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 02/24/2019
  ******************************************************************************
 */
 
@@ -540,6 +540,7 @@ int writeresults(Project *pr)
   //-----------------------------------------------------------
 
     // Return if no output file
+	outFile = fopen(pr->outfile.OutFname, "r+b");
     if (outFile == NULL) return 106;
 
     // Return if no nodes or links selected for reporting
@@ -595,6 +596,7 @@ int writeresults(Project *pr)
     // Free allocated memory
     for (j = 0; j < m; j++) free(x[j]);
     free(x);
+	if (outFile) fclose(outFile);
     return errcode;
 }
 
