@@ -1,7 +1,7 @@
 //
-// test_project.cpp
+// test_hydrqual.cpp
 //
-// Date Created: January 24, 2018
+// Date Created: February 28, 2019
 //
 // Author: Michael E. Tryby
 //         US EPA - ORD/NRMRL
@@ -27,7 +27,7 @@ using namespace std;
 using namespace boost;
 
 
-BOOST_AUTO_TEST_SUITE (test_hyd_qual)
+BOOST_AUTO_TEST_SUITE (test_hydrqual)
 
 BOOST_FIXTURE_TEST_CASE(test_solveH_solveQ, FixtureOpenClose)
 {
@@ -157,7 +157,7 @@ BOOST_FIXTURE_TEST_CASE(test_hydr_savefile, FixtureOpenClose)
     BOOST_CHECK(filesystem::exists(hyd_file) == true);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_hydr_usefile, FixtureOpenClose, * unit_test::depends_on("test_hyd_qual/test_hydr_savefile"))
+BOOST_FIXTURE_TEST_CASE(test_hydr_usefile, FixtureOpenClose, * unit_test::depends_on("test_hydrqual/test_hydr_savefile"))
 {
     string hyd_file("test_savefile.hyd");
 

@@ -36,7 +36,7 @@ boost::test_tools::predicate_result check_string(std::string test, std::string r
 }
 
 
-BOOST_AUTO_TEST_SUITE (test_project)
+BOOST_AUTO_TEST_SUITE (test_proj)
 
 BOOST_AUTO_TEST_CASE (test_proj_create_delete)
 {
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(test_proj_savefile)
     EN_deleteproject(&ph_save);
 }
 
-BOOST_AUTO_TEST_CASE(test_proj_reopen, * unit_test::depends_on("test_project/test_proj_savefile"))
+BOOST_AUTO_TEST_CASE(test_proj_reopen, * unit_test::depends_on("test_proj/test_proj_savefile"))
 {
     int error;
 
@@ -138,8 +138,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 
 
-BOOST_AUTO_TEST_SUITE(test_project_fixture)
-
+BOOST_AUTO_TEST_SUITE(test_proj_fixture)
 
 BOOST_FIXTURE_TEST_CASE(test_proj_title, FixtureOpenClose)
 {
@@ -214,6 +213,7 @@ BOOST_FIXTURE_TEST_CASE(test_setdemandpattern, FixtureOpenClose)
 		}
 	}
 }
+
 BOOST_FIXTURE_TEST_CASE(test_addpattern, FixtureOpenClose)
 {
     int pat_index, n_patterns_1, n_patterns_2;
