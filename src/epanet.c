@@ -1570,7 +1570,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
     
     // Cannot change quality choice if solver currently open under the no
     // quality option since required memory was not allocated
-//    if (qual->OpenQflag && qual->Qualflag == NONE) return 262;
+    if (qual->OpenQflag && qual->Qualflag == NONE) return 262;
 
     qual->Qualflag = (char)qualType;
     qual->Ctol *= Ucf[QUALITY];
