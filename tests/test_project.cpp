@@ -72,18 +72,17 @@ BOOST_AUTO_TEST_CASE (test_proj_open_close)
     EN_deleteproject(&ph);
 }
 
-// Note: This test causes a segfault when built using debug configuration
-BOOST_AUTO_TEST_CASE(test_save_reopen, * unit_test::disabled())
+BOOST_AUTO_TEST_CASE(test_proj_savefile)
 {
     int error;
 
     string path_inp(DATA_PATH_INP);
-	string inp_save("test_reopen.inp");
+    string inp_save("test_reopen.inp");
 	string path_rpt(DATA_PATH_RPT);
 	string path_out(DATA_PATH_OUT);
 
 	EN_Project ph_save;
-    EN_Project ph_reopen;
+
 
 	EN_createproject(&ph_save);
     error = EN_open(ph_save, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
@@ -92,12 +91,25 @@ BOOST_AUTO_TEST_CASE(test_save_reopen, * unit_test::disabled())
     error = EN_saveinpfile(ph_save, inp_save.c_str());
     BOOST_REQUIRE(error == 0);
 
+	BOOST_CHECK(filesystem::exists(inp_save) == true);
+
 	error = EN_close(ph_save);
 	BOOST_REQUIRE(error == 0);
     EN_deleteproject(&ph_save);
-    BOOST_TEST_CHECKPOINT("Saved input file");
+}
 
-	EN_createproject(&ph_reopen);
+BOOST_AUTO_TEST_CASE(test_proj_reopen, * unit_test::depends_on("test_project/test_proj_savefile"))
+{
+    int error;
+
+    string inp_save("test_reopen.inp");
+    string path_rpt(DATA_PATH_RPT);
+	string path_out(DATA_PATH_OUT);
+
+    EN_Project ph_reopen;
+
+
+    EN_createproject(&ph_reopen);
 	error = EN_open(ph_reopen, inp_save.c_str(), path_rpt.c_str(), path_out.c_str());
     BOOST_REQUIRE(error == 0);
 
@@ -129,19 +141,9 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE(test_project_fixture)
 
 
-BOOST_FIXTURE_TEST_CASE(test_proj_save, FixtureOpenClose)
-{
-	string inp_save("test_projsave.inp");
-
-	error = EN_saveinpfile(ph, inp_save.c_str());
-    BOOST_REQUIRE(error == 0);
-
-	BOOST_CHECK(filesystem::exists(inp_save) == true);
-
-}
-
 BOOST_FIXTURE_TEST_CASE(test_proj_title, FixtureOpenClose)
 {
+    // How is the API user supposed to know array size?
     char c_test[3][80], c_ref[3][80];
 
     strncpy(c_ref[0], " EPANET Example Network 1", 26);

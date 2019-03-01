@@ -83,7 +83,7 @@ BOOST_FIXTURE_TEST_CASE(test_qual_step, FixtureOpenClose)
         error = EN_runQ(ph, &t);
         BOOST_REQUIRE(error == 0);
 
-        error = EN_nextQ(ph, &tstep);
+        error = EN_stepQ(ph, &tstep);
         BOOST_REQUIRE(error == 0);
 
     } while (tstep > 0);
