@@ -12,68 +12,26 @@
 // NOTE: Can not dyn link boost using Visual Studio 10 2010
 //#define BOOST_TEST_DYN_LINK
 
-#define BOOST_TEST_MODULE "output"
-#include <boost/test/included/unit_test.hpp>
+
+
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string>
-#include <math.h>
+
+
+#define BOOST_TEST_MODULE "output"
+
+#include "test_shared.hpp"
 
 #include "epanet_output.h"
 
-#define DATA_PATH "./example1.out"
+#define DATA_PATH_OUTPUT "./example1.out"
 
-using namespace std;
-
-// Custom test to check the minimum number of correct decimal digits between
-// the test and the ref vectors.
-boost::test_tools::predicate_result check_cdd(std::vector<float>& test,
-    std::vector<float>& ref, long cdd_tol){
-    float tmp, min_cdd = 10.0;
-
-    // TODO: What if the vectors aren't the same length?
-
-    std::vector<float>::iterator test_it;
-    std::vector<float>::iterator ref_it;
-
-    for (test_it = test.begin(), ref_it = ref.begin();
-        (test_it < test.end()) && (ref_it < ref.end());
-        ++test_it, ++ref_it)
-    {
-        if (*test_it != *ref_it) {
-            // Compute log absolute error
-            tmp = abs(*test_it - *ref_it);
-            if (tmp < 1.0e-7f)
-                tmp = 1.0e-7f;
-
-            else if (tmp > 2.0f)
-                tmp = 1.0f;
-
-            tmp = -log10(tmp);
-            if (tmp < 0.0f)
-                tmp = 0.0f;
-
-            if (tmp < min_cdd)
-                min_cdd = tmp;
-        }
-    }
-
-    return floor(min_cdd) >= cdd_tol;
-}
-
-boost::test_tools::predicate_result check_string(std::string test, std::string ref)
-{
-    if (ref.compare(test) == 0)
-        return true;
-    else
-        return false;
-}
 
 BOOST_AUTO_TEST_SUITE (test_output_auto)
 
 BOOST_AUTO_TEST_CASE(OpenCloseTest) {
-    std::string path = std::string(DATA_PATH);
+    std::string path = std::string(DATA_PATH_OUTPUT);
 
 	ENR_Handle p_handle = NULL;
     ENR_init(&p_handle);
@@ -91,7 +49,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 struct Fixture{
     Fixture() {
-        path = std::string(DATA_PATH);
+        path = std::string(DATA_PATH_OUTPUT);
 
         error = ENR_init(&p_handle);
         ENR_clearError(p_handle);
@@ -176,7 +134,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeAttribute, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
+    BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getLinkAttribute, Fixture) {
@@ -201,7 +159,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkAttribute, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
+    BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNodeResult, Fixture) {
@@ -217,7 +175,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeResult, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
+    BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getLinkResult, Fixture) {
@@ -237,7 +195,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkResult, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
+    BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNodeSeries, Fixture){
@@ -259,7 +217,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeSeries, Fixture){
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
+    BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getLinkSeries, Fixture) {
@@ -281,7 +239,7 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkSeries, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
+    BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getNetReacts, Fixture) {
@@ -297,7 +255,7 @@ BOOST_FIXTURE_TEST_CASE(test_getNetReacts, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 2));
+    BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 2));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getEnergyUsage, Fixture) {
@@ -317,7 +275,7 @@ BOOST_FIXTURE_TEST_CASE(test_getEnergyUsage, Fixture) {
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
 
-    BOOST_CHECK(check_cdd(test_vec, ref_vec, 3));
+    BOOST_CHECK(check_cdd_float(test_vec, ref_vec, 3));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

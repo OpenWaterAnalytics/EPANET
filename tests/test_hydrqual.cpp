@@ -17,11 +17,11 @@
 #include <stdlib.h>
 #endif
 
-#define BOOST_TEST_MODULE hydqual
-#include <boost/test/included/unit_test.hpp>
-#include <boost/filesystem.hpp>
 
-#include "test_fixtures.hpp"
+#define BOOST_TEST_MODULE hydqual
+
+#include "test_shared.hpp"
+
 
 using namespace std;
 using namespace boost;

@@ -17,23 +17,14 @@
 #include <stdlib.h>
 #endif
 
-#define BOOST_TEST_MODULE "project"
-#include <boost/test/included/unit_test.hpp>
-#include <boost/filesystem.hpp>
 
-#include "test_fixtures.hpp"
+#define BOOST_TEST_MODULE "project"
+
+#include "test_shared.hpp"
+
 
 using namespace std;
 using namespace boost;
-
-
-boost::test_tools::predicate_result check_string(std::string test, std::string ref)
-{
-    if (ref.compare(test) == 0)
-        return true;
-    else
-        return false;
-}
 
 
 BOOST_AUTO_TEST_SUITE (test_proj)

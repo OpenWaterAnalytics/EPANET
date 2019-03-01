@@ -17,11 +17,11 @@
 #include <stdlib.h>
 #endif
 
-#define BOOST_TEST_MODULE hydqual
-#include <boost/test/included/unit_test.hpp>
-#include <boost/filesystem.hpp>
 
-#include "test_fixtures.hpp"
+#define BOOST_TEST_MODULE hydqual
+
+#include "test_shared.hpp"
+
 
 using namespace std;
 using namespace boost;
@@ -51,7 +51,8 @@ BOOST_FIXTURE_TEST_CASE(test_rprt_anlysstats, FixtureOpenClose)
     }
 
     test.assign(array, array + 5);
-    BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
+//    BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
+    BOOST_CHECK(check_cdd_double(test, ref, 3));
 
     error = EN_getstatistic(ph, 8, &array[0]);
     BOOST_CHECK(error == 251);
