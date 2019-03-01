@@ -413,7 +413,7 @@ int closequal(Project *pr)
         FREE(qual->FlowDir);
         FREE(qual->SortedNodes);
     }
-	if (pr->outfile.OutFile) fclose(pr->outfile.OutFile);
+//  if (pr->outfile.OutFile) fclose(pr->outfile.OutFile);
     return errcode;
 }
 

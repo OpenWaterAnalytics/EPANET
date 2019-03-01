@@ -540,7 +540,7 @@ int writeresults(Project *pr)
   //-----------------------------------------------------------
 
     // Return if no output file
-	outFile = fopen(pr->outfile.OutFname, "r+b");
+//  outFile = fopen(pr->outfile.OutFname, "r+b");
     if (outFile == NULL) return 106;
 
     // Return if no nodes or links selected for reporting
