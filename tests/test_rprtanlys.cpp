@@ -52,8 +52,36 @@ BOOST_FIXTURE_TEST_CASE(test_rprt_anlysstats, FixtureOpenClose)
 
     test.assign(array, array + 5);
     BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
+
+    error = EN_getstatistic(ph, 8, &array[0]);
+    BOOST_CHECK(error == 251);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_anlys_getoption, FixtureOpenClose)
+{
+    int i;
+    double array[13];
 
+    std::vector<double> test;
+	vector<double> ref = {40.0, 0.001, 0.01, 0.5, 1.0, 0.0, 0.0, 1.0, 0.0, 75.0, 0.0, 0.0, 0.0};
+
+    error = EN_solveH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_solveQ(ph);
+    BOOST_REQUIRE(error == 0);
+
+
+    for (i=EN_TRIALS; i<=EN_DEMANDCHARGE; i++) {
+        error = EN_getoption(ph, i, &array[i]);
+        BOOST_REQUIRE(error == 0);
+    }
+
+    test.assign(array, array + 13);
+    BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
+
+    error = EN_getoption(ph, 18, &array[0]);
+    BOOST_CHECK(error == 251);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

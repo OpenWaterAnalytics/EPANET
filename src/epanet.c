@@ -1042,7 +1042,7 @@ int DLLEXPORT EN_getstatistic(EN_Project p, int type, double *value)
         break;
     default:
         *value = 0.0;
-        break;
+        return 251;
     }
     return 0;
 }
