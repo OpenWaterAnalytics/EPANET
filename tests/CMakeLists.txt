@@ -28,7 +28,7 @@ if(MSVC)
 endif(MSVC)
 set(Boost_THREAD_FOUND              OFF)
 find_package(Boost COMPONENTS system thread filesystem)
-include_directories (${Boost_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tools/epanet-output/include)
+include_directories (${Boost_INCLUDE_DIRS})
 
 
 #I like to keep test files in a separate source directory called test

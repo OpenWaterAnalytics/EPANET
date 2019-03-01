@@ -13,16 +13,63 @@
 //#define BOOST_TEST_DYN_LINK
 
 
-
-
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
+#include <math.h>
 
-
+#include <boost/filesystem.hpp>
 #define BOOST_TEST_MODULE "output"
+#include <boost/test/included/unit_test.hpp>
 
-#include "test_shared.hpp"
+#include "epanet_output.h"
 
+
+boost::test_tools::predicate_result check_cdd_float(std::vector<float>& test,
+    std::vector<float>& ref, long cdd_tol){
+    float tmp, min_cdd = 10.0;
+
+    // TODO: What if the vectors aren't the same length?
+
+    std::vector<float>::iterator test_it;
+    std::vector<float>::iterator ref_it;
+
+    for (test_it = test.begin(), ref_it = ref.begin();
+        (test_it < test.end()) && (ref_it < ref.end());
+        ++test_it, ++ref_it)
+    {
+        if (*test_it != *ref_it) {
+            // Compute log absolute error
+            tmp = abs(*test_it - *ref_it);
+            if (tmp < 1.0e-7f)
+                tmp = 1.0e-7f;
+
+            else if (tmp > 2.0f)
+                tmp = 1.0f;
+
+            tmp = -log10(tmp);
+            if (tmp < 0.0f)
+                tmp = 0.0f;
+
+            if (tmp < min_cdd)
+                min_cdd = tmp;
+        }
+    }
+
+    return floor(min_cdd) >= cdd_tol;
+}
+
+
+boost::test_tools::predicate_result check_string(std::string test, std::string ref)
+{
+    if (ref.compare(test) == 0)
+        return true;
+    else
+        return false;
+}
+
+
+#define DATA_PATH_OUTPUT "./example1.out"
 
 BOOST_AUTO_TEST_SUITE (test_output_auto)
 
@@ -42,6 +89,30 @@ BOOST_AUTO_TEST_CASE(OpenCloseTest) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
+
+struct FixtureOutput{
+    FixtureOutput() {
+        path = std::string(DATA_PATH_OUTPUT);
+
+        error = ENR_init(&p_handle);
+        ENR_clearError(p_handle);
+        error = ENR_open(p_handle, path.c_str());
+
+        array = NULL;
+        array_dim = 0;
+    }
+    ~FixtureOutput() {
+        free((void*)array);
+        error = ENR_close(&p_handle);
+    }
+
+    std::string path;
+    int error;
+    ENR_Handle p_handle;
+
+    float* array;
+    int array_dim;
+};
 
 
 BOOST_AUTO_TEST_SUITE(test_output_fixture)
