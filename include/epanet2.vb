@@ -4,7 +4,7 @@
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL) for use with VB.Net.
 
-'Last updated on 02/08/2019
+'Last updated on 02/28/2019
 
 Imports System.Runtime.InteropServices
 Imports System.Text
@@ -289,8 +289,8 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENsetnodevalue Lib "epanet2.dll" (ByVal index As Int32, ByVal property As Int32, ByVal value As Single) As Int32
  Declare Function ENsetjuncdata Lib "epanet2.dll" (ByVal index As Int32, ByVal elev As Single, ByVal dmnd As Single, ByVal dmndpat As String) As Int32
  Declare Function ENsettankdata Lib "epanet2.dll" (ByVal index As Int32, ByVal elev As Single, ByVal initlvl As Single, ByVal minlvl As Single, ByVal maxlvl As Single, ByVal diam As Single, ByVal minvol As Single, ByVal volcurve As String) As Int32
- Declare Function ENgetcoord Lib "epanet2.dll" (ByVal index As Int32, x As Single, y As Single) As Int32
- Declare Function ENsetcoord Lib "epanet2.dll" (ByVal index As Int32, ByVal x As Single, ByVal y As Single) As Int32
+ Declare Function ENgetcoord Lib "epanet2.dll" (ByVal index As Int32, x As Double, y As Double) As Int32
+ Declare Function ENsetcoord Lib "epanet2.dll" (ByVal index As Int32, ByVal x As Double, ByVal y As Double) As Int32
  
 'Nodal Demand Functions
  Declare Function ENgetdemandmodel Lib "epanet2.dll" (type_ As Int32, pmin As Single, preq As Single, pexp As Single) As Int32

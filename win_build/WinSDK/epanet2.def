@@ -11,6 +11,7 @@ EXPORTS
     ENclose                       = _ENclose@0                          
     ENcloseH                      = _ENcloseH@0                         
     ENcloseQ                      = _ENcloseQ@0
+    ENcopyreport                  = _ENcopyreport@4
     ENdeletecontrol               = _ENdeletecontrol@4
     ENdeletelink                  = _ENdeletelink@8
     ENdeletenode                  = _ENdeletenode@8
@@ -78,7 +79,7 @@ EXPORTS
     ENsaveinpfile                 = _ENsaveinpfile@4                    
     ENsetbasedemand               = _ENsetbasedemand@12
     ENsetcontrol                  = _ENsetcontrol@24                    
-    ENsetcoord                    = _ENsetcoord@12
+    ENsetcoord                    = _ENsetcoord@20
     ENsetcurve                    = _ENsetcurve@16                    
     ENsetcurvevalue               = _ENsetcurvevalue@16               
     ENsetdemandmodel              = _ENsetdemandmodel@16

@@ -713,6 +713,9 @@ typedef struct Project *EN_Project;
   @param traceNode the ID name of the node being traced if `qualType = EN_TRACE`.
   @return an error code.
 
+  The type of water quality analysis cannot be changed from EN_NONE while the
+  quality solver is still open. 
+  
   Chemical name and units can be an empty string if the analysis is not for a chemical.
   The same holds for the trace node if the analysis is not for source tracing.
 

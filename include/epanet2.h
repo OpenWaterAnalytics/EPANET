@@ -210,9 +210,9 @@ extern "C" {
                  EN_API_FLOAT_TYPE maxlvl, EN_API_FLOAT_TYPE diam,
                  EN_API_FLOAT_TYPE minvol, char *volcurve);
 
-  int  DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
+  int  DLLEXPORT ENgetcoord(int index, double *x, double *y);
 
-  int  DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
+  int  DLLEXPORT ENsetcoord(int index, double x, double y);
 
 /********************************************************************
 
@@ -403,9 +403,8 @@ extern "C" {
 
   int DLLEXPORT ENsetelseaction(int ruleIndex, int actionIndex, int linkIndex,
                 int status, EN_API_FLOAT_TYPE setting);
-
+  
   int DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
-
 
   #if defined(__cplusplus)
   }
