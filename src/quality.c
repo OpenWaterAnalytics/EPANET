@@ -404,7 +404,7 @@ int closequal(Project *pr)
     Quality *qual = &pr->quality;
     int errcode = 0;
 
-	if (qual->Qualflag != NONE)
+    if (qual->Qualflag != NONE)
     {
         if (qual->SegPool) mempool_delete(qual->SegPool);
         FREE(qual->FirstSeg);
@@ -413,7 +413,7 @@ int closequal(Project *pr)
         FREE(qual->FlowDir);
         FREE(qual->SortedNodes);
     }
-//  if (pr->outfile.OutFile) fclose(pr->outfile.OutFile);
+    if (pr->outfile.OutFile) fclose(pr->outfile.OutFile);
     return errcode;
 }
 

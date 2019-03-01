@@ -539,19 +539,32 @@ int writeresults(Project *pr)
   //         at each reporting time.
   //-----------------------------------------------------------
 
-    // Return if no output file
-//  outFile = fopen(pr->outfile.OutFname, "r+b");
-    if (outFile == NULL) return 106;
-
     // Return if no nodes or links selected for reporting
     // or if no node or link report variables enabled
     if (!rpt->Nodeflag && !rpt->Linkflag)  return errcode;
-
     nnv = 0;
     for (j = ELEV; j <= QUALITY; j++) nnv += rpt->Field[j].Enabled;
     nlv = 0;
     for (j = LENGTH; j <= FRICTION; j++) nlv += rpt->Field[j].Enabled;
     if (nnv == 0 && nlv == 0) return errcode;
+    
+    // Open output file for reading
+    if (outFile == NULL)
+    {
+        if (out->Outflag == SAVE)
+        {
+            outFile = fopen(out->OutFname, "r+b");
+        }
+        else
+        {
+           strcpy(out->OutFname, pr->TmpOutFname);
+            outFile = fopen(out->OutFname, "r+b");
+        }
+    }
+    
+    // Return if no output file
+    if (outFile == NULL) return 106;
+
 
     // Allocate memory for output variables:
     // m = larger of # node variables & # link variables
@@ -560,7 +573,11 @@ int writeresults(Project *pr)
     n = MAX((net->Nnodes + 1), (net->Nlinks + 1));
     x = (Pfloat *)calloc(m, sizeof(Pfloat));
     ERRCODE(MEMCHECK(x));
-    if (errcode) return errcode;
+    if (errcode)
+    {
+        if (outFile) fclose(outFile);
+        return errcode;
+    }
     for (j = 0; j < m; j++)
     {
         x[j] = (REAL4 *)calloc(n, sizeof(REAL4));
@@ -596,7 +613,7 @@ int writeresults(Project *pr)
     // Free allocated memory
     for (j = 0; j < m; j++) free(x[j]);
     free(x);
-	if (outFile) fclose(outFile);
+    if (outFile) fclose(outFile);
     return errcode;
 }
 
