@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/28/2019
+ Last Updated: 03/02/2019
  ******************************************************************************
 */
 
@@ -218,7 +218,7 @@ int DLLEXPORT EN_open(EN_Project p, const char *inpFile, const char *rptFile,
 
   // Read input data
   ERRCODE(getdata(p));
-//  fclose(p->parser.InFile);
+  fclose(p->parser.InFile);
 
   // Free temporary linked lists used for Patterns & Curves
   freeTmplist(p->parser.Patlist);
@@ -820,8 +820,11 @@ int DLLEXPORT EN_closeQ(EN_Project p)
     if (!p->Openflag) return 102;
     closequal(p);
     p->quality.OpenQflag = FALSE;
-	if (p->outfile.OutFile) fclose(p->outfile.OutFile);
-	p->outfile.OutFile = NULL;
+	if (p->outfile.OutFile != NULL)
+	{
+		fclose(p->outfile.OutFile);
+		p->outfile.OutFile = NULL;
+	}
 	return 0;
 }
 

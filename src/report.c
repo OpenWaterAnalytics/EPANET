@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/24/2019
+ Last Updated: 03/02/2019
  ******************************************************************************
 */
 
@@ -98,12 +98,7 @@ int copyreport(Project* pr, char *filename)
     // Copy contents of project's report file
     if (rpt->RptFile)
     {
-        c = fgetc(rpt->RptFile);
-        while (c != EOF)
-        {
-            fputc(c, tfile);
-            c = fgetc(rpt->RptFile);
-        }
+		while ((c = fgetc(rpt->RptFile)) != EOF) fputc(c, tfile);
         fclose(rpt->RptFile);
     }
     
@@ -561,7 +556,7 @@ int writeresults(Project *pr)
     ERRCODE(MEMCHECK(x));
     if (errcode)
     {
-        if (outFile) fclose(outFile);
+        if (outFile != NULL) fclose(outFile);
 		outFile = NULL;
         return errcode;
     }
