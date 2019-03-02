@@ -820,7 +820,9 @@ int DLLEXPORT EN_closeQ(EN_Project p)
     if (!p->Openflag) return 102;
     closequal(p);
     p->quality.OpenQflag = FALSE;
-    return 0;
+	if (p->outfile.OutFile) fclose(p->outfile.OutFile);
+	p->outfile.OutFile = NULL;
+	return 0;
 }
 
 /********************************************************************

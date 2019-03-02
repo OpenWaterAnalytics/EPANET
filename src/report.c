@@ -549,22 +549,8 @@ int writeresults(Project *pr)
     if (nnv == 0 && nlv == 0) return errcode;
     
     // Open output file for reading
-    if (outFile == NULL)
-    {
-        if (out->Outflag == SAVE)
-        {
-            outFile = fopen(out->OutFname, "r+b");
-        }
-        else
-        {
-           strcpy(out->OutFname, pr->TmpOutFname);
-            outFile = fopen(out->OutFname, "r+b");
-        }
-    }
-    
-    // Return if no output file
+    if (outFile == NULL) outFile = fopen(out->OutFname, "rb");
     if (outFile == NULL) return 106;
-
 
     // Allocate memory for output variables:
     // m = larger of # node variables & # link variables
@@ -576,6 +562,7 @@ int writeresults(Project *pr)
     if (errcode)
     {
         if (outFile) fclose(outFile);
+		outFile = NULL;
         return errcode;
     }
     for (j = 0; j < m; j++)
@@ -614,6 +601,7 @@ int writeresults(Project *pr)
     for (j = 0; j < m; j++) free(x[j]);
     free(x);
     if (outFile) fclose(outFile);
+	outFile = NULL;
     return errcode;
 }
 
