@@ -340,16 +340,12 @@ int  DLLEXPORT ENsettankdata(int index, EN_API_FLOAT_TYPE elev,
                           diam, minvol, volcurve);
 }
 
-int DLLEXPORT ENgetcoord(int index, EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y)
+int DLLEXPORT ENgetcoord(int index, double *x, double *y)
 {
-    double xx = 0.0, yy = 0.0;
-    int errcode = EN_getcoord(_defaultProject, index, &xx, &yy);
-    *x = (EN_API_FLOAT_TYPE)xx;
-    *y = (EN_API_FLOAT_TYPE)yy;
-    return errcode; 
+    return EN_getcoord(_defaultProject, index, x, y);
 }
 
-int DLLEXPORT ENsetcoord(int index, EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y)
+int DLLEXPORT ENsetcoord(int index, double x, double y)
 {
     return EN_setcoord(_defaultProject, index, x, y);
 }
