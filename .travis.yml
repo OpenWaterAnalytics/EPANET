@@ -14,13 +14,15 @@ matrix:
             - boost1.67
       env:
          - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+         - PLATFORM="linux"
+         - REF_BUILD_ID="220dev1"
 
 python:
     - "3.6"
 
 env:
   global:
-    - SUT_BUILD_ID=$TRAVIS_JOB_NUMBER  
+    - SUT_BUILD_ID=$TRAVIS_JOB_NUMBER
     - EPANET_HOME=`pwd`
     - BUILD_HOME=buildprod
     - TEST_HOME=nrtestsuite
@@ -49,7 +51,7 @@ script:
   # run regression tests
   - cd $EPANET_HOME
   - pip install -r tools/requirements.txt
-  - tools/before-test.sh $REF_BUILD_ID $SUT_BUILD_ID $TRAVIS_COMMIT
+  - tools/before-test.sh $PLATFORM $REF_BUILD_ID $SUT_BUILD_ID $TRAVIS_COMMIT
   - tools/run-nrtest.sh -c -s $SUT_BUILD_ID
 
 after_success:
