@@ -77,15 +77,14 @@ cd ${TEST_HOME}
 
 
 # retrieve epanet-examples for regression testing
-curl -fsSL -o examples.tar.gz ${TEST_URL}
-if ["$?" != "0"]; THEN
-    echo "ERROR: curl failed ${TEST_URL}"
+if ! curl -fsSL -o examples.tar.gz ${TEST_URL}; then
+    echo "ERROR: curl - ${TEST_URL}"
+fi
 
 # retrieve epanet benchmark results
-curl -fsSL -o benchmark.tar.gz ${BENCH_URL}
-if ["$?" != "0"]; THEN
-    echo "ERROR: curl failed ${BENCH_URL}"
-
+if ! curl -fsSL -o benchmark.tar.gz ${BENCH_URL}; then
+    echo "ERROR: curl - ${BENCH_URL}"
+fi
 
 # extract tests, benchmarks, and manifest
 tar xzf examples.tar.gz
