@@ -60,7 +60,12 @@ SUT_PATH=(`find $BUILD_HOME -name "bin" -type d`)
 # TODO: determine platform
 
 # determine latest tag from GitHub API
-LATEST_TAG=(`curl --silent "https://api.github.com/repos/openwateranalytics/epanet-example-networks/releases/latest" | jq -r .tag_name`)
+LATEST_URL="https://api.github.com/repos/openwateranalytics/epanet-example-networks/releases/latest"
+LATEST_TAG=(`curl --silent ${LATEST_URL} | jq -r .tag_name`)
+if [ -z $LATEST_TAG ]; then
+    echo "ERROR: curl - ${LATEST_URL}"
+    exit 1
+fi
 
 TEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/${LATEST_TAG}.tar.gz"
 BENCH_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/${LATEST_TAG}/benchmark-${PLATFORM}-${REF_BUILD_ID}.tar.gz"
