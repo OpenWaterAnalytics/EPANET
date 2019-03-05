@@ -63,7 +63,7 @@ SUT_PATH=(`find $BUILD_HOME -name "bin" -type d`)
 LATEST_URL="https://api.github.com/repos/openwateranalytics/epanet-example-networks/releases/latest"
 LATEST_TAG=(`curl --silent ${LATEST_URL} | jq -r .tag_name`)
 if [ -z $LATEST_TAG ]; then
-    echo "ERROR: curl - ${LATEST_URL}"
+    echo "ERROR: curl | jq - ${LATEST_URL}"
     exit 1
 fi
 
