@@ -60,7 +60,7 @@ SUT_PATH=(`find $BUILD_HOME -name "bin" -type d`)
 # TODO: determine platform
 
 # determine latest tag from GitHub API
-LATEST_TAG=$(curl --silent "https://api.github.com/repos/openwateranalytics/epanet-example-networks/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
+LATEST_TAG=(`curl --silent "https://api.github.com/repos/openwateranalytics/epanet-example-networks/releases/latest" | jq -r .tag_name`)
 
 TEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/${LATEST_TAG}.tar.gz"
 BENCH_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/${LATEST_TAG}/benchmark-${PLATFORM}-${REF_BUILD_ID}.tar.gz"
@@ -75,11 +75,16 @@ fi
 mkdir ${TEST_HOME}
 cd ${TEST_HOME}
 
+
 # retrieve epanet-examples for regression testing
 curl -fsSL -o examples.tar.gz ${TEST_URL}
+if ["$?" != "0"]; THEN
+    echo "ERROR: curl failed ${TEST_URL}"
 
 # retrieve epanet benchmark results
 curl -fsSL -o benchmark.tar.gz ${BENCH_URL}
+if ["$?" != "0"]; THEN
+    echo "ERROR: curl failed ${BENCH_URL}"
 
 
 # extract tests, benchmarks, and manifest
