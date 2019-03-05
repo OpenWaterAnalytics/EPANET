@@ -48,8 +48,8 @@ script:
   # run regression tests
   - cd $EPANET_HOME
   - pip install -r tools/requirements.txt
-  - tools/before-test.sh $TEST_HOME $EPANET_HOME/$BUILD_HOME/bin $TRAVIS_COMMIT
-  - tools/run-nrtest.sh -c -t $TEST_HOME -v $TRAVIS_COMMIT
+  - tools/before-test.sh $REF_BUILD_ID $SUT_BUILD_ID $TRAVIS_COMMIT
+  - tools/run-nrtest.sh -c -r $REF_BUILD_ID -s $SUT_BUILD_ID
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
