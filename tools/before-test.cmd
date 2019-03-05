@@ -83,7 +83,7 @@ curl -fsSL -o benchmark.zip %BENCHFILES_URL%
 :: extract tests, benchmarks, and manifest
 7z x examples.zip *\epanet-tests\* > nul
 7z x benchmark.zip -obenchmark\ > nul
-7z e benchmark.zip -o. manifest.json -r
+7z e benchmark.zip -o. manifest.json -r > nul
 
 
 :: set up symlink for tests directory
