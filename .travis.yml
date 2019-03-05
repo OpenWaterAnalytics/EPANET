@@ -20,6 +20,7 @@ python:
 
 env:
   global:
+    - SUT_BUILD_ID=$TRAVIS_JOB_NUMBER  
     - EPANET_HOME=`pwd`
     - BUILD_HOME=buildprod
     - TEST_HOME=nrtestsuite
