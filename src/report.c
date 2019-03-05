@@ -545,7 +545,7 @@ int writeresults(Project *pr)
     if (nnv == 0 && nlv == 0) return errcode;
 
     // Return if no output file
-//    if (outFile == NULL) outFile = fopen(pr->outfile.OutFname, "r+b");
+    if (outFile == NULL) outFile = fopen(pr->outfile.OutFname, "rb");
     if (outFile == NULL) return 106;
 
     // Allocate memory for output variables:
@@ -587,14 +587,14 @@ int writeresults(Project *pr)
             time->Htime += time->Rstep;
         }
     }
-/*
+
     // Free output file
     if (outFile != NULL)
     {
         fclose(outFile);
         outFile = NULL;
     }
-*/
+
     // Free allocated memory
     for (j = 0; j < m; j++) free(x[j]);
     free(x);

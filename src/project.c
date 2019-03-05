@@ -49,7 +49,11 @@ int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
     strncpy(pr->report.Rpt1Fname, f2, MAXFNAME);
     strncpy(pr->outfile.OutFname, f3, MAXFNAME);
     if (strlen(f3) > 0) pr->outfile.Outflag = SAVE;
-    else                pr->outfile.Outflag = SCRATCH;
+    else
+    {
+        pr->outfile.Outflag = SCRATCH;
+        strcpy(pr->outfile.OutFname, pr->TmpOutFname);
+    }
 
     // Check that file names are not identical
     if (strlen(f1) > 0 && (strcomp(f1, f2) || strcomp(f1, f3))) return 301;
@@ -181,6 +185,7 @@ int openoutfile(Project *pr)
 
     // If output file name was supplied, then attempt to
     // open it. Otherwise open a temporary output file.
+/*    
     if (pr->outfile.Outflag == SAVE)
     {
         pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
@@ -192,6 +197,9 @@ int openoutfile(Project *pr)
         pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
         if (pr->outfile.OutFile == NULL) errcode = 304;
     }
+*/
+    pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
+    if (pr->outfile.OutFile == NULL) errcode = 304;
 
     // Save basic network data & energy usage results
     ERRCODE(savenetdata(pr));
