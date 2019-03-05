@@ -11,9 +11,12 @@ EXPORTS
     ENclose                       = _ENclose@0                          
     ENcloseH                      = _ENcloseH@0                         
     ENcloseQ                      = _ENcloseQ@0
+    ENcopyreport                  = _ENcopyreport@4
     ENdeletecontrol               = _ENdeletecontrol@4
+    ENdeletecurve                 = _ENdeletecurve@4
     ENdeletelink                  = _ENdeletelink@8
     ENdeletenode                  = _ENdeletenode@8
+    ENdeletepattern               = _ENdeletepattern@4
     ENdeleterule                  = _ENdeleterule@4
     ENepanet                      = _ENepanet@16
     ENgetaveragepatternvalue      = _ENgetaveragepatternvalue@8
@@ -58,7 +61,7 @@ EXPORTS
     ENgetruleID                   = _ENgetruleID@8
     ENgetstatistic                = _ENgetstatistic@8
     ENgetthenaction               = _ENgetthenaction@20
-    ENgettimeparam                = _ENgettimeparam@8                   
+    ENgettimeparam                = _ENgettimeparam@8
     ENgettitle                    = _ENgettitle@12    
     ENgetversion                  = _ENgetversion@4
     ENinit                        = _ENinit@16
@@ -78,8 +81,9 @@ EXPORTS
     ENsaveinpfile                 = _ENsaveinpfile@4                    
     ENsetbasedemand               = _ENsetbasedemand@12
     ENsetcontrol                  = _ENsetcontrol@24                    
-    ENsetcoord                    = _ENsetcoord@12
-    ENsetcurve                    = _ENsetcurve@16                    
+    ENsetcoord                    = _ENsetcoord@20
+    ENsetcurve                    = _ENsetcurve@16
+    ENsetcurveid                  = _ENsetcurveid@8    
     ENsetcurvevalue               = _ENsetcurvevalue@16               
     ENsetdemandmodel              = _ENsetdemandmodel@16
     ENsetdemandname               = _ENsetdemandname@12
@@ -95,7 +99,8 @@ EXPORTS
     ENsetnodeid                   = _ENsetnodeid@8                  
     ENsetnodevalue                = _ENsetnodevalue@12                  
     ENsetoption                   = _ENsetoption@8                      
-    ENsetpattern                  = _ENsetpattern@12                    
+    ENsetpattern                  = _ENsetpattern@12
+    ENsetpatternid                = _ENsetpatternid@8    
     ENsetpatternvalue             = _ENsetpatternvalue@12
     ENsetpipedata                 = _ENsetpipedata@20
     ENsetpremise                  = _ENsetpremise@36
@@ -108,12 +113,10 @@ EXPORTS
     ENsetstatusreport             = _ENsetstatusreport@4
     ENsettankdata                 = _ENsettankdata@32
     ENsetthenaction               = _ENsetthenaction@20
-    ENsettimeparam                = _ENsettimeparam@8                   
+    ENsettimeparam                = _ENsettimeparam@8
     ENsettitle                    = _ENsettitle@12    
     ENsolveH                      = _ENsolveH@0                         
     ENsolveQ                      = _ENsolveQ@0                         
     ENstepQ                       = _ENstepQ@4
     ENusehydfile                  = _ENusehydfile@4
     ENwriteline                   = _ENwriteline@4
-    ENgettitle                    = _ENgettitle@12
-    ENsettitle                    = _ENsettitle@12
