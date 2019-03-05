@@ -82,12 +82,13 @@ curl -fsSL -o examples.tar.gz ${TEST_URL}
 curl -fsSL -o benchmark.tar.gz ${BENCH_URL}
 
 
-# extract tests and benchmarks
+# extract tests, benchmarks, and manifest
 tar xzf examples.tar.gz
 ln -s epanet-example-networks-${LATEST_TAG:1}/epanet-tests tests
 
 mkdir benchmark
 tar xzf benchmark.tar.gz -C benchmark
+tar xzf benchmark.tar.gz --wildcards --no-anchored --strip-components=1 '*/manifest.json' -C .
 
 
 # generate json configuration file for software under test

@@ -69,10 +69,9 @@ print_usage() {
 
 # Default option values
 compare='true'
-ref_build_id=''
+ref_build_id=
 sut_build_id='local'
 test_path='nrtestsuite'
-version='vXXX'
 
 while getopts "cr:s:t:" flag; do
   case "${flag}" in
@@ -87,9 +86,10 @@ done
 shift $(($OPTIND - 1))
 
 
+# determine ref_build_id from manifest file
 if [ -z $ref_build_id ]; then
-  echo "ERROR: REF_BUILD_ID must be defined"
-  exit 1;
+  description=(`cat ${test_path}/manifest.json | jq '.Application.description | splits(" ")'`)
+  ref_build_id=${description[1]//\"/}
 fi
 
 # Invoke command
