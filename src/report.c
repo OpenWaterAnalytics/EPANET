@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 03/05/2019
  ******************************************************************************
 */
 
@@ -98,12 +98,7 @@ int copyreport(Project* pr, char *filename)
     // Copy contents of project's report file
     if (rpt->RptFile)
     {
-        c = fgetc(rpt->RptFile);
-        while (c != EOF)
-        {
-            fputc(c, tfile);
-            c = fgetc(rpt->RptFile);
-        }
+        while ((c = fgetc(rpt->RptFile)) != EOF) fputc(c, tfile);
         fclose(rpt->RptFile);
     }
     
@@ -539,9 +534,6 @@ int writeresults(Project *pr)
   //         at each reporting time.
   //-----------------------------------------------------------
 
-    // Return if no output file
-    if (outFile == NULL) return 106;
-
     // Return if no nodes or links selected for reporting
     // or if no node or link report variables enabled
     if (!rpt->Nodeflag && !rpt->Linkflag)  return errcode;
@@ -551,6 +543,13 @@ int writeresults(Project *pr)
     nlv = 0;
     for (j = LENGTH; j <= FRICTION; j++) nlv += rpt->Field[j].Enabled;
     if (nnv == 0 && nlv == 0) return errcode;
+
+    // Return if no output file
+	if (outFile == NULL)
+	{
+        outFile = fopen(pr->outfile.OutFname, "r+b");
+		if (outFile == NULL) return 106;
+	}
 
     // Allocate memory for output variables:
     // m = larger of # node variables & # link variables
@@ -590,6 +589,13 @@ int writeresults(Project *pr)
             if (nlv > 0 && rpt->Linkflag > 0) writelinktable(pr, x);
             time->Htime += time->Rstep;
         }
+    }
+
+    // Free output file
+    if (outFile != NULL)
+    {
+        fclose(outFile);
+        outFile = NULL;
     }
 
     // Free allocated memory

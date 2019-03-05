@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/01/2019
+ Last Updated: 03/05/2019
  ******************************************************************************
 */
 
@@ -95,6 +95,7 @@ int openhydfile(Project *pr)
     {
         if (pr->outfile.Hydflag == SCRATCH) return 0;
         fclose(pr->outfile.HydFile);
+        pr->outfile.HydFile = NULL;
     }
 
     // Use Hydflag to determine the type of hydraulics file to use.

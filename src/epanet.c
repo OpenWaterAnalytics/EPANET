@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/08/2019
+ Last Updated: 03/05/2019
  ******************************************************************************
 */
 
@@ -819,6 +819,11 @@ int DLLEXPORT EN_closeQ(EN_Project p)
     if (!p->Openflag) return 102;
     closequal(p);
     p->quality.OpenQflag = FALSE;
+    if (p->outfile.OutFile != NULL)
+    {
+        fclose(p->outfile.OutFile);
+        p->outfile.OutFile = NULL;
+    }
     return 0;
 }
 
