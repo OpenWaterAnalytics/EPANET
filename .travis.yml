@@ -49,7 +49,7 @@ script:
   - cd $EPANET_HOME
   - pip install -r tools/requirements.txt
   - tools/before-test.sh $REF_BUILD_ID $SUT_BUILD_ID $TRAVIS_COMMIT
-  - tools/run-nrtest.sh -c -r $REF_BUILD_ID -s $SUT_BUILD_ID
+  - tools/run-nrtest.sh -c -s $SUT_BUILD_ID
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
