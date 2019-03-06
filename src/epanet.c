@@ -332,24 +332,12 @@ int DLLEXPORT EN_close(EN_Project p)
  **----------------------------------------------------------------
  */
 {
-    Outfile *out;
-
     // Free all project data
     if (p->Openflag) writetime(p, FMT105);
     freedata(p);
 
     // Close output file
-    out = &p->outfile;
-    if (out->TmpOutFile != out->OutFile)
-    {
-        if (out->TmpOutFile != NULL) fclose(out->TmpOutFile);
-        out->TmpOutFile = NULL;
-    }
-    if (out->OutFile != NULL)
-    {
-        fclose(out->OutFile);
-        out->OutFile = NULL;
-    }
+    closeoutfile(p);
 
     // Close input file
     if (p->parser.InFile != NULL)
@@ -366,10 +354,10 @@ int DLLEXPORT EN_close(EN_Project p)
     }
 
     // Close hydraulics file
-    if (out->HydFile != NULL)
+    if (p->outfile.HydFile != NULL)
     {
-        fclose(out->HydFile);
-        out->HydFile = NULL;
+        fclose(p->outfile.HydFile);
+        p->outfile.HydFile = NULL;
     }
 
     // Reset system flags

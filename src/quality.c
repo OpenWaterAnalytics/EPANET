@@ -27,14 +27,7 @@ Last Updated: 11/27/2018
 // Stagnant flow tolerance
 const double Q_STAGNANT = 0.005 / GPMperCFS;     // 0.005 gpm = 1.114e-5 cfs
 
-// Exported functions (declared in FUNCS.H)
-//int     openqual(Project *);
-//void    initqual(Project *);
-//int     runqual(Project *, long *);
-//int     nextqual(Project *, long *);
-//int     stepqual(Project *, long *);
-//int     closequal(Project *);
-//double  avgqual(Project *, int);
+// Exported functions
 double  findsourcequal(Project *, int, double, long);
 
 // Imported functions
