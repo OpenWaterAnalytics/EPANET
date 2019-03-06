@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/01/2019
+ Last Updated: 03/05/2019
  ******************************************************************************
 */
 
@@ -43,13 +43,18 @@ int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
     pr->report.RptFile = NULL;
     pr->outfile.OutFile = NULL;
     pr->outfile.HydFile = NULL;
+    pr->outfile.TmpOutFile = NULL;
 
     // Save file names
     strncpy(pr->parser.InpFname, f1, MAXFNAME);
     strncpy(pr->report.Rpt1Fname, f2, MAXFNAME);
     strncpy(pr->outfile.OutFname, f3, MAXFNAME);
     if (strlen(f3) > 0) pr->outfile.Outflag = SAVE;
-    else                pr->outfile.Outflag = SCRATCH;
+    else
+    {
+        pr->outfile.Outflag = SCRATCH;
+        strcpy(pr->outfile.OutFname, pr->TmpOutFname);
+    }
 
     // Check that file names are not identical
     if (strlen(f1) > 0 && (strcomp(f1, f2) || strcomp(f1, f3))) return 301;
@@ -95,6 +100,7 @@ int openhydfile(Project *pr)
     {
         if (pr->outfile.Hydflag == SCRATCH) return 0;
         fclose(pr->outfile.HydFile);
+        pr->outfile.HydFile = NULL;
     }
 
     // Use Hydflag to determine the type of hydraulics file to use.
@@ -167,30 +173,12 @@ int openoutfile(Project *pr)
     int errcode = 0;
 
     // Close output file if already opened
-    if (pr->outfile.OutFile != NULL)
-    {
-        fclose(pr->outfile.OutFile);
-        pr->outfile.OutFile = NULL;
-    }
-    if (pr->outfile.TmpOutFile != NULL)
-    {
-        fclose(pr->outfile.TmpOutFile);
-        pr->outfile.TmpOutFile = NULL;
-    }
-
+    closeoutfile(pr);
+    
     // If output file name was supplied, then attempt to
     // open it. Otherwise open a temporary output file.
-    if (pr->outfile.Outflag == SAVE)
-    {
-        pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
-        if (pr->outfile.OutFile == NULL) errcode = 304;
-    }
-    else
-    {
-        strcpy(pr->outfile.OutFname, pr->TmpOutFname);
-        pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
-        if (pr->outfile.OutFile == NULL) errcode = 304;
-    }
+    pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
+    if (pr->outfile.OutFile == NULL) errcode = 304;
 
     // Save basic network data & energy usage results
     ERRCODE(savenetdata(pr));
@@ -209,6 +197,33 @@ int openoutfile(Project *pr)
         else pr->outfile.TmpOutFile = pr->outfile.OutFile;
     }
     return errcode;
+}
+
+void closeoutfile(Project *pr)
+/*----------------------------------------------------------------
+**  Input:   none
+**  Output:  none
+**  Purpose: closes binary output file.
+**----------------------------------------------------------------
+*/
+{
+    if (pr->outfile.TmpOutFile != pr->outfile.OutFile)
+    {
+        if (pr->outfile.TmpOutFile != NULL)
+        {
+            fclose(pr->outfile.TmpOutFile);
+            pr->outfile.TmpOutFile = NULL;
+        }
+    }
+    if (pr->outfile.OutFile != NULL)
+    {
+        if (pr->outfile.OutFile == pr->outfile.TmpOutFile)
+        {
+            pr->outfile.TmpOutFile = NULL;
+        }
+        fclose(pr->outfile.OutFile);
+        pr->outfile.OutFile = NULL;
+    }
 }
 
 void initpointers(Project *pr)
@@ -269,7 +284,7 @@ void initpointers(Project *pr)
     pr->hydraul.smatrix.XLNZ = NULL;
     pr->hydraul.smatrix.NZSUB = NULL;
     pr->hydraul.smatrix.LNZ = NULL;
-
+    
     initrules(pr);
 }
 
