@@ -225,6 +225,7 @@ nrtestsuite/
 tests/data/
 
 #Cmake stuff
+__cmake_systeminformation/
 buildprod*/
 *_export.h
 

@@ -1,5 +1,5 @@
 //
-// test_epanet_toolkit.cpp
+// test_project.cpp
 //
 // Date Created: January 24, 2018
 //
@@ -9,31 +9,27 @@
 
 //#define BOOST_TEST_DYN_LINK
 
-#ifdef _WIN32
-#define _CRTDBG_MAP_ALLOC
+//#ifdef _WIN32
+//#define _CRTDBG_MAP_ALLOC
+//#include <stdlib.h>
+//#include <crtdbg.h>
+//#else
 #include <stdlib.h>
-#include <crtdbg.h>
-#else
-#include <stdlib.h>
-#endif
+//#endif
 
-#define BOOST_TEST_MODULE "toolkit"
-#include <boost/test/included/unit_test.hpp>
 
-#include <string>
-#include "epanet2_2.h"
+#define BOOST_TEST_MODULE "project"
 
-// NOTE: Project Home needs to be updated to run unit test
-#define DATA_PATH_INP "./net1.inp"
-#define DATA_PATH_RPT "./test.rpt"
-#define DATA_PATH_OUT "./test.out"
+#include "test_shared.hpp"
+
 
 using namespace std;
+using namespace boost;
 
 
-BOOST_AUTO_TEST_SUITE (test_toolkit)
+BOOST_AUTO_TEST_SUITE (test_proj)
 
-BOOST_AUTO_TEST_CASE (test_alloc_free)
+BOOST_AUTO_TEST_CASE (test_proj_create_delete)
 {
     int error = 0;
     EN_Project ph = NULL;
@@ -49,7 +45,7 @@ BOOST_AUTO_TEST_CASE (test_alloc_free)
     BOOST_CHECK(ph == NULL);
 }
 
-BOOST_AUTO_TEST_CASE (test_open_close)
+BOOST_AUTO_TEST_CASE (test_proj_open_close)
 {
 	string path_inp(DATA_PATH_INP);
 	string path_rpt(DATA_PATH_RPT);
@@ -67,34 +63,53 @@ BOOST_AUTO_TEST_CASE (test_open_close)
     EN_deleteproject(&ph);
 }
 
-BOOST_AUTO_TEST_CASE(test_save_reopen)
+BOOST_AUTO_TEST_CASE(test_proj_savefile)
 {
-	string path_inp(DATA_PATH_INP);
-	string inp_save("test_reopen.inp");
+    int error;
+
+    string path_inp(DATA_PATH_INP);
+    string inp_save("test_reopen.inp");
 	string path_rpt(DATA_PATH_RPT);
 	string path_out(DATA_PATH_OUT);
 
 	EN_Project ph_save;
-    EN_Project ph_reopen;
+
 
 	EN_createproject(&ph_save);
+    error = EN_open(ph_save, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+    BOOST_REQUIRE(error == 0);
 
-	EN_open(ph_save, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
-	EN_saveinpfile(ph_save, inp_save.c_str());
-	EN_close(ph_save);
+    error = EN_saveinpfile(ph_save, inp_save.c_str());
+    BOOST_REQUIRE(error == 0);
 
-	EN_deleteproject(&ph_save);
-	BOOST_TEST_CHECKPOINT("Saved input file");
+	BOOST_CHECK(filesystem::exists(inp_save) == true);
 
-	EN_createproject(&ph_reopen);
+	error = EN_close(ph_save);
+	BOOST_REQUIRE(error == 0);
+    EN_deleteproject(&ph_save);
+}
 
-	EN_open(ph_reopen, inp_save.c_str(), path_rpt.c_str(), path_out.c_str());
-	EN_close(ph_reopen);
+BOOST_AUTO_TEST_CASE(test_proj_reopen, * unit_test::depends_on("test_proj/test_proj_savefile"))
+{
+    int error;
 
+    string inp_save("test_reopen.inp");
+    string path_rpt(DATA_PATH_RPT);
+	string path_out(DATA_PATH_OUT);
+
+    EN_Project ph_reopen;
+
+
+    EN_createproject(&ph_reopen);
+	error = EN_open(ph_reopen, inp_save.c_str(), path_rpt.c_str(), path_out.c_str());
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_close(ph_reopen);
+    BOOST_REQUIRE(error == 0);
 	EN_deleteproject(&ph_reopen);
 }
 
-BOOST_AUTO_TEST_CASE(test_epanet)
+BOOST_AUTO_TEST_CASE(test_proj_run)
 {
     string path_inp(DATA_PATH_INP);
     string path_rpt(DATA_PATH_RPT);
@@ -113,135 +128,50 @@ BOOST_AUTO_TEST_CASE(test_epanet)
 BOOST_AUTO_TEST_SUITE_END()
 
 
-struct Fixture{
-    Fixture() {
-        path_inp = string(DATA_PATH_INP);
-        path_rpt = string(DATA_PATH_RPT);
-        path_out = string(DATA_PATH_OUT);
 
-        EN_createproject(&ph);
-        error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+BOOST_AUTO_TEST_SUITE(test_proj_fixture)
+
+BOOST_FIXTURE_TEST_CASE(test_proj_title, FixtureOpenClose)
+{
+    // How is the API user supposed to know array size?
+    char c_test[3][80], c_ref[3][80];
+
+    strncpy(c_ref[0], " EPANET Example Network 1", 26);
+    strncpy(c_ref[1], "A simple example of modeling chlorine decay. Both bulk and", 59);
+    strncpy(c_ref[2], "wall reactions are included. ", 30);
+
+    error = EN_gettitle(ph, c_test[0], c_test[1], c_test[2]);
+    BOOST_REQUIRE(error == 0);
+
+   for (int i = 0; i < 3; i++) {
+       string test (c_test[i]);
+       string ref (c_ref[i]);
+       BOOST_CHECK(check_string(test, ref));
+   }
+
+   // Need a test for EN_settitle
+}
+
+BOOST_FIXTURE_TEST_CASE(test_proj_getcount, FixtureOpenClose)
+{
+    int i, array[7];
+
+	std::vector<int> test;
+	vector<int> ref = { 11, 2, 13, 1, 1, 2, 0 };
+
+    for (i=EN_NODECOUNT; i<=EN_RULECOUNT; i++) {
+        error = EN_getcount(ph, i, &array[i]);
+        BOOST_REQUIRE(error == 0);
     }
 
-    ~Fixture() {
-      error = EN_close(ph);
-      EN_deleteproject(&ph);
-  }
+    test.assign(array, array + 7);
+    BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
 
-  string path_inp;
-  string path_rpt;
-  string path_out;
-
-  int error;
-  EN_Project ph;
-};
-
-BOOST_AUTO_TEST_SUITE(test_epanet_fixture)
-
-BOOST_FIXTURE_TEST_CASE(test_epanet, Fixture)
-{
-    error = EN_solveH(ph);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_solveQ(ph);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_report(ph);
-    BOOST_REQUIRE(error == 0);
+	error = EN_getcount(ph, 7, &i);
+	BOOST_CHECK(error == 251);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_hyd_step, Fixture)
-{
-    int flag = 00;
-    long t, tstep;
-
-    error = EN_openH(ph);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_initH(ph, flag);
-    BOOST_REQUIRE(error == 0);
-
-    do {
-        error = EN_runH(ph, &t);
-        BOOST_REQUIRE(error == 0);
-
-        error = EN_nextH(ph, &tstep);
-        BOOST_REQUIRE(error == 0);
-
-    } while (tstep > 0);
-
-    error = EN_closeH(ph);
-    BOOST_REQUIRE(error == 0);
-}
-
-BOOST_FIXTURE_TEST_CASE(test_qual_step, Fixture)
-{
-    int flag = 0;
-    long t, tstep;
-
-    error = EN_solveH(ph);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_openQ(ph);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_initQ(ph, flag);
-    BOOST_REQUIRE(error == 0);
-
-    do {
-        error = EN_runQ(ph, &t);
-        BOOST_REQUIRE(error == 0);
-
-        error = EN_nextQ(ph, &tstep);
-        BOOST_REQUIRE(error == 0);
-
-    } while (tstep > 0);
-
-    error = EN_closeQ(ph);
-    BOOST_REQUIRE(error == 0);
-}
-
-BOOST_FIXTURE_TEST_CASE(test_progressive_stepping, Fixture)
-{
-    int flag = EN_NOSAVE;
-    long t, tstep_h, tstep_q;
-
-    error = EN_openH(ph);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_initH(ph, flag);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_openQ(ph);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_initQ(ph, flag);
-    BOOST_REQUIRE(error == 0);
-
-    do {
-        error = EN_runH(ph, &t);
-        BOOST_REQUIRE(error == 0);
-
-        error = EN_runQ(ph, &t);
-        BOOST_REQUIRE(error == 0);
-
-        error = EN_nextH(ph, &tstep_h);
-        BOOST_REQUIRE(error == 0);
-
-        error = EN_nextQ(ph, &tstep_q);
-        BOOST_REQUIRE(error == 0);
-
-    } while (tstep_h > 0);
-
-    error = EN_closeH(ph);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_closeQ(ph);
-    BOOST_REQUIRE(error == 0);
-
-}
-
-BOOST_FIXTURE_TEST_CASE(test_setdemandpattern, Fixture)
+BOOST_FIXTURE_TEST_CASE(test_setdemandpattern, FixtureOpenClose)
 {
     int i, j, pat_index, pat_index_2, numDemands, nnodes;
 	char newpat[] = "new_pattern";
@@ -274,7 +204,8 @@ BOOST_FIXTURE_TEST_CASE(test_setdemandpattern, Fixture)
 		}
 	}
 }
-BOOST_FIXTURE_TEST_CASE(test_addpattern, Fixture)
+
+BOOST_FIXTURE_TEST_CASE(test_addpattern, FixtureOpenClose)
 {
     int pat_index, n_patterns_1, n_patterns_2;
     char newpat[] = "new_pattern";
@@ -297,7 +228,7 @@ BOOST_FIXTURE_TEST_CASE(test_addpattern, Fixture)
     BOOST_CHECK(pat_index == n_patterns_2);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_add_control, Fixture)
+BOOST_FIXTURE_TEST_CASE(test_add_control, FixtureOpenClose)
 {
     int flag = 00;
     long t, tstep;

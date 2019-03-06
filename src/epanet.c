@@ -247,9 +247,9 @@ int DLLEXPORT EN_gettitle(EN_Project p, char *line1, char *line2, char *line3)
 */
 {
     if (!p->Openflag) return 102;
-    strcpy(line1, p->Title[0]);
-    strcpy(line2, p->Title[1]);
-    strcpy(line3, p->Title[2]);
+    strncpy(line1, p->Title[0], TITLELEN);
+    strncpy(line2, p->Title[1], TITLELEN);
+    strncpy(line3, p->Title[2], TITLELEN);
     return 0;
 }
 
@@ -265,7 +265,7 @@ int DLLEXPORT EN_settitle(EN_Project p, char *line1, char *line2, char *line3)
     strncpy(p->Title[0], line1, TITLELEN);
     strncpy(p->Title[1], line2, TITLELEN);
     strncpy(p->Title[2], line3, TITLELEN);
-    return 123;
+    return 0;
 }
 
 int DLLEXPORT EN_getcount(EN_Project p, int object, int *count)
@@ -571,7 +571,7 @@ int DLLEXPORT EN_closeH(EN_Project p)
   return 0;
 }
 
-int DLLEXPORT EN_savehydfile(EN_Project p, char *filename)
+int DLLEXPORT EN_savehydfile(EN_Project p, const char *filename)
 /*----------------------------------------------------------------
 **  Input:   filename = name of file to which hydraulic results are saved
 **  Output:  none
@@ -599,7 +599,7 @@ int DLLEXPORT EN_savehydfile(EN_Project p, char *filename)
     return 0;
 }
 
-int DLLEXPORT EN_usehydfile(EN_Project p, char *filename)
+int DLLEXPORT EN_usehydfile(EN_Project p, const char *filename)
 /*----------------------------------------------------------------
 **  Input:   filename = name of previously saved hydraulics file
 **  Output:  none
@@ -1031,7 +1031,7 @@ int DLLEXPORT EN_getstatistic(EN_Project p, int type, double *value)
         break;
     default:
         *value = 0.0;
-        break;
+        return 251;
     }
     return 0;
 }
@@ -1366,11 +1366,11 @@ int DLLEXPORT EN_gettimeparam(EN_Project p, int param, long *value)
     case EN_REPORTSTART:
         *value = time->Rstart;
         break;
-    case EN_STATISTIC:
-        *value = rpt->Tstatflag;
-        break;
     case EN_RULESTEP:
         *value = time->Rulestep;
+        break;
+    case EN_STATISTIC:
+        *value = rpt->Tstatflag;
         break;
     case EN_PERIODS:
         *value = rpt->Nperiods;
@@ -1380,6 +1380,10 @@ int DLLEXPORT EN_gettimeparam(EN_Project p, int param, long *value)
         break;
     case EN_HTIME:
         *value = time->Htime;
+        break;
+    case EN_QTIME:
+        *value = time->Qtime;
+    case EN_HALTFLAG:
         break;
     case EN_NEXTEVENT:
         *value = time->Hstep; // find the lesser of the hydraulic time step length,
@@ -1391,6 +1395,8 @@ int DLLEXPORT EN_gettimeparam(EN_Project p, int param, long *value)
         i = tanktimestep(p, value);
         *value = i;
         break;
+    default:
+        return 251;
     }
     return 0;
 }
@@ -2474,7 +2480,7 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     if (initlvl < 0.0 || minlvl < 0.0 || maxlvl < 0.0) return 209;
     if (minlvl > initlvl || minlvl > maxlvl || initlvl > maxlvl) return 225;
     if (diam < 0.0 || minvol < 0.0) return 209;
-                            
+
     // volume curve supplied
     if (strlen(volcurve) > 0)
     {
@@ -3449,13 +3455,13 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
             v = (double)Pump[findpump(&p->network, index)].Ecurve;
         }
         break;
-        
+
     case EN_PUMP_ECOST:
         if  (Link[index].Type == PUMP)
         {
             v = (double)Pump[findpump(&p->network, index)].Ecost;
         }
-        break;    
+        break;
 
     case EN_PUMP_EPAT:
         if (Link[index].Type == PUMP)
@@ -4382,7 +4388,7 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
     if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Ncurves) return 206;
     if (nPoints <= 0) return 202;
-    
+
     // Check that x values are increasing
     for (j = 1; j < nPoints; j++) if (xValues[j-1] >= xValues[j]) return 230;
 

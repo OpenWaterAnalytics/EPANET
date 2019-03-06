@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# 
+#
 #  gen-config.sh - Generates nrtest app configuration file for test executable
 #
 #  Date Created: 10/16/2017
@@ -10,10 +10,9 @@
 #
 #  Arguments:
 #    1 - absolute path to test executable
-# 
-#  NOT IMPLEMENTED YET
-#    2 - test executable version number
-#    3 - build description
+#    2 - platform
+#    3 - SUT build id
+#    4 - SUT version id
 #
 
 unameOut="$(uname -s)"
@@ -28,18 +27,15 @@ case "${unameOut}" in
                 abs_build_path="$( echo "$1" | sed -e 's#/c##' )"
                 test_cmd="runepanet.exe"
                 ;;
-				
+
     *)          # Machine unknown
 esac
-
-version=""
-build_description=""
 
 cat<<EOF
 {
     "name" : "epanet",
-    "version" : "${version}",
-    "description" : "${build_description}", 
+    "version" : "$4",
+    "description" : "$2 $3", 
     "setup_script" : "",
     "exe" : "${abs_build_path}/${test_cmd}"
 }

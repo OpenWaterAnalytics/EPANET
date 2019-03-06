@@ -36,6 +36,7 @@ int EXPORT_PY_API proj_init(Handle ph, const char *rptFile, const char *outFile,
 int EXPORT_PY_API proj_open(Handle ph, const char *inpFile, const char *rptFile, const char *binOutFile);
 int EXPORT_PY_API proj_gettitle(Handle ph, char *line1, char *line2, char *line3);
 int EXPORT_PY_API proj_settitle(Handle ph, const char *line1, const char *line2, const char *line3);
+int EXPORT_PY_API proj_getcount(Handle ph, EN_CountType code, int *count);
 int EXPORT_PY_API proj_savefile(Handle ph, const char *inpfilename);
 int EXPORT_PY_API proj_close(Handle ph);
 
@@ -66,7 +67,6 @@ int EXPORT_PY_API rprt_clear(Handle ph);
 int EXPORT_PY_API rprt_reset(Handle ph);
 int EXPORT_PY_API rprt_set(Handle ph, char *reportCommand);
 int EXPORT_PY_API rprt_setlevel(Handle ph, EN_StatusReport code);
-int EXPORT_PY_API rprt_getcount(Handle ph, EN_CountType code, int *count);
 int EXPORT_PY_API rprt_anlysstats(Handle ph, EN_AnalysisStatistic code, double* value);
 
 
