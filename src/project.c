@@ -185,19 +185,6 @@ int openoutfile(Project *pr)
 
     // If output file name was supplied, then attempt to
     // open it. Otherwise open a temporary output file.
-/*    
-    if (pr->outfile.Outflag == SAVE)
-    {
-        pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
-        if (pr->outfile.OutFile == NULL) errcode = 304;
-    }
-    else
-    {
-        strcpy(pr->outfile.OutFname, pr->TmpOutFname);
-        pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
-        if (pr->outfile.OutFile == NULL) errcode = 304;
-    }
-*/
     pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
     if (pr->outfile.OutFile == NULL) errcode = 304;
 
