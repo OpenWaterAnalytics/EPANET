@@ -173,18 +173,8 @@ int openoutfile(Project *pr)
     int errcode = 0;
 
     // Close output file if already opened
-    if (pr->outfile.TmpOutFile != pr->outfile.OutFile &&
-        pr->outfile.TmpOutFile != NULL)
-    {
-        fclose(pr->outfile.TmpOutFile);
-        pr->outfile.TmpOutFile = NULL;
-    }
-    if (pr->outfile.OutFile != NULL)
-    {
-        fclose(pr->outfile.OutFile);
-        pr->outfile.OutFile = NULL;
-    }
-
+    closeoutfile(pr);
+    
     // If output file name was supplied, then attempt to
     // open it. Otherwise open a temporary output file.
     pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
@@ -207,6 +197,33 @@ int openoutfile(Project *pr)
         else pr->outfile.TmpOutFile = pr->outfile.OutFile;
     }
     return errcode;
+}
+
+void closeoutfile(Project *pr)
+/*----------------------------------------------------------------
+**  Input:   none
+**  Output:  none
+**  Purpose: closes binary output file.
+**----------------------------------------------------------------
+*/
+{
+    if (pr->outfile.TmpOutFile != pr->outfile.OutFile)
+    {
+        if (pr->outfile.TmpOutFile != NULL)
+        {
+            fclose(pr->outfile.TmpOutFile);
+            pr->outfile.TmpOutFile = NULL;
+        }
+    }
+    if (pr->outfile.OutFile != NULL)
+    {
+        if (pr->outfile.OutFile == pr->outfile.TmpOutFile)
+        {
+            pr->outfile.TmpOutFile = NULL;
+        }
+        fclose(pr->outfile.OutFile);
+        pr->outfile.OutFile = NULL;
+    }
 }
 
 void initpointers(Project *pr)
