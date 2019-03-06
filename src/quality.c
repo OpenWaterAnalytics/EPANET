@@ -67,6 +67,9 @@ int openqual(Project *pr)
 
     int errcode = 0;
     int n;
+    
+    // Return if no quality analysis requested
+    if (qual->Qualflag == NONE) return errcode;
 
     // Build nodal adjacency lists if they don't already exist
     if (net->Adjlist == NULL)
@@ -401,12 +404,15 @@ int closequal(Project *pr)
     Quality *qual = &pr->quality;
     int errcode = 0;
 
-    if (qual->SegPool) mempool_delete(qual->SegPool);
-    FREE(qual->FirstSeg);
-    FREE(qual->LastSeg);
-    FREE(qual->PipeRateCoeff);
-    FREE(qual->FlowDir);
-    FREE(qual->SortedNodes);
+    if (qual->Qualflag != NONE)
+    {
+        if (qual->SegPool) mempool_delete(qual->SegPool);
+        FREE(qual->FirstSeg);
+        FREE(qual->LastSeg);
+        FREE(qual->PipeRateCoeff);
+        FREE(qual->FlowDir);
+        FREE(qual->SortedNodes);
+    }
     return errcode;
 }
 

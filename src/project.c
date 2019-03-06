@@ -43,6 +43,7 @@ int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
     pr->report.RptFile = NULL;
     pr->outfile.OutFile = NULL;
     pr->outfile.HydFile = NULL;
+    pr->outfile.TmpOutFile = NULL;
 
     // Save file names
     strncpy(pr->parser.InpFname, f1, MAXFNAME);
@@ -172,15 +173,16 @@ int openoutfile(Project *pr)
     int errcode = 0;
 
     // Close output file if already opened
+    if (pr->outfile.TmpOutFile != pr->outfile.OutFile &&
+        pr->outfile.TmpOutFile != NULL)
+    {
+        fclose(pr->outfile.TmpOutFile);
+        pr->outfile.TmpOutFile = NULL;
+    }
     if (pr->outfile.OutFile != NULL)
     {
         fclose(pr->outfile.OutFile);
         pr->outfile.OutFile = NULL;
-    }
-    if (pr->outfile.TmpOutFile != NULL)
-    {
-        fclose(pr->outfile.TmpOutFile);
-        pr->outfile.TmpOutFile = NULL;
     }
 
     // If output file name was supplied, then attempt to
@@ -266,12 +268,6 @@ void initpointers(Project *pr)
     pr->hydraul.smatrix.NZSUB = NULL;
     pr->hydraul.smatrix.LNZ = NULL;
     
-    pr->outfile.OutFile = NULL;
-    pr->outfile.HydFile = NULL;
-    pr->outfile.TmpOutFile = NULL;
-    pr->parser.InFile = NULL;
-    pr->report.RptFile = NULL;
-
     initrules(pr);
 }
 

@@ -1572,6 +1572,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
     double ccf = 1.0;
 
     if (!p->Openflag) return 102;
+    if (qual->OpenQflag) return 262;
     if (qualType < EN_NONE || qualType > EN_TRACE) return 251;
     qual->Qualflag = (char)qualType;
     qual->Ctol *= Ucf[QUALITY];
