@@ -265,6 +265,12 @@ void initpointers(Project *pr)
     pr->hydraul.smatrix.XLNZ = NULL;
     pr->hydraul.smatrix.NZSUB = NULL;
     pr->hydraul.smatrix.LNZ = NULL;
+    
+    pr->outfile.OutFile = NULL;
+    pr->outfile.HydFile = NULL;
+    pr->outfile.TmpOutFile = NULL;
+    pr->parser.InFile = NULL;
+    pr->report.RptFile = NULL;
 
     initrules(pr);
 }
