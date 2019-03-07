@@ -50,19 +50,21 @@ else
   TEST_HOME=$5; fi
 
 
+echo INFO: Staging files for regression testing
+
+
 SCRIPT_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD_HOME="$(dirname "$SCRIPT_HOME")"
 
 
 SUT_PATH=(`find $BUILD_HOME -name "bin" -type d`)
 
-
 # TODO: determine platform
 
 # determine latest tag from GitHub API
 LATEST_URL="https://api.github.com/repos/openwateranalytics/epanet-example-networks/releases/latest"
 LATEST_TAG=(`curl --silent ${LATEST_URL} | jq -r .tag_name`)
-if [ -z $LATEST_TAG ]; then
+if [ ${LATEST_TAG} == 'null' ]; then
     echo "ERROR: curl | jq - ${LATEST_URL}"
     exit 1
 fi
@@ -70,8 +72,6 @@ fi
 TEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/${LATEST_TAG}.tar.gz"
 BENCH_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/${LATEST_TAG}/benchmark-${PLATFORM}-${REF_BUILD_ID}.tar.gz"
 
-
-echo INFO: Staging files for regression testing
 
 # create a clean directory for staging regression tests
 if [ -d ${TEST_HOME} ]; then
