@@ -58,7 +58,7 @@ SCRIPT_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD_HOME="$(dirname "$SCRIPT_HOME")"
 
 
-SUT_PATH="$(find "$BUILD_HOME" -name "bin" -type d)"
+SUT_PATH=(`find "$BUILD_HOME" -name "bin" -type d`)
 
 # TODO: determine platform
 
@@ -82,12 +82,12 @@ cd "${TEST_HOME}" || exit 1
 
 # retrieve epanet-examples for regression testing
 if ! curl -fsSL -o examples.tar.gz "${TEST_URL}"; then
-    echo "ERROR: curl - ${TEST_URL}"
+    echo "ERROR: curl - ${TEST_URL}" & exit 2
 fi
 
 # retrieve epanet benchmark results
 if ! curl -fsSL -o benchmark.tar.gz "${BENCH_URL}"; then
-    echo "ERROR: curl - ${BENCH_URL}"
+    echo "ERROR: curl - ${BENCH_URL}" & exit 3
 fi
 
 # extract tests, benchmarks, and manifest
@@ -101,4 +101,5 @@ tar xzf benchmark.tar.gz --wildcards --no-anchored --strip-components=1 '*/manif
 
 # generate json configuration file for software under test
 mkdir apps
-"${SCRIPT_HOME}/gen-config.sh" "${SUT_PATH}" "${PLATFORM}" "${SUT_BUILD_ID}" "${SUT_VERSION}" > "apps/epanet-${SUT_BUILD_ID}.json"
+gen_config_cmd="${SCRIPT_HOME}/gen-config.sh ${SUT_PATH} ${PLATFORM} ${SUT_BUILD_ID} ${SUT_VERSION} > apps/epanet-${SUT_BUILD_ID}.json"
+return_value=$( $gen_config_cmd )
