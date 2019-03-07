@@ -64,8 +64,8 @@ SUT_PATH=(`find $BUILD_HOME -name "bin" -type d`)
 
 # hack to determine latest tag from GitHub
 LATEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/latest"
-temp_url="$(curl -sI ${LATEST_URL} | grep -iE "^Location:")"
-LATEST_TAG="$(echo ${temp_url##*/})"
+temp_url=$(curl -sI ${LATEST_URL} | grep -iE "^Location:")
+LATEST_TAG=${temp_url##*/}
 
 TEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/${LATEST_TAG}.tar.gz"
 BENCH_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/${LATEST_TAG}/benchmark-${PLATFORM}-${REF_BUILD_ID}.tar.gz"
@@ -80,12 +80,12 @@ cd ${TEST_HOME}
 
 
 # retrieve epanet-examples for regression testing
-if ! curl -fsSL -o examples.tar.gz ${TEST_URL}; then
+if ! curl -fsSL -o examples.tar.gz "${TEST_URL}"; then
     echo "ERROR: curl - ${TEST_URL}"
 fi
 
 # retrieve epanet benchmark results
-if ! curl -fsSL -o benchmark.tar.gz ${BENCH_URL}; then
+if ! curl -fsSL -o benchmark.tar.gz "${BENCH_URL}"; then
     echo "ERROR: curl - ${BENCH_URL}"
 fi
 
