@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/08/2019
+ Last Updated: 03/05/2019
  ******************************************************************************
 */
 
@@ -332,24 +332,12 @@ int DLLEXPORT EN_close(EN_Project p)
  **----------------------------------------------------------------
  */
 {
-    Outfile *out;
-
     // Free all project data
     if (p->Openflag) writetime(p, FMT105);
     freedata(p);
 
     // Close output file
-    out = &p->outfile;
-    if (out->TmpOutFile != out->OutFile)
-    {
-        if (out->TmpOutFile != NULL) fclose(out->TmpOutFile);
-        out->TmpOutFile = NULL;
-    }
-    if (out->OutFile != NULL)
-    {
-        fclose(out->OutFile);
-        out->OutFile = NULL;
-    }
+    closeoutfile(p);
 
     // Close input file
     if (p->parser.InFile != NULL)
@@ -366,10 +354,10 @@ int DLLEXPORT EN_close(EN_Project p)
     }
 
     // Close hydraulics file
-    if (out->HydFile != NULL)
+    if (p->outfile.HydFile != NULL)
     {
-        fclose(out->HydFile);
-        out->HydFile = NULL;
+        fclose(p->outfile.HydFile);
+        p->outfile.HydFile = NULL;
     }
 
     // Reset system flags
@@ -819,6 +807,7 @@ int DLLEXPORT EN_closeQ(EN_Project p)
     if (!p->Openflag) return 102;
     closequal(p);
     p->quality.OpenQflag = FALSE;
+    closeoutfile(p);    
     return 0;
 }
 
@@ -1571,6 +1560,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
     double ccf = 1.0;
 
     if (!p->Openflag) return 102;
+    if (qual->OpenQflag) return 262;
     if (qualType < EN_NONE || qualType > EN_TRACE) return 251;
     qual->Qualflag = (char)qualType;
     qual->Ctol *= Ucf[QUALITY];

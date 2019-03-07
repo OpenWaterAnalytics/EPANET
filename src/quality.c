@@ -27,14 +27,7 @@ Last Updated: 11/27/2018
 // Stagnant flow tolerance
 const double Q_STAGNANT = 0.005 / GPMperCFS;     // 0.005 gpm = 1.114e-5 cfs
 
-// Exported functions (declared in FUNCS.H)
-//int     openqual(Project *);
-//void    initqual(Project *);
-//int     runqual(Project *, long *);
-//int     nextqual(Project *, long *);
-//int     stepqual(Project *, long *);
-//int     closequal(Project *);
-//double  avgqual(Project *, int);
+// Exported functions
 double  findsourcequal(Project *, int, double, long);
 
 // Imported functions
@@ -67,6 +60,9 @@ int openqual(Project *pr)
 
     int errcode = 0;
     int n;
+    
+    // Return if no quality analysis requested
+    if (qual->Qualflag == NONE) return errcode;
 
     // Build nodal adjacency lists if they don't already exist
     if (net->Adjlist == NULL)
@@ -401,12 +397,15 @@ int closequal(Project *pr)
     Quality *qual = &pr->quality;
     int errcode = 0;
 
-    if (qual->SegPool) mempool_delete(qual->SegPool);
-    FREE(qual->FirstSeg);
-    FREE(qual->LastSeg);
-    FREE(qual->PipeRateCoeff);
-    FREE(qual->FlowDir);
-    FREE(qual->SortedNodes);
+    if (qual->Qualflag != NONE)
+    {
+        if (qual->SegPool) mempool_delete(qual->SegPool);
+        FREE(qual->FirstSeg);
+        FREE(qual->LastSeg);
+        FREE(qual->PipeRateCoeff);
+        FREE(qual->FlowDir);
+        FREE(qual->SortedNodes);
+    }
     return errcode;
 }
 

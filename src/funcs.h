@@ -24,6 +24,7 @@ void    freedata(Project *);
 int     openfiles(Project *, const char *, const char *,const char *);
 int     openhydfile(Project *);
 int     openoutfile(Project *);
+void    closeoutfile(Project *);
 
 int     buildadjlists(Network *);
 void    freeadjlists(Network *);

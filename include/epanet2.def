@@ -81,7 +81,7 @@ EXPORTS
     ENsaveinpfile                 = _ENsaveinpfile@4                    
     ENsetbasedemand               = _ENsetbasedemand@12
     ENsetcontrol                  = _ENsetcontrol@24                    
-    ENsetcoord                    = _ENsetcoord@12
+    ENsetcoord                    = _ENsetcoord@20
     ENsetcurve                    = _ENsetcurve@16
     ENsetcurveid                  = _ENsetcurveid@8    
     ENsetcurvevalue               = _ENsetcurvevalue@16               

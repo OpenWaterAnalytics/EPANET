@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 02/08/2019
+'Last updated on 02/28/2019
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -284,8 +284,8 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENsetnodevalue Lib "epanet2.dll" (ByVal index As Long, ByVal property As Long, ByVal value As Single) As Long
  Declare Function ENsetjuncdata Lib "epanet2.dll" (ByVal index As Long, ByVal elev As Single, ByVal dmnd As Single, ByVal dmndpat As String) As Long
  Declare Function ENsettankdata Lib "epanet2.dll" (ByVal index As Long, ByVal elev As Single, ByVal initlvl As Single, ByVal minlvl As Single, ByVal maxlvl As Single, ByVal diam As Single, ByVal minvol As Single, ByVal volcurve As String) As Long
- Declare Function ENgetcoord Lib "epanet2.dll" (ByVal index As Long, x As Single, y As Single) As Long
- Declare Function ENsetcoord Lib "epanet2.dll" (ByVal index As Long, ByVal x As Single, ByVal y As Single) As Long
+ Declare Function ENgetcoord Lib "epanet2.dll" (ByVal index As Long, x As Double, y As Double) As Long
+ Declare Function ENsetcoord Lib "epanet2.dll" (ByVal index As Long, ByVal x As Double, ByVal y As Double) As Long
  
 'Nodal Demand Functions
  Declare Function ENgetdemandmodel Lib "epanet2.dll" (type_ As Long, pmin As Single, preq As Single, pexp As Single) As Long
