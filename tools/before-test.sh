@@ -100,5 +100,4 @@ tar xzf benchmark.tar.gz --wildcards --no-anchored --strip-components=1 '*/manif
 
 # generate json configuration file for software under test
 mkdir apps
-gen_config_cmd="${SCRIPT_HOME}/gen-config.sh ${SUT_PATH} ${PLATFORM} ${SUT_BUILD_ID} ${SUT_VERSION} > apps/epanet-${SUT_BUILD_ID}.json"
-return_value=$( $gen_config_cmd )
+${SCRIPT_HOME}/gen-config.sh ${SUT_PATH} ${PLATFORM} ${SUT_BUILD_ID} ${SUT_VERSION} > apps/epanet-${SUT_BUILD_ID}.json
