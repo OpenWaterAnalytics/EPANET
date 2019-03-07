@@ -21,6 +21,7 @@
 #    GitHub and stages the files for nrtest to run. The script assumes that
 #    before-test.sh and gen-config.sh are located together in the same folder.
 
+
 if [ -z $1 ]; then
   unset PLATFORM;
 else
@@ -61,13 +62,10 @@ SUT_PATH=(`find $BUILD_HOME -name "bin" -type d`)
 
 # TODO: determine platform
 
-# determine latest tag from GitHub API
-LATEST_URL="https://api.github.com/repos/openwateranalytics/epanet-example-networks/releases/latest"
-LATEST_TAG=(`curl ${LATEST_URL} | jq -r .tag_name`)
-if [ ${LATEST_TAG} == 'null' ]; then
-    echo "ERROR: curl | jq - ${LATEST_URL}"
-    exit 1
-fi
+# hack to determine latest tag from GitHub
+LATEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/latest"
+temp_url=$(curl -sI ${LATEST_URL} | grep -iE "^Location:")
+LATEST_TAG=$(echo ${temp_url##*/})
 
 TEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/${LATEST_TAG}.tar.gz"
 BENCH_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/${LATEST_TAG}/benchmark-${PLATFORM}-${REF_BUILD_ID}.tar.gz"
