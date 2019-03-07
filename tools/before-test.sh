@@ -22,30 +22,30 @@
 #    before-test.sh and gen-config.sh are located together in the same folder.
 
 
-if [ -z $1 ]; then
+if [ -z "$1" ]; then
   unset PLATFORM;
 else
   PLATFORM=$1;
 fi
 
-if [ -z $2 ]; then
+if [ -z "$2" ]; then
   echo "ERROR: REF_BUILD_ID must be defined"; exit 1;
 else
   REF_BUILD_ID=$2;
 fi
 
-if [ -z $3 ]; then
+if [ -z "$3" ]; then
   SUT_BUILD_ID="local";
 else
   SUT_BUILD_ID=$3;
 fi
 
-if [ -z $4 ]; then
+if [ -z "$4" ]; then
   SUT_VERSION="unknown";
 else
   SUT_VERSION=$4; fi
 
-if [ -z $5 ]; then
+if [ -z "$5" ]; then
   TEST_HOME="nrtestsuite";
 else
   TEST_HOME=$5; fi
@@ -58,25 +58,26 @@ SCRIPT_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD_HOME="$(dirname "$SCRIPT_HOME")"
 
 
-SUT_PATH=(`find $BUILD_HOME -name "bin" -type d`)
+SUT_PATH="$(find "$BUILD_HOME" -name "bin" -type d)"
 
 # TODO: determine platform
 
 # hack to determine latest tag from GitHub
 LATEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/latest"
-temp_url=$(curl -sI ${LATEST_URL} | grep -iE "^Location:")
-LATEST_TAG=${temp_url##*/}
+temp_url="$(curl -sI "${LATEST_URL}" | grep -iE "^Location:")"
+LATEST_TAG="${temp_url##*/}"
 
-TEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/${LATEST_TAG}.tar.gz"
+TEST_URL="https://codeload.github.com/OpenWaterAnalytics/epanet-example-networks/tar.gz/${LATEST_TAG}"
 BENCH_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/${LATEST_TAG}/benchmark-${PLATFORM}-${REF_BUILD_ID}.tar.gz"
 
 
 # create a clean directory for staging regression tests
-if [ -d ${TEST_HOME} ]; then
-  rm -rf ${TEST_HOME}
+# create a clean directory for staging regression tests
+if [ -d "${TEST_HOME}" ]; then
+  rm -rf "${TEST_HOME}"
 fi
-mkdir ${TEST_HOME}
-cd ${TEST_HOME}
+mkdir "${TEST_HOME}"
+cd "${TEST_HOME}" || exit 1
 
 
 # retrieve epanet-examples for regression testing
@@ -91,7 +92,7 @@ fi
 
 # extract tests, benchmarks, and manifest
 tar xzf examples.tar.gz
-ln -s epanet-example-networks-${LATEST_TAG:1}/epanet-tests tests
+ln -s "epanet-example-networks-${LATEST_TAG:1}/epanet-tests" tests
 
 mkdir benchmark
 tar xzf benchmark.tar.gz -C benchmark
@@ -100,4 +101,4 @@ tar xzf benchmark.tar.gz --wildcards --no-anchored --strip-components=1 '*/manif
 
 # generate json configuration file for software under test
 mkdir apps
-${SCRIPT_HOME}/gen-config.sh ${SUT_PATH} ${PLATFORM} ${SUT_BUILD_ID} ${SUT_VERSION} > apps/epanet-${SUT_BUILD_ID}.json
+"${SCRIPT_HOME}/gen-config.sh" "${SUT_PATH}" "${PLATFORM}" "${SUT_BUILD_ID}" "${SUT_VERSION}" > "apps/epanet-${SUT_BUILD_ID}.json"
