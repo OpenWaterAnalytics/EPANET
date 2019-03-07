@@ -64,8 +64,8 @@ SUT_PATH=(`find $BUILD_HOME -name "bin" -type d`)
 
 # hack to determine latest tag from GitHub
 LATEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/latest"
-temp_url=$(curl -sI ${LATEST_URL} | grep -iE "^Location:")
-LATEST_TAG=$(echo ${temp_url##*/})
+temp_url="$(curl -sI ${LATEST_URL} | grep -iE "^Location:")"
+LATEST_TAG="$(echo ${temp_url##*/})"
 
 TEST_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/${LATEST_TAG}.tar.gz"
 BENCH_URL="https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/${LATEST_TAG}/benchmark-${PLATFORM}-${REF_BUILD_ID}.tar.gz"
