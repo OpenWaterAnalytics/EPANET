@@ -96,7 +96,7 @@ int EXPORT_PY_API proj_settitle(Handle ph, const char *line1, const char *line2,
     return error_set(pr->error, EN_settitle(pr->project, line1, line2, line3));
 }
 
-int EXPORT_PY_API rprt_getcount(Handle ph, EN_CountType code, int *count)
+int EXPORT_PY_API proj_getcount(Handle ph, EN_CountType code, int *count)
 {
     handle_t *pr = (handle_t *)ph;
     return error_set(pr->error, EN_getcount(pr->project, code, count));
