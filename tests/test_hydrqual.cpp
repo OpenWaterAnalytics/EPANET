@@ -18,7 +18,7 @@
 //#endif
 
 
-#define BOOST_TEST_MODULE hydqual
+#define BOOST_TEST_MODULE hydrqual
 
 #include "test_shared.hpp"
 
