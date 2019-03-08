@@ -10,15 +10,15 @@ int genmmd(int* neqns, int* xadj, int* adjncy, int* invp, int* perm,
            int* delta, int* dhead, int* qsize, int* llist, int* marker,
            int*  maxint, int* nofsub);
 
-int mmdint_(int* neqns, int* xadj, int* adjncy, int* dhead, int* dforw,
+static int mmdint_(int* neqns, int* xadj, int* adjncy, int* dhead, int* dforw,
             int* dbakw, int* qsize, int* llist, int* marker);
-int mmdelm_(int* mdnode, int* xadj, int* adjncy, int* dhead, int* dforw,
+static int mmdelm_(int* mdnode, int* xadj, int* adjncy, int* dhead, int* dforw,
             int* dbakw, int* qsize, int* llist, int* marker,
             int* maxint, int* tag);
-int mmdupd_(int* ehead, int* neqns, int* xadj, int* adjncy, int* delta,
+static int mmdupd_(int* ehead, int* neqns, int* xadj, int* adjncy, int* delta,
             int* mdeg, int* dhead, int* dforw, int* dbakw, int* qsize,
             int* llist, int* marker, int* maxint, int* tag);
-int mmdnum_(int* neqns, int* perm, int* invp, int* qsize);
+static int mmdnum_(int* neqns, int* perm, int* invp, int* qsize);
 
 //=============================================================================
 
@@ -84,9 +84,9 @@ int genmmd(int* neqns, int* xadj, int* adjncy, int* invp, int* perm,
     int i__1;
 
     /* Local variables */
-    static int mdeg, ehead, i, mdlmt, mdnode;
+    int mdeg = 0, ehead = 0, i = 0, mdlmt = 0, mdnode = 0;
     //extern /* Subroutine */ int mmdelm_(), mmdupd_(), mmdint_(), mmdnum_();
-    static int nextmd, tag, num;
+    int nextmd = 0, tag = 0, num = 0;
 
 
 /* *************************************************************** */
@@ -258,14 +258,14 @@ L1000:
 /* *************************************************************** */
 
 
-int mmdint_(int* neqns, int* xadj, int* adjncy, int* dhead, int* dforw,
+static int mmdint_(int* neqns, int* xadj, int* adjncy, int* dhead, int* dforw,
             int* dbakw, int* qsize, int* llist, int* marker)
 {
     /* System generated locals */
     int i__1;
 
     /* Local variables */
-    static int ndeg, node, fnode;
+    int ndeg = 0, node = 0, fnode = 0;
 
 
 /* *************************************************************** */
@@ -336,7 +336,7 @@ int mmdint_(int* neqns, int* xadj, int* adjncy, int* dhead, int* dforw,
 
 /* *************************************************************** */
 
-int mmdelm_(int* mdnode, int* xadj, int* adjncy, int* dhead, int* dforw,
+static int mmdelm_(int* mdnode, int* xadj, int* adjncy, int* dhead, int* dforw,
             int* dbakw, int* qsize, int* llist, int* marker,
             int* maxint, int* tag)
 {
@@ -344,8 +344,8 @@ int mmdelm_(int* mdnode, int* xadj, int* adjncy, int* dhead, int* dforw,
     int i__1, i__2;
 
     /* Local variables */
-    static int node, link, rloc, rlmt, i, j, nabor, rnode, elmnt, xqnbr,
-            istop, jstop, istrt, jstrt, nxnode, pvnode, nqnbrs, npv;
+    int node = 0, link = 0, rloc = 0, rlmt = 0, i = 0, j = 0, nabor = 0, rnode = 0, elmnt = 0, xqnbr = 0,
+            istop = 0, jstop = 0, istrt = 0, jstrt = 0, nxnode = 0, pvnode = 0, nqnbrs = 0, npv = 0;
 
 
 /* *************************************************************** */
@@ -579,7 +579,7 @@ L1800:
 
 /* *************************************************************** */
 
-int mmdupd_(int* ehead, int* neqns, int* xadj, int* adjncy, int* delta,
+static int mmdupd_(int* ehead, int* neqns, int* xadj, int* adjncy, int* delta,
             int* mdeg, int* dhead, int* dforw, int* dbakw, int* qsize,
             int* llist, int* marker, int* maxint, int* tag)
 {
@@ -587,8 +587,8 @@ int mmdupd_(int* ehead, int* neqns, int* xadj, int* adjncy, int* delta,
     int i__1, i__2;
 
     /* Local variables */
-    static int node, mtag, link, mdeg0, i, j, enode, fnode, nabor, elmnt,
-            istop, jstop, q2head, istrt, jstrt, qxhead, iq2, deg, deg0;
+    int node = 0, mtag = 0, link = 0, mdeg0 = 0, i = 0, j = 0, enode = 0, fnode = 0, nabor = 0, elmnt = 0,
+            istop = 0, jstop = 0, q2head = 0, istrt = 0, jstrt = 0, qxhead = 0, iq2 = 0, deg = 0, deg0 = 0;
 
 
 /* *************************************************************** */
@@ -913,13 +913,13 @@ L2300:
 
 /* *************************************************************** */
 
-int mmdnum_(int* neqns, int* perm, int* invp, int* qsize)
+static int mmdnum_(int* neqns, int* perm, int* invp, int* qsize)
 {
     /* System generated locals */
     int i__1;
 
     /* Local variables */
-    static int node, root, nextf, father, nqsize, num;
+    int node = 0, root = 0, nextf = 0, father = 0, nqsize = 0, num = 0;
 
 
 /* *************************************************************** */
