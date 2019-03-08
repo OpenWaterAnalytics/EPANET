@@ -23,6 +23,7 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include "epanet_output.h"
+#include "epanet2_2.h"
 
 
 boost::test_tools::predicate_result check_cdd_float(std::vector<float>& test,
@@ -71,6 +72,11 @@ boost::test_tools::predicate_result check_string(std::string test, std::string r
 
 #define DATA_PATH_OUTPUT "./example1.out"
 
+#define DATA_PATH_INP "./net1.inp"
+#define DATA_PATH_RPT "./test.rpt"
+#define DATA_PATH_OUT "./test.out"
+
+
 BOOST_AUTO_TEST_SUITE (test_output_auto)
 
 BOOST_AUTO_TEST_CASE(OpenCloseTest) {
@@ -86,6 +92,48 @@ BOOST_AUTO_TEST_CASE(OpenCloseTest) {
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(p_handle == NULL);
 }
+
+
+// Test access to output file with the project open
+BOOST_AUTO_TEST_CASE(AccessTest){
+
+    std::string path_inp(DATA_PATH_INP);
+    std::string path_rpt(DATA_PATH_RPT);
+    std::string path_out(DATA_PATH_OUT);
+
+    EN_Project ph = NULL;
+    ENR_Handle p_handle = NULL;
+
+    EN_createproject(&ph);
+
+    int error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_solveH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_solveQ(ph);
+    BOOST_REQUIRE(error == 0);
+
+	error = EN_report(ph);
+	BOOST_REQUIRE(error == 0);
+
+
+    // Access to output file prior to project close
+    error = ENR_init(&p_handle);
+    BOOST_REQUIRE(error == 0);
+    error = ENR_open(p_handle, path_out.c_str());
+    BOOST_REQUIRE(error == 0);
+    error = ENR_close(&p_handle);
+    BOOST_REQUIRE(error == 0);
+
+
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+
+    EN_deleteproject(&ph);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
