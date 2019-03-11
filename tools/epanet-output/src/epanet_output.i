@@ -1,12 +1,12 @@
 /*
  *  epanet_output.i - SWIG interface description file for EPANET Output API
- * 
+ *
  *  Created:    9/20/2017
  *
  *  Author:     Michael E. Tryby
  *              US EPA - ORD/NRMRL
  *
-*/ 
+*/
 %module epanet_output
 %{
 #include "errormanager.h"
@@ -23,60 +23,9 @@
 
 typedef void* ENR_Handle;
 
-typedef enum {
-	ENR_node = 1,
-    ENR_link = 2
-} ENR_ElementType;
 
-/*
-typedef enum {
-    ENR_nodeCount  = 1,
-    ENR_tankCount  = 2,
-    ENR_linkCount  = 3,
-    ENR_pumpCount  = 4,
-    ENR_valveCount = 5
-} ENR_ElementCount;
-*/
+%include "epanet_output_enums.h"
 
-typedef enum {
-    ENR_flowUnits   = 1,
-    ENR_pressUnits  = 2
-} ENR_Units;
-
-typedef enum {
-    ENR_reportStart = 1,
-    ENR_reportStep  = 2,
-    ENR_simDuration = 3,
-    ENR_numPeriods  = 4
-}ENR_Time;
-
-typedef enum {
-    ENR_demand   = 1,
-    ENR_head     = 2,
-    ENR_pressure = 3,
-    ENR_quality  = 4
-} ENR_NodeAttribute;
-
-typedef enum {
-    ENR_flow         = 1,
-    ENR_velocity     = 2,
-    ENR_headloss     = 3,
-    ENR_avgQuality   = 4,
-    ENR_status       = 5,
-    ENR_setting      = 6,
-    ENR_rxRate       = 7,
-    ENR_frctnFctr    = 8
-} ENR_LinkAttribute;
-
-#ifdef WINDOWS
-  #ifdef __cplusplus
-  #define DLLEXPORT __declspec(dllexport) __cdecl
-  #else
-  #define DLLEXPORT __declspec(dllexport) __stdcall
-  #endif
-#else
-  #define DLLEXPORT
-#endif
 
 /* TYPEMAPS FOR OPAQUE POINTER */
 /* Used for functions that output a new opaque pointer */
@@ -92,7 +41,7 @@ and return a (possibly) different pointer */
 {
  /* OUTPUT argout */
     %append_output(SWIG_NewPointerObj(SWIG_as_voidptr(retval$argnum), $1_descriptor, 0));
-} 
+}
 /* No need for special IN typemap for opaque pointers, it works anyway */
 
 
@@ -118,7 +67,7 @@ and return a (possibly) different pointer */
     if (*$1) {
         PyObject* o;
         o = PyUnicode_FromStringAndSize(*$1, *$2);
-        
+
         $result = SWIG_Python_AppendOutput($result, o);
         free(*$1);
     }
@@ -163,12 +112,12 @@ and return a (possibly) different pointer */
     if (PyObject_HasAttrString($input,"value")) {
         PyObject* o;
         o = PyObject_GetAttrString($input, "value");
-        ecode = SWIG_AsVal_int(o, &val); 
-    }   
+        ecode = SWIG_AsVal_int(o, &val);
+    }
     else {
-        SWIG_exception_fail(SWIG_ArgError(ecode), "in method '" "$symname" "', argument " "$argnum"" of type '" "$ltype""'"); 
-    }   
-    
+        SWIG_exception_fail(SWIG_ArgError(ecode), "in method '" "$symname" "', argument " "$argnum"" of type '" "$ltype""'");
+    }
+
     $1 = ($1_type)(val);
 }
 %apply EnumeratedType {ENR_ElementType, ENR_Units, ENR_Time, ENR_NodeAttribute, ENR_LinkAttribute}
@@ -189,33 +138,33 @@ and return a (possibly) different pointer */
     	SWIG_fail;
     }
 }
-/* INSERT EXCEPTION HANDLING FOR THESE FUNCTIONS */  
-int DLLEXPORT ENR_open(ENR_Handle p_handle, const char* path);
+/* INSERT EXCEPTION HANDLING FOR THESE FUNCTIONS */
+int  ENR_open(ENR_Handle p_handle, const char* path);
 
-int DLLEXPORT ENR_getVersion(ENR_Handle p_handle, int* int_out);
-int DLLEXPORT ENR_getNetSize(ENR_Handle p_handle, int** int_out, int* int_dim);
-int DLLEXPORT ENR_getUnits(ENR_Handle p_handle, ENR_Units t_enum, int* int_out);
-int DLLEXPORT ENR_getTimes(ENR_Handle p_handle, ENR_Time t_enum, int* int_out);
-int DLLEXPORT ENR_getElementName(ENR_Handle p_handle, ENR_ElementType t_enum,
+int  ENR_getVersion(ENR_Handle p_handle, int* int_out);
+int  ENR_getNetSize(ENR_Handle p_handle, int** int_out, int* int_dim);
+int  ENR_getUnits(ENR_Handle p_handle, ENR_Units t_enum, int* int_out);
+int  ENR_getTimes(ENR_Handle p_handle, ENR_Time t_enum, int* int_out);
+int  ENR_getElementName(ENR_Handle p_handle, ENR_ElementType t_enum,
 		int elementIndex, char** string_out, int* slen);
-int DLLEXPORT ENR_getEnergyUsage(ENR_Handle p_handle, int pumpIndex,
+int  ENR_getEnergyUsage(ENR_Handle p_handle, int pumpIndex,
 		int* int_out, float** float_out, int* int_dim);
-int DLLEXPORT ENR_getNetReacts(ENR_Handle p_handle, float** float_out, int* int_dim);
+int  ENR_getNetReacts(ENR_Handle p_handle, float** float_out, int* int_dim);
 
 
-int DLLEXPORT ENR_getNodeAttribute(ENR_Handle p_handle, int periodIndex,
+int  ENR_getNodeAttribute(ENR_Handle p_handle, int periodIndex,
         ENR_NodeAttribute t_enum, float** float_out, int* int_dim);
-int DLLEXPORT ENR_getLinkAttribute(ENR_Handle p_handle, int periodIndex,
+int  ENR_getLinkAttribute(ENR_Handle p_handle, int periodIndex,
         ENR_LinkAttribute t_enum, float** float_out, int* int_dim);
-%exception;        
+%exception;
 
-/* NO EXCEPTION HANDLING FOR THESE FUNCTIONS */        
-int DLLEXPORT ENR_init(ENR_Handle* p_handle_out);        
-int DLLEXPORT ENR_close(ENR_Handle* p_handle_out);
-void DLLEXPORT ENR_free(void** array);
+/* NO EXCEPTION HANDLING FOR THESE FUNCTIONS */
+int  ENR_init(ENR_Handle* p_handle_out);
+int  ENR_close(ENR_Handle* p_handle_out);
+void  ENR_free(void** array);
 
-void DLLEXPORT ENR_clearError(ENR_Handle p_handle);
-int DLLEXPORT ENR_checkError(ENR_Handle p_handle, char** msg_buffer);
+void  ENR_clearError(ENR_Handle p_handle);
+int  ENR_checkError(ENR_Handle p_handle, char** msg_buffer);
 
 
 /* CODE ADDED DIRECTLY TO SWIGGED INTERFACE MODULE */
@@ -235,13 +184,13 @@ class Time(enum.Enum):
     REPORT_STEP  = ENR_reportStep
     SIM_DURATION = ENR_simDuration
     NUM_PERIODS  = ENR_numPeriods
-    
+
 class NodeAttribute(enum.Enum):
     DEMAND   = ENR_demand
     HEAD     = ENR_head
     PRESSURE = ENR_pressure
     QUALITY  = ENR_quality
-    
+
 class LinkAttribute(enum.Enum):
     FLOW        = ENR_flow
     VELOCITY    = ENR_velocity

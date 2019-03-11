@@ -55,7 +55,6 @@ boost::test_tools::predicate_result check_string(std::string test, std::string r
 }
 
 
-// NOTE: Project Home needs to be updated to run unit test
 #define DATA_PATH_INP "./net1.inp"
 #define DATA_PATH_RPT "./test.rpt"
 #define DATA_PATH_OUT "./test.out"
