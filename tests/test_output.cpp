@@ -18,7 +18,6 @@
 #include <string>
 #include <math.h>
 
-#include <boost/filesystem.hpp>
 #define BOOST_TEST_MODULE "output"
 #include <boost/test/included/unit_test.hpp>
 
