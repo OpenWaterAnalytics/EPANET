@@ -115,7 +115,6 @@ struct FixtureAfterStep{
     }
 
     ~FixtureAfterStep() {
-
         error = EN_closeQ(ph);
         BOOST_REQUIRE(error == 0);
 

@@ -13,11 +13,6 @@
 #include "test_shared.hpp"
 
 
-using namespace std;
-using namespace boost;
-
-
-
 BOOST_AUTO_TEST_SUITE (node_props_after_open)
 
 BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureOpenClose)
@@ -29,10 +24,6 @@ BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureOpenClose)
         EN_PATTERN,
         EN_EMITTER,
         EN_INITQUAL,
-        //demand
-        //head
-        //pressure
-        //quality
     };
     const size_t num_props = 5;
 
