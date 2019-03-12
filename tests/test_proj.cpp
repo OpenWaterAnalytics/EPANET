@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE (test_proj_create_delete)
 
 BOOST_AUTO_TEST_CASE (test_proj_open_close)
 {
-	string path_inp(DATA_PATH_INP);
+	string path_inp(DATA_PATH_NET1);
 	string path_rpt(DATA_PATH_RPT);
     string path_out(DATA_PATH_OUT);
 
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(test_proj_savefile)
 {
     int error;
 
-    string path_inp(DATA_PATH_INP);
+    string path_inp(DATA_PATH_NET1);
     string inp_save("test_reopen.inp");
 	string path_rpt(DATA_PATH_RPT);
 	string path_out(DATA_PATH_OUT);
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(test_proj_reopen, * unit_test::depends_on("test_proj/test_p
 
 BOOST_AUTO_TEST_CASE(test_proj_run)
 {
-    string path_inp(DATA_PATH_INP);
+    string path_inp(DATA_PATH_NET1);
     string path_rpt(DATA_PATH_RPT);
     string path_out(DATA_PATH_OUT);
 
