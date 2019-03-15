@@ -7,29 +7,28 @@
 //         US EPA - ORD/NRMRL
 //
 
-//#define BOOST_TEST_DYN_LINK
 
 //#ifdef _WIN32
 //#define _CRTDBG_MAP_ALLOC
 //#include <stdlib.h>
 //#include <crtdbg.h>
 //#else
-#include <stdlib.h>
+//#include <stdlib.h>
 //#endif
 
 
 #define BOOST_TEST_MODULE "project"
 
-#include "test_shared.hpp"
+#include "shared_test.hpp"
 
 
 using namespace std;
 using namespace boost;
 
 
-BOOST_AUTO_TEST_SUITE (test_proj)
+BOOST_AUTO_TEST_SUITE (test_project)
 
-BOOST_AUTO_TEST_CASE (test_proj_create_delete)
+BOOST_AUTO_TEST_CASE (test_create_delete)
 {
     int error = 0;
     EN_Project ph = NULL;
@@ -45,9 +44,9 @@ BOOST_AUTO_TEST_CASE (test_proj_create_delete)
     BOOST_CHECK(ph == NULL);
 }
 
-BOOST_AUTO_TEST_CASE (test_proj_open_close)
+BOOST_AUTO_TEST_CASE (test_open_close)
 {
-	string path_inp(DATA_PATH_INP);
+	string path_inp(DATA_PATH_NET1);
 	string path_rpt(DATA_PATH_RPT);
     string path_out(DATA_PATH_OUT);
 
@@ -63,11 +62,11 @@ BOOST_AUTO_TEST_CASE (test_proj_open_close)
     EN_deleteproject(&ph);
 }
 
-BOOST_AUTO_TEST_CASE(test_proj_savefile)
+BOOST_AUTO_TEST_CASE(test_save)
 {
     int error;
 
-    string path_inp(DATA_PATH_INP);
+    string path_inp(DATA_PATH_NET1);
     string inp_save("test_reopen.inp");
 	string path_rpt(DATA_PATH_RPT);
 	string path_out(DATA_PATH_OUT);
@@ -89,7 +88,7 @@ BOOST_AUTO_TEST_CASE(test_proj_savefile)
     EN_deleteproject(&ph_save);
 }
 
-BOOST_AUTO_TEST_CASE(test_proj_reopen, * unit_test::depends_on("test_proj/test_proj_savefile"))
+BOOST_AUTO_TEST_CASE(test_reopen, * unit_test::depends_on("test_project/test_save"))
 {
     int error;
 
@@ -109,9 +108,9 @@ BOOST_AUTO_TEST_CASE(test_proj_reopen, * unit_test::depends_on("test_proj/test_p
 	EN_deleteproject(&ph_reopen);
 }
 
-BOOST_AUTO_TEST_CASE(test_proj_run)
+BOOST_AUTO_TEST_CASE(test_run)
 {
-    string path_inp(DATA_PATH_INP);
+    string path_inp(DATA_PATH_NET1);
     string path_rpt(DATA_PATH_RPT);
     string path_out(DATA_PATH_OUT);
 
@@ -131,7 +130,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(test_proj_fixture)
 
-BOOST_FIXTURE_TEST_CASE(test_proj_title, FixtureOpenClose)
+BOOST_FIXTURE_TEST_CASE(test_title, FixtureOpenClose)
 {
     // How is the API user supposed to know array size?
     char c_test[3][80], c_ref[3][80];
@@ -152,7 +151,7 @@ BOOST_FIXTURE_TEST_CASE(test_proj_title, FixtureOpenClose)
    // Need a test for EN_settitle
 }
 
-BOOST_FIXTURE_TEST_CASE(test_proj_getcount, FixtureOpenClose)
+BOOST_FIXTURE_TEST_CASE(test_getcount, FixtureOpenClose)
 {
     int i, array[7];
 

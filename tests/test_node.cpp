@@ -10,69 +10,125 @@
 
 #define BOOST_TEST_MODULE "node"
 
-#include "test_shared.hpp"
+#include "shared_test.hpp"
 
 
-using namespace std;
-using namespace boost;
+BOOST_AUTO_TEST_SUITE (node_props_after_open)
 
-
-
-BOOST_AUTO_TEST_SUITE (test_node)
-
-
-BOOST_FIXTURE_TEST_CASE(test_node_getvalue, FixtureOpenClose)
+BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureOpenClose)
 {
-    const auto junc_props = {
+    int index;
+    const auto props = {
         EN_ELEVATION,
         EN_BASEDEMAND,
         EN_PATTERN,
         EN_EMITTER,
         EN_INITQUAL,
-        //demand
-        //head
-        //pressure
-        //quality
     };
-    const int num_props = 5;
+    const size_t num_props = 5;
 
     std::vector<double> test (num_props);
     double *value = test.data();
 
+    error = EN_getnodeindex(ph, (char *)"11", &index);
     std::vector<double> ref = {710.0, 150.0, 1.0, 0.0, 0.5};
 
 
-    for (EN_NodeProperty p : junc_props) {
-         error = EN_getnodevalue(ph, 2, p, value++);
+    // Ranged for loop iterates over property set
+    for (EN_NodeProperty p : props) {
+         error = EN_getnodevalue(ph, index, p, value++);
          BOOST_REQUIRE(error == 0);
     }
 
-    BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
-
-
-    const auto tank_props = {
-        EN_ELEVATION,
-        EN_INITQUAL,
-        EN_TANKLEVEL,
-        EN_INITVOLUME,
-        EN_MIXMODEL,
-        EN_MIXZONEVOL,
-        //demand
-        //head
-        //pressure
-        //quality
-        EN_TANKDIAM,
-        EN_MINVOLUME,
-        EN_MAXVOLUME,
-        EN_VOLCURVE,
-        EN_MINLEVEL,
-        EN_MAXLEVEL,
-        EN_MIXFRACTION,
-        EN_TANK_KBULK,
-        EN_TANKVOLUME
-    };
-
+    BOOST_CHECK(check_cdd_double(test, ref, 3));
 }
 
+BOOST_FIXTURE_TEST_CASE(test_tank_props, FixtureOpenClose)
+{
+    int index;
+    const auto props = {
+        EN_ELEVATION,
+        EN_TANKLEVEL,
+        EN_MINLEVEL,
+        EN_MAXLEVEL,
+        EN_TANKDIAM,
+        EN_MINVOLUME
+    };
+    const size_t num_props = 6;
+
+    std::vector<double> test (num_props);
+    double *value = test.data();
+
+    error = EN_getnodeindex(ph, (char *)"2", &index);
+    std::vector<double> ref = {850.0, 120.0, 100.0, 150.0, 50.5, 200296.167};
+
+    // Ranged for loop iterates over property set
+    for (EN_NodeProperty p : props) {
+        error = EN_getnodevalue(ph, index, p, value++);
+        BOOST_REQUIRE(error == 0);
+    }
+
+    BOOST_CHECK(check_cdd_double(test, ref, 3));
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
+
+
+BOOST_AUTO_TEST_SUITE(node_props_after_step)
+
+BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureAfterStep)
+{
+    int index;
+    const auto props = {
+        EN_DEMAND,
+        EN_HEAD,
+        EN_PRESSURE,
+        EN_QUALITY
+    };
+    const size_t num_props = 4;
+
+    std::vector<double> test (num_props);
+    double *value = test.data();
+
+    error = EN_getnodeindex(ph, (char *)"11", &index);
+    std::vector<double> ref = {179.999, 991.574, 122.006, 0.857};
+
+
+    // Ranged for loop iterates over property set
+    for (EN_NodeProperty p : props) {
+         error = EN_getnodevalue(ph, index, p, value++);
+         BOOST_REQUIRE(error == 0);
+    }
+
+    BOOST_CHECK(check_cdd_double(test, ref, 3));
+}
+
+BOOST_FIXTURE_TEST_CASE(test_tank_props, FixtureAfterStep)
+{
+    int index;
+    const auto props = {
+        EN_DEMAND,
+        EN_HEAD,
+        EN_PRESSURE,
+        EN_QUALITY
+    };
+    const size_t num_props = 4;
+
+    std::vector<double> test (num_props);
+    double *value = test.data();
+
+    error = EN_getnodeindex(ph, (char *)"2", &index);
+    std::vector<double> ref = {505.383, 978.138, 55.522, 0.911};
+
+    // Ranged for loop iterates over property set
+    for (EN_NodeProperty p : props) {
+        error = EN_getnodevalue(ph, index, p, value++);
+        BOOST_REQUIRE(error == 0);
+    }
+
+    BOOST_CHECK(check_cdd_double(test, ref, 3));
+}
 
 BOOST_AUTO_TEST_SUITE_END()

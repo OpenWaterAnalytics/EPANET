@@ -7,40 +7,22 @@ This is a test for the demand categories names get\set APIs
 A demand category name is set, the network is saved, reopened and the new demand category name is checked.
 */
 
-#define BOOST_TEST_MODULE "toolkit"
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_MODULE "demands"
 
-#include <string>
-#include "epanet2_2.h"
+#include "shared_test.hpp"
 
-// NOTE: Project Home needs to be updated to run unit test
-#define DATA_PATH_INP "./net1.inp"
-#define DATA_PATH_RPT "./test.rpt"
-#define DATA_PATH_OUT "./test.out"
 
-using namespace std;
+BOOST_AUTO_TEST_SUITE (test_demands)
 
-boost::test_tools::predicate_result check_string(std::string test, std::string ref)
+BOOST_AUTO_TEST_CASE(test_categories_save)
 {
-	if (ref.compare(test) == 0)
-		return true;
-	else
-		return false;
-}
-
-BOOST_AUTO_TEST_SUITE (test_toolkit)
-
-BOOST_AUTO_TEST_CASE(test_demand_categories)
-{
-	string path_inp(DATA_PATH_INP);
-	string inp_save("net1_dem_cat.inp");
-	string path_rpt(DATA_PATH_RPT);
-	string path_out(DATA_PATH_OUT);
+	std::string path_inp(DATA_PATH_NET1);
+	std::string inp_save("net1_dem_cat.inp");
+	std::string path_rpt(DATA_PATH_RPT);
+	std::string path_out(DATA_PATH_OUT);
 
 	char node_id[] = "12";
 	char demand_category[] = "Demand category name";
-	char demname[80];
-
 
 	int error = 0;
     int Nindex, ndem;
@@ -65,6 +47,22 @@ BOOST_AUTO_TEST_CASE(test_demand_categories)
 	BOOST_REQUIRE(error == 0);
 	error = EN_deleteproject(&ph);
 	BOOST_REQUIRE(error == 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("test_demands/test_categories_save"))
+{
+    std::string inp_save("net1_dem_cat.inp");
+    std::string path_rpt(DATA_PATH_RPT);
+    std::string path_out(DATA_PATH_OUT);
+
+    char node_id[] = "12";
+    char demand_category[] = "Demand category name";
+    char demname[80];
+
+    int error = 0;
+    int Nindex, ndem;
+
+    EN_Project ph = NULL;
 
 	BOOST_TEST_CHECKPOINT("Reopening saved input file");
     error = EN_createproject(&ph);
