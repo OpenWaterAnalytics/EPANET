@@ -10,7 +10,7 @@
 
 #define BOOST_TEST_MODULE "node"
 
-#include "test_shared.hpp"
+#include "shared_test.hpp"
 
 
 BOOST_AUTO_TEST_SUITE (node_props_after_open)
@@ -30,7 +30,7 @@ BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureOpenClose)
     std::vector<double> test (num_props);
     double *value = test.data();
 
-    error = EN_getnodeindex(ph, "11", &index);
+    error = EN_getnodeindex(ph, (char *)"11", &index);
     std::vector<double> ref = {710.0, 150.0, 1.0, 0.0, 0.5};
 
 
@@ -59,7 +59,7 @@ BOOST_FIXTURE_TEST_CASE(test_tank_props, FixtureOpenClose)
     std::vector<double> test (num_props);
     double *value = test.data();
 
-    error = EN_getnodeindex(ph, "2", &index);
+    error = EN_getnodeindex(ph, (char *)"2", &index);
     std::vector<double> ref = {850.0, 120.0, 100.0, 150.0, 50.5, 200296.167};
 
     // Ranged for loop iterates over property set
@@ -92,7 +92,7 @@ BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureAfterStep)
     std::vector<double> test (num_props);
     double *value = test.data();
 
-    error = EN_getnodeindex(ph, "11", &index);
+    error = EN_getnodeindex(ph, (char *)"11", &index);
     std::vector<double> ref = {179.999, 991.574, 122.006, 0.857};
 
 
@@ -119,7 +119,7 @@ BOOST_FIXTURE_TEST_CASE(test_tank_props, FixtureAfterStep)
     std::vector<double> test (num_props);
     double *value = test.data();
 
-    error = EN_getnodeindex(ph, "2", &index);
+    error = EN_getnodeindex(ph, (char *)"2", &index);
     std::vector<double> ref = {505.383, 978.138, 55.522, 0.911};
 
     // Ranged for loop iterates over property set

@@ -1,5 +1,7 @@
 
 
+//#define BOOST_TEST_DYN_LINK
+
 #include <string>
 #include <math.h>
 

@@ -21,38 +21,38 @@ if(UNIX)
 endif(UNIX)
 
 #Prep ourselves for compiling boost
-if(MSVC)
+IF(MSVC)
     set(Boost_DEBUG                 OFF)
     set(Boost_DETAILED_FAILURE_MSG  OFF)
     set(Boost_USE_STATIC_LIBS       ON)
-endif(MSVC)
+ENDIF(MSVC)
 set(Boost_THREAD_FOUND              OFF)
-find_package(Boost COMPONENTS system thread filesystem)
+find_package(Boost COMPONENTS unit_test_framework system thread filesystem)
 include_directories (${Boost_INCLUDE_DIRS})
 
 
 #I like to keep test files in a separate source directory called test
 file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test_*.cpp)
 
-
 #Run through each source
 foreach(testSrc ${TEST_SRCS})
-        #Extract the filename without an extension (NAME_WE)
-        get_filename_component(testName ${testSrc} NAME_WE)
+    #Extract the filename without an extension (NAME_WE)
+    get_filename_component(testName ${testSrc} NAME_WE)
 
-        #Add compile target
-        add_executable(${testName} ${testSrc})
+    #Add compile target
+    add_executable(${testName} ${testSrc})
 
-        #link to Boost libraries AND your targets and dependencies
-        IF(MSVC)
-            target_link_libraries(${testName} ${Boost_LIBRARIES} epanet2 epanet-output)
-        ELSE(TRUE)
-            target_link_libraries(${testName} ${Boost_LIBRARIES} pthread epanet2 epanet-output)
-        ENDIF(MSVC)
 
-        #Finally add it to test execution
-        #Notice the WORKING_DIRECTORY and COMMAND
-        add_test(NAME ${testName}
-                 COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${testName}
-                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
+    #link to Boost libraries AND your targets and dependencies
+    IF(MSVC)
+        target_link_libraries(${testName} ${Boost_LIBRARIES} epanet2 epanet-output)
+    ELSE(TRUE)
+        target_link_libraries(${testName} ${Boost_LIBRARIES} pthread epanet2 epanet-output)
+    ENDIF(MSVC)
+
+    #Finally add it to test execution
+    #Notice the WORKING_DIRECTORY and COMMAND
+    add_test(NAME ${testName}
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${testName}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
 endforeach(testSrc)

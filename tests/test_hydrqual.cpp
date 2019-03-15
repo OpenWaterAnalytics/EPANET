@@ -7,7 +7,6 @@
 //         US EPA - ORD/NRMRL
 //
 
-//#define BOOST_TEST_DYN_LINK
 
 //#ifdef _WIN32
 //#define _CRTDBG_MAP_ALLOC
@@ -20,7 +19,7 @@
 
 #define BOOST_TEST_MODULE hydrqual
 
-#include "test_shared.hpp"
+#include "shared_test.hpp"
 
 
 using namespace std;

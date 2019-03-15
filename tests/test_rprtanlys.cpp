@@ -20,7 +20,7 @@
 
 #define BOOST_TEST_MODULE hydqual
 
-#include "test_shared.hpp"
+#include "shared_test.hpp"
 
 
 using namespace std;

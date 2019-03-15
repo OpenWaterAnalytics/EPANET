@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     EN_Project ph = NULL;
     EN_createproject(&ph);
     EN_init(ph, "", "", EN_GPM, EN_HW);
-    
+
     // Build a network
     EN_addnode(ph, (char *)"N1", EN_JUNCTION);
     EN_addnode(ph, (char *)"N2", EN_JUNCTION);
@@ -56,10 +56,10 @@ int main(int argc, char *argv[])
 
     // Set network data using the new helper functions
     EN_setcurvevalue(ph, 1, 1, 1500, 250);
-    EN_setjuncdata(ph, 1, 700, 500, "");
-    EN_setjuncdata(ph, 2, 710, 500, "");
+    EN_setjuncdata(ph, 1, 700, 500, (char *)"");
+    EN_setjuncdata(ph, 2, 710, 500, (char *)"");
     EN_setnodevalue(ph, 3, EN_ELEVATION, 800);
-    EN_settankdata(ph, 4, 850, 120, 100, 150, 50.5, 0, "");
+    EN_settankdata(ph, 4, 850, 120, 100, 150, 50.5, 0, (char *)"");
     EN_setlinkvalue(ph, 1, EN_PUMP_HCURVE, 1);
     EN_setpipedata(ph, 2, 10560, 12, 100, 0);
     EN_setpipedata(ph, 3, 5280, 14, 100, 0);
