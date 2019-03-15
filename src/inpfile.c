@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/27/2018
+Last Updated: 03/09/2019
 ******************************************************************************
 */
 
@@ -38,7 +38,7 @@ extern char *TstatTxt[];
 extern char *RptFlagTxt[];
 extern char *SectTxt[];
 
-void saveauxdata(Parser *parser, FILE *f) 
+void saveauxdata(Project *pr, FILE *f) 
 /*
 ------------------------------------------------------------
   Writes auxilary data from original input file to new file.
@@ -47,13 +47,21 @@ void saveauxdata(Parser *parser, FILE *f)
 {
     int sect, newsect;
     char *tok;
+    char write;
     char line[MAXLINE + 1];
     char s[MAXLINE + 1];
-    FILE *InFile = parser->InFile;
+    FILE *InFile = pr->parser.InFile;
   
-    sect = -1;
-    if (InFile == NULL) return;
+    // Re-open the input file
+    if (InFile == NULL)
+    {
+        InFile = fopen(pr->parser.InpFname, "rt");
+        if (InFile == NULL) return;
+    }
     rewind(InFile);
+    sect = -1;
+
+    // Read each line of the input file
     while (fgets(line, MAXLINE, InFile) != NULL)
     {
         strcpy(s, line);
@@ -68,22 +76,44 @@ void saveauxdata(Parser *parser, FILE *f)
             {
                 sect = newsect;
                 if (sect == _END) break;
+
+                // Write section heading to file
+                switch (sect)
+                {
+                case _VERTICES:
+                case _LABELS:
+                case _BACKDROP:
+                case _TAGS:
+                    fprintf(f, "%s", line);
+                }
             }
         }
          
         // Write line of auxilary data to file
-        switch (sect)
+        else
         {
+            write = FALSE;
+            switch (sect)
+            {
             case _VERTICES:
+                if (findlink(&pr->network, tok) || *tok == ';') write = TRUE; break;
+            case _TAGS:
+                if (*tok == ';' ||
+                    (match("NODE", tok) && findnode(&pr->network, strtok(NULL, SEPSTR))) ||
+                    (match("LINK", tok) && findlink(&pr->network, strtok(NULL, SEPSTR))))
+                    write = TRUE;
+                break;
             case _LABELS:
             case _BACKDROP:
-            case _TAGS:
-              fprintf(f, "%s", line); 
-              break;
+                write = TRUE; break;
             default:
-              break;
+                break;
+            }
+            if (write) fprintf(f, "%s", line);
         }
     }
+    fclose(InFile);
+    InFile = NULL;
 }
 
 int saveinpfile(Project *pr, const char *fname)
@@ -760,7 +790,7 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, "\n\n");
 
     // Save auxilary data to new input file
-    saveauxdata(parser, f);
+    saveauxdata(pr, f);
 
     // Close the new input file
     fprintf(f, "\n");

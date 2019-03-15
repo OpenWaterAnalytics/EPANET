@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/05/2019
+ Last Updated: 03/08/2019
  ******************************************************************************
 */
 
@@ -218,6 +218,13 @@ int DLLEXPORT EN_open(EN_Project p, const char *inpFile, const char *rptFile,
 
   // Read input data
   ERRCODE(getdata(p));
+
+  // Close input file
+  if (p->parser.InFile != NULL)
+  {
+      fclose(p->parser.InFile);
+      p->parser.InFile = NULL;
+  }
 
   // Free temporary linked lists used for Patterns & Curves
   freeTmplist(p->parser.Patlist);
