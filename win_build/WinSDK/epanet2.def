@@ -21,6 +21,7 @@ EXPORTS
     ENepanet                      = _ENepanet@16
     ENgetaveragepatternvalue      = _ENgetaveragepatternvalue@8
     ENgetbasedemand               = _ENgetbasedemand@12
+    ENgetcomment                  = _ENgetcomment@12
     ENgetcontrol                  = _ENgetcontrol@24                    
     ENgetcoord                    = _ENgetcoord@12
     ENgetcount                    = _ENgetcount@8                       
@@ -80,6 +81,7 @@ EXPORTS
     ENsavehydfile                 = _ENsavehydfile@4                    
     ENsaveinpfile                 = _ENsaveinpfile@4                    
     ENsetbasedemand               = _ENsetbasedemand@12
+    ENsetcomment                  = _ENsetcomment@12
     ENsetcontrol                  = _ENsetcontrol@24                    
     ENsetcoord                    = _ENsetcoord@20
     ENsetcurve                    = _ENsetcurve@16

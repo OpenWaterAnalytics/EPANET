@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/01/2019
+ Last Updated: 03/17/2019
  ******************************************************************************
 */
 
@@ -118,11 +118,15 @@ typedef  int          INT4;
 ----------------------------------------------
    Enumerated Data Types
 ----------------------------------------------
- */
+*/
 
 typedef enum {
   NODE,
-  LINK
+  LINK,
+  TIMEPAT,
+  CURVE,
+  CONTROL,
+  RULE
 } ObjectType;
 
 typedef enum {
@@ -333,6 +337,7 @@ typedef struct Tmplist STmplist; // Pointer to temporary list of objects
 typedef struct             // Time Pattern Object
 {
   char   ID[MAXID+1];      // pattern ID
+  char   *Comment;         // pattern comment
   int    Length;           // pattern length
   double *F;               // pattern factors
 } Spattern;
@@ -340,6 +345,7 @@ typedef struct             // Time Pattern Object
 typedef struct             // Curve Object
 {
   char      ID[MAXID+1];   // curve ID
+  char      *Comment;      // curve comment
   CurveType Type;          // curve type
   int       Npts;          // number of points
   double    *X;            // x-values
@@ -350,7 +356,7 @@ struct Sdemand             // Demand List Item
 {
   double Base;             // baseline demand
   int    Pat;              // pattern index
-  char   Name[MAXMSG+1];   // demand category name
+  char   *Name;            // demand category name
   struct Sdemand *next;    // next demand list item
 };
 typedef struct Sdemand *Pdemand; // Pointer to demand list
@@ -386,7 +392,7 @@ typedef struct             // Node Object
   double   Ke;             // emitter coeff.
   int      Rpt;            // reporting flag
   NodeType Type;           // node type
-  char Comment[MAXMSG+1];  // node comment
+  char     *Comment;       // node comment
 } Snode;
 
 typedef struct             // Link Object
@@ -406,7 +412,7 @@ typedef struct             // Link Object
   LinkType Type;           // link type
   StatusType Status;       // initial status
   int      Rpt;            // reporting flag
-  char Comment[MAXMSG+1];  // link Comment
+  char     *Comment;       // link comment
 } Slink;
 
 typedef struct             // Tank Object
@@ -544,10 +550,11 @@ typedef struct {
   FILE *InFile;            // Input file handle
   
   char
-    DefPatID[MAXID+1],     // Default demand pattern ID
-    InpFname[MAXFNAME+1],  // Input file name
-    *Tok[MAXTOKS],         // Array of token strings
-    Comment[MAXMSG+1];     // Comment text
+      DefPatID[MAXID + 1],     // Default demand pattern ID
+      InpFname[MAXFNAME + 1],  // Input file name
+      *Tok[MAXTOKS],           // Array of token strings
+      Comment[MAXMSG + 1],     // Comment text
+      LineComment[MAXMSG + 1]; // Full line comment
   
   int      
     MaxNodes,              // Node count   from input file */

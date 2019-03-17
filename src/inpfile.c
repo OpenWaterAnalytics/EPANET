@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 03/09/2019
+Last Updated: 03/17/2019
 ******************************************************************************
 */
 
@@ -84,7 +84,7 @@ void saveauxdata(Project *pr, FILE *f)
                 case _LABELS:
                 case _BACKDROP:
                 case _TAGS:
-                    fprintf(f, "%s", line);
+                    fprintf(f, "\n%s", line);
                 }
             }
         }
@@ -161,8 +161,8 @@ int saveinpfile(Project *pr, const char *fname)
     for (i = 1; i <= net->Njuncs; i++)
     {
         node = &net->Node[i];
-        fprintf(f, "\n %-31s %12.4f ;%s", node->ID, node->El * pr->Ucf[ELEV],
-                node->Comment);
+        fprintf(f, "\n %-31s %12.4f", node->ID, node->El * pr->Ucf[ELEV]);
+        if (node->Comment) fprintf(f, "  ;%s", node->Comment);
     }
 
     // Write [RESERVOIRS] section
@@ -175,9 +175,10 @@ int saveinpfile(Project *pr, const char *fname)
         {
             node = &net->Node[tank->Node];
             sprintf(s, " %-31s %12.4f", node->ID, node->El * pr->Ucf[ELEV]);
-            if ((j = tank->Pat) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
-            else strcpy(s1, "");
-            fprintf(f, "\n%s %s ;%s", s, s1, node->Comment);
+            if ((j = tank->Pat) > 0) sprintf(s1, " %s", net->Pattern[j].ID);
+            else strcpy(s1, " ");
+            fprintf(f, "\n%s %-31s", s, s1);
+            if (node->Comment) fprintf(f, " ;%s", node->Comment);
         }
     }
 
@@ -197,9 +198,10 @@ int saveinpfile(Project *pr, const char *fname)
                     (tank->Hmax - node->El) * pr->Ucf[ELEV],
                     sqrt(4.0 * tank->A / PI) * pr->Ucf[ELEV],
                     tank->Vmin * SQR(pr->Ucf[ELEV]) * pr->Ucf[ELEV]);
-            if ((j = tank->Vcurve) > 0) sprintf(s1, "%-31s", net->Curve[j].ID);
-            else strcpy(s1, "");
-            fprintf(f, "\n%s %s ;%s", s, s1, node->Comment);
+            if ((j = tank->Vcurve) > 0) sprintf(s1, "%s", net->Curve[j].ID);
+            else strcpy(s1, " ");
+            fprintf(f, "\n%s %-31s", s, s1);
+            if (node->Comment) fprintf(f, " ;%s", node->Comment);
         }
     }
 
@@ -216,17 +218,15 @@ int saveinpfile(Project *pr, const char *fname)
             if (hyd->Formflag == DW)  kc = kc * pr->Ucf[ELEV] * 1000.0;
             km = link->Km * SQR(d) * SQR(d) / 0.02517;
 
-            sprintf(s, " %-31s %-31s %-31s %12.4f %12.4f", link->ID,
-                    net->Node[link->N1].ID, net->Node[link->N2].ID,
-                    link->Len * pr->Ucf[LENGTH], d * pr->Ucf[DIAM]);
-
-            if (hyd->Formflag == DW) sprintf(s1, "%12.4f %12.4f", kc, km);
-            else sprintf(s1, "%12.4f %12.4f", kc, km);
+            sprintf(s, " %-31s %-31s %-31s %12.4f %12.4f %12.4f %12.4f",
+                    link->ID, net->Node[link->N1].ID, net->Node[link->N2].ID,
+                    link->Len * pr->Ucf[LENGTH], d * pr->Ucf[DIAM], kc, km);
 
             if (link->Type == CVPIPE) sprintf(s2, "CV");
             else if (link->Status == CLOSED) sprintf(s2, "CLOSED");
-            else strcpy(s2, "");
-            fprintf(f, "\n%s %s %s ;%s", s, s1, s2, link->Comment);
+            else strcpy(s2, " ");
+            fprintf(f, "\n%s %-6s", s, s2);
+            if (link->Comment) fprintf(f, " ;%s", link->Comment);
         }
     }
 
@@ -264,7 +264,7 @@ int saveinpfile(Project *pr, const char *fname)
         // Optional speed pattern
         if ((j = pump->Upat) > 0)
         {
-            sprintf(s1, "   PATTERN  %s", net->Pattern[j].ID);
+            sprintf(s1, "  PATTERN  %s", net->Pattern[j].ID);
             strcat(s, s1);
         }
 
@@ -275,7 +275,9 @@ int saveinpfile(Project *pr, const char *fname)
             strcat(s, s1);
         }
 
-        fprintf(f, "\n%s ;%s", s, link->Comment);
+        fprintf(f, "\n%s", s);
+        if (link->Comment) fprintf(f, "  ;%s", link->Comment);
+
     }
 
     // Write [VALVES] section
@@ -316,7 +318,8 @@ int saveinpfile(Project *pr, const char *fname)
             sprintf(s1, "%-31s %12.4f", net->Curve[j].ID, km);
         }
         else sprintf(s1, "%12.4f %12.4f", kc, km);
-        fprintf(f, "\n%s %s ;%s", s, s1, link->Comment);
+        fprintf(f, "\n%s %s", s, s1);
+        if (link->Comment) fprintf(f, " ;%s", link->Comment);
     }
 
     // Write [DEMANDS] section
@@ -329,9 +332,10 @@ int saveinpfile(Project *pr, const char *fname)
         for (demand = node->D; demand != NULL; demand = demand->next)
         {
             sprintf(s, " %-31s %14.6f", node->ID, ucf * demand->Base);
-            if ((j = demand->Pat) > 0) sprintf(s1, "   %s", net->Pattern[j].ID);
-            else strcpy(s1, "");
-            fprintf(f, "\n%s %s ;%s", s, s1, demand->Name);
+            if ((j = demand->Pat) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
+            else strcpy(s1, " ");
+            fprintf(f, "\n%s %-31s", s, s1);
+            if (demand->Name) fprintf(f, " ;%s", demand->Name);
         }
     }
 
@@ -392,6 +396,7 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, s_PATTERNS);
     for (i = 1; i <= net->Npats; i++)
     {
+        if (net->Pattern[i].Comment) fprintf(f, "\n;%s", net->Pattern[i].Comment);
         for (j = 0; j < net->Pattern[i].Length; j++)
         {
             if (j % 6 == 0) fprintf(f, "\n %-31s", net->Pattern[i].ID);
@@ -404,11 +409,11 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, s_CURVES);
     for (i = 1; i <= net->Ncurves; i++)
     {
+        if (net->Curve[i].Comment) fprintf(f, "\n;%s", net->Curve[i].Comment);
         for (j = 0; j < net->Curve[i].Npts; j++)
         {
             curve = &net->Curve[i];
-            fprintf(f, "\n %-31s %12.4f %12.4f", curve->ID, curve->X[j],
-                    curve->Y[j]);
+            fprintf(f, "\n %-31s %12.4f %12.4f", curve->ID, curve->X[j], curve->Y[j]);
         }
     }
 
@@ -776,7 +781,6 @@ int saveinpfile(Project *pr, const char *fname)
         }
         else fprintf(f, "\n %-20sNO",field->Name);
     }
-    fprintf(f, "\n\n");
 
     // Write [COORDINATES] section
     fprintf(f, "\n\n");
@@ -787,9 +791,9 @@ int saveinpfile(Project *pr, const char *fname)
         if (node->X == MISSING || node->Y == MISSING) continue;
         fprintf(f, "\n %-31s %14.6f %14.6f", node->ID, node->X, node->Y);
     }
-    fprintf(f, "\n\n");
 
     // Save auxilary data to new input file
+    fprintf(f, "\n");
     saveauxdata(pr, f);
 
     // Close the new input file

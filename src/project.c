@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/05/2019
+ Last Updated: 03/17/2019
  ******************************************************************************
 */
 
@@ -370,6 +370,7 @@ int allocdata(Project *pr)
         {
             pr->network.Pattern[n].Length = 0;
             pr->network.Pattern[n].F = NULL;
+            pr->network.Pattern[n].Comment = NULL;
         }
         for (n = 0; n <= pr->parser.MaxCurves; n++)
         {
@@ -377,10 +378,17 @@ int allocdata(Project *pr)
             pr->network.Curve[n].Type = GENERIC_CURVE;
             pr->network.Curve[n].X = NULL;
             pr->network.Curve[n].Y = NULL;
+            pr->network.Curve[n].Comment = NULL;
         }
         for (n = 0; n <= pr->parser.MaxNodes; n++)
         {
             pr->network.Node[n].D = NULL;    // node demand
+            pr->network.Node[n].S = NULL;    // node source
+            pr->network.Node[n].Comment = NULL;
+        }
+        for (n = 0; n <= pr->parser.MaxLinks; n++)
+        {
+            pr->network.Link[n].Comment = NULL;
         }
     }
 
@@ -459,18 +467,29 @@ void freedata(Project *pr)
             while (demand != NULL)
             {
                 nextdemand = demand->next;
+                free(demand->Name);
                 free(demand);
                 demand = nextdemand;
             }
             // Free memory used for WQ source data
             source = pr->network.Node[j].S;
-            if (source != NULL) free(source);
+            free(source);
+            free(pr->network.Node[j].Comment);
         }
         free(pr->network.Node);
     }
 
-    // Free memory for other network objects
+    // Free memory for link data
+    if (pr->network.Link != NULL)
+    {
+        for (j = 0; j <= pr->parser.MaxLinks; j++)
+        {
+            free(pr->network.Link[j].Comment);
+        }
+    }
     free(pr->network.Link);
+
+    // Free memory for other network objects
     free(pr->network.Tank);
     free(pr->network.Pump);
     free(pr->network.Valve);
@@ -479,7 +498,11 @@ void freedata(Project *pr)
     // Free memory for time patterns
     if (pr->network.Pattern != NULL)
     {
-        for (j = 0; j <= pr->parser.MaxPats; j++) free(pr->network.Pattern[j].F);
+        for (j = 0; j <= pr->parser.MaxPats; j++)
+        {
+            free(pr->network.Pattern[j].F);
+            free(pr->network.Pattern[j].Comment);
+        }
         free(pr->network.Pattern);
     }
 
@@ -490,6 +513,7 @@ void freedata(Project *pr)
         {
             free(pr->network.Curve[j].X);
             free(pr->network.Curve[j].Y);
+            free(pr->network.Curve[j].Comment);
         }
         free(pr->network.Curve);
     }
@@ -878,6 +902,87 @@ void adjustcurves(Network *network, int index)
     }
 }
 
+int  getcomment(Network *network, int object, int index, char *comment)
+//----------------------------------------------------------------
+//  Input:   object = a type of network object
+//           index = index of the specified object
+//           comment = the object's comment string
+//  Output:  error code
+//  Purpose: gets the comment string assigned to an object.
+//----------------------------------------------------------------
+{
+    char *currentcomment;
+
+    // Get pointer to specified object's comment
+    switch (object)
+    {
+    case NODE:
+        if (index < 1 || index > network->Nnodes) return 251;
+        currentcomment = network->Node[index].Comment;
+        break;
+    case LINK:
+        if (index < 1 || index > network->Nlinks) return 251;
+        currentcomment = network->Link[index].Comment;
+        break;
+    case TIMEPAT:
+        if (index < 1 || index > network->Npats) return 251;
+        currentcomment = network->Pattern[index].Comment;
+        break;
+    case CURVE:
+        if (index < 1 || index > network->Ncurves) return 251;
+        currentcomment = network->Curve[index].Comment;
+        break;
+    default:
+        strcpy(comment, "");
+        return 251;
+    }
+
+    // Copy the object's comment to the returned string
+    if (currentcomment) strcpy(comment, currentcomment);
+    else comment[0] = '\0';
+    return 0;
+}
+
+int setcomment(Network *network, int object, int index, const char *newcomment)
+//----------------------------------------------------------------
+//  Input:   object = a type of network object
+//           index = index of the specified object
+//           newcomment = new comment string
+//  Output:  error code
+//  Purpose: sets the comment string of an object.
+//----------------------------------------------------------------
+{
+    char *comment;
+
+    switch (object)
+    {
+    case NODE:
+        if (index < 1 || index > network->Nnodes) return 251;
+        comment = network->Node[index].Comment;
+        network->Node[index].Comment = xstrcpy(&comment, newcomment, MAXMSG);
+        return 0;
+
+    case LINK:
+        if (index < 1 || index > network->Nlinks) return 251;
+        comment = network->Link[index].Comment;
+        network->Link[index].Comment = xstrcpy(&comment, newcomment, MAXMSG);
+        return 0;
+
+    case TIMEPAT:
+        if (index < 1 || index > network->Npats) return 251;
+        comment = network->Pattern[index].Comment;
+        network->Pattern[index].Comment = xstrcpy(&comment, newcomment, MAXMSG);
+        return 0;
+
+    case CURVE:
+        if (index < 1 || index > network->Ncurves) return 251;
+        comment = network->Curve[index].Comment;
+        network->Curve[index].Comment = xstrcpy(&comment, newcomment, MAXMSG);
+        return 0;
+
+    default: return 251;
+    }
+}
 
 char *getTmpName(char *fname)
 //----------------------------------------------------------------
@@ -909,6 +1014,42 @@ char *getTmpName(char *fname)
     mkstemp(fname);
 #endif
     return fname;
+}
+
+char *xstrcpy(char **s1, const char *s2, const size_t n)
+//----------------------------------------------------------------
+//  Input:   s1 = destination string
+//           s2 = source string
+//           n = maximum size of strings
+//  Output:  none
+//  Purpose: like strcpy except for dynamic strings.
+//----------------------------------------------------------------
+{
+    size_t n1 = 0, n2;
+
+    // Source string is empty -- free destination string 
+    if (s2 == NULL || strlen(s2) == 0)
+    {
+        free(*s1);
+        return NULL;
+    }
+
+    // Source string not empty -- overwrite destination string
+    else
+    {
+        // See if size of destination string needs to grow
+        if (*s1) n1 = strlen(*s1);
+        if ((n2 = strlen(s2)) > n) n2 = n;
+        if (n2 > n1)
+        {
+            free(*s1);
+            *s1 = (char *)malloc((n2 + 1) * sizeof(char));
+        }
+
+        // Copy the new comment string into the existing one
+        if (*s1) strcpy(*s1, s2);
+        return *s1;
+    }
 }
 
 int strcomp(const char *s1, const char *s2)

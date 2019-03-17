@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/14/2019
+ Last Updated: 03/17/2019
  ******************************************************************************
 */
 
@@ -127,6 +127,19 @@ typedef enum {
   EN_MAXFLOWCHANGE = 3, //!< Largest flow change in links
   EN_MASSBALANCE   = 4  //!< Cumulative water quality mass balance ratio
 } EN_AnalysisStatistic;
+
+/// Types of network objects
+/**
+A network model is composed of these types of objects.
+*/
+typedef enum {
+    EN_NODE    = 0,     //!< Nodes
+    EN_LINK    = 1,     //!< Links
+    EN_TIMEPAT = 2,     //!< Time patterns
+    EN_CURVE   = 3,     //!< Data curves
+    EN_CONTROL = 4,     //!< Simple controls
+    EN_RULE    = 5      //!< Control rules
+} EN_ObjectType;
 
 /// Types of objects to count
 /**
