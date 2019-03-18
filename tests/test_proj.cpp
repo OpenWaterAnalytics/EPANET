@@ -21,10 +21,7 @@
 
 #include "shared_test.hpp"
 
-
-using namespace std;
 using namespace boost;
-
 
 BOOST_AUTO_TEST_SUITE (test_project)
 
@@ -46,9 +43,9 @@ BOOST_AUTO_TEST_CASE (test_create_delete)
 
 BOOST_AUTO_TEST_CASE (test_open_close)
 {
-	string path_inp(DATA_PATH_NET1);
-	string path_rpt(DATA_PATH_RPT);
-    string path_out(DATA_PATH_OUT);
+	std::string path_inp(DATA_PATH_NET1);
+	std::string path_rpt(DATA_PATH_RPT);
+    std::string path_out(DATA_PATH_OUT);
 
 	EN_Project ph = NULL;
     EN_createproject(&ph);
@@ -66,10 +63,10 @@ BOOST_AUTO_TEST_CASE(test_save)
 {
     int error;
 
-    string path_inp(DATA_PATH_NET1);
-    string inp_save("test_reopen.inp");
-	string path_rpt(DATA_PATH_RPT);
-	string path_out(DATA_PATH_OUT);
+    std::string path_inp(DATA_PATH_NET1);
+    std::string inp_save("test_reopen.inp");
+	std::string path_rpt(DATA_PATH_RPT);
+	std::string path_out(DATA_PATH_OUT);
 
 	EN_Project ph_save;
 
@@ -92,9 +89,9 @@ BOOST_AUTO_TEST_CASE(test_reopen, * unit_test::depends_on("test_project/test_sav
 {
     int error;
 
-    string inp_save("test_reopen.inp");
-    string path_rpt(DATA_PATH_RPT);
-	string path_out(DATA_PATH_OUT);
+    std::string inp_save("test_reopen.inp");
+    std::string path_rpt(DATA_PATH_RPT);
+	std::string path_out(DATA_PATH_OUT);
 
     EN_Project ph_reopen;
 
@@ -110,9 +107,9 @@ BOOST_AUTO_TEST_CASE(test_reopen, * unit_test::depends_on("test_project/test_sav
 
 BOOST_AUTO_TEST_CASE(test_run)
 {
-    string path_inp(DATA_PATH_NET1);
-    string path_rpt(DATA_PATH_RPT);
-    string path_out(DATA_PATH_OUT);
+    std::string path_inp(DATA_PATH_NET1);
+    std::string path_rpt(DATA_PATH_RPT);
+    std::string path_out(DATA_PATH_OUT);
 
     EN_Project ph;
 
@@ -143,8 +140,8 @@ BOOST_FIXTURE_TEST_CASE(test_title, FixtureOpenClose)
     BOOST_REQUIRE(error == 0);
 
    for (int i = 0; i < 3; i++) {
-       string test (c_test[i]);
-       string ref (c_ref[i]);
+       std::string test (c_test[i]);
+       std::string ref (c_ref[i]);
        BOOST_CHECK(check_string(test, ref));
    }
 
@@ -156,7 +153,7 @@ BOOST_FIXTURE_TEST_CASE(test_getcount, FixtureOpenClose)
     int i, array[7];
 
 	std::vector<int> test;
-	vector<int> ref = { 11, 2, 13, 1, 1, 2, 0 };
+	std::vector<int> ref = { 11, 2, 13, 1, 1, 2, 0 };
 
     for (i=EN_NODECOUNT; i<=EN_RULECOUNT; i++) {
         error = EN_getcount(ph, i, &array[i]);

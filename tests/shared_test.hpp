@@ -1,12 +1,12 @@
 
 
-//#define BOOST_TEST_DYN_LINK
+//#define BOOST_ALL_DYN_LINK
 
 #include <string>
 #include <math.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include "epanet2_2.h"
 

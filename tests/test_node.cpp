@@ -130,5 +130,73 @@ BOOST_FIXTURE_TEST_CASE(test_tank_props, FixtureAfterStep)
 
     BOOST_CHECK(check_cdd_double(test, ref, 3));
 }
+BOOST_AUTO_TEST_SUITE_END()
+
+
+BOOST_AUTO_TEST_SUITE(setid_save_reopen)
+
+BOOST_AUTO_TEST_CASE(test_setid_save)
+{
+	std::string path_inp(DATA_PATH_NET1);
+	std::string path_out(DATA_PATH_OUT);
+    std::string path_rpt(DATA_PATH_RPT);
+	std::string inp_save("net1_setid.inp");
+
+    int error = 0;
+
+    EN_Project ph = NULL;
+    EN_createproject(&ph);
+
+    error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
+    BOOST_REQUIRE(error == 0);
+
+    // Test of illegal node name change
+    char newid_1[] = "Illegal; node name";
+    error = EN_setnodeid(ph, 3, newid_1);
+    BOOST_REQUIRE(error > 0);
+
+    // Test of legal node name change
+    char newid_2[] = "Node3";
+    error = EN_setnodeid(ph, 3, newid_2);
+    BOOST_REQUIRE(error == 0);
+
+    // Save the project
+    error = EN_saveinpfile(ph, inp_save.c_str());
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    EN_deleteproject(&ph);
+
+}
+
+BOOST_AUTO_TEST_CASE(test_setid_reopen, * boost::unit_test::depends_on("setid_save_reopen/test_setid_save"))
+{
+    std::string inp_save("net1_setid.inp");
+    std::string path_out(DATA_PATH_OUT);
+    std::string path_rpt(DATA_PATH_RPT);
+
+    int error = 0;
+    int index;
+
+    EN_Project ph = NULL;
+
+    char newid_2[] = "Node3";
+
+    // Re-open the saved project
+    EN_createproject(&ph);
+    error = EN_open(ph, inp_save.c_str(), path_rpt.c_str(), "");
+    BOOST_REQUIRE(error == 0);
+
+    // Check that 3rd node has its new name
+    error = EN_getnodeindex(ph, newid_2, &index);
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(index == 3);
+
+
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    EN_deleteproject(&ph);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

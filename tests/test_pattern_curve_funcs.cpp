@@ -1,45 +1,25 @@
 // Test of the EN_setpatternid, EN_setcurveid, EN_deletepattern & EN_deletecurve
 // EPANET 2.2 API functions
-#define _CRT_SECURE_NO_DEPRECATE
 
-//#define NO_BOOST
+#define BOOST_TEST_MODULE "pattern_curve"
 
-#ifndef NO_BOOST
-#define BOOST_TEST_MODULE "toolkit"
-#include <boost/test/included/unit_test.hpp>
-#endif
+#include "shared_test.hpp"
 
-#include <iostream>
-#include <string>
-#include "epanet2_2.h"
 
-#define DATA_PATH_INP "./net1.inp"
-#define DATA_PATH_RPT "./test.rpt"
-#define DATA_PATH_OUT "./test.out"
+BOOST_AUTO_TEST_SUITE (pattern)
 
-#ifdef NO_BOOST
-#define BOOST_REQUIRE(x) (((x)) ? cout << "\nPassed at line " << __LINE__ : cout << "\nFailed at line " << __LINE__ )
-#endif
-
-using namespace std;
-
-#ifndef NO_BOOST
-BOOST_AUTO_TEST_SUITE (test_toolkit)
-BOOST_AUTO_TEST_CASE(test_setid)
-#else
-int main(int argc, char *argv[])
-#endif
+BOOST_AUTO_TEST_CASE(add_set_pattern)
 {
-	string path_inp(DATA_PATH_INP);
-	string path_rpt(DATA_PATH_RPT);
-	string path_out(DATA_PATH_OUT);
-	string inp_save("net1_setid.inp");
-    
+	std::string path_inp(DATA_PATH_NET1);
+	std::string path_rpt(DATA_PATH_RPT);
+	std::string path_out(DATA_PATH_OUT);
+	std::string inp_save("net1_setid.inp");
+
     int error = 0;
 
     EN_Project ph = NULL;
     EN_createproject(&ph);
-    
+
     error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
     BOOST_REQUIRE(error == 0);
 
@@ -54,7 +34,7 @@ int main(int argc, char *argv[])
     EN_setpatternid(ph, defPatIdx, (char *)"Pat1");
     EN_getpatternindex(ph, (char *)"Pat1", &patIdx);
     BOOST_REQUIRE(defPatIdx == patIdx);
-    
+
     // Add 2 new patterns
     EN_addpattern(ph, (char *)"Pat2");
     EN_addpattern(ph, (char *)"Pat3");
@@ -62,7 +42,7 @@ int main(int argc, char *argv[])
     double f3[] = {3.1, 3.2, 3.3, 3.4};
     EN_setpattern(ph, 2, f2, 2);
     EN_setpattern(ph, 3, f3, 4);
-    
+
     // Assign Pat3 to 3rd junction
     EN_setdemandpattern(ph, 3, 1, 3);
 
@@ -73,7 +53,7 @@ int main(int argc, char *argv[])
     int n;
     EN_getcount(ph, EN_PATCOUNT, &n);
     BOOST_REQUIRE(n == 2);
-    
+
     // Check that Pat3 with 4 factors is still assigned to 3rd junction
     EN_getdemandpattern(ph, 3, 1, &patIdx);
     EN_getpatternlen(ph, patIdx, &n);
@@ -85,7 +65,7 @@ int main(int argc, char *argv[])
     // Check that junction 4 has no pattern
     EN_getdemandpattern(ph, 4, 1, &patIdx);
     BOOST_REQUIRE(patIdx == 0);
-    
+
     // And that junction 3 still uses Pat3
     EN_getdemandpattern(ph, 3, 1, &patIdx);
     char patID[EN_MAXID+1];
@@ -121,7 +101,7 @@ int main(int argc, char *argv[])
     // Assign Curve3 to pump's head curve
     EN_getcurveindex(ph, curve3, &curveIdx);
     EN_setheadcurveindex(ph, pumpIdx, curveIdx);
-    
+
     // Delete Curve2
     EN_getcurveindex(ph, curve2, &curveIdx);
     EN_deletecurve(ph, curveIdx);
@@ -141,6 +121,4 @@ int main(int argc, char *argv[])
     EN_deleteproject(&ph);
 }
 
-#ifndef NO_BOOST
 BOOST_AUTO_TEST_SUITE_END()
-#endif
