@@ -3,14 +3,6 @@
 // This is a test of the API functions EN_setjuncdata, EN_settankdata & EN_setpipedata
 //
 
-#ifdef _WIN32
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-#else
-#include <stdlib.h>
-#endif
-
 #define BOOST_TEST_MODULE "net_builder"
 
 #include "shared_test.hpp"

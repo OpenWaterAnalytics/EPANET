@@ -7,16 +7,6 @@
 //         US EPA - ORD/NRMRL
 //
 
-
-//#ifdef _WIN32
-//#define _CRTDBG_MAP_ALLOC
-//#include <stdlib.h>
-//#include <crtdbg.h>
-//#else
-//#include <stdlib.h>
-//#endif
-
-
 #define BOOST_TEST_MODULE "project"
 
 #include "shared_test.hpp"
@@ -43,14 +33,13 @@ BOOST_AUTO_TEST_CASE (test_create_delete)
 
 BOOST_AUTO_TEST_CASE (test_open_close)
 {
-	std::string path_inp(DATA_PATH_NET1);
-	std::string path_rpt(DATA_PATH_RPT);
-    std::string path_out(DATA_PATH_OUT);
+	int error;
 
 	EN_Project ph = NULL;
+
     EN_createproject(&ph);
 
-    int error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+    error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
     BOOST_REQUIRE(error == 0);
 
     error = EN_close(ph);
@@ -63,22 +52,16 @@ BOOST_AUTO_TEST_CASE(test_save)
 {
     int error;
 
-    std::string path_inp(DATA_PATH_NET1);
-    std::string inp_save("test_reopen.inp");
-	std::string path_rpt(DATA_PATH_RPT);
-	std::string path_out(DATA_PATH_OUT);
-
 	EN_Project ph_save;
 
-
 	EN_createproject(&ph_save);
-    error = EN_open(ph_save, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+    error = EN_open(ph_save, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_saveinpfile(ph_save, inp_save.c_str());
+    error = EN_saveinpfile(ph_save, "test_reopen.inp");
     BOOST_REQUIRE(error == 0);
 
-	BOOST_CHECK(filesystem::exists(inp_save) == true);
+	BOOST_CHECK(filesystem::exists("test_reopen.inp") == true);
 
 	error = EN_close(ph_save);
 	BOOST_REQUIRE(error == 0);
@@ -89,15 +72,10 @@ BOOST_AUTO_TEST_CASE(test_reopen, * unit_test::depends_on("test_project/test_sav
 {
     int error;
 
-    std::string inp_save("test_reopen.inp");
-    std::string path_rpt(DATA_PATH_RPT);
-	std::string path_out(DATA_PATH_OUT);
-
     EN_Project ph_reopen;
 
-
     EN_createproject(&ph_reopen);
-	error = EN_open(ph_reopen, inp_save.c_str(), path_rpt.c_str(), path_out.c_str());
+	error = EN_open(ph_reopen, "test_reopen.inp", DATA_PATH_RPT, DATA_PATH_OUT);
     BOOST_REQUIRE(error == 0);
 
     error = EN_close(ph_reopen);
@@ -107,15 +85,13 @@ BOOST_AUTO_TEST_CASE(test_reopen, * unit_test::depends_on("test_project/test_sav
 
 BOOST_AUTO_TEST_CASE(test_run)
 {
-    std::string path_inp(DATA_PATH_NET1);
-    std::string path_rpt(DATA_PATH_RPT);
-    std::string path_out(DATA_PATH_OUT);
+	int error;
 
     EN_Project ph;
 
     EN_createproject(&ph);
 
-    int error = EN_runproject(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str(), NULL);
+    error = EN_runproject(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT, NULL);
     BOOST_REQUIRE(error == 0);
 
     EN_deleteproject(&ph);
