@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(test_setid_reopen, * boost::unit_test::depends_on("setid_sa
     BOOST_REQUIRE(error == 0);
 
     // Check that 3rd link has its new name
-    error = EN_getlinkindex(ph, "Link3", &index);
+    error = EN_getlinkindex(ph, (char *)"Link3", &index);
     BOOST_REQUIRE(error == 0);
     BOOST_REQUIRE(index == 3);
 

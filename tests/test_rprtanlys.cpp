@@ -11,8 +11,6 @@
 
 #include "shared_test.hpp"
 
-
-using namespace std;
 using namespace boost;
 
 
@@ -24,7 +22,7 @@ BOOST_FIXTURE_TEST_CASE(test_rprt_anlysstats, FixtureOpenClose)
     double array[5];
 
     std::vector<double> test;
-	vector<double> ref = {3.0, 7.0799498320679432e-06, 1.6680242187483429e-08,
+	std::vector<double> ref = {3.0, 7.0799498320679432e-06, 1.6680242187483429e-08,
         0.0089173150106518495, 0.99999998187144024};
 
     error = EN_solveH(ph);
@@ -53,7 +51,7 @@ BOOST_FIXTURE_TEST_CASE(test_anlys_getoption, FixtureOpenClose)
     double array[13];
 
     std::vector<double> test;
-	vector<double> ref = {40.0, 0.001, 0.01, 0.5, 1.0, 0.0, 0.0, 1.0, 0.0, 75.0, 0.0, 0.0, 0.0};
+	std::vector<double> ref = {40.0, 0.001, 0.01, 0.5, 1.0, 0.0, 0.0, 1.0, 0.0, 75.0, 0.0, 0.0, 0.0};
 
     error = EN_solveH(ph);
     BOOST_REQUIRE(error == 0);
@@ -80,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE(test_anlys_gettimeparam, FixtureOpenClose)
     long array[16];
 
     std::vector<long> test;
-	vector<long> ref = {86400, 3600, 300, 7200, 0, 3600, 0, 360, 0, 25, 0, 86400, 86400, 0, 3600, 0};
+	std::vector<long> ref = {86400, 3600, 300, 7200, 0, 3600, 0, 360, 0, 25, 0, 86400, 86400, 0, 3600, 0};
 
     error = EN_solveH(ph);
     BOOST_REQUIRE(error == 0);

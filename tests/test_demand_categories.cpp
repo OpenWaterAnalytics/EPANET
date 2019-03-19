@@ -16,12 +16,6 @@ BOOST_AUTO_TEST_SUITE (test_demands)
 
 BOOST_AUTO_TEST_CASE(test_categories_save)
 {
-	//std::string path_inp(DATA_PATH_NET1);
-	//std::string inp_save = "net1_dem_cat.inp";
-	//std::string path_rpt(DATA_PATH_RPT);
-	//std::string path_out(DATA_PATH_OUT);
-
-
 	int error = 0;
     int Nindex, ndem;
 
@@ -30,13 +24,13 @@ BOOST_AUTO_TEST_CASE(test_categories_save)
     error = EN_createproject(&ph);
     error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
 
-    error = EN_getnodeindex(ph, "12", &Nindex);
+    error = EN_getnodeindex(ph, (char *)"12", &Nindex);
     BOOST_REQUIRE(error == 0);
     error = EN_getnumdemands(ph, Nindex, &ndem);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ndem == 1);
 
-	error = EN_setdemandname(ph, Nindex, ndem, "Demand category name");
+	error = EN_setdemandname(ph, Nindex, ndem, (char *)"Demand category name");
     BOOST_REQUIRE(error == 0);
     error = EN_saveinpfile(ph, "net1_dem_cat.inp");
     BOOST_REQUIRE(error == 0);
@@ -49,12 +43,6 @@ BOOST_AUTO_TEST_CASE(test_categories_save)
 
 BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("test_demands/test_categories_save"))
 {
-    //std::string inp_save = "net1_dem_cat.inp";
-    //std::string path_rpt(DATA_PATH_RPT);
-    //std::string path_out(DATA_PATH_OUT);
-   
-    char demname[80];
-
     int error = 0;
     int Nindex, ndem;
 
@@ -66,12 +54,13 @@ BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("tes
 	error = EN_open(ph, "net1_dem_cat.inp", DATA_PATH_RPT, DATA_PATH_OUT);
 	BOOST_REQUIRE(error == 0);
 
-    error = EN_getnodeindex(ph, "12", &Nindex);
+    error = EN_getnodeindex(ph, (char *)"12", &Nindex);
     BOOST_REQUIRE(error == 0);
     error = EN_getnumdemands(ph, Nindex, &ndem);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ndem == 1);
-
+	
+	char demname[80];
 	error = EN_getdemandname(ph, Nindex, ndem, demname);
     BOOST_REQUIRE(error == 0);
 	

@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(test_setid_reopen, * boost::unit_test::depends_on("setid_sa
     BOOST_REQUIRE(error == 0);
 
     // Check that 3rd node has its new name
-    error = EN_getnodeindex(ph, "Node3", &index);
+    error = EN_getnodeindex(ph, (char *)"Node3", &index);
     BOOST_REQUIRE(error == 0);
     BOOST_REQUIRE(index == 3);
 
