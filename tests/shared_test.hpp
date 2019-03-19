@@ -1,12 +1,19 @@
 
 
-//#define BOOST_TEST_DYN_LINK
 
-#include <string>
+#ifdef _WIN32
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#else
+#include <stdlib.h>
+#endif
+
+
 #include <math.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include "epanet2_2.h"
 
@@ -63,22 +70,14 @@ boost::test_tools::predicate_result check_string(std::string test, std::string r
 
 struct FixtureOpenClose{
     FixtureOpenClose() {
-        path_inp = std::string(DATA_PATH_NET1);
-        path_rpt = std::string(DATA_PATH_RPT);
-        path_out = std::string(DATA_PATH_OUT);
-
         EN_createproject(&ph);
-        error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+        error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
     }
 
     ~FixtureOpenClose() {
       error = EN_close(ph);
       EN_deleteproject(&ph);
   }
-
-  std::string path_inp;
-  std::string path_rpt;
-  std::string path_out;
 
   int error;
   EN_Project ph;
@@ -90,12 +89,8 @@ struct FixtureAfterStep{
         flag = 0;
         tstop = 10800;
 
-        path_inp = std::string(DATA_PATH_NET1);
-        path_rpt = std::string(DATA_PATH_RPT);
-        path_out = std::string(DATA_PATH_OUT);
-
         EN_createproject(&ph);
-        error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+		error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
 
         error = EN_solveH(ph);
         BOOST_REQUIRE(error == 0);
@@ -123,10 +118,6 @@ struct FixtureAfterStep{
         error = EN_close(ph);
         EN_deleteproject(&ph);
     }
-
-    std::string path_inp;
-    std::string path_rpt;
-    std::string path_out;
 
     int error, flag;
     long t, tstep, tstop;

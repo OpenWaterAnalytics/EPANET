@@ -26,6 +26,7 @@ IF(MSVC)
     set(Boost_DETAILED_FAILURE_MSG  OFF)
     set(Boost_USE_STATIC_LIBS       ON)
 ENDIF(MSVC)
+
 set(Boost_THREAD_FOUND              OFF)
 find_package(Boost COMPONENTS unit_test_framework system thread filesystem)
 include_directories (${Boost_INCLUDE_DIRS})
@@ -34,14 +35,19 @@ include_directories (${Boost_INCLUDE_DIRS})
 #I like to keep test files in a separate source directory called test
 file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test_*.cpp)
 
+add_library(shared_test OBJECT shared_test.cpp)
+
 #Run through each source
 foreach(testSrc ${TEST_SRCS})
     #Extract the filename without an extension (NAME_WE)
     get_filename_component(testName ${testSrc} NAME_WE)
 
     #Add compile target
-    add_executable(${testName} ${testSrc})
-
+    IF(${testName} MATCHES "test_reent")
+        add_executable(${testName} ${testSrc})
+    ELSE (TRUE)
+        add_executable(${testName} ${testSrc} $<TARGET_OBJECTS:shared_test>)
+    ENDIF(${testName} MATCHES "test_reent")
 
     #link to Boost libraries AND your targets and dependencies
     IF(MSVC)

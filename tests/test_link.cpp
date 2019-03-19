@@ -9,19 +9,12 @@ at hour 0 the flow in Pipe 113 should be zero and the pressure at node 31
 of the PRV 121 should be 100.
 */
 
-#define BOOST_TEST_MODULE "toolkit"
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_MODULE "link"
 
-#include <string>
-#include "epanet2_2.h"
+#include "shared_test.hpp"
 
-#define DATA_PATH_INP "./net1.inp"
-#define DATA_PATH_RPT "./test.rpt"
-#define DATA_PATH_OUT "./test.out"
 
-using namespace std;
-
-BOOST_AUTO_TEST_SUITE (test_toolkit)
+BOOST_AUTO_TEST_SUITE (test_link)
 
 BOOST_AUTO_TEST_CASE(test_setlinktype)
 {
@@ -32,11 +25,7 @@ BOOST_AUTO_TEST_CASE(test_setlinktype)
     EN_Project ph = NULL;
     EN_createproject(&ph);
 
-    std::string path_inp = std::string(DATA_PATH_INP);
-    std::string path_rpt = std::string(DATA_PATH_RPT);
-    std::string path_out = std::string(DATA_PATH_OUT);
-
-    error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
+    error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
     BOOST_REQUIRE(error == 0);
 
     // Change duration to 0
@@ -96,5 +85,62 @@ BOOST_AUTO_TEST_CASE(test_setlinktype)
     BOOST_REQUIRE(error == 0);
     EN_deleteproject(&ph);
 }
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
+BOOST_AUTO_TEST_SUITE(setid_save_reopen)
+
+BOOST_AUTO_TEST_CASE(test_setid_save)
+{
+	int error = 0;
+
+	EN_Project ph = NULL;
+	EN_createproject(&ph);
+
+	error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+	BOOST_REQUIRE(error == 0);
+
+	// Test of illegal link name change
+	char newid_3[] = "Illegal; link name";
+	error = EN_setlinkid(ph, 3, newid_3);
+	BOOST_REQUIRE(error > 0);
+
+	// Test of legal link name change
+	char newid_4[] = "Link3";
+	error = EN_setlinkid(ph, 3, newid_4);
+	BOOST_REQUIRE(error == 0);
+
+	// Save the project
+	error = EN_saveinpfile(ph, "net1_setid.inp");
+	BOOST_REQUIRE(error == 0);
+
+	error = EN_close(ph);
+	BOOST_REQUIRE(error == 0);
+	EN_deleteproject(&ph);
+}
+
+BOOST_AUTO_TEST_CASE(test_setid_reopen, * boost::unit_test::depends_on("setid_save_reopen/test_setid_save"))
+{
+	int error = 0;
+	int index;
+
+	EN_Project ph = NULL;
+
+    // Re-open the saved project
+    EN_createproject(&ph);
+    error = EN_open(ph, "net1_setid.inp", DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+
+    // Check that 3rd link has its new name
+    error = EN_getlinkindex(ph, (char *)"Link3", &index);
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(index == 3);
+
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    EN_deleteproject(&ph);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

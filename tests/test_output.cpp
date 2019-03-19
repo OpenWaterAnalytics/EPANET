@@ -19,7 +19,8 @@
 #include <math.h>
 
 #define BOOST_TEST_MODULE "output"
-#include <boost/test/included/unit_test.hpp>
+//#include <boost/test/included/unit_test.hpp>
+#include "shared_test.hpp"
 
 #include "epanet_output.h"
 #include "epanet2_2.h"
@@ -60,20 +61,11 @@ boost::test_tools::predicate_result check_cdd_float(std::vector<float>& test,
 }
 
 
-boost::test_tools::predicate_result check_string(std::string test, std::string ref)
-{
-    if (ref.compare(test) == 0)
-        return true;
-    else
-        return false;
-}
-
-
 #define DATA_PATH_OUTPUT "./example1.out"
 
-#define DATA_PATH_INP "./net1.inp"
-#define DATA_PATH_RPT "./test.rpt"
-#define DATA_PATH_OUT "./test.out"
+//#define DATA_PATH_INP "./net1.inp"
+//#define DATA_PATH_RPT "./test.rpt"
+//#define DATA_PATH_OUT "./test.out"
 
 
 BOOST_AUTO_TEST_SUITE (test_output_auto)
@@ -96,7 +88,7 @@ BOOST_AUTO_TEST_CASE(OpenCloseTest) {
 // Test access to output file with the project open
 BOOST_AUTO_TEST_CASE(AccessTest){
 
-    std::string path_inp(DATA_PATH_INP);
+    std::string path_inp(DATA_PATH_NET1);
     std::string path_rpt(DATA_PATH_RPT);
     std::string path_out(DATA_PATH_OUT);
 

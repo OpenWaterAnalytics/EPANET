@@ -7,7 +7,6 @@
 //         US EPA - ORD/NRMRL
 //
 
-
 #define BOOST_TEST_MODULE "node"
 
 #include "shared_test.hpp"
@@ -129,6 +128,63 @@ BOOST_FIXTURE_TEST_CASE(test_tank_props, FixtureAfterStep)
     }
 
     BOOST_CHECK(check_cdd_double(test, ref, 3));
+}
+BOOST_AUTO_TEST_SUITE_END()
+
+
+BOOST_AUTO_TEST_SUITE(setid_save_reopen)
+
+BOOST_AUTO_TEST_CASE(test_setid_save)
+{
+    int error = 0;
+
+    EN_Project ph = NULL;
+    EN_createproject(&ph);
+
+    error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+
+    // Test of illegal node name change
+    char newid_1[] = "Illegal; node name";
+    error = EN_setnodeid(ph, 3, newid_1);
+    BOOST_REQUIRE(error > 0);
+
+    // Test of legal node name change
+    char newid_2[] = "Node3";
+    error = EN_setnodeid(ph, 3, newid_2);
+    BOOST_REQUIRE(error == 0);
+
+    // Save the project
+    error = EN_saveinpfile(ph, "net1_setid.inp");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    EN_deleteproject(&ph);
+
+}
+
+BOOST_AUTO_TEST_CASE(test_setid_reopen, * boost::unit_test::depends_on("setid_save_reopen/test_setid_save"))
+{
+    int error = 0;
+    int index;
+
+    EN_Project ph = NULL;
+
+    // Re-open the saved project
+    EN_createproject(&ph);
+    error = EN_open(ph, "net1_setid.inp", DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+
+    // Check that 3rd node has its new name
+    error = EN_getnodeindex(ph, (char *)"Node3", &index);
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(index == 3);
+
+
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    EN_deleteproject(&ph);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
