@@ -22,7 +22,7 @@
 #include "errormanager.h"
 
 
-error_handle_t *error_new_manager(void (*p_error_message)(int, char*, int))
+error_handle_t *create_error_manager(void (*p_error_message)(int, char*, int))
 //
 // Purpose: Constructs a new error handle.
 //
@@ -35,7 +35,7 @@ error_handle_t *error_new_manager(void (*p_error_message)(int, char*, int))
 	return error_handle;
 }
 
-void error_dst_manager(error_handle_t *error_handle)
+void delete_error_manager(error_handle_t *error_handle)
 //
 // Purpose: Destroys the error handle.
 //
@@ -43,7 +43,7 @@ void error_dst_manager(error_handle_t *error_handle)
 	free(error_handle);
 }
 
-int error_set(error_handle_t *error_handle, int error_code)
+int set_error(error_handle_t *error_handle, int error_code)
 //
 // Purpose: Sets an error code in the handle.
 //
@@ -56,7 +56,7 @@ int error_set(error_handle_t *error_handle, int error_code)
 	return error_code;
 }
 
-int error_check(error_handle_t *error_handle, char **error_message)
+int check_error(error_handle_t *error_handle, char **error_message)
 //
 // Purpose: Returns the error message or NULL.
 //
@@ -75,7 +75,7 @@ int error_check(error_handle_t *error_handle, char **error_message)
 	return error_code;
 }
 
-void error_clear(error_handle_t *error_handle)
+void clear_error(error_handle_t *error_handle)
 //
 // Purpose: Clears the error from the handle.
 //

@@ -1,5 +1,5 @@
 /*
- *   test_epanet_output.cpp
+ *   test_output.cpp
  *
  *   Created: 8/4/2017
  *   Author: Michael E. Tryby
@@ -13,17 +13,18 @@
 //#define BOOST_TEST_DYN_LINK
 
 
+#define BOOST_TEST_MODULE "output"
+#define BOOST_TEST_DYN_LINK
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
 #include <math.h>
 
-#define BOOST_TEST_MODULE "output"
-//#include <boost/test/included/unit_test.hpp>
-#include "shared_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "epanet_output.h"
-#include "epanet2_2.h"
+//#include "epanet2_2.h"
 
 
 boost::test_tools::predicate_result check_cdd_float(std::vector<float>& test,
@@ -60,6 +61,14 @@ boost::test_tools::predicate_result check_cdd_float(std::vector<float>& test,
     return floor(min_cdd) >= cdd_tol;
 }
 
+boost::test_tools::predicate_result check_string(std::string test, std::string ref)
+{
+    if (ref.compare(test) == 0)
+        return true;
+    else
+        return false;
+}
+
 
 #define DATA_PATH_OUTPUT "./example1.out"
 
@@ -85,45 +94,45 @@ BOOST_AUTO_TEST_CASE(OpenCloseTest) {
 }
 
 
-// Test access to output file with the project open
-BOOST_AUTO_TEST_CASE(AccessTest){
-
-    std::string path_inp(DATA_PATH_NET1);
-    std::string path_rpt(DATA_PATH_RPT);
-    std::string path_out(DATA_PATH_OUT);
-
-    EN_Project ph = NULL;
-    ENR_Handle p_handle = NULL;
-
-    EN_createproject(&ph);
-
-    int error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_solveH(ph);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_solveQ(ph);
-    BOOST_REQUIRE(error == 0);
-
-	error = EN_report(ph);
-	BOOST_REQUIRE(error == 0);
-
-
-    // Access to output file prior to project close
-    error = ENR_init(&p_handle);
-    BOOST_REQUIRE(error == 0);
-    error = ENR_open(p_handle, path_out.c_str());
-    BOOST_REQUIRE(error == 0);
-    error = ENR_close(&p_handle);
-    BOOST_REQUIRE(error == 0);
-
-
-    error = EN_close(ph);
-    BOOST_REQUIRE(error == 0);
-
-    EN_deleteproject(&ph);
-}
+// // Test access to output file with the project open
+// BOOST_AUTO_TEST_CASE(AccessTest){
+//
+//     std::string path_inp(DATA_PATH_NET1);
+//     std::string path_rpt(DATA_PATH_RPT);
+//     std::string path_out(DATA_PATH_OUT);
+//
+//     EN_Project ph = NULL;
+//     ENR_Handle p_handle = NULL;
+//
+//     EN_createproject(&ph);
+//
+//     int error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+//     BOOST_REQUIRE(error == 0);
+//
+//     error = EN_solveH(ph);
+//     BOOST_REQUIRE(error == 0);
+//
+//     error = EN_solveQ(ph);
+//     BOOST_REQUIRE(error == 0);
+//
+// 	error = EN_report(ph);
+// 	BOOST_REQUIRE(error == 0);
+//
+//
+//     // Access to output file prior to project close
+//     error = ENR_init(&p_handle);
+//     BOOST_REQUIRE(error == 0);
+//     error = ENR_open(p_handle, path_out.c_str());
+//     BOOST_REQUIRE(error == 0);
+//     error = ENR_close(&p_handle);
+//     BOOST_REQUIRE(error == 0);
+//
+//
+//     error = EN_close(ph);
+//     BOOST_REQUIRE(error == 0);
+//
+//     EN_deleteproject(&ph);
+// }
 
 
 BOOST_AUTO_TEST_SUITE_END()

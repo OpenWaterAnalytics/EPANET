@@ -41,10 +41,11 @@ option(BUILD_COVERAGE "Build library for coverage" OFF)
 IF (NOT BUILD_PY_LIB)
   add_subdirectory(run)
 ENDIF (NOT BUILD_PY_LIB)
-add_subdirectory(tools/epanet-output)
+add_subdirectory(src/outfile)
 
 IF (BUILD_TESTS)
   add_subdirectory(tests)
+  add_subdirectory(tests/outfile)
 ENDIF (BUILD_TESTS)
 
 
