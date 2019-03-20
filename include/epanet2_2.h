@@ -11,7 +11,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/08/2019
+ Last Updated: 03/17/2019
  ******************************************************************************
  */
 
@@ -146,6 +146,26 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_settitle(EN_Project ph, char *line1, char *line2, char *line3);
 
+  /**
+  @brief Retrieves a descriptive comment assigned to a Node, Link, Pattern or Curve.
+  @param ph an EPANET project handle.
+  @param object a type of object (either EN_NODE, EN_LINK, EN_TIMEPAT or EN_CURVE)
+  @param index the object's index starting from 1
+  @param[out] comment the comment string assigned to the object
+  @return an error code
+  */
+  int  DLLEXPORT EN_getcomment(EN_Project ph, int object, int index, char *comment);
+
+  /**
+  @brief Assigns a descriptive comment to a Node, Link, Pattern or Curve.
+  @param ph an EPANET project handle.
+  @param object a type of object (either EN_NODE, EN_LINK, EN_TIMEPAT or EN_CURVE)
+  @param index the object's index starting from 1
+  @param[out] comment the comment string assigned to the object
+  @return an error code
+  */
+  int  DLLEXPORT EN_setcomment(EN_Project ph, int object, int index, char *comment);
+  
   /**
   @brief Retrieves the number of objects of a given type in a project.
   @param ph an EPANET project handle.

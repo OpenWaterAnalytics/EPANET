@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 01/01/2019
+Last Updated: 03/17/2019
 ******************************************************************************
 */
 
@@ -115,15 +115,14 @@ int juncdata(Project *pr)
     node->Ke = 0.0;
     node->Rpt = 0;
     node->Type = JUNCTION;
-    strcpy(node->Comment, parser->Comment);
-
+    node->Comment = xstrcpy(&node->Comment, parser->Comment, MAXMSG);
 
     // create a demand record, even if no demand is specified here.
     demand = (struct Sdemand *) malloc(sizeof(struct Sdemand));
     if (demand == NULL) return 101;
     demand->Base = y;
     demand->Pat = p;
-    strncpy(demand->Name, "", MAXMSG);
+    demand->Name = NULL;
     demand->next = NULL;
     node->D = demand;
     hyd->NodeDemand[njuncs] = y;
@@ -224,7 +223,7 @@ int tankdata(Project *pr)
     node->S = NULL;
     node->Ke = 0.0;
     node->Type = (diam == 0) ? RESERVOIR : TANK;
-    strcpy(node->Comment, parser->Comment);
+    node->Comment = xstrcpy(&node->Comment, parser->Comment, MAXMSG);
     tank->Node = i;
     tank->H0 = initlevel;
     tank->Hmin = minlevel;
@@ -329,7 +328,7 @@ int pipedata(Project *pr)
     link->Type = type;
     link->Status = status;
     link->Rpt = 0;
-    strcpy(link->Comment, parser->Comment);
+    link->Comment = xstrcpy(&link->Comment, parser->Comment, MAXMSG);
     return 0;
 }
 
@@ -392,7 +391,7 @@ int pumpdata(Project *pr)
     link->Type = PUMP;
     link->Status = OPEN;
     link->Rpt = 0;
-    strcpy(link->Comment, parser->Comment);
+    link->Comment = xstrcpy(&link->Comment, parser->Comment, MAXMSG);
     pump->Link = net->Nlinks;
     pump->Ptype = NOCURVE; // NOCURVE is a placeholder
     pump->Hcurve = 0;
@@ -535,7 +534,7 @@ int valvedata(Project *pr)
     link->Type = type;
     link->Status = status;
     link->Rpt = 0;
-    strcpy(link->Comment, parser->Comment);
+    link->Comment = xstrcpy(&link->Comment, parser->Comment, MAXMSG);
     net->Valve[net->Nvalves].Link = net->Nlinks;
     return 0;
 }
@@ -559,6 +558,7 @@ int patterndata(Project *pr)
     double x;
     SFloatlist *f;
     STmplist *p;
+    Spattern *pattern;
 
     n = parser->Ntokens - 1;
     if (n < 1) return 201;
@@ -566,8 +566,13 @@ int patterndata(Project *pr)
     // Check for a new pattern
     if (parser->PrevPat != NULL &&
         strcmp(parser->Tok[0], parser->PrevPat->ID) == 0) p = parser->PrevPat;
-    else p = getlistitem(parser->Tok[0], parser->Patlist);
-    if (p == NULL) return setError(parser, 0, 205);
+    else
+    {
+        p = getlistitem(parser->Tok[0], parser->Patlist);
+        if (p == NULL) return setError(parser, 0, 205);
+        pattern = &(net->Pattern[p->i]);
+        pattern->Comment = xstrcpy(&pattern->Comment, parser->Comment, MAXMSG);
+    }
 
     // Add parsed multipliers to the pattern
     for (i = 1; i <= n; i++)
@@ -606,13 +611,19 @@ int curvedata(Project *pr)
     double x, y;
     SFloatlist *fx, *fy;
     STmplist *c;
+    Scurve *curve;
 
     // Check for valid curve ID
     if (parser->Ntokens < 3) return 201;
     if (parser->PrevCurve != NULL &&
         strcmp(parser->Tok[0], parser->PrevCurve->ID) == 0) c = parser->PrevCurve;
-    else c = getlistitem(parser->Tok[0], parser->Curvelist);
-    if (c == NULL) return setError(parser, 0, 206);
+    else
+    {
+        c = getlistitem(parser->Tok[0], parser->Curvelist);
+        if (c == NULL) return setError(parser, 0, 206);
+        curve = &(net->Curve[c->i]);
+        curve->Comment = xstrcpy(&curve->Comment, parser->Comment, MAXMSG);
+    }
 
     // Check for valid data
     if (!getfloat(parser->Tok[1], &x)) return setError(parser, 1, 202);
@@ -731,7 +742,7 @@ int demanddata(Project *pr)
         // with what is specified in this section
         demand->Base = y;
         demand->Pat = p;
-        strncpy(demand->Name, parser->Comment, MAXMSG);
+        demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXMSG);
         hyd->NodeDemand[j] = MISSING; // marker - next iteration will append a new category.
     }
 
@@ -744,7 +755,7 @@ int demanddata(Project *pr)
         if (demand == NULL) return 101;
         demand->Base = y;
         demand->Pat = p;
-        strncpy(demand->Name, parser->Comment, MAXMSG);
+        demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXMSG);
         demand->next = NULL;
         cur_demand->next = demand;
     }

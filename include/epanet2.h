@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/28/2019
+ Last Updated: 03/17/2019
  ******************************************************************************
  */
 
@@ -76,6 +76,10 @@ extern "C" {
   int  DLLEXPORT ENgettitle(char *line1, char *line2, char *line3);
   
   int  DLLEXPORT ENsettitle(char *line1, char *line2, char *line3);
+
+  int  DLLEXPORT ENgetcomment(int object, int index, char *comment);
+
+  int  DLLEXPORT ENsetcomment(int object, int index, char *comment);
 
   int  DLLEXPORT ENgetcount(int object, int *count);
 

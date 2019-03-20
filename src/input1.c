@@ -7,7 +7,7 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 12/15/2018
+Last Updated: 03/17/2019
 ******************************************************************************
 */
 
@@ -334,7 +334,7 @@ void adjustdata(Project *pr)
             if (demand->Pat == 0)
             {
                 demand->Pat = hyd->DefPat;
-                strcpy(demand->Name, "");
+                xstrcpy(&demand->Name, "", MAXMSG);
             }
         }
     }
