@@ -55,9 +55,8 @@ before_build:
   - mkdir %BUILD_HOME%
   - cd %BUILD_HOME%
   - cmake -G "%GENERATOR%"
-    -DBUILD_TESTS=ON
-    -DBOOST_ROOT="%BOOST_ROOT%"
-    -DBoost_USE_STATIC_LIBS="ON" ..
+    -DBUILD_TESTING=ON
+    -DBOOST_ROOT="%BOOST_ROOT%" ..
 
 # run custom build script
 build_script:
@@ -71,7 +70,7 @@ before_test:
 test_script:
   # run unit tests
   - cd %BUILD_HOME%\tests
-  - ctest -C Release
+  - ctest -C Release RUN_TESTS
   # run regression tests
   - cd %EPANET_HOME%
   - tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%

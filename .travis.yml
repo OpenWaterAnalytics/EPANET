@@ -40,14 +40,14 @@ before_script:
   - cd $BUILD_HOME
   - cmake -DCMAKE_C_COMPILER=${CC}
           -DCMAKE_CXX_COMPILER=${CXX}
-          -DBUILD_TESTS=ON
+          -DBUILD_TESTING=ON
           -DBUILD_COVERAGE=ON ..
 
 script:
   - cmake --build .
   # run unit tests
   - cd tests
-  - ctest
+  - ctest test
   # run regression tests
   - cd $EPANET_HOME
   - pip install -r tools/requirements.txt
