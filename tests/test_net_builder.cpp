@@ -11,9 +11,10 @@
  ******************************************************************************
 */
 
-#define BOOST_TEST_MODULE "net_builder"
+#define BOOST_ALL_DYN_LINK
+#include <boost/test/unit_test.hpp>
 
-#include "shared_test.hpp"
+#include "test_toolkit.hpp"
 
 
 BOOST_AUTO_TEST_SUITE(test_net_builder)

@@ -28,7 +28,7 @@ IF(MSVC)
 ENDIF(MSVC)
 
 set(Boost_THREAD_FOUND              OFF)
-find_package(Boost COMPONENTS unit_test_framework filesystem)
+find_package(Boost COMPONENTS unit_test_framework filesystem thread)
 include_directories (${Boost_INCLUDE_DIRS})
 
 
@@ -45,41 +45,27 @@ set(toolkit_test_srcs
 #     test_pump.cpp
      test_pattern.cpp
 #     test_curve.cpp
-     test_control.cpp)
+     test_control.cpp
+     test_net_builder.cpp)
 
 add_executable(test_toolkit ${toolkit_test_srcs})
 
 target_link_libraries(test_toolkit ${Boost_LIBRARIES} epanet2)
 
+add_test(NAME test_toolkit
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_toolkit
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
 
 
-#I like to keep test files in a separate source directory called test
-#file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test_*.cpp)
 
-#add_library(shared_test OBJECT shared_test.cpp)
+add_executable(test_reent test_reent.cpp)
 
-#Run through each source
-#foreach(testSrc ${TEST_SRCS})
-#    #Extract the filename without an extension (NAME_WE)
-#    get_filename_component(testName ${testSrc} NAME_WE)
-#
-#    #Add compile target
-#    IF(${testName} MATCHES "test_reent")
-#        add_executable(${testName} ${testSrc})
-#    ELSE (TRUE)
-#        add_executable(${testName} ${testSrc} $<TARGET_OBJECTS:shared_test>)
-#    ENDIF(${testName} MATCHES "test_reent")
-#
-#    #link to Boost libraries AND your targets and dependencies
-#    IF(MSVC)
-#        target_link_libraries(${testName} ${Boost_LIBRARIES} epanet2 epanet-output)
-#    ELSE(TRUE)
-#        target_link_libraries(${testName} ${Boost_LIBRARIES} pthread epanet2 epanet-output)
-#    ENDIF(MSVC)
-#
-#    #Finally add it to test execution
-#    #Notice the WORKING_DIRECTORY and COMMAND
-#    add_test(NAME ${testName}
-#        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${testName}
-#        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
-#endforeach(testSrc)
+IF(MSVC)
+    target_link_libraries(test_reent ${Boost_LIBRARIES} epanet2)
+ELSE(TRUE)
+    target_link_libraries(test_reent ${Boost_LIBRARIES} pthread epanet2)
+ENDIF(MSVC)
+
+add_test(NAME test_reent
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_reent
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)

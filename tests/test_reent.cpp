@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define BOOST_ALL_DYN_LINK
 #include <boost/thread.hpp>
 
 #include "epanet2_2.h"
