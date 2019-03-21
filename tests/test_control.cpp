@@ -1,5 +1,15 @@
-// Test of EN_addrule, EN_deletenode & EN_deletelink EPANET API Functions
-#define _CRT_SECURE_NO_DEPRECATE
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       test_control.cpp
+ Description:  Tests EPANET toolkit api functions
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 03/21/2019
+ ******************************************************************************
+*/
 
 /*
 This is a test for the API functions that adds rules and deletes
@@ -8,9 +18,10 @@ node or link appearing in any simple or rule-based controls.
 */
 
 
-#define BOOST_TEST_MODULE "rules"
+#define BOOST_ALL_DYN_LINK
+#include <boost/test/unit_test.hpp>
 
-#include "shared_test.hpp"
+#include "test_toolkit.hpp"
 
 
 char R1[] = "RULE 1 \n IF NODE 2 LEVEL < 100 \n THEN LINK 9 STATUS = OPEN";
@@ -19,7 +30,7 @@ char R3[] = "RULE 3\nIF NODE 23 PRESSURE ABOVE 140\nAND NODE 2 LEVEL > 120\n"
             "THEN LINK 113 STATUS = CLOSED\nELSE LINK 22 STATUS = CLOSED";
 
 
-BOOST_AUTO_TEST_SUITE (test_addrule)
+BOOST_AUTO_TEST_SUITE (test_controls)
 
 BOOST_FIXTURE_TEST_CASE(test_add_get_rule,  FixtureOpenClose)
 {

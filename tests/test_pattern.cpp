@@ -1,9 +1,20 @@
-// Test of the EN_setpatternid, EN_setcurveid, EN_deletepattern & EN_deletecurve
-// EPANET 2.2 API functions
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       test_pattern.cpp
+ Description:  Tests EPANET toolkit api functions
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 03/21/2019
+ ******************************************************************************
+*/
 
-#define BOOST_TEST_MODULE "pattern_curve"
+#define BOOST_ALL_DYN_LINK
+#include <boost/test/unit_test.hpp>
 
-#include "shared_test.hpp"
+#include "test_toolkit.hpp"
 
 
 BOOST_AUTO_TEST_SUITE (pattern)

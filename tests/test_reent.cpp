@@ -1,11 +1,14 @@
 /*
- *   test_reent.cpp
- *
- *   Created: 8/30/2018
- *   Author: Michael E. Tryby
- *           US EPA - ORD/NRMRL
- *
- *   Multi-threading / reentrancy test for EPANET Toolkit API.
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       test_reent.cpp
+ Description:  Tests EPANET toolkit api functions
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 03/21/2019
+ ******************************************************************************
 */
 
 #include <string>

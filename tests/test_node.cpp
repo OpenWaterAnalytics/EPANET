@@ -1,18 +1,23 @@
-//
-// test_node.cpp
-//
-// Date Created: February 8, 2019
-//
-// Author: Michael E. Tryby
-//         US EPA - ORD/NRMRL
-//
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       test_node.cpp
+ Description:  Tests EPANET toolkit api functions
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 03/21/2019
+ ******************************************************************************
+*/
 
-#define BOOST_TEST_MODULE "node"
+#define BOOST_ALL_DYN_LINK
+#include <boost/test/unit_test.hpp>
 
-#include "shared_test.hpp"
+#include "test_toolkit.hpp"
 
 
-BOOST_AUTO_TEST_SUITE (node_props_after_open)
+BOOST_AUTO_TEST_SUITE (test_node)
 
 BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureOpenClose)
 {
