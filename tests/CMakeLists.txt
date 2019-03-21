@@ -28,7 +28,7 @@ IF(MSVC)
 ENDIF(MSVC)
 
 set(Boost_THREAD_FOUND              OFF)
-find_package(Boost COMPONENTS unit_test_framework filesystem thread)
+find_package(Boost COMPONENTS unit_test_framework system thread filesystem)
 include_directories (${Boost_INCLUDE_DIRS})
 
 
