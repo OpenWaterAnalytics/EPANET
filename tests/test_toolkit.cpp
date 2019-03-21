@@ -11,9 +11,7 @@
  ******************************************************************************
 */
 
-
 #define BOOST_TEST_MODULE toolkit
-#define BOOST_ALL_DYN_LINK
 
 #include <boost/test/unit_test.hpp>
 

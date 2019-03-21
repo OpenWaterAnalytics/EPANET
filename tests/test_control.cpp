@@ -17,8 +17,6 @@ nodes and links from a project. Deletion can be conditional on
 node or link appearing in any simple or rule-based controls.
 */
 
-
-#define BOOST_ALL_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
 #include "test_toolkit.hpp"

@@ -28,12 +28,12 @@
 cmake_minimum_required (VERSION 2.8.8)
 
 project(EPANET)
+include(CTest)
 
 # Append local dir to module search path
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 
-option(BUILD_TESTS "Build unit tests (requires Boost test)" OFF)
 option(BUILD_PY_LIB "Build library for Python wrapper" OFF)
 option(BUILD_COVERAGE "Build library for coverage" OFF)
 
@@ -43,10 +43,12 @@ IF (NOT BUILD_PY_LIB)
 ENDIF (NOT BUILD_PY_LIB)
 add_subdirectory(src/outfile)
 
-IF (BUILD_TESTS)
+IF (BUILD_TESTING)
+  enable_testing()
   add_subdirectory(tests)
   add_subdirectory(tests/outfile)
-ENDIF (BUILD_TESTS)
+  add_subdirectory(tests/util)
+ENDIF (BUILD_TESTING)
 
 
 # Sets for output directory for executables and libraries.

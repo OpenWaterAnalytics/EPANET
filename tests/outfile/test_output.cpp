@@ -8,13 +8,7 @@
  *   Unit testing for EPANET Output API.
 */
 
-// NOTE: Travis installs libboost test version 1.5.4
-// NOTE: Can not dyn link boost using Visual Studio 10 2010
-//#define BOOST_TEST_DYN_LINK
-
-
 #define BOOST_TEST_MODULE "output"
-#define BOOST_TEST_DYN_LINK
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -1,7 +1,7 @@
 
 
 #define BOOST_TEST_MODULE errormanager
-#define BOOST_TEST_DYN_LINK
+//#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
 #include "util/errormanager.h"
@@ -37,19 +37,19 @@ BOOST_AUTO_TEST_SUITE(test_errormanager)
 BOOST_AUTO_TEST_CASE (test_create_destroy)
 {
     error_handle_t *error_handle = NULL;
-    error_handle = error_new_manager(&mock_lookup);
+    error_handle = create_error_manager(&mock_lookup);
 
-    error_dst_manager(error_handle);
+    delete_error_manager(error_handle);
 }
 
 
 struct Fixture{
     Fixture() {
 		error_message = NULL;
-        error_handle = error_new_manager(&mock_lookup);
+        error_handle = create_error_manager(&mock_lookup);
     }
     ~Fixture() {
-        error_dst_manager(error_handle);
+        delete_error_manager(error_handle);
         free(error_message);
   }
   int error;
@@ -60,21 +60,21 @@ struct Fixture{
 
 BOOST_FIXTURE_TEST_CASE (test_set_clear, Fixture)
 {
-    error = error_set(error_handle, 100);
+    error = set_error(error_handle, 100);
     BOOST_CHECK(error == 100);
 
-    error_clear(error_handle);
-    error = error_check(error_handle, &error_message);
+    clear_error(error_handle);
+    error = check_error(error_handle, &error_message);
     BOOST_CHECK(error == 0);
     BOOST_CHECK(error_message == NULL);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_set_check, Fixture)
 {
-    error = error_set(error_handle, 100);
+    error = set_error(error_handle, 100);
     BOOST_CHECK(error == 100);
 
-    error = error_check(error_handle, &error_message);
+    error = check_error(error_handle, &error_message);
     BOOST_CHECK(check_string(error_message, MESSAGE_STRING));
 }
 
