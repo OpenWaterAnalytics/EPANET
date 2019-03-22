@@ -9,10 +9,13 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 
-if (MSVC)
-    set (Boost_USE_STATIC_LIBS OFF)
+#Prep ourselves for compiling boost
+IF(WIN32)
+    set(Boost_USE_STATIC_LIBS       ON)
+ELSE(TRUE)
+    set(Boost_USE_STATIC_LIBS       OFF)
     add_definitions(-DBOOST_ALL_DYN_LINK)
-endif(MSVC)
+ENDIF(WIN32)
 
 find_package(Boost COMPONENTS unit_test_framework)
 include_directories (${Boost_INCLUDE_DIRS} ../../src/outfile/include)

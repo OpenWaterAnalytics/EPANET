@@ -18,12 +18,12 @@ if(UNIX)
 endif(UNIX)
 
 #Prep ourselves for compiling boost
-IF(MSVC)
-    set(Boost_DEBUG                 OFF)
-    set(Boost_DETAILED_FAILURE_MSG  OFF)
+IF(WIN32)
     set(Boost_USE_STATIC_LIBS       ON)
-#    add_definitions(-DBOOST_ALL_DYN_LINK)
-ENDIF(MSVC)
+ELSE(TRUE)
+    set(Boost_USE_STATIC_LIBS       OFF)
+    add_definitions(-DBOOST_ALL_DYN_LINK)
+ENDIF(WIN32)
 
 set(Boost_THREAD_FOUND              OFF)
 find_package(Boost COMPONENTS unit_test_framework system thread filesystem)
