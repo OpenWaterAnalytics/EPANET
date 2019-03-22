@@ -53,3 +53,12 @@ ENDIF(MSVC)
 add_test(NAME test_reent
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_reent
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
+
+
+# ctest doesn't like tests added in subdirectories so adding them here
+add_test(NAME test_errormanager
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_errormanager)
+
+add_test(NAME test_output
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_output
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)

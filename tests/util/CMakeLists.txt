@@ -15,6 +15,3 @@ set (test_source
 add_executable(test_errormanager ${test_source})
 target_include_directories(test_errormanager PUBLIC ../../src/)
 target_link_libraries(test_errormanager ${Boost_LIBRARIES})
-
-add_test(NAME test_errormanager
-    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_errormanager)

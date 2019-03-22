@@ -70,7 +70,7 @@ before_test:
 test_script:
   # run unit tests
   - cd %BUILD_HOME%\tests
-  - ctest -C Release RUN_TESTS
+  - ctest -C Release --output-on-failure
   # run regression tests
   - cd %EPANET_HOME%
   - tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%

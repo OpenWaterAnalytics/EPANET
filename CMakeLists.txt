@@ -28,12 +28,11 @@
 cmake_minimum_required (VERSION 2.8.8)
 
 project(EPANET)
-include(CTest)
 
 # Append local dir to module search path
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-
+option(BUILD_TESTS "Build tests (requires Boost)" OFF)
 option(BUILD_PY_LIB "Build library for Python wrapper" OFF)
 option(BUILD_COVERAGE "Build library for coverage" OFF)
 
@@ -43,8 +42,8 @@ IF (NOT BUILD_PY_LIB)
 ENDIF (NOT BUILD_PY_LIB)
 add_subdirectory(src/outfile)
 
-IF (BUILD_TESTING)
-    #Prep ourselves for compiling boost
+IF (BUILD_TESTS)
+    #Prep ourselves for compiling with boost
     IF(WIN32)
         set(Boost_USE_STATIC_LIBS       ON)
     ELSE(TRUE)
@@ -59,7 +58,7 @@ IF (BUILD_TESTING)
     add_subdirectory(tests)
     add_subdirectory(tests/outfile)
     add_subdirectory(tests/util)
-ENDIF (BUILD_TESTING)
+ENDIF (BUILD_TESTS)
 
 
 # Sets for output directory for executables and libraries.
