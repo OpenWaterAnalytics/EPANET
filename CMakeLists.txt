@@ -44,10 +44,21 @@ ENDIF (NOT BUILD_PY_LIB)
 add_subdirectory(src/outfile)
 
 IF (BUILD_TESTING)
-  enable_testing()
-  add_subdirectory(tests)
-  add_subdirectory(tests/outfile)
-  add_subdirectory(tests/util)
+    #Prep ourselves for compiling boost
+    IF(WIN32)
+        set(Boost_USE_STATIC_LIBS       ON)
+    ELSE(TRUE)
+        set(Boost_USE_STATIC_LIBS       OFF)
+        add_definitions(-DBOOST_ALL_DYN_LINK)
+    ENDIF(WIN32)
+
+    find_package(Boost COMPONENTS unit_test_framework system thread filesystem)
+    include_directories (${Boost_INCLUDE_DIRS})
+
+    enable_testing()
+    add_subdirectory(tests)
+    add_subdirectory(tests/outfile)
+    add_subdirectory(tests/util)
 ENDIF (BUILD_TESTING)
 
 

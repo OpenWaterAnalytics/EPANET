@@ -7,8 +7,6 @@
 #              US EPA ORD/NRMRL
 #
 
-#Setup CMake to run tests
-enable_testing()
 
 # Sets for output directory for executables and libraries.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -16,18 +14,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 if(UNIX)
     set(CMAKE_CXX_FLAGS "-std=c++11")
 endif(UNIX)
-
-#Prep ourselves for compiling boost
-IF(WIN32)
-    set(Boost_USE_STATIC_LIBS       ON)
-ELSE(TRUE)
-    set(Boost_USE_STATIC_LIBS       OFF)
-    add_definitions(-DBOOST_ALL_DYN_LINK)
-ENDIF(WIN32)
-
-set(Boost_THREAD_FOUND              OFF)
-find_package(Boost COMPONENTS unit_test_framework system thread filesystem)
-include_directories (${Boost_INCLUDE_DIRS})
 
 
 set(toolkit_test_srcs
