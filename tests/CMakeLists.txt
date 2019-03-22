@@ -2,8 +2,6 @@
 # CMakeLists.txt - CMake configuration file for epanet/tests
 #
 # Created: February 13, 2018
-# Author:  Constantin Savtchenko
-# Ref: http://neyasystems.com/an-engineers-guide-to-unit-testing-cmake-and-boost-unit-tests/
 #
 # Modified by: Michael E. Tryby
 #              US EPA ORD/NRMRL
