@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/08/2019
+ Last Updated: 03/17/2019
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -39,7 +39,11 @@ int     findpump(Network *, int);
 void    adjustpatterns(Network *, int);
 void    adjustcurves(Network *, int);
 
+int     getcomment(Network *, int, int, char *);
+int     setcomment(Network *, int, int, const char *);
+
 char    *getTmpName(char *);
+char    *xstrcpy(char **, const char *, const size_t n);
 int     strcomp(const char *, const char *);
 double  interp(int, double [], double [], double);
 char    *geterrmsg(int, char *);

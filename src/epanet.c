@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/08/2019
+ Last Updated: 03/17/2019
  ******************************************************************************
 */
 
@@ -273,6 +273,32 @@ int DLLEXPORT EN_settitle(EN_Project p, char *line1, char *line2, char *line3)
     strncpy(p->Title[1], line2, TITLELEN);
     strncpy(p->Title[2], line3, TITLELEN);
     return 0;
+}
+
+int DLLEXPORT EN_getcomment(EN_Project p, int object, int index, char *comment)
+/*----------------------------------------------------------------
+**  Input:   object = a type of object (see EN_ObjectType)
+**           index = the object's index
+**  Output:  comment = the object's descriptive comment 
+**  Returns: error code
+**  Purpose: Retrieves an object's descriptive comment
+**----------------------------------------------------------------
+*/
+{
+    return getcomment(&p->network, object, index, comment);
+}
+
+int  DLLEXPORT EN_setcomment(EN_Project p, int object, int index, char *comment)
+/*----------------------------------------------------------------
+**  Input:   object = a type of object (see EN_ObjectType)
+**           index = the object's index
+**           comment =  a descriptive comment to assign
+**  Returns: error code
+**  Purpose: Assigns a descriptive comment to an object
+**----------------------------------------------------------------
+*/
+{
+    return setcomment(&p->network, object, index, comment);
 }
 
 int DLLEXPORT EN_getcount(EN_Project p, int object, int *count)
@@ -1208,7 +1234,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
                 if (demand->Pat == tmpPat)
                 {
                     demand->Pat = pat;
-                    strcpy(demand->Name, "");
+                    demand->Name = xstrcpy(&demand->Name, "", MAXMSG);
                 }
             }
         }
@@ -1668,7 +1694,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
         demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
         demand->Base = 0.0;
         demand->Pat = hyd->DefPat; // Use default pattern
-        strcpy(demand->Name, "");
+        demand->Name = NULL;
         demand->next = NULL;
         node->D = demand;
 
@@ -1743,7 +1769,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
     node->Rpt = 0;
     node->X = MISSING;
     node->Y = MISSING;
-    strcpy(node->Comment, "");
+    node->Comment = NULL;
 
     // Insert new node into hash table
     hashtable_insert(net->NodeHashTable, node->ID, nIdx);
@@ -1769,7 +1795,6 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
     int i, nodeType, tankindex;
     Snode *node;
     Pdemand demand, nextdemand;
-    Psource source;
 
     // Cannot modify network structure while solvers are active
     if (!p->Openflag) return 102;
@@ -1801,16 +1826,17 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
     // Remove node from its hash table
     hashtable_delete(net->NodeHashTable, node->ID);
 
-    // Free memory allocated to node's demands & WQ source
+    // Free memory allocated to node's demands, WQ source & comment
     demand = node->D;
     while (demand != NULL)
     {
         nextdemand = demand->next;
+        free(demand->Name);
         free(demand);
         demand = nextdemand;
     }
-    source = node->S;
-    if (source != NULL) free(source);
+    free(node->S);
+    free(node->Comment);
 
     // Shift position of higher entries in Node & Coord arrays down one
     for (i = index; i <= net->Nnodes - 1; i++)
@@ -1823,6 +1849,7 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
     // Remove references to demands & source in last (inactive) Node array entry
     net->Node[net->Nnodes].D = NULL;
     net->Node[net->Nnodes].S = NULL;
+    net->Node[net->Nnodes].Comment = NULL;
 
     // If deleted node is a tank, remove it from the Tank array
     if (nodeType != EN_JUNCTION)
@@ -2522,7 +2549,6 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     return 0;
 }
 
-
 int DLLEXPORT EN_getcoord(EN_Project p, int index, double *x, double *y)
 /*----------------------------------------------------------------
 **  Input:   index = node index
@@ -2752,7 +2778,7 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
     for (d = p->network.Node[nodeIndex].D;
          n < demandIndex && d->next != NULL; d = d->next) n++;
     if (n != demandIndex) return 253;
-    strncpy(d->Name, demandName, MAXMSG);
+    d->Name = xstrcpy(&d->Name, demandName, MAXMSG);
     return 0;
 }
 
@@ -2944,7 +2970,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     link->R = 0;
     link->Rc = 0;
     link->Rpt = 0;
-    strcpy(link->Comment, "");
+    link->Comment = NULL;
 
     hashtable_insert(net->LinkHashTable, link->ID, n);
     return 0;
@@ -2992,6 +3018,10 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
 
     // Remove link from its hash table
     hashtable_delete(net->LinkHashTable, link->ID);
+
+    // Remove link's comment
+    free(net->Link[index].Comment);
+    net->Link[net->Nlinks].Comment = NULL;
 
     // Shift position of higher entries in Link array down one
     for (i = index; i <= net->Nlinks - 1; i++)
@@ -3864,6 +3894,7 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
     // Assign properties to the new pattern
     pat = &net->Pattern[n];
     strcpy(pat->ID, id);
+    pat->Comment = NULL;
     pat->Length = 1;
     pat->F = (double *)calloc(1, sizeof(double));
     if (pat->F == NULL) err = 1;
@@ -3924,6 +3955,7 @@ int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
 
     // Free the pattern's factor array
     FREE(net->Pattern[index].F);
+    FREE(net->Pattern[index].Comment);
 
     // Shift the entries in the network's Pattern array
     for (i = index; i < net->Npats; i++) net->Pattern[i] = net->Pattern[i+1];
@@ -4141,6 +4173,7 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
     // Set the properties of the new curve
     curve = &net->Curve[n];
     strcpy(curve->ID, id);
+    curve->Comment = NULL;
     curve->Npts = 1;
     curve->Type = GENERIC_CURVE;
     curve->X = (double *)calloc(1, sizeof(double));
@@ -4194,6 +4227,7 @@ int  DLLEXPORT EN_deletecurve(EN_Project p, int index)
     // Free the curve's data arrays
     FREE(net->Curve[index].X);
     FREE(net->Curve[index].Y);
+    FREE(net->Curve[index].Comment);
 
     // Shift the entries in the network's Curve array
     for (i = index; i < net->Ncurves; i++) net->Curve[i] = net->Curve[i + 1];
@@ -5092,7 +5126,6 @@ int DLLEXPORT EN_getelseaction(EN_Project p, int ruleIndex, int actionIndex,
 **----------------------------------------------------------------
 */
 {
-
   Saction *actions;
   Saction *action;
 

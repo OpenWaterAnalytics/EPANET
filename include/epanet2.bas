@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 02/28/2019
+'Last updated on 03/17/2019
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -82,6 +82,13 @@ Public Const EN_RELATIVEERROR = 1
 Public Const EN_MAXHEADERROR = 2
 Public Const EN_MAXFLOWCHANGE = 3
 Public Const EN_MASSBALANCE = 4
+
+Public Const EN_NODE = 0          ' Component types
+Public Const EN_LINK = 1
+Public Const EN_TIMEPAT = 2
+Public Const EN_CURVE = 3
+Public Const EN_CONTROL = 4
+Public Const EN_RULE = 5 
 
 Public Const EN_NODECOUNT = 0     ' Component counts
 Public Const EN_TANKCOUNT = 1

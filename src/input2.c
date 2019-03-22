@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 01/01/2019
+Last Updated: 03/17/2019
 ******************************************************************************
 */
 
@@ -166,6 +166,7 @@ int readdata(Project *pr)
     net->Npats = parser->MaxPats;
     parser->PrevPat = NULL;
     parser->PrevCurve = NULL;
+    parser->LineComment[0] = '\0';
 
     sect = -1;
     errsum = 0;
@@ -175,19 +176,31 @@ int readdata(Project *pr)
     {
         // Make copy of line and scan for tokens
         strcpy(wline, line);
-        parser->Ntokens = gettokens(wline, parser->Tok, MAXTOKS,
-                                    parser->Comment);
+        parser->Ntokens = gettokens(wline, parser->Tok, MAXTOKS, parser->Comment);
 
-        // Skip blank lines and comments
+        // Skip blank lines and those filled with a comment
         parser->ErrTok = -1;
-        if (parser->Ntokens == 0) continue;
-        if (*parser->Tok[0] == ';') continue;
+        if (parser->Ntokens == 0)
+        {
+            // Store full line comment for Patterns and Curves
+            if (sect == _PATTERNS || sect == _CURVES)
+            {
+                strncpy(parser->LineComment, parser->Comment, MAXMSG);
+            }
+            continue;
+        }
+
+        // Apply full line comment for Patterns and Curves
+        if (sect == _PATTERNS || sect == _CURVES)
+        {
+            strcpy(parser->Comment, parser->LineComment);
+        }
+        parser->LineComment[0] = '\0';
 
         // Check if max. line length exceeded
         if (strlen(line) >= MAXLINE)
         {
-            sprintf(pr->Msg, "%s section: %s", geterrmsg(214, pr->Msg),
-                    SectTxt[sect]);
+            sprintf(pr->Msg, "%s section: %s", geterrmsg(214, pr->Msg), SectTxt[sect]);
             writeline(pr, pr->Msg);
             writeline(pr, line);
             errsum++;
