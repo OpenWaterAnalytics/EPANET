@@ -93,7 +93,7 @@ int EXPORT_PY_API proj_gettitle(Handle ph, char *line1, char *line2, char *line3
 int EXPORT_PY_API proj_settitle(Handle ph, const char *line1, const char *line2, const char *line3)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_settitle(pr->project, line1, line2, line3));
+    return error_set(pr->error, EN_settitle(pr->project, (char *)line1, (char *)line2, (char *)line3));
 }
 
 int EXPORT_PY_API proj_getcount(Handle ph, EN_CountType code, int *count)
@@ -761,28 +761,13 @@ void EXPORT_PY_API err_clear(Handle ph)
 
 int EXPORT_PY_API err_check(Handle ph, char** msg_buffer)
 //
-// Purpose: Returns the error message or NULL.
+// Purpose: Returns the error code and message or 0 and NULL respectively.
 //
 // Note: Caller must free memory allocated by EN_check_error
 //
 {
-    int errorcode = 0;
-    char *temp = NULL;
-
     handle_t *pr = (handle_t *)ph;
-
-
-    if (pr == NULL) return -1;
-    else
-    {
-        errorcode = pr->error->error_status;
-        if (errorcode)
-            temp = error_check(pr->error);
-
-        *msg_buffer = temp;
-    }
-
-    return errorcode;
+    return error_check(pr->error, msg_buffer);
 }
 
 int EXPORT_PY_API toolkit_getversion(int *version)

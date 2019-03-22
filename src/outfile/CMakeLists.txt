@@ -6,8 +6,6 @@
 #         US EPA ORD/NRMRL
 #
 
-cmake_minimum_required (VERSION 3.0)
-
 
 # Sets for output directory for executables and libraries.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -22,12 +20,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
 # configure file groups
-set(EPANET_OUT_SOURCES src/epanet_output.c src/errormanager.c)
+set(EPANET_OUT_SOURCES  src/epanet_output.c
+                       ../util/errormanager.c)
 
 
 # the binary output file API
 add_library(epanet-output SHARED ${EPANET_OUT_SOURCES})
-target_include_directories(epanet-output PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(epanet-output PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+                                                ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 include(GenerateExportHeader)
 generate_export_header(epanet-output

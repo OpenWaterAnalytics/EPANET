@@ -47,7 +47,7 @@ script:
   - cmake --build .
   # run unit tests
   - cd tests
-  - ctest
+  - ctest --output-on-failure
   # run regression tests
   - cd $EPANET_HOME
   - pip install -r tools/requirements.txt

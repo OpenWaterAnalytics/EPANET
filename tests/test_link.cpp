@@ -1,17 +1,19 @@
-// Test of ENsetlinktype EPANET API Function
-#define _CRT_SECURE_NO_DEPRECATE
-
 /*
-This is a test for the API function that changes a link's type.
-Two links in Net1.inp are changed: Pipe 113 is reversed with a CV added
-and Pipe 121 is changed to a 100 psi PRV. After running the revised model,
-at hour 0 the flow in Pipe 113 should be zero and the pressure at node 31
-of the PRV 121 should be 100.
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       test_link.cpp
+ Description:  Tests EPANET toolkit api functions
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 03/21/2019
+ ******************************************************************************
 */
 
-#define BOOST_TEST_MODULE "link"
+#include <boost/test/unit_test.hpp>
 
-#include "shared_test.hpp"
+#include "test_toolkit.hpp"
 
 
 BOOST_AUTO_TEST_SUITE (test_link)
@@ -86,12 +88,8 @@ BOOST_AUTO_TEST_CASE(test_setlinktype)
     EN_deleteproject(&ph);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
 
-
-BOOST_AUTO_TEST_SUITE(setid_save_reopen)
-
-BOOST_AUTO_TEST_CASE(test_setid_save)
+BOOST_AUTO_TEST_CASE(test_link_setid_save)
 {
 	int error = 0;
 
@@ -120,7 +118,7 @@ BOOST_AUTO_TEST_CASE(test_setid_save)
 	EN_deleteproject(&ph);
 }
 
-BOOST_AUTO_TEST_CASE(test_setid_reopen, * boost::unit_test::depends_on("setid_save_reopen/test_setid_save"))
+BOOST_AUTO_TEST_CASE(test_link_setid_reopen, * boost::unit_test::depends_on("test_link/test_link_setid_save"))
 {
 	int error = 0;
 	int index;
@@ -135,12 +133,41 @@ BOOST_AUTO_TEST_CASE(test_setid_reopen, * boost::unit_test::depends_on("setid_sa
     // Check that 3rd link has its new name
     error = EN_getlinkindex(ph, (char *)"Link3", &index);
     BOOST_REQUIRE(error == 0);
-    BOOST_REQUIRE(index == 3);
+    BOOST_CHECK(index == 3);
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
     EN_deleteproject(&ph);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_link_comments, FixtureOpenClose)
+{
+    int index;
+    char comment[EN_MAXMSG + 1];
+
+    // Set link comments
+    error = EN_getlinkindex(ph, (char *)"11", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcomment(ph, EN_LINK, index, (char *)"P11");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getlinkindex(ph, (char *)"9", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcomment(ph, EN_LINK, index, (char *)"Pump9");
+    BOOST_REQUIRE(error == 0);
+
+    // Check link comments
+    error = EN_getlinkindex(ph, (char *)"11", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_LINK, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"P11"));
+
+    error = EN_getlinkindex(ph, (char *)"9", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_LINK, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"Pump9"));
+}
 
 BOOST_AUTO_TEST_SUITE_END()

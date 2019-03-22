@@ -21,6 +21,7 @@ environment:
     GENERATOR: "Visual Studio 15 2017"
     GROUP: "SUPPORTED"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
+
     PLATFORM: "win32"
     REF_BUILD_ID: "220dev5"
   # New build on Visual Studio 15 2017
@@ -37,6 +38,7 @@ init:
   - set EPANET_HOME=%APPVEYOR_BUILD_FOLDER%
   - set BUILD_HOME=buildprod
   - set TEST_HOME=nrtestsuite
+  - set PATH=%PATH%;%BOOST_ROOT%/
 
   # See values set
   - echo %APPVEYOR_BUILD_WORKER_IMAGE%
@@ -54,8 +56,7 @@ before_build:
   - cd %BUILD_HOME%
   - cmake -G "%GENERATOR%"
     -DBUILD_TESTS=ON
-    -DBOOST_ROOT="%BOOST_ROOT%"
-    -DBoost_USE_STATIC_LIBS="ON" ..
+    -DBOOST_ROOT="%BOOST_ROOT%" ..
 
 # run custom build script
 build_script:
@@ -69,7 +70,7 @@ before_test:
 test_script:
   # run unit tests
   - cd %BUILD_HOME%\tests
-  - ctest -C Release
+  - ctest -C Release --output-on-failure
   # run regression tests
   - cd %EPANET_HOME%
   - tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%

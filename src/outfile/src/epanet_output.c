@@ -35,14 +35,15 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "epanet_output.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "errormanager.h"
+#include "util/errormanager.h"
+
+#include "epanet_output.h"
 #include "messages.h"
+
 
 // NOTE: These depend on machine data model and may change when porting
 // F_OFF Must be a 8 byte / 64 bit integer for large file support
@@ -112,7 +113,7 @@ int EXPORT_OUT_API ENR_init(ENR_Handle* dp_handle)
     p_data = (data_t*)calloc(1, sizeof(data_t));
 
     if (p_data != NULL){
-        p_data->error_handle = new_errormanager(&errorLookup);
+        p_data->error_handle = create_error_manager(&errorLookup);
         *dp_handle = p_data;
     }
     else
@@ -147,7 +148,7 @@ int EXPORT_OUT_API ENR_close(ENR_Handle* p_handle)
 
     else
     {
-        dst_errormanager(p_data->error_handle);
+        delete_error_manager(p_data->error_handle);
         fclose(p_data->file);
         free(p_data);
 
@@ -796,23 +797,12 @@ void EXPORT_OUT_API ENR_clearError(ENR_Handle p_handle)
 
 int EXPORT_OUT_API ENR_checkError(ENR_Handle p_handle, char** msg_buffer)
 {
-    int errorcode = 0;
-    char *temp = NULL;
     data_t* p_data;
-
     p_data = (data_t*)p_handle;
 
     if (p_data == NULL) return -1;
-    else
-    {
-        errorcode = p_data->error_handle->error_status;
-        if (errorcode)
-            temp = check_error(p_data->error_handle);
 
-        *msg_buffer = temp;
-    }
-
-    return errorcode;
+    return check_error(p_data->error_handle, msg_buffer);
 }
 
 

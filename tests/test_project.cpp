@@ -1,17 +1,21 @@
-//
-// test_project.cpp
-//
-// Date Created: January 24, 2018
-//
-// Author: Michael E. Tryby
-//         US EPA - ORD/NRMRL
-//
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       test_project.cpp
+ Description:  Tests EPANET toolkit api functions
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 03/21/2019
+ ******************************************************************************
+*/
 
-#define BOOST_TEST_MODULE "project"
+#include <boost/test/unit_test.hpp>
+#include <boost/filesystem.hpp>
 
-#include "shared_test.hpp"
+#include "test_toolkit.hpp"
 
-using namespace boost;
 
 BOOST_AUTO_TEST_SUITE (test_project)
 
@@ -61,14 +65,14 @@ BOOST_AUTO_TEST_CASE(test_save)
     error = EN_saveinpfile(ph_save, "test_reopen.inp");
     BOOST_REQUIRE(error == 0);
 
-	BOOST_CHECK(filesystem::exists("test_reopen.inp") == true);
+	BOOST_CHECK(boost::filesystem::exists("test_reopen.inp") == true);
 
 	error = EN_close(ph_save);
 	BOOST_REQUIRE(error == 0);
     EN_deleteproject(&ph_save);
 }
 
-BOOST_AUTO_TEST_CASE(test_reopen, * unit_test::depends_on("test_project/test_save"))
+BOOST_AUTO_TEST_CASE(test_reopen, * boost::unit_test::depends_on("test_project/test_save"))
 {
     int error;
 
@@ -98,7 +102,6 @@ BOOST_AUTO_TEST_CASE(test_run)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
 
 
 BOOST_AUTO_TEST_SUITE(test_proj_fixture)

@@ -1,9 +1,19 @@
-// Test of the EN_setpatternid, EN_setcurveid, EN_deletepattern & EN_deletecurve
-// EPANET 2.2 API functions
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       test_pattern.cpp
+ Description:  Tests EPANET toolkit api functions
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 03/21/2019
+ ******************************************************************************
+*/
 
-#define BOOST_TEST_MODULE "pattern_curve"
+#include <boost/test/unit_test.hpp>
 
-#include "shared_test.hpp"
+#include "test_toolkit.hpp"
 
 
 BOOST_AUTO_TEST_SUITE (pattern)
@@ -119,6 +129,25 @@ BOOST_AUTO_TEST_CASE(add_set_pattern)
 
     EN_close(ph);
     EN_deleteproject(&ph);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_pattern_comments, FixtureOpenClose)
+{
+    int index;
+    char comment[EN_MAXMSG + 1];
+
+    // Set pattern comment
+    error = EN_getpatternindex(ph, (char *)"1", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcomment(ph, EN_TIMEPAT, index, (char *)"Time Pattern 1");
+    BOOST_REQUIRE(error == 0);
+
+    // Check pattern comment
+    error = EN_getpatternindex(ph, (char *)"1", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_TIMEPAT, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"Time Pattern 1"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

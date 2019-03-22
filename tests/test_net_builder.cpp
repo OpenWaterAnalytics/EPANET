@@ -1,11 +1,19 @@
-// Test of EPANET's Network Building Functions
-//
-// This is a test of the API functions EN_setjuncdata, EN_settankdata & EN_setpipedata
-//
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       test_net_builder.cpp
+ Description:  Tests EPANET toolkit api functions
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 03/21/2019
+ ******************************************************************************
+*/
 
-#define BOOST_TEST_MODULE "net_builder"
+#include <boost/test/unit_test.hpp>
 
-#include "shared_test.hpp"
+#include "test_toolkit.hpp"
 
 
 BOOST_AUTO_TEST_SUITE(test_net_builder)
@@ -246,7 +254,7 @@ BOOST_AUTO_TEST_CASE(test_open_net1, * boost::unit_test::depends_on("test_net_bu
     EN_createproject(&ph);
     error = EN_open(ph, "net_builder.inp", DATA_PATH_RPT, DATA_PATH_OUT);
     BOOST_REQUIRE(error == 0);
-	
+
 	error = EN_getnodeindex(ph, (char *)"2", &Nindex);
 	BOOST_REQUIRE(error == 0);
 
@@ -351,7 +359,7 @@ BOOST_FIXTURE_TEST_CASE(test_save_net2, FixtureInitClose)
 BOOST_AUTO_TEST_CASE(test_reopen_net2, *boost::unit_test::depends_on("test_net_builder/test_save_net2"))
 {
 	int error, index;
-	
+
 	double p1_2, p2_2;
 	double q1_2, q2_2;
 

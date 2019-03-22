@@ -32,8 +32,7 @@ project(EPANET)
 # Append local dir to module search path
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-
-option(BUILD_TESTS "Build unit tests (requires Boost test)" OFF)
+option(BUILD_TESTS "Build tests (requires Boost)" OFF)
 option(BUILD_PY_LIB "Build library for Python wrapper" OFF)
 option(BUILD_COVERAGE "Build library for coverage" OFF)
 
@@ -41,10 +40,24 @@ option(BUILD_COVERAGE "Build library for coverage" OFF)
 IF (NOT BUILD_PY_LIB)
   add_subdirectory(run)
 ENDIF (NOT BUILD_PY_LIB)
-add_subdirectory(tools/epanet-output)
+add_subdirectory(src/outfile)
 
 IF (BUILD_TESTS)
-  add_subdirectory(tests)
+    #Prep ourselves for compiling with boost
+    IF(WIN32)
+        set(Boost_USE_STATIC_LIBS       ON)
+    ELSE(TRUE)
+        set(Boost_USE_STATIC_LIBS       OFF)
+        add_definitions(-DBOOST_ALL_DYN_LINK)
+    ENDIF(WIN32)
+
+    find_package(Boost COMPONENTS unit_test_framework system thread filesystem)
+    include_directories (${Boost_INCLUDE_DIRS})
+
+    enable_testing()
+    add_subdirectory(tests)
+    add_subdirectory(tests/outfile)
+    add_subdirectory(tests/util)
 ENDIF (BUILD_TESTS)
 
 

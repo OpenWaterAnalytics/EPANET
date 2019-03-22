@@ -1,18 +1,22 @@
-//
-// test_demand_categories.cpp
-//
-
 /*
-This is a test for the demand categories names get\set APIs
-A demand category name is set, the network is saved, reopened and the new demand category name is checked.
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       test_demand.cpp
+ Description:  Tests EPANET toolkit api functions
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 03/21/2019
+ ******************************************************************************
 */
 
-#define BOOST_TEST_MODULE "demands"
+#include <boost/test/unit_test.hpp>
 
-#include "shared_test.hpp"
+#include "test_toolkit.hpp"
 
 
-BOOST_AUTO_TEST_SUITE (test_demands)
+BOOST_AUTO_TEST_SUITE (test_demand)
 
 BOOST_AUTO_TEST_CASE(test_categories_save)
 {
@@ -41,7 +45,7 @@ BOOST_AUTO_TEST_CASE(test_categories_save)
 	BOOST_REQUIRE(error == 0);
 }
 
-BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("test_demands/test_categories_save"))
+BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("test_demand/test_categories_save"))
 {
     int error = 0;
     int Nindex, ndem;
@@ -59,11 +63,11 @@ BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("tes
     error = EN_getnumdemands(ph, Nindex, &ndem);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ndem == 1);
-	
+
 	char demname[80];
 	error = EN_getdemandname(ph, Nindex, ndem, demname);
     BOOST_REQUIRE(error == 0);
-	
+
     BOOST_CHECK(check_string(demname, "Demand category name"));
 
 	error = EN_close(ph);
