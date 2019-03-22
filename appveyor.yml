@@ -55,7 +55,7 @@ before_build:
   - mkdir %BUILD_HOME%
   - cd %BUILD_HOME%
   - cmake -G "%GENERATOR%"
-    -DBUILD_TESTING=ON
+    -DBUILD_TESTS=ON
     -DBOOST_ROOT="%BOOST_ROOT%" ..
 
 # run custom build script
