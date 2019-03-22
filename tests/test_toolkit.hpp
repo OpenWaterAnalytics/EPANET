@@ -15,21 +15,11 @@
 #define TEST_TOOLKIT_HPP
 
 
-#ifdef _WIN32
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-#else
-#include <stdlib.h>
-#endif
-
-
-#include <math.h>
-
 #include "epanet2_2.h"
 
 
 #define DATA_PATH_NET1 "./net1.inp"
+#define DATA_PATH_TMP "./tmp.inp"
 #define DATA_PATH_RPT "./test.rpt"
 #define DATA_PATH_OUT "./test.out"
 

@@ -2,7 +2,7 @@
  ******************************************************************************
  Project:      OWA EPANET
  Version:      2.2
- Module:       test_analysis.cpp
+ Module:       test_demand.cpp
  Description:  Tests EPANET toolkit api functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS

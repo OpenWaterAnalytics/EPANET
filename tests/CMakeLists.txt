@@ -28,7 +28,7 @@ set(toolkit_test_srcs
      test_link.cpp
 #     test_pump.cpp
      test_pattern.cpp
-#     test_curve.cpp
+     test_curve.cpp
      test_control.cpp
      test_net_builder.cpp)
 
@@ -61,4 +61,4 @@ add_test(NAME test_errormanager
 
 add_test(NAME test_output
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_output
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/outfile/data)

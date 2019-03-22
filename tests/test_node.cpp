@@ -192,3 +192,109 @@ BOOST_AUTO_TEST_CASE(test_setid_reopen, * boost::unit_test::depends_on("setid_sa
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+
+BOOST_AUTO_TEST_SUITE(node_comments)
+
+BOOST_FIXTURE_TEST_CASE(test_node_comments, FixtureOpenClose)
+{
+    int index;
+    char comment[EN_MAXMSG + 1];
+
+    // Add comments to selected objects
+    error = EN_getnodeindex(ph, (char *)"11", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcomment(ph, EN_NODE, index, (char *)"J11");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getnodeindex(ph, (char *)"23", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcomment(ph, EN_NODE, index, (char *)"Junc23");
+    BOOST_REQUIRE(error == 0);
+
+    // Check comments
+    error = EN_getnodeindex(ph, (char *)"11", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_NODE, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"J11"));
+
+    error = EN_getnodeindex(ph, (char *)"23", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_NODE, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"Junc23"));
+}
+
+BOOST_FIXTURE_TEST_CASE(test_replace_comment, FixtureOpenClose)
+{
+    int index;
+    char comment[EN_MAXMSG + 1];
+
+    // Replace short comment with longer one and vice versa
+    error = EN_getnodeindex(ph, (char *)"11", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcomment(ph, EN_NODE, index, (char *)"Junction11");
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_NODE, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"Junction11"));
+
+    error = EN_setcomment(ph, EN_NODE, index, (char *)"J11");
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_NODE, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"J11"));
+}
+
+BOOST_FIXTURE_TEST_CASE(test_save_comment, FixtureOpenClose)
+{
+    int index;
+
+    // Add comments to selected objects
+    error = EN_getnodeindex(ph, (char *)"11", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcomment(ph, EN_NODE, index, (char *)"J11");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getnodeindex(ph, (char *)"23", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcomment(ph, EN_NODE, index, (char *)"Junc23");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_saveinpfile(ph, DATA_PATH_TMP);
+    BOOST_REQUIRE(error == 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_reopen_comment, * boost::unit_test::depends_on("node_comments/test_save_comment"))
+{
+    int error, index;
+    char comment[EN_MAXMSG + 1];
+
+    // Create & load a project
+    EN_Project ph = NULL;
+    EN_createproject(&ph);
+
+    error = EN_open(ph, DATA_PATH_TMP, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+
+    // Check that comments were saved & read correctly
+    // Check comments
+    error = EN_getnodeindex(ph, (char *)"11", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_NODE, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"J11"));
+
+    error = EN_getnodeindex(ph, (char *)"23", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_NODE, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"Junc23"));
+
+    // Close project
+    EN_close(ph);
+    EN_deleteproject(&ph);
+}
+
+BOOST_AUTO_TEST_SUITE_END()

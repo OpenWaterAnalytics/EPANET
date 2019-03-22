@@ -133,12 +133,41 @@ BOOST_AUTO_TEST_CASE(test_link_setid_reopen, * boost::unit_test::depends_on("tes
     // Check that 3rd link has its new name
     error = EN_getlinkindex(ph, (char *)"Link3", &index);
     BOOST_REQUIRE(error == 0);
-    BOOST_REQUIRE(index == 3);
+    BOOST_CHECK(index == 3);
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
     EN_deleteproject(&ph);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_link_comments, FixtureOpenClose)
+{
+    int index;
+    char comment[EN_MAXMSG + 1];
+
+    // Set link comments
+    error = EN_getlinkindex(ph, (char *)"11", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcomment(ph, EN_LINK, index, (char *)"P11");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getlinkindex(ph, (char *)"9", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcomment(ph, EN_LINK, index, (char *)"Pump9");
+    BOOST_REQUIRE(error == 0);
+
+    // Check link comments
+    error = EN_getlinkindex(ph, (char *)"11", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_LINK, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"P11"));
+
+    error = EN_getlinkindex(ph, (char *)"9", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcomment(ph, EN_LINK, index, comment);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(comment, (char *)"Pump9"));
+}
 
 BOOST_AUTO_TEST_SUITE_END()
