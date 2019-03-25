@@ -2751,7 +2751,9 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
     for (d = p->network.Node[nodeIndex].D;
         n < demandIndex && d->next != NULL; d = d->next) n++;
     if (n != demandIndex) return 253;
-    strcpy(demandName, d->Name);
+
+    if (d->Name) strcpy(demandName, d->Name);
+    else demandName[0] = '\0';
     return 0;
 }
 
