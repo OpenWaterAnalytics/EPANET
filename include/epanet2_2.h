@@ -998,7 +998,7 @@ typedef struct Project *EN_Project;
   @param[out] demandName The name of the selected category.
   @return an error code.
 
-  `demandName` must be sized to contain at least @ref EN_MAXMSG characters.
+  `demandName` must be sized to contain at least @ref EN_MAXID characters.
   */
   int DLLEXPORT EN_getdemandname(EN_Project ph, int nodeIndex, int demandIndex, char *demandName);
 
@@ -1010,7 +1010,7 @@ typedef struct Project *EN_Project;
   @param demandName the new name assigned to the category.
   @return Error code.
 
-  The category name must contain no more than @ref EN_MAXMSG characters.
+  The category name must contain no more than @ref EN_MAXID characters.
   */
   int DLLEXPORT EN_setdemandname(EN_Project ph, int nodeIndex, int demandIdx, char *demandName);
 
