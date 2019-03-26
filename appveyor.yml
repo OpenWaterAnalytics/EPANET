@@ -20,14 +20,23 @@ environment:
   - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     GENERATOR: "Visual Studio 15 2017"
     GROUP: "SUPPORTED"
+    BUILD_CONFIG: "Release"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
-
     PLATFORM: "win32"
     REF_BUILD_ID: "220dev5"
   # New build on Visual Studio 15 2017
   - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     GENERATOR: "Visual Studio 15 2017 Win64"
     GROUP: "EXPERIMENTAL"
+    BUILD_CONFIG: "Release"
+    BOOST_ROOT: "C:/Libraries/boost_1_67_0"
+    PLATFORM: "win64"
+    REF_BUILD_ID: "381_2"
+  # adding debug configuration so we can monitor memory leaks
+  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    GENERATOR: "Visual Studio 15 2017 Win64"
+    GROUP: "EXPERIMENTAL"
+    BUILD_CONFIG: "Debug"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
     PLATFORM: "win64"
     REF_BUILD_ID: "381_2"
@@ -60,7 +69,7 @@ before_build:
 
 # run custom build script
 build_script:
-  - cmake --build . --config Release
+  - cmake --build . --config %BUILD_CONFIG%
 
 before_test:
   - cd %EPANET_HOME%
@@ -70,11 +79,12 @@ before_test:
 test_script:
   # run unit tests
   - cd %BUILD_HOME%\tests
-  - ctest -C Release --output-on-failure
+  - ctest -C %BUILD_CONFIG% --output-on-failure
   # run regression tests
-  - cd %EPANET_HOME%
-  - tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%
-
+  - IF "%BUILD_CONFIG%" == "Release" (
+      cd %EPANET_HOME%
+      tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%
+    )
 on_success:
   - cd %TEST_HOME%\benchmark
   - appveyor PushArtifact receipt.json
