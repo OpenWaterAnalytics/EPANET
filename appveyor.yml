@@ -98,4 +98,3 @@ on_failure:
       7z a benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip .\epanet-%SUT_BUILD_ID% &
       appveyor PushArtifact benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip
     )
-    
