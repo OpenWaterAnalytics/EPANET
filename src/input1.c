@@ -334,7 +334,7 @@ void adjustdata(Project *pr)
             if (demand->Pat == 0)
             {
                 demand->Pat = hyd->DefPat;
-                xstrcpy(&demand->Name, "", MAXMSG);
+                xstrcpy(&demand->Name, "", MAXID);
             }
         }
     }
