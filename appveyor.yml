@@ -81,15 +81,21 @@ test_script:
   - cd %BUILD_HOME%\tests
   - ctest -C %BUILD_CONFIG% --output-on-failure
   # run regression tests
+  - cd %EPANET_HOME%
   - IF "%BUILD_CONFIG%" == "Release" (
-      cd %EPANET_HOME% & tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%
+      tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%
     )
 on_success:
   - cd %TEST_HOME%\benchmark
-  - appveyor PushArtifact receipt.json
+  - IF "%BUILD_CONFIG%" == "Release" (
+      appveyor PushArtifact receipt.json
+    )
 
 on_failure:
   - cd %TEST_HOME%\benchmark
   # zip up the SUT benchmarks
-  - 7z a benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip .\epanet-%SUT_BUILD_ID%
-  - appveyor PushArtifact benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip
+  - IF "%BUILD_CONFIG%" == "Release" (
+      7z a benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip .\epanet-%SUT_BUILD_ID% &
+      appveyor PushArtifact benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip
+    )
+    
