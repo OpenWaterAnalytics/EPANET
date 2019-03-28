@@ -12,6 +12,7 @@
 */
 
 #include <stdio.h>
+
 #include "epanet2.h"
 
 void  writeConsole(char *s)

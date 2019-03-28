@@ -18,16 +18,11 @@
    linsolve()     -- called from netsolve() in HYDRAUL.C
 */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
 #include <math.h>
 #include <limits.h>
-
 #include <time.h>  //For optional timer macros
 
 #include "text.h"

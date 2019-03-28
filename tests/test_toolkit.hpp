@@ -14,6 +14,12 @@
 #ifndef TEST_TOOLKIT_HPP
 #define TEST_TOOLKIT_HPP
 
+// MSVC ONLY 
+#ifdef _DEBUG
+    #define _CRTDBG_MAP_ALLOC
+    #include <stdlib.h>
+    #include <crtdbg.h>
+#endif
 
 #include "epanet2_2.h"
 

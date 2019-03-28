@@ -11,13 +11,9 @@ Last Updated: 11/27/2018
 ******************************************************************************
 */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
 #include <math.h>
 
 #include "types.h"

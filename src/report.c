@@ -11,13 +11,10 @@
  ******************************************************************************
 */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
+
 
 #ifdef _WIN32
 #define snprintf _snprintf
