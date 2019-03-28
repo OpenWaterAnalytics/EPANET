@@ -35,6 +35,7 @@ FILE *get_file(file_handle_t *file_handle);
 
 int close_file(file_handle_t *file_handle);
 
+int remove_file(file_handle_t *file_handle);
 
 
 #if defined(__cplusplus)
