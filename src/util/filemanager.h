@@ -20,7 +20,7 @@ extern "C" {
 typedef struct file_s {
     char filename[FILE_MAXNAME + 1],
     FILE *file;
-    char  mode[FILE_MAXMODE + 1];
+    char mode[FILE_MAXMODE + 1];
 } file_handle_t;
 
 
