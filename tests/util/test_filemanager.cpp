@@ -3,7 +3,7 @@
  Project:      OWA EPANET
  Version:      2.2
  Module:       util/test_filemanager.cpp
- Description:  Tests filemanager
+ Description:  Tests for util/filemanager.c
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
