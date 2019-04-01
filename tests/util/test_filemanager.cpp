@@ -1,4 +1,15 @@
-
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       util/test_filemanager.cpp
+ Description:  Tests filemanager
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 04/01/2019
+ ******************************************************************************
+*/
 
 #define BOOST_TEST_MODULE filemanager
 
@@ -11,6 +22,7 @@
 
 
 BOOST_AUTO_TEST_SUITE(test_filemanager)
+
 
 BOOST_AUTO_TEST_CASE (test_create_destroy)
 {
@@ -55,12 +67,5 @@ struct Fixture{
   file_handle_t *file_handle;
 };
 
-BOOST_FIXTURE_TEST_CASE(test_get_file, Fixture)
-{
-    FILE *file;
-
-    //file = get_file(file_handle);
-    //BOOST_CHECK(file != NULL);
-}
 
 BOOST_AUTO_TEST_SUITE_END()

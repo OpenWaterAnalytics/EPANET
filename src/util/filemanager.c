@@ -1,4 +1,15 @@
-
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       util/filemanager.c
+ Description:  Provides a simple interface for managing files
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 04/01/2019
+ ******************************************************************************
+*/
 
 
 // MSVC ONLY
@@ -18,7 +29,6 @@
 typedef struct file_s {
     char filename[FILE_MAXNAME + 1];
     FILE *file;
-    char mode[FILE_MAXMODE + 1];
 } file_handle_t;
 
 
@@ -51,8 +61,7 @@ int open_file(file_handle_t *file_handle, const char *filename, const char *file
     if (file_mode == NULL)
         error = -1;
     else {
-        strncpy(file_handle->mode, file_mode, FILE_MAXMODE);
-        error = _fopen(&(file_handle->file), file_handle->filename, file_handle->mode);
+        error = _fopen(&(file_handle->file), file_handle->filename, file_mode);
     }
 
     return error;

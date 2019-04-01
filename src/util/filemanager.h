@@ -1,6 +1,15 @@
-
-
-
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       util/filemanager.h
+ Description:  Provides a simple interface for managing files
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 04/01/2019
+ ******************************************************************************
+*/
 
 #ifndef FILEMANAGER_H_
 #define FILEMANAGER_H_
@@ -17,14 +26,13 @@
 #endif
 
 #define FILE_MAXNAME 259
-#define FILE_MAXMODE 3
 
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-
+// Forward declariation of file_handle_t
 typedef struct file_s file_handle_t;
 
 
