@@ -21,6 +21,7 @@
     #include <stdlib.h>
 #endif
 
+#include <stdarg.h>
 #include <string.h>
 
 #include "filemanager.h"
@@ -47,6 +48,15 @@ file_handle_t *create_file_manager() {
 
 void delete_file_manager(file_handle_t *file_handle) {
     free(file_handle);
+}
+
+
+void get_filename(file_handle_t *file_handle, char **filename)
+{
+    char *temp = (char*) malloc((FILE_MAXNAME)*sizeof(char));
+
+    strncpy(temp, file_handle->filename, FILE_MAXNAME);
+    *filename = temp;
 }
 
 
@@ -89,9 +99,35 @@ F_OFF tell_file(file_handle_t *file_handle)
     return FTELL64(file_handle->file);
 }
 
+// Read and write to a binary file
 size_t read_file(void *ptr, size_t size, size_t nmemb, file_handle_t *file_handle)
 {
     return fread(ptr, size, nmemb, file_handle->file);
+}
+
+size_t write_file(const void * ptr, size_t size, size_t count, file_handle_t *file_handle)
+{
+    return fwrite(ptr, size, count, file_handle->file);
+}
+
+
+// print and get from a text file
+int printf_file(file_handle_t *file_handle, const char *format, ... )
+{
+    int error = 0;
+    va_list args;
+
+    va_start(args, format);
+    error = vfprintf(file_handle->file, format, args);
+    va_end(args);
+
+    return error;
+}
+
+int gets_file(char *str, int num, file_handle_t *file_handle)
+{
+    fgets(str, num, file_handle->file);
+    return 0;
 }
 
 

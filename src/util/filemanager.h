@@ -16,6 +16,7 @@
 
 
 #include <stdio.h>
+#include <stdarg.h>
 
 
 // F_OFF Must be a 8 byte / 64 bit integer for large file support
@@ -41,13 +42,26 @@ file_handle_t *create_file_manager();
 void delete_file_manager(file_handle_t *file_handle);
 
 
+void get_filename(file_handle_t *file_handle, char **filename);
+
+
 int open_file(file_handle_t *file_handle, const char *filename, const char *file_mode);
 
 int seek_file(file_handle_t *file_handle, F_OFF offset, int whence);
 
 F_OFF tell_file(file_handle_t *file_handle);
 
+
+// Functions for working with binary files
 size_t read_file(void *ptr, size_t size, size_t nmemb, file_handle_t *file_handle);
+
+size_t write_file(const void *ptr, size_t size, size_t count, file_handle_t *file_handle);
+
+
+// Functions for working with text files
+int printf_file(file_handle_t *file_handle, const char *format, ... );
+
+int gets_file(char *str, int num, file_handle_t *file_handle);
 
 
 int close_file(file_handle_t *file_handle);

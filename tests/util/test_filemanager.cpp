@@ -14,11 +14,21 @@
 #define BOOST_TEST_MODULE filemanager
 
 #include <boost/test/unit_test.hpp>
+#include <boost/filesystem.hpp>
 
 #include "util/filemanager.h"
 
 
 #define DATA_PATH_OUTPUT "./example1.out"
+
+
+boost::test_tools::predicate_result check_string(std::string test, std::string ref)
+{
+    if (ref.compare(test) == 0)
+        return true;
+    else
+        return false;
+}
 
 
 BOOST_AUTO_TEST_SUITE(test_filemanager)
@@ -57,7 +67,7 @@ struct Fixture{
         file_handle = NULL;
 
 		file_handle = create_file_manager();
-        open_file(file_handle, DATA_PATH_OUTPUT, "rb");
+        open_file(file_handle, NULL, "wt");
     }
     ~Fixture() {
         close_file(file_handle);
@@ -67,5 +77,18 @@ struct Fixture{
   file_handle_t *file_handle;
 };
 
+BOOST_FIXTURE_TEST_CASE(test_temp_file, Fixture)
+{
+    char *filename;
+
+    printf_file(file_handle, "%s", "This is a test.");
+
+    get_filename(file_handle, &filename);
+    //BOOST_CHECK(check_string(filename, "./test_file.txt"));
+
+    BOOST_CHECK(boost::filesystem::exists(filename) == true);
+
+    free(filename);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
