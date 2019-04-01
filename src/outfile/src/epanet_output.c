@@ -40,18 +40,13 @@
 #include <string.h>
 
 #include "util/errormanager.h"
+#include "util/filemanager.h"
 
 #include "epanet_output.h"
 #include "messages.h"
 
 
 // NOTE: These depend on machine data model and may change when porting
-// F_OFF Must be a 8 byte / 64 bit integer for large file support
-#ifdef _WIN32 // Windows (32-bit and 64-bit)
-#define F_OFF __int64
-#else         // Other platforms
-#define F_OFF off_t
-#endif
 #define INT4  int          // Must be a 4 byte / 32 bit integer type
 #define REAL4 float        // Must be a 4 byte / 32 bit real type
 #define WORDSIZE       4   // Memory alignment 4 byte word size for both int and real
@@ -71,33 +66,28 @@
 
 // Typedefs for opaque pointer
 typedef struct data_s {
-    char  name[MAXFNAME+1];  // file path/name
-    FILE* file;            // FILE structure pointer
     INT4  nodeCount, tankCount, linkCount, pumpCount, valveCount, nPeriods;
     F_OFF outputStartPos;  // starting file position of output data
     F_OFF bytesPerPeriod;  // bytes saved per simulation time period
 
-    error_handle_t* error_handle;
+    error_handle_t *error_handle;
+    file_handle_t *file_handle;
 } data_t;
 
 //-----------------------------------------------------------------------------
 //   Local functions
 //-----------------------------------------------------------------------------
-void errorLookup(int errcode, char* errmsg, int length);
-int    validateFile(ENR_Handle);
-float  getNodeValue(ENR_Handle, int, int, int);
-float  getLinkValue(ENR_Handle, int, int, int);
+void  errorLookup(int errcode, char* errmsg, int length);
+int   validateFile(ENR_Handle);
+float getNodeValue(ENR_Handle, int, int, int);
+float getLinkValue(ENR_Handle, int, int, int);
 
-int _fopen(FILE **f, const char *name, const char *mode);
-int _fseek(FILE* stream, F_OFF offset, int whence);
-F_OFF _ftell(FILE* stream);
-
-float* newFloatArray(int n);
-int* newIntArray(int n);
-char* newCharArray(int n);
+float *newFloatArray(int n);
+int   *newIntArray(int n);
+char  *newCharArray(int n);
 
 
-int EXPORT_OUT_API ENR_init(ENR_Handle* dp_handle)
+int EXPORT_OUT_API ENR_init(ENR_Handle *dp_handle)
 //  Purpose: Initialized pointer for the opaque ENR_Handle.
 //
 //  Returns: Error code 0 on success, -1 on failure
@@ -114,6 +104,7 @@ int EXPORT_OUT_API ENR_init(ENR_Handle* dp_handle)
 
     if (p_data != NULL){
         p_data->error_handle = create_error_manager(&errorLookup);
+        p_data->file_handle = create_file_manager();
         *dp_handle = p_data;
     }
     else
@@ -123,7 +114,7 @@ int EXPORT_OUT_API ENR_init(ENR_Handle* dp_handle)
     return errorcode;
 }
 
-int EXPORT_OUT_API ENR_close(ENR_Handle* p_handle)
+int EXPORT_OUT_API ENR_close(ENR_Handle *p_handle)
 /*------------------------------------------------------------------------
  **    Input:  *p_handle = pointer to ENR_Handle struct
  **
@@ -143,13 +134,16 @@ int EXPORT_OUT_API ENR_close(ENR_Handle* p_handle)
 
     p_data = (data_t*)(*p_handle);
 
-    if (p_data == NULL || p_data->file == NULL)
+    if (p_data == NULL || p_data->file_handle == NULL)
         errorcode = -1;
 
     else
     {
+        close_file(p_data->file_handle);
+
         delete_error_manager(p_data->error_handle);
-        fclose(p_data->file);
+        delete_file_manager(p_data->file_handle);
+
         free(p_data);
 
         *p_handle = NULL;
@@ -178,23 +172,22 @@ int EXPORT_OUT_API ENR_open(ENR_Handle p_handle, const char* path)
     if (p_data == NULL) return -1;
     else
     {
-        strncpy(p_data->name, path, MAXFNAME);
         // Attempt to open binary output file for reading only
-        if ((_fopen(&(p_data->file), path, "rb")) != 0) errorcode = 434;
+        if ((open_file(p_data->file_handle, path, "rb")) != 0)
+            errorcode = 434;
 
         // Perform checks to insure the file is valid
         else if ((err = validateFile(p_data)) != 0) errorcode = err;
 
         // If a warning is encountered read file header
         if (errorcode < 400 ) {
-
             // read network size
-            fseek(p_data->file, 2*WORDSIZE, SEEK_SET);
-            fread(&(p_data->nodeCount), WORDSIZE, 1, p_data->file);
-            fread(&(p_data->tankCount), WORDSIZE, 1, p_data->file);
-            fread(&(p_data->linkCount), WORDSIZE, 1, p_data->file);
-            fread(&(p_data->pumpCount), WORDSIZE, 1, p_data->file);
-            fread(&(p_data->valveCount), WORDSIZE, 1, p_data->file);
+            seek_file(p_data->file_handle, 2*WORDSIZE, SEEK_SET);
+            read_file(&(p_data->nodeCount), WORDSIZE, 1, p_data->file_handle);
+            read_file(&(p_data->tankCount), WORDSIZE, 1, p_data->file_handle);
+            read_file(&(p_data->linkCount), WORDSIZE, 1, p_data->file_handle);
+            read_file(&(p_data->pumpCount), WORDSIZE, 1, p_data->file_handle);
+            read_file(&(p_data->valveCount), WORDSIZE, 1, p_data->file_handle);
 
             // Compute positions and offsets for retrieving data
             // fixed portion of header + title section + filenames + chem names
@@ -240,8 +233,8 @@ int EXPORT_OUT_API ENR_getVersion(ENR_Handle p_handle, int* version)
     if (p_data == NULL) return -1;
     else
     {
-        fseek(p_data->file, 1*WORDSIZE, SEEK_SET);
-        if (fread(version, WORDSIZE, 1, p_data->file) != 1)
+        seek_file(p_data->file_handle, 1*WORDSIZE, SEEK_SET);
+        if (read_file(version, WORDSIZE, 1, p_data->file_handle) != 1)
             errorcode = 436;
     }
 
@@ -319,26 +312,26 @@ int EXPORT_OUT_API ENR_getUnits(ENR_Handle p_handle, ENR_Units code, int* unitFl
         switch (code)
         {
         case ENR_flowUnits:
-            _fseek(p_data->file, 9*WORDSIZE, SEEK_SET);
-            fread(unitFlag, WORDSIZE, 1, p_data->file);
+            seek_file(p_data->file_handle, 9*WORDSIZE, SEEK_SET);
+            read_file(unitFlag, WORDSIZE, 1, p_data->file_handle);
             break;
 
         case ENR_pressUnits:
-            _fseek(p_data->file, 10*WORDSIZE, SEEK_SET);
-            fread(unitFlag, WORDSIZE, 1, p_data->file);
+            seek_file(p_data->file_handle, 10*WORDSIZE, SEEK_SET);
+            read_file(unitFlag, WORDSIZE, 1, p_data->file_handle);
             break;
 
         case ENR_qualUnits:
             offset = 7*WORDSIZE;
-            _fseek(p_data->file, offset, SEEK_SET);
-            fread(unitFlag, WORDSIZE, 1, p_data->file);
+            seek_file(p_data->file_handle, offset, SEEK_SET);
+            read_file(unitFlag, WORDSIZE, 1, p_data->file_handle);
 
             if (*unitFlag == 0) *unitFlag = ENR_NONE;
 
             else if (*unitFlag == 1) {
                 offset = 15*WORDSIZE + 3*MAXMSG_P1 + 2*(MAXFNAME+1) + MAXID_P1;
-                _fseek(p_data->file, offset, SEEK_SET);
-                fread(temp, MAXID_P1, 1, p_data->file);
+                seek_file(p_data->file_handle, offset, SEEK_SET);
+                read_file(temp, MAXID_P1, 1, p_data->file_handle);
 
                 if (!strcmp(temp, "mg/L")) *unitFlag = ENR_MGL;
                 else *unitFlag = ENR_UGL;
@@ -379,18 +372,18 @@ int EXPORT_OUT_API ENR_getTimes(ENR_Handle p_handle, ENR_Time code, int* time)
         switch (code)
         {
         case ENR_reportStart:
-            fseek(p_data->file, 12*WORDSIZE, SEEK_SET);
-            fread(time, WORDSIZE, 1, p_data->file);
+            seek_file(p_data->file_handle, 12*WORDSIZE, SEEK_SET);
+            read_file(time, WORDSIZE, 1, p_data->file_handle);
             break;
 
         case ENR_reportStep:
-            fseek(p_data->file, 13*WORDSIZE, SEEK_SET);
-            fread(time, WORDSIZE, 1, p_data->file);
+            seek_file(p_data->file_handle, 13*WORDSIZE, SEEK_SET);
+            read_file(time, WORDSIZE, 1, p_data->file_handle);
             break;
 
         case ENR_simDuration:
-            fseek(p_data->file, 14*WORDSIZE, SEEK_SET);
-            fread(time, WORDSIZE, 1, p_data->file);
+            seek_file(p_data->file_handle, 14*WORDSIZE, SEEK_SET);
+            read_file(time, WORDSIZE, 1, p_data->file_handle);
             break;
 
         case ENR_numPeriods:
@@ -405,7 +398,6 @@ int EXPORT_OUT_API ENR_getTimes(ENR_Handle p_handle, ENR_Time code, int* time)
 }
 
 int EXPORT_OUT_API ENR_getChemData(ENR_Handle p_handle, char** name, int* length)
-
 {
     return 0;
 }
@@ -459,8 +451,8 @@ int EXPORT_OUT_API ENR_getElementName(ENR_Handle p_handle, ENR_ElementType type,
 
         if (!errorcode)
         {
-            _fseek(p_data->file, offset, SEEK_SET);
-            fread(temp, 1, MAXID_P1, p_data->file);
+            seek_file(p_data->file_handle, offset, SEEK_SET);
+            read_file(temp, 1, MAXID_P1, p_data->file_handle);
 
             *name = temp;
             *length = MAXID_P1;
@@ -505,9 +497,9 @@ int EXPORT_OUT_API ENR_getEnergyUsage(ENR_Handle p_handle, int pumpIndex,
         offset += (pumpIndex - 1)*(WORDSIZE + 6*WORDSIZE);
 
         // Power summary is 1 int and 6 floats for each pump
-        _fseek(p_data->file, offset, SEEK_SET);
-        fread(linkIndex, WORDSIZE, 1, p_data->file);
-        fread(temp, WORDSIZE, 6, p_data->file);
+        seek_file(p_data->file_handle, offset, SEEK_SET);
+        read_file(linkIndex, WORDSIZE, 1, p_data->file_handle);
+        read_file(temp, WORDSIZE, 6, p_data->file_handle);
 
         *outValues = temp;
         *length = NENERGYRESULTS;
@@ -541,8 +533,8 @@ int EXPORT_OUT_API ENR_getNetReacts(ENR_Handle p_handle, float** outValues, int*
         // Reaction summary is 4 floats located right before epilogue.
         // This offset is relative to the end of the file.
         offset = - 3*WORDSIZE - 4*WORDSIZE;
-        _fseek(p_data->file, offset, SEEK_END);
-        fread(temp, WORDSIZE, 4, p_data->file);
+        seek_file(p_data->file_handle, offset, SEEK_END);
+        read_file(temp, WORDSIZE, 4, p_data->file_handle);
 
         *outValues = temp;
         *length = NREACTRESULTS;
@@ -670,8 +662,8 @@ int EXPORT_OUT_API ENR_getNodeAttribute(ENR_Handle p_handle, int periodIndex,
         // add offset for node and attribute
         offset += ((attr - 1)*p_data->nodeCount)*WORDSIZE;
 
-        _fseek(p_data->file, offset, SEEK_SET);
-        fread(temp, WORDSIZE, p_data->nodeCount, p_data->file);
+        seek_file(p_data->file_handle, offset, SEEK_SET);
+        read_file(temp, WORDSIZE, p_data->nodeCount, p_data->file_handle);
 
         *outValueArray = temp;
         *length = p_data->nodeCount;
@@ -720,8 +712,8 @@ int EXPORT_OUT_API ENR_getLinkAttribute(ENR_Handle p_handle, int periodIndex,
         // add offset for link and attribute
         offset += ((attr - 1)*p_data->linkCount)*WORDSIZE;
 
-        _fseek(p_data->file, offset, SEEK_SET);
-        fread(temp, WORDSIZE, p_data->linkCount, p_data->file);
+        seek_file(p_data->file_handle, offset, SEEK_SET);
+        read_file(temp, WORDSIZE, p_data->linkCount, p_data->file_handle);
 
         *outValueArray = temp;
         *length = p_data->linkCount;
@@ -852,16 +844,16 @@ int validateFile(ENR_Handle p_handle)
     p_data = (data_t*)p_handle;
 
     // Read magic number from beginning of file
-    fseek(p_data->file, 0L, SEEK_SET);
-    fread(&magic1, WORDSIZE, 1, p_data->file);
+    seek_file(p_data->file_handle, 0L, SEEK_SET);
+    read_file(&magic1, WORDSIZE, 1, p_data->file_handle);
 
     // Fast forward to end and read file epilogue
-    fseek(p_data->file, -3*WORDSIZE, SEEK_END);
-    fread(&(p_data->nPeriods), WORDSIZE, 1, p_data->file);
-    fread(&hydcode, WORDSIZE, 1, p_data->file);
-    fread(&magic2, WORDSIZE, 1, p_data->file);
+    seek_file(p_data->file_handle, -3*WORDSIZE, SEEK_END);
+    read_file(&(p_data->nPeriods), WORDSIZE, 1, p_data->file_handle);
+    read_file(&hydcode, WORDSIZE, 1, p_data->file_handle);
+    read_file(&magic2, WORDSIZE, 1, p_data->file_handle);
 
-    filepos = _ftell(p_data->file);
+    filepos = tell_file(p_data->file_handle);
 
     // Is the file an EPANET binary file?
     if (magic1 != magic2) errorcode = 435;
@@ -891,8 +883,8 @@ float getNodeValue(ENR_Handle p_handle, int periodIndex, int nodeIndex,
     // add byte position for attribute and node
     offset += ((attr - 1)*p_data->nodeCount + (nodeIndex - 1))*WORDSIZE;
 
-    _fseek(p_data->file, offset, SEEK_SET);
-    fread(&y, WORDSIZE, 1, p_data->file);
+    seek_file(p_data->file_handle, offset, SEEK_SET);
+    read_file(&y, WORDSIZE, 1, p_data->file_handle);
 
     return y;
 }
@@ -915,54 +907,10 @@ float getLinkValue(ENR_Handle p_handle, int periodIndex, int linkIndex,
     // add byte position for attribute and link
     offset += ((attr - 1)*p_data->linkCount + (linkIndex - 1))*WORDSIZE;
 
-    _fseek(p_data->file, offset, SEEK_SET);
-    fread(&y, WORDSIZE, 1, p_data->file);
+    seek_file(p_data->file_handle, offset, SEEK_SET);
+    read_file(&y, WORDSIZE, 1, p_data->file_handle);
 
     return y;
-}
-
-int _fopen(FILE **f, const char *name, const char *mode) {
-    //
-    //  Purpose: Substitute for fopen_s on platforms where it doesn't exist
-    //  Note: fopen_s is part of C++11 standard
-    //
-    int ret = 0;
-#ifdef _WIN32
-    ret = (int)fopen_s(f, name, mode);
-#else
-    *f = fopen(name, mode);
-    if (!*f)
-        ret = -1;
-#endif
-    return ret;
-}
-
-int _fseek(FILE* stream, F_OFF offset, int whence)
-//
-//  Purpose: Selects platform fseek() for large file support
-//
-{
-#ifdef _WIN32 // Windows (32-bit and 64-bit)
-#define FSEEK64 _fseeki64
-#else         // Other platforms
-#define FSEEK64 fseeko
-#endif
-
-    return FSEEK64(stream, offset, whence);
-}
-
-F_OFF _ftell(FILE* stream)
-//
-//  Purpose: Selects platform ftell() for large file support
-//
-{
-#ifdef _WIN32 // Windows (32-bit and 64-bit)
-#define FTELL64 _ftelli64
-#else         // Other platforms
-#define FTELL64 ftello
-#endif
-
-    return FTELL64(stream);
 }
 
 float* newFloatArray(int n)

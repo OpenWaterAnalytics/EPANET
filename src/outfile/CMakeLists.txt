@@ -21,7 +21,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # configure file groups
 set(EPANET_OUT_SOURCES  src/epanet_output.c
-                       ../util/errormanager.c)
+                       ../util/errormanager.c
+                       ../util/filemanager.c)
 
 
 # the binary output file API

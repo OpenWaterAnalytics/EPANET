@@ -15,3 +15,9 @@ set (test_source
 add_executable(test_errormanager ${test_source})
 target_include_directories(test_errormanager PUBLIC ../../src/)
 target_link_libraries(test_errormanager ${Boost_LIBRARIES})
+
+
+
+add_executable(test_filemanager ./test_filemanager.cpp ../../src/util/filemanager.c)
+target_include_directories(test_filemanager PUBLIC ../../src/)
+target_link_libraries(test_filemanager ${Boost_LIBRARIES})
