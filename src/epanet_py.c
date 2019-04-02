@@ -786,29 +786,25 @@ void error_lookup(int errcode, char *dest_msg, int dest_len)
 {
     char *msg = NULL;
 
-    switch (errcode) {
-        case 1:
-            msg = WARN1;
-            break;
-        case 2:
-            msg = WARN2;
-            break;
-        case 3:
-            msg = WARN3;
-            break;
-        case 4:
-            msg = WARN4;
-            break;
-        case 5:
-            msg = WARN5;
-            break;
-        case 6:
-            msg = WARN6;
-            break;
-        default: {
-            char new_msg[MAXMSG + 1];
-		    msg = geterrmsg(errcode, new_msg);
-        }
+    switch (errcode)
+    {
+    case 1: msg = WARN1;
+    break;
+    case 2: msg = WARN2;
+    break;
+    case 3: msg = WARN3;
+    break;
+    case 4: msg = WARN4;
+    break;
+    case 5: msg = WARN5;
+    break;
+    case 6: msg = WARN6;
+    break;
+    default:
+	{
+		char new_msg[MAXMSG + 1];
+		msg = geterrmsg(errcode, new_msg);
+	}
     }
     strncpy(dest_msg, msg, dest_len);
 }
