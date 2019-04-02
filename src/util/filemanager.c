@@ -194,7 +194,7 @@ int _get_temp_filename(char **tempname)
     // --- for non-Windows systems:
 #else
     // --- use system function mkstemp() to create a temporary file name
-    copy_cstr("enXXXXXX", tempname, size)
+    copy_cstr("enXXXXXX", tempname);
     error = mkstemp(*tempname);
 #endif
     return error;
