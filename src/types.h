@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 03/31/2019
  ******************************************************************************
 */
 
@@ -317,23 +317,6 @@ struct IDstring            // Holds component ID label
   char ID[MAXID+1];
 };
 
-struct  Floatlist          // Element of List of Numbers
-{
-  double  value;           // element's numerical value
-  struct  Floatlist *next; // next element on the list
-};
-typedef struct Floatlist SFloatlist;
-
-struct  Tmplist            // Item of Temporary List of Objects
-{
-  int        i;            // object's index
-  char       ID[MAXID+1];  // object's ID name
-  SFloatlist *x;           // list of data values 
-  SFloatlist *y;           // list of data values
-  struct     Tmplist *next; // next object on list
-};
-typedef struct Tmplist STmplist; // Pointer to temporary list of objects
-
 typedef struct             // Time Pattern Object
 {
   char   ID[MAXID+1];      // pattern ID
@@ -348,6 +331,7 @@ typedef struct             // Curve Object
   char      *Comment;      // curve comment
   CurveType Type;          // curve type
   int       Npts;          // number of points
+  int       Capacity;      // size of X & Y arrays
   double    *X;            // x-values
   double    *Y;            // y-values
 } Scurve;
@@ -575,12 +559,8 @@ typedef struct {
     Flowflag,              // Flow units flag
     Pressflag;             // Pressure units flag
   
-  STmplist 
-    *Patlist,              // Temporary time pattern list
-    *PrevPat,              // Previous pattern list element
-    *Curvelist,            // Temporary list of curves
-    *PrevCurve;            // Previous curve list element
-
+  Spattern *PrevPat;       // Previous pattern list element
+  Scurve   *PrevCurve;     // Previous curve list element
   double *X;               // Temporary array for curve data
 
 } Parser;

@@ -7,22 +7,19 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 03/17/2019
+Last Updated: 03/27/2019
 ******************************************************************************
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#endif
+#include <math.h>
 
 #include "types.h"
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
-#include <math.h>
 
 // Default values
 #define MAXITER  200  // Default max. # hydraulic iterations
@@ -293,7 +290,7 @@ void adjustdata(Project *pr)
     }
     else qual->Diffus = qual->Diffus / ucf;   //  Actual value supplied
 
-    // Set exponent in head loss equation and adjust flow-resistance tolerance.
+    // Set exponent in head loss equation
     if (hyd->Formflag == HW) hyd->Hexp = 1.852;
     else hyd->Hexp = 2.0;
 
@@ -326,16 +323,13 @@ void adjustdata(Project *pr)
     }
 
     // Use default pattern if none assigned to a demand
-    for (i = 1; i <= net->Nnodes; i++)
+    hyd->DefPat = findpattern(net, parser->DefPatID);
+    if (hyd->DefPat > 0) for (i = 1; i <= net->Njuncs; i++)
     {
         node = &net->Node[i];
         for (demand = node->D; demand != NULL; demand = demand->next)
         {
-            if (demand->Pat == 0)
-            {
-                demand->Pat = hyd->DefPat;
-                xstrcpy(&demand->Name, "", MAXMSG);
-            }
+            if (demand->Pat == 0) demand->Pat = hyd->DefPat;
         }
     }
 

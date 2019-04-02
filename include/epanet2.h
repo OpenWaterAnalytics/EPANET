@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 03/31/2019
  ******************************************************************************
  */
 
@@ -190,7 +190,7 @@ extern "C" {
 
 ********************************************************************/
 
-   int DLLEXPORT ENaddnode(char *id, int nodeType);
+   int DLLEXPORT ENaddnode(char *id, int nodeType, int *index);
 
    int DLLEXPORT ENdeletenode(int index, int actionCode);
 
@@ -232,6 +232,11 @@ extern "C" {
 
   int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
 
+  int DLLEXPORT ENadddemand(int nodeIndex, EN_API_FLOAT_TYPE baseDemand,
+                int patIndex, char *demandName);
+
+  int DLLEXPORT ENdeletedemand(int nodeIndex, int demandIndex);
+
   int DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex,
                 EN_API_FLOAT_TYPE *baseDemand);
 
@@ -252,7 +257,7 @@ extern "C" {
 
 ********************************************************************/
 
-  int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode);
+  int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode, int *index);
 
   int DLLEXPORT ENdeletelink(int index, int actionCode);
 
@@ -376,7 +381,7 @@ extern "C" {
 
   int DLLEXPORT ENdeleterule(int index);
 
-  int DLLEXPORT ENgetrule(int index, int *nPremises, int *nThenActions,
+  int DLLEXPORT ENgetruleinfo(int index, int *nPremises, int *nThenActions,
                 int *nElseActions, EN_API_FLOAT_TYPE *priority);
 
   int DLLEXPORT ENgetruleID(int index, char* id);

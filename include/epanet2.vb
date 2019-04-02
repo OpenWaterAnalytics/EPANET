@@ -4,7 +4,7 @@
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL) for use with VB.Net.
 
-'Last updated on 03/17/2019
+'Last updated on 03/29/2019
 
 Imports System.Runtime.InteropServices
 Imports System.Text
@@ -145,19 +145,29 @@ Public Const EN_CMD = 9
 Public Const EN_DDA = 0           ' Demand driven analysis
 Public Const EN_PDA = 1           ' Pressure driven analysis
 
-Public Const EN_TRIALS = 0        ' Hydraulic options
+Public Const EN_TRIALS = 0        ' Simulation options
 Public Const EN_ACCURACY = 1
 Public Const EN_TOLERANCE = 2
 Public Const EN_EMITEXPON = 3
 Public Const EN_DEMANDMULT = 4
 Public Const EN_HEADERROR = 5
 Public Const EN_FLOWCHANGE = 6
-Public Const EN_DEMANDDEFPAT = 7
-Public Const EN_HEADLOSSFORM = 8
-Public Const EN_GLOBALEFFIC = 9
-Public Const EN_GLOBALPRICE = 10
-Public Const EN_GLOBALPATTERN = 11
-Public Const EN_DEMANDCHARGE = 12
+Public Const EN_HEADLOSSFORM = 7
+Public Const EN_GLOBALEFFIC = 8
+Public Const EN_GLOBALPRICE = 9
+Public Const EN_GLOBALPATTERN = 10
+Public Const EN_DEMANDCHARGE = 11
+Public Const EN_SP_GRAVITY = 12
+Public Const EN_SP_VISCOS  = 13
+Public Const EN_UNBALANCED = 14
+Public Const EN_CHECKFREQ = 15
+Public Const EN_MAXCHECK = 16
+Public Const EN_DAMPLIMIT = 17
+Public Const EN_SP_DIFFUS = 18
+Public Const EN_BULKORDER = 19
+Public Const EN_WALLORDER = 20
+Public Const EN_TANKORDER = 21
+Public Const EN_CONCENLIMIT = 22 
 
 Public Const EN_LOWLEVEL = 0      ' Control types
 Public Const EN_HILEVEL = 1
@@ -286,7 +296,7 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENsetqualtype Lib "epanet2.dll" (ByVal qualType As Int32, ByVal chemName As String, ByVal chemUnits As String, ByVal traceNode As String) As Int32
 
 'Node Functions
- Declare Function ENaddnode Lib "epanet2.dll" (ByVal id As String, ByVal nodeType As Int32) As Int32
+ Declare Function ENaddnode Lib "epanet2.dll" (ByVal id As String, ByVal nodeType As Int32, Index As Int32) As Int32
  Declare Function ENdeletenode Lib "epanet2.dll" (ByVal index As Int32, ByVal actionCode As Int32) As Int32
  Declare Function ENgetnodeindex Lib "epanet2.dll" (ByVal id As String, index As Int32) As Int32
  Declare Function ENgetnodeid Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String) As Int32
@@ -303,6 +313,8 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENgetdemandmodel Lib "epanet2.dll" (type_ As Int32, pmin As Single, preq As Single, pexp As Single) As Int32
  Declare Function ENsetdemandmodel Lib "epanet2.dll" (ByVal type_ As Int32, ByVal pmin As Single, ByVal preq As Single, ByVal pexp As Single) As Int32
  Declare Function ENgetnumdemands Lib "epanet2.dll" (ByVal nodeIndex As Int32, numDemands As Int32) As Int32
+ Declare Function ENadddemand Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal baseDemand As Single, ByVal patIndex As Int32, ByVal demandName As String) As Int32
+ Declare Function ENdeletedemand Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32) As Int32 
  Declare Function ENgetbasedemand Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32, value As Single) As Int32
  Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32, ByVal BaseDemand As Single) As Int32
  Declare Function ENgetdemandpattern Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32, patIndex As Int32) As Int32
@@ -311,7 +323,7 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENsetdemandname Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32, ByVal demandName As String) As Int32
 
 'Link Functions
- Declare Function ENaddlink Lib "epanet2.dll" (ByVal id As String, ByVal linkType As Int32, ByVal fromNode As String, ByVal toNode As String) As Int32
+ Declare Function ENaddlink Lib "epanet2.dll" (ByVal id As String, ByVal linkType As Int32, ByVal fromNode As String, ByVal toNode As String, Index As Int32) As Int32
  Declare Function ENdeletelink Lib "epanet2.dll" (ByVal index As Int32, ByVal actionCode As Int32) As Int32
  Declare Function ENgetlinkindex Lib "epanet2.dll" (ByVal id As String, index As Int32) As Int32
  Declare Function ENgetlinkid Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String) As Int32
@@ -363,7 +375,7 @@ Public Const EN_R_IS_ACTIVE = 3
 'Rule-Based Control Functions
  Declare Function ENaddrule Lib "epanet2.dll" (ByVal rule As String) As Int32
  Declare Function ENdeleterule Lib "epanet2.dll" (ByVal index As Int32) As Int32
- Declare Function ENgetrule Lib "epanet2.dll" (ByVal index As Int32, nPremises As Int32, nThenActions As Int32, nElseActions As Int32, priority As Single) As Int32
+ Declare Function ENgetruleinfo Lib "epanet2.dll" (ByVal index As Int32, nPremises As Int32, nThenActions As Int32, nElseActions As Int32, priority As Single) As Int32
  Declare Function ENgetruleID Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String) As Int32
  Declare Function ENsetrulepriority Lib "epanet2.dll" (ByVal index As Int32, ByVal priority As Single) As Int32
  Declare Function ENgetpremise Lib "epanet2.dll" (ByVal ruleIndex As Int32, ByVal premiseIndex As Int32, logop As Int32, object As Int32, objIndex As Int32, variable As Int32, relop As Int32, status As Int32, value As Single) As Int32

@@ -7,16 +7,13 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 03/31/2019
  ******************************************************************************
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#endif
 #include <float.h>
 #include <math.h>
 
@@ -168,10 +165,6 @@ int DLLEXPORT EN_init(EN_Project p, const char *rptFile, const char *outFile,
     initunits(p);
     inittanks(p);
     convertunits(p);
-
-    // Initialize the default demand pattern
-    p->parser.MaxPats = 0;
-    getpatterns(p);
     p->Openflag = TRUE;
     return errcode;
 }
@@ -225,10 +218,6 @@ int DLLEXPORT EN_open(EN_Project p, const char *inpFile, const char *rptFile,
       fclose(p->parser.InFile);
       p->parser.InFile = NULL;
   }
-
-  // Free temporary linked lists used for Patterns & Curves
-  freeTmplist(p->parser.Patlist);
-  freeTmplist(p->parser.Curvelist);
 
   // If using previously saved hydraulics file then open it
   if (p->outfile.Hydflag == USE) ERRCODE(openhydfile(p));
@@ -1104,8 +1093,7 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
         v = qual->Ctol * Ucf[QUALITY];
         break;
     case EN_EMITEXPON:
-        if (hyd->Qexp > 0.0)
-            v = 1.0 / hyd->Qexp;
+        if (hyd->Qexp > 0.0) v = 1.0 / hyd->Qexp;
         break;
     case EN_DEMANDMULT:
         v = hyd->Dmult;
@@ -1115,9 +1103,6 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
         break;
     case EN_FLOWCHANGE:
         v = hyd->FlowChangeLimit * Ucf[FLOW];
-        break;
-    case EN_DEFDEMANDPAT:
-        v = hyd->DefPat;
         break;
     case EN_HEADLOSSFORM:
         v = hyd->Formflag;
@@ -1133,6 +1118,39 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
         break;
     case EN_DEMANDCHARGE:
         v = hyd->Dcost;
+        break;
+    case EN_SP_GRAVITY:
+        v = hyd->SpGrav;
+        break;
+    case EN_SP_VISCOS:
+        v = hyd->Viscos / VISCOS;
+        break;
+    case EN_UNBALANCED:
+        v = hyd->ExtraIter;
+        break;
+    case EN_CHECKFREQ:
+        v = hyd->CheckFreq;
+        break;
+    case EN_MAXCHECK:
+        v = hyd->MaxCheck;
+        break;
+    case EN_DAMPLIMIT:
+        v = hyd->DampLimit;
+        break;
+    case EN_SP_DIFFUS:
+        v = qual->Diffus / DIFFUS;
+        break;
+    case EN_BULKORDER:
+        v = qual->BulkOrder;
+        break;
+    case EN_WALLORDER:
+        v = qual->WallOrder;
+        break;
+    case EN_TANKORDER:
+        v = qual->TankOrder;
+        break;
+    case EN_CONCENLIMIT:
+        v = qual->Climit * p->Ucf[QUALITY];
         break;
 
     default:
@@ -1156,16 +1174,28 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     Hydraul *hyd = &p->hydraul;
     Quality *qual = &p->quality;
 
-    Snode *node;
-    Pdemand demand;
-    const int Njuncs = net->Njuncs;
-    double *Ucf = p->Ucf;
-    int i, j;
-    int tmpPat, pat, error;
-    char tmpId[MAXID + 1];
+    int Njuncs = net->Njuncs;
+    int i, j, pat;
     double Ke, n, ucf;
+    double *Ucf = p->Ucf;
 
     if (!p->Openflag) return 102;
+
+    // The EN_UNBALANCED option can be < 0 indicating that the simulation
+    // should be halted if no convergence is reached in EN_TRIALS. Other
+    // values set the number of additional trials to use with no more
+    // link status changes to achieve convergence.
+    if (option == EN_UNBALANCED)
+    {
+        hyd->ExtraIter = (int)value;
+        if (hyd->ExtraIter < 0) hyd->ExtraIter = -1;
+        return 0;
+    }
+
+    // All other option values must be non-negative
+    if (value < 0.0) return 213;
+
+    // Process the speficied option
     switch (option)
     {
     case EN_TRIALS:
@@ -1174,12 +1204,11 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         break;
 
     case EN_ACCURACY:
-        if (value < 1.e-5 || value > 1.e-1) return 213;
+        if (value < 1.e-8 || value > 1.e-1) return 213;
         hyd->Hacc = value;
         break;
 
     case EN_TOLERANCE:
-        if (value < 0.0) return 213;
         qual->Ctol = value / Ucf[QUALITY];
         break;
 
@@ -1196,59 +1225,33 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         break;
 
     case EN_DEMANDMULT:
-        if (value <= 0.0) return 213;
         hyd->Dmult = value;
         break;
 
     case EN_HEADERROR:
-        if (value < 0.0) return 213;
         hyd->HeadErrorLimit = value / Ucf[HEAD];
         break;
 
     case EN_FLOWCHANGE:
-        if (value < 0.0) return 213;
         hyd->FlowChangeLimit = value / Ucf[FLOW];
         break;
 
-    case EN_DEFDEMANDPAT:
-        //check that the pattern exists or is set to zero to delete the default pattern
-        pat = ROUND(value);
-        if (pat < 0 || pat > net->Npats) return 205;
-        tmpPat = hyd->DefPat;
-        //get the new pattern ID
-        if (pat == 0)
-        {
-            strncpy(tmpId, p->parser.DefPatID, MAXID);
-        }
-        else
-        {
-            error = EN_getpatternid(p, pat, tmpId);
-            if (error != 0) return error;
-        }
-        // replace node patterns with default pattern
-        for (i = 1; i <= net->Nnodes; i++)
-        {
-            node = &net->Node[i];
-            for (demand = node->D; demand != NULL; demand = demand->next)
-            {
-                if (demand->Pat == tmpPat)
-                {
-                    demand->Pat = pat;
-                    demand->Name = xstrcpy(&demand->Name, "", MAXMSG);
-                }
-            }
-        }
-        strncpy(p->parser.DefPatID, tmpId, MAXID);
-        hyd->DefPat = pat;
+    case EN_HEADLOSSFORM:
+        // Can't change if hydraulic solver is open
+        if (p->hydraul.OpenHflag) return 262;
+        i = ROUND(value);
+        if (i < HW || i > CM) return 213;
+        hyd->Formflag = i;
+        if (hyd->Formflag == HW) hyd->Hexp = 1.852;
+        else hyd->Hexp = 2.0;
         break;
 
     case EN_GLOBALEFFIC:
-        if (value <= 0.0 || value > 100.0) return 213;
+        if (value <= 1.0 || value > 100.0) return 213;
         hyd->Epump = value;
         break;
 
     case EN_GLOBALPRICE:
-        if (value < 0.0) return 213;
         hyd->Ecost = value;
         break;
 
@@ -1259,8 +1262,51 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         break;
 
     case EN_DEMANDCHARGE:
-        if (value < 0.0) return 213;
         hyd->Dcost = value;
+        break;
+
+    case EN_SP_GRAVITY:
+        if (value <= 0.0) return 213;
+        Ucf[PRESSURE] *= (value / hyd->SpGrav);
+        hyd->SpGrav = value;
+        break;
+
+    case EN_SP_VISCOS:
+        if (value <= 0.0) return 213;
+        hyd->Viscos = value * VISCOS;
+        break;
+
+    case EN_CHECKFREQ:
+        hyd->CheckFreq = (int)value;
+        break;
+
+    case EN_MAXCHECK:
+        hyd->MaxCheck = (int)value;
+        break;
+
+    case EN_DAMPLIMIT:
+        hyd->DampLimit = value;
+        break;
+
+    case EN_SP_DIFFUS:
+        qual->Diffus = value * DIFFUS;
+        break;
+
+    case EN_BULKORDER:
+        qual->BulkOrder = value;
+        break;
+
+    case EN_WALLORDER:
+        if (value == 0.0 || value == 1.0) qual->WallOrder = value;
+        else return 213;
+        break;
+
+    case EN_TANKORDER:
+        qual->TankOrder = value;
+        break;
+
+    case EN_CONCENLIMIT:
+        qual->Climit = value / p->Ucf[QUALITY];
         break;
 
     default:
@@ -1278,7 +1324,7 @@ int DLLEXPORT EN_getflowunits(EN_Project p, int *units)
 **----------------------------------------------------------------
 */
 {
-    *units = -1;
+    *units = GPM;  // The default units for a new project
     if (!p->Openflag) return 102;
     *units = p->parser.Flowflag;
     return 0;
@@ -1529,6 +1575,7 @@ int DLLEXPORT EN_getqualinfo(EN_Project p, int *qualType, char *chemName,
 **----------------------------------------------------------------
 */
 {
+    if (!p->Openflag) return 102;
     EN_getqualtype(p, qualType, traceNode);
     if (p->quality.Qualflag == CHEM)
     {
@@ -1565,6 +1612,7 @@ int DLLEXPORT EN_getqualtype(EN_Project p, int *qualType, int *traceNode)
 */
 {
     *traceNode = 0;
+    *qualType = NONE;
     if (!p->Openflag) return 102;
     *qualType = p->quality.Qualflag;
     if (p->quality.Qualflag == TRACE) *traceNode = p->quality.TraceNode;
@@ -1589,13 +1637,20 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
     Quality *qual = &p->quality;
 
     double *Ucf = p->Ucf;
-    int i;
+    int i, oldQualFlag, traceNodeIndex;
     double ccf = 1.0;
 
     if (!p->Openflag) return 102;
     if (qual->OpenQflag) return 262;
-    if (qualType < EN_NONE || qualType > EN_TRACE) return 251;
-    qual->Qualflag = (char)qualType;
+    if (qualType < NONE || qualType > TRACE) return 251;
+    if (qualType == TRACE)
+    {
+        traceNodeIndex = findnode(net, traceNode);
+        if (traceNodeIndex == 0) return 212;
+    }
+
+    oldQualFlag = qual->Qualflag;
+    qual->Qualflag = qualType;
     qual->Ctol *= Ucf[QUALITY];
     if (qual->Qualflag == CHEM) // Chemical analysis
     {
@@ -1623,7 +1678,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
 
     // When changing from CHEM to AGE or TRACE, nodes initial quality
     // values must be returned to their original ones
-    if ((qual->Qualflag == AGE || qual->Qualflag == TRACE) & (Ucf[QUALITY] != 1))
+    if ((qual->Qualflag == AGE || qual->Qualflag == TRACE) && oldQualFlag == CHEM)
     {
         for (i = 1; i <= p->network.Nnodes; i++)
         {
@@ -1644,11 +1699,11 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
 
 ********************************************************************/
 
-int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
+int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = node ID name
 **           nodeType = type of node (see EN_NodeType)
-**  Output:  none
+**  Output:  index = index of newly added node
 **  Returns: error code
 **  Purpose: adds a new node to a project
 **----------------------------------------------------------------
@@ -1658,15 +1713,14 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
     Hydraul  *hyd = &p->hydraul;
     Quality  *qual = &p->quality;
 
-    int i, nIdx;
-    int index;
-    int size;
+    int i, nIdx, size;
     struct Sdemand *demand;
     Stank *tank;
     Snode *node;
     Scontrol *control;
 
     // Cannot modify network structure while solvers are active
+    *index = 0;
     if (!p->Openflag) return 102;
     if (hyd->OpenHflag || qual->OpenQflag) return 262;
 
@@ -1693,34 +1747,34 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
 
         demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
         demand->Base = 0.0;
-        demand->Pat = hyd->DefPat; // Use default pattern
+        demand->Pat = 0;
         demand->Name = NULL;
         demand->next = NULL;
         node->D = demand;
 
         // shift rest of Node array
-        for (index = net->Nnodes; index >= net->Njuncs; index--)
+        for (i = net->Nnodes; i >= net->Njuncs; i--)
         {
-            hashtable_update(net->NodeHashTable, net->Node[index].ID, index + 1);
-            net->Node[index + 1] = net->Node[index];
+            hashtable_update(net->NodeHashTable, net->Node[i].ID, i + 1);
+            net->Node[i + 1] = net->Node[i];
         }
         // shift indices of Tank array
-        for (index = 1; index <= net->Ntanks; index++)
+        for (i = 1; i <= net->Ntanks; i++)
         {
-            net->Tank[index].Node += 1;
+            net->Tank[i].Node += 1;
         }
 
         // shift indices of Links, if necessary
-        for (index = 1; index <= net->Nlinks; index++)
+        for (i = 1; i <= net->Nlinks; i++)
         {
-            if (net->Link[index].N1 > net->Njuncs - 1) net->Link[index].N1 += 1;
-            if (net->Link[index].N2 > net->Njuncs - 1) net->Link[index].N2 += 1;
+            if (net->Link[i].N1 > net->Njuncs - 1) net->Link[i].N1 += 1;
+            if (net->Link[i].N2 > net->Njuncs - 1) net->Link[i].N2 += 1;
         }
 
         // shift indices of tanks/reservoir nodes in controls
-        for (index = 1; index <= net->Ncontrols; ++index)
+        for (i = 1; i <= net->Ncontrols; ++i)
         {
-            control = &net->Control[index];
+            control = &net->Control[i];
             if (control->Node > net->Njuncs - 1) control->Node += 1;
         }
 
@@ -1773,6 +1827,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
 
     // Insert new node into hash table
     hashtable_insert(net->NodeHashTable, node->ID, nIdx);
+    *index = nIdx;
     return 0;
 }
 
@@ -2004,7 +2059,6 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
     Quality *qual = &p->quality;
 
     double v = 0.0;
-    Pdemand demand;
     Psource source;
 
     Snode *Node = net->Node;
@@ -2030,33 +2084,21 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         break;
 
     case EN_BASEDEMAND:
-        v = 0.0;
-        // NOTE: primary demand category is last on demand list
         if (index <= nJuncs)
         {
-            for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            {
-                v = (demand->Base);
-            }
+            if (Node[index].D) v = Node[index].D->Base * Ucf[FLOW];
         }
-        v *= Ucf[FLOW];
         break;
 
     case EN_PATTERN:
-        v = 0.0;
-        // NOTE: primary demand category is last on demand list
         if (index <= nJuncs)
         {
-            for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            {
-                v = (double)(demand->Pat);
-            }
+            if (Node[index].D) v = (double)(Node[index].D->Pat);
         }
         else v = (double)(Tank[index - nJuncs].Pat);
         break;
 
     case EN_EMITTER:
-        v = 0.0;
         if (Node[index].Ke > 0.0)
         {
             v = Ucf[FLOW] / pow((Ucf[PRESSURE] * Node[index].Ke), (1.0 / hyd->Qexp));
@@ -2085,7 +2127,6 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         break;
 
     case EN_INITVOLUME:
-        v = 0.0;
         if (index > nJuncs) v = Tank[index - nJuncs].V0 * Ucf[VOLUME];
         break;
 
@@ -2095,7 +2136,6 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         break;
 
     case EN_MIXZONEVOL:
-        v = 0.0;
         if (index > nJuncs) v = Tank[index - nJuncs].V1max * Ucf[VOLUME];
         break;
 
@@ -2116,7 +2156,6 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         break;
 
     case EN_TANKDIAM:
-        v = 0.0;
         if (index > nJuncs)
         {
             v = sqrt(4.0 / PI * Tank[index - nJuncs].A) * Ucf[ELEV];
@@ -2124,22 +2163,18 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         break;
 
     case EN_MINVOLUME:
-        v = 0.0;
         if (index > nJuncs) v = Tank[index - nJuncs].Vmin * Ucf[VOLUME];
         break;
 
     case EN_MAXVOLUME:
-        v = 0.0;
         if (index > nJuncs) v = Tank[index - nJuncs].Vmax * Ucf[VOLUME];
         break;
 
     case EN_VOLCURVE:
-        v = 0.0;
         if (index > nJuncs) v = Tank[index - nJuncs].Vcurve;
         break;
 
     case EN_MINLEVEL:
-        v = 0.0;
         if (index > nJuncs)
         {
             v = (Tank[index - nJuncs].Hmin - Node[index].El) * Ucf[ELEV];
@@ -2147,7 +2182,6 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         break;
 
     case EN_MAXLEVEL:
-        v = 0.0;
         if (index > nJuncs)
         {
             v = (Tank[index - nJuncs].Hmax - Node[index].El) * Ucf[ELEV];
@@ -2163,7 +2197,6 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         break;
 
     case EN_TANK_KBULK:
-        v = 0.0;
         if (index > nJuncs) v = Tank[index - nJuncs].Kb * SECperDAY;
         break;
 
@@ -2205,7 +2238,6 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     double *Ucf = p->Ucf;
 
     int i, j, n;
-    Pdemand demand;
     Psource source;
     double hTmp;
 
@@ -2228,26 +2260,18 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         break;
 
     case EN_BASEDEMAND:
-        // NOTE: primary demand category is last on demand list
         if (index <= nJuncs)
         {
-            for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            {
-                if (demand->next == NULL) demand->Base = value / Ucf[FLOW];
-            }
+            if (Node[index].D) Node[index].D->Base = value / Ucf[FLOW];
         }
         break;
 
     case EN_PATTERN:
-        // NOTE: primary demand category is last on demand list
         j = ROUND(value);
         if (j < 0 || j > nPats) return 205;
         if (index <= nJuncs)
         {
-            for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            {
-                if (demand->next == NULL) demand->Pat = j;
-            }
+            if (Node[index].D) Node[index].D->Pat = j;
         }
         else Tank[index - nJuncs].Pat = j;
         break;
@@ -2658,12 +2682,115 @@ int DLLEXPORT EN_getnumdemands(EN_Project p, int nodeIndex, int *numDemands)
     int n = 0;
 
     // Check for valid arguments
+    *numDemands = 0;
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
 
     // Count the number of demand categories
     for (d = p->network.Node[nodeIndex].D; d != NULL; d = d->next) n++;
     *numDemands = n;
+    return 0;
+}
+
+int  DLLEXPORT EN_adddemand(EN_Project p, int nodeIndex, double baseDemand,
+                            int patIndex, char *name)
+/*----------------------------------------------------------------
+**  Input:   nodeIndex = node index
+**           baseDemand = baseline demand value
+**           patIndex = time pattern index
+**           name = demand category name
+**  Returns: error code
+**  Purpose: adds a new demand category to a junction node
+**----------------------------------------------------------------
+*/
+{
+    Pdemand demand;
+    Pdemand lastDemand;
+
+    // Check for valid arguments
+    if (!p->Openflag) return 102;
+    if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
+    if (patIndex < 0 || patIndex > p->network.Npats) return 205;
+
+    // Do nothing if node is not a junction
+    if (nodeIndex > p->network.Njuncs) return 0;
+
+    // Create a new demand category
+    demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
+    if (demand == NULL) return 101;
+
+    // Assign properties to the category
+    demand->Base = baseDemand / p->Ucf[FLOW];
+    demand->Pat = patIndex;
+    demand->Name = NULL;
+    if (name != NULL && strlen(name) > 0)
+    {
+        demand->Name = xstrcpy(&demand->Name, name, MAXID);
+    }
+    demand->next = NULL;
+
+    // Find last category added to node demands list
+    lastDemand = p->network.Node[nodeIndex].D;
+    while (lastDemand->next != NULL) lastDemand = lastDemand->next;
+
+    // Add category to node's demands list
+    lastDemand->next = demand;
+    return 0;
+}
+
+int DLLEXPORT EN_deletedemand(EN_Project p, int nodeIndex, int demandIndex)
+/*----------------------------------------------------------------
+**  Input:   nodeIndex = node index
+**           demandIndex = index of node's demand to be deleted
+**  Returns: error code
+**  Purpose: deletes an existing demand category from a junction node
+**----------------------------------------------------------------
+*/
+{
+    Pdemand d, dprev;
+    Snode *node;
+    int n = 1;
+
+    // Check for valid arguments
+    if (!p->Openflag) return 102;
+    if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
+
+    // Only junctions have demands
+    if (nodeIndex <= p->network.Njuncs)
+    {
+        // Find head of node's list of demands
+        node = &p->network.Node[nodeIndex];
+        d = node->D;
+        if (d == NULL) return 253;
+        dprev = d;
+
+        // Check if target demand is head of demand list
+        if (demandIndex == 1)
+        {
+            node->D = d->next;
+            free(d->Name);
+            free(d);
+            return 0;
+        }
+
+        // Oterwise locate target demand in demand list
+        while (d != NULL && n < demandIndex)
+        {
+            dprev = d;
+            d = d->next;
+            n++;
+        }
+
+        // Return error if target demand not found
+        if (d == NULL) return 253;
+
+        // Link the demands that precede and follow the target
+        dprev->next = d->next;
+
+        // Delete the target demand
+        free(d->Name);
+        free(d);
+    }
     return 0;
 }
 
@@ -2682,6 +2809,7 @@ int DLLEXPORT EN_getbasedemand(EN_Project p, int nodeIndex, int demandIndex,
     int n = 1;
 
     // Check for valid arguments
+    *baseDemand = 0.0;
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
 
@@ -2691,9 +2819,8 @@ int DLLEXPORT EN_getbasedemand(EN_Project p, int nodeIndex, int demandIndex,
         for (d = p->network.Node[nodeIndex].D; n < demandIndex && d->next != NULL;
              d = d->next) n++;
         if (n != demandIndex) return 253;
-        *baseDemand = (double)(d->Base * p->Ucf[FLOW]);
+        *baseDemand = d->Base * p->Ucf[FLOW];
     }
-    else *baseDemand = (double)(0.0);
     return 0;
 }
 
@@ -2778,7 +2905,7 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
     for (d = p->network.Node[nodeIndex].D;
          n < demandIndex && d->next != NULL; d = d->next) n++;
     if (n != demandIndex) return 253;
-    d->Name = xstrcpy(&d->Name, demandName, MAXMSG);
+    d->Name = xstrcpy(&d->Name, demandName, MAXID);
     return 0;
 }
 
@@ -2798,6 +2925,7 @@ int DLLEXPORT EN_getdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
     int n = 1;
 
     // Check for valid arguments
+    *patIndex = 0;
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
     for (d = p->network.Node[nodeIndex].D;
@@ -2812,7 +2940,7 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 /*----------------------------------------------------------------
 **  Input:   nodeIndex = node index
 **           demandIndex = demand category index
-**           patIndex = time pattern index
+**           patIndex = time pattern index (0 for no pattern)
 **  Output:  none
 **  Returns: error code
 **  Purpose: assigns a time pattern to a node's demand category
@@ -2827,7 +2955,7 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > net->Nnodes) return 203;
-    if (patIndex <= 0 || patIndex > net->Npats) return 205;
+    if (patIndex < 0 || patIndex > net->Npats) return 205;
 
     // Locate demand category record and assign time pattern to it
     if (nodeIndex <= net->Njuncs)
@@ -2847,7 +2975,7 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 ********************************************************************/
 
 int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
-                         char *fromNode, char *toNode)
+                         char *fromNode, char *toNode, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = link ID name
 **           type = link type (see EN_LinkType)
@@ -2868,6 +2996,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     Spump *pump;
 
     // Cannot modify network structure while solvers are active
+    *index = 0;
     if (!p->Openflag) return 102;
     if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
 
@@ -2952,27 +3081,34 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     }
     else if (linkType <= PIPE)  // pipe or cvpipe
     {
-        link->Diam = 10 / p->Ucf[DIAM];
-        link->Kc = 100; // Rough. coeff
-        link->Km = 0.0; // Loss coeff
-        link->Len = 1000;
+        link->Diam = 10.0 / p->Ucf[DIAM];
+        switch (hyd->Formflag) // Rough. coeff
+        {
+        case HW: link->Kc = 130; break;
+        case DW: link->Kc = 0.00033; break;
+        case CM: link->Kc = 0.01; break;
+        default: link->Kc = 1.0;
+        }
+        link->Km = 0.0;    // Loss coeff
+        link->Len = 330.0; // Length
     }
     else  // Valve
     {
-        link->Diam = 10 / p->Ucf[DIAM];
+        link->Diam = 10.0 / p->Ucf[DIAM];
         link->Kc = 0.0; // Valve setting.
         link->Km = 0.0; // Loss coeff
         link->Len = 0.0;
         link->Status = ACTIVE;
     }
-    link->Kb = 0;
-    link->Kw = 0;
-    link->R = 0;
-    link->Rc = 0;
+    link->Kb = 0.0;
+    link->Kw = 0.0;
+    link->R = 0.0;
+    link->Rc = 0.0;
     link->Rpt = 0;
     link->Comment = NULL;
 
     hashtable_insert(net->LinkHashTable, link->ID, n);
+    *index = n;
     return 0;
 }
 
@@ -3230,10 +3366,7 @@ int DLLEXPORT EN_setlinktype(EN_Project p, int *index, int linkType, int actionC
     EN_deletelink(p, i, actionCode);
 
     // Create a new link of new type and old id
-    errcode = EN_addlink(p, id, linkType, id1, id2);
-
-    // Find the index of this new link
-    EN_getlinkindex(p, id, index);
+    errcode = EN_addlink(p, id, linkType, id1, id2, index);
     return errcode;
 }
 
@@ -3510,7 +3643,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
     default:
         return 251;
     }
-    *value = (double)v;
+    *value = v;
     return 0;
 }
 
@@ -3875,7 +4008,6 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
 {
     Network *net = &p->network;
     Parser  *parser = &p->parser;
-    Hydraul *hyd = &p->hydraul;
 
     int i, n, err = 0;
     Spattern *pat;
@@ -3910,9 +4042,6 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
     // Update the number of patterns
     net->Npats = n;
     parser->MaxPats = n;
-
-    // Make new pattern be default demand pattern if name matches
-    if (strcmp(id, parser->DefPatID) == 0) hyd->DefPat = n;
     return 0;
 }
 
@@ -3940,14 +4069,6 @@ int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
 
     // Adjust references by other objects to patterns
     adjustpatterns(net, index);
-
-    // Modify default demand pattern
-    if (hyd->DefPat == index)
-    {
-        hyd->DefPat = 0;
-        strcpy(parser->DefPatID, "");
-    }
-    else if (hyd->DefPat > index) hyd->DefPat--;
 
     // Modify global energy price pattern
     if (hyd->Epat == index)  hyd->Epat = 0;
@@ -4036,6 +4157,7 @@ int DLLEXPORT EN_getpatternlen(EN_Project p, int index, int *len)
 **----------------------------------------------------------------
 */
 {
+    *len = 0;
     if (!p->Openflag) return 102;
     if (index < 1 || index > p->network.Npats) return 205;
     *len = p->network.Pattern[index].Length;
@@ -4323,10 +4445,10 @@ int DLLEXPORT EN_getcurvetype(EN_Project p, int index, int *type)
 **----------------------------------------------------------------
 */
 {
-    Network *net = &p->network;
+    *type = -1;
     if (!p->Openflag) return 102;
-    if (index < 1 || index > net->Ncurves) return 206;
-    *type = net->Curve[index].Type;
+    if (index < 1 || index > p->network.Ncurves) return 206;
+    *type = p->network.Curve[index].Type;
     return 0;
 }
 
@@ -4396,6 +4518,7 @@ int DLLEXPORT EN_getcurve(EN_Project p, int index, char *id, int *nPoints,
     int i;
     Scurve *curve;
 
+    *nPoints = 0;
     if (!p->Openflag) return 102;
     if (index <= 0 || index > p->network.Ncurves) return 206;
     curve = &p->network.Curve[index];
@@ -4797,7 +4920,8 @@ int DLLEXPORT EN_addrule(EN_Project p, char *rule)
         // Copy and tokenize the current line
         strcpy(line2, line);
         strcat(line2, "\n");  // Tokenizer won't work without this
-        parser->Ntokens = gettokens(line2, parser->Tok, MAXTOKS, parser->Comment);
+        stripcomment(line2, parser->Comment);
+        parser->Ntokens = gettokens(line2, parser->Tok, MAXTOKS);
 
         // Process the line to build up the rule's contents
         if (parser->Ntokens > 0 && *parser->Tok[0] != ';')
@@ -4833,9 +4957,9 @@ int DLLEXPORT EN_deleterule(EN_Project p, int index)
     return 0;
 }
 
-int DLLEXPORT EN_getrule(EN_Project p, int index, int *nPremises,
-                         int *nThenActions, int *nElseActions,
-                         double *priority)
+int DLLEXPORT EN_getruleinfo(EN_Project p, int index, int *nPremises,
+                             int *nThenActions, int *nElseActions,
+                             double *priority)
 /*----------------------------------------------------------------
 **  Input:   index  = rule index
 **  Output:  nPremises  = number of premises conditions (IF AND OR)

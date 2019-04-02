@@ -7,17 +7,13 @@ Description:  binary file read/write routines
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/27/2018
+Last Updated: 03/31/2019
 ******************************************************************************
 */
 
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
 #include <stdlib.h>
-#endif
 #include <math.h>
 
 #include "types.h"

@@ -11,7 +11,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 03/31/2019
  ******************************************************************************
  */
 
@@ -752,11 +752,12 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param id the ID name of the node to be added.
   @param nodeType the type of node being added (see @ref EN_NodeType)
+  @param[out] index the index of the newly added node
   @return an error code.
 
   When a new node is created all of it's properties (see @ref EN_NodeProperty) are set to 0.
   */
-  int DLLEXPORT EN_addnode(EN_Project ph, char *id, int nodeType);
+  int DLLEXPORT EN_addnode(EN_Project ph, char *id, int nodeType, int *index);
 
   /**
   @brief Deletes a node from a project.
@@ -942,6 +943,29 @@ typedef struct Project *EN_Project;
   int  DLLEXPORT EN_getnumdemands(EN_Project ph, int nodeIndex, int *numDemands);
 
   /**
+  @brief Adds a demand to a node's collection of demand categories.
+  @param ph an EPANET project handle.
+  @param nodeIndex the node's index (starting from 1).
+  @param baseDemand the category's base demand.
+  @param patIndex the index of the time pattern assigned to the demand.
+  @param name the name of the demand's category
+  @return an error code.
+
+  The patIndex can be 0 and the category name "" if either is not applicable.
+  */
+  int  DLLEXPORT EN_adddemand(EN_Project ph, int nodeIndex, double baseDemand,
+                 int patIndex, char *name);
+
+  /**
+  @brief Deletes a demand from a node's collection of demand categories.
+  @param ph an EPANET project handle.
+  @param nodeIndex a node's index (starting from 1).
+  @param demandIndex the index of the demand category to be deleted (starting from 1).
+  @return an error code.
+  */
+  int DLLEXPORT EN_deletedemand(EN_Project ph, int nodeIndex, int demandIndex);
+
+  /**
   @brief Gets the base demand for one of a node's demand categories.
   @param ph an EPANET project handle.
   @param nodeIndex a node's index (starting from 1).
@@ -1024,22 +1048,26 @@ typedef struct Project *EN_Project;
   @brief Adds a new link to a project.
   @param ph an EPANET project handle.
   @param id the ID name of the link to be added.
-  @param linkType The type of link being added (see @ref EN_LinkType)
-  @param fromNode The ID name of the link's starting node.
-  @param toNode The ID name of the link's ending node.
+  @param linkType he type of link being added (see @ref EN_LinkType)
+  @param fromNode the ID name of the link's starting node.
+  @param toNode the ID name of the link's ending node.
+  @param[out] index the index of the newly added link.
   @return an error code.
 
-  A new pipe is assigned a diameter of 10 inches (or 254 mm), a length of 100
-  feet (or meters), a roughness coefficient of 100 and 0 for all other properties.
+  A new pipe is assigned a diameter of 10 inches (~250 mm), a length of 330
+  feet (~100 meters) and a roughness coefficient of 130 for the H-W head loss 
+  formula, 0.33 milli-feet (0.1 mm) for the D-W formula, and 0.01 for the C-M
+  formula. All other properties are set to 0.
 
   A new pump has a status of `EN_OPEN`, a speed setting of 1, and has no pump
   curve or power rating assigned to it.
 
-  A new valve has a diameter of 10 inches (or 254 mm) and all other properties set to 0.
+  A new valve has a diameter of 10 inches (~250 mm) and all other properties set to 0.
 
   See @ref EN_LinkProperty.
   */
-  int DLLEXPORT EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode, char *toNode);
+  int DLLEXPORT EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode,
+                char *toNode, int *index);
 
   /**
   @brief Deletes a link from the project.
@@ -1539,7 +1567,7 @@ typedef struct Project *EN_Project;
   @param[out] priority the rule's priority value.
   @return an error code.
   */
-  int  DLLEXPORT EN_getrule(EN_Project ph, int index, int *nPremises,
+  int  DLLEXPORT EN_getruleinfo(EN_Project ph, int index, int *nPremises,
                  int *nThenActions, int *nElseActions, double *priority);
 
   /**

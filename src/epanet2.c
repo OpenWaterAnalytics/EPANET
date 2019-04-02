@@ -7,14 +7,10 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 03/31/2019
  ******************************************************************************
 */
-#ifndef __APPLE__
-#include <malloc.h>
-#else
 #include <stdlib.h>
-#endif
 #include <string.h>
 
 #include "types.h"
@@ -292,9 +288,9 @@ int DLLEXPORT ENsetqualtype(int qualType, char *chemName, char *chemUnits,
 
 ********************************************************************/
 
-int DLLEXPORT ENaddnode(char *id, int nodeType)
+int DLLEXPORT ENaddnode(char *id, int nodeType, int *index)
 {
-    return EN_addnode(_defaultProject, id, nodeType);
+    return EN_addnode(_defaultProject, id, nodeType, index);
 }
 
 int DLLEXPORT ENdeletenode(int index, int actionCode)
@@ -388,6 +384,17 @@ int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
     return EN_getnumdemands(_defaultProject, nodeIndex, numDemands);
 }
 
+int DLLEXPORT ENadddemand(int nodeIndex, EN_API_FLOAT_TYPE baseDemand,
+    int patIndex, char *demandName)
+{
+    return EN_adddemand(_defaultProject, nodeIndex, baseDemand, patIndex, demandName);
+}
+
+int DLLEXPORT ENdeletedemand(int nodeIndex, int demandIndex)
+{
+    return EN_deletedemand(_defaultProject, nodeIndex, demandIndex);
+}
+
 int DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex,
               EN_API_FLOAT_TYPE *baseDemand)
 {
@@ -429,9 +436,9 @@ int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, char *demandName)
 
 ********************************************************************/
 
-int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode)
+int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode, int *index)
 {
-    return EN_addlink(_defaultProject, id, linkType, fromNode, toNode);
+    return EN_addlink(_defaultProject, id, linkType, fromNode, toNode, index);
 }
 
 int DLLEXPORT ENdeletelink(int index, int actionCode)
@@ -738,12 +745,12 @@ int DLLEXPORT ENdeleterule(int index)
     return EN_deleterule(_defaultProject, index);
 }
 
-int DLLEXPORT ENgetrule(int index, int *nPremises, int *nThenActions,
+int DLLEXPORT ENgetruleinfo(int index, int *nPremises, int *nThenActions,
               int *nElseActions, EN_API_FLOAT_TYPE *priority)
 {
     double priority2 = 0.0;
-    int errcode = EN_getrule(_defaultProject, index, nPremises, nThenActions,
-                             nElseActions, &priority2);
+    int errcode = EN_getruleinfo(_defaultProject, index, nPremises, nThenActions,
+                                 nElseActions, &priority2);
     *priority = (EN_API_FLOAT_TYPE)priority2;
     return errcode;
 }

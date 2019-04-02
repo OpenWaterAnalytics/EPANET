@@ -7,17 +7,13 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/05/2019
+ Last Updated: 03/31/2019
  ******************************************************************************
 */
 
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
 #include <stdlib.h>
-#endif
 
 #ifdef _WIN32
 #define snprintf _snprintf

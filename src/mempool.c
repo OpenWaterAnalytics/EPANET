@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 03/31/2019
 
  This module is based code by Steve Hill in Graphics Gems III,
  David Kirk (ed.), Academic Press, Boston, MA, 1992
@@ -15,9 +15,6 @@
 */
 
 #include <stdlib.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#endif
 #include "mempool.h"
 
 /*

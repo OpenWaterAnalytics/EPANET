@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/21/2019
+ Last Updated: 03/31/2019
  ******************************************************************************
 */
 
@@ -19,31 +19,21 @@
 BOOST_AUTO_TEST_SUITE (pattern)
 
 BOOST_AUTO_TEST_CASE(add_set_pattern)
-{
-	std::string path_inp(DATA_PATH_NET1);
-	std::string path_rpt(DATA_PATH_RPT);
-	std::string path_out(DATA_PATH_OUT);
-	std::string inp_save("net1_setid.inp");
 
+{
     int error = 0;
 
     EN_Project ph = NULL;
     EN_createproject(&ph);
 
-    error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
+    error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
     BOOST_REQUIRE(error == 0);
 
-    // Get the default pattern index
-    double dblPatIdx;
-    int defPatIdx;
+    // Rename the first pattern
     int patIdx;
-    EN_getoption(ph, EN_DEFDEMANDPAT, &dblPatIdx);
-    defPatIdx = (int)dblPatIdx;
-
-    // Rename the default pattern
-    EN_setpatternid(ph, defPatIdx, (char *)"Pat1");
+    EN_setpatternid(ph, 1, (char *)"Pat1");
     EN_getpatternindex(ph, (char *)"Pat1", &patIdx);
-    BOOST_REQUIRE(defPatIdx == patIdx);
+    BOOST_REQUIRE(1 == patIdx);
 
     // Add 2 new patterns
     EN_addpattern(ph, (char *)"Pat2");
@@ -69,8 +59,8 @@ BOOST_AUTO_TEST_CASE(add_set_pattern)
     EN_getpatternlen(ph, patIdx, &n);
     BOOST_REQUIRE(n == 4);
 
-    // Delete the default pattern
-    EN_deletepattern(ph, defPatIdx);
+    // Delete the first pattern
+    EN_deletepattern(ph, 1);
 
     // Check that junction 4 has no pattern
     EN_getdemandpattern(ph, 4, 1, &patIdx);
@@ -129,6 +119,7 @@ BOOST_AUTO_TEST_CASE(add_set_pattern)
 
     EN_close(ph);
     EN_deleteproject(&ph);
+    
 }
 
 BOOST_FIXTURE_TEST_CASE(test_pattern_comments, FixtureOpenClose)

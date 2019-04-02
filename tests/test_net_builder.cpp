@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/21/2019
+ Last Updated: 03/31/2019
  ******************************************************************************
 */
 
@@ -121,11 +121,9 @@ BOOST_FIXTURE_TEST_CASE(test_build_net1, FixtureInitClose)
 	BOOST_REQUIRE(error == 0);
 	error = EN_setpattern(ph, 1, P, 12);
 	BOOST_REQUIRE(error == 0);
-	error = EN_setoption(ph, EN_DEFDEMANDPAT, 1);
-	BOOST_REQUIRE(error == 0);
 	for (i = 0; i < 9; i++)
 	{
-		error = EN_addnode(ph, juncs[i], EN_JUNCTION);
+		error = EN_addnode(ph, juncs[i], EN_JUNCTION, &Nindex);
 		BOOST_REQUIRE(error == 0);
 		error = EN_setnodevalue(ph, i + 1, EN_ELEVATION, e[i]);
 		BOOST_REQUIRE(error == 0);
@@ -133,17 +131,17 @@ BOOST_FIXTURE_TEST_CASE(test_build_net1, FixtureInitClose)
 		BOOST_REQUIRE(error == 0);
 		error = EN_setcoord(ph, i + 1, X[i], Y[i]);
 		BOOST_REQUIRE(error == 0);
-		//error = EN_setdemandpattern(ph, i + 1, 1, 1);
-		//BOOST_REQUIRE(error == 0);
+		error = EN_setdemandpattern(ph, i + 1, 1, 1);
+		BOOST_REQUIRE(error == 0);
 	}
-	error = EN_addnode(ph, (char *)"9", EN_RESERVOIR);
+	error = EN_addnode(ph, (char *)"9", EN_RESERVOIR, &Nindex);
 	BOOST_REQUIRE(error == 0);
 	error = EN_setcoord(ph, 10, 10, 70);
 	BOOST_REQUIRE(error == 0);
 	error = EN_setnodevalue(ph, 10, EN_ELEVATION, 800);
 	BOOST_REQUIRE(error == 0);
 
-	error = EN_addnode(ph, (char *)"2", EN_TANK);
+	error = EN_addnode(ph, (char *)"2", EN_TANK, &Nindex);
 	BOOST_REQUIRE(error == 0);
 	error = EN_setcoord(ph, 11, 50, 90);
 	BOOST_REQUIRE(error == 0);
@@ -160,29 +158,29 @@ BOOST_FIXTURE_TEST_CASE(test_build_net1, FixtureInitClose)
 	error = EN_setnodevalue(ph, 11, EN_MIXFRACTION, 1);
 	BOOST_REQUIRE(error == 0);
 
-	error = EN_addlink(ph, (char *)"10", EN_PIPE, (char *)"10", (char *)"11");
+	error = EN_addlink(ph, (char *)"10", EN_PIPE, (char *)"10", (char *)"11", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"11", EN_PIPE, (char *)"11", (char *)"12");
+	error = EN_addlink(ph, (char *)"11", EN_PIPE, (char *)"11", (char *)"12", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"12", EN_PIPE, (char *)"12", (char *)"13");
+	error = EN_addlink(ph, (char *)"12", EN_PIPE, (char *)"12", (char *)"13", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"21", EN_PIPE, (char *)"21", (char *)"22");
+	error = EN_addlink(ph, (char *)"21", EN_PIPE, (char *)"21", (char *)"22", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"22", EN_PIPE, (char *)"22", (char *)"23");
+	error = EN_addlink(ph, (char *)"22", EN_PIPE, (char *)"22", (char *)"23", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"31", EN_PIPE, (char *)"31", (char *)"32");
+	error = EN_addlink(ph, (char *)"31", EN_PIPE, (char *)"31", (char *)"32", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"110", EN_PIPE, (char *)"2", (char *)"12");
+	error = EN_addlink(ph, (char *)"110", EN_PIPE, (char *)"2", (char *)"12", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"111", EN_PIPE, (char *)"11", (char *)"21");
+	error = EN_addlink(ph, (char *)"111", EN_PIPE, (char *)"11", (char *)"21", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"112", EN_PIPE, (char *)"12", (char *)"22");
+	error = EN_addlink(ph, (char *)"112", EN_PIPE, (char *)"12", (char *)"22", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"113", EN_PIPE, (char *)"13", (char *)"23");
+	error = EN_addlink(ph, (char *)"113", EN_PIPE, (char *)"13", (char *)"23", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"121", EN_PIPE, (char *)"21", (char *)"31");
+	error = EN_addlink(ph, (char *)"121", EN_PIPE, (char *)"21", (char *)"31", &Lindex);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"122", EN_PIPE, (char *)"22", (char *)"32");
+	error = EN_addlink(ph, (char *)"122", EN_PIPE, (char *)"22", (char *)"32", &Lindex);
 	BOOST_REQUIRE(error == 0);
 	for (i = 0; i < 12; i++)
 	{
@@ -192,7 +190,7 @@ BOOST_FIXTURE_TEST_CASE(test_build_net1, FixtureInitClose)
 		BOOST_REQUIRE(error == 0);
 	}
 
-	error = EN_addlink(ph, (char *)"9", EN_PUMP, (char *)"9", (char *)"10");
+	error = EN_addlink(ph, (char *)"9", EN_PUMP, (char *)"9", (char *)"10", &Lindex);
 	BOOST_REQUIRE(error == 0);
 	error = EN_addcurve(ph, (char *)"1");
 	BOOST_REQUIRE(error == 0);
@@ -250,7 +248,7 @@ BOOST_AUTO_TEST_CASE(test_open_net1, * boost::unit_test::depends_on("test_net_bu
 
 	EN_Project ph = NULL;
 
-    // now we load the netwok we just built and saved
+    // now we load the network we just built and saved
     EN_createproject(&ph);
     error = EN_open(ph, "net_builder.inp", DATA_PATH_RPT, DATA_PATH_OUT);
     BOOST_REQUIRE(error == 0);
@@ -299,21 +297,22 @@ BOOST_FIXTURE_TEST_CASE(test_save_net2, FixtureInitClose)
 	//char id[EN_MAXID+1];
 	double p1_1, p2_1; // p1_2, p2_2;
 	double q1_1, q2_1; // q1_2, q2_2;
+    int ndx;
 
 	// Build a network
-	error = EN_addnode(ph, (char *)"N1", EN_JUNCTION);
+	error = EN_addnode(ph, (char *)"N1", EN_JUNCTION, &ndx);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addnode(ph, (char *)"N2", EN_JUNCTION);
+	error = EN_addnode(ph, (char *)"N2", EN_JUNCTION, &ndx);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addnode(ph, (char *)"N3", EN_RESERVOIR);
+	error = EN_addnode(ph, (char *)"N3", EN_RESERVOIR, &ndx);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addnode(ph, (char *)"N4", EN_TANK);
+	error = EN_addnode(ph, (char *)"N4", EN_TANK, &ndx);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"L1", EN_PUMP, (char *)"N3", (char *)"N1");
+	error = EN_addlink(ph, (char *)"L1", EN_PUMP, (char *)"N3", (char *)"N1", &ndx);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"L2", EN_PIPE, (char *)"N1", (char *)"N3");
+	error = EN_addlink(ph, (char *)"L2", EN_PIPE, (char *)"N1", (char *)"N3", &ndx);
 	BOOST_REQUIRE(error == 0);
-	error = EN_addlink(ph, (char *)"L3", EN_PIPE, (char *)"N1", (char *)"N2");
+	error = EN_addlink(ph, (char *)"L3", EN_PIPE, (char *)"N1", (char *)"N2", &ndx);
 	BOOST_REQUIRE(error == 0);
 	error = EN_addcurve(ph, (char *)"C1");
 	BOOST_REQUIRE(error == 0);

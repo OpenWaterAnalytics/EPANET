@@ -7,17 +7,13 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 03/31/2019
  ******************************************************************************
 */
 
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
 #include <stdlib.h>
-#endif
 
 //*** For the Windows SDK _tempnam function ***//
 #ifdef _WIN32
@@ -272,9 +268,6 @@ void initpointers(Project *pr)
     pr->network.NodeHashTable = NULL;
     pr->network.LinkHashTable = NULL;
 
-    pr->parser.Patlist = NULL;
-    pr->parser.Curvelist = NULL;
-
     pr->hydraul.smatrix.Aii = NULL;
     pr->hydraul.smatrix.Aij = NULL;
     pr->hydraul.smatrix.F = NULL;
@@ -329,8 +322,8 @@ int allocdata(Project *pr)
     if (!errcode)
     {
         n = pr->parser.MaxLinks + 1;
-        pr->network.Link           = (Slink *)calloc(n, sizeof(Slink));
-        pr->hydraul.LinkFlow   = (double *)calloc(n, sizeof(double));
+        pr->network.Link        = (Slink *)calloc(n, sizeof(Slink));
+        pr->hydraul.LinkFlow    = (double *)calloc(n, sizeof(double));
         pr->hydraul.LinkSetting = (double *)calloc(n, sizeof(double));
         pr->hydraul.LinkStatus  = (StatusType *)calloc(n, sizeof(StatusType));
         ERRCODE(MEMCHECK(pr->network.Link));
@@ -339,8 +332,9 @@ int allocdata(Project *pr)
         ERRCODE(MEMCHECK(pr->hydraul.LinkStatus));
     }
 
-    // Allocate memory for tanks, sources, pumps, valves,
-    // controls, demands, time patterns, & operating curves
+    // Allocate memory for tanks, sources, pumps, valves, and controls
+    // (memory for Pattern and Curve arrays is expanded as each new
+    // pattern and curve is added)
     if (!errcode)
     {
         pr->network.Tank =
@@ -351,35 +345,15 @@ int allocdata(Project *pr)
             (Svalve *)calloc(pr->parser.MaxValves + 1, sizeof(Svalve));
         pr->network.Control =
             (Scontrol *)calloc(pr->parser.MaxControls + 1, sizeof(Scontrol));
-        pr->network.Pattern =
-            (Spattern *)calloc(pr->parser.MaxPats + 1, sizeof(Spattern));
-        pr->network.Curve =
-            (Scurve *)calloc(pr->parser.MaxCurves + 1, sizeof(Scurve));
         ERRCODE(MEMCHECK(pr->network.Tank));
         ERRCODE(MEMCHECK(pr->network.Pump));
         ERRCODE(MEMCHECK(pr->network.Valve));
         ERRCODE(MEMCHECK(pr->network.Control));
-        ERRCODE(MEMCHECK(pr->network.Pattern));
-        ERRCODE(MEMCHECK(pr->network.Curve));
     }
 
-    // Initialize pointers used in patterns, curves, and demand category lists
+    // Initialize pointers used in nodes and links
     if (!errcode)
     {
-        for (n = 0; n <= pr->parser.MaxPats; n++)
-        {
-            pr->network.Pattern[n].Length = 0;
-            pr->network.Pattern[n].F = NULL;
-            pr->network.Pattern[n].Comment = NULL;
-        }
-        for (n = 0; n <= pr->parser.MaxCurves; n++)
-        {
-            pr->network.Curve[n].Npts = 0;
-            pr->network.Curve[n].Type = GENERIC_CURVE;
-            pr->network.Curve[n].X = NULL;
-            pr->network.Curve[n].Y = NULL;
-            pr->network.Curve[n].Comment = NULL;
-        }
         for (n = 0; n <= pr->parser.MaxNodes; n++)
         {
             pr->network.Node[n].D = NULL;    // node demand
@@ -397,43 +371,6 @@ int allocdata(Project *pr)
     return errcode;
 }
 
-void freeTmplist(STmplist *t)
-/*----------------------------------------------------------------
-**  Input:   t = pointer to start of a temporary list
-**  Output:  none
-**  Purpose: frees memory used for temporary storage
-**           of pattern & curve data
-**----------------------------------------------------------------
-*/
-{
-    STmplist *tnext;
-    while (t != NULL)
-    {
-        tnext = t->next;
-        freeFloatlist(t->x);
-        freeFloatlist(t->y);
-        free(t);
-        t = tnext;
-    }
-}
-
-void freeFloatlist(SFloatlist *f)
-/*----------------------------------------------------------------
-**  Input:   f = pointer to start of list of floats
-**  Output:  none
-**  Purpose: frees memory used for storing list of floats
-**----------------------------------------------------------------
-*/
-{
-    SFloatlist *fnext;
-    while (f != NULL)
-    {
-        fnext = f->next;
-        free(f);
-        f = fnext;
-    }
-}
-
 void freedata(Project *pr)
 /*----------------------------------------------------------------
 **  Input:   none
@@ -444,7 +381,6 @@ void freedata(Project *pr)
 {
     int j;
     Pdemand demand, nextdemand;
-    Psource source;
 
     // Free memory for computed results
     free(pr->hydraul.NodeDemand);
@@ -472,8 +408,7 @@ void freedata(Project *pr)
                 demand = nextdemand;
             }
             // Free memory used for WQ source data
-            source = pr->network.Node[j].S;
-            free(source);
+            free(pr->network.Node[j].S);
             free(pr->network.Node[j].Comment);
         }
         free(pr->network.Node);
@@ -509,7 +444,8 @@ void freedata(Project *pr)
     // Free memory for curves
     if (pr->network.Curve != NULL)
     {
-        for (j = 0; j <= pr->parser.MaxCurves; j++)
+        // There is no Curve[0]
+        for (j = 1; j <= pr->parser.MaxCurves; j++)
         {
             free(pr->network.Curve[j].X);
             free(pr->network.Curve[j].Y);
@@ -518,7 +454,7 @@ void freedata(Project *pr)
         free(pr->network.Curve);
     }
 
-    // Free memory for rule base (see RULES.C)
+    // Free memory for rule-based controls (see RULES.C)
     freerules(pr);
 
     // Free hash table memory
@@ -760,7 +696,7 @@ int findtank(Network *network, int index)
 /*----------------------------------------------------------------
 **  Input:   index = node index
 **  Output:  none
-**  Returns: index of tank with given node id, or NOTFOUND if tank not found
+**  Returns: index of tank with given node id, or 0 if tank not found
 **  Purpose: for use in the deletenode function
 **----------------------------------------------------------------
 */
@@ -770,14 +706,14 @@ int findtank(Network *network, int index)
     {
         if (network->Tank[i].Node == index) return i;
     }
-    return NOTFOUND;
+    return 0;
 }
 
 int findpump(Network *network, int index)
 /*----------------------------------------------------------------
 **  Input:   index = link ID
 **  Output:  none
-**  Returns: index of pump with given link id, or NOTFOUND if pump not found
+**  Returns: index of pump with given link id, or 0 if pump not found
 **  Purpose: for use in the deletelink function
 **----------------------------------------------------------------
 */
@@ -787,14 +723,14 @@ int findpump(Network *network, int index)
     {
         if (network->Pump[i].Link == index) return i;
     }
-    return NOTFOUND;
+    return 0;
 }
 
 int findvalve(Network *network, int index)
 /*----------------------------------------------------------------
 **  Input:   index = link ID
 **  Output:  none
-**  Returns: index of valve with given link id, or NOTFOUND if valve not found
+**  Returns: index of valve with given link id, or 0 if valve not found
 **  Purpose: for use in the deletelink function
 **----------------------------------------------------------------
 */
@@ -804,7 +740,41 @@ int findvalve(Network *network, int index)
     {
         if (network->Valve[i].Link == index) return i;
     }
-    return NOTFOUND;
+    return 0;
+}
+
+int findpattern(Network *network, char *id)
+/*----------------------------------------------------------------
+**  Input:   id = time pattern ID
+**  Output:  none
+**  Returns: time pattern index, or 0 if pattern not found
+**  Purpose: finds index of time pattern given its ID
+**----------------------------------------------------------------
+*/
+{
+    int i;
+    for (i = 1; i <= network->Npats; i++)
+    {
+        if (strcmp(id, network->Pattern[i].ID) == 0) return i;
+    }
+    return 0;
+}
+
+int findcurve(Network *network, char *id)
+/*----------------------------------------------------------------
+**  Input:   id = data curve ID
+**  Output:  none
+**  Returns: data curve index, or 0 if curve not found
+**  Purpose: finds index of data curve given its ID
+**----------------------------------------------------------------
+*/
+{
+    int i;
+    for (i = 1; i <= network->Ncurves; i++)
+    {
+        if (strcmp(id, network->Curve[i].ID) == 0) return i;
+    }
+    return 0;
 }
 
 void adjustpattern(int *pat, int index)
@@ -1042,7 +1012,7 @@ char *xstrcpy(char **s1, const char *s2, const size_t n)
         if ((n2 = strlen(s2)) > n) n2 = n;
         if (n2 > n1)
         {
-            free(*s1);
+            if (*s1) free(*s1);
             *s1 = (char *)malloc((n2 + 1) * sizeof(char));
         }
 
