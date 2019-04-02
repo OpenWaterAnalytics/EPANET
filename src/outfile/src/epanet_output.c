@@ -2,8 +2,9 @@
 //
 //   epanet_output.c -- API for reading results from EPANET binary output file
 //
-//   Version:    0.30
-//   Date        09/06/2017
+//   Version:    0.40
+//   Date        04/02/2019
+//               09/06/2017
 //               06/17/2016
 //               08/05/2014
 //               05/21/2014
