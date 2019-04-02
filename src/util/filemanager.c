@@ -27,15 +27,14 @@
 
 
 typedef struct file_s {
-    char *filename;
-    size_t size;
+    char *filename;    // Assumes this is a null terminated string
     FILE *file;
 } file_handle_t;
 
 
 // local (private) functions
 int _fopen(FILE **f, const char *name, const char *mode);
-int _get_temp_filename(char **tempname, size_t *size);
+int _get_temp_filename(char **tempname);
 
 
 file_handle_t *create_file_manager() {
@@ -44,14 +43,13 @@ file_handle_t *create_file_manager() {
     file_handle = (file_handle_t *)calloc(1, sizeof(file_handle_t));
 
 	file_handle->filename = NULL;
-	file_handle->size = 0;
 	file_handle->file = NULL;
 
     return file_handle;
 }
 
 void delete_file_manager(file_handle_t *file_handle) {
-	
+
 	if (file_handle->file != NULL)
 		close_file(file_handle);
 
@@ -65,7 +63,7 @@ void get_filename(file_handle_t *file_handle, char **filename, size_t *size)
 // BE AWARE: The memory allocated here must be freed by the caller
 //
 {
-    copy_cstr(file_handle->filename, filename, size);
+    copy_cstr(file_handle->filename, filename);
 }
 
 
@@ -73,9 +71,9 @@ int open_file(file_handle_t *file_handle, const char *filename, const char *file
     int error = 0;
 
     if (filename == NULL)
-        _get_temp_filename(&(file_handle->filename), &(file_handle->size));
+        _get_temp_filename(&(file_handle->filename));
     else
-        copy_cstr(filename, &(file_handle->filename), &(file_handle->size));
+        copy_cstr(filename, &(file_handle->filename));
 
     if (file_mode == NULL)
         error = -1;
@@ -173,7 +171,7 @@ int _fopen(FILE **f, const char *name, const char *mode)
     return ret;
 }
 
-int _get_temp_filename(char **tempname, size_t *size)
+int _get_temp_filename(char **tempname)
 {
     int error = 0;
 
@@ -187,7 +185,7 @@ int _get_temp_filename(char **tempname, size_t *size)
         return error;
     }
     else
-        copy_cstr(name, tempname, size);
+        copy_cstr(name, tempname);
 
     // --- free the pointer returned by _tempnam
     if (name)
@@ -200,4 +198,13 @@ int _get_temp_filename(char **tempname, size_t *size)
     error = mkstemp(*tempname);
 #endif
     return error;
+}
+
+bool is_valid(file_handle_t *file_handle)
+{
+	if ((file_handle->filename == NULL && file_handle->file == NULL) ||
+		(isnullterm_cstr(file_handle->filename) && file_handle != NULL))
+		return true;
+	else
+		return false;
 }

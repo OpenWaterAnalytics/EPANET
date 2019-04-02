@@ -71,6 +71,9 @@ int close_file(file_handle_t *file_handle);
 int remove_file(file_handle_t *file_handle);
 
 
+bool is_valid(file_handle_t *file_handle);
+
+
 #if defined(__cplusplus)
 }
 #endif

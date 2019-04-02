@@ -40,6 +40,7 @@ BOOST_AUTO_TEST_CASE (test_create_destroy)
 
     file_handle = create_file_manager();
     BOOST_CHECK(file_handle != NULL);
+	BOOST_CHECK(is_valid(file_handle) == true);
 
     delete_file_manager(file_handle);
 }
@@ -54,6 +55,7 @@ BOOST_AUTO_TEST_CASE(test_open_close)
 
     error = open_file(file_handle, DATA_PATH_OUTPUT, "rb");
     BOOST_REQUIRE(error == 0);
+	BOOST_CHECK(is_valid(file_handle) == true);
 
     error = close_file(file_handle);
     BOOST_REQUIRE(error == 0);
@@ -85,7 +87,7 @@ BOOST_FIXTURE_TEST_CASE(test_temp_file, Fixture)
     printf_file(file_handle, "%s", "This is a test.");
 
     get_filename(file_handle, &filename, &size);
-    //BOOST_CHECK(check_string(filename, "./test_file.txt"));
+	BOOST_CHECK(is_valid(file_handle) == true);
 
     BOOST_CHECK(boost::filesystem::exists(filename) == true);
 

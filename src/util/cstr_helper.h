@@ -3,7 +3,11 @@
 #define CSTR_HELPER_H_
 
 
-int copy_cstr(const char *source, char **destination, size_t *size);
+#include <stdbool.h>
+
+
+int copy_cstr(const char *source, char **destination);
+bool isnullterm_cstr(const char *source);
 
 
 #endif /* CSTR_HELPER_H_ */
