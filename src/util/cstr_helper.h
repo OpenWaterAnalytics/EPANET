@@ -3,7 +3,7 @@
  Project:      OWA EPANET
  Version:      2.2
  Module:       util/cstr_helper.h
- Description:  Provides a simple interface for managing files
+ Description:  Provides C string helper functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE

@@ -3,7 +3,7 @@
  Project:      OWA EPANET
  Version:      2.2
  Module:       util/errormanager.h
- Description:  Provides a simple interface for managing files
+ Description:  Provides a simple interface for managing errors
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
