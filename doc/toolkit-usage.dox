@@ -60,12 +60,13 @@ Note that after an input file has been loaded in this fashion the resulting netw
 The second method for supplying network data to a project is to use the Toolkit's functions to add objects and to set their properties via code. In this case the @ref EN_init function should be called immediately after creating a project, passing in the names of a report and binary output files (both optional) as well as the choices of flow units and head loss formulas to use. After that the various `EN_add` functions, such as @ref EN_addnode, @ref EN_addlink, @ref EN_addpattern, @ref EN_addcontrol, etc., can be called to add new objects to the network. Here is a partial example:
 
 \code {.c}
+int index;
 EN_Project ph;
 EN_createproject(&ph);
 EN_init(ph, "net1.rpt", "", EN_GPM, EN_HW);
-EN_addnode(ph, "J1", EN_JUNCTION);
-EN_addnode(ph, "J2", EN_JUNCTION);
-EN_addlink(ph, "P1", EN_PIPE, "J1", "J2");
+EN_addnode(ph, "J1", EN_JUNCTION, &index);
+EN_addnode(ph, "J2", EN_JUNCTION, &index);
+EN_addlink(ph, "P1", EN_PIPE, "J1", "J2", &index);
 // additional function calls to complete building the network
 \endcode
 

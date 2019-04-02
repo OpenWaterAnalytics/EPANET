@@ -141,7 +141,7 @@ These are symbolic constants used as function arguments.
 /**
 @addtogroup Nodes
 @{
-@fn int EN_addnode(EN_Project ph, char *id, int nodeType)
+@fn int EN_addnode(EN_Project ph, char *id, int nodeType, int *index)
 @fn int EN_deletenode(EN_Project ph, int index, int actionCode)
 @fn int EN_getnodeindex(EN_Project ph, char *id, int *index)
 @fn int EN_getnodeid(EN_Project ph, int index, char *id)
@@ -163,6 +163,8 @@ These are symbolic constants used as function arguments.
 @fn int EN_getdemandmodel(EN_Project ph, int *type, double *pmin, double *preq, double *pexp)
 @fn int EN_setdemandmodel(EN_Project ph, int type, double pmin, double preq, double pexp)
 @fn int EN_getnumdemands(EN_Project ph, int nodeIndex, int *numDemands)
+@fn int EN_adddemand(EN_Project ph, int nodeIndex, double baseDemand, int patIndex, char *demandName)
+@fn int EN_deletedemand(EN_Project ph, int nodeIndex, int demandIndex)
 @fn int EN_getbasedemand(EN_Project ph, int nodeIndex, int demandIndex, double *baseDemand)
 @fn int EN_setbasedemand(EN_Project ph, int nodeIndex, int demandIndex, double baseDemand)
 @fn int EN_getdemandpattern(EN_Project ph, int nodeIndex, int demandIndex, int *pattIndex)
@@ -175,7 +177,7 @@ These are symbolic constants used as function arguments.
 /**
 @addtogroup Links
 @{
-@fn int EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode, char *toNode)
+@fn int EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode, char *toNode, int *index)
 @fn int EN_deletelink(EN_Project ph, int index, int actionCode)
 @fn int EN_getlinkindex(EN_Project ph, char *id, int *index)
 @fn int EN_getlinkid(EN_Project ph, int index, char *id)
@@ -241,7 +243,7 @@ These are symbolic constants used as function arguments.
 @{
 @fn int EN_addrule(EN_Project ph, char *rule)
 @fn int EN_deleterule(EN_Project ph, int index)
-@fn int EN_getrule(EN_Project ph, int index, int *nPremises, int *nThenActions, int *nElseActions, double *priority)
+@fn int EN_getruleinfo(EN_Project ph, int index, int *nPremises, int *nThenActions, int *nElseActions, double *priority)
 @fn int EN_getruleID(EN_Project ph, int index, char* id);
 @fn int EN_getpremise(EN_Project ph, int ruleIndex, int premiseIndex, int *logop,  int *object, int *objIndex,
         int *variable, int *relop, int *status, double *value)
