@@ -81,5 +81,5 @@ on_success:
 on_failure:
   - cd %TEST_HOME%\benchmark
   # zip up the SUT benchmarks
-  - 7z a benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip .\epanet-%SUT_BUILD_ID% &
+  - 7z a benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip .\epanet-%SUT_BUILD_ID%
   - appveyor PushArtifact benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip
