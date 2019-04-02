@@ -38,22 +38,35 @@ Prototypes of the thread-safe functions appear in the `epanet2_2.h` header file 
 API users now have the ability to build a complete EPANET network model using just function calls, without the need to open an EPANET-formatted input file. All types of network objects can be created and have their properties set using these calls, including both simple and rule-based controls.  Here is an example of building a simple 2-node, 1-pipe network just through code:
 ```
 #include "epanet2_2.h"
-int buildandrunEpanet(char *frpt)
+int buildandrunEpanet(char *rptfile)
 {
+    // Create and initialize a project using gpm for flow
+    // units and the Hazen-Williams formula for head loss
     EN_Project ph = 0;
-    int err;
+    int err, index;
     err = EN_createproject(&ph);
     if (err) return err;
-    EN_init(ph, frpt, "", EN_GPM, EN_HW);
-    EN_addnode(ph, "J1, EN_JUNCTION);
-    EN_setjuncdata(ph, 1, 710, 500, "");  //elev, demand
-    EN_addnode(ph, "R1", EN_RESERVOIR);
-    EN_setnodevalue(ph, 2, EN_ELEVATION, 800);
-    EN_addlink(ph, "P1", EN_PIPE, "R1", "J1");
-    EN_setpipedata(ph, 1, 5280, 14, 100, 0); // length, diam, C-factor
+    EN_init(ph, rptfile, "", EN_GPM, EN_HW);
+    
+    //Add a junction node with 710 ft elevation and 500 gpm demand
+    EN_addnode(ph, "J1, EN_JUNCTION, &index);
+    EN_setjuncdata(ph, index, 710, 500, "");
+    
+    // Add a reservoir node at 800 ft elevation
+    EN_addnode(ph, "R1", EN_RESERVOIR, &index);
+    EN_setnodevalue(ph, index, EN_ELEVATION, 800);
+    
+    // Add a 5280 ft long, 14-inch pipe with C-factor of 100
+    // from the reservoir to the demand node
+    EN_addlink(ph, "P1", EN_PIPE, "R1", "J1", &index);
+    EN_setpipedata(ph, index, 5280, 14, 100, 0);
+    
+    // Solve for hydraulics and report nodal results
     EN_setreport(ph, "NODES ALL");
     err = EN_solveH(ph);
     if (!err) err = EN_report(ph);
+    
+    // Close and delete the project
     EN_close(ph);
     EN_deleteproject(&ph);
     return err;
@@ -122,20 +135,9 @@ for the thread-safe API. Some additional points regarding the new **PDA** option
 
 As described by [Davis et al. (2018)](https://www.drink-water-eng-sci.net/11/25/2018/dwes-11-25-2018.pdf) EPANET's water quality simulations can result in some significant mass balance errors when modeling short term mass injections (errors are much smaller for continuous source flows). The entire water quality engine has been re-written to eliminate these errors. It still uses the Lagrangian Time Driven transport method but now analyzes each network node in topologically sorted order rather than in arbitrary order.
 
-A Mass Balance Report now appears the end of a simulation's Status Report that lists the various components (inflow, outflow, reaction) that comprise the network's overall mass balance. In addition `EN_MASSBALANCE` can be used as a parameter in the `ENgetstatistic` (or `EN_getstatistic`) function to retrieve the Mass Balance Ratio (Total Outflow Mass / Total Inflow Mass) at any point during a water quality simulation.
+A Mass Balance Report now appears the end of a simulation's Status Report that lists the various components (inflow, outflow, reaction) that comprise the network's overall mass balance. In addition `EN_MASSBALANCE` can be used as a parameter in the `EN_getstatistic` (or `ENgetstatistic`) function to retrieve the Mass Balance Ratio (Total Outflow Mass / Total Inflow Mass) at any point during a water quality simulation.
 
-Mass balance ratio (MBR) results for two of the networks analyzed by Davis et al. (2018) are shown in the following table. MBR-2.0 is for EPANET 2.0.012 as reported by Davis et al. while MBR-2.2 is for the re-written quality engine.
-
-| Network | Time Step (s)  | MBR-2.0  | MBR-2.2 |
-|--|--|--|--|
-| N2 | 900  | 16.63 | 1.00 |
-|       | 300 | 23.45 | 1.00 |
-|       |  60 |  6.49  |  1.00 |
-| N4 | 900 | 0.09 | 1.00 |
-|  | 300 | 0.70 | 1.00 |
-|  | 60 | 0.98 | 1.00 |
-
-Both network files are available [here](https://doi.org/10.23719/1375314).
+With this change EPANET 2.2 now produces perfect mass balances when tested against the networks used in Davis et al. (2018).
 
 ## New API functions
 |Function|Description|
@@ -163,6 +165,8 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`EN_setpipedata`|Sets values for a pipe's parameters|
 |`EN_getdemandmodel`|Retrieves the type of demand model in use |
 |`EN_setdemandmodel`|Sets the type of demand model to use|
+|`EN_adddemand`|Adds a new demand category to a node|
+|`EN_deletedemand`|Deletes a demand category from a node|
 |`EN_getdemandname`|Gets the name of a node's demand category|
 |`EN_setdemandname`|Sets the name of a node's demand category|
 |`EN_setdemandpattern`|Assigns a time pattern to a node's demand category |
@@ -170,7 +174,7 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`EN_setcurveid`|Changes the ID name of a data curve|
 |`EN_getcurvetype`|Gets a curve's type|
 |`EN_setheadcurveindex`|Sets the index of a head curve used by a pump |
-|`EN_getrule`|Gets the number of elements in a rule-based control |
+|`EN_getruleinfo`|Gets the number of elements in a rule-based control |
 |`EN_getruleid` | Gets the name assigned to a rule-based control |
 |`EN_getpremise`|Gets the contents of a premise in a rule-based control|
 |`EN_setpremise`|Sets the contents of a premise in a rule-based control|
@@ -184,6 +188,8 @@ Both network files are available [here](https://doi.org/10.23719/1375314).
 |`EN_setrulepriority`|Sets the priority of a rule-based control|
 |`EN_gettitle` |Gets a project's title |
 |`EN_settitle` |Sets a project's title |
+|`EN_getcomment` |Gets the descriptive comment assigned to an object|
+|`EN_setcomment` |Assigns a descriptive comment to an object|
 |`EN_clearreport` |Clears the contents of a project's report file |
 |`EN_copyreport` | Copies the contents of a project's report file |
 In addition to these new functions, a tank's volume curve `EN_VOLCURVE` can be set using `EN_setnodevalue` and `EN_setlinkvalue` can now be used to set the following pump properties:
@@ -222,13 +228,25 @@ Access to the following global energy options have been added to  `EN_getoption`
 ### Hydraulic option types:
  - `EN_HEADERROR`
  - `EN_FLOWCHANGE`
- - `EN_DEFDEMANDPAT`
  - `EN_HEADLOSSFORM`
  - `EN_GLOBALEFFIC`
  - `EN_GLOBALPRICE`
  - `EN_GLOBALPATTERN`
  - `EN_DEMANDCHARGE`
+ - `EN_SP_GRAVITY`
+ - `EN_SP_VISCOS`
+ - `EN_EXTRA_ITER`
+ - `EN_CHECKFREQ`
+ - `EN_MAXCHECK`
+ - `EN_DAMPLIMIT`
 
+### Quality option types:
+- `EN_SP_DIFFUS`
+ - `EN_BULKORDER`
+ - `EN_WALLORDER`
+ - `EN_TANKORDER`
+ - `EN_CONCENLIMIT`
+ 
 ### Simulation statistic types:
  - `EN_MAXHEADERROR`
  - `EN_MAXFLOWCHANGE`
@@ -248,6 +266,9 @@ Access to the following global energy options have been added to  `EN_getoption`
 ### Demand model types:
  - `EN_DDA`
  - `EN_PDA`
- 
+
+## Documentation
+Doxygen files have been created to generate a complete Users Guide for version 2.2's API. The guide's format is similar to the original EPANET Programmer's Toolkit help file and can be produced as a set of HTML pages, a Windows help file or a PDF document. 
+  
 ## Authors contributing to this release:
  - List item
