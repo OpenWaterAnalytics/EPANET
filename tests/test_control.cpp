@@ -50,7 +50,7 @@ BOOST_FIXTURE_TEST_CASE(test_add_get_rule,  FixtureOpenClose)
     BOOST_CHECK(ruleCount == 3);
 
     // Check the number of clauses in rule 3
-    error = EN_getrule(ph, 3, &nP, &nTA, &nEA, &priority);
+    error = EN_getruleinfo(ph, 3, &nP, &nTA, &nEA, &priority);
     BOOST_CHECK(nP == 2);
     BOOST_CHECK(nTA == 1);
     BOOST_CHECK(nTA == 1);
