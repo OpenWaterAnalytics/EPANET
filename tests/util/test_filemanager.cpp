@@ -80,10 +80,11 @@ struct Fixture{
 BOOST_FIXTURE_TEST_CASE(test_temp_file, Fixture)
 {
     char *filename;
+    size_t size;
 
     printf_file(file_handle, "%s", "This is a test.");
 
-    get_filename(file_handle, &filename);
+    get_filename(file_handle, &filename, &size);
     //BOOST_CHECK(check_string(filename, "./test_file.txt"));
 
     BOOST_CHECK(boost::filesystem::exists(filename) == true);

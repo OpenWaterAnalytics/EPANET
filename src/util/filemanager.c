@@ -22,41 +22,50 @@
 #endif
 
 #include <stdarg.h>
-#include <string.h>
 
 #include "filemanager.h"
 
 
 typedef struct file_s {
-    char filename[FILE_MAXNAME + 1];
+    char *filename;
+    size_t size;
     FILE *file;
 } file_handle_t;
 
 
 // local (private) functions
 int _fopen(FILE **f, const char *name, const char *mode);
-int _get_temp_filename(char *tempname);
+int _get_temp_filename(char **tempname, size_t *size);
 
 
 file_handle_t *create_file_manager() {
 
     file_handle_t *file_handle;
-    file_handle = (file_handle_t*)calloc(1, sizeof(file_handle_t));
+    file_handle = (file_handle_t *)calloc(1, sizeof(file_handle_t));
+
+	file_handle->filename = NULL;
+	file_handle->size = 0;
+	file_handle->file = NULL;
 
     return file_handle;
 }
 
 void delete_file_manager(file_handle_t *file_handle) {
-    free(file_handle);
+	
+	if (file_handle->file != NULL)
+		close_file(file_handle);
+
+	free(file_handle->filename);
+	free(file_handle);
 }
 
 
-void get_filename(file_handle_t *file_handle, char **filename)
+void get_filename(file_handle_t *file_handle, char **filename, size_t *size)
+//
+// BE AWARE: The memory allocated here must be freed by the caller
+//
 {
-    char *temp = (char*) malloc((FILE_MAXNAME)*sizeof(char));
-
-    strncpy(temp, file_handle->filename, FILE_MAXNAME);
-    *filename = temp;
+    copy_cstr(file_handle->filename, filename, size);
 }
 
 
@@ -64,9 +73,9 @@ int open_file(file_handle_t *file_handle, const char *filename, const char *file
     int error = 0;
 
     if (filename == NULL)
-        _get_temp_filename(file_handle->filename);
+        _get_temp_filename(&(file_handle->filename), &(file_handle->size));
     else
-        strncpy(file_handle->filename, filename, FILE_MAXNAME);
+        copy_cstr(filename, &(file_handle->filename), &(file_handle->size));
 
     if (file_mode == NULL)
         error = -1;
@@ -146,12 +155,14 @@ int remove_file(file_handle_t *file_handle) {
 }
 
 
-int _fopen(FILE **f, const char *name, const char *mode) {
+int _fopen(FILE **f, const char *name, const char *mode)
 //
 //  Purpose: Substitute for fopen_s on platforms where it doesn't exist
 //  Note: fopen_s is part of C++11 standard
 //
+{
     int ret = 0;
+
 #ifdef _WIN32
     ret = (int)fopen_s(f, name, mode);
 #else
@@ -162,8 +173,10 @@ int _fopen(FILE **f, const char *name, const char *mode) {
     return ret;
 }
 
-int _get_temp_filename(char *tempname) {
+int _get_temp_filename(char **tempname, size_t *size)
+{
     int error = 0;
+
 #ifdef _WIN32
     char *name = NULL;
 
@@ -173,10 +186,8 @@ int _get_temp_filename(char *tempname) {
         error = -1;
         return error;
     }
-    else if (strlen(name) < FILE_MAXNAME)
-        strncpy(tempname, name, FILE_MAXNAME);
     else
-        tempname = NULL;
+        copy_cstr(name, tempname, size);
 
     // --- free the pointer returned by _tempnam
     if (name)
@@ -185,8 +196,8 @@ int _get_temp_filename(char *tempname) {
     // --- for non-Windows systems:
 #else
     // --- use system function mkstemp() to create a temporary file name
-    strncpy(tempname, "enXXXXXX", 8);
-    error = mkstemp(tempname);
+    copy_cstr("enXXXXXX", tempname, size)
+    error = mkstemp(*tempname);
 #endif
     return error;
 }

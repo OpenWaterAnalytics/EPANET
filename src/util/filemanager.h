@@ -18,6 +18,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include "cstr_helper.h"
+
 
 // F_OFF Must be a 8 byte / 64 bit integer for large file support
 #ifdef _WIN32 // Windows (32-bit and 64-bit)
@@ -42,7 +44,7 @@ file_handle_t *create_file_manager();
 void delete_file_manager(file_handle_t *file_handle);
 
 
-void get_filename(file_handle_t *file_handle, char **filename);
+void get_filename(file_handle_t *file_handle, char **filename, size_t *size);
 
 
 int open_file(file_handle_t *file_handle, const char *filename, const char *file_mode);
