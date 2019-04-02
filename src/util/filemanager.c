@@ -153,6 +153,16 @@ int remove_file(file_handle_t *file_handle) {
 }
 
 
+bool is_valid(file_handle_t *file_handle)
+{
+	if ((file_handle->filename == NULL && file_handle->file == NULL) ||
+		(isnullterm_cstr(file_handle->filename) && file_handle != NULL))
+		return true;
+	else
+		return false;
+}
+
+
 int _fopen(FILE **f, const char *name, const char *mode)
 //
 //  Purpose: Substitute for fopen_s on platforms where it doesn't exist
@@ -198,13 +208,4 @@ int _get_temp_filename(char **tempname)
     error = mkstemp(*tempname);
 #endif
     return error;
-}
-
-bool is_valid(file_handle_t *file_handle)
-{
-	if ((file_handle->filename == NULL && file_handle->file == NULL) ||
-		(isnullterm_cstr(file_handle->filename) && file_handle != NULL))
-		return true;
-	else
-		return false;
 }
