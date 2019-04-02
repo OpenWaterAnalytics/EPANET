@@ -11,17 +11,13 @@
  ******************************************************************************
 */
 
-#ifdef _DEBUG
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
+#include <stdio.h>
+#include <string.h>
+#ifndef __APPLE__
+#include <malloc.h>
 #else
 #include <stdlib.h>
 #endif
-
-#include <stdio.h>
-#include <string.h>
-
 
 //*** For the Windows SDK _tempnam function ***//
 #ifdef _WIN32

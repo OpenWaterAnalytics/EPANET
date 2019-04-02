@@ -11,17 +11,12 @@
  ******************************************************************************
 */
 
-#ifdef _DEBUG
-  #define _CRTDBG_MAP_ALLOC
-  #include <stdlib.h>
-  #include <crtdbg.h>
-#else
-  #include <stdlib.h>
-#endif
-
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-
+#ifndef __APPLE__
+#include <malloc.h>
+#endif
 #include <float.h>
 #include <math.h>
 
@@ -221,24 +216,26 @@ int DLLEXPORT EN_open(EN_Project p, const char *inpFile, const char *rptFile,
   ERRCODE(netsize(p));
   ERRCODE(allocdata(p));
 
-  if (!errcode) {
-	// Read input data
-	ERRCODE(getdata(p));
+  // Read input data
+  ERRCODE(getdata(p));
 
-	// Close input file
-	if (p->parser.InFile != NULL) {
+  // Close input file
+  if (p->parser.InFile != NULL)
+  {
       fclose(p->parser.InFile);
       p->parser.InFile = NULL;
-	}
+  }
 
-	// Free temporary linked lists used for Patterns & Curves
-	freeTmplist(p->parser.Patlist);
-	freeTmplist(p->parser.Curvelist);
+  // Free temporary linked lists used for Patterns & Curves
+  freeTmplist(p->parser.Patlist);
+  freeTmplist(p->parser.Curvelist);
 
-	// If using previously saved hydraulics file then open it
-	if (p->outfile.Hydflag == USE) ERRCODE(openhydfile(p));
+  // If using previously saved hydraulics file then open it
+  if (p->outfile.Hydflag == USE) ERRCODE(openhydfile(p));
 
-	// Write input summary to report file
+  // Write input summary to report file
+  if (!errcode)
+  {
     if (p->report.Summaryflag) writesummary(p);
     writetime(p, FMT104);
     p->Openflag = TRUE;
@@ -282,7 +279,7 @@ int DLLEXPORT EN_getcomment(EN_Project p, int object, int index, char *comment)
 /*----------------------------------------------------------------
 **  Input:   object = a type of object (see EN_ObjectType)
 **           index = the object's index
-**  Output:  comment = the object's descriptive comment
+**  Output:  comment = the object's descriptive comment 
 **  Returns: error code
 **  Purpose: Retrieves an object's descriptive comment
 **----------------------------------------------------------------
@@ -843,7 +840,7 @@ int DLLEXPORT EN_closeQ(EN_Project p)
     if (!p->Openflag) return 102;
     closequal(p);
     p->quality.OpenQflag = FALSE;
-    closeoutfile(p);
+    closeoutfile(p);    
     return 0;
 }
 

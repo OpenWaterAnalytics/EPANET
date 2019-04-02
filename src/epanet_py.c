@@ -26,7 +26,6 @@ typedef struct {
     Project *project;
     error_handle_t *error;
 }handle_t;
-
 // Extern functions
 extern char *geterrmsg(int, char *);
 // Local functions
