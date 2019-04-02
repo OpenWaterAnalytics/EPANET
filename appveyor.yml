@@ -21,7 +21,6 @@ environment:
     GENERATOR: "Visual Studio 15 2017"
     GROUP: "SUPPORTED"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
-
     PLATFORM: "win32"
     REF_BUILD_ID: "220dev5"
   # New build on Visual Studio 15 2017

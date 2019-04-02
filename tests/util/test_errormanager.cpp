@@ -1,7 +1,7 @@
 
 
 #define BOOST_TEST_MODULE errormanager
-//#define BOOST_TEST_DYN_LINK
+
 #include <boost/test/unit_test.hpp>
 
 #include "util/errormanager.h"

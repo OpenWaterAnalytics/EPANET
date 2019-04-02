@@ -28,7 +28,7 @@ env:
     - TEST_HOME=nrtestsuite
 
 before_install:
-  - sudo apt-get -qq update
+#  - sudo apt-get -qq update
   - eval "${MATRIX_EVAL}"
 
 #install:
