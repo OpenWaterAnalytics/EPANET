@@ -9,16 +9,19 @@ int copy_cstr(const char *source, char **dest)
 // Determines length, allocates memory, and returns a null terminated copy
 // Be Aware: caller is responsible for freeing memory
 {
-    size_t len;
+    size_t size;
 
-    len = strlen(source);
-    *dest = (char *) calloc((len + 1), sizeof(char));
+    size = 1 + strlen(source);
+    *dest = (char *) calloc(size, sizeof(char));
 
     if (*dest == NULL)
         return -1;
     else {
-        strncpy(*dest, source, (len + 1));
-		strncat(*dest, "\0", 1);
+#ifdef _MSC_VER
+		strncpy_s(*dest, size, source, size);
+#else
+		strncpy(*dest, source, size);
+#endif
     }
     return 0;
 }
@@ -30,5 +33,4 @@ bool isnullterm_cstr(const char *source)
 		return true;
 	else
 		return false;
-
 }
