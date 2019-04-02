@@ -21,7 +21,6 @@ environment:
     GENERATOR: "Visual Studio 15 2017"
     GROUP: "SUPPORTED"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
-
     PLATFORM: "win32"
     REF_BUILD_ID: "220dev5"
   # New build on Visual Studio 15 2017
@@ -77,14 +76,10 @@ test_script:
 
 on_success:
   - cd %TEST_HOME%\benchmark
-  - IF "%BUILD_CONFIG%" == "Release" (
-      appveyor PushArtifact receipt.json
-    )
+  - appveyor PushArtifact receipt.json
 
 on_failure:
   - cd %TEST_HOME%\benchmark
   # zip up the SUT benchmarks
-  - IF "%BUILD_CONFIG%" == "Release" (
-      7z a benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip .\epanet-%SUT_BUILD_ID% &
-      appveyor PushArtifact benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip
-    )
+  - 7z a benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip .\epanet-%SUT_BUILD_ID% &
+  - appveyor PushArtifact benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip
