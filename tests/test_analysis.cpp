@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_SUITE (test_analysis)
 BOOST_FIXTURE_TEST_CASE(test_anlys_getoption, FixtureOpenClose)
 {
     int i;
-    double array[13];
+    double array[12];
 
     std::vector<double> test;
 	std::vector<double> ref = {40.0, 0.001, 0.01, 0.5, 1.0, 0.0, 0.0, 0.0, 75.0, 0.0, 0.0, 0.0};
@@ -39,7 +39,7 @@ BOOST_FIXTURE_TEST_CASE(test_anlys_getoption, FixtureOpenClose)
         BOOST_REQUIRE(error == 0);
     }
 
-    test.assign(array, array + 13);
+    test.assign(array, array + 12);
     BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
 
     error = EN_getoption(ph, 18, &array[0]);
