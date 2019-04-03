@@ -35,10 +35,7 @@ BOOST_FIXTURE_TEST_CASE(test_curve_comments, FixtureOpenClose)
     error = EN_getcomment(ph, EN_CURVE, index, comment);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(check_string(comment, (char *)"Curve 1"));
-}
 
-BOOST_FIXTURE_CASE(test_curve_data, FixtureOpenClose)
-{
     int i;
     char id1[] = "TestCurve";
     int n1 = 5;
