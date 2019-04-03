@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 03/17/2019
+Last Updated: 04/02/2019
 ******************************************************************************
 */
 
@@ -860,6 +860,12 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
     while (len > 0 && n < MAXTOKS)
     {
         m = (int)strcspn(s,SEPSTR);     // Find token length
+        if (m == len)                   // s is last token
+        {
+            Tok[n] = s;
+            n++;
+            break;
+        }
         len -= m+1;                     // Update length of s
         if (m == 0) s++;                // No token found
         else
