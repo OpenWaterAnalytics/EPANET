@@ -86,7 +86,7 @@ int open_file(file_handle_t *file_handle, const char *filename, const char *file
 
 int seek_file(file_handle_t *file_handle, F_OFF offset, int whence)
 {
-#ifdef _WIN32 // Windows (32-bit and 64-bit)
+#ifdef _MSC_VER // Windows (32-bit and 64-bit)
 #define FSEEK64 _fseeki64
 #else         // Other platforms
 #define FSEEK64 fseeko
@@ -97,7 +97,7 @@ int seek_file(file_handle_t *file_handle, F_OFF offset, int whence)
 
 F_OFF tell_file(file_handle_t *file_handle)
 {
-#ifdef _WIN32 // Windows (32-bit and 64-bit)
+#ifdef _MSC_VER // Windows (32-bit and 64-bit)
 #define FTELL64 _ftelli64
 #else         // Other platforms
 #define FTELL64 ftello
@@ -185,7 +185,7 @@ int _get_temp_filename(char **tempname)
 {
     int error = 0;
 
-#ifdef _WIN32
+#ifdef _MSC_VER
     char *name = NULL;
 
     // --- use Windows _tempnam function to get a pointer to an

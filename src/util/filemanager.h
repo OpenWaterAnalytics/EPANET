@@ -22,7 +22,7 @@
 
 
 // F_OFF Must be a 8 byte / 64 bit integer for large file support
-#ifdef _WIN32 // Windows (32-bit and 64-bit)
+#ifdef _MSC_VER // Windows (32-bit and 64-bit)
 #define F_OFF __int64
 #else         // Other platforms
 #define F_OFF off_t

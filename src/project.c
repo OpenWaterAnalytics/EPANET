@@ -11,13 +11,9 @@
  ******************************************************************************
 */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
 
 //*** For the Windows SDK _tempnam function ***//
 #ifdef _WIN32
@@ -174,7 +170,7 @@ int openoutfile(Project *pr)
 
     // Close output file if already opened
     closeoutfile(pr);
-    
+
     // If output file name was supplied, then attempt to
     // open it. Otherwise open a temporary output file.
     pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
@@ -284,7 +280,7 @@ void initpointers(Project *pr)
     pr->hydraul.smatrix.XLNZ = NULL;
     pr->hydraul.smatrix.NZSUB = NULL;
     pr->hydraul.smatrix.LNZ = NULL;
-    
+
     initrules(pr);
 }
 
@@ -1027,7 +1023,7 @@ char *xstrcpy(char **s1, const char *s2, const size_t n)
 {
     size_t n1 = 0, n2;
 
-    // Source string is empty -- free destination string 
+    // Source string is empty -- free destination string
     if (s2 == NULL || strlen(s2) == 0)
     {
         free(*s1);
