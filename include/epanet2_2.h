@@ -1450,7 +1450,7 @@ typedef struct Project *EN_Project;
   @ref EN_MAXID characters.
   */
   int  DLLEXPORT EN_getcurve(EN_Project ph, int index, char* id, int *nPoints,
-                 double **xValues, double **yValues);
+                 double *xValues, double *yValues);
 
   /**
   @brief assigns a set of data points to a curve.

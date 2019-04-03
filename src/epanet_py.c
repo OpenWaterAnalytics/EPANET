@@ -685,10 +685,10 @@ int EXPORT_PY_API curv_setvalue(Handle ph, int curveIndex, int pointIndex, doubl
     return error_set(pr->error, EN_setcurvevalue(pr->project, curveIndex, pointIndex, x, y));
 }
 
-int EXPORT_PY_API curv_get(Handle ph, int curveIndex, char* id, int *nValues, double **xValues, double **yValues)
+int EXPORT_PY_API curv_get(Handle ph, int index, char* id, int *len, double *xValues, double *yValues)
 {
     handle_t *pr = (handle_t *)ph;
-    return error_set(pr->error, EN_getcurve(pr->project, curveIndex, id, nValues, xValues, yValues));
+    return error_set(pr->error, EN_getcurve(pr->project, index, id, len, xValues, yValues));
 }
 
 int EXPORT_PY_API curv_set(Handle ph, int index, double *x, double *y, int len)

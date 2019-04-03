@@ -223,7 +223,7 @@ These are symbolic constants used as function arguments.
 @fn int EN_getcurvetype(EN_Project ph, int index, int *type)
 @fn int EN_getcurvevalue(EN_Project ph, int curveIndex, int pointIndex, double *x, double *y)
 @fn int EN_setcurvevalue(EN_Project ph, int curveIndex, int pointIndex, double x, double y)
-@fn int EN_getcurve(EN_Project ph, int curveIndex, char* id, int *nPoints, double **xValues, double **yValues)
+@fn int EN_getcurve(EN_Project ph, int index, char* id, int *nPoints, double *xValues, double *yValues)
 @fn int EN_setcurve(EN_Project ph, int index, double *xValues, double *yValues, int nPoints)
 @}
 */

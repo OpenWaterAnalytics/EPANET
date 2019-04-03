@@ -4500,7 +4500,7 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
 }
 
 int DLLEXPORT EN_getcurve(EN_Project p, int index, char *id, int *nPoints,
-                          double **xValues, double **yValues)
+                          double *xValues, double *yValues)
 /*----------------------------------------------------------------
 **  Input:   index = data curve index
 **  Output:  id = ID name of data curve
@@ -4526,8 +4526,8 @@ int DLLEXPORT EN_getcurve(EN_Project p, int index, char *id, int *nPoints,
     *nPoints = curve->Npts;
     for (i = 0; i < curve->Npts; i++)
     {
-        *xValues[i] = curve->X[i];
-        *yValues[i] = curve->Y[i];
+        xValues[i] = curve->X[i];
+        yValues[i] = curve->Y[i];
     }
     return 0;
 }
@@ -4536,9 +4536,9 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
                           double *yValues, int nPoints)
 /*----------------------------------------------------------------
 **  Input:   index = data curve index
+**           nPoints = number of data points in the x and y arrays
 **           xValues = array of x-values
 **           yValues = array of y-values
-**           nPoints = number of data points in the x and y arrays
 **  Returns: error code
 **  Purpose: replaces a curve's set of data points
 **----------------------------------------------------------------
@@ -4558,13 +4558,17 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
 
     // Re-set number of points & reallocate memory for values
     curve = &net->Curve[index];
-    curve->Npts = nPoints;
     curve->X = (double *)realloc(curve->X, nPoints * sizeof(double));
     curve->Y = (double *)realloc(curve->Y, nPoints * sizeof(double));
-    if (curve->X == NULL) return 101;
-    if (curve->Y == NULL) return 101;
+    if (curve->X == NULL || curve->Y == NULL)
+    {
+        FREE(curve->X);
+        FREE(curve->Y);
+        return 101;
+    }
 
     // Load values into curve
+    curve->Npts = nPoints;
     for (j = 0; j < nPoints; j++)
     {
         curve->X[j] = xValues[j];

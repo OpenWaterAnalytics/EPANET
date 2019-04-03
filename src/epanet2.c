@@ -652,7 +652,7 @@ int DLLEXPORT ENsetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE 
 }
 
 int DLLEXPORT ENgetcurve(int index, char *id, int *nPoints,
-              EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
+              EN_API_FLOAT_TYPE *xValues, EN_API_FLOAT_TYPE *yValues)
 {
     int i;
     Network *net = &_defaultProject->network;
@@ -664,14 +664,14 @@ int DLLEXPORT ENgetcurve(int index, char *id, int *nPoints,
     *nPoints = curve->Npts;
     for (i = 0; i < curve->Npts; i++)
     {
-        *xValues[i] = (EN_API_FLOAT_TYPE)curve->X[i];
-        *yValues[i] = (EN_API_FLOAT_TYPE)curve->Y[i];
+        xValues[i] = (EN_API_FLOAT_TYPE)curve->X[i];
+        yValues[i] = (EN_API_FLOAT_TYPE)curve->Y[i];
     }
     return 0;
 }
 
 int DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *xValues,
-              EN_API_FLOAT_TYPE *yValues, int nPoints)
+              EN_API_FLOAT_TYPE *yValues, int nPoints )
 {
     double *xx = NULL;
     double *yy = NULL;

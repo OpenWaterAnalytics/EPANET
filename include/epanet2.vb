@@ -351,7 +351,7 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENgetpatternvalue Lib "epanet2.dll" (ByVal index As Int32, ByVal period As Int32, value As Single) As Int32
  Declare Function ENsetpatternvalue Lib "epanet2.dll" (ByVal index As Int32, ByVal period As Int32, ByVal value As Single) As Int32
  Declare Function ENgetaveragepatternvalue Lib "epanet2.dll" (ByVal index As Int32, value As Single) As Int32
- Declare Function ENsetpattern Lib "epanet2.dll" (ByVal index As Int32, values As Any, ByVal len_ As Int32) As Int32
+ Declare Function ENsetpattern Lib "epanet2.dll" (ByVal index As Int32, values As Single, ByVal len_ As Int32) As Int32
 
 'Data Curve Functions
  Declare Function ENaddcurve Lib "epanet2.dll" (ByVal id As String) As Int32
@@ -363,8 +363,8 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal index As Int32, type_ As Int32) As Int32
  Declare Function ENgetcurvevalue Lib "epanet2.dll" (ByVal curveIndex As Int32, ByVal pointIndex As Int32, x As Single, y As Single) As Int32
  Declare Function ENsetcurvevalue Lib "epanet2.dll" (ByVal curveIndex As Int32, ByVal pointIndex As Int32, ByVal x As Single, ByVal y As Single) As Int32
- Declare Function ENgetcurve Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String, nPoints As Int32, xValues As Any, yValues As Any) As Int32
- Declare Function ENsetcurve Lib "epanet2.dll" (ByVal index As Int32, xValues As Any, yValues As Any, ByVal nPoints As Int32) As Int32
+ Declare Function ENgetcurve Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String, nPoints As Int32, xValues As Single, yValues As Single) As Int32
+ Declare Function ENsetcurve Lib "epanet2.dll" (ByVal index As Int32, xValues As Single, yValues As Single, ByVal nPoints As Int32) As Int32
 
 'Simple Control Functions
  Declare Function ENaddcontrol Lib "epanet2.dll" (ByVal type_ As Int32, ByVal linkIndex As Int32, ByVal setting As Single, ByVal nodeIndex As Int32, ByVal level As Single, index As Int32) As Int32
