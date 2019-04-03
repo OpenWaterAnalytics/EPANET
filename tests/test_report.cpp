@@ -21,9 +21,10 @@ BOOST_AUTO_TEST_SUITE (test_report)
 BOOST_FIXTURE_TEST_CASE(test_rprt_anlysstats, FixtureOpenClose)
 {
     int i;
-    double array[5];
 
-    std::vector<double> test;
+    std::vector<double> test(5);
+    double *array = test.data();
+
 	std::vector<double> ref = {3.0, 7.0799498320679432e-06, 1.6680242187483429e-08,
         0.0089173150106518495, 0.99999998187144024};
 
@@ -35,15 +36,13 @@ BOOST_FIXTURE_TEST_CASE(test_rprt_anlysstats, FixtureOpenClose)
 
 
     for (i=EN_ITERATIONS; i<=EN_MASSBALANCE; i++) {
-        error = EN_getstatistic(ph, i, &array[i]);
+        error = EN_getstatistic(ph, i, array++);
         BOOST_REQUIRE(error == 0);
     }
-
-    test.assign(array, array + 5);
-//    BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
     BOOST_CHECK(check_cdd_double(test, ref, 3));
 
-    error = EN_getstatistic(ph, 8, &array[0]);
+    double temp;
+    error = EN_getstatistic(ph, 8, &temp);
     BOOST_CHECK(error == 251);
 }
 

@@ -14,7 +14,6 @@
 #ifndef TEST_TOOLKIT_HPP
 #define TEST_TOOLKIT_HPP
 
-
 #include "epanet2_2.h"
 
 
@@ -25,6 +24,9 @@
 
 struct FixtureOpenClose{
     FixtureOpenClose() {
+        error = 0;
+        ph = NULL;
+
         EN_createproject(&ph);
         error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
     }
@@ -41,6 +43,9 @@ struct FixtureOpenClose{
 
 struct FixtureAfterStep{
     FixtureAfterStep() {
+        error = 0;
+        ph = NULL;
+
         flag = 0;
         tstop = 10800;
 

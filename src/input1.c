@@ -3,7 +3,7 @@
 Project:      OWA EPANET
 Version:      2.2
 Module:       input1.c
-Description:  retrieves network data from an EPANET input file 
+Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
@@ -11,18 +11,23 @@ Last Updated: 04/03/2019
 ******************************************************************************
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
 #endif
+#include <stdio.h>
+#include <string.h>
+
+#include <math.h>
 
 #include "types.h"
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
-#include <math.h>
+
 
 // Default values
 #define MAXITER  200  // Default max. # hydraulic iterations
@@ -56,7 +61,7 @@ int getdata(Project *pr)
     int errcode = 0;
 
     // Assign default data values & reporting options
-    setdefaults(pr);           
+    setdefaults(pr);
     initreport(&pr->report);
 
     // Read in network data
@@ -103,7 +108,7 @@ void setdefaults(Project *pr)
     parser->DefPat = 0;         // Default demand pattern index
     out->Hydflag = SCRATCH;     // No external hydraulics file
     rpt->Tstatflag = SERIES;    // Generate time series output
-    
+
     hyd->Formflag = HW;         // Use Hazen-Williams formula
     hyd->Htol = HTOL;           // Default head tolerance
     hyd->Qtol = QTOL;           // Default flow tolerance
@@ -349,7 +354,7 @@ int inittanks(Project *pr)
 */
 {
     Network *net = &pr->network;
-    
+
     int i, j, n = 0;
     double a;
     int errcode = 0, levelerr;
@@ -542,7 +547,7 @@ void convertunits(Project *pr)
     Slink *link;
     Spump *pump;
     Scontrol *control;
-  
+
     // Convert nodal elevations & initial WQ
     // (WQ source units are converted in QUALITY.C
     for (i = 1; i <= net->Nnodes; i++)
@@ -640,7 +645,7 @@ void convertunits(Project *pr)
                     pump->H0 /= pr->Ucf[HEAD];
                     pump->R *= (pow(pr->Ucf[FLOW], pump->N) / pr->Ucf[HEAD]);
                 }
-        
+
                 // Convert flow range & max. head units
                 pump->Q0 /= pr->Ucf[FLOW];
                 pump->Qmax /= pr->Ucf[FLOW];
@@ -649,7 +654,7 @@ void convertunits(Project *pr)
         }
         else
         {
-            // For flow control valves, convert flow setting 
+            // For flow control valves, convert flow setting
             // while for other valves convert pressure setting
             link->Diam /= pr->Ucf[DIAM];
             link->Km = 0.02517 * link->Km / SQR(link->Diam) / SQR(link->Diam);

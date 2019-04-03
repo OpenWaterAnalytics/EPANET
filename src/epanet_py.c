@@ -11,8 +11,13 @@
  ******************************************************************************
 */
 
-
-#include <stdlib.h>
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
 #include <string.h>
 
 #include "epanet_py.h"

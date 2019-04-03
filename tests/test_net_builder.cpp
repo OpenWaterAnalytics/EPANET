@@ -11,6 +11,14 @@
  ******************************************************************************
 */
 
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
+
 #include <boost/test/unit_test.hpp>
 
 #include "test_toolkit.hpp"
@@ -35,6 +43,9 @@ BOOST_AUTO_TEST_CASE(test_init_close)
 
 struct FixtureInitClose {
 	FixtureInitClose() {
+        error = 0;
+        ph = NULL;
+
 		EN_createproject(&ph);
 		EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_GPM, EN_HW);
 	}
@@ -50,55 +61,55 @@ struct FixtureInitClose {
 
 
 
-//BOOST_AUTO_TEST_CASE(net_builder_I)
-//{
-//	int error = 0;
-//	int flag = 00;
-//	long t, tstep;
-//	int i, ind, Lindex, Nindex, Cindex;
-//	double h_orig, h_build, h_build_loaded;
+// BOOST_AUTO_TEST_CASE(net_builder_I)
+// {
+// 	int error = 0;
+// 	int flag = 00;
+// 	long t, tstep;
+// 	int i, ind, Lindex, Nindex, Cindex;
+// 	double h_orig, h_build, h_build_loaded;
 //
-//	// first we load Net1.inp, run it and record the head in Tank 2 at the end of the simulation (h_orig)
-//	EN_Project ph = NULL;
-//	EN_createproject(&ph);
+// 	// first we load Net1.inp, run it and record the head in Tank 2 at the end of the simulation (h_orig)
+// 	EN_Project ph = NULL;
+// 	EN_createproject(&ph);
 //
-//	std::string path_inp = std::string(DATA_PATH_NET1);
-//	std::string path_rpt = std::string(DATA_PATH_RPT);
-//	std::string path_out = std::string(DATA_PATH_OUT);
+// 	std::string path_inp = std::string(DATA_PATH_NET1);
+// 	std::string path_rpt = std::string(DATA_PATH_RPT);
+// 	std::string path_out = std::string(DATA_PATH_OUT);
 //
-//	error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
-//	BOOST_REQUIRE(error == 0);
+// 	error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), path_out.c_str());
+// 	BOOST_REQUIRE(error == 0);
 //
-//	error = EN_getnodeindex(ph, (char *)"2", &Nindex);
-//	BOOST_REQUIRE(error == 0);
+// 	error = EN_getnodeindex(ph, (char *)"2", &Nindex);
+// 	BOOST_REQUIRE(error == 0);
 //
-//	error = EN_openH(ph);
-//	BOOST_REQUIRE(error == 0);
+// 	error = EN_openH(ph);
+// 	BOOST_REQUIRE(error == 0);
 //
-//	error = EN_initH(ph, flag);
-//	BOOST_REQUIRE(error == 0);
+// 	error = EN_initH(ph, flag);
+// 	BOOST_REQUIRE(error == 0);
 //
-//	do {
-//		error = EN_runH(ph, &t);
-//		BOOST_REQUIRE(error == 0);
+// 	do {
+// 		error = EN_runH(ph, &t);
+// 		BOOST_REQUIRE(error == 0);
 //
-//		// this is the head at the end of the simulation after loading the original Net1.inp
-//		error = EN_getnodevalue(ph, Nindex, EN_HEAD, &h_orig);
-//		BOOST_REQUIRE(error == 0);
+// 		// this is the head at the end of the simulation after loading the original Net1.inp
+// 		error = EN_getnodevalue(ph, Nindex, EN_HEAD, &h_orig);
+// 		BOOST_REQUIRE(error == 0);
 //
-//		error = EN_nextH(ph, &tstep);
-//		BOOST_REQUIRE(error == 0);
+// 		error = EN_nextH(ph, &tstep);
+// 		BOOST_REQUIRE(error == 0);
 //
-//	} while (tstep > 0);
+// 	} while (tstep > 0);
 //
-//	error = EN_closeH(ph);
-//	BOOST_REQUIRE(error == 0);
+// 	error = EN_closeH(ph);
+// 	BOOST_REQUIRE(error == 0);
 //
-//	error = EN_close(ph);
-//	BOOST_REQUIRE(error == 0);
+// 	error = EN_close(ph);
+// 	BOOST_REQUIRE(error == 0);
 //
-//	EN_deleteproject(&ph);
-//}
+// 	EN_deleteproject(&ph);
+// }
 
 BOOST_FIXTURE_TEST_CASE(test_build_net1, FixtureInitClose)
 {

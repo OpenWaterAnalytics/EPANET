@@ -11,13 +11,16 @@ Last Updated: 11/27/2018
 ******************************************************************************
 */
 
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
+
 #include <math.h>
 
 #include "types.h"
@@ -32,7 +35,7 @@ static int  savetimestat(Project *, REAL4 *, HdrType);
 static int  savenetreacts(Project *, double, double, double, double);
 static int  saveepilog(Project *);
 
-// Functions to write/read x[1] to x[n] to/from binary file 
+// Functions to write/read x[1] to x[n] to/from binary file
 size_t f_save(REAL4 *x, int n, FILE *file)
 {
     return fwrite(x + 1, sizeof(REAL4), n, file);
@@ -79,7 +82,7 @@ int savenetdata(Project *pr)
     {
         // Write integer variables to outFile
         ibuf[0] = MAGICNUMBER;
-        ibuf[1] = 20012;  // keep version at 2.00.12 so that GUI will run 
+        ibuf[1] = 20012;  // keep version at 2.00.12 so that GUI will run
         ibuf[2] = net->Nnodes;
         ibuf[3] = net->Ntanks;
         ibuf[4] = net->Nlinks;
@@ -141,7 +144,7 @@ int savenetdata(Project *pr)
             x[i] = (REAL4)(net->Node[i].El * pr->Ucf[ELEV]);
         }
         f_save(x, net->Nnodes, outFile);
-    
+
         // Save link lengths & diameters to outFile
         for (i = 1; i <= net->Nlinks; i++)
         {
@@ -185,7 +188,7 @@ int savehyd(Project *pr, long *htime)
     int errcode = 0;
     REAL4 *x;
     FILE  *HydFile = out->HydFile;
-  
+
     x = (REAL4 *)calloc(MAX(net->Nnodes, net->Nlinks) + 1, sizeof(REAL4));
     if (x == NULL) return 101;
 
@@ -212,13 +215,13 @@ int savehyd(Project *pr, long *htime)
     fwrite(x + 1, sizeof(REAL4), net->Nlinks, HydFile);
     //f_save(x, net->Nlinks, HydFile);
 
-    // Save link status 
+    // Save link status
     for (i = 1; i <= net->Nlinks; i++) x[i] = (REAL4)hyd->LinkStatus[i];
     fwrite(x + 1, sizeof(REAL4), net->Nlinks, HydFile);
     //f_save(x, net->Nlinks, HydFile);
 
-    // Save link settings & check for successful write-to-disk 
-    // (We assume that if any of the previous fwrites failed, 
+    // Save link settings & check for successful write-to-disk
+    // (We assume that if any of the previous fwrites failed,
     // then this one will also fail.)
     for (i = 1; i <= net->Nlinks; i++) x[i] = (REAL4)hyd->LinkSetting[i];
     if (fwrite(x + 1, sizeof(REAL4), net->Nlinks, HydFile) <
@@ -354,7 +357,7 @@ int readhyd(Project *pr, long *hydtime)
     int result = 1;
     REAL4 *x;
     FILE *HydFile = out->HydFile;
-  
+
     x = (REAL4 *)calloc(MAX(net->Nnodes, net->Nlinks) + 1, sizeof(REAL4));
     if (x == NULL) return 0;
 
@@ -473,7 +476,7 @@ int nodeoutput(Project *pr, int j, REAL4 *x, double ucf)
         }
     }
 
-    // Write x[1] to x[net->Nnodes] to output file 
+    // Write x[1] to x[net->Nnodes] to output file
     if (f_save(x, net->Nnodes, outFile) < (unsigned)net->Nnodes) return 308;
     return 0;
 }
@@ -497,7 +500,7 @@ int linkoutput(Project *pr, int j, REAL4 *x, double ucf)
     int i;
     double a, h, q, f, setting;
     FILE *outFile = out->TmpOutFile;
-    
+
     // Load computed results (in proper units) into buffer x
     switch (j)
     {
@@ -631,7 +634,7 @@ int savefinaloutput(Project *pr)
     int errcode = 0;
     REAL4 *x;
     FILE *outFile = out->OutFile;
-  
+
     // Save time series statistic if computed
     if (rpt->Tstatflag != SERIES && out->TmpOutFile != NULL)
     {
@@ -680,7 +683,7 @@ int savetimestat(Project *pr, REAL4 *x, HdrType objtype)
     long startbyte, skipbytes;
     float *stat1, *stat2, xx;
     FILE *outFile = out->OutFile;
-  
+
     // Compute number of bytes in temp output file to skip over (skipbytes)
     // when moving from one time period to the next for a particular variable
     if (objtype == NODEHDR)
@@ -722,11 +725,11 @@ int savetimestat(Project *pr, REAL4 *x, HdrType objtype)
             stat2[i] = MISSING;
         }
 
-        // Position temp output file at start of output 
+        // Position temp output file at start of output
         fseek(out->TmpOutFile, startbyte + (j - n1) * n * sizeof(REAL4),
               SEEK_SET);
 
-        // Process each time period 
+        // Process each time period
         for (p = 1; p <= rpt->Nperiods; p++)
         {
             // Get output results for time period & update stats
@@ -751,7 +754,7 @@ int savetimestat(Project *pr, REAL4 *x, HdrType objtype)
                 }
             }
 
-            // Advance file to next period 
+            // Advance file to next period
             if (p < rpt->Nperiods) fseek(out->TmpOutFile, skipbytes, SEEK_CUR);
         }
 
@@ -821,7 +824,7 @@ int savenetreacts(Project *pr, double wbulk, double wwall, double wtank, double 
     double t;
     REAL4 w[4];
     FILE *outFile = out->OutFile;
-  
+
     if (time->Dur > 0) t = (double)time->Dur / 3600.;
     else t = 1.;
     w[0] = (REAL4)(wbulk / t);
@@ -846,7 +849,7 @@ int saveepilog(Project *pr)
     int errcode = 0;
     INT4 i;
     FILE *outFile = out->OutFile;
-  
+
     i = rpt->Nperiods;
     if (fwrite(&i, sizeof(INT4), 1, outFile) < 1) errcode = 308;
     i = pr->Warnflag;

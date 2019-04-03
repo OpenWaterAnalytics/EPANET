@@ -11,12 +11,16 @@
  ******************************************************************************
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
 #endif
+#include <stdio.h>
+#include <string.h>
+
 #include <float.h>
 #include <math.h>
 
@@ -279,7 +283,7 @@ int DLLEXPORT EN_getcomment(EN_Project p, int object, int index, char *comment)
 /*----------------------------------------------------------------
 **  Input:   object = a type of object (see EN_ObjectType)
 **           index = the object's index
-**  Output:  comment = the object's descriptive comment 
+**  Output:  comment = the object's descriptive comment
 **  Returns: error code
 **  Purpose: Retrieves an object's descriptive comment
 **----------------------------------------------------------------
@@ -840,7 +844,7 @@ int DLLEXPORT EN_closeQ(EN_Project p)
     if (!p->Openflag) return 102;
     closequal(p);
     p->quality.OpenQflag = FALSE;
-    closeoutfile(p);    
+    closeoutfile(p);
     return 0;
 }
 
@@ -1608,7 +1612,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
             p->network.Node[i].C0 *= Ucf[QUALITY];
         }
     }
-    
+
     Ucf[QUALITY] = ccf;
     Ucf[LINKQUAL] = ccf;
     Ucf[REACTRATE] = ccf;
