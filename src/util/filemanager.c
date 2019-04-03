@@ -58,12 +58,12 @@ void delete_file_manager(file_handle_t *file_handle) {
 }
 
 
-void get_filename(file_handle_t *file_handle, char **filename, size_t *size)
+int get_filename(file_handle_t *file_handle, char **filename)
 //
 // BE AWARE: The memory allocated here must be freed by the caller
 //
 {
-    copy_cstr(file_handle->filename, filename);
+    return copy_cstr(file_handle->filename, filename);
 }
 
 
@@ -171,7 +171,7 @@ int _fopen(FILE **f, const char *name, const char *mode)
 {
     int ret = 0;
 
-#ifdef _WIN32
+#ifdef _MSC_VER
     ret = (int)fopen_s(f, name, mode);
 #else
     *f = fopen(name, mode);

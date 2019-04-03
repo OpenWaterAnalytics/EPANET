@@ -44,7 +44,7 @@ file_handle_t *create_file_manager();
 void delete_file_manager(file_handle_t *file_handle);
 
 
-void get_filename(file_handle_t *file_handle, char **filename, size_t *size);
+int get_filename(file_handle_t *file_handle, char **filename);
 
 
 int open_file(file_handle_t *file_handle, const char *filename, const char *file_mode);
