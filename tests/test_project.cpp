@@ -11,6 +11,8 @@
  ******************************************************************************
 */
 
+#include <string.h>
+
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 
@@ -121,20 +123,22 @@ BOOST_AUTO_TEST_SUITE(test_proj_fixture)
 BOOST_FIXTURE_TEST_CASE(test_title, FixtureOpenClose)
 {
     // How is the API user supposed to know array size?
-    char c_test[3][80], c_ref[3][80];
+    char c_test[3][80];
 
-    strncpy(c_ref[0], " EPANET Example Network 1", 26);
-    strncpy(c_ref[1], "A simple example of modeling chlorine decay. Both bulk and", 59);
-    strncpy(c_ref[2], "wall reactions are included. ", 30);
+    std::string ref[3] = {
+        " EPANET Example Network 1",
+        "A simple example of modeling chlorine decay. Both bulk and",
+        "wall reactions are included."};
 
     error = EN_gettitle(ph, c_test[0], c_test[1], c_test[2]);
     BOOST_REQUIRE(error == 0);
 
    for (int i = 0; i < 3; i++) {
        std::string test (c_test[i]);
-       std::string ref (c_ref[i]);
-       BOOST_CHECK(check_string(test, ref));
+       BOOST_CHECK(check_string(test, ref[i]));
    }
+
+   delete [] &ref;
 
    // Need a test for EN_settitle
 }
