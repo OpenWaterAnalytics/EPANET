@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 03/17/2019
+Last Updated: 04/02/2019
 ******************************************************************************
 */
 
@@ -542,7 +542,7 @@ int saveinpfile(Project *pr, const char *fname)
     
     if (qual->Climit > 0.0)
     {
-        fprintf(f, "\n LIMITING POTENTIAL     %-.6f", qual->Climit);
+        fprintf(f, "\n LIMITING POTENTIAL     %-.6f", qual->Climit * pr->Ucf[QUALITY]);
     }
     if (qual->Rfactor != MISSING && qual->Rfactor != 0.0)
     {
@@ -797,8 +797,7 @@ int saveinpfile(Project *pr, const char *fname)
     saveauxdata(pr, f);
 
     // Close the new input file
-    fprintf(f, "\n");
-    fprintf(f, s_END);
+    fprintf(f, "\n%s\n", s_END);
     fclose(f);
     return 0;
 }

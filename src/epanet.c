@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 04/02/2019
  ******************************************************************************
 */
 
@@ -1589,13 +1589,20 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
     Quality *qual = &p->quality;
 
     double *Ucf = p->Ucf;
-    int i;
+    int i, oldQualFlag, traceNodeIndex;
     double ccf = 1.0;
 
     if (!p->Openflag) return 102;
     if (qual->OpenQflag) return 262;
-    if (qualType < EN_NONE || qualType > EN_TRACE) return 251;
-    qual->Qualflag = (char)qualType;
+    if (qualType < NONE || qualType > TRACE) return 251;
+    if (qualType == TRACE)
+    {
+        traceNodeIndex = findnode(net, traceNode);
+        if (traceNodeIndex == 0) return 212;
+    }
+
+    oldQualFlag = qual->Qualflag;
+    qual->Qualflag = qualType;
     qual->Ctol *= Ucf[QUALITY];
     if (qual->Qualflag == CHEM) // Chemical analysis
     {
@@ -1623,14 +1630,14 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
 
     // When changing from CHEM to AGE or TRACE, nodes initial quality
     // values must be returned to their original ones
-    if ((qual->Qualflag == AGE || qual->Qualflag == TRACE) & (Ucf[QUALITY] != 1))
+    if ((qual->Qualflag == AGE || qual->Qualflag == TRACE) && oldQualFlag == CHEM)
     {
         for (i = 1; i <= p->network.Nnodes; i++)
         {
             p->network.Node[i].C0 *= Ucf[QUALITY];
         }
     }
-
+    
     Ucf[QUALITY] = ccf;
     Ucf[LINKQUAL] = ccf;
     Ucf[REACTRATE] = ccf;
