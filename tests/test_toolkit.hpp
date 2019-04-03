@@ -14,10 +14,6 @@
 #ifndef TEST_TOOLKIT_HPP
 #define TEST_TOOLKIT_HPP
 
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-
 #include "epanet2_2.h"
 
 
