@@ -113,37 +113,37 @@ BOOST_FIXTURE_TEST_CASE(test_title, FixtureOpenClose)
     // How is the API user supposed to know array size?
     char c_test[3][80];
 
+    // ref is an automatic variable and therefore doesn't need to be deleted
     std::string ref[3] = {
         " EPANET Example Network 1",
         "A simple example of modeling chlorine decay. Both bulk and",
-        "wall reactions are included."};
+        "wall reactions are included. "};
 
     error = EN_gettitle(ph, c_test[0], c_test[1], c_test[2]);
     BOOST_REQUIRE(error == 0);
 
-   for (int i = 0; i < 3; i++) {
-       std::string test (c_test[i]);
-       BOOST_CHECK(check_string(test, ref[i]));
-   }
-
-   delete [] &ref;
+    for (int i = 0; i < 3; i++) {
+        std::string test (c_test[i]);
+        BOOST_CHECK(check_string(test, ref[i]));
+    }
 
    // Need a test for EN_settitle
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getcount, FixtureOpenClose)
 {
-    int i, array[7];
+    int i;
 
-	std::vector<int> test;
-	std::vector<int> ref = { 11, 2, 13, 1, 1, 2, 0 };
+	std::vector<int> test(7);
+    int *array = test.data();
+
+    std::vector<int> ref = { 11, 2, 13, 1, 1, 2, 0 };
 
     for (i=EN_NODECOUNT; i<=EN_RULECOUNT; i++) {
-        error = EN_getcount(ph, i, &array[i]);
+        error = EN_getcount(ph, i, array++);
         BOOST_REQUIRE(error == 0);
     }
 
-    test.assign(array, array + 7);
     BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
 
 	error = EN_getcount(ph, 7, &i);

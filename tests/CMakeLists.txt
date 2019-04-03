@@ -30,7 +30,8 @@ set(toolkit_test_srcs
      test_pattern.cpp
      test_curve.cpp
      test_control.cpp
-     test_net_builder.cpp)
+#     test_net_builder.cpp
+)
 
 add_executable(test_toolkit ${toolkit_test_srcs})
 

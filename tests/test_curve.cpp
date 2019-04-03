@@ -45,7 +45,7 @@ BOOST_FIXTURE_TEST_CASE(test_curve_comments, FixtureOpenClose)
     int n2;
     double X2[5], Y2[5];
     char id2[EN_MAXID+1];
-    
+
     // Add data to a new curve
     error = EN_addcurve(ph, id1);
     BOOST_REQUIRE(error == 0);
@@ -53,7 +53,7 @@ BOOST_FIXTURE_TEST_CASE(test_curve_comments, FixtureOpenClose)
     BOOST_REQUIRE(error == 0);
     error = EN_setcurve(ph, i, X1, Y1, n1);
     BOOST_REQUIRE(error == 0);
-    
+
     // Retrieve data from curve
     error = EN_getcurve(ph, i, id2, &n2, X2, Y2);
     BOOST_REQUIRE(error == 0);
@@ -61,8 +61,8 @@ BOOST_FIXTURE_TEST_CASE(test_curve_comments, FixtureOpenClose)
     BOOST_REQUIRE(n2 == n1);
     for (i = 0; i < n1; i++)
     {
-        BOOST_REQUIRE(X1[i] == X2[i]);
-        BOOST_REQUIRE(Y1[i] == Y2[i]);
+        BOOST_CHECK(X1[i] == X2[i]);
+        BOOST_CHECK(Y1[i] == Y2[i]);
     }
 }
 
