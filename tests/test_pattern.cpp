@@ -33,12 +33,9 @@ BOOST_AUTO_TEST_CASE(add_set_pattern)
     error = EN_open(ph, path_inp.c_str(), path_rpt.c_str(), "");
     BOOST_REQUIRE(error == 0);
 
-    // Get the default pattern index
-    double dblPatIdx;
-    int defPatIdx;
+    // Assign the default pattern index
+    int defPatIdx = 1;
     int patIdx;
-    EN_getoption(ph, EN_DEFDEMANDPAT, &dblPatIdx);
-    defPatIdx = (int)dblPatIdx;
 
     // Rename the default pattern
     EN_setpatternid(ph, defPatIdx, (char *)"Pat1");

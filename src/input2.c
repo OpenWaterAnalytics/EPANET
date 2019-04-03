@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 04/02/2019
+Last Updated: 04/03/2019
 ******************************************************************************
 */
 
@@ -649,7 +649,7 @@ int getpatterns(Project *pr)
         i = tmppattern->i;
 
         // Check if this is the default pattern
-        if (strcmp(tmppattern->ID, parser->DefPatID) == 0) hyd->DefPat = i;
+        if (strcmp(tmppattern->ID, parser->DefPatID) == 0) parser->DefPat = i;
 
         // Copy temporary patttern to network's pattern
         if (i >= 0 && i <= parser->MaxPats)

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/02/2019
+ Last Updated: 04/03/2019
  ******************************************************************************
 */
 
@@ -1116,9 +1116,6 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
     case EN_FLOWCHANGE:
         v = hyd->FlowChangeLimit * Ucf[FLOW];
         break;
-    case EN_DEFDEMANDPAT:
-        v = hyd->DefPat;
-        break;
     case EN_HEADLOSSFORM:
         v = hyd->Formflag;
         break;
@@ -1156,13 +1153,9 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     Hydraul *hyd = &p->hydraul;
     Quality *qual = &p->quality;
 
-    Snode *node;
-    Pdemand demand;
-    const int Njuncs = net->Njuncs;
+    int Njuncs = net->Njuncs;
     double *Ucf = p->Ucf;
-    int i, j;
-    int tmpPat, pat, error;
-    char tmpId[MAXID + 1];
+    int i, j, pat;
     double Ke, n, ucf;
 
     if (!p->Openflag) return 102;
@@ -1210,36 +1203,14 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         hyd->FlowChangeLimit = value / Ucf[FLOW];
         break;
 
-    case EN_DEFDEMANDPAT:
-        //check that the pattern exists or is set to zero to delete the default pattern
-        pat = ROUND(value);
-        if (pat < 0 || pat > net->Npats) return 205;
-        tmpPat = hyd->DefPat;
-        //get the new pattern ID
-        if (pat == 0)
-        {
-            strncpy(tmpId, p->parser.DefPatID, MAXID);
-        }
-        else
-        {
-            error = EN_getpatternid(p, pat, tmpId);
-            if (error != 0) return error;
-        }
-        // replace node patterns with default pattern
-        for (i = 1; i <= net->Nnodes; i++)
-        {
-            node = &net->Node[i];
-            for (demand = node->D; demand != NULL; demand = demand->next)
-            {
-                if (demand->Pat == tmpPat)
-                {
-                    demand->Pat = pat;
-                    demand->Name = xstrcpy(&demand->Name, "", MAXMSG);
-                }
-            }
-        }
-        strncpy(p->parser.DefPatID, tmpId, MAXID);
-        hyd->DefPat = pat;
+    case EN_HEADLOSSFORM:
+        // Can't change if hydraulic solver is open
+        if (p->hydraul.OpenHflag) return 262;
+        i = ROUND(value);
+        if (i < HW || i > CM) return 213;
+        hyd->Formflag = i;
+        if (hyd->Formflag == HW) hyd->Hexp = 1.852;
+        else hyd->Hexp = 2.0;
         break;
 
     case EN_GLOBALEFFIC:
@@ -1700,7 +1671,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
 
         demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
         demand->Base = 0.0;
-        demand->Pat = hyd->DefPat; // Use default pattern
+        demand->Pat = 0;
         demand->Name = NULL;
         demand->next = NULL;
         node->D = demand;
@@ -3917,9 +3888,6 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
     // Update the number of patterns
     net->Npats = n;
     parser->MaxPats = n;
-
-    // Make new pattern be default demand pattern if name matches
-    if (strcmp(id, parser->DefPatID) == 0) hyd->DefPat = n;
     return 0;
 }
 
@@ -3947,14 +3915,6 @@ int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
 
     // Adjust references by other objects to patterns
     adjustpatterns(net, index);
-
-    // Modify default demand pattern
-    if (hyd->DefPat == index)
-    {
-        hyd->DefPat = 0;
-        strcpy(parser->DefPatID, "");
-    }
-    else if (hyd->DefPat > index) hyd->DefPat--;
 
     // Modify global energy price pattern
     if (hyd->Epat == index)  hyd->Epat = 0;
