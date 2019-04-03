@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 04/03/2019
  ******************************************************************************
 */
 
@@ -573,7 +573,8 @@ typedef struct {
     ErrTok,                // Index of error-producing token
     Unitsflag,             // Unit system flag
     Flowflag,              // Flow units flag
-    Pressflag;             // Pressure units flag
+    Pressflag,             // Pressure units flag
+    DefPat;                // Default demand pattern
   
   STmplist 
     *Patlist,              // Temporary time pattern list
@@ -738,7 +739,6 @@ typedef struct {
     *Xflow;                // Inflow - outflow at each node
   
   int
-    DefPat,                // Default demand pattern
     Epat,                  // Energy cost time pattern
     DemandModel,           // Fixed or pressure dependent
     Formflag,              // Head loss formula flag

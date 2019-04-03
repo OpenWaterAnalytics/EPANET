@@ -132,8 +132,8 @@ BOOST_FIXTURE_TEST_CASE(test_build_net1, FixtureInitClose)
 	BOOST_REQUIRE(error == 0);
 	error = EN_setpattern(ph, 1, P, 12);
 	BOOST_REQUIRE(error == 0);
-	error = EN_setoption(ph, EN_DEFDEMANDPAT, 1);
-	BOOST_REQUIRE(error == 0);
+	//error = EN_setoption(ph, EN_DEFDEMANDPAT, 1);
+	//BOOST_REQUIRE(error == 0);
 	for (i = 0; i < 9; i++)
 	{
 		error = EN_addnode(ph, juncs[i], EN_JUNCTION);
@@ -141,6 +141,8 @@ BOOST_FIXTURE_TEST_CASE(test_build_net1, FixtureInitClose)
 		error = EN_setnodevalue(ph, i + 1, EN_ELEVATION, e[i]);
 		BOOST_REQUIRE(error == 0);
 		error = EN_setnodevalue(ph, i + 1, EN_BASEDEMAND, d[i]);
+		BOOST_REQUIRE(error == 0);
+        error = EN_setnodevalue(ph, i+1, EN_PATTERN, 1);
 		BOOST_REQUIRE(error == 0);
 		error = EN_setcoord(ph, i + 1, X[i], Y[i]);
 		BOOST_REQUIRE(error == 0);

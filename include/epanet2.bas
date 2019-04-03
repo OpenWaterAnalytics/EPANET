@@ -147,12 +147,11 @@ Public Const EN_EMITEXPON = 3
 Public Const EN_DEMANDMULT = 4
 Public Const EN_HEADERROR = 5
 Public Const EN_FLOWCHANGE = 6
-Public Const EN_DEMANDDEFPAT = 7
-Public Const EN_HEADLOSSFORM = 8
-Public Const EN_GLOBALEFFIC = 9
-Public Const EN_GLOBALPRICE = 10
-Public Const EN_GLOBALPATTERN = 11
-Public Const EN_DEMANDCHARGE = 12
+Public Const EN_HEADLOSSFORM = 7
+Public Const EN_GLOBALEFFIC = 8
+Public Const EN_GLOBALPRICE = 9
+Public Const EN_GLOBALPATTERN = 10
+Public Const EN_DEMANDCHARGE = 11
 
 Public Const EN_LOWLEVEL = 0      ' Control types
 Public Const EN_HILEVEL = 1

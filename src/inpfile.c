@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 04/02/2019
+Last Updated: 04/03/2019
 ******************************************************************************
 */
 
@@ -636,10 +636,6 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, "\n UNITS               %s", FlowUnitsTxt[parser->Flowflag]);
     fprintf(f, "\n PRESSURE            %s", PressUnitsTxt[parser->Pressflag]);
     fprintf(f, "\n HEADLOSS            %s", FormTxt[hyd->Formflag]);
-    if (hyd->DefPat >= 1 && hyd->DefPat <= net->Npats)
-    {
-        fprintf(f, "\n PATTERN             %s", net->Pattern[hyd->DefPat].ID);
-    }
     switch (out->Hydflag)
     {
         case USE:

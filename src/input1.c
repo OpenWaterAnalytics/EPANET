@@ -7,7 +7,7 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 03/17/2019
+Last Updated: 04/03/2019
 ******************************************************************************
 */
 
@@ -105,6 +105,7 @@ void setdefaults(Project *pr)
     parser->Unitsflag = US;     // US unit system
     parser->Flowflag = GPM;     // Flow units are gpm
     parser->Pressflag = PSI;    // Pressure units are psi
+    parser->DefPat = 0;         // Default demand pattern index
     out->Hydflag = SCRATCH;     // No external hydraulics file
     rpt->Tstatflag = SERIES;    // Generate time series output
 
@@ -122,7 +123,6 @@ void setdefaults(Project *pr)
     hyd->ExtraIter = -1;        // Stop if network unbalanced
     hyd->Viscos = MISSING;      // Temporary viscosity
     hyd->SpGrav = SPGRAV;       // Default specific gravity
-    hyd->DefPat = 0;            // Default demand pattern index
     hyd->Epat = 0;              // No energy price pattern
     hyd->Ecost = 0.0;           // Zero unit energy cost
     hyd->Dcost = 0.0;           // Zero energy demand charge
@@ -331,16 +331,12 @@ void adjustdata(Project *pr)
     }
 
     // Use default pattern if none assigned to a demand
-    for (i = 1; i <= net->Nnodes; i++)
+    if (parser->DefPat > 0) for (i = 1; i <= net->Nnodes; i++)
     {
         node = &net->Node[i];
         for (demand = node->D; demand != NULL; demand = demand->next)
         {
-            if (demand->Pat == 0)
-            {
-                demand->Pat = hyd->DefPat;
-                xstrcpy(&demand->Name, "", MAXMSG);
-            }
+            if (demand->Pat == 0) demand->Pat = parser->DefPat;
         }
     }
 

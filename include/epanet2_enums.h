@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 04/03/2019
  ******************************************************************************
 */
 
@@ -294,12 +294,11 @@ typedef enum {
   EN_DEMANDMULT     = 4,  //!< Global demand multiplier
   EN_HEADERROR      = 5,  //!< Maximum head loss error for hydraulic convergence
   EN_FLOWCHANGE     = 6,  //!< Maximum flow change for hydraulic convergence
-  EN_DEFDEMANDPAT   = 7,  //!< Index of the default demand time pattern
-  EN_HEADLOSSFORM   = 8,  //!< Head loss formula (see @ref EN_HeadLossType)
-  EN_GLOBALEFFIC    = 9,  //!< Global pump efficiency (percent)
-  EN_GLOBALPRICE    = 10, //!< Global energy price per KWH
-  EN_GLOBALPATTERN  = 11, //!< Index of a global energy price pattern
-  EN_DEMANDCHARGE   = 12  //!< Energy charge per max. KW usage
+  EN_HEADLOSSFORM   = 7,  //!< Head loss formula (see @ref EN_HeadLossType)
+  EN_GLOBALEFFIC    = 8,  //!< Global pump efficiency (percent)
+  EN_GLOBALPRICE    = 9,  //!< Global energy price per KWH
+  EN_GLOBALPATTERN  = 10, //!< Index of a global energy price pattern
+  EN_DEMANDCHARGE   = 11  //!< Energy charge per max. KW usage
 } EN_Option;
 
 /// Types of simple controls
