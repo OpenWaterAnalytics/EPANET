@@ -18,13 +18,16 @@
    linsolve()     -- called from netsolve() in HYDRAUL.C
 */
 
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
+
 #include <math.h>
 #include <limits.h>
 

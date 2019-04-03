@@ -11,13 +11,15 @@
  ******************************************************************************
 */
 
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
 
 #ifdef _WIN32
 #define snprintf _snprintf
@@ -83,7 +85,7 @@ int copyreport(Project* pr, char *filename)
     FILE *tfile;
     int c;
     Report *rpt = &pr->report;
-    
+
     // Check that project's report file exists
     if (rpt->RptFile == NULL) return 0;
 
@@ -101,7 +103,7 @@ int copyreport(Project* pr, char *filename)
         while ((c = fgetc(rpt->RptFile)) != EOF) fputc(c, tfile);
         fclose(rpt->RptFile);
     }
-    
+
     // Close destination file
     fclose(tfile);
 
