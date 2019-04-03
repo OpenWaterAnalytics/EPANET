@@ -15,10 +15,10 @@ void mock_lookup(int errcode, char *errmsg, int len)
     char *msg = NULL;
 
     if (errcode == 100) {
-        msg = MESSAGE_STRING;
+        msg = (char *)MESSAGE_STRING;
     }
     else {
-        msg = "";
+        msg = (char *)"";
     }
     strncpy(errmsg, msg, len);
 }

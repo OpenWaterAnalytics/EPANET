@@ -11,6 +11,8 @@
  ******************************************************************************
 */
 
+#include <math.h>
+
 #include <boost/test/unit_test.hpp>
 
 #include "test_toolkit.hpp"
