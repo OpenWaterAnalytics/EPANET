@@ -25,7 +25,7 @@ BOOST_FIXTURE_TEST_CASE(test_anlys_getoption, FixtureOpenClose)
     double array[13];
 
     std::vector<double> test;
-	std::vector<double> ref = {40.0, 0.001, 0.01, 0.5, 1.0, 0.0, 0.0, 1.0, 0.0, 75.0, 0.0, 0.0, 0.0};
+	std::vector<double> ref = {40.0, 0.001, 0.01, 0.5, 1.0, 0.0, 0.0, 0.0, 75.0, 0.0, 0.0, 0.0};
 
     error = EN_solveH(ph);
     BOOST_REQUIRE(error == 0);
