@@ -4385,7 +4385,7 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
 }
 
 int DLLEXPORT EN_getcurve(EN_Project p, int index, char *id, int *nPoints,
-                          double **xValues, double **yValues)
+                          double *xValues, double *yValues)
 /*----------------------------------------------------------------
 **  Input:   index = data curve index
 **  Output:  id = ID name of data curve
@@ -4410,8 +4410,8 @@ int DLLEXPORT EN_getcurve(EN_Project p, int index, char *id, int *nPoints,
     *nPoints = curve->Npts;
     for (i = 0; i < curve->Npts; i++)
     {
-        *xValues[i] = curve->X[i];
-        *yValues[i] = curve->Y[i];
+        xValues[i] = curve->X[i];
+        yValues[i] = curve->Y[i];
     }
     return 0;
 }
