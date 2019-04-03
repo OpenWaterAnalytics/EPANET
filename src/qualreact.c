@@ -13,7 +13,6 @@ Last Updated: 11/27/2018
 
 #include <stdio.h>
 #include <math.h>
-
 #include "types.h"
 
 // Exported functions

@@ -11,10 +11,13 @@ Last Updated: 11/27/2018
 ******************************************************************************
 */
 
-#include <stdlib.h>
 #include <stdio.h>
+#ifndef __APPLE__
+#include <malloc.h>
+#else
+#include <stdlib.h>
+#endif
 #include <math.h>
-
 #include "mempool.h"
 #include "types.h"
 

@@ -12,7 +12,6 @@ Last Updated: 11/27/2018
 */
 
 #include <stdio.h>
-
 #include "types.h"
 #include "funcs.h"
 

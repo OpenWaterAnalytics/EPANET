@@ -19,19 +19,18 @@ endif(UNIX)
 set(toolkit_test_srcs
      test_toolkit.cpp
      test_project.cpp
-#     test_hydraulics.cpp
-#     test_quality.cpp
-#     test_report.cpp
-#     test_analysis.cpp
-#     test_node.cpp
-#     test_demand.cpp
-#     test_link.cpp
+     test_hydraulics.cpp
+     test_quality.cpp
+     test_report.cpp
+     test_analysis.cpp
+     test_node.cpp
+     test_demand.cpp
+     test_link.cpp
 #     test_pump.cpp
-#     test_pattern.cpp
-#     test_curve.cpp
-#     test_control.cpp
-#     test_net_builder.cpp
-)
+     test_pattern.cpp
+     test_curve.cpp
+     test_control.cpp
+     test_net_builder.cpp)
 
 add_executable(test_toolkit ${toolkit_test_srcs})
 
@@ -59,6 +58,10 @@ add_test(NAME test_reent
 # ctest doesn't like tests added in subdirectories so adding them here
 add_test(NAME test_errormanager
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_errormanager)
+
+add_test(NAME test_filemanager
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_filemanager
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/outfile/data)
 
 add_test(NAME test_output
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_output

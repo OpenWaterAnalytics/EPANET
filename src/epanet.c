@@ -7,21 +7,16 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 04/02/2019
  ******************************************************************************
 */
 
-#ifdef _DEBUG
-  #define _CRTDBG_MAP_ALLOC
-  #include <stdlib.h>
-  #include <crtdbg.h>
-#else
-  #include <stdlib.h>
-#endif
-
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-
+#ifndef __APPLE__
+#include <malloc.h>
+#endif
 #include <float.h>
 #include <math.h>
 
@@ -221,24 +216,26 @@ int DLLEXPORT EN_open(EN_Project p, const char *inpFile, const char *rptFile,
   ERRCODE(netsize(p));
   ERRCODE(allocdata(p));
 
-  if (!errcode) {
-	// Read input data
-	ERRCODE(getdata(p));
+  // Read input data
+  ERRCODE(getdata(p));
 
-	// Close input file
-	if (p->parser.InFile != NULL) {
+  // Close input file
+  if (p->parser.InFile != NULL)
+  {
       fclose(p->parser.InFile);
       p->parser.InFile = NULL;
-	}
+  }
 
-	// Free temporary linked lists used for Patterns & Curves
-	freeTmplist(p->parser.Patlist);
-	freeTmplist(p->parser.Curvelist);
+  // Free temporary linked lists used for Patterns & Curves
+  freeTmplist(p->parser.Patlist);
+  freeTmplist(p->parser.Curvelist);
 
-	// If using previously saved hydraulics file then open it
-	if (p->outfile.Hydflag == USE) ERRCODE(openhydfile(p));
+  // If using previously saved hydraulics file then open it
+  if (p->outfile.Hydflag == USE) ERRCODE(openhydfile(p));
 
-	// Write input summary to report file
+  // Write input summary to report file
+  if (!errcode)
+  {
     if (p->report.Summaryflag) writesummary(p);
     writetime(p, FMT104);
     p->Openflag = TRUE;
@@ -282,7 +279,7 @@ int DLLEXPORT EN_getcomment(EN_Project p, int object, int index, char *comment)
 /*----------------------------------------------------------------
 **  Input:   object = a type of object (see EN_ObjectType)
 **           index = the object's index
-**  Output:  comment = the object's descriptive comment
+**  Output:  comment = the object's descriptive comment 
 **  Returns: error code
 **  Purpose: Retrieves an object's descriptive comment
 **----------------------------------------------------------------
@@ -843,7 +840,7 @@ int DLLEXPORT EN_closeQ(EN_Project p)
     if (!p->Openflag) return 102;
     closequal(p);
     p->quality.OpenQflag = FALSE;
-    closeoutfile(p);
+    closeoutfile(p);    
     return 0;
 }
 
@@ -1592,13 +1589,20 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
     Quality *qual = &p->quality;
 
     double *Ucf = p->Ucf;
-    int i;
+    int i, oldQualFlag, traceNodeIndex;
     double ccf = 1.0;
 
     if (!p->Openflag) return 102;
     if (qual->OpenQflag) return 262;
-    if (qualType < EN_NONE || qualType > EN_TRACE) return 251;
-    qual->Qualflag = (char)qualType;
+    if (qualType < NONE || qualType > TRACE) return 251;
+    if (qualType == TRACE)
+    {
+        traceNodeIndex = findnode(net, traceNode);
+        if (traceNodeIndex == 0) return 212;
+    }
+
+    oldQualFlag = qual->Qualflag;
+    qual->Qualflag = qualType;
     qual->Ctol *= Ucf[QUALITY];
     if (qual->Qualflag == CHEM) // Chemical analysis
     {
@@ -1626,14 +1630,14 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
 
     // When changing from CHEM to AGE or TRACE, nodes initial quality
     // values must be returned to their original ones
-    if ((qual->Qualflag == AGE || qual->Qualflag == TRACE) & (Ucf[QUALITY] != 1))
+    if ((qual->Qualflag == AGE || qual->Qualflag == TRACE) && oldQualFlag == CHEM)
     {
         for (i = 1; i <= p->network.Nnodes; i++)
         {
             p->network.Node[i].C0 *= Ucf[QUALITY];
         }
     }
-
+    
     Ucf[QUALITY] = ccf;
     Ucf[LINKQUAL] = ccf;
     Ucf[REACTRATE] = ccf;
@@ -4381,7 +4385,7 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
 }
 
 int DLLEXPORT EN_getcurve(EN_Project p, int index, char *id, int *nPoints,
-                          double **xValues, double **yValues)
+                          double *xValues, double *yValues)
 /*----------------------------------------------------------------
 **  Input:   index = data curve index
 **  Output:  id = ID name of data curve
@@ -4406,8 +4410,8 @@ int DLLEXPORT EN_getcurve(EN_Project p, int index, char *id, int *nPoints,
     *nPoints = curve->Npts;
     for (i = 0; i < curve->Npts; i++)
     {
-        *xValues[i] = curve->X[i];
-        *yValues[i] = curve->Y[i];
+        xValues[i] = curve->X[i];
+        yValues[i] = curve->Y[i];
     }
     return 0;
 }

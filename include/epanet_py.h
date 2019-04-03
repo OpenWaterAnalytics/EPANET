@@ -139,7 +139,7 @@ int EXPORT_PY_API curv_getlength(Handle ph, int index, int *len);
 int EXPORT_PY_API curv_gettype(Handle ph, int curveIndex, int *outType);
 int EXPORT_PY_API curv_getvalue(Handle ph, int curveIndex, int pointIndex, double *x, double *y);
 int EXPORT_PY_API curv_setvalue(Handle ph, int curveIndex, int pointIndex, double x, double y);
-int EXPORT_PY_API curv_get(Handle ph, int curveIndex, char* id, int *nValues, double **xValues, double **yValues);
+int EXPORT_PY_API curv_get(Handle ph, int curveIndex, char* id, int *nValues, double *xValues, double *yValues);
 int EXPORT_PY_API curv_set(Handle ph, int index, double *x, double *y, int len);
 
 int EXPORT_PY_API scntl_add(Handle ph, int type, int linkIndex, double setting, int nodeIndex, double level, int *index);

@@ -14,10 +14,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <stdio.h>
-
 #include "hash.h"
-
+#include <stdio.h>
 
 /*
 -------------------------------------------

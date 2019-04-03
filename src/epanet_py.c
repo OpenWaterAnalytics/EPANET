@@ -26,7 +26,6 @@ typedef struct {
     Project *project;
     error_handle_t *error;
 }handle_t;
-
 // Extern functions
 extern char *geterrmsg(int, char *);
 // Local functions
@@ -625,7 +624,7 @@ int EXPORT_PY_API curv_setvalue(Handle ph, int curveIndex, int pointIndex, doubl
     return set_error(pr->error, EN_setcurvevalue(pr->project, curveIndex, pointIndex, x, y));
 }
 
-int EXPORT_PY_API curv_get(Handle ph, int curveIndex, char* id, int *nValues, double **xValues, double **yValues)
+int EXPORT_PY_API curv_get(Handle ph, int curveIndex, char* id, int *nValues, double *xValues, double *yValues)
 {
     handle_t *pr = (handle_t *)ph;
     return set_error(pr->error, EN_getcurve(pr->project, curveIndex, id, nValues, xValues, yValues));
@@ -787,29 +786,25 @@ void error_lookup(int errcode, char *dest_msg, int dest_len)
 {
     char *msg = NULL;
 
-    switch (errcode) {
-        case 1:
-            msg = WARN1;
-            break;
-        case 2:
-            msg = WARN2;
-            break;
-        case 3:
-            msg = WARN3;
-            break;
-        case 4:
-            msg = WARN4;
-            break;
-        case 5:
-            msg = WARN5;
-            break;
-        case 6:
-            msg = WARN6;
-            break;
-        default: {
-            char new_msg[MAXMSG + 1];
-		    msg = geterrmsg(errcode, new_msg);
-        }
+    switch (errcode)
+    {
+    case 1: msg = WARN1;
+    break;
+    case 2: msg = WARN2;
+    break;
+    case 3: msg = WARN3;
+    break;
+    case 4: msg = WARN4;
+    break;
+    case 5: msg = WARN5;
+    break;
+    case 6: msg = WARN6;
+    break;
+    default:
+	{
+		char new_msg[MAXMSG + 1];
+		msg = geterrmsg(errcode, new_msg);
+	}
     }
     strncpy(dest_msg, msg, dest_len);
 }

@@ -11,9 +11,13 @@
  ******************************************************************************
 */
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifndef __APPLE__
+#include <malloc.h>
+#else
+#include <stdlib.h>
+#endif
 
 #include "types.h"
 #include "funcs.h"
