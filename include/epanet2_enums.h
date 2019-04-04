@@ -282,13 +282,13 @@ typedef enum {
 
 /// Simulation options
 /**
-These options specify hydraulic convergence criteria, choice of head loss formula, and
-several other parameters applied on a network-wide basis. They are accessed using the
+These constants identify the hydraulic and water quality simulation options
+that are applied on a network-wide basis. They are accessed using the
 @ref EN_getoption and @ref EN_setoption functions.
 */
 typedef enum {
-  EN_TRIALS         = 0,  //!< Maximum hydraulic trials allowed
-  EN_ACCURACY       = 1,  //!< Maximum total relative flow change for hydraulic convergence
+  EN_TRIALS         = 0,  //!< Maximum hydraulic trials allowed for hydraulic convergence
+  EN_ACCURACY       = 1,  //!< Total normalized flow change for hydraulic convergence
   EN_TOLERANCE      = 2,  //!< Water quality tolerance
   EN_EMITEXPON      = 3,  //!< Exponent in emitter discharge formula
   EN_DEMANDMULT     = 4,  //!< Global demand multiplier
@@ -299,6 +299,17 @@ typedef enum {
   EN_GLOBALPRICE    = 9,  //!< Global energy price per KWH
   EN_GLOBALPATTERN  = 10, //!< Index of a global energy price pattern
   EN_DEMANDCHARGE   = 11  //!< Energy charge per max. KW usage
+  EN_SP_GRAVITY     = 12, //!< Specific gravity
+  EN_SP_VISCOS      = 13, //!< Specific viscosity (relative to water at 20 deg C)
+  EN_UNBALANCED     = 14, //!< Extra trials allowed if hydraulics don't converge
+  EN_CHECKFREQ      = 15, //!< Frequency of hydraulic status checks
+  EN_MAXCHECK       = 16, //!< Maximum trials for status checking
+  EN_DAMPLIMIT      = 17, //!< Accuracy level where solution damping begins
+  EN_SP_DIFFUS      = 18, //!< Specific diffusivity (relative to chlorine at 20 deg C)
+  EN_BULKORDER      = 19, //!< Bulk water reaction order for pipes
+  EN_WALLORDER      = 20, //!< Wall reaction order for pipes (either 0 or 1)
+  EN_TANKORDER      = 21, //!< Bulk water reaction order for tanks
+  EN_CONCENLIMIT    = 22  //!< Limiting concentration for growth reactions
 } EN_Option;
 
 /// Types of simple controls

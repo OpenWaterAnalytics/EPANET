@@ -145,7 +145,7 @@ Public Const EN_CMD = 9
 Public Const EN_DDA = 0           ' Demand driven analysis
 Public Const EN_PDA = 1           ' Pressure driven analysis
 
-Public Const EN_TRIALS = 0        ' Hydraulic options
+Public Const EN_TRIALS = 0        ' Simulation options
 Public Const EN_ACCURACY = 1
 Public Const EN_TOLERANCE = 2
 Public Const EN_EMITEXPON = 3
@@ -157,6 +157,17 @@ Public Const EN_GLOBALEFFIC = 8
 Public Const EN_GLOBALPRICE = 9
 Public Const EN_GLOBALPATTERN = 10
 Public Const EN_DEMANDCHARGE = 11
+Public Const EN_SP_GRAVITY = 12
+Public Const EN_SP_VISCOS  = 13
+Public Const EN_UNBALANCED = 14
+Public Const EN_CHECKFREQ = 15
+Public Const EN_MAXCHECK = 16
+Public Const EN_DAMPLIMIT = 17
+Public Const EN_SP_DIFFUS = 18
+Public Const EN_BULKORDER = 19
+Public Const EN_WALLORDER = 20
+Public Const EN_TANKORDER = 21
+Public Const EN_CONCENLIMIT = 22 
 
 Public Const EN_LOWLEVEL = 0      ' Control types
 Public Const EN_HILEVEL = 1
