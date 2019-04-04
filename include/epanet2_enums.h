@@ -298,7 +298,7 @@ typedef enum {
   EN_GLOBALEFFIC    = 8,  //!< Global pump efficiency (percent)
   EN_GLOBALPRICE    = 9,  //!< Global energy price per KWH
   EN_GLOBALPATTERN  = 10, //!< Index of a global energy price pattern
-  EN_DEMANDCHARGE   = 11  //!< Energy charge per max. KW usage
+  EN_DEMANDCHARGE   = 11,  //!< Energy charge per max. KW usage
   EN_SP_GRAVITY     = 12, //!< Specific gravity
   EN_SP_VISCOS      = 13, //!< Specific viscosity (relative to water at 20 deg C)
   EN_UNBALANCED     = 14, //!< Extra trials allowed if hydraulics don't converge
