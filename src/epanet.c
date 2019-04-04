@@ -1108,8 +1108,7 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
         v = qual->Ctol * Ucf[QUALITY];
         break;
     case EN_EMITEXPON:
-        if (hyd->Qexp > 0.0)
-            v = 1.0 / hyd->Qexp;
+        if (hyd->Qexp > 0.0) v = 1.0 / hyd->Qexp;
         break;
     case EN_DEMANDMULT:
         v = hyd->Dmult;
@@ -1134,6 +1133,39 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
         break;
     case EN_DEMANDCHARGE:
         v = hyd->Dcost;
+        break;
+    case EN_SP_GRAVITY:
+        v = hyd->SpGrav;
+        break;
+    case EN_SP_VISCOS:
+        v = hyd->Viscos / VISCOS;
+        break;
+    case EN_UNBALANCED:
+        v = hyd->ExtraIter;
+        break;
+    case EN_CHECKFREQ:
+        v = hyd->CheckFreq;
+        break;
+    case EN_MAXCHECK:
+        v = hyd->MaxCheck;
+        break;
+    case EN_DAMPLIMIT:
+        v = hyd->DampLimit;
+        break;
+    case EN_SP_DIFFUS:
+        v = qual->Diffus / DIFFUS;
+        break;
+    case EN_BULKORDER:
+        v = qual->BulkOrder;
+        break;
+    case EN_WALLORDER:
+        v = qual->WallOrder;
+        break;
+    case EN_TANKORDER:
+        v = qual->TankOrder;
+        break;
+    case EN_CONCENLIMIT:
+        v = qual->Climit * p->Ucf[QUALITY];
         break;
 
     default:
@@ -1163,6 +1195,22 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     double Ke, n, ucf;
 
     if (!p->Openflag) return 102;
+
+    // The EN_UNBALANCED option can be < 0 indicating that the simulation
+    // should be halted if no convergence is reached in EN_TRIALS. Other
+    // values set the number of additional trials to use with no more
+    // link status changes to achieve convergence.
+    if (option == EN_UNBALANCED)
+    {
+        hyd->ExtraIter = (int)value;
+        if (hyd->ExtraIter < 0) hyd->ExtraIter = -1;
+        return 0;
+    }
+
+    // All other option values must be non-negative
+    if (value < 0.0) return 213;
+
+    // Process the speficied option
     switch (option)
     {
     case EN_TRIALS:
@@ -1171,12 +1219,11 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         break;
 
     case EN_ACCURACY:
-        if (value < 1.e-5 || value > 1.e-1) return 213;
+        if (value < 1.e-8 || value > 1.e-1) return 213;
         hyd->Hacc = value;
         break;
 
     case EN_TOLERANCE:
-        if (value < 0.0) return 213;
         qual->Ctol = value / Ucf[QUALITY];
         break;
 
@@ -1193,17 +1240,14 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         break;
 
     case EN_DEMANDMULT:
-        if (value <= 0.0) return 213;
         hyd->Dmult = value;
         break;
 
     case EN_HEADERROR:
-        if (value < 0.0) return 213;
         hyd->HeadErrorLimit = value / Ucf[HEAD];
         break;
 
     case EN_FLOWCHANGE:
-        if (value < 0.0) return 213;
         hyd->FlowChangeLimit = value / Ucf[FLOW];
         break;
 
@@ -1218,12 +1262,11 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         break;
 
     case EN_GLOBALEFFIC:
-        if (value <= 0.0 || value > 100.0) return 213;
+        if (value <= 1.0 || value > 100.0) return 213;
         hyd->Epump = value;
         break;
 
     case EN_GLOBALPRICE:
-        if (value < 0.0) return 213;
         hyd->Ecost = value;
         break;
 
@@ -1234,8 +1277,51 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         break;
 
     case EN_DEMANDCHARGE:
-        if (value < 0.0) return 213;
         hyd->Dcost = value;
+        break;
+
+    case EN_SP_GRAVITY:
+        if (value <= 0.0) return 213;
+        Ucf[PRESSURE] *= (value / hyd->SpGrav);
+        hyd->SpGrav = value;
+        break;
+
+    case EN_SP_VISCOS:
+        if (value <= 0.0) return 213;
+        hyd->Viscos = value * VISCOS;
+        break;
+
+    case EN_CHECKFREQ:
+        hyd->CheckFreq = (int)value;
+        break;
+
+    case EN_MAXCHECK:
+        hyd->MaxCheck = (int)value;
+        break;
+
+    case EN_DAMPLIMIT:
+        hyd->DampLimit = value;
+        break;
+
+    case EN_SP_DIFFUS:
+        qual->Diffus = value * DIFFUS;
+        break;
+
+    case EN_BULKORDER:
+        qual->BulkOrder = value;
+        break;
+
+    case EN_WALLORDER:
+        if (value == 0.0 || value == 1.0) qual->WallOrder = value;
+        else return 213;
+        break;
+
+    case EN_TANKORDER:
+        qual->TankOrder = value;
+        break;
+
+    case EN_CONCENLIMIT:
+        qual->Climit = value / p->Ucf[QUALITY];
         break;
 
     default:
