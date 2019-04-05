@@ -35,7 +35,6 @@ extern char *SectTxt[]; // Input section keywords (see ENUMSTXT.H)
 // Exported functions
 int addnodeID(Network *n, int, char *);
 int addlinkID(Network *n, int, char *);
-STmplist *getlistitem(char *, STmplist *);
 
 // Imported functions
 extern int powercurve(double, double, double, double, double, double *,
@@ -43,8 +42,8 @@ extern int powercurve(double, double, double, double, double, double *,
 
 // Local functions
 static int  newline(Project *, int, char *);
-static int  addpattern(Parser *, char *);
-static int  addcurve(Parser *, char *);
+static int  addpattern(Network *, char *);
+static int  addcurve(Network *, char *);
 static int  unlinked(Project *);
 static int  getpumpparams(Project *);
 static void inperrmsg(Project *, int, int, char *);
@@ -65,6 +64,7 @@ int netsize(Project *pr)
     char *tok;              // First token of line
     int sect, newsect;      // Input data sections
     int errcode = 0;        // Error code
+    Spattern *pattern;
 
     // Initialize object counts
     parser->MaxJuncs = 0;
@@ -77,13 +77,20 @@ int netsize(Project *pr)
     parser->MaxCurves = 0;
     sect = -1;
 
-    // Add a default demand pattern
-    parser->MaxPats = -1;
-    addpattern(parser,"");
 
-    if (parser->InFile == NULL) return 0;
+    // Add a "dummy" time pattern with index of 0 and a single multiplier
+    // of 1.0 to be used by all demands not assigned a pattern
+    pr->network.Npats = -1;
+    errcode = addpattern(&pr->network, "");
+    if (errcode) return errcode;
+    pattern = &pr->network.Pattern[0];
+    pattern->Length = 1;
+    pattern[0].F = (double *)calloc(1, sizeof(double));
+    pattern[0].F[0] = 1.0;
+    parser->MaxPats = pr->network.Npats;
 
     // Make a pass through input file counting number of each object
+    if (parser->InFile == NULL) return 0;
     while (fgets(line, MAXLINE, parser->InFile) != NULL)
     {
         // Skip blank lines & those beginning with a comment
@@ -115,8 +122,14 @@ int netsize(Project *pr)
             case _VALVES:    parser->MaxValves++;   break;
             case _CONTROLS:  parser->MaxControls++; break;
             case _RULES:     addrule(parser,tok);   break;
-            case _PATTERNS:  errcode = addpattern(parser, tok); break;
-            case _CURVES:    errcode = addcurve(parser, tok);   break;
+            case _PATTERNS:
+                errcode = addpattern(&pr->network, tok);
+                parser->MaxPats = pr->network.Npats;
+                break;
+            case _CURVES:
+                errcode = addcurve(&pr->network, tok);
+                parser->MaxCurves = pr->network.Ncurves;
+                break;
         }
         if (errcode) break;
     }
@@ -166,12 +179,15 @@ int readdata(Project *pr)
     net->Nvalves = 0;
     net->Ncontrols = 0;
     net->Nrules = 0;
-    net->Ncurves = parser->MaxCurves;
-    net->Npats = parser->MaxPats;
+
+    // Patterns & Curves were created previously in netsize() 
+    parser->MaxPats = net->Npats;
+    parser->MaxCurves = net->Ncurves;
     parser->PrevPat = NULL;
     parser->PrevCurve = NULL;
+    
+    // Initialize full line comment, input data section and error count
     parser->LineComment[0] = '\0';
-
     sect = -1;
     errsum = 0;
 
@@ -257,9 +273,7 @@ int readdata(Project *pr)
     // Check for unlinked nodes
     if (!errcode) errcode = unlinked(pr);
 
-    // Get pattern & curve data from temporary lists
-    if (!errcode) errcode = getpatterns(pr);
-    if (!errcode) errcode = getcurves(pr);
+    // Determine pump curve parameters
     if (!errcode) errcode = getpumpparams(pr);
 
     // Free input buffer
@@ -487,7 +501,7 @@ int addlinkID(Network *net, int n, char *id)
     return 1;
 }
 
-int addpattern(Parser *parser, char *id)
+int addpattern(Network *network, char *id)
 /*
 **-------------------------------------------------------------
 **  Input:   id = pattern ID label
@@ -496,34 +510,33 @@ int addpattern(Parser *parser, char *id)
 **--------------------------------------------------------------
 */
 {
-    STmplist *patlist;
+    int n = network->Npats;
+    Spattern *pattern;
 
-    // Check if ID is same as last one processed
-    if (parser->Patlist != NULL && strcmp(id, parser->Patlist->ID) == 0) return 0;
-
-    // Check that pattern was not already created
-    if (getlistitem(id, parser->Patlist) == NULL)
+    // Check if pattern was already created
+    if (n > 0)
     {
-        // Update pattern count & create new list element
-        (parser->MaxPats)++;
-        patlist = (STmplist *)malloc(sizeof(STmplist));
-        if (patlist == NULL) return 101;
-
-        // Initialize list element properties
-        else
-        {
-            patlist->i = parser->MaxPats;
-            strncpy(patlist->ID, id, MAXID);
-            patlist->x = NULL;
-            patlist->y = NULL;
-            patlist->next = parser->Patlist;
-            parser->Patlist = patlist;
-        }
+        if (strcmp(id, network->Pattern[n].ID) == 0) return 0;
+        if (findpattern(network, id) > 0) return 0;
     }
+    if (strlen(id) > MAXID) return 250;
+
+    // Update pattern count & add a new pattern to the database
+    n = n + 2;
+    network->Pattern = (Spattern *)realloc(network->Pattern, n * sizeof(Spattern));
+    if (network->Pattern == NULL) return 101;
+    (network->Npats)++;
+
+    // Initialize the pattern
+    pattern = &network->Pattern[network->Npats];
+    strncpy(pattern->ID, id, MAXID);
+    pattern->Comment = NULL;
+    pattern->Length = 0;
+    pattern->F = NULL;
     return 0;
 }
 
-int addcurve(Parser *parser, char *id)
+int addcurve(Network *network, char *id)
 /*
 **-------------------------------------------------------------
 **  Input:   id = curve ID label
@@ -532,49 +545,31 @@ int addcurve(Parser *parser, char *id)
 **--------------------------------------------------------------
 */
 {
-    STmplist *curvelist;
+    int n = network->Ncurves;
+    Scurve *curve;
 
-    // Check if ID is same as last one processed
-    if (parser->Curvelist != NULL && strcmp(id, parser->Curvelist->ID) == 0) return 0;
-
-    // Check that curve was not already created
-    if (getlistitem(id, parser->Curvelist) == NULL)
+    // Check if was already created
+    if (n > 0)
     {
-        // Update curve count & create new list element
-        (parser->MaxCurves)++;
-        curvelist = (STmplist *)malloc(sizeof(STmplist));
-        if (curvelist == NULL) return 101;
-
-        // Initialize list element properties
-        else
-        {
-            curvelist->i = parser->MaxCurves;
-            strncpy(curvelist->ID, id, MAXID);
-            curvelist->x = NULL;
-            curvelist->y = NULL;
-            curvelist->next = parser->Curvelist;
-            parser->Curvelist = curvelist;
-        }
+        if (strcmp(id, network->Curve[n].ID) == 0) return 0;
+        if (findcurve(network, id) > 0) return 0;
     }
+    if (strlen(id) > MAXID) return 250;
+
+    n = n + 2;
+    network->Curve = (Scurve *)realloc(network->Curve, n * sizeof(Scurve));
+    if (network->Curve == NULL) return 101;
+    (network->Ncurves)++;
+
+    // Initialize the curve
+    curve = &network->Curve[network->Ncurves];
+    strncpy(curve->ID, id, MAXID);
+    curve->Comment = NULL;
+    curve->Capacity = 0;
+    curve->Npts = 0;
+    curve->X = NULL;
+    curve->Y = NULL;
     return 0;
-}
-
-STmplist *getlistitem(char *id, STmplist *list)
-/*
-**-------------------------------------------------------------
-**  Input:   id = ID label
-**           list = pointer to head of a temporary list
-**  Output:  returns list item with requested ID label
-**  Purpose: searches for item in temporary list
-**-------------------------------------------------------------
-*/
-{
-    STmplist *item;
-    for (item = list; item != NULL; item = item->next)
-    {
-        if (strcmp(item->ID, id) == 0) return item;
-    }
-    return NULL;
 }
 
 int unlinked(Project *pr)
@@ -623,144 +618,6 @@ int unlinked(Project *pr)
     if (err > 0) errcode = 200;
     free(marked);
     return errcode;
-}
-
-int getpatterns(Project *pr)
-/*
-**-----------------------------------------------------------
-**  Input:   none
-**  Output:  returns error code
-**  Purpose: retrieves pattern data from temporary linked list
-**-------------------------------------------------------------
-*/
-{
-    Network *net = &pr->network;
-    Hydraul *hyd = &pr->hydraul;
-    Parser  *parser = &pr->parser;
-
-    int i, j;
-    SFloatlist *f;
-    STmplist *tmppattern;
-    Spattern *pattern;
-
-    // Start at head of the list of patterns
-    tmppattern = parser->Patlist;
-
-    // Traverse list of temporary patterns
-    while (tmppattern != NULL)
-    {
-        // Get index of temporary pattern in network's Pattern array
-        i = tmppattern->i;
-
-        // Check if this is the default pattern
-        if (strcmp(tmppattern->ID, parser->DefPatID) == 0) parser->DefPat = i;
-
-        // Copy temporary patttern to network's pattern
-        if (i >= 0 && i <= parser->MaxPats)
-        {
-            pattern = &net->Pattern[i];
-            strcpy(pattern->ID, tmppattern->ID);
-
-            /* Give pattern a length of at least 1 */
-            if (pattern->Length == 0) pattern->Length = 1;
-
-            // Allocate array of pattern factors
-            pattern->F = (double *)calloc(pattern->Length, sizeof(double));
-            if (pattern->F == NULL) return 101;
-
-            // Start at head of temporary pattern multiplier list
-            // (which holds multipliers in reverse order)
-            f = tmppattern->x;
-            j = pattern->Length - 1;
-
-            // Use at least one multiplier equal to 1.0
-            if (f == NULL) pattern->F[0] = 1.0;
-
-            // Traverse temporary multiplier list, copying Pattern array */
-            else while (f != NULL && j >= 0)
-            {
-                pattern->F[j] = f->value;
-                f = f->next;
-                j--;
-            }
-        }
-        tmppattern = tmppattern->next;
-    }
-    return 0;
-}
-
-int getcurves(Project *pr)
-/*
-**-----------------------------------------------------------
-**  Input:   none
-**  Output:  returns error code
-**  Purpose: retrieves curve data from temporary linked list
-**-----------------------------------------------------------
-*/
-{
-    Network *net = &pr->network;
-    Parser  *parser = &pr->parser;
-
-    int i, j;
-    double x;
-    char errmsg[MAXMSG+1];
-    SFloatlist *fx, *fy;
-    STmplist *tmpcurve;
-    Scurve *curve;
-
-    // Traverse list of temporary curves
-    tmpcurve = parser->Curvelist;
-    while (tmpcurve != NULL)
-    {
-        // Get index of temporary curve in network's Curve array
-        i = tmpcurve->i;
-
-        // Copy temporary curve to network's curve
-        if (i >= 1 && i <= parser->MaxCurves)
-        {
-            curve = &net->Curve[i];
-            strcpy(curve->ID, tmpcurve->ID);
-
-            // Check that network curve has data points
-            if (curve->Npts <= 0)
-            {
-                sprintf(pr->Msg, "Error 230: %s %s", geterrmsg(230, errmsg), curve->ID);
-                writeline(pr, pr->Msg);
-                return 200;
-            }
-
-            // Allocate memory for network's curve data
-            curve->X = (double *)calloc(curve->Npts, sizeof(double));
-            curve->Y = (double *)calloc(curve->Npts, sizeof(double));
-            if (curve->X == NULL || curve->Y == NULL) return 101;
-
-            // Traverse list of x,y data
-            x = BIG;
-            fx = tmpcurve->x;
-            fy = tmpcurve->y;
-            j = curve->Npts - 1;
-            while (fx != NULL && fy != NULL && j >= 0)
-            {
-                // Check that x data is in ascending order
-                if (fx->value >= x)
-                {
-                    sprintf(pr->Msg, "Error 230: %s %s", geterrmsg(230, errmsg), curve->ID);
-                    writeline(pr, pr->Msg);
-                    return 200;
-                }
-                x = fx->value;
-
-                // Copy x,y data to network's curve
-                curve->X[j] = fx->value;
-                fx = fx->next;
-                curve->Y[j] = fy->value;
-                fy = fy->next;
-                j--;
-            }
-        }
-        tmpcurve = tmpcurve->next;
-    }
-    return 0;
 }
 
 int findmatch(char *line, char *keyword[])
@@ -828,8 +685,8 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
  **--------------------------------------------------------------
  */
 {
-    int  m, n;
-    size_t len;
+    int  n;
+    size_t len, m;
     char *c, *c2;
 
     // clear comment

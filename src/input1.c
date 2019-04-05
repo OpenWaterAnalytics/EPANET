@@ -331,6 +331,7 @@ void adjustdata(Project *pr)
     }
 
     // Use default pattern if none assigned to a demand
+    parser->DefPat = findpattern(net, parser->DefPatID);
     if (parser->DefPat > 0) for (i = 1; i <= net->Nnodes; i++)
     {
         node = &net->Node[i];
