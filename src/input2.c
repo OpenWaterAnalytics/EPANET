@@ -564,6 +564,7 @@ int addcurve(Network *network, char *id)
     // Initialize the curve
     curve = &network->Curve[network->Ncurves];
     strncpy(curve->ID, id, MAXID);
+    curve->Type = GENERIC_CURVE;
     curve->Comment = NULL;
     curve->Capacity = 0;
     curve->Npts = 0;
