@@ -32,6 +32,7 @@ double  mixtank(Project *, int, double, double ,double);
 
 // Imported functions
 extern  void addseg(Project *, int, double, double);
+extern  void reversesegs(Project *, int);
 
 // Local functions
 static double  piperate(Project *, int);
@@ -170,7 +171,7 @@ void reactpipes(Project *pr, long dt)
 }
 
 
-void reacttanks(Project *pr, long dt)
+void  reacttanks(Project *pr, long dt)
 /*
 **--------------------------------------------------------------
 **   Input:   dt = time step
@@ -539,7 +540,7 @@ void tankmix2(Project *pr, int i, double vin, double win, double vnet)
         vt = MAX(0.0, (mixzone->v + vnet - vmz));
         if (vin > 0.0)
         {
-            mixzone->c = ((stagzone->c) * (stagzone->v) + win) /
+            mixzone->c = ((mixzone->c) * (mixzone->v) + win) /
                          (mixzone->v + vin);
         }
         if (vt > 0.0)
@@ -683,18 +684,14 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
     seg = qual->LastSeg[k];
     if (vnet > 0.0)
     {
-        // ... quality is the same, so just add flow volume to last seg
+        // ... inflow quality is same as last segment's quality,
+        //     so just add inflow volume to last segment
         if (fabs(seg->c - cin) < qual->Ctol) seg->v += vnet;
 
-        // ... otherwise add a new last seg to tank which points to old last seg
-        else
-        {
-            qual->LastSeg[k] = NULL;
-            addseg(pr, k, vnet, cin);
-            qual->LastSeg[k]->prev = seg;
-        }
+        // ... otherwise add a new last segment with inflow quality
+        else addseg(pr, k, vnet, cin);
 
-        // ... update reported tank quality
+        // Update reported tank quality
         tank->C = qual->LastSeg[k]->c;
     }
 
@@ -704,27 +701,47 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
         vsum = 0.0;
         wsum = 0.0;
         vnet = -vnet;
+
+        // Reverse segment chain so segments are processed from last to first
+        reversesegs(pr, k);
+
+        // While there is still volume to remove
         while (vnet > 0.0)
         {
-            seg = qual->LastSeg[k];
+            // ... start with reversed first segment
+            seg = qual->FirstSeg[k];
             if (seg == NULL) break;
+
+            // ... find volume to remove from it
             vseg = seg->v;
             vseg = MIN(vseg, vnet);
-            if (seg == qual->FirstSeg[k]) vseg = vnet;
+            if (seg == qual->LastSeg[k]) vseg = vnet;
+
+            // ... update total volume & mass removed
             vsum += vseg;
             wsum += (seg->c) * vseg;
+
+            // ... update remiaing volume to remove
             vnet -= vseg;
-            if (vnet >= 0.0 && vseg >= seg->v)   // Seg used up
+
+            // ... if no more volume left in current segment
+            if (vnet >= 0.0 && vseg >= seg->v)
             {
+                // ... replace current segment with previous one
                 if (seg->prev)
                 {
-                    qual->LastSeg[k] = seg->prev;
+                    qual->FirstSeg[k] = seg->prev;
                     seg->prev = qual->FreeSeg;
                     qual->FreeSeg = seg;
                 }
             }
-            else seg->v -= vseg;       // Remaining volume in segment
+
+            // ... otherwise reduce volume of current segment
+            else seg->v -= vseg;
         }
+
+        // Restore original orientation of segment chain
+        reversesegs(pr, k);
 
         // Reported tank quality is mixture of flow released and any inflow
         tank->C = (wsum + win) / (vsum + vin);

@@ -22,14 +22,14 @@ environment:
     GROUP: "SUPPORTED"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
     PLATFORM: "win32"
-    REF_BUILD_ID: "220dev5"
+    REF_BUILD_ID: "538_1"
   # New build on Visual Studio 15 2017
   - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     GENERATOR: "Visual Studio 15 2017 Win64"
     GROUP: "EXPERIMENTAL"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
     PLATFORM: "win64"
-    REF_BUILD_ID: "381_2"
+    REF_BUILD_ID: "538_2"
 
 # called before repo cloning
 init:
