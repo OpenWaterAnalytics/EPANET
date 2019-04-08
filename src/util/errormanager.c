@@ -1,14 +1,15 @@
-//-----------------------------------------------------------------------------
-//
-//   errormanager.c
-//
-//   Purpose: Provides a simple interface for managing runtime error messages.
-//
-//   Date:       08/25/2017
-//
-//   Author:     Michael E. Tryby
-//               US EPA - ORD/NRMRL
-//-----------------------------------------------------------------------------
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       util/errormanager.c
+ Description:  Provides a simple interface for managing errors
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 04/02/2019
+ ******************************************************************************
+*/
 
 //#ifdef _WIN32
 //#define _CRTDBG_MAP_ALLOC
@@ -20,6 +21,12 @@
 #include <string.h>
 
 #include "errormanager.h"
+
+
+typedef struct error_s {
+    int error_status;
+	void (*p_msg_lookup)(int, char*, int);
+} error_handle_t;
 
 
 error_handle_t *create_error_manager(void (*p_error_message)(int, char*, int))

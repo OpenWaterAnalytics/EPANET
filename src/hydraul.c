@@ -3,7 +3,7 @@
  Project:      OWA EPANET
  Version:      2.2
  Module:       hydraul.c
- Description:  implements EPANET's hydraulic engine 
+ Description:  implements EPANET's hydraulic engine
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
@@ -11,13 +11,16 @@
  ******************************************************************************
 */
 
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
+
 #include <math.h>
 
 #include "types.h"
@@ -48,9 +51,9 @@ void    tanklevels(Project *, long);
 int  openhyd(Project *pr)
 /*
  *--------------------------------------------------------------
- *  Input:   none     
- *  Output:  returns error code                                          
- *  Purpose: opens hydraulics solver system 
+ *  Input:   none
+ *  Output:  returns error code
+ *  Purpose: opens hydraulics solver system
  *--------------------------------------------------------------
 */
 {
@@ -92,8 +95,8 @@ void inithyd(Project *pr, int initflag)
 **--------------------------------------------------------------
 **  Input:   initflag > 0 if link flows should be re-initialized
 **                    = 0 if not
-**  Output:  none                                          
-**  Purpose: initializes hydraulics solver system 
+**  Output:  none
+**  Purpose: initializes hydraulics solver system
 **--------------------------------------------------------------
 */
 {
@@ -106,7 +109,7 @@ void inithyd(Project *pr, int initflag)
     Stank *tank;
     Slink *link;
     Spump *pump;
-  
+
     // Initialize tanks
     for (i = 1; i <= net->Ntanks; i++)
     {
@@ -128,7 +131,7 @@ void inithyd(Project *pr, int initflag)
     for (i = 1; i <= net->Nlinks; i++)
     {
         link = &net->Link[i];
-        
+
         // Initialize status and setting
         hyd->LinkStatus[i] = link->Status;
         hyd->LinkSetting[i] = link->Kc;
@@ -140,7 +143,7 @@ void inithyd(Project *pr, int initflag)
         if (
             (link->Type == PRV || link->Type == PSV
             || link->Type == FCV) && (link->Kc != MISSING)
-        ) hyd->LinkStatus[i] = ACTIVE;                                                      
+        ) hyd->LinkStatus[i] = ACTIVE;
 
         // Initialize flows if necessary
         if (hyd->LinkStatus[i] <= CLOSED)
@@ -170,7 +173,7 @@ void inithyd(Project *pr, int initflag)
 
     // Re-position hydraulics file
     if (pr->outfile.Saveflag)
-    { 
+    {
         fseek(out->HydFile,out->HydOffset,SEEK_SET);
     }
 
@@ -185,10 +188,10 @@ void inithyd(Project *pr, int initflag)
 int   runhyd(Project *pr, long *t)
 /*
 **--------------------------------------------------------------
-**  Input:   none     
+**  Input:   none
 **  Output:  t = pointer to current time (in seconds)
-**  Returns: error code                                          
-**  Purpose: solves network hydraulics in a single time period 
+**  Returns: error code
+**  Purpose: solves network hydraulics in a single time period
 **--------------------------------------------------------------
 */
 {
@@ -199,7 +202,7 @@ int   runhyd(Project *pr, long *t)
     int   iter;          // Iteration count
     int   errcode;       // Error code
     double relerr;       // Solution accuracy
-  
+
     // Find new demands & control actions
     *t = time->Htime;
     demands(pr);
@@ -212,7 +215,7 @@ int   runhyd(Project *pr, long *t)
     {
         // Report new status & save results
         if (rpt->Statflag) writehydstat(pr,iter,relerr);
-     
+
         // If system unbalanced and no extra trials
         // allowed, then activate the Haltflag
         if (relerr > hyd->Hacc && hyd->ExtraIter == -1)
@@ -229,11 +232,11 @@ int   runhyd(Project *pr, long *t)
 int  nexthyd(Project *pr, long *tstep)
 /*
 **--------------------------------------------------------------
-**  Input:   none     
+**  Input:   none
 **  Output:  tstep = pointer to time step (in seconds)
-**  Returns: error code                                          
+**  Returns: error code
 **  Purpose: finds length of next time step & updates tank
-**           levels and rule-based contol actions 
+**           levels and rule-based contol actions
 **--------------------------------------------------------------
 */
 {
@@ -242,7 +245,7 @@ int  nexthyd(Project *pr, long *tstep)
 
     long  hydstep;         // Actual time step
     int   errcode = 0;     // Error code
-  
+
     // Save current results to hydraulics file and
     // force end of simulation if Haltflag is active
     if (pr->outfile.Saveflag) errcode = savehyd(pr, &time->Htime);
@@ -277,14 +280,14 @@ int  nexthyd(Project *pr, long *tstep)
     *tstep = hydstep;
     return errcode;
 }
-  
+
 
 void  closehyd(Project *pr)
 /*
 **--------------------------------------------------------------
-**  Input:   none     
-**  Output:  returns error code                                          
-**  Purpose: closes hydraulics solver system 
+**  Input:   none
+**  Output:  returns error code
+**  Purpose: closes hydraulics solver system
 **--------------------------------------------------------------
 */
 {
@@ -296,9 +299,9 @@ void  closehyd(Project *pr)
 int  allocmatrix(Project *pr)
 /*
 **--------------------------------------------------------------
-**  Input:   none                                                
-**  Output:  returns error code                                  
-**  Purpose: allocates memory used for solution matrix coeffs.   
+**  Input:   none
+**  Output:  returns error code
+**  Purpose: allocates memory used for solution matrix coeffs.
 **--------------------------------------------------------------
 */
 {
@@ -306,7 +309,7 @@ int  allocmatrix(Project *pr)
     Hydraul *hyd = &pr->hydraul;
 
     int errcode = 0;
-  
+
     hyd->P   = (double *) calloc(net->Nlinks+1,sizeof(double));
     hyd->Y   = (double *) calloc(net->Nlinks+1,sizeof(double));
     hyd->DemandFlow = (double *) calloc(net->Nnodes + 1, sizeof(double));
@@ -328,14 +331,14 @@ int  allocmatrix(Project *pr)
 void  freematrix(Project *pr)
 /*
 **--------------------------------------------------------------
-**  Input:   none                                                
-**  Output:  none                                                
-**  Purpose: frees memory used for solution matrix coeffs.       
+**  Input:   none
+**  Output:  none
+**  Purpose: frees memory used for solution matrix coeffs.
 **--------------------------------------------------------------
 */
 {
     Hydraul *hyd = &pr->hydraul;
-  
+
     free(hyd->P);
     free(hyd->Y);
     free(hyd->DemandFlow);
@@ -351,7 +354,7 @@ void  initlinkflow(Project *pr, int i, char s, double k)
 **  Input:   i = link index
 **           s = link status
 **           k = link setting (i.e., pump speed)
-**  Output:  none                                                      
+**  Output:  none
 **  Purpose: sets initial flow in link to QZERO if link is closed,
 **           to design flow for a pump, or to flow at velocity of
 **           1 fps for other links.
@@ -362,7 +365,7 @@ void  initlinkflow(Project *pr, int i, char s, double k)
     Network *n = &pr->network;
 
     Slink *link = &n->Link[i];
-  
+
     if (s == CLOSED)
     {
         hyd->LinkFlow[i] = QZERO;
@@ -383,8 +386,8 @@ void  setlinkflow(Project *pr, int k, double dh)
 **--------------------------------------------------------------
 **  Input:   k = link index
 **           dh = head loss across link
-**  Output:  none   
-**  Purpose: sets flow in link based on current headloss                                              
+**  Output:  none
+**  Purpose: sets flow in link based on current headloss
 **--------------------------------------------------------------
 */
 {
@@ -396,7 +399,7 @@ void  setlinkflow(Project *pr, int k, double dh)
     double x ,y;
     Slink  *link = &net->Link[k];
     Scurve *curve;
-  
+
     switch (link->Type)
     {
       case CVPIPE:
@@ -408,7 +411,7 @@ void  setlinkflow(Project *pr, int k, double dh)
             y = sqrt(ABS(dh) / link->R / 1.32547);
             hyd->LinkFlow[k] = x * y;
         }
-      
+
         // For Hazen-Williams or Manning formulas use inverse of formula
         else
         {
@@ -416,16 +419,16 @@ void  setlinkflow(Project *pr, int k, double dh)
             y = 1.0 / hyd->Hexp;
             hyd->LinkFlow[k] = pow(x, y);
          }
-      
+
         // Change sign of flow to match sign of head loss
         if (dh < 0.0) hyd->LinkFlow[k] = -hyd->LinkFlow[k];
         break;
-      
+
       case PUMP:
         // Convert headloss to pump head gain
         dh = -dh;
         p = findpump(net, k);
-      
+
         // For custom pump curve, interpolate from curve
         if (net->Pump[p].Ptype == CUSTOM)
         {
@@ -435,7 +438,7 @@ void  setlinkflow(Project *pr, int k, double dh)
             hyd->LinkFlow[k] = interp(curve->Npts, curve->Y, curve->X, dh) *
                                 hyd->LinkSetting[k] / pr->Ucf[FLOW];
         }
-      
+
         // Otherwise use inverse of power curve
         else
         {
@@ -459,7 +462,7 @@ void  setlinkstatus(Project *pr, int index, char value, StatusType *s, double *k
 **           s      = pointer to link status
 **           k      = pointer to link setting
 **  Output:  none
-**  Purpose: sets link status to OPEN or CLOSED 
+**  Purpose: sets link status to OPEN or CLOSED
 **----------------------------------------------------------------
 */
 {
@@ -467,11 +470,11 @@ void  setlinkstatus(Project *pr, int index, char value, StatusType *s, double *k
 
     Slink *link = &net->Link[index];
     LinkType t = link->Type;
-  
-    // Status set to open 
+
+    // Status set to open
     if (value == 1)
     {
-        // Adjust link setting for pumps & valves 
+        // Adjust link setting for pumps & valves
         if (t == PUMP) *k = 1.0;
         if (t > PUMP &&  t != GPV) *k = MISSING;
 
@@ -479,7 +482,7 @@ void  setlinkstatus(Project *pr, int index, char value, StatusType *s, double *k
         *s = OPEN;
      }
 
-     // Status set to closed 
+     // Status set to closed
      else if (value == 0)
      {
          // Adjust link setting for pumps & valves
@@ -509,7 +512,7 @@ void  setlinksetting(Project *pr, int index, double value, StatusType *s,
 
     Slink *link = &net->Link[index];
     LinkType t = link->Type;
-  
+
     // For a pump, status is OPEN if speed > 0, CLOSED otherwise
     if (t == PUMP)
     {
@@ -531,15 +534,15 @@ void  setlinksetting(Project *pr, int index, double value, StatusType *s,
         if (*k == MISSING && *s <= CLOSED) *s = OPEN;
         *k = value;
     }
-} 
+}
 
 
 void  demands(Project *pr)
 /*
 **--------------------------------------------------------------------
-**  Input:   none                                                      
-**  Output:  none                                                      
-**  Purpose: computes demands at nodes during current time period      
+**  Input:   none
+**  Output:  none
+**  Purpose: computes demands at nodes during current time period
 **--------------------------------------------------------------------
 */
 {
@@ -610,9 +613,9 @@ void  demands(Project *pr)
 int  controls(Project *pr)
 /*
 **---------------------------------------------------------------------
-**  Input:   none                                                   
-**  Output:  number of links whose setting changes                  
-**  Purpose: implements simple controls based on time or tank levels  
+**  Input:   none
+**  Output:  number of links whose setting changes
+**  Purpose: implements simple controls based on time or tank levels
 **---------------------------------------------------------------------
 */
 {
@@ -626,7 +629,7 @@ int  controls(Project *pr)
     double k1, k2;
     char  s1, s2;
     Slink *link;
-    Scontrol *control;  
+    Scontrol *control;
 
     // Examine each control statement
     setsum = 0;
@@ -680,7 +683,7 @@ int  controls(Project *pr)
                 if (pr->report.Statflag) writecontrolaction(pr,k,i);
                 setsum++;
             }
-        }   
+        }
     }
     return setsum;
 }
@@ -689,9 +692,9 @@ int  controls(Project *pr)
 long  timestep(Project *pr)
 /*
 **----------------------------------------------------------------
-**  Input:   none                                                
-**  Output:  returns time step until next change in hydraulics   
-**  Purpose: computes time step to advance hydraulic simulation  
+**  Input:   none
+**  Output:  returns time step until next change in hydraulics
+**  Purpose: computes time step to advance hydraulic simulation
 **----------------------------------------------------------------
 */
 {
@@ -699,26 +702,26 @@ long  timestep(Project *pr)
     Times   *time = &pr->times;
 
     long n, t, tstep;
- 
+
     // Normal time step is hydraulic time step
     tstep = time->Hstep;
-  
+
     // Revise time step based on time until next demand period
     // (n = next pattern period, t = time till next period)
     n = ((time->Htime + time->Pstart) / time->Pstep) + 1;
     t = n * time->Pstep - time->Htime;
     if (t > 0 && t < tstep) tstep = t;
-  
+
     // Revise time step based on time until next reporting period
     t = time->Rtime - time->Htime;
     if (t > 0 && t < tstep) tstep = t;
-  
+
     // Revise time step based on smallest time to fill or drain a tank
     tanktimestep(pr, &tstep);
-  
+
     // Revise time step based on smallest time to activate a control
     controltimestep(pr, &tstep);
-  
+
     // Evaluate rule-based controls (which will also update tank levels)
     if (net->Nrules > 0) ruletimestep(pr, &tstep);
     else tanklevels(pr, tstep);
@@ -729,10 +732,10 @@ long  timestep(Project *pr)
 int  tanktimestep(Project *pr, long *tstep)
 /*
 **-----------------------------------------------------------------
-**  Input:   *tstep = current time step                                                
-**  Output:  *tstep = modified current time step   
+**  Input:   *tstep = current time step
+**  Output:  *tstep = modified current time step
 **  Purpose: revises time step based on shortest time to fill or
-**           drain a tank  
+**           drain a tank
 **-----------------------------------------------------------------
 */
 {
@@ -777,10 +780,10 @@ int  tanktimestep(Project *pr, long *tstep)
 void  controltimestep(Project *pr, long *tstep)
 /*
 **------------------------------------------------------------------
-**  Input:   *tstep = current time step                                                
-**  Output:  *tstep = modified current time step   
+**  Input:   *tstep = current time step
+**  Output:  *tstep = modified current time step
 **  Purpose: revises time step based on shortest time to activate
-**           a simple control  
+**           a simple control
 **------------------------------------------------------------------
 */
 {
@@ -792,24 +795,24 @@ void  controltimestep(Project *pr, long *tstep)
     long   t, t1, t2;
     Slink  *link;
     Scontrol *control;
-  
+
     // Examine each control
     for (i = 1; i <= net->Ncontrols; i++)
     {
         t = 0;
         control = &net->Control[i];
 
-        // Control depends on a tank level 
+        // Control depends on a tank level
         if ( (n = control->Node) > 0)
         {
             // Skip node if not a tank or reservoir
             if ((j = n - net->Njuncs) <= 0) continue;
-        
+
             // Find current head and flow into tank
             h = hyd->NodeHead[n];
             q = hyd->NodeDemand[n];
             if (ABS(q) <= QZERO) continue;
-        
+
             // Find time to reach upper or lower control level
            if ( (h < control->Grade && control->Type == HILEVEL && q > 0.0)
            ||   (h > control->Grade && control->Type == LOWLEVEL && q < 0.0) )
@@ -821,7 +824,7 @@ void  controltimestep(Project *pr, long *tstep)
 
         // Control is based on elapsed time
         if (control->Type == TIMER)
-        {              
+        {
             if (control->Time > pr->times.Htime)
             {
                 t = control->Time - pr->times.Htime;
@@ -853,16 +856,16 @@ void  controltimestep(Project *pr, long *tstep)
 void  ruletimestep(Project *pr, long *tstep)
 /*
 **--------------------------------------------------------------
-**  Input:   *tstep = current time step (sec)                            
-**  Output:  *tstep = modified time step                                               
+**  Input:   *tstep = current time step (sec)
+**  Output:  *tstep = modified time step
 **  Purpose: updates next time step by checking if any rules
-**           will fire before then; also updates tank levels.                               
+**           will fire before then; also updates tank levels.
 **--------------------------------------------------------------
 */
 {
     Network *net = &pr->network;
     Times   *time = &pr->times;
-  
+
     long tnow,      // Start of time interval for rule evaluation
          tmax,      // End of time interval for rule evaluation
          dt,        // Normal time increment for rule evaluation
@@ -880,7 +883,7 @@ void  ruletimestep(Project *pr, long *tstep)
     }
 
     // Otherwise, time increment equals rule evaluation time step and
-    // first actual increment equals time until next even multiple of 
+    // first actual increment equals time until next even multiple of
     // Rulestep occurs.
     else
     {
@@ -888,7 +891,7 @@ void  ruletimestep(Project *pr, long *tstep)
         dt1 = time->Rulestep - (tnow % time->Rulestep);
     }
 
-    // Make sure time increment is no larger than current time step 
+    // Make sure time increment is no larger than current time step
     dt = MIN(dt, *tstep);
     dt1 = MIN(dt1, *tstep);
     if (dt1 == 0) dt1 = dt;
@@ -918,14 +921,14 @@ void  ruletimestep(Project *pr, long *tstep)
     *tstep = time->Htime - tnow;
     time->Htime = tnow;
 }
-   
+
 
 void  addenergy(Project *pr, long hstep)
 /*
 **-------------------------------------------------------------
-**  Input:   hstep = time step (sec)                            
-**  Output:  none                                               
-**  Purpose: accumulates pump energy usage                               
+**  Input:   hstep = time step (sec)
+**  Output:  none
+**  Purpose: accumulates pump energy usage
 **-------------------------------------------------------------
 */
 {
@@ -1003,10 +1006,10 @@ void  addenergy(Project *pr, long hstep)
 void  getenergy(Project *pr, int k, double *kw, double *eff)
 /*
 **----------------------------------------------------------------
-**  Input:   k    = link index                         
+**  Input:   k    = link index
 **  Output:  *kw  = kwatt energy used
 **           *eff = efficiency (pumps only)
-**  Purpose: computes flow energy associated with link k                                           
+**  Purpose: computes flow energy associated with link k
 **----------------------------------------------------------------
 */
 {
@@ -1022,7 +1025,7 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
     double speed;   // current speed setting
     Scurve *curve;
     Slink  *link = &net->Link[k];
-  
+
     // No energy if link is closed
     if (hyd->LinkStatus[k] <= CLOSED)
     {
@@ -1065,10 +1068,10 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
 void  tanklevels(Project *pr, long tstep)
 /*
 **----------------------------------------------------------------
-**  Input:   tstep = current time step                         
-**  Output:  none                                                
-**  Purpose: computes new water levels in tanks after current    
-**           time step                                           
+**  Input:   tstep = current time step
+**  Output:  none
+**  Purpose: computes new water levels in tanks after current
+**           time step
 **----------------------------------------------------------------
 */
 {
@@ -1077,17 +1080,17 @@ void  tanklevels(Project *pr, long tstep)
 
     int    i, n;
     double dv;
-  
+
     for (i = 1; i <= net->Ntanks; i++)
     {
         Stank *tank = &net->Tank[i];
         if (tank->A == 0.0) continue;    // Skip reservoirs
-    
-        // Update the tank's volume & water elevation 
+
+        // Update the tank's volume & water elevation
         n = tank->Node;
         dv = hyd->NodeDemand[n] * tstep;
         tank->V += dv;
-    
+
         // Check if tank full/empty within next second
         if (tank->V + hyd->NodeDemand[n] >= tank->Vmax)
         {
@@ -1105,10 +1108,10 @@ void  tanklevels(Project *pr, long tstep)
 double  tankvolume(Project *pr, int i, double h)
 /*
 **--------------------------------------------------------------------
-**  Input:   i = tank index                                         
-**           h = water elevation in tank                                
-**  Output:  returns water volume in tank                           
-**  Purpose: finds water volume in tank i corresponding to elev. h. 
+**  Input:   i = tank index
+**           h = water elevation in tank
+**  Output:  returns water volume in tank
+**  Purpose: finds water volume in tank i corresponding to elev. h.
 **--------------------------------------------------------------------
 */
 {
@@ -1122,7 +1125,7 @@ double  tankvolume(Project *pr, int i, double h)
     // Use level*area if no volume curve
     j = tank->Vcurve;
     if (j == 0) return(tank->Vmin + (h - tank->Hmin) * tank->A);
-  
+
     // If curve exists, interpolate on h to find volume v
     // remembering that volume curve is in original units.
     else
@@ -1138,10 +1141,10 @@ double  tankvolume(Project *pr, int i, double h)
 double  tankgrade(Project *pr, int i, double v)
 /*
 **-------------------------------------------------------------------
-**  Input:   i = tank index                                         
-**           v = volume in tank                                     
-**  Output:  returns water level in tank                            
-**  Purpose: finds water level in tank i corresponding to volume v. 
+**  Input:   i = tank index
+**           v = volume in tank
+**  Output:  returns water level in tank
+**  Purpose: finds water level in tank i corresponding to volume v.
 **-------------------------------------------------------------------
 */
 {
@@ -1154,7 +1157,7 @@ double  tankgrade(Project *pr, int i, double v)
     // Use area if no volume curve
     j = tank->Vcurve;
     if (j == 0) return(tank->Hmin + (v - tank->Vmin) / tank->A);
-  
+
     // If curve exists, interpolate on volume (originally the Y-variable
     // but used here as the X-variable) to find new level above bottom.
     // Remember that volume curve is stored in original units.

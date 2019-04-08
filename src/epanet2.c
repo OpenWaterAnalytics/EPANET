@@ -10,10 +10,12 @@
  Last Updated: 03/17/2019
  ******************************************************************************
 */
-#ifndef __APPLE__
-#include <malloc.h>
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
 #else
-#include <stdlib.h>
+  #include <stdlib.h>
 #endif
 #include <string.h>
 
@@ -645,7 +647,7 @@ int DLLEXPORT ENsetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE 
 }
 
 int DLLEXPORT ENgetcurve(int index, char *id, int *nPoints,
-              EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues)
+              EN_API_FLOAT_TYPE *xValues, EN_API_FLOAT_TYPE *yValues)
 {
     int i;
     Network *net = &_defaultProject->network;
@@ -657,8 +659,8 @@ int DLLEXPORT ENgetcurve(int index, char *id, int *nPoints,
     *nPoints = curve->Npts;
     for (i = 0; i < curve->Npts; i++)
     {
-        *xValues[i] = (EN_API_FLOAT_TYPE)curve->X[i];
-        *yValues[i] = (EN_API_FLOAT_TYPE)curve->Y[i];
+        xValues[i] = (EN_API_FLOAT_TYPE)curve->X[i];
+        yValues[i] = (EN_API_FLOAT_TYPE)curve->Y[i];
     }
     return 0;
 }

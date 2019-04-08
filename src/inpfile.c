@@ -7,17 +7,20 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 03/17/2019
+Last Updated: 04/03/2019
 ******************************************************************************
 */
 
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
+
 #include <math.h>
 
 #include "types.h"
@@ -38,7 +41,7 @@ extern char *TstatTxt[];
 extern char *RptFlagTxt[];
 extern char *SectTxt[];
 
-void saveauxdata(Project *pr, FILE *f) 
+void saveauxdata(Project *pr, FILE *f)
 /*
 ------------------------------------------------------------
   Writes auxilary data from original input file to new file.
@@ -51,7 +54,7 @@ void saveauxdata(Project *pr, FILE *f)
     char line[MAXLINE + 1];
     char s[MAXLINE + 1];
     FILE *InFile = pr->parser.InFile;
-  
+
     // Re-open the input file
     if (InFile == NULL)
     {
@@ -88,7 +91,7 @@ void saveauxdata(Project *pr, FILE *f)
                 }
             }
         }
-         
+
         // Write line of auxilary data to file
         else
         {
@@ -147,7 +150,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Open the new text file
     if ((f = fopen(fname, "wt")) == NULL) return 302;
 
-    // Write [TITLE] section 
+    // Write [TITLE] section
     fprintf(f, s_TITLE);
     for (i = 0; i < 3; i++)
     {
@@ -205,7 +208,7 @@ int saveinpfile(Project *pr, const char *fname)
         }
     }
 
-    // Write [PIPES] section 
+    // Write [PIPES] section
     fprintf(f, "\n\n");
     fprintf(f, s_PIPES);
     for (i = 1; i <= net->Nlinks; i++)
@@ -244,7 +247,7 @@ int saveinpfile(Project *pr, const char *fname)
         // Pump has constant power
         if (pump->Ptype == CONST_HP) sprintf(s1, "  POWER %.4f", link->Km);
 
-        // Pump has a head curve 
+        // Pump has a head curve
         else if ((j = pump->Hcurve) > 0)
         {
             sprintf(s1, "  HEAD %s", net->Curve[j].ID);
@@ -539,16 +542,16 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, "\n ORDER  TANK            %-.2f", qual->TankOrder);
     fprintf(f, "\n GLOBAL BULK            %-.6f", qual->Kbulk * SECperDAY);
     fprintf(f, "\n GLOBAL WALL            %-.6f", qual->Kwall * SECperDAY);
-    
+
     if (qual->Climit > 0.0)
     {
-        fprintf(f, "\n LIMITING POTENTIAL     %-.6f", qual->Climit);
+        fprintf(f, "\n LIMITING POTENTIAL     %-.6f", qual->Climit * pr->Ucf[QUALITY]);
     }
     if (qual->Rfactor != MISSING && qual->Rfactor != 0.0)
     {
         fprintf(f, "\n ROUGHNESS CORRELATION  %-.6f", qual->Rfactor);
     }
-    
+
     // Pipe-specific parameters
     for (i = 1; i <= net->Nlinks; i++)
     {
@@ -633,10 +636,6 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, "\n UNITS               %s", FlowUnitsTxt[parser->Flowflag]);
     fprintf(f, "\n PRESSURE            %s", PressUnitsTxt[parser->Pressflag]);
     fprintf(f, "\n HEADLOSS            %s", FormTxt[hyd->Formflag]);
-    if (hyd->DefPat >= 1 && hyd->DefPat <= net->Npats)
-    {
-        fprintf(f, "\n PATTERN             %s", net->Pattern[hyd->DefPat].ID);
-    }
     switch (out->Hydflag)
     {
         case USE:
@@ -797,8 +796,7 @@ int saveinpfile(Project *pr, const char *fname)
     saveauxdata(pr, f);
 
     // Close the new input file
-    fprintf(f, "\n");
-    fprintf(f, s_END);
+    fprintf(f, "\n%s\n", s_END);
     fclose(f);
     return 0;
 }
