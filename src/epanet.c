@@ -2812,7 +2812,9 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
     for (d = p->network.Node[nodeIndex].D;
         n < demandIndex && d->next != NULL; d = d->next) n++;
     if (n != demandIndex) return 253;
-    strcpy(demandName, d->Name);
+
+    if (d->Name) strcpy(demandName, d->Name);
+    else demandName[0] = '\0';
     return 0;
 }
 
@@ -2835,11 +2837,14 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs) return 203;
 
+	// Check that demandName is not too long
+    if (strlen(demandName) > MAXID) return 250;
+
     // Locate demand category record and assign demandName to it
     for (d = p->network.Node[nodeIndex].D;
          n < demandIndex && d->next != NULL; d = d->next) n++;
     if (n != demandIndex) return 253;
-    d->Name = xstrcpy(&d->Name, demandName, MAXMSG);
+    d->Name = xstrcpy(&d->Name, demandName, MAXID);
     return 0;
 }
 
@@ -4417,26 +4422,26 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
     if (curveIndex <= 0 || curveIndex > net->Ncurves) return 206;
     curve = &net->Curve[curveIndex];
     if (pointIndex <= 0) return 251;
-    
+
     // Check that new point maintains increasing x values
     if (n - 1 >= 0) x1 = curve->X[n-1];
     if (n + 1 < curve->Npts) x2 = curve->X[n+1];
     if (x <= x1 || x >= x2) return 230;
-    
+
     // Expand curve if need be
     if (pointIndex > curve->Npts) pointIndex = curve->Npts + 1;
     if (pointIndex >= curve->Capacity)
     {
         if (resizecurve(curve, curve->Capacity + 10) > 0) return 101;
     }
-    
+
     // Increase curve's number of points if need be
     if (pointIndex > curve->Npts)
     {
         curve->Npts++;
         n = curve->Npts - 1;
     }
-    
+
     // Insert new point into curve
     curve->X[n] = x;
     curve->Y[n] = y;

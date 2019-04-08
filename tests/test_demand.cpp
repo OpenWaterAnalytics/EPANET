@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_SUITE (test_demand)
 
 BOOST_AUTO_TEST_CASE(test_categories_save)
 {
-	int error = 0;
+    int error = 0;
     int Nindex, ndem;
 
     EN_Project ph = NULL;
@@ -34,15 +34,19 @@ BOOST_AUTO_TEST_CASE(test_categories_save)
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ndem == 1);
 
-	error = EN_setdemandname(ph, Nindex, ndem, (char *)"Demand category name");
+    char demname[31];
+    error = EN_getdemandname(ph, Nindex, ndem, demname);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_setdemandname(ph, Nindex, ndem, (char *)"Demand category name");
     BOOST_REQUIRE(error == 0);
     error = EN_saveinpfile(ph, "net1_dem_cat.inp");
     BOOST_REQUIRE(error == 0);
 
     error = EN_close(ph);
-	BOOST_REQUIRE(error == 0);
-	error = EN_deleteproject(&ph);
-	BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deleteproject(&ph);
+    BOOST_REQUIRE(error == 0);
 }
 
 BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("test_demand/test_categories_save"))
@@ -52,11 +56,11 @@ BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("tes
 
     EN_Project ph = NULL;
 
-	BOOST_TEST_CHECKPOINT("Reopening saved input file");
+    BOOST_TEST_CHECKPOINT("Reopening saved input file");
     error = EN_createproject(&ph);
-	BOOST_REQUIRE(error == 0);
-	error = EN_open(ph, "net1_dem_cat.inp", DATA_PATH_RPT, DATA_PATH_OUT);
-	BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, "net1_dem_cat.inp", DATA_PATH_RPT, DATA_PATH_OUT);
+    BOOST_REQUIRE(error == 0);
 
     error = EN_getnodeindex(ph, (char *)"12", &Nindex);
     BOOST_REQUIRE(error == 0);
@@ -64,16 +68,16 @@ BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("tes
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ndem == 1);
 
-	char demname[80];
-	error = EN_getdemandname(ph, Nindex, ndem, demname);
+    char demname[31];
+    error = EN_getdemandname(ph, Nindex, ndem, demname);
     BOOST_REQUIRE(error == 0);
 
     BOOST_CHECK(check_string(demname, "Demand category name"));
 
-	error = EN_close(ph);
-	BOOST_REQUIRE(error == 0);
-	error = EN_deleteproject(&ph);
-	BOOST_REQUIRE(error == 0);
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deleteproject(&ph);
+    BOOST_REQUIRE(error == 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

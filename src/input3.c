@@ -762,7 +762,7 @@ int demanddata(Project *pr)
         if (parser->Comment[0])
         {
             demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXID);
-        }        
+        }
         demand->next = NULL;
         cur_demand->next = demand;
     }
