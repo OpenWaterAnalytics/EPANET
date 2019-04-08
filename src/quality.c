@@ -11,13 +11,16 @@ Last Updated: 11/27/2018
 ******************************************************************************
 */
 
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
+
 #include <math.h>
 
 #include "mempool.h"
@@ -60,7 +63,7 @@ int openqual(Project *pr)
 
     int errcode = 0;
     int n;
-    
+
     // Return if no quality analysis requested
     if (qual->Qualflag == NONE) return errcode;
 

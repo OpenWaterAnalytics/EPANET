@@ -11,8 +11,13 @@
  ******************************************************************************
 */
 
-
-#include <stdlib.h>
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
 #include <string.h>
 
 #include "epanet_py.h"
@@ -624,7 +629,7 @@ int EXPORT_PY_API curv_setvalue(Handle ph, int curveIndex, int pointIndex, doubl
     return set_error(pr->error, EN_setcurvevalue(pr->project, curveIndex, pointIndex, x, y));
 }
 
-int EXPORT_PY_API curv_get(Handle ph, int curveIndex, char* id, int *nValues, double **xValues, double **yValues)
+int EXPORT_PY_API curv_get(Handle ph, int curveIndex, char* id, int *nValues, double *xValues, double *yValues)
 {
     handle_t *pr = (handle_t *)ph;
     return set_error(pr->error, EN_getcurve(pr->project, curveIndex, id, nValues, xValues, yValues));

@@ -343,7 +343,7 @@ extern "C" {
                 EN_API_FLOAT_TYPE x, EN_API_FLOAT_TYPE y);
 
   int DLLEXPORT ENgetcurve(int index, char* id, int *nPoints,
-                EN_API_FLOAT_TYPE **xValues, EN_API_FLOAT_TYPE **yValues);
+                EN_API_FLOAT_TYPE *xValues, EN_API_FLOAT_TYPE *yValues);
 
   int DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *xValues,
                 EN_API_FLOAT_TYPE *yValues, int nPoints);

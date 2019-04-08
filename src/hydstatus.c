@@ -10,8 +10,15 @@ License:      see LICENSE
 Last Updated: 11/27/2018
 ******************************************************************************
 */
-
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
 #include <stdio.h>
+
 #include "types.h"
 #include "funcs.h"
 
@@ -48,7 +55,7 @@ int  valvestatus(Project *pr)
            n1, n2;           // Start & end nodes
     double hset;             // Valve head setting
     StatusType status;       // Valve status settings
-    Slink *link; 
+    Slink *link;
 
     // Examine each valve
     for (i = 1; i <= net->Nvalves; i++)
@@ -59,7 +66,7 @@ int  valvestatus(Project *pr)
 
         // Ignore valve if its status is fixed to OPEN/CLOSED
         if (hyd->LinkSetting[k] == MISSING) continue;
-        
+
         // Get start/end node indexes & save current status
         n1 = link->N1;
         n2 = link->N2;
@@ -449,7 +456,7 @@ void  tankstatus(Project *pr, int k, int n1, int n2)
 
         // Case 2: Downstream head > tank head
         // (e.g., an open outflow check valve would close)
-        else if (cvstatus(pr, OPEN, h, q) == CLOSED) 
+        else if (cvstatus(pr, OPEN, h, q) == CLOSED)
         {
             hyd->LinkStatus[k] = TEMPCLOSED;
         }

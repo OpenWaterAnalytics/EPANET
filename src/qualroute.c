@@ -11,13 +11,17 @@ Last Updated: 11/27/2018
 ******************************************************************************
 */
 
-#include <stdio.h>
-#ifndef __APPLE__
-#include <malloc.h>
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
 #else
-#include <stdlib.h>
+  #include <stdlib.h>
 #endif
+#include <stdio.h>
+
 #include <math.h>
+
 #include "mempool.h"
 #include "types.h"
 
