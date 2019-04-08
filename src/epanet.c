@@ -172,10 +172,7 @@ int DLLEXPORT EN_init(EN_Project p, const char *rptFile, const char *outFile,
     initunits(p);
     inittanks(p);
     convertunits(p);
-
-    // Initialize the default demand pattern
     p->parser.MaxPats = 0;
-    getpatterns(p);
     p->Openflag = TRUE;
     return errcode;
 }
@@ -229,10 +226,6 @@ int DLLEXPORT EN_open(EN_Project p, const char *inpFile, const char *rptFile,
       fclose(p->parser.InFile);
       p->parser.InFile = NULL;
   }
-
-  // Free temporary linked lists used for Patterns & Curves
-  freeTmplist(p->parser.Patlist);
-  freeTmplist(p->parser.Curvelist);
 
   // If using previously saved hydraulics file then open it
   if (p->outfile.Hydflag == USE) ERRCODE(openhydfile(p));
@@ -3943,7 +3936,6 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
 {
     Network *net = &p->network;
     Parser  *parser = &p->parser;
-    Hydraul *hyd = &p->hydraul;
 
     int i, n, err = 0;
     Spattern *pat;
@@ -4231,6 +4223,7 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
     curve = &net->Curve[n];
     strcpy(curve->ID, id);
     curve->Comment = NULL;
+    curve->Capacity = 1;
     curve->Npts = 1;
     curve->Type = GENERIC_CURVE;
     curve->X = (double *)calloc(1, sizeof(double));
@@ -4302,20 +4295,11 @@ int DLLEXPORT EN_getcurveindex(EN_Project p, char *id, int *index)
 **----------------------------------------------------------------
 */
 {
-    int i;
-
     *index = 0;
     if (!p->Openflag) return 102;
-    for (i = 1; i <= p->network.Ncurves; i++)
-    {
-        if (strcmp(id, p->network.Curve[i].ID) == 0)
-        {
-            *index = i;
-            return 0;
-        }
-    }
-    *index = 0;
-    return 206;
+    *index = findcurve(&p->network, id);
+    if (*index == 0) return 206;
+    return 0;
 }
 
 int DLLEXPORT EN_getcurveid(EN_Project p, int index, char *id)
@@ -4404,8 +4388,8 @@ int DLLEXPORT EN_getcurvevalue(EN_Project p, int curveIndex, int pointIndex,
     if (!p->Openflag) return 102;
     if (curveIndex < 1 || curveIndex > p->network.Ncurves) return 206;
     if (pointIndex < 1 || pointIndex > p->network.Curve[curveIndex].Npts) return 251;
-    *x = (double)p->network.Curve[curveIndex].X[pointIndex - 1];
-    *y = (double)p->network.Curve[curveIndex].Y[pointIndex - 1];
+    *x = p->network.Curve[curveIndex].X[pointIndex - 1];
+    *y = p->network.Curve[curveIndex].Y[pointIndex - 1];
     return 0;
 }
 
@@ -4419,18 +4403,43 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
 **  Output:  none
 **  Returns: error code
 **  Purpose: sets the value of a specific point on a data curve
+**  Note:    if pointIndex exceeds the curve's length a new point is added.
 **----------------------------------------------------------------
 */
 {
     Network *net = &p->network;
     Scurve *curve;
+    double x1 = -1.e37, x2 = 1.e37;
+    int n = pointIndex - 1;
 
+    // Check for valid input
     if (!p->Openflag) return 102;
     if (curveIndex <= 0 || curveIndex > net->Ncurves) return 206;
     curve = &net->Curve[curveIndex];
-    if (pointIndex <= 0 || pointIndex > curve->Npts) return 251;
-    curve->X[pointIndex - 1] = x;
-    curve->Y[pointIndex - 1] = y;
+    if (pointIndex <= 0) return 251;
+    
+    // Check that new point maintains increasing x values
+    if (n - 1 >= 0) x1 = curve->X[n-1];
+    if (n + 1 < curve->Npts) x2 = curve->X[n+1];
+    if (x <= x1 || x >= x2) return 230;
+    
+    // Expand curve if need be
+    if (pointIndex > curve->Npts) pointIndex = curve->Npts + 1;
+    if (pointIndex >= curve->Capacity)
+    {
+        if (resizecurve(curve, curve->Capacity + 10) > 0) return 101;
+    }
+    
+    // Increase curve's number of points if need be
+    if (pointIndex > curve->Npts)
+    {
+        curve->Npts++;
+        n = curve->Npts - 1;
+    }
+    
+    // Insert new point into curve
+    curve->X[n] = x;
+    curve->Y[n] = y;
     return 0;
 }
 
@@ -4490,15 +4499,12 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
     // Check that x values are increasing
     for (j = 1; j < nPoints; j++) if (xValues[j-1] >= xValues[j]) return 230;
 
-    // Re-set number of points & reallocate memory for values
+    // Expand size of curve's data arrays if need be
     curve = &net->Curve[index];
-    curve->Npts = nPoints;
-    curve->X = (double *)realloc(curve->X, nPoints * sizeof(double));
-    curve->Y = (double *)realloc(curve->Y, nPoints * sizeof(double));
-    if (curve->X == NULL) return 101;
-    if (curve->Y == NULL) return 101;
+    if (resizecurve(curve, nPoints) > 0) return 101;
 
     // Load values into curve
+    curve->Npts = nPoints;
     for (j = 0; j < nPoints; j++)
     {
         curve->X[j] = xValues[j];

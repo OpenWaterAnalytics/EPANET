@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 04/03/2019
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -17,8 +17,6 @@
 
 void    initpointers(Project *);
 int     allocdata(Project *);
-void    freeTmplist(STmplist *);
-void    freeFloatlist(SFloatlist *);
 void    freedata(Project *);
 
 int     openfiles(Project *, const char *, const char *,const char *);
@@ -36,8 +34,12 @@ int     findlink(Network *, char *);
 int     findtank(Network *, int);
 int     findvalve(Network *, int);
 int     findpump(Network *, int);
+int     findpattern(Network *, char *);
+int     findcurve(Network *, char *);
+
 void    adjustpatterns(Network *, int);
 void    adjustcurves(Network *, int);
+int     resizecurve(Scurve *, int);
 
 int     getcomment(Network *, int, int, char *);
 int     setcomment(Network *, int, int, const char *);
@@ -65,8 +67,6 @@ void    convertunits(Project *);
 int     netsize(Project *);
 int     readdata(Project *);
 int     updatepumpparams(Project *, int);
-int     getpatterns(Project *);
-int     getcurves(Project *);
 int     findmatch(char *, char *[]);
 int     match(const char *, const char *);
 int     gettokens(char *, char **, int, char *);
