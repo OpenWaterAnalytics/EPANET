@@ -742,7 +742,7 @@ int demanddata(Project *pr)
         // with what is specified in this section
         demand->Base = y;
         demand->Pat = p;
-        demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXMSG);
+        demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXID);
         hyd->NodeDemand[j] = MISSING; // marker - next iteration will append a new category.
     }
 
@@ -755,7 +755,7 @@ int demanddata(Project *pr)
         if (demand == NULL) return 101;
         demand->Base = y;
         demand->Pat = p;
-        demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXMSG);
+        demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXID);
         demand->next = NULL;
         cur_demand->next = demand;
     }

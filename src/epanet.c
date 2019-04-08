@@ -1234,7 +1234,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
                 if (demand->Pat == tmpPat)
                 {
                     demand->Pat = pat;
-                    demand->Name = xstrcpy(&demand->Name, "", MAXMSG);
+                    demand->Name = xstrcpy(&demand->Name, "", MAXID);
                 }
             }
         }
@@ -2758,7 +2758,9 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
     for (d = p->network.Node[nodeIndex].D;
         n < demandIndex && d->next != NULL; d = d->next) n++;
     if (n != demandIndex) return 253;
-    strcpy(demandName, d->Name);
+
+    if (d->Name) strcpy(demandName, d->Name);
+    else demandName[0] = '\0';
     return 0;
 }
 
@@ -2781,11 +2783,14 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs) return 203;
 
+	// Check that demandName is not too long
+    if (strlen(demandName) > MAXID) return 250;
+	
     // Locate demand category record and assign demandName to it
     for (d = p->network.Node[nodeIndex].D;
          n < demandIndex && d->next != NULL; d = d->next) n++;
     if (n != demandIndex) return 253;
-    d->Name = xstrcpy(&d->Name, demandName, MAXMSG);
+    d->Name = xstrcpy(&d->Name, demandName, MAXID);
     return 0;
 }
 
