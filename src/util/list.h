@@ -67,9 +67,8 @@ void append_list(list_t *list, void *element);
 */
 int size_list(list_t *list);
 
-
 /**
-@brief Calles the supplied iterator function with the data element of each
+@brief Calls the supplied iterator function with the data element of each
 node (iterates over the list).
 */
 void for_each_list(list_t *list, listIterator iterator);
@@ -78,7 +77,6 @@ void for_each_list(list_t *list, listIterator iterator);
 @brief Returns the head of the list (optionally removing it at the same time).
 */
 void head_list(list_t *list, void *element, bool removeFromList);
-
 
 /**
 @brief Returns the tail of the list.
