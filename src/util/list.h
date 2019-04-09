@@ -76,7 +76,7 @@ void for_each_list(list_t *list, listIterator iterator);
 /**
 @brief Returns the head of the list (optionally removing it at the same time).
 */
-void head_list(list_t *list, void *element, bool removeFromList);
+void head_list(list_t *list, void **element, bool removeFromList);
 
 /**
 @brief Returns the tail of the list.

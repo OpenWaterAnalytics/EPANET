@@ -95,16 +95,22 @@ void for_each_list(list_t *list, listIterator iterator)
     }
 }
 
-void head_list(list_t *list, void *element, bool removeFromList)
+void head_list(list_t *list, void **element, bool removeFromList)
 {
     assert(list->head != NULL);
+    
+	listNode *node = list->head;
 
-    listNode *node = list->head;
-    memcpy(element, node->data, list->elementSize);
+	*element = (void *)malloc(list->elementSize);
+    memcpy(*element, node->data, list->elementSize);
 
     if(removeFromList) {
         list->head = node->next;
         list->logicalLength--;
+
+		if (list->freeFn) {
+			list->freeFn(node->data);
+		}
 
         free(node->data);
         free(node);

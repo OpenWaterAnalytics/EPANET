@@ -88,4 +88,31 @@ BOOST_AUTO_TEST_CASE(test_string_list) {
 }
 
 
+BOOST_AUTO_TEST_CASE(test_head_list) {
+	int i, numNames = 5;
+	const char *names[] = { "David", "Kevin", "Michael", "Craig", "Jimi" };
+
+	list_t *list = NULL;
+
+	list = create_list(sizeof(char *), free_string);
+
+	char *name;
+	for (i = 0; i < numNames; i++) {
+		name = _strdup(names[i]);
+		append_list(list, &name);
+	}
+	BOOST_CHECK(size_list(list) == 5);
+
+
+	char *temp = NULL;
+	head_list(list, &(void *)temp, true);
+	name = *(char **)temp;
+
+	BOOST_CHECK(size_list(list) == 4);
+	
+	free(temp);
+	delete_list(list);
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()
