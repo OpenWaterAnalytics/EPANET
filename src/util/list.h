@@ -40,15 +40,49 @@ typedef struct {
 } list_t;
 
 
+/**
+@brief Initializes a linked list to store elements of elementSize and to call
+freeFunction for each element when destroying a list.
+*/
 list_t *create_list(int elementSize, freeFunction freeFn);
+
+/**
+@brief Frees dynamically allocated nodes and optionally calls freeFunction
+with each node’s data pointer.
+*/
 void delete_list(list_t *list);
 
+/**
+@brief Adds a node to the head of the list.
+*/
 void prepend_list(list_t *list, void *element);
+
+/**
+@brief Adds a node to the tail of the list.
+*/
 void append_list(list_t *list, void *element);
+
+/**
+@brief Returns the number of items in the list.
+*/
 int size_list(list_t *list);
 
+
+/**
+@brief Calles the supplied iterator function with the data element of each
+node (iterates over the list).
+*/
 void for_each_list(list_t *list, listIterator iterator);
+
+/**
+@brief Returns the head of the list (optionally removing it at the same time).
+*/
 void head_list(list_t *list, void *element, bool removeFromList);
+
+
+/**
+@brief Returns the tail of the list.
+*/
 void tail_list(list_t *list, void *element);
 
 
