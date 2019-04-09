@@ -33,13 +33,13 @@ list_t *create_list(int elementSize, freeFunction freeFn)
 void delete_list(list_t *list)
 {
     listNode *current;
+
     while(list->head != NULL) {
         current = list->head;
         list->head = current->next;
 
-		if (list->freeFn) {
-			list->freeFn(current->data);
-		}
+        if (list->freeFn)
+            list->freeFn(current->data);
 
         free(current->data);
         free(current);
@@ -98,19 +98,17 @@ void for_each_list(list_t *list, listIterator iterator)
 void head_list(list_t *list, void **element, bool removeFromList)
 {
     assert(list->head != NULL);
-    
-	listNode *node = list->head;
 
-	*element = (void *)malloc(list->elementSize);
+    listNode *node = list->head;
+    *element = (void *)malloc(list->elementSize);
     memcpy(*element, node->data, list->elementSize);
 
     if(removeFromList) {
         list->head = node->next;
         list->logicalLength--;
 
-		if (list->freeFn) {
-			list->freeFn(node->data);
-		}
+        if (list->freeFn)
+            list->freeFn(node->data);
 
         free(node->data);
         free(node);
