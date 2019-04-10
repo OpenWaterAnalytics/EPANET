@@ -113,8 +113,8 @@ void *head_list(list_t *list, bool removeFromList)
     assert(list->head != NULL);
 
     listNode *node = list->head;
+	// Allocating and copying pointer to node data
     void *element = (void *)malloc(list->elementSize);
-	// Copying pointer to node->data
     memcpy(element, node->data, list->elementSize);
 
     if(removeFromList) {
@@ -126,18 +126,25 @@ void *head_list(list_t *list, bool removeFromList)
         free(node->data);
         free(node);
     }
-	// Now element points to data formerly pointed to by node
+	// Now element points to data formerly pointed to by node. Caller
+	// is responsible for freeing both pointer to data and data.  
 	return element;
 }
 
 void *tail_list(list_t *list)
+// 
+// Warning: Caller is responsible for freeing the node->data returned. 
+//
 {
     assert(list->tail != NULL);
 
     listNode *node = list->tail;
+	// Allocating and copying pointer to node data
     void *element = (void *)malloc(list->elementSize);
     memcpy(element, node->data, list->elementSize);
 
+	// Pointer to element data gets returned. Caller is responsible 
+	// for freeing pointer to data. 
 	return element;
 }
 
