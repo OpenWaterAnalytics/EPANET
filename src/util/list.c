@@ -27,21 +27,6 @@
 #include "list.h"
 
 
-typedef struct list_node_s {
-    void *data;
-    list_node_t *next;
-} list_node_t;
-
-
-typedef struct list_s {
-    int logicalLength;
-    size_t elementSize;
-    list_node_t *head;
-    list_node_t *tail;
-    freeFunction freeFn;
-} list_t;
-
-
 list_t *create_list(size_t elementSize, freeFunction freeFn)
 {
     list_t *list;

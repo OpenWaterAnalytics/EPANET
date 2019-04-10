@@ -164,6 +164,8 @@ bool iterate_test_data(void *data)
     return true;
 }
 
+
+
 BOOST_AUTO_TEST_CASE(test_struct_list){
 
     list_t *list = NULL;
@@ -182,10 +184,18 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
 
     BOOST_CHECK(size_list(list) == 3);
 
-    for_each_list(list, iterate_test_data);
+    //for_each_list(list, iterate_test_data);
+
+    // Expose list abstraction and loop over it
+    list_node_t *lnode;
+    for (lnode = list->head; lnode != NULL; lnode = lnode->next) {
+        test_data_t *test_data = *(test_data_t **)lnode->data;
+        printf("Found number: %i name: %s\n", test_data->num, test_data->name);
+    }
 
     delete_list(list);
 }
 
+// TODO: search for an index and return data
 
 BOOST_AUTO_TEST_SUITE_END()

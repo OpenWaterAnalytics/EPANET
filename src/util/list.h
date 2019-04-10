@@ -25,12 +25,22 @@ extern "C" {
 
 // a common function used to free malloc'd objects
 typedef void(*freeFunction)(void *);
-typedef bool (*listIterator)(void *);
+typedef bool(*listIterator)(void *);
 
 
-// forward declarations
-typedef struct list_node_s list_node_t;
-typedef struct list_s list_t;
+typedef struct list_node_s {
+    void *data;
+    struct list_node_s *next;
+} list_node_t;
+
+
+typedef struct {
+    int logicalLength;
+    size_t elementSize;
+    list_node_t *head;
+    list_node_t *tail;
+    freeFunction freeFn;
+} list_t;
 
 
 /**
