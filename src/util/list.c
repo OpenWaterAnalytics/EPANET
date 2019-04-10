@@ -4,8 +4,8 @@
  Version:      2.2
  Module:       util/list.h
  Description:  Generic list
-			   https://gist.github.com/pseudomuto/6334796#file-list-c
-			   Accessed: April 9, 2019
+               https://gist.github.com/pseudomuto/6334796#file-list-c
+               Accessed: April 9, 2019
  Authors:      David Muto, Modified by Michael E. Tryby
  Copyright:    see AUTHORS
  License:      see LICENSE
@@ -29,8 +29,8 @@
 
 list_t *create_list(size_t elementSize, freeFunction freeFn)
 {
-	list_t *list;
-	list = (list_t *)calloc(1, sizeof(list_t));
+    list_t *list;
+    list = (list_t *)calloc(1, sizeof(list_t));
 
     assert(elementSize > 0);
     list->logicalLength = 0;
@@ -54,8 +54,7 @@ void delete_list(list_t *list)
         free(current->data);
         free(current);
     }
-
-	free(list);
+    free(list);
 }
 
 void prepend_list(list_t *list, void *element)
@@ -106,45 +105,45 @@ void for_each_list(list_t *list, listIterator iterator)
 }
 
 void *head_list(list_t *list, bool removeFromList)
-// 
-// Warning: Caller is responsible for freeing the node->data returned. 
+//
+// Warning: Caller is responsible for freeing the node->data returned.
 //
 {
     assert(list->head != NULL);
 
     listNode *node = list->head;
-	// Allocating and copying pointer to node data
+    // Allocating and copying pointer to node data
     void *element = (void *)malloc(list->elementSize);
     memcpy(element, node->data, list->elementSize);
 
     if(removeFromList) {
-		// Disconnecting head node
+        // Disconnecting head node
         list->head = node->next;
         list->logicalLength--;
 
-		// Freeing pointer to node->data and node
+        // Freeing pointer to node->data and node
         free(node->data);
         free(node);
     }
-	// Now element points to data formerly pointed to by node. Caller
-	// is responsible for freeing both pointer to data and data.  
+    // Now element points to data formerly pointed to by node. Caller
+    // is responsible for freeing both pointer to data and data.
 	return element;
 }
 
 void *tail_list(list_t *list)
-// 
-// Warning: Caller is responsible for freeing the node->data returned. 
+//
+// Warning: Caller is responsible for freeing the node->data returned.
 //
 {
     assert(list->tail != NULL);
 
     listNode *node = list->tail;
-	// Allocating and copying pointer to node data
+    // Allocating and copying pointer to node data
     void *element = (void *)malloc(list->elementSize);
     memcpy(element, node->data, list->elementSize);
 
-	// Pointer to element data gets returned. Caller is responsible 
-	// for freeing pointer to data. 
+    // Pointer to element data gets returned. Caller is responsible
+    // for freeing pointer to data.
 	return element;
 }
 

@@ -4,7 +4,7 @@
  Version:      2.2
  Module:       util/list.h
  Description:  Generic list
-               https://gist.github.com/pseudomuto/6334796#file-list-h 
+               https://gist.github.com/pseudomuto/6334796#file-list-h
                Accessed: April 9, 2019
  Authors:      David Muto, Modified by Michael E. Tryby
  Copyright:    see AUTHORS
@@ -29,17 +29,17 @@ typedef bool (*listIterator)(void *);
 
 
 typedef struct _listNode {
-  void *data;
-  struct _listNode *next;
+    void *data;
+    struct _listNode *next;
 } listNode;
 
 
 typedef struct {
-  int logicalLength;
-  size_t elementSize;
-  listNode *head;
-  listNode *tail;
-  freeFunction freeFn;
+    int logicalLength;
+    size_t elementSize;
+    listNode *head;
+    listNode *tail;
+    freeFunction freeFn;
 } list_t;
 
 

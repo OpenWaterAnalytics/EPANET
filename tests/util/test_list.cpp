@@ -76,23 +76,23 @@ BOOST_AUTO_TEST_CASE(test_int_list){
 
 struct FixtureStrings{
     FixtureStrings() {
-		list = NULL;
+        list = NULL;
 
         int numNames = 5;
         const char *names[] = { "David", "Kevin", "Michael", "Craig", "Jimi" };
 
-		list = create_list(sizeof(char *), free_string);
-		
-		char *name;
-    	for (int i = 0; i < numNames; i++) {
-    		name = _strdup(names[i]);
-    		append_list(list, &name);
-    	}
+        list = create_list(sizeof(char *), free_string);
+
+        char *name;
+        for (int i = 0; i < numNames; i++) {
+            name = _strdup(names[i]);
+            append_list(list, &name);
+        }
     }
     ~FixtureStrings() {
         delete_list(list);
-  }
-  list_t *list;
+    }
+    list_t *list;
 };
 
 BOOST_FIXTURE_TEST_CASE(test_string_list, FixtureStrings) {
@@ -110,8 +110,8 @@ BOOST_FIXTURE_TEST_CASE(test_head_list, FixtureStrings) {
     BOOST_CHECK(check_string(*(char **)temp, "David"));
     BOOST_CHECK(size_list(list) == 4);
 
-	// To free a node, free both the data and reference to data 
-	free_string(temp);
+	// To free a node, free both the data and reference to data
+    free_string(temp);
     free(temp);
 }
 
