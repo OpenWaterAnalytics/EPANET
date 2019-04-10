@@ -2,9 +2,11 @@
  ******************************************************************************
  Project:      OWA EPANET
  Version:      2.2
- Module:       util/test_list.cpp
- Description:  Tests for util/list.c
- Authors:      see AUTHORS
+ Module:       util/list.h
+ Description:  Generic list
+               https://gist.github.com/pseudomuto/6334796#file-sample_app-c
+               Accessed: April 9, 2019
+ Authors:      David Muto, Modified by Michael E. Tryby
  Copyright:    see AUTHORS
  License:      see LICENSE
  Last Updated: 04/09/2019
