@@ -33,7 +33,7 @@ typedef struct _listNode {
 
 typedef struct {
   int logicalLength;
-  int elementSize;
+  size_t elementSize;
   listNode *head;
   listNode *tail;
   freeFunction freeFn;
@@ -44,7 +44,7 @@ typedef struct {
 @brief Initializes a linked list to store elements of elementSize and to call
 freeFunction for each element when destroying a list.
 */
-list_t *create_list(int elementSize, freeFunction freeFn);
+list_t *create_list(size_t elementSize, freeFunction freeFn);
 
 /**
 @brief Frees dynamically allocated nodes and optionally calls freeFunction

@@ -111,6 +111,7 @@ BOOST_FIXTURE_TEST_CASE(test_head_list, FixtureStrings) {
     BOOST_CHECK(check_string(*(char **)temp, "David"));
     BOOST_CHECK(size_list(list) == 4);
 
+	// To free a node, free both the data and reference to data 
 	free_string(temp);
     free(temp);
 }

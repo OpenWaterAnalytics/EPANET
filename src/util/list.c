@@ -24,7 +24,7 @@
 #include "list.h"
 
 
-list_t *create_list(int elementSize, freeFunction freeFn)
+list_t *create_list(size_t elementSize, freeFunction freeFn)
 {
 	list_t *list;
 	list = (list_t *)calloc(1, sizeof(list_t));
@@ -103,20 +103,27 @@ void for_each_list(list_t *list, listIterator iterator)
 }
 
 void *head_list(list_t *list, bool removeFromList)
+// 
+// Warning: Caller is responsible for freeing the node->data returned. 
+//
 {
     assert(list->head != NULL);
 
     listNode *node = list->head;
     void *element = (void *)malloc(list->elementSize);
+	// Copying pointer to node->data
     memcpy(element, node->data, list->elementSize);
 
     if(removeFromList) {
+		// Disconnecting head node
         list->head = node->next;
         list->logicalLength--;
 
+		// Freeing pointer to node->data and node
         free(node->data);
         free(node);
     }
+	// Now element points to data formerly pointed to by node
 	return element;
 }
 
