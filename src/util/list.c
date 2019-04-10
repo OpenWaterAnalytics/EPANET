@@ -27,6 +27,21 @@
 #include "list.h"
 
 
+typedef struct list_node_s {
+	void *data;
+	list_node_t *next;
+} list_node_t;
+
+
+typedef struct list_s {
+	int logicalLength;
+	size_t elementSize;
+	list_node_t *head;
+	list_node_t *tail;
+	freeFunction freeFn;
+} list_t;
+
+
 list_t *create_list(size_t elementSize, freeFunction freeFn)
 {
     list_t *list;
@@ -42,7 +57,7 @@ list_t *create_list(size_t elementSize, freeFunction freeFn)
 
 void delete_list(list_t *list)
 {
-    listNode *current;
+    list_node_t *current;
 
     while(list->head != NULL) {
         current = list->head;
@@ -59,7 +74,7 @@ void delete_list(list_t *list)
 
 void prepend_list(list_t *list, void *element)
 {
-    listNode *node = malloc(sizeof(listNode));
+	list_node_t *node = malloc(sizeof(list_node_t));
     node->data = malloc(list->elementSize);
     memcpy(node->data, element, list->elementSize);
 
@@ -76,7 +91,7 @@ void prepend_list(list_t *list, void *element)
 
 void append_list(list_t *list, void *element)
 {
-    listNode *node = malloc(sizeof(listNode));
+	list_node_t *node = malloc(sizeof(list_node_t));
     node->data = malloc(list->elementSize);
     node->next = NULL;
 
@@ -96,7 +111,7 @@ void for_each_list(list_t *list, listIterator iterator)
 {
     assert(iterator != NULL);
 
-    listNode *node = list->head;
+	list_node_t *node = list->head;
     bool result = true;
     while(node != NULL && result) {
         result = iterator(node->data);
@@ -111,7 +126,7 @@ void *head_list(list_t *list, bool removeFromList)
 {
     assert(list->head != NULL);
 
-    listNode *node = list->head;
+	list_node_t *node = list->head;
     // Allocating and copying pointer to node data
     void *element = (void *)malloc(list->elementSize);
     memcpy(element, node->data, list->elementSize);
@@ -137,7 +152,7 @@ void *tail_list(list_t *list)
 {
     assert(list->tail != NULL);
 
-    listNode *node = list->tail;
+	list_node_t *node = list->tail;
     // Allocating and copying pointer to node data
     void *element = (void *)malloc(list->elementSize);
     memcpy(element, node->data, list->elementSize);

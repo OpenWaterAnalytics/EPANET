@@ -28,19 +28,9 @@ typedef void(*freeFunction)(void *);
 typedef bool (*listIterator)(void *);
 
 
-typedef struct _listNode {
-    void *data;
-    struct _listNode *next;
-} listNode;
-
-
-typedef struct {
-    int logicalLength;
-    size_t elementSize;
-    listNode *head;
-    listNode *tail;
-    freeFunction freeFn;
-} list_t;
+// forward declarations
+typedef struct list_node_s list_node_t;
+typedef struct list_s list_t;
 
 
 /**
