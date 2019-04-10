@@ -10,7 +10,14 @@
 //
 
 
+#ifdef _DEBUG
+#define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
+#include <crtdbg.h>
+#else
+#include <stdlib.h>
+#endif
+
 #include <string.h>
 #include <assert.h>
 
@@ -95,31 +102,33 @@ void for_each_list(list_t *list, listIterator iterator)
     }
 }
 
-void head_list(list_t *list, void **element, bool removeFromList)
+void *head_list(list_t *list, bool removeFromList)
 {
     assert(list->head != NULL);
 
     listNode *node = list->head;
-    *element = (void *)malloc(list->elementSize);
-    memcpy(*element, node->data, list->elementSize);
+    void *element = (void *)malloc(list->elementSize);
+    memcpy(element, node->data, list->elementSize);
 
     if(removeFromList) {
         list->head = node->next;
         list->logicalLength--;
 
-        if (list->freeFn)
-            list->freeFn(node->data);
-
         free(node->data);
         free(node);
     }
+	return element;
 }
 
-void tail_list(list_t *list, void *element)
+void *tail_list(list_t *list)
 {
     assert(list->tail != NULL);
+
     listNode *node = list->tail;
+    void *element = (void *)malloc(list->elementSize);
     memcpy(element, node->data, list->elementSize);
+
+	return element;
 }
 
 int size_list(list_t *list)

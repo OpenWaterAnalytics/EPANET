@@ -18,22 +18,31 @@
 #include "util/list.h"
 
 
+boost::test_tools::predicate_result check_string(std::string test, std::string ref)
+{
+    if (ref.compare(test) == 0)
+        return true;
+    else
+        return false;
+}
+
+
 bool iterate_int(void *data)
 {
-	printf("Found value: %d\n", *(int *)data);
-	return true;
+    printf("Found value: %d\n", *(int *)data);
+    return true;
 }
 
 bool iterate_string(void *data)
 {
-	char *string = *(char **)data;
-	printf("Found string value: %s\n", string);
-	return true;
+    char *string = *(char **)data;
+    printf("Found string value: %s\n", string);
+    return true;
 }
 
 void free_string(void *data)
 {
-	free(*(char **)data);
+    free(*(char **)data);
 }
 
 BOOST_AUTO_TEST_SUITE(test_list)
@@ -41,7 +50,7 @@ BOOST_AUTO_TEST_SUITE(test_list)
 
 BOOST_AUTO_TEST_CASE(test_create_delete) {
 
-	list_t *list;
+    list_t *list;
     list = create_list(sizeof(int), NULL);
 
     delete_list(list);
@@ -50,68 +59,71 @@ BOOST_AUTO_TEST_CASE(test_create_delete) {
 
 BOOST_AUTO_TEST_CASE(test_int_list){
 
-	int i, numbers = 10;
-	list_t *list = NULL;
+    int i, numbers = 10;
+    list_t *list = NULL;
 
-	list = create_list(sizeof(int), NULL);
+    list = create_list(sizeof(int), NULL);
 
     for(i = 1; i <= numbers; i++) {
         append_list(list, &i);
     }
-	BOOST_CHECK(size_list(list) == 10);
+    BOOST_CHECK(size_list(list) == 10);
 
-	for_each_list(list, iterate_int);
+    for_each_list(list, iterate_int);
 
-	delete_list(list);
+    delete_list(list);
+}
+
+struct FixtureStrings{
+    FixtureStrings() {
+		name = NULL;
+		list = NULL;
+
+        int numNames = 5;
+        const char *names[] = { "David", "Kevin", "Michael", "Craig", "Jimi" };
+
+		list = create_list(sizeof(char *), free_string);
+
+    	for (int i = 0; i < numNames; i++) {
+    		name = _strdup(names[i]);
+    		append_list(list, &name);
+    	}
+    }
+    ~FixtureStrings() {
+        delete_list(list);
+  }
+  char *name;
+  list_t *list;
+};
+
+BOOST_FIXTURE_TEST_CASE(test_string_list, FixtureStrings) {
+
+    BOOST_CHECK(size_list(list) == 5);
+
+    for_each_list(list, iterate_string);
 }
 
 
-BOOST_AUTO_TEST_CASE(test_string_list) {
-	int i, numNames = 5;
-	const char *names[] = { "David", "Kevin", "Michael", "Craig", "Jimi" };
+BOOST_FIXTURE_TEST_CASE(test_head_list, FixtureStrings) {
 
-	list_t *list = NULL;
+    void *temp = head_list(list, true);
 
-	list = create_list(sizeof(char *), free_string);
+    BOOST_CHECK(check_string(*(char **)temp, "David"));
+    BOOST_CHECK(size_list(list) == 4);
 
-	char *name;
-	for (i = 0; i < numNames; i++) {
-		name = _strdup(names[i]);
-		append_list(list, &name);
-	}
-
-	BOOST_CHECK(size_list(list) == 5);
-
-	for_each_list(list, iterate_string);
-
-	delete_list(list);
+	free_string(temp);
+    free(temp);
 }
 
 
-BOOST_AUTO_TEST_CASE(test_head_list) {
-	int i, numNames = 5;
-	const char *names[] = { "David", "Kevin", "Michael", "Craig", "Jimi" };
+BOOST_FIXTURE_TEST_CASE(test_tail_list, FixtureStrings) {
 
-	list_t *list = NULL;
+    void *temp = tail_list(list);
 
-	list = create_list(sizeof(char *), free_string);
+    BOOST_CHECK(check_string(*(char **)temp, "Jimi"));
+    BOOST_CHECK(size_list(list) == 5);
 
-	char *name;
-	for (i = 0; i < numNames; i++) {
-		name = _strdup(names[i]);
-		append_list(list, &name);
-	}
-	BOOST_CHECK(size_list(list) == 5);
-
-
-	char *temp = NULL;
-	head_list(list, &(void *)temp, true);
-	name = *(char **)temp;
-
-	BOOST_CHECK(size_list(list) == 4);
-	
-	free(temp);
-	delete_list(list);
+    free(temp);
 }
 
 
