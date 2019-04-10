@@ -28,17 +28,17 @@
 
 
 typedef struct list_node_s {
-	void *data;
-	list_node_t *next;
+    void *data;
+    list_node_t *next;
 } list_node_t;
 
 
 typedef struct list_s {
-	int logicalLength;
-	size_t elementSize;
-	list_node_t *head;
-	list_node_t *tail;
-	freeFunction freeFn;
+    int logicalLength;
+    size_t elementSize;
+    list_node_t *head;
+    list_node_t *tail;
+    freeFunction freeFn;
 } list_t;
 
 
@@ -111,7 +111,7 @@ void for_each_list(list_t *list, listIterator iterator)
 {
     assert(iterator != NULL);
 
-	list_node_t *node = list->head;
+    list_node_t *node = list->head;
     bool result = true;
     while(node != NULL && result) {
         result = iterator(node->data);
@@ -126,7 +126,7 @@ void *head_list(list_t *list, bool removeFromList)
 {
     assert(list->head != NULL);
 
-	list_node_t *node = list->head;
+    list_node_t *node = list->head;
     // Allocating and copying pointer to node data
     void *element = (void *)malloc(list->elementSize);
     memcpy(element, node->data, list->elementSize);
@@ -152,7 +152,7 @@ void *tail_list(list_t *list)
 {
     assert(list->tail != NULL);
 
-	list_node_t *node = list->tail;
+    list_node_t *node = list->tail;
     // Allocating and copying pointer to node data
     void *element = (void *)malloc(list->elementSize);
     memcpy(element, node->data, list->elementSize);

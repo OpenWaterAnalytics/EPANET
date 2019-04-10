@@ -130,15 +130,15 @@ BOOST_FIXTURE_TEST_CASE(test_tail_list, FixtureStrings) {
 
 
 typedef struct test_data_s {
-  int    num;
-  char   *name;
+    int    num;
+    char   *name;
 } test_data_t;
 
 test_data_t *create_test_data(int number, char *name){
 
     test_data_t *data = (test_data_t *)malloc(sizeof(test_data_t));
     data->num = number;
-	if (name)
+    if (name)
         data->name = _strdup(name);
     else
         data->name = NULL;
@@ -147,43 +147,42 @@ test_data_t *create_test_data(int number, char *name){
 }
 
 void delete_test_data(void *data) {
-	
-	test_data_t *test_data = *(test_data_t **)data;
+
+    test_data_t *test_data = *(test_data_t **)data;
 
     if (test_data->name)
         free(test_data->name);
-	
+
 	free(test_data);
 }
 
 bool iterate_test_data(void *data)
 {
-	test_data_t *test_data = *(test_data_t **)data;
+    test_data_t *test_data = *(test_data_t **)data;
 
-	printf("Found number: %i name: %s\n", 
-		test_data->num, test_data->name);
-	return true;
+    printf("Found number: %i name: %s\n", test_data->num, test_data->name);
+    return true;
 }
 
 BOOST_AUTO_TEST_CASE(test_struct_list){
-	
-	list_t *list = NULL;
+
+    list_t *list = NULL;
     list = create_list(sizeof(test_data_t *), delete_test_data);
 
 
-	test_data_t *data = create_test_data(1, "David");
-	append_list(list, &data);
+    test_data_t *data = create_test_data(1, "David");
+    append_list(list, &data);
 
-	data = create_test_data(2, "Kevin");
-	append_list(list, &data);
-	
-	data = create_test_data(3, "Michael");
-	append_list(list, &data);
+    data = create_test_data(2, "Kevin");
+    append_list(list, &data);
 
-    
-	BOOST_CHECK(size_list(list) == 3);
+    data = create_test_data(3, "Michael");
+    append_list(list, &data);
 
-	for_each_list(list, iterate_test_data);
+
+    BOOST_CHECK(size_list(list) == 3);
+
+    for_each_list(list, iterate_test_data);
 
     delete_list(list);
 }
