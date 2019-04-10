@@ -76,14 +76,14 @@ BOOST_AUTO_TEST_CASE(test_int_list){
 
 struct FixtureStrings{
     FixtureStrings() {
-		name = NULL;
 		list = NULL;
 
         int numNames = 5;
         const char *names[] = { "David", "Kevin", "Michael", "Craig", "Jimi" };
 
 		list = create_list(sizeof(char *), free_string);
-
+		
+		char *name;
     	for (int i = 0; i < numNames; i++) {
     		name = _strdup(names[i]);
     		append_list(list, &name);
@@ -92,7 +92,6 @@ struct FixtureStrings{
     ~FixtureStrings() {
         delete_list(list);
   }
-  char *name;
   list_t *list;
 };
 
