@@ -36,8 +36,8 @@ list_t *create_list(size_t elementSize, freeFunction freeFn)
     list->logicalLength = 0;
     list->elementSize = elementSize;
     list->head = list->tail = NULL;
-	list->freeFn = freeFn;
-	return list;
+    list->freeFn = freeFn;
+    return list;
 }
 
 void delete_list(list_t *list)
