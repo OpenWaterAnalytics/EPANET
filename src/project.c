@@ -401,7 +401,7 @@ void freedata(Project *pr)
     // Free memory for node data
     if (pr->network.Node != NULL)
     {
-        for (j = 0; j <= pr->parser.MaxNodes; j++)
+        for (j = 1; j <= pr->parser.MaxNodes; j++)
         {
             // Free memory used for demand category list
             demand = pr->network.Node[j].D;
