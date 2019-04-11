@@ -11,7 +11,7 @@
  ******************************************************************************
 */
 
-#define BOOST_TEST_MAIN
+//#define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE toolkit
 
 #include <math.h>
