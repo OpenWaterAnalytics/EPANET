@@ -41,6 +41,24 @@ struct FixtureOpenClose{
 };
 
 
+struct FixtureInitClose {
+	FixtureInitClose() {
+        error = 0;
+        ph = NULL;
+
+		EN_createproject(&ph);
+		EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_GPM, EN_HW);
+	}
+
+	~FixtureInitClose() {
+		EN_close(ph);
+		EN_deleteproject(&ph);
+	}
+	int error;
+	EN_Project ph;
+};
+
+
 struct FixtureAfterStep{
     FixtureAfterStep() {
         error = 0;
