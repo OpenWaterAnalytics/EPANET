@@ -28,24 +28,16 @@ boost::test_tools::predicate_result check_string(std::string test, std::string r
         return false;
 }
 
+int *get_int_data(list_node_t *lnode) {
+    return (int *)get_data(lnode);
+}
 
-bool iterate_int(void *data)
+bool iterate_int(list_node_t *lnode)
 {
-    printf("Found value: %d\n", *(int *)data);
+    printf("Found value: %d\n", *get_int_data(lnode));
     return true;
 }
 
-bool iterate_string(void *data)
-{
-    char *string = *(char **)data;
-    printf("Found string value: %s\n", string);
-    return true;
-}
-
-void free_string(void *data)
-{
-    free(*(char **)data);
-}
 
 BOOST_AUTO_TEST_SUITE(test_list)
 
@@ -74,6 +66,23 @@ BOOST_AUTO_TEST_CASE(test_int_list){
     for_each_list(list, iterate_int);
 
     delete_list(list);
+}
+
+
+inline char *get_string_data(list_node_t *lnode)
+{
+    return *(char **)get_data(lnode);
+}
+
+bool iterate_string(list_node_t *lnode)
+{
+    printf("Found string value: %s\n", get_string_data(lnode));
+    return true;
+}
+
+void free_string(void *data)
+{
+    free(*(char **)data);
 }
 
 struct FixtureStrings{
@@ -134,7 +143,7 @@ typedef struct test_data_s {
     char   *name;
 } test_data_t;
 
-test_data_t *create_test_data(int number, char *name){
+test_data_t *create_test_data(int number, const char *name){
 
     test_data_t *data = (test_data_t *)malloc(sizeof(test_data_t));
     data->num = number;
@@ -156,9 +165,14 @@ void delete_test_data(void *data) {
 	free(test_data);
 }
 
-bool iterate_test_data(void *data)
+inline test_data_t *get_test_data(list_node_t *lnode)
 {
-    test_data_t *test_data = *(test_data_t **)data;
+    return *(test_data_t **)get_data(lnode);
+}
+
+bool iterate_test_data(list_node_t *lnode)
+{
+    test_data_t *test_data = get_test_data(lnode);
 
     printf("Found number: %i name: %s\n", test_data->num, test_data->name);
     return true;
@@ -186,10 +200,10 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
 
     //for_each_list(list, iterate_test_data);
 
-    // Expose list abstraction and loop over it
     list_node_t *lnode;
-    for (lnode = list->head; lnode != NULL; lnode = lnode->next) {
-        test_data_t *test_data = *(test_data_t **)lnode->data;
+    // Iterate over list while maintaining containment of abstraction
+    for (lnode = first_list(list); done_list(lnode); lnode = next_list(lnode)) {
+        test_data_t *test_data = get_test_data(lnode);
         printf("Found number: %i name: %s\n", test_data->num, test_data->name);
     }
 

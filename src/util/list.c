@@ -6,7 +6,7 @@
  Description:  Generic list
                https://gist.github.com/pseudomuto/6334796#file-list-c
                Accessed: April 9, 2019
- Authors:      David Muto, Modified by Michael E. Tryby
+ Authors:      David Muto, Michael Tryby
  Copyright:    see AUTHORS
  License:      see LICENSE
  Last Updated: 04/09/2019
@@ -25,6 +25,21 @@
 #include <assert.h>
 
 #include "list.h"
+
+
+typedef struct list_node_s {
+    void *data;
+    struct list_node_s *next;
+} list_node_t;
+
+
+typedef struct list_s {
+    int logicalLength;
+    size_t elementSize;
+    list_node_t *head;
+    list_node_t *tail;
+    freeFunction freeFn;
+} list_t;
 
 
 list_t *create_list(size_t elementSize, freeFunction freeFn)
@@ -59,7 +74,7 @@ void delete_list(list_t *list)
 
 void prepend_list(list_t *list, void *element)
 {
-	list_node_t *node = malloc(sizeof(list_node_t));
+    list_node_t *node = malloc(sizeof(list_node_t));
     node->data = malloc(list->elementSize);
     memcpy(node->data, element, list->elementSize);
 
@@ -99,7 +114,7 @@ void for_each_list(list_t *list, listIterator iterator)
     list_node_t *node = list->head;
     bool result = true;
     while(node != NULL && result) {
-        result = iterator(node->data);
+        result = iterator(node);
         node = node->next;
     }
 }
@@ -127,7 +142,7 @@ void *head_list(list_t *list, bool removeFromList)
     }
     // Now element points to data formerly pointed to by node. Caller
     // is responsible for freeing both pointer to data and data.
-	return element;
+    return element;
 }
 
 void *tail_list(list_t *list)
@@ -144,10 +159,36 @@ void *tail_list(list_t *list)
 
     // Pointer to element data gets returned. Caller is responsible
     // for freeing pointer to data.
-	return element;
+    return element;
 }
 
 int size_list(list_t *list)
 {
     return list->logicalLength;
+}
+
+void *get_data(list_node_t *lnode)
+{
+    return lnode->data;
+}
+
+
+//
+// Iterator operations
+// http://www.cs.yale.edu/homes/aspnes/pinewiki/C(2f)Iterators.html
+// Accessed on April 11, 2019
+//
+list_node_t *first_list(list_t *list)
+{
+    return list->head;
+}
+
+bool done_list(list_node_t *lnode)
+{
+    return lnode != NULL;
+}
+
+list_node_t *next_list(list_node_t *lnode)
+{
+    return lnode->next;
 }

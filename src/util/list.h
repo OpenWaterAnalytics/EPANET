@@ -6,7 +6,7 @@
  Description:  Generic list
                https://gist.github.com/pseudomuto/6334796#file-list-h
                Accessed: April 9, 2019
- Authors:      David Muto, Modified by Michael E. Tryby
+ Authors:      David Muto, Michael Tryby
  Copyright:    see AUTHORS
  License:      see LICENSE
  Last Updated: 04/09/2019
@@ -23,24 +23,13 @@
 extern "C" {
 #endif
 
-// a common function used to free malloc'd objects
+
+// Forward declarations
+typedef struct list_node_s list_node_t;
+typedef struct list_s list_t;
+
 typedef void(*freeFunction)(void *);
-typedef bool(*listIterator)(void *);
-
-
-typedef struct list_node_s {
-    void *data;
-    struct list_node_s *next;
-} list_node_t;
-
-
-typedef struct {
-    int logicalLength;
-    size_t elementSize;
-    list_node_t *head;
-    list_node_t *tail;
-    freeFunction freeFn;
-} list_t;
+typedef bool(*listIterator)(list_node_t *);
 
 
 /**
@@ -71,6 +60,12 @@ void append_list(list_t *list, void *element);
 int size_list(list_t *list);
 
 /**
+@brief Returns pointer to list node's data.
+*/
+void *get_data(list_node_t *lnode);
+
+
+/**
 @brief Calls the supplied iterator function with the data element of each
 node (iterates over the list).
 */
@@ -85,6 +80,22 @@ void *head_list(list_t *list, bool removeFromList);
 @brief Returns the tail of the list.
 */
 void *tail_list(list_t *list);
+
+
+/**
+@brief Returns list head node.
+*/
+list_node_t *first_list(list_t *list);
+
+/**
+@brief Returns true if end of list false otherwise.
+*/
+bool done_list(list_node_t *lnode);
+
+/**
+@brief Returns next node in the list.
+*/
+list_node_t *next_list(list_node_t *lnode);
 
 
 #if defined(__cplusplus)
