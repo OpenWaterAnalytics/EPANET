@@ -13,8 +13,9 @@
  ******************************************************************************
 */
 
-#define BOOST_TEST_MODULE list
+#include <string.h>
 
+#define BOOST_TEST_MODULE list
 #include <boost/test/unit_test.hpp>
 
 #include "util/list.h"
