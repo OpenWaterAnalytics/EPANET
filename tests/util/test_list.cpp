@@ -121,9 +121,10 @@ BOOST_FIXTURE_TEST_CASE(test_head_list, FixtureStrings) {
 
     list_node_t *lnode = head_list(list, true);
     BOOST_CHECK(check_string(get_string_data(lnode), "David"));
-    BOOST_CHECK(size_list(list) == 4);
-
     delete_node(list, lnode);
+
+    BOOST_CHECK(check_string(get_string_data(head_list(list, false)), "Kevin"));
+    BOOST_CHECK(size_list(list) == 4);
 }
 
 
@@ -198,10 +199,12 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
 
 
     list_node_t *lnode;
-    // Iterate over list while maintaining containment of abstraction
+    // Iterate over list while maintaining containment of list abstraction
     for (lnode = first_list(list); done_list(lnode); lnode = next_list(lnode)) {
         test_data_t *test_data = get_test_data(lnode);
-        printf("Found number: %i name: %s\n", test_data->num, test_data->name);
+
+        if (test_data->num == 2)
+            printf("Found %s!\n", test_data->name);
     }
 
     lnode = head_list(list, true);
