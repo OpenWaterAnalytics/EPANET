@@ -174,7 +174,7 @@ void *get_data(list_node_t *lnode)
 
 
 //
-// Iterator operations
+// Iterator first/done/next operations
 // http://www.cs.yale.edu/homes/aspnes/pinewiki/C(2f)Iterators.html
 // Accessed on April 11, 2019
 //
