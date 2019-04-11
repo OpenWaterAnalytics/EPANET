@@ -146,7 +146,7 @@ test_data_t *create_test_data(int number, const char *name){
     test_data_t *data = (test_data_t *)malloc(sizeof(test_data_t));
     data->num = number;
     if (name)
-        data->name = _strdup(name);
+        data->name = strdup(name);
     else
         data->name = NULL;
 
