@@ -9,7 +9,7 @@ EPANET {#epanet-readme}
 
 
 ## For EPANET-related questions and discussion
-For community discussion, FAQ, and roadmapping of the project, go to the [Community Forum](http://community.wateranalytics.org/category/epanet). 
+For community discussion, FAQ, and roadmapping of the project, go to the [Community Forum](http://community.wateranalytics.org/category/epanet).
 
 ## What is on this Repository?
 The EPANET Library is a pressurized pipe network hydraulic and water quality analysis toolkit written in C. If you are interested in using/extending EPANET for academic, personal, or commercial use, then you've come to the right place.

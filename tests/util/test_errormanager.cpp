@@ -45,16 +45,16 @@ BOOST_AUTO_TEST_CASE (test_create_destroy)
 
 struct Fixture{
     Fixture() {
-		error_message = NULL;
+        error_message = NULL;
         error_handle = create_error_manager(&mock_lookup);
     }
     ~Fixture() {
         delete_error_manager(error_handle);
         free(error_message);
-  }
-  int error;
-  error_handle_t *error_handle;
-  char *error_message;
+    }
+    int error;
+    error_handle_t *error_handle;
+    char *error_message;
 };
 
 

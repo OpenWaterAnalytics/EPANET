@@ -1794,6 +1794,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
     {
         nIdx = net->Nnodes + 1;
         node = &net->Node[nIdx];
+        node->D = NULL;
         net->Ntanks++;
 
         // resize tanks array
@@ -1820,6 +1821,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
         tank->V1max = 10000;
     }
     net->Nnodes++;
+    p->parser.MaxNodes = net->Nnodes;
     strncpy(node->ID, id, MAXID);
 
     // set default values for new node

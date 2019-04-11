@@ -54,6 +54,20 @@ BOOST_AUTO_TEST_CASE (test_open_close)
     EN_deleteproject(&ph);
 }
 
+BOOST_AUTO_TEST_CASE(test_init_close)
+{
+	EN_Project ph = NULL;
+	EN_createproject(&ph);
+
+	int error = EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_GPM, EN_HW);
+	BOOST_REQUIRE(error == 0);
+
+	error = EN_close(ph);
+	BOOST_REQUIRE(error == 0);
+
+	EN_deleteproject(&ph);
+}
+
 BOOST_AUTO_TEST_CASE(test_save)
 {
     int error;

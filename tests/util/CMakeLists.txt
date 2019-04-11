@@ -7,7 +7,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 
-add_executable(test_errormanager ./test_errormanager.cpp 
+add_executable(test_errormanager ./test_errormanager.cpp
                                  ../../src/util/errormanager.c)
 target_include_directories(test_errormanager PUBLIC ../../src/)
 target_link_libraries(test_errormanager ${Boost_LIBRARIES})

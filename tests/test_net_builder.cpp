@@ -11,6 +11,9 @@
  ******************************************************************************
 */
 
+
+#define BOOST_TEST_MODULE net_builder
+
 #ifdef _DEBUG
   #define _CRTDBG_MAP_ALLOC
   #include <stdlib.h>
@@ -19,26 +22,14 @@
   #include <stdlib.h>
 #endif
 
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 
-#include "test_toolkit.hpp"
+#include "epanet2_2.h"
 
 
-BOOST_AUTO_TEST_SUITE(test_net_builder)
-
-BOOST_AUTO_TEST_CASE(test_init_close)
-{
-	EN_Project ph = NULL;
-	EN_createproject(&ph);
-
-	int error = EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_GPM, EN_HW);
-	BOOST_REQUIRE(error == 0);
-
-	error = EN_close(ph);
-	BOOST_REQUIRE(error == 0);
-
-	EN_deleteproject(&ph);
-}
+#define DATA_PATH_TMP "./tmp.inp"
+#define DATA_PATH_RPT "./test.rpt"
+#define DATA_PATH_OUT "./test.out"
 
 
 struct FixtureInitClose {
@@ -59,6 +50,7 @@ struct FixtureInitClose {
 };
 
 
+BOOST_AUTO_TEST_SUITE(test_net_builder)
 
 
 // BOOST_AUTO_TEST_CASE(net_builder_I)

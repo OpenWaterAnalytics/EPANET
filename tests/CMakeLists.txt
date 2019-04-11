@@ -16,6 +16,14 @@ if(UNIX)
 endif(UNIX)
 
 
+add_executable(test_net_builder test_net_builder.cpp)
+target_link_libraries(test_net_builder ${Boost_LIBRARIES} epanet2)
+add_test(NAME test_net_builder
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_net_builder
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
+
+
+
 set(toolkit_test_srcs
      test_toolkit.cpp
      test_project.cpp
@@ -30,13 +38,10 @@ set(toolkit_test_srcs
      test_pattern.cpp
      test_curve.cpp
      test_control.cpp
-     test_net_builder.cpp
 )
 
 add_executable(test_toolkit ${toolkit_test_srcs})
-
 target_link_libraries(test_toolkit ${Boost_LIBRARIES} epanet2)
-
 add_test(NAME test_toolkit
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_toolkit
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
