@@ -116,25 +116,21 @@ BOOST_FIXTURE_TEST_CASE(test_string_list, FixtureStrings) {
 
 BOOST_FIXTURE_TEST_CASE(test_head_list, FixtureStrings) {
 
-    void *temp = head_list(list, true);
+    BOOST_CHECK(check_string(get_string_data(head_list(list, false)), "David"));
+    BOOST_CHECK(size_list(list) == 5);
 
-    BOOST_CHECK(check_string(*(char **)temp, "David"));
+    list_node_t *lnode = head_list(list, true);
+    BOOST_CHECK(check_string(get_string_data(lnode), "David"));
     BOOST_CHECK(size_list(list) == 4);
 
-	// To free a node, free both the data and reference to data
-    free_string(temp);
-    free(temp);
+    delete_node(list, lnode);
 }
 
 
 BOOST_FIXTURE_TEST_CASE(test_tail_list, FixtureStrings) {
 
-    void *temp = tail_list(list);
-
-    BOOST_CHECK(check_string(*(char **)temp, "Jimi"));
+    BOOST_CHECK(check_string(get_string_data(tail_list(list)), "Jimi"));
     BOOST_CHECK(size_list(list) == 5);
-
-    free(temp);
 }
 
 
@@ -198,7 +194,8 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
 
     BOOST_CHECK(size_list(list) == 3);
 
-    //for_each_list(list, iterate_test_data);
+    for_each_list(list, iterate_test_data);
+
 
     list_node_t *lnode;
     // Iterate over list while maintaining containment of abstraction
@@ -206,6 +203,9 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
         test_data_t *test_data = get_test_data(lnode);
         printf("Found number: %i name: %s\n", test_data->num, test_data->name);
     }
+
+    lnode = head_list(list, true);
+    delete_node(list, lnode);
 
     delete_list(list);
 }

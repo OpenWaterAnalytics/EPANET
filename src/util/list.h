@@ -59,10 +59,16 @@ void append_list(list_t *list, void *element);
 */
 int size_list(list_t *list);
 
+
 /**
 @brief Returns pointer to list node's data.
 */
 void *get_data(list_node_t *lnode);
+
+/**
+@brief Frees memory associated with a list node.
+*/
+void delete_node(list_t *list,  list_node_t *lnode);
 
 
 /**
@@ -74,12 +80,12 @@ void for_each_list(list_t *list, listIterator iterator);
 /**
 @brief Returns the head of the list (optionally removing it at the same time).
 */
-void *head_list(list_t *list, bool removeFromList);
+list_node_t *head_list(list_t *list, bool removeFromList);
 
 /**
 @brief Returns the tail of the list.
 */
-void *tail_list(list_t *list);
+list_node_t *tail_list(list_t *list);
 
 
 /**

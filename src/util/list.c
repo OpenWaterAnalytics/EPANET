@@ -62,12 +62,7 @@ void delete_list(list_t *list)
     while(list->head != NULL) {
         current = list->head;
         list->head = current->next;
-
-        if (list->freeFn)
-            list->freeFn(current->data);
-
-        free(current->data);
-        free(current);
+        delete_node(list, current);
     }
     free(list);
 }
@@ -119,47 +114,26 @@ void for_each_list(list_t *list, listIterator iterator)
     }
 }
 
-void *head_list(list_t *list, bool removeFromList)
+list_node_t *head_list(list_t *list, bool removeFromList)
 //
-// Warning: Caller is responsible for freeing the node->data returned.
+// Warning: When node is removed caller is responsible for freeing it.
 //
 {
     assert(list->head != NULL);
 
     list_node_t *node = list->head;
-    // Allocating and copying pointer to node data
-    void *element = (void *)malloc(list->elementSize);
-    memcpy(element, node->data, list->elementSize);
-
     if(removeFromList) {
         // Disconnecting head node
         list->head = node->next;
         list->logicalLength--;
-
-        // Freeing pointer to node->data and node
-        free(node->data);
-        free(node);
     }
-    // Now element points to data formerly pointed to by node. Caller
-    // is responsible for freeing both pointer to data and data.
-    return element;
+    return node;
 }
 
-void *tail_list(list_t *list)
-//
-// Warning: Caller is responsible for freeing the node->data returned.
-//
+list_node_t *tail_list(list_t *list)
 {
     assert(list->tail != NULL);
-
-    list_node_t *node = list->tail;
-    // Allocating and copying pointer to node data
-    void *element = (void *)malloc(list->elementSize);
-    memcpy(element, node->data, list->elementSize);
-
-    // Pointer to element data gets returned. Caller is responsible
-    // for freeing pointer to data.
-    return element;
+    return list->tail;
 }
 
 int size_list(list_t *list)
@@ -172,9 +146,17 @@ void *get_data(list_node_t *lnode)
     return lnode->data;
 }
 
+void delete_node(list_t *list, list_node_t *lnode)
+{
+    if (list->freeFn)
+        list->freeFn(lnode->data);
+
+    free(lnode->data);
+    free(lnode);
+}
 
 //
-// Iterator first/done/next operations
+// Iterator first/done/next operations provide containment for list abstraction
 // http://www.cs.yale.edu/homes/aspnes/pinewiki/C(2f)Iterators.html
 // Accessed on April 11, 2019
 //
