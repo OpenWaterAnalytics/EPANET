@@ -11,6 +11,9 @@
  ******************************************************************************
 */
 
+
+#define BOOST_TEST_MODULE net_builder
+
 #ifdef _DEBUG
   #define _CRTDBG_MAP_ALLOC
   #include <stdlib.h>
@@ -19,7 +22,7 @@
   #include <stdlib.h>
 #endif
 
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 
 #include "test_toolkit.hpp"
 
