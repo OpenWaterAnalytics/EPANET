@@ -97,7 +97,7 @@ struct FixtureStrings{
 
         char *name;
         for (int i = 0; i < numNames; i++) {
-            name = _strdup(names[i]);
+            name = strdup(names[i]);
             append_list(list, &name);
         }
     }
