@@ -18,6 +18,35 @@
 
 BOOST_AUTO_TEST_SUITE (test_node)
 
+
+BOOST_FIXTURE_TEST_CASE(test_adddelete_node, FixtureInitClose)
+{
+    int index;
+
+    error = EN_addnode(ph, (char *)"N2", EN_JUNCTION);
+    BOOST_REQUIRE(error == 0);
+    error = EN_addnode(ph, (char *)"N3", EN_RESERVOIR);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getnodeindex(ph, "N2", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deletenode(ph, index, EN_UNCONDITIONAL);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_addnode(ph, (char *)"N4", EN_TANK);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getnodeindex(ph, "N4", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deletenode(ph, index, EN_UNCONDITIONAL);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getnodeindex(ph, "N3", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deletenode(ph, index, EN_UNCONDITIONAL);
+    BOOST_REQUIRE(error == 0);
+
+}
+
 BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureOpenClose)
 {
     int index;
@@ -296,5 +325,6 @@ BOOST_AUTO_TEST_CASE(test_reopen_comment, * boost::unit_test::depends_on("node_c
     EN_close(ph);
     EN_deleteproject(&ph);
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()

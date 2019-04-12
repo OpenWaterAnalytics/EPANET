@@ -20,6 +20,41 @@
 
 BOOST_AUTO_TEST_SUITE (test_link)
 
+
+BOOST_FIXTURE_TEST_CASE(test_adddelete_link, FixtureInitClose)
+{
+    int index;
+
+    // Build a network
+    EN_addnode(ph, (char *)"N1", EN_JUNCTION);
+    EN_addnode(ph, (char *)"N2", EN_JUNCTION);
+    EN_addnode(ph, (char *)"N3", EN_RESERVOIR);
+
+    error = EN_addlink(ph, (char *)"L1", EN_PUMP, (char *)"N3", (char *)"N1");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_addlink(ph, (char *)"L2", EN_PIPE, (char *)"N1", (char *)"N3");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getlinkindex(ph, "L2", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deletelink(ph, index, EN_UNCONDITIONAL);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_addlink(ph, (char *)"L3", EN_PIPE, (char *)"N1", (char *)"N2");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getlinkindex(ph, "L1", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deletelink(ph, index, EN_UNCONDITIONAL);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getlinkindex(ph, "L3", &index);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deletelink(ph, index, EN_UNCONDITIONAL);
+    BOOST_REQUIRE(error == 0);
+
+}
+
 BOOST_AUTO_TEST_CASE(test_setlinktype)
 {
     int error = 0;
