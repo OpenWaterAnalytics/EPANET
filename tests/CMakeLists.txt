@@ -72,3 +72,6 @@ add_test(NAME test_filemanager
 add_test(NAME test_output
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_output
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/outfile/data)
+
+add_test(NAME test_list
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_list)
