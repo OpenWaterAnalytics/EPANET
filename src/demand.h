@@ -21,8 +21,7 @@
 // Forward declarations
 typedef struct demand_data_s demand_data_t;
 
-// demand list gets declared in types.h typedef struct Snode
-extern list_t *p_demand_list;
+// demand list gets declared in types.h struct Snode
 
 
 demand_data_t *create_demand_data(double base_demand, int pat_index, char *cat_name);
