@@ -36,7 +36,7 @@ BOOST_FIXTURE_TEST_CASE(test_adddelete_link, FixtureInitClose)
     error = EN_addlink(ph, (char *)"L2", EN_PIPE, (char *)"N1", (char *)"N3");
     BOOST_REQUIRE(error == 0);
 
-    error = EN_getlinkindex(ph, "L2", &index);
+    error = EN_getlinkindex(ph, (char *)"L2", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_deletelink(ph, index, EN_UNCONDITIONAL);
     BOOST_REQUIRE(error == 0);
@@ -44,11 +44,11 @@ BOOST_FIXTURE_TEST_CASE(test_adddelete_link, FixtureInitClose)
     error = EN_addlink(ph, (char *)"L3", EN_PIPE, (char *)"N1", (char *)"N2");
     BOOST_REQUIRE(error == 0);
 
-    error = EN_getlinkindex(ph, "L1", &index);
+    error = EN_getlinkindex(ph, (char *)"L1", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_deletelink(ph, index, EN_UNCONDITIONAL);
     BOOST_REQUIRE(error == 0);
-    error = EN_getlinkindex(ph, "L3", &index);
+    error = EN_getlinkindex(ph, (char *)"L3", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_deletelink(ph, index, EN_UNCONDITIONAL);
     BOOST_REQUIRE(error == 0);
