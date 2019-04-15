@@ -162,7 +162,10 @@ void delete_node(list_t *list, list_node_t *lnode)
 //
 list_node_t *first_list(list_t *list)
 {
-    return list->head;
+	if (list)
+		return list->head;
+	else
+		return NULL;
 }
 
 bool done_list(list_node_t *lnode)
@@ -171,6 +174,9 @@ bool done_list(list_node_t *lnode)
 }
 
 list_node_t *next_list(list_node_t *lnode)
-{
-    return lnode->next;
+{   
+	if (lnode)
+		return lnode->next;
+	else
+		return NULL;
 }

@@ -50,15 +50,34 @@ void delete_demand_data(void *data)
 	free(demand_data);
 }
 
+size_t get_demand_data_size(void)
+{
+	return sizeof(demand_data_t *);
+}
+
 demand_data_t *get_demand_data(list_node_t *lnode)
 {
     return *(demand_data_t **)get_data(lnode);
 }
 
 
+bool convert_units(list_node_t *lnode, double unit_conversion)
+{
+	demand_data_t *demand_data = get_demand_data(lnode);
+	double base_demand = get_base_demand(demand_data);
+
+	set_base_demand(demand_data, base_demand/unit_conversion);
+}
+
+
 double get_base_demand(demand_data_t *data)
 {
     return data->base_demand;
+}
+
+void set_base_demand(demand_data_t *data, double base_demand)
+{
+	data->base_demand = base_demand;
 }
 
 int get_pattern_index(demand_data_t *data)

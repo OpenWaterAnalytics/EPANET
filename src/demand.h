@@ -28,10 +28,17 @@ demand_data_t *create_demand_data(double base_demand, int pat_index, char *cat_n
 
 void delete_demand_data(void *data);
 
+size_t get_demand_data_size(void);
+
 demand_data_t *get_demand_data(list_node_t *lnode);
 
 
+bool convert_units(list_node_t *lnode, double unit_conversion);
+
+
 double get_base_demand(demand_data_t *data);
+
+void set_base_demand(demand_data_t *data, double base_demand);
 
 int get_pattern_index(demand_data_t *data);
 
