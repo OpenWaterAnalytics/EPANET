@@ -66,4 +66,21 @@ BOOST_FIXTURE_TEST_CASE(test_curve_comments, FixtureOpenClose)
     }
 }
 
+
+BOOST_FIXTURE_TEST_CASE(test_curve_id_isvalid, FixtureInitClose)
+{
+    error = EN_addcurve(ph, "C1");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_addcurve(ph, "C 2");
+    BOOST_REQUIRE(error == 250);
+
+    error = EN_addcurve(ph, "C\"2");
+    BOOST_REQUIRE(error == 250);
+
+    error = EN_addcurve(ph, "C;2");
+    BOOST_REQUIRE(error == 250);
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -47,6 +47,22 @@ BOOST_FIXTURE_TEST_CASE(test_adddelete_node, FixtureInitClose)
 
 }
 
+BOOST_FIXTURE_TEST_CASE(test_node_validate_id, FixtureInitClose)
+{
+    error = EN_addnode(ph, (char *)"N2", EN_JUNCTION);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_addnode(ph, (char *)"N 2", EN_JUNCTION);
+    BOOST_REQUIRE(error == 250);
+
+    error = EN_addnode(ph, (char *)"N\"2", EN_JUNCTION);
+    BOOST_REQUIRE(error == 250);
+
+    error = EN_addnode(ph, (char *)"N;2", EN_JUNCTION);
+    BOOST_REQUIRE(error == 250);
+}
+
+
 BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureOpenClose)
 {
     int index;

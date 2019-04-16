@@ -25,7 +25,7 @@ extern "C" {
 
 int cstr_duplicate(char **dest, const char *source);
 
-bool cstr_validate_id(const char *element_id);
+bool cstr_isvalid(const char *element_id);
 
 bool cstr_isnullterm(const char *source);
 

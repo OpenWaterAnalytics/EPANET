@@ -44,13 +44,13 @@ BOOST_AUTO_TEST_CASE(test_duplicate) {
 }
 
 
-BOOST_AUTO_TEST_CASE(test_validate_id) {
+BOOST_AUTO_TEST_CASE(test_isvalid) {
 
-    BOOST_CHECK(cstr_validate_id("big tank") == false);
-    BOOST_CHECK(cstr_validate_id("big\"tank") == false);
-    BOOST_CHECK(cstr_validate_id("big;tank") == false);
+    BOOST_CHECK(cstr_isvalid("big tank") == false);
+    BOOST_CHECK(cstr_isvalid("big\"tank") == false);
+    BOOST_CHECK(cstr_isvalid("big;tank") == false);
 
-    BOOST_CHECK(cstr_validate_id("big-tank") == true);
+    BOOST_CHECK(cstr_isvalid("big-tank") == true);
 }
 
 

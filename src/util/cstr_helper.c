@@ -36,11 +36,12 @@ int cstr_duplicate(char **dest, const char *source)
 }
 
 
-bool cstr_validate_id(const char *element_id)
+bool cstr_isvalid(const char *element_id)
 // Determines if invalid characters are present in an element id string
 {
     const char *invalid_chars = " \";";
 
+    // if invalid char is present a pointer to it is returned else NULL
     if (strpbrk(element_id, invalid_chars))
         return false;
     else

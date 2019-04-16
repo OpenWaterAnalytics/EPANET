@@ -147,4 +147,20 @@ BOOST_FIXTURE_TEST_CASE(test_pattern_comments, FixtureOpenClose)
     BOOST_CHECK(check_string(comment, (char *)"Time Pattern 1"));
 }
 
+BOOST_FIXTURE_TEST_CASE(test_pat_isvalid_id, FixtureInitClose)
+{
+    error = EN_addpattern(ph, "P1");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_addpattern(ph, "P 2");
+    BOOST_REQUIRE(error == 250);
+
+    error = EN_addpattern(ph, "P\"2");
+    BOOST_REQUIRE(error == 250);
+
+    error = EN_addpattern(ph, "P;2");
+    BOOST_REQUIRE(error == 250);
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()

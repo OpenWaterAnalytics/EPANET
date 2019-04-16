@@ -30,6 +30,8 @@
 #include "text.h"
 #include "enumstxt.h"
 
+#include "util/cstr_helper.h"
+
 #ifdef _WIN32
 #define snprintf _snprintf
 #endif
@@ -1731,6 +1733,9 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
     if (!p->Openflag) return 102;
     if (hyd->OpenHflag || qual->OpenQflag) return 262;
 
+    // Check if id contains invalid characters
+    if (!cstr_isvalid(id)) return 250;
+
     // Check if a node with same id already exists
     if (EN_getnodeindex(p, id, &i) == 0) return 215;
 
@@ -2939,6 +2944,9 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     if (!p->Openflag) return 102;
     if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
 
+    // Check if id contains invalid characters
+    if (!cstr_isvalid(id)) return 250;
+
     // Check if a link with same id already exists
     if (EN_getlinkindex(p, id, &i) == 0) return 215;
 
@@ -3951,6 +3959,9 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
     if (!p->Openflag) return 102;
     if (EN_getpatternindex(p, id, &i) == 0) return 215;
 
+    // Check is id name contains invalid characters
+    if (!cstr_isvalid(id)) return 250;
+
     // Check that id name is not too long
     if (strlen(id) > MAXID) return 250;
 
@@ -4218,6 +4229,9 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
     // Check if a curve with same id already exists
     if (!p->Openflag) return 102;
     if (EN_getcurveindex(p, id, &i) == 0) return 215;
+
+    // Check is id name contains invalid characters
+    if (!cstr_isvalid(id)) return 250;
 
     // Check that id name is not too long
     if (strlen(id) > MAXID) return 250;
