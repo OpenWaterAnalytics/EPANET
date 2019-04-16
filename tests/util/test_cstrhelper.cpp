@@ -17,10 +17,32 @@
 #include "util/cstr_helper.h"
 
 
+boost::test_tools::predicate_result check_string(std::string test, std::string ref)
+{
+    if (ref.compare(test) == 0)
+        return true;
+    else
+        return false;
+}
+
+
 BOOST_AUTO_TEST_SUITE(test_cstrhelper)
 
 
-BOOST_AUTO_TEST_CASE(test_validate_id){
+BOOST_AUTO_TEST_CASE(test_duplicate) {
+    char source[] = "I will be rewarded for good behavior.";
+    char *dest = NULL;
+
+    cstr_duplicate(&dest, source);
+    BOOST_CHECK(check_string(dest, source));
+    BOOST_CHECK(cstr_isnullterm(dest) == true);
+
+    free(dest);
+    free(source);
+}
+
+
+BOOST_AUTO_TEST_CASE(test_validate_id) {
 
     BOOST_CHECK(cstr_validate_id("big tank") == false);
     BOOST_CHECK(cstr_validate_id("big\"tank") == false);

@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 
-int cstr_copy(const char *source, char **destination);
+int cstr_duplicate(char **dest, const char *source);
 
 bool cstr_validate_id(const char *element_id);
 

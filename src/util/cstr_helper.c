@@ -17,13 +17,10 @@
 #include "cstr_helper.h"
 
 
-int cstr_copy(const char *source, char **dest)
-// Determines length, allocates memory, and returns a null terminated copy
-// Be Aware: caller is responsible for freeing memory
+int cstr_duplicate(char **dest, const char *source)
+// Duplicates source string
 {
-    size_t size;
-
-    size = 1 + strlen(source);
+    size_t size = 1 + strlen(source);
     *dest = (char *) calloc(size, sizeof(char));
 
     if (*dest == NULL)
