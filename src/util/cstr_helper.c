@@ -27,9 +27,9 @@ int cstr_duplicate(char **dest, const char *source)
         return -1;
     else {
 #ifdef _MSC_VER
-		strncpy_s(*dest, size, source, size);
+        strncpy_s(*dest, size, source, size);
 #else
-		strncpy(*dest, source, size);
+        strncpy(*dest, source, size);
 #endif
     }
     return 0;
