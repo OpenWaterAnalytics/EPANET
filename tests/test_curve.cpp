@@ -71,20 +71,20 @@ BOOST_FIXTURE_TEST_CASE(test_curve_id_isvalid, FixtureInitClose)
 {
     int index;
 
-    error = EN_addcurve(ph, "C1");
+    error = EN_addcurve(ph, (char *)"C1");
     BOOST_REQUIRE(error == 0);
 
-    error = EN_addcurve(ph, "C 2");
+    error = EN_addcurve(ph, (char *)"C 2");
     BOOST_REQUIRE(error == 250);
 
-    error = EN_addcurve(ph, "C\"2");
+    error = EN_addcurve(ph, (char *)"C\"2");
     BOOST_REQUIRE(error == 250);
 
-    error = EN_addcurve(ph, "C;2");
+    error = EN_addcurve(ph, (char *)"C;2");
     BOOST_REQUIRE(error == 250);
 
-    EN_getcurveindex(ph, "C1", &index);
-    error = EN_setcurveid(ph, index, "C;2");
+    EN_getcurveindex(ph, (char *)"C1", &index);
+    error = EN_setcurveid(ph, index, (char *)"C;2");
     BOOST_REQUIRE(error == 250);
 }
 
