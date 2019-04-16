@@ -63,7 +63,7 @@ int get_filename(file_handle_t *file_handle, char **filename)
 // BE AWARE: The memory allocated here must be freed by the caller
 //
 {
-    return copy_cstr(file_handle->filename, filename);
+    return cstr_copy(file_handle->filename, filename);
 }
 
 
@@ -73,7 +73,7 @@ int open_file(file_handle_t *file_handle, const char *filename, const char *file
     if (filename == NULL)
         _get_temp_filename(&(file_handle->filename));
     else
-        copy_cstr(filename, &(file_handle->filename));
+        cstr_copy(filename, &(file_handle->filename));
 
     if (file_mode == NULL)
         error = -1;
@@ -156,7 +156,7 @@ int remove_file(file_handle_t *file_handle) {
 bool is_valid(file_handle_t *file_handle)
 {
 	if ((file_handle->filename == NULL && file_handle->file == NULL) ||
-		(isnullterm_cstr(file_handle->filename) && file_handle != NULL))
+		(cstr_isnullterm(file_handle->filename) && file_handle != NULL))
 		return true;
 	else
 		return false;
@@ -195,7 +195,7 @@ int _get_temp_filename(char **tempname)
         return error;
     }
     else
-        copy_cstr(name, tempname);
+        cstr_copy(name, tempname);
 
     // --- free the pointer returned by _tempnam
     if (name)
@@ -204,7 +204,7 @@ int _get_temp_filename(char **tempname)
     // --- for non-Windows systems:
 #else
     // --- use system function mkstemp() to create a temporary file name
-    copy_cstr("enXXXXXX", tempname);
+    cstr_copy("enXXXXXX", tempname);
     error = mkstemp(*tempname);
 #endif
     return error;

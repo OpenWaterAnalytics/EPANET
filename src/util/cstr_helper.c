@@ -17,7 +17,7 @@
 #include "cstr_helper.h"
 
 
-int copy_cstr(const char *source, char **dest)
+int cstr_copy(const char *source, char **dest)
 // Determines length, allocates memory, and returns a null terminated copy
 // Be Aware: caller is responsible for freeing memory
 {
@@ -39,7 +39,20 @@ int copy_cstr(const char *source, char **dest)
 }
 
 
-bool isnullterm_cstr(const char *source)
+bool cstr_validate_id(const char *element_id)
+// Determines if invalid characters are present in an element id string
+{
+    const char *invalid_chars = " \";";
+
+    if (strpbrk(element_id, invalid_chars))
+        return false;
+    else
+        return true;
+}
+
+
+bool cstr_isnullterm(const char *source)
+// Determines if the string passed is null terminated or not
 {
 	if (strchr(source, '\0'))
 		return true;
