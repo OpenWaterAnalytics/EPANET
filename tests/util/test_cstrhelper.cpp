@@ -11,6 +11,8 @@
  ******************************************************************************
 */
 
+#include <string>
+
 #define BOOST_TEST_MODULE cstr_helper
 #include <boost/test/unit_test.hpp>
 
@@ -30,15 +32,15 @@ BOOST_AUTO_TEST_SUITE(test_cstrhelper)
 
 
 BOOST_AUTO_TEST_CASE(test_duplicate) {
-    char source[] = "I will be rewarded for good behavior.";
+
+    std::string source = "I will be rewarded for good behavior.";
     char *dest = NULL;
 
-    cstr_duplicate(&dest, source);
+    cstr_duplicate(&dest, source.c_str());
     BOOST_CHECK(check_string(dest, source));
     BOOST_CHECK(cstr_isnullterm(dest) == true);
 
     free(dest);
-    free(source);
 }
 
 
