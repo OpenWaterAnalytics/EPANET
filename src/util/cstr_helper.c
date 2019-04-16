@@ -51,8 +51,8 @@ bool cstr_validate_id(const char *element_id)
 bool cstr_isnullterm(const char *source)
 // Determines if the string passed is null terminated or not
 {
-	if (strchr(source, '\0'))
-		return true;
-	else
-		return false;
+    if (strchr(source, '\0'))
+        return true;
+    else
+        return false;
 }
