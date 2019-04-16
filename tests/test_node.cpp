@@ -49,17 +49,23 @@ BOOST_FIXTURE_TEST_CASE(test_adddelete_node, FixtureInitClose)
 
 BOOST_FIXTURE_TEST_CASE(test_node_validate_id, FixtureInitClose)
 {
+    int index;
+
     error = EN_addnode(ph, (char *)"N2", EN_JUNCTION);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_addnode(ph, (char *)"N 2", EN_JUNCTION);
+    error = EN_addnode(ph, (char *)"N 3", EN_JUNCTION);
     BOOST_REQUIRE(error == 250);
 
-    error = EN_addnode(ph, (char *)"N\"2", EN_JUNCTION);
+    error = EN_addnode(ph, (char *)"N\"3", EN_JUNCTION);
     BOOST_REQUIRE(error == 250);
 
-    error = EN_addnode(ph, (char *)"N;2", EN_JUNCTION);
+    error = EN_addnode(ph, (char *)"N;3", EN_JUNCTION);
     BOOST_REQUIRE(error == 250);
+
+    EN_getnodeindex(ph, "N2", &index);
+    error = EN_setnodeid(ph, index, "N;2");
+    BOOST_REQUIRE(error = 250);
 }
 
 

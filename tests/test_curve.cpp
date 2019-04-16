@@ -69,6 +69,8 @@ BOOST_FIXTURE_TEST_CASE(test_curve_comments, FixtureOpenClose)
 
 BOOST_FIXTURE_TEST_CASE(test_curve_id_isvalid, FixtureInitClose)
 {
+    int index;
+
     error = EN_addcurve(ph, "C1");
     BOOST_REQUIRE(error == 0);
 
@@ -79,6 +81,10 @@ BOOST_FIXTURE_TEST_CASE(test_curve_id_isvalid, FixtureInitClose)
     BOOST_REQUIRE(error == 250);
 
     error = EN_addcurve(ph, "C;2");
+    BOOST_REQUIRE(error == 250);
+
+    EN_getcurveindex(ph, "C1", &index);
+    error = EN_setcurveid(ph, index, "C;2");
     BOOST_REQUIRE(error == 250);
 }
 

@@ -55,8 +55,10 @@ BOOST_FIXTURE_TEST_CASE(test_adddelete_link, FixtureInitClose)
 
 }
 
-BOOST_FIXTURE_TEST_CASE(test_link_isvalid, FixtureInitClose)
+BOOST_FIXTURE_TEST_CASE(test_link_id_isvalid, FixtureInitClose)
 {
+    int index;
+
     // Build a network
     EN_addnode(ph, (char *)"N1", EN_JUNCTION);
     EN_addnode(ph, (char *)"N2", EN_JUNCTION);
@@ -72,6 +74,10 @@ BOOST_FIXTURE_TEST_CASE(test_link_isvalid, FixtureInitClose)
     BOOST_REQUIRE(error == 250);
 
     error = EN_addlink(ph, (char *)"L;2", EN_PIPE, (char *)"N1", (char *)"N2");
+    BOOST_REQUIRE(error == 250);
+
+    EN_getlinkindex(ph, "L1", &index);
+    error = EN_setlinkid(ph, index, "L;1");
     BOOST_REQUIRE(error == 250);
 }
 
