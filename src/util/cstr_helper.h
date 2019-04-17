@@ -23,10 +23,20 @@ extern "C" {
 #endif
 
 
+/**
+@brief Duplicates the source string and returns a null terminated copy.
+*/
 int cstr_duplicate(char **dest, const char *source);
 
+/**
+@brief Checks if an element_id contains invalid characters. Returns true if
+element_id is valid and false if it is not.
+*/
 bool cstr_isvalid(const char *element_id);
 
+/**
+@brief Returns true if source is null terminated, otherwise it returns false.
+*/
 bool cstr_isnullterm(const char *source);
 
 

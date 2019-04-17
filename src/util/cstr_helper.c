@@ -19,6 +19,7 @@
 
 int cstr_duplicate(char **dest, const char *source)
 // Duplicates source string
+// Be advised: Caller is responsible for freeing dest string
 {
     size_t size = 1 + strlen(source);
     *dest = (char *) calloc(size, sizeof(char));
