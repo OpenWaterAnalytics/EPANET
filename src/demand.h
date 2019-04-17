@@ -3,7 +3,7 @@
  Project:      OWA EPANET
  Version:      2.2
  Module:       demand.h
- Description:  demand pattern list
+ Description:  data for demand pattern list
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
@@ -30,19 +30,21 @@ void delete_demand_data(void *data);
 
 size_t get_demand_data_size(void);
 
-demand_data_t *get_demand_data(list_node_t *lnode);
-
 
 bool convert_units(list_node_t *lnode, double unit_conversion);
 
 
-double get_base_demand(demand_data_t *data);
+double get_base_demand(list_node_t *lnode);
+void set_base_demand(list_node_t *lnode, double base_demand);
 
-void set_base_demand(demand_data_t *data, double base_demand);
+int get_pattern_index(list_node_t *lnode);
+void set_pattern_index(list_node_t *lnode, int pattern_index);
 
-int get_pattern_index(demand_data_t *data);
+char *get_category_name(list_node_t *lnode);
+void set_category_name(list_node_t *lnode, char *category_name);
 
-char *get_category_name(demand_data_t *data);
+// Make this private? 
+demand_data_t *get_demand_data(list_node_t *lnode);
 
 
 #endif /* DEMAND_H */

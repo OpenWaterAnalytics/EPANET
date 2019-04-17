@@ -3,7 +3,7 @@
  Project:      OWA EPANET
  Version:      2.2
  Module:       demand.c
- Description:  demand pattern list
+ Description:  data for demand pattern list
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
@@ -25,12 +25,12 @@ typedef struct demand_data_s
 } demand_data_t;
 
 
-demand_data_t *create_demand_data(double base_demand, int pat_index, char *cat_name)
+demand_data_t *create_demand_data(double base_demand, int pattern_index, char *category_name)
 {
     demand_data_t *demand_data = (demand_data_t *)malloc(sizeof(demand_data_t));
 
     demand_data->base_demand = base_demand;
-    demand_data->pattern_index = pat_index;
+    demand_data->pattern_index = pattern_index;
 
     if (cat_name)
         demand_data->category_name = strdup(cat_name);
@@ -72,20 +72,30 @@ bool convert_units(list_node_t *lnode, double unit_conversion)
 
 double get_base_demand(demand_data_t *data)
 {
-    return data->base_demand;
+	return get_demand_data(lnode)->base_demand;
 }
 
-void set_base_demand(demand_data_t *data, double base_demand)
+void set_base_demand(list_node_t *lnode, double base_demand)
 {
-	data->base_demand = base_demand;
+	get_demand_data(lnode)->base_demand = base_demand;
 }
 
-int get_pattern_index(demand_data_t *data)
+int get_pattern_index(list_node_t *lnode)
 {
-    return data->pattern_index;
+    return get_demand_data(lnode)->pattern_index;
 }
 
-char *get_category_name(demand_data_t *data)
+void set_pattern_index(list_node_t *lnode, int pattern_index)
 {
-    return data->category_name;
+	get_demand_data(lnode)->pattern_index = pattern_index;
+}
+
+char *get_category_name(list_node_t *lnode)
+{
+    return get_demand_data(lnode)->category_name;
+}
+
+void set_category_name(list_node_t *lnode, char *category_name)
+{
+	get_demand_data(lnode)->category_name = strdup(category_name);
 }

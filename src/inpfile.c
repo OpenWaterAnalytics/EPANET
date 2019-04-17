@@ -28,6 +28,8 @@ Last Updated: 04/03/2019
 #include "hash.h"
 #include "text.h"
 
+#include "demand.h"
+
 // Defined in enumstxt.h in EPANET.C
 extern char *LinkTxt[];
 extern char *FormTxt[];
@@ -137,7 +139,7 @@ int saveinpfile(Project *pr, const char *fname)
     int i, j, n;
     double d, kc, ke, km, ucf;
     char s[MAXLINE + 1], s1[MAXLINE + 1], s2[MAXLINE + 1];
-    Pdemand demand;
+    //Pdemand demand;
     Psource source;
     FILE *f;
     Slink *link;
@@ -329,17 +331,23 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, "\n\n");
     fprintf(f, s_DEMANDS);
     ucf = pr->Ucf[DEMAND];
-    for (i = 1; i <= net->Njuncs; i++)
+
+	list_t *dlist;
+	list_node_t *lnode;
+
+	for (i = 1; i <= net->Njuncs; i++)
     {
         node = &net->Node[i];
-        for (demand = node->D; demand != NULL; demand = demand->next)
-        {
-            sprintf(s, " %-31s %14.6f", node->ID, ucf * demand->Base);
-            if ((j = demand->Pat) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
-            else strcpy(s1, " ");
-            fprintf(f, "\n%s %-31s", s, s1);
-            if (demand->Name) fprintf(f, " ;%s", demand->Name);
-        }
+		if (dlist = node->D) {
+			for (lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode)) {
+
+				sprintf(s, " %-31s %14.6f", node->ID, ucf * get_base_demand(lnode));
+				if ((j = get_pattern_index(lnode)) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
+				else strcpy(s1, " ");
+				fprintf(f, "\n%s %-31s", s, s1);
+				if (get_category_name(lnode)) fprintf(f, " ;%s", get_category_name(lnode));
+			}
+		}
     }
 
     // Write [EMITTERS] section

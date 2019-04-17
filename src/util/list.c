@@ -108,8 +108,9 @@ void for_each_list(list_t *list, listIterator iterator)
 
     list_node_t *node = list->head;
     bool result = true;
-    while(node != NULL && result) {
-        result = iterator(node);
+
+	while(node != NULL && result) {
+		result = (iterator);
         node = node->next;
     }
 }
@@ -120,20 +121,35 @@ list_node_t *head_list(list_t *list, bool removeFromList)
 //
 {
     assert(list->head != NULL);
-
-    list_node_t *node = list->head;
-    if(removeFromList) {
-        // Disconnecting head node
-        list->head = node->next;
-        list->logicalLength--;
+	
+	if (list) {
+		list_node_t *node = list->head;
+		if (removeFromList) {
+			// Disconnecting head node
+			list->head = node->next;
+			list->logicalLength--;
+		}
+		return node;
     }
-    return node;
+    return NULL;
 }
 
 list_node_t *tail_list(list_t *list)
 {
     assert(list->tail != NULL);
     return list->tail;
+}
+
+list_node_t *get_nth_list(list_t *list, int index)
+{	
+	int n;
+	list_node_t *lnode;
+
+	for (n = 1, lnode = first_list(list); n < index && done_list(lnode); n++, lnode = next_list(lnode));
+	if (n != index)
+		return NULL;
+	else
+		return lnode;
 }
 
 int size_list(list_t *list)
@@ -146,6 +162,11 @@ void *get_data(list_node_t *lnode)
     return lnode->data;
 }
 
+list_node_t *get_next(list_node_t *lnode)
+{
+	return lnode->next;
+}
+
 void delete_node(list_t *list, list_node_t *lnode)
 {
     if (list->freeFn)
@@ -153,30 +174,4 @@ void delete_node(list_t *list, list_node_t *lnode)
 
     free(lnode->data);
     free(lnode);
-}
-
-//
-// Iterator first/done/next operations provide containment for list abstraction
-// http://www.cs.yale.edu/homes/aspnes/pinewiki/C(2f)Iterators.html
-// Accessed on April 11, 2019
-//
-list_node_t *first_list(list_t *list)
-{
-	if (list)
-		return list->head;
-	else
-		return NULL;
-}
-
-bool done_list(list_node_t *lnode)
-{
-    return lnode != NULL;
-}
-
-list_node_t *next_list(list_node_t *lnode)
-{   
-	if (lnode)
-		return lnode->next;
-	else
-		return NULL;
 }

@@ -63,8 +63,9 @@ BOOST_AUTO_TEST_CASE(test_int_list){
         append_list(list, &i);
     }
     BOOST_CHECK(size_list(list) == 10);
-
-    for_each_list(list, iterate_int);
+	
+	listIterator iterator = (listIterator)iterate_int;
+    for_each_list(list, iterator);
 
     delete_list(list);
 }
@@ -111,7 +112,8 @@ BOOST_FIXTURE_TEST_CASE(test_string_list, FixtureStrings) {
 
     BOOST_CHECK(size_list(list) == 5);
 
-    for_each_list(list, iterate_string);
+	listIterator iterator = (listIterator)iterate_string;
+	for_each_list(list, iterator);
 }
 
 
@@ -196,7 +198,8 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
 
     BOOST_CHECK(size_list(list) == 3);
 
-    for_each_list(list, iterate_test_data);
+	listIterator iterator = (listIterator)iterate_test_data;
+    for_each_list(list, iterator);
 
 
     list_node_t *lnode;

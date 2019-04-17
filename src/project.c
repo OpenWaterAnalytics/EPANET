@@ -29,6 +29,8 @@
 #include "types.h"
 #include "funcs.h"
 
+#include "demand.h"
+
 int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
 /*----------------------------------------------------------------
 **  Input:   f1 = pointer to name of input file
@@ -385,7 +387,7 @@ void freedata(Project *pr)
 */
 {
     int j;
-    Pdemand demand, nextdemand;
+    //Pdemand demand, nextdemand;
 
     // Free memory for computed results
     free(pr->hydraul.NodeDemand);
@@ -404,14 +406,15 @@ void freedata(Project *pr)
         for (j = 1; j <= pr->parser.MaxNodes; j++)
         {
             // Free memory used for demand category list
-            demand = pr->network.Node[j].D;
-            while (demand != NULL)
+			list_t *demand = pr->network.Node[j].D;
+			delete_list(demand);
+            /*while (demand != NULL)
             {
                 nextdemand = demand->next;
                 free(demand->Name);
                 free(demand);
                 demand = nextdemand;
-            }
+            }*/
             // Free memory used for WQ source data
             free(pr->network.Node[j].S);
             free(pr->network.Node[j].Comment);
@@ -788,9 +791,19 @@ void adjustpattern(int *pat, int index)
 **----------------------------------------------------------------
 */
 {
-    if (*pat == index) *pat = 0;
-    else if (*pat > index) (*pat)--;
+	if (*pat == index) *pat = 0;
+	else if (*pat > index) (*pat)--;
 }
+
+
+void _adjustpattern(list_node_t *lnode, int index)
+{	
+	int pat = get_pattern_index(lnode);
+
+	if (pat == index) set_pattern_index(lnode, 0);
+	else if (pat > index) set_pattern_index(lnode, pat--);
+}
+
 
 void adjustpatterns(Network *network, int index)
 /*----------------------------------------------------------------
@@ -801,17 +814,19 @@ void adjustpatterns(Network *network, int index)
 */
 {
     int j;
-    Pdemand demand;
+    //Pdemand demand;
     Psource source;
 
     // Adjust patterns used by junctions
     for (j = 1; j <= network->Njuncs; j++)
     {
         // Adjust demand patterns
-        for (demand = network->Node[j].D; demand != NULL; demand = demand->next)
-        {
-            adjustpattern(&demand->Pat, index);
-        }
+		list_t *dlist = network->Node[j].D;
+		list_node_t *lnode;
+		
+        for (lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
+            _adjustpattern(lnode, index);
+
         // Adjust WQ source patterns
         source = network->Node[j].S;
         if (source) adjustpattern(&source->Pat, index);

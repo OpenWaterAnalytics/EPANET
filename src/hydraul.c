@@ -27,6 +27,9 @@
 #include "funcs.h"
 #include "text.h"
 
+#include "demand.h"
+
+
 const double QZERO = 1.e-6;  // Equivalent to zero flow in cfs
 
 // Imported functions
@@ -553,7 +556,7 @@ void  demands(Project *pr)
     int  i ,j, n;
     long k, p;
     double djunc, sum;
-    Pdemand demand;
+//    Pdemand demand;
 
     // Determine total elapsed number of pattern periods
     p = (time->Htime + time->Pstart) / time->Pstep;
@@ -563,12 +566,14 @@ void  demands(Project *pr)
     for (i = 1; i <= net->Njuncs; i++)
     {
         sum = 0.0;
-        for (demand = net->Node[i].D; demand != NULL; demand = demand->next)
+		list_t *dlist = net->Node[i].D;
+		list_node_t *lnode;
+		for (lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
         {
             // pattern period (k) = (elapsed periods) modulus (periods per pattern)
-            j = demand->Pat;
+			j = get_pattern_index(lnode);
             k = p % (long) net->Pattern[j].Length;
-            djunc = (demand->Base) * net->Pattern[j].F[k] * hyd->Dmult;
+            djunc = (get_base_demand(lnode)) * net->Pattern[j].F[k] * hyd->Dmult;
             if (djunc > 0.0) hyd->Dsystem += djunc;
             sum += djunc;
         }
