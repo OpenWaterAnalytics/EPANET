@@ -68,17 +68,17 @@ BOOST_FIXTURE_TEST_CASE(test_link_id_isvalid, FixtureInitClose)
     BOOST_REQUIRE(error == 0);
 
     error = EN_addlink(ph, (char *)"L 2", EN_PIPE, (char *)"N1", (char *)"N2");
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 
     error = EN_addlink(ph, (char *)"L\"2", EN_PIPE, (char *)"N1", (char *)"N2");
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 
     error = EN_addlink(ph, (char *)"L;2", EN_PIPE, (char *)"N1", (char *)"N2");
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 
     EN_getlinkindex(ph, (char *)"L1", &index);
     error = EN_setlinkid(ph, index, (char *)"L;1");
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 }
 
 BOOST_AUTO_TEST_CASE(test_setlinktype)

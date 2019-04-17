@@ -55,17 +55,17 @@ BOOST_FIXTURE_TEST_CASE(test_node_validate_id, FixtureInitClose)
     BOOST_REQUIRE(error == 0);
 
     error = EN_addnode(ph, (char *)"N 3", EN_JUNCTION);
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 
     error = EN_addnode(ph, (char *)"N\"3", EN_JUNCTION);
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 
     error = EN_addnode(ph, (char *)"N;3", EN_JUNCTION);
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 
     EN_getnodeindex(ph, (char *)"N2", &index);
     error = EN_setnodeid(ph, index, (char *)"N;2");
-    BOOST_REQUIRE(error = 250);
+    BOOST_REQUIRE(error = 252);
 }
 
 

@@ -1734,7 +1734,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
     if (hyd->OpenHflag || qual->OpenQflag) return 262;
 
     // Check if id contains invalid characters
-    if (!cstr_isvalid(id)) return 250;
+    if (!cstr_isvalid(id)) return 252;
 
     // Check if a node with same id already exists
     if (EN_getnodeindex(p, id, &i) == 0) return 215;
@@ -2021,7 +2021,7 @@ int DLLEXPORT EN_setnodeid(EN_Project p, int index, char *newid)
     if (index <= 0 || index > net->Nnodes) return 203;
     n = strlen(newid);
     if (n < 1 || n > MAXID) return 209;
-    if (!cstr_isvalid(newid)) return 250;
+    if (!cstr_isvalid(newid)) return 252;
 
     // Check if another node with same name exists
     if (hashtable_find(net->NodeHashTable, newid) > 0) return 215;
@@ -2945,7 +2945,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
 
     // Check if id contains invalid characters
-    if (!cstr_isvalid(id)) return 250;
+    if (!cstr_isvalid(id)) return 252;
 
     // Check if a link with same id already exists
     if (EN_getlinkindex(p, id, &i) == 0) return 215;
@@ -3208,7 +3208,7 @@ int DLLEXPORT EN_setlinkid(EN_Project p, int index, char *newid)
     if (index <= 0 || index > net->Nlinks) return 204;
     n = strlen(newid);
     if (n < 1 || n > MAXID) return 211;
-    if (!cstr_isvalid(newid)) return 250;
+    if (!cstr_isvalid(newid)) return 252;
 
     // Check if another link with same name exists
     if (hashtable_find(net->LinkHashTable, newid) > 0) return 215;
@@ -3960,7 +3960,7 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
     if (EN_getpatternindex(p, id, &i) == 0) return 215;
 
     // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 250;
+    if (!cstr_isvalid(id)) return 252;
 
     // Check that id name is not too long
     if (strlen(id) > MAXID) return 250;
@@ -4087,7 +4087,7 @@ int DLLEXPORT EN_setpatternid(EN_Project p, int index, char *id)
     if (index < 1 || index > p->network.Npats) return 205;
 
     // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 250;
+    if (!cstr_isvalid(id)) return 252;
 
     if (strlen(id) > MAXID) return 250;
 
@@ -4236,7 +4236,7 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
     if (EN_getcurveindex(p, id, &i) == 0) return 215;
 
     // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 250;
+    if (!cstr_isvalid(id)) return 252;
 
     // Check that id name is not too long
     if (strlen(id) > MAXID) return 250;
@@ -4359,8 +4359,8 @@ int DLLEXPORT EN_setcurveid(EN_Project p, int index, char *id)
     if (index < 1 || index > p->network.Ncurves) return 205;
 
     // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 250;
-    
+    if (!cstr_isvalid(id)) return 252;
+
     if (strlen(id) > MAXID) return 250;
     for (i = 1; i <= p->network.Ncurves; i++)
     {

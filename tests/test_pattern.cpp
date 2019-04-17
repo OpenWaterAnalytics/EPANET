@@ -155,17 +155,17 @@ BOOST_FIXTURE_TEST_CASE(test_pat_id_isvalid, FixtureInitClose)
     BOOST_REQUIRE(error == 0);
 
     error = EN_addpattern(ph, (char *)"P 2");
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 
     error = EN_addpattern(ph, (char *)"P\"2");
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 
     error = EN_addpattern(ph, (char *)"P;2");
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 
     EN_getpatternindex(ph, (char *)"P1", &index);
     error = EN_setpatternid(ph, index, (char *)"P;1");
-    BOOST_REQUIRE(error == 250);
+    BOOST_REQUIRE(error == 252);
 
 }
 
