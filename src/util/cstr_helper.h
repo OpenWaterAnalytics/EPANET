@@ -18,8 +18,21 @@
 #include <stdbool.h>
 
 
-int copy_cstr(const char *source, char **destination);
-bool isnullterm_cstr(const char *source);
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+
+int cstr_duplicate(char **dest, const char *source);
+
+bool cstr_isvalid(const char *element_id);
+
+bool cstr_isnullterm(const char *source);
+
+
+#if defined(__cplusplus)
+}
+#endif
 
 
 #endif /* CSTR_HELPER_H_ */

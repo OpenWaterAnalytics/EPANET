@@ -66,4 +66,27 @@ BOOST_FIXTURE_TEST_CASE(test_curve_comments, FixtureOpenClose)
     }
 }
 
+
+BOOST_FIXTURE_TEST_CASE(test_curve_id_isvalid, FixtureInitClose)
+{
+    int index;
+
+    error = EN_addcurve(ph, (char *)"C1");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_addcurve(ph, (char *)"C 2");
+    BOOST_REQUIRE(error == 252);
+
+    error = EN_addcurve(ph, (char *)"C\"2");
+    BOOST_REQUIRE(error == 252);
+
+    error = EN_addcurve(ph, (char *)"C;2");
+    BOOST_REQUIRE(error == 252);
+
+    EN_getcurveindex(ph, (char *)"C1", &index);
+    error = EN_setcurveid(ph, index, (char *)"C;2");
+    BOOST_REQUIRE(error == 252);
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()
