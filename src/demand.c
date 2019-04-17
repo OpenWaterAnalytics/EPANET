@@ -32,10 +32,10 @@ demand_data_t *create_demand_data(double base_demand, int pattern_index, char *c
     demand_data->base_demand = base_demand;
     demand_data->pattern_index = pattern_index;
 
-    if (cat_name)
-        demand_data->category_name = strdup(cat_name);
+    if (category_name)
+        demand_data->category_name = strdup(category_name);
     else
-        demand_data->category_name = NULL;
+        demand_data->category_name[0] = '\0';
 
     return demand_data;
 }
@@ -63,14 +63,14 @@ demand_data_t *get_demand_data(list_node_t *lnode)
 
 bool convert_units(list_node_t *lnode, double unit_conversion)
 {
-	demand_data_t *demand_data = get_demand_data(lnode);
-	double base_demand = get_base_demand(demand_data);
+	double base_demand = get_base_demand(lnode);
 
-	set_base_demand(demand_data, base_demand/unit_conversion);
+	set_base_demand(lnode, base_demand/unit_conversion);
+	return true;
 }
 
 
-double get_base_demand(demand_data_t *data)
+double get_base_demand(list_node_t *lnode)
 {
 	return get_demand_data(lnode)->base_demand;
 }
