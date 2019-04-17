@@ -17,32 +17,43 @@
 #include "cstr_helper.h"
 
 
-int copy_cstr(const char *source, char **dest)
-// Determines length, allocates memory, and returns a null terminated copy
-// Be Aware: caller is responsible for freeing memory
+int cstr_duplicate(char **dest, const char *source)
+// Duplicates source string
 {
-    size_t size;
-
-    size = 1 + strlen(source);
+    size_t size = 1 + strlen(source);
     *dest = (char *) calloc(size, sizeof(char));
 
     if (*dest == NULL)
         return -1;
     else {
 #ifdef _MSC_VER
-		strncpy_s(*dest, size, source, size);
+        strncpy_s(*dest, size, source, size);
 #else
-		strncpy(*dest, source, size);
+        strncpy(*dest, source, size);
 #endif
     }
     return 0;
 }
 
 
-bool isnullterm_cstr(const char *source)
+bool cstr_isvalid(const char *element_id)
+// Determines if invalid characters are present in an element id string
 {
-	if (strchr(source, '\0'))
-		return true;
-	else
-		return false;
+    const char *invalid_chars = " \";";
+
+    // if invalid char is present a pointer to it is returned else NULL
+    if (strpbrk(element_id, invalid_chars))
+        return false;
+    else
+        return true;
+}
+
+
+bool cstr_isnullterm(const char *source)
+// Determines if the string passed is null terminated or not
+{
+    if (strchr(source, '\0'))
+        return true;
+    else
+        return false;
 }

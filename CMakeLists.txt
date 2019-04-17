@@ -83,8 +83,8 @@ ENDIF (MSVC)
 
 
 # configure file groups
-file(GLOB EPANET_SOURCES RELATIVE ${PROJECT_SOURCE_DIR} src/*.c src/util/list.c)
-file(GLOB EPANET_LIB_ALL RELATIVE ${PROJECT_SOURCE_DIR} src/* src/util/list.*)
+file(GLOB EPANET_SOURCES RELATIVE ${PROJECT_SOURCE_DIR} src/*.c src/util/*.c)
+file(GLOB EPANET_LIB_ALL RELATIVE ${PROJECT_SOURCE_DIR} src/* src/util/*)
 # exclude epanet python API from the default build
 list(REMOVE_ITEM EPANET_LIB_ALL "src/epanet_py.c")
 source_group("Library" FILES ${EPANET_LIB_ALL})
