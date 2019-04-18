@@ -17,9 +17,122 @@
 #include "demand.h"
 
 
-BOOST_AUTO_TEST_SUITE(test_filemanager)
+boost::test_tools::predicate_result check_string(std::string test, std::string ref)
+{
+	if (ref.compare(test) == 0)
+		return true;
+	else
+		return false;
+}
 
 
+BOOST_AUTO_TEST_SUITE(test_demand_data)
+
+
+BOOST_AUTO_TEST_CASE (test_create_destroy)
+{
+    void *data = NULL;
+
+    data = create_demand_data(100.0, 1, NULL);
+    BOOST_CHECK(data != NULL);
+
+    delete_demand_data(&data);
+
+	data = NULL;
+
+	data = create_demand_data(100.0, 1, "CUB_SCOUT_BASE_CAMP");
+	BOOST_CHECK(data != NULL);
+
+	delete_demand_data(&data);
+}
+
+BOOST_AUTO_TEST_CASE(test_get_size)
+{
+	size_t size = get_demand_data_size();
+	BOOST_CHECK(size == 8);
+}
+
+
+struct Fixture {
+	Fixture() {
+		_data = NULL;
+		dlist = NULL;
+
+		dlist = create_list(get_demand_data_size(), delete_demand_data);
+		_data = create_demand_data(100.0, 1, "CUB_SCOUT_BASE_CAMP");
+		
+		append_list(dlist, &_data);
+
+	}
+	~Fixture() {
+		delete_list(dlist);
+	}
+	void *_data;
+	list_t *dlist;
+};
+
+BOOST_FIXTURE_TEST_CASE(test_demand_list, Fixture)
+{
+	list_node_t *lnode = head_list(dlist, false);
+	BOOST_CHECK(lnode != NULL);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_demand_getset, Fixture)
+{
+	list_node_t *lnode = head_list(dlist, false);
+	double demand;
+
+	demand = get_base_demand(lnode);
+	BOOST_CHECK(demand == 100.0);
+
+	set_base_demand(lnode, 200.0);
+
+	demand = get_base_demand(lnode);
+	BOOST_CHECK(demand == 200.0);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_pattern_getset, Fixture)
+{
+	list_node_t *lnode = head_list(dlist, false);
+	int index;
+
+	index = get_pattern_index(lnode);
+	BOOST_CHECK(index == 1);
+
+	set_pattern_index(lnode, 2);
+
+	index = get_pattern_index(lnode);
+	BOOST_CHECK(index == 2);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_category_getset, Fixture)
+{
+	list_node_t *lnode = head_list(dlist, false);
+	char *name;
+
+	name = get_category_name(lnode);
+	BOOST_CHECK(check_string(name, "CUB_SCOUT_BASE_CAMP"));
+
+	free(name);
+
+	set_category_name(lnode, "CUB_SCOUT_COMMAND");
+
+	name = get_category_name(lnode);
+	BOOST_CHECK(check_string(name, "CUB_SCOUT_COMMAND"));
+
+	free(name);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_convert_demand, Fixture)
+{
+	list_node_t *lnode = head_list(dlist, false);
+	BOOST_CHECK(lnode != NULL);
+	
+	// 100.0 GPM == 6.31 LPS
+	convert_units(lnode, 15.850);
+	double demand = get_base_demand(lnode);
+	BOOST_TEST(demand == 6.31, boost::test_tools::tolerance(0.01));
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -18,6 +18,11 @@
 #include "util/list.h"
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 // Forward declarations
 typedef struct demand_data_s demand_data_t;
 
@@ -43,8 +48,13 @@ void set_pattern_index(list_node_t *lnode, int pattern_index);
 char *get_category_name(list_node_t *lnode);
 void set_category_name(list_node_t *lnode, char *category_name);
 
-// Make this private? 
+// Make this private?
 demand_data_t *get_demand_data(list_node_t *lnode);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* DEMAND_H */
