@@ -181,7 +181,6 @@ struct FixtureOpenClose {
 	EN_Project ph;
 };
 
-
 BOOST_FIXTURE_TEST_CASE(test_demandname_getset, FixtureOpenClose)
 {
 	int Nindex, ndem;
@@ -204,6 +203,45 @@ BOOST_FIXTURE_TEST_CASE(test_demandname_getset, FixtureOpenClose)
 	error = EN_getdemandname(ph, Nindex, ndem, demname);
 	BOOST_REQUIRE(error == 0);
 	BOOST_CHECK(check_string(demname, "Demand category name"));
+}
+
+BOOST_FIXTURE_TEST_CASE(test_demandpattern_get, FixtureOpenClose)
+{
+	int n, patIdx;
+
+	error = EN_getdemandpattern(ph, 3, 1, &patIdx);
+	BOOST_REQUIRE(error == 0);
+
+	error = EN_getpatternlen(ph, patIdx, &n);
+	BOOST_REQUIRE(error == 0);
+	
+	BOOST_CHECK(n == 12);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_demandpattern_getset, FixtureOpenClose)
+{
+	int n, patIdx;
+
+	double f3[] = { 3.1, 3.2, 3.3, 3.4 };
+
+	// Create pattern
+	error = EN_addpattern(ph, (char *)"Pat3");
+	BOOST_REQUIRE(error == 0);
+
+	error = EN_setpattern(ph, 3, f3, 4);
+	BOOST_REQUIRE(error == 0);
+	
+	// Assign Pat3 to 3rd junction
+	error = EN_setdemandpattern(ph, 3, 1, 3);
+	BOOST_REQUIRE(error == 0);
+
+
+	error = EN_getdemandpattern(ph, 3, 1, &patIdx);
+	BOOST_REQUIRE(error == 0);
+	
+	error = EN_getpatternlen(ph, patIdx, &n);
+	BOOST_REQUIRE(error == 0);
+	BOOST_CHECK(n == 4);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
