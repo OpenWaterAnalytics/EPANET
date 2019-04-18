@@ -158,4 +158,52 @@ BOOST_AUTO_TEST_CASE(test_openclose)
 }
 
 
+#define DATA_PATH_NET1 "./net1.inp"
+#define DATA_PATH_TMP "./tmp.inp"
+#define DATA_PATH_RPT "./test.rpt"
+#define DATA_PATH_OUT "./test.out"
+
+struct FixtureOpenClose {
+	FixtureOpenClose() {
+		error = 0;
+		ph = NULL;
+
+		EN_createproject(&ph);
+		error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
+	}
+
+	~FixtureOpenClose() {
+		error = EN_close(ph);
+		EN_deleteproject(&ph);
+	}
+
+	int error;
+	EN_Project ph;
+};
+
+
+BOOST_FIXTURE_TEST_CASE(test_demandname_getset, FixtureOpenClose)
+{
+	int Nindex, ndem;
+
+	error = EN_getnodeindex(ph, (char *)"12", &Nindex);
+	BOOST_REQUIRE(error == 0);
+	error = EN_getnumdemands(ph, Nindex, &ndem);
+	BOOST_REQUIRE(error == 0);
+	BOOST_CHECK(ndem == 1);
+
+	char demname[31];
+
+	error = EN_getdemandname(ph, Nindex, ndem, demname);
+	BOOST_REQUIRE(error == 0);
+	BOOST_CHECK(check_string(demname, "\0"));
+
+	error = EN_setdemandname(ph, Nindex, ndem, (char *)"Demand category name");
+	BOOST_REQUIRE(error == 0);
+
+	error = EN_getdemandname(ph, Nindex, ndem, demname);
+	BOOST_REQUIRE(error == 0);
+	BOOST_CHECK(check_string(demname, "Demand category name"));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

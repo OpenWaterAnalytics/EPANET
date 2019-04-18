@@ -2758,10 +2758,10 @@ int DLLEXPORT EN_getnumdemands(EN_Project p, int nodeIndex, int *numDemands)
 
     // Count the number of demand categories
 	list_t *demand_list = p->network.Node[nodeIndex].D;
-	if (!demand_list) 
-        *numDemands = 0;
-	else 
-        *numDemands = size_list(demand_list);
+	if (demand_list)
+		*numDemands = size_list(demand_list);
+	else
+		*numDemands = 0;
 
     return 0;
 }
@@ -2842,6 +2842,7 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
 {
     //Pdemand d;
     //int n = 1;
+	char *temp = NULL;
 
     strcpy(demandName, "");
 
@@ -2855,14 +2856,18 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
 	if (!lnode)
 		return 253;
 	else
-		demandName = get_category_name(lnode);
+		temp = get_category_name(lnode);
 
     //for (d = p->network.Node[nodeIndex].D;
     //    n < demandIndex && d->next != NULL; d = d->next) n++;
     //if (n != demandIndex) return 253;
 
-    //if (d->Name) strcpy(demandName, d->Name);
-    //else demandName[0] = '\0';
+	if (temp) {
+		strcpy(demandName, temp);
+		//else demandName[0] = '\0';
+		free(temp);
+	}
+
     return 0;
 }
 
