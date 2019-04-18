@@ -70,7 +70,7 @@ BOOST_FIXTURE_TEST_CASE(test_link_id_isvalid, FixtureInitClose)
     error = EN_addlink(ph, (char *)"L 2", EN_PIPE, (char *)"N1", (char *)"N2", &index);
     BOOST_REQUIRE(error == 252);
 
-    error = EN_addlink(ph, (char *)"L\"2", EN_PIPE, (char *)"N1", (char *)"N2", &index);
+    error = EN_addlink(ph, (char *)"\"L2", EN_PIPE, (char *)"N1", (char *)"N2", &index);
     BOOST_REQUIRE(error == 252);
 
     error = EN_addlink(ph, (char *)"L;2", EN_PIPE, (char *)"N1", (char *)"N2", &index);

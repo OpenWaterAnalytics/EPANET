@@ -57,7 +57,7 @@ BOOST_FIXTURE_TEST_CASE(test_node_validate_id, FixtureInitClose)
     error = EN_addnode(ph, (char *)"N 3", EN_JUNCTION, &index);
     BOOST_REQUIRE(error == 252);
 
-    error = EN_addnode(ph, (char *)"N\"3", EN_JUNCTION, &index);
+    error = EN_addnode(ph, (char *)"\"N3", EN_JUNCTION, &index);
     BOOST_REQUIRE(error == 252);
 
     error = EN_addnode(ph, (char *)"N;3", EN_JUNCTION, &index);

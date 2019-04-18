@@ -996,7 +996,7 @@ int namevalid(const char *name)
 //----------------------------------------------------------------
 {
     size_t n = strlen(name);
-    if (n < 1 || n > MAXID || strpbrk(name, " \";")) return FALSE;
+    if (n < 1 || n > MAXID || strpbrk(name, " ;") || name[0] == '"') return FALSE;
     return TRUE;
 }
 
