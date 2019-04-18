@@ -326,10 +326,10 @@ int EXPORT_PY_API anlys_setqualtype(Handle ph, EN_QualityType qualcode, char *ch
 
 
 
-int EXPORT_PY_API node_add(Handle ph, char *id, EN_NodeType nodeType)
+int EXPORT_PY_API node_add(Handle ph, char *id, EN_NodeType nodeType, int *index)
 {
     handle_t *pr = (handle_t *)ph;
-    return set_error(pr->error, EN_addnode(pr->project, id, nodeType));
+    return set_error(pr->error, EN_addnode(pr->project, id, nodeType, index));
 }
 
 int EXPORT_PY_API node_delete(Handle ph, int index, int actionCode)
@@ -446,10 +446,10 @@ int EXPORT_PY_API dmnd_setname(Handle ph, int nodeIndex, int demandIdx, char *de
 
 
 
-int EXPORT_PY_API link_add(Handle ph, char *id, EN_LinkType linkType, char *fromNode, char *toNode)
+int EXPORT_PY_API link_add(Handle ph, char *id, EN_LinkType linkType, char *fromNode, char *toNode, int *index)
 {
     handle_t *pr = (handle_t *)ph;
-    return set_error(pr->error, EN_addlink(pr->project, id, linkType, fromNode, toNode));
+    return set_error(pr->error, EN_addlink(pr->project, id, linkType, fromNode, toNode, index));
 }
 
 int EXPORT_PY_API link_delete(Handle ph, int index, int actionCode)

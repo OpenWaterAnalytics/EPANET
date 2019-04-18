@@ -296,7 +296,7 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENsetqualtype Lib "epanet2.dll" (ByVal qualType As Int32, ByVal chemName As String, ByVal chemUnits As String, ByVal traceNode As String) As Int32
 
 'Node Functions
- Declare Function ENaddnode Lib "epanet2.dll" (ByVal id As String, ByVal nodeType As Int32) As Int32
+ Declare Function ENaddnode Lib "epanet2.dll" (ByVal id As String, ByVal nodeType As Int32, Index As Int32) As Int32
  Declare Function ENdeletenode Lib "epanet2.dll" (ByVal index As Int32, ByVal actionCode As Int32) As Int32
  Declare Function ENgetnodeindex Lib "epanet2.dll" (ByVal id As String, index As Int32) As Int32
  Declare Function ENgetnodeid Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String) As Int32
@@ -321,7 +321,7 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENsetdemandname Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32, ByVal demandName As String) As Int32
 
 'Link Functions
- Declare Function ENaddlink Lib "epanet2.dll" (ByVal id As String, ByVal linkType As Int32, ByVal fromNode As String, ByVal toNode As String) As Int32
+ Declare Function ENaddlink Lib "epanet2.dll" (ByVal id As String, ByVal linkType As Int32, ByVal fromNode As String, ByVal toNode As String, Index As Int32) As Int32
  Declare Function ENdeletelink Lib "epanet2.dll" (ByVal index As Int32, ByVal actionCode As Int32) As Int32
  Declare Function ENgetlinkindex Lib "epanet2.dll" (ByVal id As String, index As Int32) As Int32
  Declare Function ENgetlinkid Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String) As Int32

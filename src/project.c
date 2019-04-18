@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/03/2019
+ Last Updated: 04/18/2019
  ******************************************************************************
 */
 
@@ -986,6 +986,18 @@ int setcomment(Network *network, int object, int index, const char *newcomment)
 
     default: return 251;
     }
+}
+
+int namevalid(const char *name)
+//----------------------------------------------------------------
+//  Input:   name = name used to ID an object
+//  Output:  returns TRUE if name is valid, FALSE if not
+//  Purpose: checks that an object's ID name is valid.
+//----------------------------------------------------------------
+{
+    size_t n = strlen(name);
+    if (n < 1 || n > MAXID || strpbrk(name, " \";")) return FALSE;
+    return TRUE;
 }
 
 char *getTmpName(char *fname)

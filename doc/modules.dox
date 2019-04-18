@@ -141,7 +141,7 @@ These are symbolic constants used as function arguments.
 /**
 @addtogroup Nodes
 @{
-@fn int EN_addnode(EN_Project ph, char *id, int nodeType)
+@fn int EN_addnode(EN_Project ph, char *id, int nodeType, int *index)
 @fn int EN_deletenode(EN_Project ph, int index, int actionCode)
 @fn int EN_getnodeindex(EN_Project ph, char *id, int *index)
 @fn int EN_getnodeid(EN_Project ph, int index, char *id)
@@ -175,7 +175,7 @@ These are symbolic constants used as function arguments.
 /**
 @addtogroup Links
 @{
-@fn int EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode, char *toNode)
+@fn int EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode, char *toNode, int *index)
 @fn int EN_deletelink(EN_Project ph, int index, int actionCode)
 @fn int EN_getlinkindex(EN_Project ph, char *id, int *index)
 @fn int EN_getlinkid(EN_Project ph, int index, char *id)
