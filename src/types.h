@@ -339,14 +339,14 @@ typedef struct             // Curve Object
   double    *Y;            // y-values
 } Scurve;
 
-struct Sdemand             // Demand List Item
-{
-  double Base;             // baseline demand
-  int    Pat;              // pattern index
-  char   *Name;            // demand category name
-  struct Sdemand *next;    // next demand list item
-};
-typedef struct Sdemand *Pdemand; // Pointer to demand list
+//struct Sdemand             // Demand List Item
+//{
+//  double Base;             // baseline demand
+//  int    Pat;              // pattern index
+//  char   *Name;            // demand category name
+//  struct Sdemand *next;    // next demand list item
+//};
+//typedef struct Sdemand *Pdemand; // Pointer to demand list
 
 typedef struct             // Energy Usage Object
 {

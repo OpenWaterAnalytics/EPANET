@@ -132,7 +132,7 @@ int juncdata(Project *pr)
 		// apply the default demand pattern and append the data
 		if (p == 0) p = findpattern(net, parser->DefPatID);
 		demand_data = create_demand_data(y, p, NULL);
-		if (demand_data == NULL) return 101;
+	    if (demand_data == NULL) return 101;
 
 		append_list(demand_list, &demand_data);
 	}

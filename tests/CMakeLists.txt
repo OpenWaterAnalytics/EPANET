@@ -27,7 +27,7 @@ add_executable(test_demand_data test_demand_data.cpp
                                 ../src/demand.c
                                 ../src/util/list.c)
 target_include_directories(test_demand_data PUBLIC ../src/ ../src/util/)
-target_link_libraries(test_demand_data ${Boost_LIBRARIES})
+target_link_libraries(test_demand_data ${Boost_LIBRARIES} epanet2)
 add_test(NAME test_demand_data
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_demand_data
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)

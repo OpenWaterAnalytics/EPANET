@@ -15,6 +15,13 @@
 #include <boost/test/unit_test.hpp>
 
 #include "demand.h"
+#include "epanet2_2.h"
+
+
+#define DATA_PATH_NET1 "./net1.inp"
+#define DATA_PATH_TMP "./tmp.inp"
+#define DATA_PATH_RPT "./test.rpt"
+#define DATA_PATH_OUT "./test.out"
 
 
 boost::test_tools::predicate_result check_string(std::string test, std::string ref)
@@ -62,12 +69,11 @@ struct Fixture {
 		_data = create_demand_data(100.0, 1, "CUB_SCOUT_BASE_CAMP");
 		
 		append_list(dlist, &_data);
-
 	}
 	~Fixture() {
 		delete_list(dlist);
 	}
-	void *_data;
+	demand_data_t *_data;
 	list_t *dlist;
 };
 
@@ -132,6 +138,23 @@ BOOST_FIXTURE_TEST_CASE(test_convert_demand, Fixture)
 	convert_units(lnode, 15.850);
 	double demand = get_base_demand(lnode);
 	BOOST_TEST(demand == 6.31, boost::test_tools::tolerance(0.01));
+}
+
+BOOST_AUTO_TEST_CASE(test_openclose)
+{
+	int error;
+
+	EN_Project ph = NULL;
+
+	EN_createproject(&ph);
+
+	error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
+	BOOST_REQUIRE(error == 0);
+
+	error = EN_close(ph);
+	BOOST_REQUIRE(error == 0);
+
+	EN_deleteproject(&ph);
 }
 
 
