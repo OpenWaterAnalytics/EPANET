@@ -567,16 +567,18 @@ void  demands(Project *pr)
     {
         sum = 0.0;
 		list_t *dlist = net->Node[i].D;
-		list_node_t *lnode;
-		for (lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
-        {
-            // pattern period (k) = (elapsed periods) modulus (periods per pattern)
-			j = get_pattern_index(lnode);
-            k = p % (long) net->Pattern[j].Length;
-            djunc = (get_base_demand(lnode)) * net->Pattern[j].F[k] * hyd->Dmult;
-            if (djunc > 0.0) hyd->Dsystem += djunc;
-            sum += djunc;
-        }
+		
+		if (dlist) {
+			for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
+			{
+				// pattern period (k) = (elapsed periods) modulus (periods per pattern)
+				j = get_pattern_index(lnode);
+				k = p % (long)net->Pattern[j].Length;
+				djunc = (get_base_demand(lnode)) * net->Pattern[j].F[k] * hyd->Dmult;
+				if (djunc > 0.0) hyd->Dsystem += djunc;
+				sum += djunc;
+			}
+		}
         hyd->NodeDemand[i] = sum;
 
         // Initialize pressure dependent demand

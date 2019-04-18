@@ -568,9 +568,10 @@ void convertunits(Project *pr)
     {
         node = &net->Node[i];
 		list_t *dlist = node->D;
-		for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
-			convert_units(lnode, pr->Ucf[DEMAND]);
-
+		if (dlist) {
+			for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
+				convert_units(lnode, pr->Ucf[DEMAND]);
+		}
       //  for (demand = node->D; demand != NULL; demand = demand->next)
       //  {
       //      demand->Base /= pr->Ucf[DEMAND];

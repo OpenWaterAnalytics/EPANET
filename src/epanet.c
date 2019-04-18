@@ -1897,7 +1897,8 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
 
     // Free memory allocated to node's demands, WQ source & comment
     demand = node->D;
-	delete_list(demand);
+	if (demand)
+		delete_list(demand);
 //	while (demand != NULL)
  //   {
  //       nextdemand = demand->next;

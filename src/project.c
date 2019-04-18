@@ -407,7 +407,8 @@ void freedata(Project *pr)
         {
             // Free memory used for demand category list
 			list_t *demand = pr->network.Node[j].D;
-			delete_list(demand);
+			if(demand)
+				delete_list(demand);
             /*while (demand != NULL)
             {
                 nextdemand = demand->next;
@@ -822,11 +823,10 @@ void adjustpatterns(Network *network, int index)
     {
         // Adjust demand patterns
 		list_t *dlist = network->Node[j].D;
-		list_node_t *lnode;
-		
-        for (lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
-            _adjustpattern(lnode, index);
-
+		if (dlist) {
+			for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
+				_adjustpattern(lnode, index);
+		}
         // Adjust WQ source patterns
         source = network->Node[j].S;
         if (source) adjustpattern(&source->Pat, index);
