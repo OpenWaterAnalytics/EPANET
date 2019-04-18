@@ -304,6 +304,7 @@ BOOST_FIXTURE_TEST_CASE(test_save_net2, FixtureInitClose)
     //char id[EN_MAXID+1];
     double p1_1, p2_1; // p1_2, p2_2;
     double q1_1, q2_1; // q1_2, q2_2;
+    int ind;
 
     // Build a network
     error = EN_addnode(ph, (char *)"N1", EN_JUNCTION, &ind);
