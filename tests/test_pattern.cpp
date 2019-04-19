@@ -157,7 +157,7 @@ BOOST_FIXTURE_TEST_CASE(test_pat_id_isvalid, FixtureInitClose)
     error = EN_addpattern(ph, (char *)"P 2");
     BOOST_REQUIRE(error == 252);
 
-    error = EN_addpattern(ph, (char *)"P\"2");
+    error = EN_addpattern(ph, (char *)"\"P2");
     BOOST_REQUIRE(error == 252);
 
     error = EN_addpattern(ph, (char *)"P;2");

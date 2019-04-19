@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/03/2019
+ Last Updated: 04/18/2019
  ******************************************************************************
 */
 
@@ -29,8 +29,6 @@
 #include "funcs.h"
 #include "text.h"
 #include "enumstxt.h"
-
-#include "util/cstr_helper.h"
 
 #ifdef _WIN32
 #define snprintf _snprintf
@@ -1707,11 +1705,11 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
 
 ********************************************************************/
 
-int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
+int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = node ID name
 **           nodeType = type of node (see EN_NodeType)
-**  Output:  none
+**  Output:  index = index of newly added node
 **  Returns: error code
 **  Purpose: adds a new node to a project
 **----------------------------------------------------------------
@@ -1721,26 +1719,22 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
     Hydraul  *hyd = &p->hydraul;
     Quality  *qual = &p->quality;
 
-    int i, nIdx;
-    int index;
-    int size;
+    int i, nIdx, size;
     struct Sdemand *demand;
     Stank *tank;
     Snode *node;
     Scontrol *control;
 
     // Cannot modify network structure while solvers are active
+    *index = 0;
     if (!p->Openflag) return 102;
     if (hyd->OpenHflag || qual->OpenQflag) return 262;
 
-    // Check if id contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Check if a node with same id already exists
     if (EN_getnodeindex(p, id, &i) == 0) return 215;
-
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
 
     // Grow node-related arrays to accomodate the new node
     size = (net->Nnodes + 2) * sizeof(Snode);
@@ -1765,28 +1759,28 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
         node->D = demand;
 
         // shift rest of Node array
-        for (index = net->Nnodes; index >= net->Njuncs; index--)
+        for (i = net->Nnodes; i >= net->Njuncs; i--)
         {
-            hashtable_update(net->NodeHashTable, net->Node[index].ID, index + 1);
-            net->Node[index + 1] = net->Node[index];
+            hashtable_update(net->NodeHashTable, net->Node[i].ID, i + 1);
+            net->Node[i + 1] = net->Node[i];
         }
         // shift indices of Tank array
-        for (index = 1; index <= net->Ntanks; index++)
+        for (i = 1; i <= net->Ntanks; i++)
         {
-            net->Tank[index].Node += 1;
+            net->Tank[i].Node += 1;
         }
 
         // shift indices of Links, if necessary
-        for (index = 1; index <= net->Nlinks; index++)
+        for (i = 1; i <= net->Nlinks; i++)
         {
-            if (net->Link[index].N1 > net->Njuncs - 1) net->Link[index].N1 += 1;
-            if (net->Link[index].N2 > net->Njuncs - 1) net->Link[index].N2 += 1;
+            if (net->Link[i].N1 > net->Njuncs - 1) net->Link[i].N1 += 1;
+            if (net->Link[i].N2 > net->Njuncs - 1) net->Link[i].N2 += 1;
         }
 
         // shift indices of tanks/reservoir nodes in controls
-        for (index = 1; index <= net->Ncontrols; ++index)
+        for (i = 1; i <= net->Ncontrols; ++i)
         {
-            control = &net->Control[index];
+            control = &net->Control[i];
             if (control->Node > net->Njuncs - 1) control->Node += 1;
         }
 
@@ -1841,6 +1835,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
 
     // Insert new node into hash table
     hashtable_insert(net->NodeHashTable, node->ID, nIdx);
+    *index = nIdx;
     return 0;
 }
 
@@ -2015,13 +2010,10 @@ int DLLEXPORT EN_setnodeid(EN_Project p, int index, char *newid)
 */
 {
     Network *net = &p->network;
-    size_t n;
 
     // Check for valid arguments
     if (index <= 0 || index > net->Nnodes) return 203;
-    n = strlen(newid);
-    if (n < 1 || n > MAXID) return 209;
-    if (!cstr_isvalid(newid)) return 252;
+    if (!namevalid(newid)) return 252;
 
     // Check if another node with same name exists
     if (hashtable_find(net->NodeHashTable, newid) > 0) return 215;
@@ -2844,8 +2836,8 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs) return 203;
 
-	// Check that demandName is not too long
-    if (strlen(demandName) > MAXID) return 250;
+    // Check that demandName is not too long
+    if (strlen(demandName) > MAXID) return 252;
 
     // Locate demand category record and assign demandName to it
     for (d = p->network.Node[nodeIndex].D;
@@ -2920,13 +2912,13 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 ********************************************************************/
 
 int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
-                         char *fromNode, char *toNode)
+                         char *fromNode, char *toNode, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = link ID name
 **           type = link type (see EN_LinkType)
 **           fromNode = name of link's starting node
 **           toNode = name of link's ending node
-**  Output:  none
+**  Output:  index = position of new link in Link array
 **  Returns: error code
 **  Purpose: adds a new link to a project
 **----------------------------------------------------------------
@@ -2941,11 +2933,12 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     Spump *pump;
 
     // Cannot modify network structure while solvers are active
+    *index = 0;
     if (!p->Openflag) return 102;
     if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
 
-    // Check if id contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Check if a link with same id already exists
     if (EN_getlinkindex(p, id, &i) == 0) return 215;
@@ -2958,9 +2951,6 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     n2 = hashtable_find(net->NodeHashTable, toNode);
     if (n1 == 0 || n2 == 0) return 203;
 
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
-
     // Check that valve link has legal connections
     if (linkType > PUMP)
     {
@@ -2970,6 +2960,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
 
     // Grow link-related arrays to accomodate the new link
     net->Nlinks++;
+    p->parser.MaxLinks = net->Nlinks;
     n = net->Nlinks;
     size = (n + 1) * sizeof(Slink);
     net->Link = (Slink *)realloc(net->Link, size);
@@ -3049,6 +3040,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     link->Comment = NULL;
 
     hashtable_insert(net->LinkHashTable, link->ID, n);
+    *index = n;
     return 0;
 }
 
@@ -3202,13 +3194,10 @@ int DLLEXPORT EN_setlinkid(EN_Project p, int index, char *newid)
 */
 {
     Network *net = &p->network;
-    size_t n;
 
     // Check for valid arguments
     if (index <= 0 || index > net->Nlinks) return 204;
-    n = strlen(newid);
-    if (n < 1 || n > MAXID) return 211;
-    if (!cstr_isvalid(newid)) return 252;
+    if (!namevalid(newid)) return 252;
 
     // Check if another link with same name exists
     if (hashtable_find(net->LinkHashTable, newid) > 0) return 215;
@@ -3306,10 +3295,7 @@ int DLLEXPORT EN_setlinktype(EN_Project p, int *index, int linkType, int actionC
     EN_deletelink(p, i, actionCode);
 
     // Create a new link of new type and old id
-    errcode = EN_addlink(p, id, linkType, id1, id2);
-
-    // Find the index of this new link
-    EN_getlinkindex(p, id, index);
+    errcode = EN_addlink(p, id, linkType, id1, id2, index);
     return errcode;
 }
 
@@ -3959,11 +3945,8 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
     if (!p->Openflag) return 102;
     if (EN_getpatternindex(p, id, &i) == 0) return 215;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
-
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Expand the project's array of patterns
     n = net->Npats + 1;
@@ -4086,10 +4069,8 @@ int DLLEXPORT EN_setpatternid(EN_Project p, int index, char *id)
     if (!p->Openflag) return 102;
     if (index < 1 || index > p->network.Npats) return 205;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
-
-    if (strlen(id) > MAXID) return 250;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     for (i = 1; i <= p->network.Npats; i++)
     {
@@ -4235,11 +4216,8 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
     if (!p->Openflag) return 102;
     if (EN_getcurveindex(p, id, &i) == 0) return 215;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
-
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Expand the array of curves
     n = net->Ncurves + 1;
@@ -4358,10 +4336,9 @@ int DLLEXPORT EN_setcurveid(EN_Project p, int index, char *id)
     if (!p->Openflag) return 102;
     if (index < 1 || index > p->network.Ncurves) return 205;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
-
-    if (strlen(id) > MAXID) return 250;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
+    
     for (i = 1; i <= p->network.Ncurves; i++)
     {
         if (i != index && strcmp(id, p->network.Curve[i].ID) == 0) return 215;

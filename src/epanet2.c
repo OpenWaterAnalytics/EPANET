@@ -294,9 +294,9 @@ int DLLEXPORT ENsetqualtype(int qualType, char *chemName, char *chemUnits,
 
 ********************************************************************/
 
-int DLLEXPORT ENaddnode(char *id, int nodeType)
+int DLLEXPORT ENaddnode(char *id, int nodeType, int *index)
 {
-    return EN_addnode(_defaultProject, id, nodeType);
+    return EN_addnode(_defaultProject, id, nodeType, index);
 }
 
 int DLLEXPORT ENdeletenode(int index, int actionCode)
@@ -431,9 +431,9 @@ int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, char *demandName)
 
 ********************************************************************/
 
-int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode)
+int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode, int *index)
 {
-    return EN_addlink(_defaultProject, id, linkType, fromNode, toNode);
+    return EN_addlink(_defaultProject, id, linkType, fromNode, toNode, index);
 }
 
 int DLLEXPORT ENdeletelink(int index, int actionCode)
