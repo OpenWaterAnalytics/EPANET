@@ -124,22 +124,11 @@ int juncdata(Project *pr)
 
 	// create demand data only if a demand has been specified
 	if (y != 0.0) {
-		demand_data_t *demand_data;
-
-		demand_list = create_list(get_demand_data_size(), delete_demand_data);
-		if (demand_list == NULL) return 101;
-
 		// apply the default demand pattern and append the data
 		if (p == 0) p = findpattern(net, parser->DefPatID);
-		demand_data = create_demand_data(y, p, NULL);
-	    if (demand_data == NULL) return 101;
-
-		append_list(demand_list, &demand_data);
+		demand_list = create_demand_list(y, p, NULL);
+		if (!demand_list) return 101;
 	}
-	//demand->Base = y;
-    //demand->Pat = p;
-    //demand->Name = NULL;
-    //demand->next = NULL;
     node->D = demand_list;
 
     hyd->NodeDemand[njuncs] = y;

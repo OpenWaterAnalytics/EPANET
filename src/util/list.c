@@ -120,7 +120,7 @@ list_node_t *head_list(list_t *list, bool removeFromList)
 // Warning: When node is removed caller is responsible for freeing it.
 //
 {
-    assert(list->head != NULL);
+//    assert(list->head != NULL);
 	
 	if (list) {
 		list_node_t *node = list->head;

@@ -32,6 +32,24 @@ typedef struct demand_data_s
 } demand_data_t;
 
 
+
+list_t *create_demand_list(double base_demand, int pattern_index, char *category_name)
+{
+	list_t *demand_list;
+	demand_data_t *demand_data;
+
+	demand_list = create_list(get_demand_data_size(), delete_demand_data);
+	if (!demand_list) return NULL;
+
+	demand_data = create_demand_data(base_demand, pattern_index, category_name);
+	if (!demand_data) return NULL;
+
+	append_list(demand_list, &demand_data);
+
+	return demand_list;
+}
+
+
 demand_data_t *create_demand_data(double base_demand, int pattern_index, char *category_name)
 {
     demand_data_t *demand_data = (demand_data_t *)malloc(sizeof(demand_data_t));

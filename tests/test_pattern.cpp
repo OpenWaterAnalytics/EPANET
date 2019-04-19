@@ -18,7 +18,51 @@
 
 BOOST_AUTO_TEST_SUITE (pattern)
 
-BOOST_AUTO_TEST_CASE(add_set_pattern)
+BOOST_FIXTURE_TEST_CASE(test_set_get_default_pattern, FixtureOpenClose)
+{
+	// Assign the default pattern index
+	int defPatIdx = 1;
+	int patIdx;
+
+	// Rename the default pattern
+	error = EN_setpatternid(ph, defPatIdx, (char *)"Pat1");
+	BOOST_REQUIRE(error == 0);
+
+	error = EN_getpatternindex(ph, (char *)"Pat1", &patIdx);
+	BOOST_REQUIRE(error == 0);
+
+	BOOST_CHECK(defPatIdx == patIdx);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_add_delete, FixtureOpenClose)
+{
+	double f2[] = { 2.1, 2.2 };
+	double f3[] = { 3.1, 3.2, 3.3, 3.4 };
+
+	// Add 2 new patterns
+	error = EN_addpattern(ph, (char *)"Pat2");
+	BOOST_REQUIRE(error == 0);
+	error = EN_addpattern(ph, (char *)"Pat3");
+	BOOST_REQUIRE(error == 0);
+
+	error = EN_setpattern(ph, 2, f2, 2);
+	BOOST_REQUIRE(error == 0);
+	error = EN_setpattern(ph, 3, f3, 4);
+	BOOST_REQUIRE(error == 0);
+
+	// Delete Pat2
+	error = EN_deletepattern(ph, 2);
+	BOOST_REQUIRE(error == 0);
+
+	// Check that there are now 2 patterns
+	int n;
+	error = EN_getcount(ph, EN_PATCOUNT, &n);
+	BOOST_REQUIRE(error == 0);
+	BOOST_CHECK(n == 2);
+}
+
+
+BOOST_AUTO_TEST_CASE(test_add_set)
 {
 	std::string path_inp(DATA_PATH_NET1);
 	std::string path_rpt(DATA_PATH_RPT);
@@ -34,7 +78,7 @@ BOOST_AUTO_TEST_CASE(add_set_pattern)
     BOOST_REQUIRE(error == 0);
 
     // Assign the default pattern index
-    int defPatIdx = 1;
+    int n, defPatIdx = 1;
     int patIdx;
 
     // Rename the default pattern
@@ -56,8 +100,7 @@ BOOST_AUTO_TEST_CASE(add_set_pattern)
     // Delete Pat2
     EN_deletepattern(ph, 2);
 
-    // Check that there are now 2 patterns
-    int n;
+    //Check that there are now 2 patterns
     EN_getcount(ph, EN_PATCOUNT, &n);
     BOOST_REQUIRE(n == 2);
 

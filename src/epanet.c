@@ -2818,13 +2818,22 @@ int DLLEXPORT EN_setbasedemand(EN_Project p, int nodeIndex, int demandIndex,
     // Set baseline demand for specified category
     if (nodeIndex <= p->network.Njuncs)
     {
-		// Locate demand category record and assign demandName to it
 		list_t *dlist = p->network.Node[nodeIndex].D;
-		list_node_t *lnode = get_nth_list(dlist, demandIndex);
-		if (!lnode)
-			return 253;
-		else
-            set_base_demand(lnode, baseDemand / p->Ucf[FLOW]);
+		// If demand list is null create one and set demand
+		if (!dlist) {
+			dlist = create_demand_list(baseDemand / p->Ucf[FLOW], 0, NULL);
+			if (!dlist) return 101;
+
+			p->network.Node[nodeIndex].D = dlist;
+		}
+		// else find the demand entry and set demand
+		else {
+			list_node_t *lnode = get_nth_list(dlist, demandIndex);
+			if (!lnode)
+				return 253;
+			else
+				set_base_demand(lnode, baseDemand / p->Ucf[FLOW]);
+		}
     }
     return 0;
 }
@@ -2895,12 +2904,19 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
 
     // Locate demand category record and assign demandName to it
 	list_t *dlist = p->network.Node[nodeIndex].D;
-	list_node_t *lnode = get_nth_list(dlist, demandIndex);
-	if (!lnode)
-		return 253;
-	else
-		set_category_name(lnode, demandName);
+	if (!dlist) {
+		dlist = create_demand_list(0, 0, demandName);
+		if (!dlist) return 101;
 
+		p->network.Node[nodeIndex].D = dlist;
+	}
+	else {
+		list_node_t *lnode = get_nth_list(dlist, demandIndex);
+		if (!lnode)
+			return 253;
+		else
+			set_category_name(lnode, demandName);
+	}
     return 0;
 }
 
@@ -2960,11 +2976,19 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
     if (nodeIndex <= net->Njuncs) {
 
 		list_t *dlist = p->network.Node[nodeIndex].D;
-		list_node_t *lnode = get_nth_list(dlist, demandIndex);
-		if (!lnode)
-			return 253;
-		else
-			set_pattern_index(lnode, patIndex);
+		if (!dlist) {
+			dlist = create_demand_list(0, patIndex, NULL);
+			if (!dlist) return 101;
+
+			p->network.Node[nodeIndex].D = dlist;
+		}
+		else {
+			list_node_t *lnode = get_nth_list(dlist, demandIndex);
+			if (!lnode)
+				return 253;
+			else
+				set_pattern_index(lnode, patIndex);
+		}
     }
     return 0;
 }
