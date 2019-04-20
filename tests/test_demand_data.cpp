@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE (test_create_destroy)
 BOOST_AUTO_TEST_CASE(test_get_size)
 {
 	size_t size = get_demand_data_size();
-	BOOST_CHECK(size == 8);
+	BOOST_CHECK(size == sizeof(demand_data_t *));
 }
 
 
