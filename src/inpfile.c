@@ -121,8 +121,8 @@ void saveauxdata(Project *pr, FILE *f)
     InFile = NULL;
 }
 
-void write_demands(Project *pr, FILE *f) {
-    
+
+void write_demands(Project *pr, FILE *f) {    
 	int i, j;
 	
 	Snode *node = NULL;
@@ -142,23 +142,26 @@ void write_demands(Project *pr, FILE *f) {
 		node = &net->Node[i];
 		if (node->D) {
 			for (lnode = first_list(node->D); done_list(lnode); lnode = next_list(lnode)) {
-				sprintf(s, " %-31s %14.6f", node->ID, ucf * get_base_demand(lnode));
+				if (lnode) {
+					sprintf(s, " %-31s %14.6f", node->ID, ucf * get_base_demand(lnode));
 
-				if
-					((j = get_pattern_index(lnode)) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
-				else
-					strcpy(s1, " ");
+					if
+						((j = get_pattern_index(lnode)) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
+					else
+						strcpy(s1, " ");
 
-				fprintf(f, "\n%s %-31s", s, s1);
+					fprintf(f, "\n%s %-31s", s, s1);
 
-				if (temp = get_category_name(lnode)) {
-					fprintf(f, " ;%s", temp);
-					free(temp);
+					if (temp = get_category_name(lnode)) {
+						fprintf(f, " ;%s", temp);
+						free(temp);
+					}
 				}
 			}
 		}
 	}
 }
+
 
 int saveinpfile(Project *pr, const char *fname)
 /*
