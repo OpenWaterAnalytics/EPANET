@@ -33,7 +33,7 @@ typedef struct demand_data_s
 
 
 
-list_t *create_demand_list(double base_demand, int pattern_index, char *category_name)
+list_t *create_demand_list(double base_demand, int pattern_index, const char *category_name)
 {
 	list_t *demand_list;
 	demand_data_t *demand_data;
@@ -50,7 +50,7 @@ list_t *create_demand_list(double base_demand, int pattern_index, char *category
 }
 
 
-demand_data_t *create_demand_data(double base_demand, int pattern_index, char *category_name)
+demand_data_t *create_demand_data(double base_demand, int pattern_index, const char *category_name)
 {
     demand_data_t *demand_data = (demand_data_t *)malloc(sizeof(demand_data_t));
 
@@ -122,7 +122,7 @@ char *get_category_name(list_node_t *lnode)
     return strdup(get_demand_data(lnode)->category_name);
 }
 
-void set_category_name(list_node_t *lnode, char *category_name)
+void set_category_name(list_node_t *lnode, const char *category_name)
 {
 	free(get_demand_data(lnode)->category_name);
 	get_demand_data(lnode)->category_name = strdup(category_name);

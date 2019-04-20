@@ -332,15 +332,14 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, s_DEMANDS);
     ucf = pr->Ucf[DEMAND];
 
-	list_t *dlist = NULL;
+	//list_t *dlist = NULL;
 	list_node_t *lnode = NULL;
 	char *temp = NULL;
 
-	for (i = 1; i <= net->Njuncs; i++)
-    {
+	for (i = 1; i <= net->Njuncs; i++) {
         node = &net->Node[i];
-		if (dlist = node->D) {
-			for (lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode)) {
+		if (node->D) {
+			for (lnode = first_list(node->D); done_list(lnode); lnode = next_list(lnode)) {
 				sprintf(s, " %-31s %14.6f", node->ID, ucf * get_base_demand(lnode));
 				
 				if 

@@ -253,7 +253,7 @@ BOOST_FIXTURE_TEST_CASE(test_pattern_edits, FixtureSingleNode)
 	BOOST_REQUIRE(error == 0);
 	error = EN_addpattern(ph, (char *)"Pat2");
 	BOOST_REQUIRE(error == 0);
-	error = EN_getpatternindex(ph, "Pat2", &pat2_idx);
+	error = EN_getpatternindex(ph, (char *)"Pat2", &pat2_idx);
 	BOOST_REQUIRE(error == 0);
 
 	error = EN_addpattern(ph, (char *)"Pat3");
