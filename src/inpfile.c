@@ -334,6 +334,7 @@ int saveinpfile(Project *pr, const char *fname)
 
 	list_t *dlist;
 	list_node_t *lnode;
+	char *temp = NULL;
 
 	for (i = 1; i <= net->Njuncs; i++)
     {
@@ -345,7 +346,10 @@ int saveinpfile(Project *pr, const char *fname)
 				if ((j = get_pattern_index(lnode)) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
 				else strcpy(s1, " ");
 				fprintf(f, "\n%s %-31s", s, s1);
-				if (get_category_name(lnode)) fprintf(f, " ;%s", get_category_name(lnode));
+				if (temp = get_category_name(lnode)) { 
+					fprintf(f, " ;%s", temp); 
+					free(temp);
+				}
 			}
 		}
     }

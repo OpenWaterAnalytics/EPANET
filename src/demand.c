@@ -117,6 +117,7 @@ void set_pattern_index(list_node_t *lnode, int pattern_index)
 }
 
 char *get_category_name(list_node_t *lnode)
+// Be advised: caller must free memory returned
 {
     return strdup(get_demand_data(lnode)->category_name);
 }

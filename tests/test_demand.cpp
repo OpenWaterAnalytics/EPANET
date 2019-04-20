@@ -18,6 +18,7 @@
 
 BOOST_AUTO_TEST_SUITE (test_demand)
 
+
 BOOST_AUTO_TEST_CASE(test_categories_save)
 {
     int error = 0;
@@ -38,7 +39,7 @@ BOOST_AUTO_TEST_CASE(test_categories_save)
     error = EN_getdemandname(ph, Nindex, ndem, demname);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_setdemandname(ph, Nindex, ndem, (char *)"Demand category name");
+    error = EN_setdemandname(ph, Nindex, ndem, (char *)"CUB_SCOUT_MOTOR_POOL");
     BOOST_REQUIRE(error == 0);
     error = EN_saveinpfile(ph, "net1_dem_cat.inp");
     BOOST_REQUIRE(error == 0);
@@ -48,6 +49,7 @@ BOOST_AUTO_TEST_CASE(test_categories_save)
     error = EN_deleteproject(&ph);
     BOOST_REQUIRE(error == 0);
 }
+
 
 BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("test_demand/test_categories_save"))
 {
@@ -72,12 +74,13 @@ BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("tes
     error = EN_getdemandname(ph, Nindex, ndem, demname);
     BOOST_REQUIRE(error == 0);
 
-    BOOST_CHECK(check_string(demname, "Demand category name"));
+    BOOST_CHECK(check_string(demname, "CUB_SCOUT_MOTOR_POOL"));
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
     error = EN_deleteproject(&ph);
     BOOST_REQUIRE(error == 0);
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()

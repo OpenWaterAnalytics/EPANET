@@ -797,12 +797,12 @@ void adjustpattern(int *pat, int index)
 }
 
 
-void _adjustpattern(list_node_t *lnode, int index)
+void _adjustpattern(list_node_t *lnode, int del_idx)
 {	
-	int pat = get_pattern_index(lnode);
+	int pat_idx = get_pattern_index(lnode);
 
-	if (pat == index) set_pattern_index(lnode, 0);
-	else if (pat > index) set_pattern_index(lnode, pat--);
+	if (pat_idx == del_idx) set_pattern_index(lnode, 0);
+	else if (pat_idx > del_idx) set_pattern_index(lnode, --pat_idx);
 }
 
 
