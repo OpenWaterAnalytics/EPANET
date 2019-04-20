@@ -128,12 +128,12 @@ BOOST_FIXTURE_TEST_CASE(test_category_getset, Fixture)
 	char *name = NULL;
 
 	name = get_category_name(lnode);
-	BOOST_CHECK(check_string(name, "CUB_SCOUT_BASE_CAMP"));
+	BOOST_CHECK(check_string(name, (char *)"CUB_SCOUT_BASE_CAMP"));
 
 	free(name);
 	name = NULL;
 
-	set_category_name(lnode, "CUB_SCOUT_COMMAND");
+	set_category_name(lnode, (char *)"CUB_SCOUT_COMMAND");
 
 	name = get_category_name(lnode);
 	BOOST_CHECK(check_string(name, "CUB_SCOUT_COMMAND"));
@@ -258,7 +258,7 @@ BOOST_FIXTURE_TEST_CASE(test_pattern_edits, FixtureSingleNode)
 
 	error = EN_addpattern(ph, (char *)"Pat3");
 	BOOST_REQUIRE(error == 0);
-	error = EN_getpatternindex(ph, "Pat3", &pat3_idx);
+	error = EN_getpatternindex(ph, (char *)"Pat3", &pat3_idx);
 	BOOST_REQUIRE(error == 0);
 
 	double f2[] = { 2.1, 2.2 };

@@ -332,8 +332,8 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, s_DEMANDS);
     ucf = pr->Ucf[DEMAND];
 
-	list_t *dlist;
-	list_node_t *lnode;
+	list_t *dlist = NULL;
+	list_node_t *lnode = NULL;
 	char *temp = NULL;
 
 	for (i = 1; i <= net->Njuncs; i++)
@@ -341,11 +341,15 @@ int saveinpfile(Project *pr, const char *fname)
         node = &net->Node[i];
 		if (dlist = node->D) {
 			for (lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode)) {
-
 				sprintf(s, " %-31s %14.6f", node->ID, ucf * get_base_demand(lnode));
-				if ((j = get_pattern_index(lnode)) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
-				else strcpy(s1, " ");
+				
+				if 
+					((j = get_pattern_index(lnode)) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
+				else 
+					strcpy(s1, " ");
+				
 				fprintf(f, "\n%s %-31s", s, s1);
+				
 				if (temp = get_category_name(lnode)) { 
 					fprintf(f, " ;%s", temp); 
 					free(temp);
