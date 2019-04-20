@@ -24,7 +24,7 @@
 #include "demand.h"
 
 
-typedef struct demand_data_s
+typedef struct demand_data_s 
 {
   double base_demand;
   int    pattern_index;
@@ -60,7 +60,7 @@ demand_data_t *create_demand_data(double base_demand, int pattern_index, const c
     if (category_name)
         demand_data->category_name = strdup(category_name);
     else
-        demand_data->category_name = NULL;
+        demand_data->category_name = '\0';
 
     return demand_data;
 }
