@@ -122,14 +122,14 @@ void saveauxdata(Project *pr, FILE *f)
 }
 
 
-void write_demands(Project *pr, FILE *f) {    
+void write_demands(Project *pr, FILE *f) {
 	int i, j;
-	
+
 	Snode *node = NULL;
 	list_node_t *lnode = NULL;
 	char *temp = NULL;
-	
-	char  s[MAXLINE + 1], 
+
+	char  s[MAXLINE + 1],
 		 s1[MAXLINE + 1];
 
 	double ucf = pr->Ucf[DEMAND];
@@ -152,10 +152,10 @@ void write_demands(Project *pr, FILE *f) {
 
 					fprintf(f, "\n%s %-31s", s, s1);
 
-					if (temp = get_category_name(lnode)) {
-						fprintf(f, " ;%s", temp);
-						free(temp);
-					}
+					//if (temp = get_category_name(lnode)) {
+					//	fprintf(f, " ;%s", temp);
+					//	free(temp);
+					//}
 				}
 			}
 		}
@@ -372,7 +372,7 @@ int saveinpfile(Project *pr, const char *fname)
 
     // Write [DEMANDS] section
 	write_demands(pr, f);
-	
+
 
     // Write [EMITTERS] section
     fprintf(f, "\n\n");
