@@ -3,8 +3,8 @@ LIBRARY     EPANET2.DLL
 EXPORTS
     ENaddcontrol                  = _ENaddcontrol@24                    
     ENaddcurve                    = _ENaddcurve@4                     
-    ENaddlink                     = _ENaddlink@16
-    ENaddnode                     = _ENaddnode@8
+    ENaddlink                     = _ENaddlink@20
+    ENaddnode                     = _ENaddnode@12
     ENaddpattern                  = _ENaddpattern@4
     ENaddrule                     = _ENaddrule@4
     ENclearreport                 = _ENclearreport@0

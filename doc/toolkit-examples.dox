@@ -53,51 +53,52 @@ void netbuilder()
 {
     // Create a project that uses gpm for flow units and
     // the Hazen-Williams formula for head loss
+    int index;
     EN_Project ph;
     EN_createproject(&ph);
     EN_init(ph, "", "", EN_GPM, EN_HW);
     
     // Add the first junction node to the project with
     // an elevation of 700 ft and a demand of 0    
-    EN_addnode(ph, "J1", EN_JUNCTION);
-    EN_setjuncdata(ph, 1, 700, 0, "");
+    EN_addnode(ph, "J1", EN_JUNCTION, &index);
+    EN_setjuncdata(ph, index, 700, 0, "");
     
     // Add the remaining two junctions with elevations of
     //  710 ft and demands of 250 and 500 gpm, respectively
-    EN_addnode(ph, "J2", EN_JUNCTION);
-    EN_setjuncdata(ph, 2, 710, 250, "");
-    EN_addnode(ph, "J3", EN_JUNCTION);
-    EN_setjuncdata(ph, 3, 710, 500, "");
+    EN_addnode(ph, "J2", EN_JUNCTION, &index);
+    EN_setjuncdata(ph, index, 710, 250, "");
+    EN_addnode(ph, "J3", EN_JUNCTION, &index);
+    EN_setjuncdata(ph, index, 710, 500, "");
 
     // Add the reservoir at an elevation of 650 ft
-    EN_addnode(ph, "R1", EN_RESERVOIR);
-    EN_setnodevalue(ph, 4, EN_ELEVATION, 650);
+    EN_addnode(ph, "R1", EN_RESERVOIR, &index);
+    EN_setnodevalue(ph, index, EN_ELEVATION, 650);
 
     // Add the tank node at elevation of 850 ft, initial water level
     // at 120 ft, minimum level at 100 ft, maximum level at 150 ft
     // and a diameter of 50.5 ft
-    EN_addnode(ph, "T1", EN_TANK);
-    EN_settankdata(ph, 5, 850, 120, 100, 150, 50.5, 0, "");
+    EN_addnode(ph, "T1", EN_TANK, &index);
+    EN_settankdata(ph, index, 850, 120, 100, 150, 50.5, 0, "");
     
     // Add the pipes to the project, setting their length,
     // diameter, and roughness values
-    EN_addlink(ph, "P1", EN_PIPE, "J1", "J2");
-    EN_setpipedata(ph, 1, 10560, 12, 100, 0);
-    EN_addlink(ph, "P2", EN_PIPE, "J1", "T1");
-    EN_setpipedata(ph, 2, 5280, 14, 100, 0);
-    EN_addlink(ph, "P3", EN_PIPE, "J1", "J3");
-    EN_setpipedata(ph, 3, 5280, 14, 100, 0);
-    EN_addlink(ph, "P4", EN_PIPE, "J2", "J3");
-    EN_setpipedata(ph, 4, 5280, 14, 100, 0);
+    EN_addlink(ph, "P1", EN_PIPE, "J1", "J2", &index);
+    EN_setpipedata(ph, index, 10560, 12, 100, 0);
+    EN_addlink(ph, "P2", EN_PIPE, "J1", "T1", &index);
+    EN_setpipedata(ph, index, 5280, 14, 100, 0);
+    EN_addlink(ph, "P3", EN_PIPE, "J1", "J3", &index);
+    EN_setpipedata(ph, index, 5280, 14, 100, 0);
+    EN_addlink(ph, "P4", EN_PIPE, "J2", "J3", &index);
+    EN_setpipedata(ph, index, 5280, 14, 100, 0);
     
     // Add a pump to the project
-    EN_addlink(ph, "PUMP", EN_PUMP, "R1", "J1");
+    EN_addlink(ph, "PUMP", EN_PUMP, "R1", "J1", &index);
     
     // Create a single point head curve (index = 1) and
-    // assign it to the pump (index = 5)
+    // assign it to the pump
     EN_addcurve(ph, "C1");
     EN_setcurvevalue(ph, 1, 1, 1500, 250);
-    EN_setlinkvalue(ph, 5, EN_PUMP_HCURVE, 1);
+    EN_setlinkvalue(ph, index, EN_PUMP_HCURVE, 1);
 
     // Save the project for future use
     EN_saveinpfile(ph, "example2.inp");

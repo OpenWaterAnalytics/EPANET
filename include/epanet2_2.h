@@ -752,11 +752,12 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param id the ID name of the node to be added.
   @param nodeType the type of node being added (see @ref EN_NodeType)
+  @param[out] index the index of the newly added node
   @return an error code.
 
   When a new node is created all of it's properties (see @ref EN_NodeProperty) are set to 0.
   */
-  int DLLEXPORT EN_addnode(EN_Project ph, char *id, int nodeType);
+  int DLLEXPORT EN_addnode(EN_Project ph, char *id, int nodeType, int *index);
 
   /**
   @brief Deletes a node from a project.
@@ -1027,6 +1028,7 @@ typedef struct Project *EN_Project;
   @param linkType The type of link being added (see @ref EN_LinkType)
   @param fromNode The ID name of the link's starting node.
   @param toNode The ID name of the link's ending node.
+  @param[out] index the index of the newly added link.
   @return an error code.
 
   A new pipe is assigned a diameter of 10 inches (or 254 mm), a length of 100
@@ -1039,7 +1041,8 @@ typedef struct Project *EN_Project;
 
   See @ref EN_LinkProperty.
   */
-  int DLLEXPORT EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode, char *toNode);
+  int DLLEXPORT EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode,
+                          char *toNode, int *index);
 
   /**
   @brief Deletes a link from the project.

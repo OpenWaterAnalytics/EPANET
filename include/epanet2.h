@@ -190,7 +190,7 @@ extern "C" {
 
 ********************************************************************/
 
-   int DLLEXPORT ENaddnode(char *id, int nodeType);
+   int DLLEXPORT ENaddnode(char *id, int nodeType, int *index);
 
    int DLLEXPORT ENdeletenode(int index, int actionCode);
 
@@ -252,7 +252,7 @@ extern "C" {
 
 ********************************************************************/
 
-  int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode);
+  int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode, int *index);
 
   int DLLEXPORT ENdeletelink(int index, int actionCode);
 

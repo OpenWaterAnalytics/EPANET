@@ -55,27 +55,28 @@ if (errcode == 0)
 EN_deleteproject(&ph);
 \endcode
 
-Note that after an input file has been loaded in this fashion the resulting network can have objects added or deleted, and their properties set using various Toolkit functions .
+After an input file has been loaded in this fashion the resulting network can have objects added or deleted, and their properties set using the various Toolkit functions .
 
-The second method for supplying network data to a project is to use the Toolkit's functions to add objects and to set their properties via code. In this case the @ref EN_init function should be called immediately after creating a project, passing in the names of a report and binary output files (both optional) as well as the choices of flow units and head loss formulas to use. After that the various `EN_add` functions, such as @ref EN_addnode, @ref EN_addlink, @ref EN_addpattern, @ref EN_addcontrol, etc., can be called to add new objects to the network. Here is a partial example:
+The second method for supplying network data to a project is to use the Toolkit's functions to add objects and to set their properties via code. In this case the @ref EN_init function should be called immediately after creating a project, passing in the names of a report and binary output files (both optional) as well as the choices of flow units and head loss formulas to use. After that the various `EN_add` functions, such as @ref EN_addnode, @ref EN_addlink, @ref EN_addpattern, @ref EN_addcontrol, etc., can be called to add new objects to the network. Here is a partial example of constructing a network from code:
 
 \code {.c}
+int index;
 EN_Project ph;
 EN_createproject(&ph);
 EN_init(ph, "net1.rpt", "", EN_GPM, EN_HW);
-EN_addnode(ph, "J1", EN_JUNCTION);
-EN_addnode(ph, "J2", EN_JUNCTION);
-EN_addlink(ph, "P1", EN_PIPE, "J1", "J2");
+EN_addnode(ph, "J1", EN_JUNCTION, &index);
+EN_addnode(ph, "J2", EN_JUNCTION, &index);
+EN_addlink(ph, "P1", EN_PIPE, "J1", "J2", &index);
 // additional function calls to complete building the network
 \endcode
 
-See the @ref Example2 for a more complete example. While adding objects their properties can be set as described in the next section. Attemtping to change a network's structure by adding or deleting nodes and links while the Toolkit's hydraulic or water quality solvers are open will result in an error condition.
+See the @ref Example2 for a more complete example. The labels used to name objects cannot contain spaces, semi-colons, or double quotes nor exceed @ref EN_MAXID characters in length. While adding objects their properties can be set as described in the next section. Attemtping to change a network's structure by adding or deleting nodes and links while the Toolkit's hydraulic or water quality solvers are open will result in an error condition.
 
 @section Properties Setting Object Properties
 
 The Toolkit contains several functions for retrieving and setting the properties of a network's objects and its analysis options. The names of retrieval functions all begin with `EN_get` (e.g., @ref EN_getnodevalue, @ref EN_getoption, etc.) while the functions used for setting parameter values begin with `EN_set` (e.g., @ref EN_setnodevalue, @ref EN_setoption, etc.).
 
-Most of these functions use an index number to refer to a specific network component (such as a node, link, time pattern or data curve). This number is simply the position of the component in the list of all components of similar type (e.g., node 10 is the tenth node, starting from 1, in the network) and is not the same as the ID label assigned to the component. A series of functions exist to determine a component's index number given its ID label (see @ref EN_getnodeindex, @ref EN_getlinkindex, @ref  EN_getpatternindex, and @ref EN_getcurveindex). Likewise, functions exist to retrieve a component's ID label given its index number (see @ref EN_getlinkid, @ref EN_getnodeid, @ref EN_getpatternid, and @ref EN_getcurveid). The @ref EN_getcount function can be used to determine the number of different components in the network. Be aware that a component's index can change as elements are added or deleted from the network.
+Most of these functions use an index number to refer to a specific network component (such as a node, link, time pattern or data curve). This number is simply the position of the component in the list of all components of similar type (e.g., node 10 is the tenth node, starting from 1, in the network) and is not the same as the ID label assigned to the component. A series of functions exist to determine a component's index number given its ID label (see @ref EN_getnodeindex, @ref EN_getlinkindex, @ref  EN_getpatternindex, and @ref EN_getcurveindex). Likewise, functions exist to retrieve a component's ID label given its index number (see @ref EN_getlinkid, @ref EN_getnodeid, @ref EN_getpatternid, and @ref EN_getcurveid). The @ref EN_getcount function can be used to determine the number of different components in the network. Be aware that a component's index can change as elements are added or deleted from the network. The @ref EN_addnode and @ref EN_addlink functions return the index of the newly added node or link as a convenience for immediately setting their properties.
 
 The code below is an example of using the property retrieval and setting functions. It changes all links with diameter of 10 inches to 12 inches. 
 

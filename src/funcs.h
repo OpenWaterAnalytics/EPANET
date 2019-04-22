@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/03/2019
+ Last Updated: 04/18/2019
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -44,6 +44,7 @@ int     resizecurve(Scurve *, int);
 int     getcomment(Network *, int, int, char *);
 int     setcomment(Network *, int, int, const char *);
 
+int     namevalid(const char *);
 char    *getTmpName(char *);
 char    *xstrcpy(char **, const char *, const size_t n);
 int     strcomp(const char *, const char *);

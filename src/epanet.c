@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/03/2019
+ Last Updated: 04/18/2019
  ******************************************************************************
 */
 
@@ -30,7 +30,6 @@
 #include "text.h"
 #include "enumstxt.h"
 
-#include "util/cstr_helper.h"
 #include "demand.h"
 
 #ifdef _WIN32
@@ -1708,11 +1707,11 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
 
 ********************************************************************/
 
-int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
+int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = node ID name
 **           nodeType = type of node (see EN_NodeType)
-**  Output:  none
+**  Output:  index = index of newly added node
 **  Returns: error code
 **  Purpose: adds a new node to a project
 **----------------------------------------------------------------
@@ -1723,25 +1722,21 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
     Quality  *qual = &p->quality;
 
     int i, nIdx;
-    int index;
     int size;
-//    struct Sdemand *demand;
     Stank *tank;
     Snode *node;
     Scontrol *control;
 
     // Cannot modify network structure while solvers are active
+    *index = 0;
     if (!p->Openflag) return 102;
     if (hyd->OpenHflag || qual->OpenQflag) return 262;
 
-    // Check if id contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Check if a node with same id already exists
     if (EN_getnodeindex(p, id, &i) == 0) return 215;
-
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
 
     // Grow node-related arrays to accomodate the new node
     size = (net->Nnodes + 2) * sizeof(Snode);
@@ -1758,36 +1753,31 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
         nIdx = net->Njuncs;
         node = &net->Node[nIdx];
 
-        //demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
-        //demand->Base = 0.0;
-        //demand->Pat = 0;
-        //demand->Name = NULL;
-        //demand->next = NULL;
 		node->D = NULL;
 
         // shift rest of Node array
-        for (index = net->Nnodes; index >= net->Njuncs; index--)
+        for (i = net->Nnodes; i >= net->Njuncs; i--)
         {
-            hashtable_update(net->NodeHashTable, net->Node[index].ID, index + 1);
-            net->Node[index + 1] = net->Node[index];
+            hashtable_update(net->NodeHashTable, net->Node[i].ID, i + 1);
+            net->Node[i + 1] = net->Node[i];
         }
         // shift indices of Tank array
-        for (index = 1; index <= net->Ntanks; index++)
+        for (i = 1; i <= net->Ntanks; i++)
         {
-            net->Tank[index].Node += 1;
+            net->Tank[i].Node += 1;
         }
 
         // shift indices of Links, if necessary
-        for (index = 1; index <= net->Nlinks; index++)
+        for (i = 1; i <= net->Nlinks; i++)
         {
-            if (net->Link[index].N1 > net->Njuncs - 1) net->Link[index].N1 += 1;
-            if (net->Link[index].N2 > net->Njuncs - 1) net->Link[index].N2 += 1;
+            if (net->Link[i].N1 > net->Njuncs - 1) net->Link[i].N1 += 1;
+            if (net->Link[i].N2 > net->Njuncs - 1) net->Link[i].N2 += 1;
         }
 
         // shift indices of tanks/reservoir nodes in controls
-        for (index = 1; index <= net->Ncontrols; ++index)
+        for (i = 1; i <= net->Ncontrols; ++i)
         {
-            control = &net->Control[index];
+            control = &net->Control[i];
             if (control->Node > net->Njuncs - 1) control->Node += 1;
         }
 
@@ -1842,6 +1832,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
 
     // Insert new node into hash table
     hashtable_insert(net->NodeHashTable, node->ID, nIdx);
+    *index = nIdx;
     return 0;
 }
 
@@ -2018,13 +2009,10 @@ int DLLEXPORT EN_setnodeid(EN_Project p, int index, char *newid)
 */
 {
     Network *net = &p->network;
-    size_t n;
 
     // Check for valid arguments
     if (index <= 0 || index > net->Nnodes) return 203;
-    n = strlen(newid);
-    if (n < 1 || n > MAXID) return 209;
-    if (!cstr_isvalid(newid)) return 252;
+    if (!namevalid(newid)) return 252;
 
     // Check if another node with same name exists
     if (hashtable_find(net->NodeHashTable, newid) > 0) return 215;
@@ -2312,10 +2300,6 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
 			list_t *demand = Node[index].D;
 			if (demand)
 				set_base_demand(tail_list(demand), value / Ucf[FLOW]);
-//            for (demand = Node[index].D; demand != NULL; demand = demand->next)
-//            {
-//                if (demand->next == NULL) demand->Base = value / Ucf[FLOW];
-//            }
         }
         break;
 
@@ -2325,13 +2309,9 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         if (j < 0 || j > nPats) return 205;
         if (index <= nJuncs)
         {
-			list_t *demand = Node[index].D;
-			if (demand)
-				set_pattern_index(tail_list(demand), j);
-            //for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            //{
-            //    if (demand->next == NULL) demand->Pat = j;
-            //}
+            list_t *demand = Node[index].D;
+            if (demand)
+                set_pattern_index(tail_list(demand), j);
         }
         else Tank[index - nJuncs].Pat = j;
         break;
@@ -2551,24 +2531,16 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
     // Assign values to junction's parameters
     Node[index].El = elev / p->Ucf[ELEV];
 
-	list_t *demand_list = Node[index].D;
-	if (!demand_list) {
-		demand_list = create_list(get_demand_data_size(), delete_demand_data);
-		if (!demand_list) return 101;
-	}
-	demand_data_t *demand_data = create_demand_data(dmnd / p->Ucf[FLOW], patIndex, NULL);
-	if (!demand_data) return 101;
+    list_t *demand_list = Node[index].D;
+    if (!demand_list) {
+        demand_list = create_list(get_demand_data_size(), delete_demand_data);
+        if (!demand_list) return 101;
+    }
+    demand_data_t *demand_data = create_demand_data(dmnd / p->Ucf[FLOW], patIndex, NULL);
+    if (!demand_data) return 101;
 
-	append_list(demand_list, &demand_data);
+    append_list(demand_list, &demand_data);
 
-    //for (demand = Node[index].D; demand != NULL; demand = demand->next)
-    //{
-    //    if (demand->next == NULL)
-    //    {
-    //        demand->Base = dmnd / p->Ucf[FLOW];
-    //        demand->Pat = patIndex;
-    //    }
-    //}
     return 0;
 }
 
@@ -2777,9 +2749,6 @@ int DLLEXPORT EN_getbasedemand(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    //Pdemand d;
-	//int n; //= 1;
-
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
@@ -2787,12 +2756,12 @@ int DLLEXPORT EN_getbasedemand(EN_Project p, int nodeIndex, int demandIndex,
     // Retrieve demand for specified category
     if (nodeIndex <= p->network.Njuncs)
     {
-		// Locate demand category record and assign demandName to it
-		list_t *dlist = p->network.Node[nodeIndex].D;
-		list_node_t *lnode = get_nth_list(dlist, demandIndex);
-		if (!lnode)
-			return 253;
-		else
+        // Locate demand category record and assign demandName to it
+        list_t *dlist = p->network.Node[nodeIndex].D;
+        list_node_t *lnode = get_nth_list(dlist, demandIndex);
+        if (!lnode)
+            return 253;
+        else
             *baseDemand = get_base_demand(lnode) * p->Ucf[FLOW];
     }
     else *baseDemand = (double)(0.0);
@@ -2818,22 +2787,22 @@ int DLLEXPORT EN_setbasedemand(EN_Project p, int nodeIndex, int demandIndex,
     // Set baseline demand for specified category
     if (nodeIndex <= p->network.Njuncs)
     {
-		list_t *dlist = p->network.Node[nodeIndex].D;
-		// If demand list is null create one and set demand
-		if (!dlist) {
-			dlist = create_demand_list(baseDemand / p->Ucf[FLOW], 0, NULL);
-			if (!dlist) return 101;
+        list_t *dlist = p->network.Node[nodeIndex].D;
+        // If demand list is null create one and set demand
+        if (!dlist) {
+            dlist = create_demand_list(baseDemand / p->Ucf[FLOW], 0, NULL);
+            if (!dlist) return 101;
 
-			p->network.Node[nodeIndex].D = dlist;
-		}
-		// else find the demand entry and set demand
-		else {
-			list_node_t *lnode = get_nth_list(dlist, demandIndex);
-			if (!lnode)
-				return 253;
-			else
-				set_base_demand(lnode, baseDemand / p->Ucf[FLOW]);
-		}
+            p->network.Node[nodeIndex].D = dlist;
+        }
+        // else find the demand entry and set demand
+        else {
+            list_node_t *lnode = get_nth_list(dlist, demandIndex);
+            if (!lnode)
+                return 253;
+            else
+            set_base_demand(lnode, baseDemand / p->Ucf[FLOW]);
+        }
     }
     return 0;
 }
@@ -2849,8 +2818,6 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    //Pdemand d;
-    //int n = 1;
     char *temp = NULL;
 
     strcpy(demandName, "");
@@ -2890,31 +2857,29 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    //Pdemand d;
-    //int n = 1;
 
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs) return 203;
 
-	// Check that demandName is not too long
-    if (strlen(demandName) > MAXID) return 250;
+    // Check that demandName is not too long
+    if (strlen(demandName) > MAXID) return 252;
 
     // Locate demand category record and assign demandName to it
-	list_t *dlist = p->network.Node[nodeIndex].D;
-	if (!dlist) {
-		dlist = create_demand_list(0, 0, demandName);
-		if (!dlist) return 101;
+    list_t *dlist = p->network.Node[nodeIndex].D;
+    if (!dlist) {
+        dlist = create_demand_list(0, 0, demandName);
+        if (!dlist) return 101;
 
-		p->network.Node[nodeIndex].D = dlist;
-	}
-	else {
-		list_node_t *lnode = get_nth_list(dlist, demandIndex);
-		if (!lnode)
-			return 253;
-		else
-			set_category_name(lnode, demandName);
-	}
+        p->network.Node[nodeIndex].D = dlist;
+    }
+    else {
+        list_node_t *lnode = get_nth_list(dlist, demandIndex);
+        if (!lnode)
+            return 253;
+        else
+            set_category_name(lnode, demandName);
+    }
     return 0;
 }
 
@@ -2930,20 +2895,17 @@ int DLLEXPORT EN_getdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    //Pdemand d;
-    //int n = 1;
-
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
 
-	// Locate demand category record and assign demandName to it
-	list_t *dlist = p->network.Node[nodeIndex].D;
-	list_node_t *lnode = get_nth_list(dlist, demandIndex);
-	if (!lnode)
-		return 253;
-	else
-		*patIndex = get_pattern_index(lnode);
+    // Locate demand category record and assign demandName to it
+    list_t *dlist = p->network.Node[nodeIndex].D;
+    list_node_t *lnode = get_nth_list(dlist, demandIndex);
+    if (!lnode)
+        return 253;
+    else
+        *patIndex = get_pattern_index(lnode);
 
     return 0;
 }
@@ -2962,9 +2924,6 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 {
     Network *net = &p->network;
 
-    //Pdemand d;
-    //int n = 1;
-
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > net->Nnodes) return 203;
@@ -2973,20 +2932,20 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
     // Locate demand category record and assign time pattern to it
     if (nodeIndex <= net->Njuncs) {
 
-		list_t *dlist = p->network.Node[nodeIndex].D;
-		if (!dlist) {
-			dlist = create_demand_list(0, patIndex, NULL);
-			if (!dlist) return 101;
+        list_t *dlist = p->network.Node[nodeIndex].D;
+        if (!dlist) {
+            dlist = create_demand_list(0, patIndex, NULL);
+            if (!dlist) return 101;
 
-			p->network.Node[nodeIndex].D = dlist;
-		}
-		else {
-			list_node_t *lnode = get_nth_list(dlist, demandIndex);
-			if (!lnode)
-				return 253;
-			else
-				set_pattern_index(lnode, patIndex);
-		}
+            p->network.Node[nodeIndex].D = dlist;
+        }
+        else {
+            list_node_t *lnode = get_nth_list(dlist, demandIndex);
+            if (!lnode)
+                return 253;
+            else
+                set_pattern_index(lnode, patIndex);
+        }
     }
     return 0;
 }
@@ -2998,13 +2957,13 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 ********************************************************************/
 
 int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
-                         char *fromNode, char *toNode)
+                         char *fromNode, char *toNode, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = link ID name
 **           type = link type (see EN_LinkType)
 **           fromNode = name of link's starting node
 **           toNode = name of link's ending node
-**  Output:  none
+**  Output:  index = position of new link in Link array
 **  Returns: error code
 **  Purpose: adds a new link to a project
 **----------------------------------------------------------------
@@ -3019,11 +2978,12 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     Spump *pump;
 
     // Cannot modify network structure while solvers are active
+    *index = 0;
     if (!p->Openflag) return 102;
     if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
 
-    // Check if id contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Check if a link with same id already exists
     if (EN_getlinkindex(p, id, &i) == 0) return 215;
@@ -3036,9 +2996,6 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     n2 = hashtable_find(net->NodeHashTable, toNode);
     if (n1 == 0 || n2 == 0) return 203;
 
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
-
     // Check that valve link has legal connections
     if (linkType > PUMP)
     {
@@ -3048,6 +3005,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
 
     // Grow link-related arrays to accomodate the new link
     net->Nlinks++;
+    p->parser.MaxLinks = net->Nlinks;
     n = net->Nlinks;
     size = (n + 1) * sizeof(Slink);
     net->Link = (Slink *)realloc(net->Link, size);
@@ -3127,6 +3085,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     link->Comment = NULL;
 
     hashtable_insert(net->LinkHashTable, link->ID, n);
+    *index = n;
     return 0;
 }
 
@@ -3280,13 +3239,10 @@ int DLLEXPORT EN_setlinkid(EN_Project p, int index, char *newid)
 */
 {
     Network *net = &p->network;
-    size_t n;
 
     // Check for valid arguments
     if (index <= 0 || index > net->Nlinks) return 204;
-    n = strlen(newid);
-    if (n < 1 || n > MAXID) return 211;
-    if (!cstr_isvalid(newid)) return 252;
+    if (!namevalid(newid)) return 252;
 
     // Check if another link with same name exists
     if (hashtable_find(net->LinkHashTable, newid) > 0) return 215;
@@ -3384,10 +3340,7 @@ int DLLEXPORT EN_setlinktype(EN_Project p, int *index, int linkType, int actionC
     EN_deletelink(p, i, actionCode);
 
     // Create a new link of new type and old id
-    errcode = EN_addlink(p, id, linkType, id1, id2);
-
-    // Find the index of this new link
-    EN_getlinkindex(p, id, index);
+    errcode = EN_addlink(p, id, linkType, id1, id2, index);
     return errcode;
 }
 
@@ -4037,11 +3990,8 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
     if (!p->Openflag) return 102;
     if (EN_getpatternindex(p, id, &i) == 0) return 215;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
-
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Expand the project's array of patterns
     n = net->Npats + 1;
@@ -4164,10 +4114,8 @@ int DLLEXPORT EN_setpatternid(EN_Project p, int index, char *id)
     if (!p->Openflag) return 102;
     if (index < 1 || index > p->network.Npats) return 205;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
-
-    if (strlen(id) > MAXID) return 250;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     for (i = 1; i <= p->network.Npats; i++)
     {
@@ -4313,11 +4261,8 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
     if (!p->Openflag) return 102;
     if (EN_getcurveindex(p, id, &i) == 0) return 215;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
-
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Expand the array of curves
     n = net->Ncurves + 1;
@@ -4436,10 +4381,9 @@ int DLLEXPORT EN_setcurveid(EN_Project p, int index, char *id)
     if (!p->Openflag) return 102;
     if (index < 1 || index > p->network.Ncurves) return 205;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
-    if (strlen(id) > MAXID) return 250;
     for (i = 1; i <= p->network.Ncurves; i++)
     {
         if (i != index && strcmp(id, p->network.Curve[i].ID) == 0) return 215;
