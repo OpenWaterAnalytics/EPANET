@@ -2873,6 +2873,8 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
             free(temp);
         }
     }
+    else return 253;
+
     return 0;
 }
 
