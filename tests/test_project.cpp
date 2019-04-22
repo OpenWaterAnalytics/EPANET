@@ -78,13 +78,13 @@ BOOST_AUTO_TEST_CASE(test_save)
     error = EN_open(ph_save, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
     BOOST_REQUIRE(error == 0);
 
-//    error = EN_saveinpfile(ph_save, "test_reopen.inp");
-//    BOOST_REQUIRE(error == 0);
+    error = EN_saveinpfile(ph_save, "test_reopen.inp");
+    BOOST_REQUIRE(error == 0);
 
-//	BOOST_CHECK(boost::filesystem::exists("test_reopen.inp") == true);
+    BOOST_CHECK(boost::filesystem::exists("test_reopen.inp") == true);
 
-	error = EN_close(ph_save);
-	BOOST_REQUIRE(error == 0);
+    error = EN_close(ph_save);
+    BOOST_REQUIRE(error == 0);
     EN_deleteproject(&ph_save);
 }
 
