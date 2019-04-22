@@ -66,15 +66,15 @@ BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("tes
 
     error = EN_getnodeindex(ph, (char *)"12", &Nindex);
     BOOST_REQUIRE(error == 0);
-    //error = EN_getnumdemands(ph, Nindex, &ndem);
-    //BOOST_REQUIRE(error == 0);
-    //BOOST_CHECK(ndem == 1);
+    error = EN_getnumdemands(ph, Nindex, &ndem);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(ndem == 1);
 
-    //char demname[31];
-    //error = EN_getdemandname(ph, Nindex, ndem, demname);
-    //BOOST_CHECK(error == 0);
+    char demname[31];
+    error = EN_getdemandname(ph, Nindex, ndem, demname);
+    BOOST_CHECK(error == 0);
 
-    //BOOST_CHECK(check_string(demname, "CUB_SCOUT_MOTOR_POOL"));
+    BOOST_CHECK(check_string(demname, "CUB_SCOUT_MOTOR_POOL"));
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);

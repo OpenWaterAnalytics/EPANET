@@ -371,7 +371,7 @@ int saveinpfile(Project *pr, const char *fname)
 
 
     // Write [DEMANDS] section
-    //write_demands(pr, f);
+    write_demands(pr, f);
 
 
     // Write [EMITTERS] section
