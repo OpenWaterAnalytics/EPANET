@@ -2107,16 +2107,12 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_PATTERN:
         v = 0.0;
-        // NOTE: primary demand category is last on demand list
+        // NOTE: primary demand category is first on demand list
         if (index <= nJuncs)
         {
 			list_t *demand = Node[index].D;
 			if (demand)
-				v = get_pattern_index(tail_list(demand));
-            //for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            //{
-            //    v = (double)(demand->Pat);
-            //}
+				v = get_pattern_index(head_list(demand, false));
         }
         else v = (double)(Tank[index - nJuncs].Pat);
         break;
@@ -2294,24 +2290,24 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         break;
 
     case EN_BASEDEMAND:
-        // NOTE: primary demand category is last on demand list
+        // NOTE: primary demand category is first on demand list
         if (index <= nJuncs)
         {
 			list_t *demand = Node[index].D;
 			if (demand)
-				set_base_demand(tail_list(demand), value / Ucf[FLOW]);
+				set_base_demand(head_list(demand, false), value / Ucf[FLOW]);
         }
         break;
 
     case EN_PATTERN:
-        // NOTE: primary demand category is last on demand list
+        // NOTE: primary demand category is first on demand list
         j = ROUND(value);
         if (j < 0 || j > nPats) return 205;
         if (index <= nJuncs)
         {
             list_t *demand = Node[index].D;
             if (demand)
-                set_pattern_index(tail_list(demand), j);
+                set_pattern_index(head_list(demand, false), j);
         }
         else Tank[index - nJuncs].Pat = j;
         break;
