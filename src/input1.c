@@ -331,20 +331,17 @@ void adjustdata(Project *pr)
         tank = &net->Tank[i];
         if (tank->Kb == MISSING) tank->Kb = qual->Kbulk;
     }
-
-	// It is expensive to iterate over every demand at every node.
-	// cheaper to apply default pattern when creating the demand data. 
-
-//    // Use default pattern if none assigned to a demand
-//    parser->DefPat = findpattern(net, parser->DefPatID);
-//    if (parser->DefPat > 0) for (i = 1; i <= net->Nnodes; i++)
-//    {
-//        node = &net->Node[i];
-//        for (demand = node->D; demand != NULL; demand = demand->next)
-//        {
-//            if (demand->Pat == 0) demand->Pat = parser->DefPat;
-//        }
-//    }
+ 
+	// Use default pattern if none assigned to a demand
+	parser->DefPat = findpattern(net, parser->DefPatID);
+	if (parser->DefPat > 0) {
+		for (i = 1; i <= net->Nnodes; i++) {
+			for (list_node_t *lnode = first_list((&net->Node[i])->D); done_list(lnode); lnode = next_list(lnode)) {
+				if (get_pattern_index(lnode) == 0)
+					set_pattern_index(lnode, parser->DefPat);
+			}
+		}
+	}
 
     // Remove QUALITY as a reporting variable if no WQ analysis
     if (qual->Qualflag == NONE) rpt->Field[QUALITY].Enabled = FALSE;

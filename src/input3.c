@@ -124,8 +124,6 @@ int juncdata(Project *pr)
 
 	// create demand data only if a demand has been specified
 	if (y != 0.0) {
-		// apply the default demand pattern and append the data
-		if (p == 0) p = findpattern(net, parser->DefPatID);
 		demand_list = create_demand_list(y, p, NULL);
 		if (!demand_list) return 101;
 	}
@@ -752,50 +750,18 @@ int demanddata(Project *pr)
 		net->Node[j].D = demand_list;
 	}
 	
-	// else delete the demand data in [JUNCTIONS] section
+	// else replace the demand data entered in [JUNCTIONS] section
 	else if (size_list(demand_list) == 1) {
 		list_node_t *lnode = head_list(demand_list, true);
 		delete_node(demand_list, lnode);
 	}
 
-	// apply the default demand pattern and append the data
-	if (p == 0) p = findpattern(net, parser->DefPatID);
+	// append the data to the list
 	demand_data = create_demand_data(y, p, parser->Comment);
 	if (demand_data == NULL) return 101;
 
 	append_list(demand_list, &demand_data);
 
-
- //	//if (hyd->NodeDemand[j] != MISSING)
- //   {
- //       // First category encountered will overwrite "dummy" demand category
- //       // with what is specified in this section
- //       demand->Base = y;
- //       demand->Pat = p;
- //       if (parser->Comment[0])
- //       {
- //           demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXID);
- //       }
- //       hyd->NodeDemand[j] = MISSING; // marker - next iteration will append a new category.
- //   }
- //
- //   // Otherwise add new demand to junction
- //   else
- //   {
- //       cur_demand = net->Node[j].D;
- //       while (cur_demand->next != NULL) cur_demand = cur_demand->next;
- //       demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
- //       if (demand == NULL) return 101;
- //       demand->Base = y;
- //       demand->Pat = p;
- //       demand->Name = NULL;
- //       if (parser->Comment[0])
- //       {
- //           demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXID);
- //       }
- //       demand->next = NULL;
- //       cur_demand->next = demand;
- //   }
     return 0;
 }
 

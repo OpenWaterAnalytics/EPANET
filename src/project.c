@@ -409,13 +409,7 @@ void freedata(Project *pr)
 			list_t *demand = pr->network.Node[j].D;
 			if(demand)
 				delete_list(demand);
-            /*while (demand != NULL)
-            {
-                nextdemand = demand->next;
-                free(demand->Name);
-                free(demand);
-                demand = nextdemand;
-            }*/
+
             // Free memory used for WQ source data
             free(pr->network.Node[j].S);
             free(pr->network.Node[j].Comment);
@@ -797,8 +791,8 @@ void adjustpattern(int *pat, int index)
 }
 
 
-void _adjustpattern(list_node_t *lnode, int del_idx)
-{	
+void adjust_demand_pattern(list_node_t *lnode, int del_idx)
+{
 	int pat_idx = get_pattern_index(lnode);
 
 	if (pat_idx == del_idx) set_pattern_index(lnode, 0);
@@ -825,7 +819,7 @@ void adjustpatterns(Network *network, int index)
 		list_t *dlist = network->Node[j].D;
 		if (dlist) {
 			for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
-				_adjustpattern(lnode, index);
+				adjust_demand_pattern(lnode, index);
 		}
         // Adjust WQ source patterns
         source = network->Node[j].S;
