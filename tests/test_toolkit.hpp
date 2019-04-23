@@ -102,6 +102,26 @@ struct FixtureAfterStep{
     EN_Project ph;
 };
 
+struct FixtureSingleNode {
+    FixtureSingleNode() {
+        error = 0;
+        ph = NULL;
+
+        EN_createproject(&ph);
+        EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_GPM, EN_HW);
+
+        EN_addnode(ph, (char *)"CUB_SCOUT_QUONSET_HUT", EN_JUNCTION, &node_qhut);
+    }
+
+    ~FixtureSingleNode() {
+        EN_close(ph);
+        EN_deleteproject(&ph);
+    }
+    int error, index, node_qhut;
+    EN_Project ph;
+};
+
+
 boost::test_tools::predicate_result check_cdd_double(std::vector<double>& test,
     std::vector<double>& ref, long cdd_tol);
 boost::test_tools::predicate_result check_string(std::string test, std::string ref);

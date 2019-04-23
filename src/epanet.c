@@ -1888,15 +1888,9 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
 
     // Free memory allocated to node's demands, WQ source & comment
     demand = node->D;
-	if (demand)
-		delete_list(demand);
-//	while (demand != NULL)
- //   {
- //       nextdemand = demand->next;
- //       free(demand->Name);
- //       free(demand);
- //       demand = nextdemand;
- //   }
+    if (demand)
+        delete_list(demand);
+
     free(node->S);
     free(node->Comment);
 
@@ -2063,7 +2057,6 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
     Quality *qual = &p->quality;
 
     double v = 0.0;
-    //Pdemand demand;
     Psource source;
 
     Snode *Node = net->Node;
@@ -2090,17 +2083,12 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_BASEDEMAND:
         v = 0.0;
-        // NOTE: primary demand category is last on demand list
+        // NOTE: primary demand category is first on demand list
         if (index <= nJuncs)
         {
-			list_t *demand = Node[index].D;
-			if (demand)
-				v = get_base_demand(tail_list(demand));
-
-            //for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            //{
-            //    v = (demand->Base);
-            //}
+            list_t *demand = Node[index].D;
+            if (demand)
+                v = get_base_demand(head_list(demand, false));
         }
         v *= Ucf[FLOW];
         break;
@@ -2110,9 +2098,9 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         // NOTE: primary demand category is first on demand list
         if (index <= nJuncs)
         {
-			list_t *demand = Node[index].D;
-			if (demand)
-				v = get_pattern_index(head_list(demand, false));
+            list_t *demand = Node[index].D;
+            if (demand)
+                v = get_pattern_index(head_list(demand, false));
         }
         else v = (double)(Tank[index - nJuncs].Pat);
         break;
@@ -2267,7 +2255,6 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     double *Ucf = p->Ucf;
 
     int i, j, n;
-//    Pdemand demand;
     Psource source;
     double hTmp;
 
@@ -2293,9 +2280,9 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         // NOTE: primary demand category is first on demand list
         if (index <= nJuncs)
         {
-			list_t *demand = Node[index].D;
-			if (demand)
-				set_base_demand(head_list(demand, false), value / Ucf[FLOW]);
+            list_t *demand = Node[index].D;
+            if (demand)
+                set_base_demand(head_list(demand, false), value / Ucf[FLOW]);
         }
         break;
 
@@ -2504,7 +2491,6 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
 
     int i, patIndex = 0;
     Snode *Node = net->Node;
-    //Pdemand demand;
 
     // Check that junction exists
     if (!p->Openflag) return 102;
@@ -2532,11 +2518,52 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
         demand_list = create_list(get_demand_data_size(), delete_demand_data);
         if (!demand_list) return 101;
     }
-    demand_data_t *demand_data = create_demand_data(dmnd / p->Ucf[FLOW], patIndex, NULL);
+    demand_data_t *demand_data = create_demand_data(dmnd/p->Ucf[FLOW], patIndex, NULL);
     if (!demand_data) return 101;
 
     append_list(demand_list, &demand_data);
 
+    return 0;
+}
+
+int DLLEXPORT EN_adddemand(EN_Project p, int node_index, double demand,
+    char *demand_pattern, const char *category_name, int *demand_index)
+{
+    Network *net = &p->network;
+
+    int pattern_index, error = 0;
+    *demand_index = -1;
+
+    if (error = EN_getpatternindex(p, demand_pattern, &pattern_index) != 0) return error;
+
+    Snode *Node = net->Node;
+    list_t *demand_list = Node[node_index].D;
+    if (!demand_list) {
+        demand_list = create_demand_list(demand/p->Ucf[FLOW], pattern_index, category_name);
+        if (!demand_list) return 101;
+        
+        Node[node_index].D = demand_list;
+    }
+    else {
+        demand_data_t *demand_data = create_demand_data(demand/p->Ucf[FLOW], pattern_index, category_name);
+        if (!demand_data) return 101;
+
+        append_list(demand_list, &demand_data);
+    }
+
+    *demand_index = size_list(demand_list);
+    return 0;
+}
+
+int DLLEXPORT EN_removedemand(EN_Project p, int node_index, int demand_index) {
+    // Problem: Removing a demand will in most cases invalidate the index
+    // returned previously in EN_adddemand(). This occurs in all cases except
+    // when the demand at the tail of the list is removed. This is why indexing
+    // is a flawed strategy for random access to a list data structure.
+    // One possible solution is to have the user be responsible for creating a
+    // unique category name. Another possible solution would be for the
+    // application to create a unique key for each demand entry. They have
+    // random access based on searching for a key value in the list.
     return 0;
 }
 

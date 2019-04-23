@@ -791,12 +791,12 @@ void adjustpattern(int *pat, int index)
 }
 
 
-void adjust_demand_pattern(list_node_t *lnode, int del_idx)
+void adjust_demand_pattern(list_node_t *list_node, int deletion_index)
 {
-	int pat_idx = get_pattern_index(lnode);
+	int pat_idx = get_pattern_index(list_node);
 
-	if (pat_idx == del_idx) set_pattern_index(lnode, 0);
-	else if (pat_idx > del_idx) set_pattern_index(lnode, --pat_idx);
+	if (pat_idx == deletion_index) set_pattern_index(list_node, 0);
+	else if (pat_idx > deletion_index) set_pattern_index(list_node, --pat_idx);
 }
 
 
@@ -816,11 +816,11 @@ void adjustpatterns(Network *network, int index)
     for (j = 1; j <= network->Nnodes; j++)
     {
         // Adjust demand patterns
-		list_t *dlist = network->Node[j].D;
-		if (dlist) {
-			for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
-				adjust_demand_pattern(lnode, index);
-		}
+        list_t *dlist = network->Node[j].D;
+        if (dlist) {
+            for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
+                adjust_demand_pattern(lnode, index);
+        }
         // Adjust WQ source patterns
         source = network->Node[j].S;
         if (source) adjustpattern(&source->Pat, index);

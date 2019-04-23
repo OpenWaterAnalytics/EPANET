@@ -291,4 +291,5 @@ BOOST_FIXTURE_TEST_CASE(test_pattern_edits, FixtureSingleNode)
 
 
 
+
 BOOST_AUTO_TEST_SUITE_END()
