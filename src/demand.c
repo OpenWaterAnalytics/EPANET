@@ -66,8 +66,7 @@ demand_data_t *create_demand_data(double base_demand, int pattern_index, const c
 }
 
 void delete_demand_data(void *data)
-{
-	// TODO: This cast is a problem!
+{ 
     demand_data_t *demand_data = *(demand_data_t **)data;
 
     if (demand_data->category_name)
