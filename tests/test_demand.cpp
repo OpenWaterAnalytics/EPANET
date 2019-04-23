@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("tes
 
     char demname[31];
     error = EN_getdemandname(ph, Nindex, ndem, demname);
-    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(error == 0);
 
     BOOST_CHECK(check_string(demname, "CUB_SCOUT_MOTOR_POOL"));
 

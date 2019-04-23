@@ -77,7 +77,7 @@ BOOST_FIXTURE_TEST_CASE(test_curve_id_isvalid, FixtureInitClose)
     error = EN_addcurve(ph, (char *)"C 2");
     BOOST_REQUIRE(error == 252);
 
-    error = EN_addcurve(ph, (char *)"C\"2");
+    error = EN_addcurve(ph, (char *)"\"C2");
     BOOST_REQUIRE(error == 252);
 
     error = EN_addcurve(ph, (char *)"C;2");

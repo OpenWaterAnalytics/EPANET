@@ -67,7 +67,7 @@ demand_data_t *create_demand_data(double base_demand, int pattern_index, const c
 
 void delete_demand_data(void *data)
 {
-	// TODO: This cast is a problem! 
+	// TODO: This cast is a problem!
     demand_data_t *demand_data = *(demand_data_t **)data;
 
     if (demand_data->category_name)
@@ -119,7 +119,12 @@ void set_pattern_index(list_node_t *lnode, int pattern_index)
 char *get_category_name(list_node_t *lnode)
 // Be advised: caller must free memory returned
 {
-    return strdup(get_demand_data(lnode)->category_name);
+    char *temp = get_demand_data(lnode)->category_name;
+
+    if (temp)
+        return strdup(temp);
+    else
+        return NULL;
 }
 
 void set_category_name(list_node_t *lnode, const char *category_name)
