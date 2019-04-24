@@ -22,6 +22,7 @@
 #endif
 
 #include <string.h>
+#include <time.h>
 #include <assert.h>
 
 #include "list.h"
@@ -29,6 +30,7 @@
 
 typedef struct list_node_s {
     void *data;
+    int key;
     struct list_node_s *next;
 } list_node_t;
 
@@ -41,6 +43,9 @@ typedef struct list_s {
     freeFunction freeFn;
 } list_t;
 
+
+// local declarations
+int gen_key();
 
 list_t *create_list(size_t elementSize, freeFunction freeFn)
 {
@@ -67,11 +72,13 @@ void delete_list(list_t *list)
     free(list);
 }
 
-void prepend_list(list_t *list, void *element)
+int prepend_list(list_t *list, void *element)
 {
     list_node_t *node = malloc(sizeof(list_node_t));
     node->data = malloc(list->elementSize);
     memcpy(node->data, element, list->elementSize);
+
+    node->key = gen_key();
 
     node->next = list->head;
     list->head = node;
@@ -82,13 +89,17 @@ void prepend_list(list_t *list, void *element)
     }
 
     list->logicalLength++;
+
+    return node->key;
 }
 
-void append_list(list_t *list, void *element)
+int append_list(list_t *list, void *element)
 {
 	list_node_t *node = malloc(sizeof(list_node_t));
     node->data = malloc(list->elementSize);
     node->next = NULL;
+
+    node->key = gen_key();
 
     memcpy(node->data, element, list->elementSize);
 
@@ -100,7 +111,10 @@ void append_list(list_t *list, void *element)
     }
 
     list->logicalLength++;
+
+    return node->key;
 }
+
 
 void for_each_list(list_t *list, listIterator iterator)
 {
@@ -110,18 +124,16 @@ void for_each_list(list_t *list, listIterator iterator)
     bool result = true;
 
 	while(node != NULL && result) {
-		result = (iterator);
+		result = iterator(node);
         node = node->next;
     }
 }
 
 list_node_t *head_list(list_t *list, bool removeFromList)
-//
 // Warning: When node is removed caller is responsible for freeing it.
-//
 {
 //    assert(list->head != NULL);
-	
+
 	if (list) {
 		list_node_t *node = list->head;
 		if (removeFromList) {
@@ -141,7 +153,7 @@ list_node_t *tail_list(list_t *list)
 }
 
 list_node_t *get_nth_list(list_t *list, int index)
-{	
+{
 	int n;
 	list_node_t *lnode;
 
@@ -152,9 +164,29 @@ list_node_t *get_nth_list(list_t *list, int index)
 		return lnode;
 }
 
+list_node_t *search_list(list_t *list, int key)
+// Naive list search. Will not perform for large lists.
+{
+    list_node_t *lnode = first_list(list);
+
+    while (done_list(lnode)) {
+
+        if (get_key(lnode) == key)
+            return lnode;
+
+        lnode = next_list(lnode);
+    }
+    return NULL;
+}
+
 int size_list(list_t *list)
 {
     return list->logicalLength;
+}
+
+int get_key(list_node_t *lnode)
+{
+    return lnode->key;
 }
 
 void *get_data(list_node_t *lnode)
@@ -174,4 +206,13 @@ void delete_node(list_t *list, list_node_t *lnode)
 
     free(lnode->data);
     free(lnode);
+}
+
+
+// local functions
+
+int gen_key()
+// Naive key generator. No guarentee of uniqueness
+{
+    return rand();
 }

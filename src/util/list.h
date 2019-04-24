@@ -46,14 +46,14 @@ with each node’s data pointer.
 void delete_list(list_t *list);
 
 /**
-@brief Adds a node to the head of the list.
+@brief Adds a node to the head of the list and returns its key.
 */
-void prepend_list(list_t *list, void *element);
+int prepend_list(list_t *list, void *element);
 
 /**
-@brief Adds a node to the tail of the list.
+@brief Adds a node to the tail of the list and returns its key.
 */
-void append_list(list_t *list, void *element);
+int append_list(list_t *list, void *element);
 
 /**
 @brief Returns the number of items in the list.
@@ -67,7 +67,12 @@ int size_list(list_t *list);
 void *get_data(list_node_t *lnode);
 
 /**
-@brief Returns next list node. 
+@brief Returns list node's key value.
+*/
+int get_key(list_node_t *lnode);
+
+/**
+@brief Returns next list node.
 */
 list_node_t *get_next(list_node_t *lnode);
 
@@ -94,10 +99,14 @@ list_node_t *head_list(list_t *list, bool removeFromList);
 list_node_t *tail_list(list_t *list);
 
 /**
-@brief Returns nth node of the list or NULL. 
+@brief Returns nth node of the list or NULL.
 */
 list_node_t *get_nth_list(list_t *list, int index);
 
+/**
+@brief Returns the list node with the given key or NULL.
+*/
+list_node_t *search_list(list_t *list, int key);
 
 //
 // Iterator first/done/next operations
