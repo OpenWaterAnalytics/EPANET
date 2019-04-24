@@ -84,15 +84,15 @@ BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("tes
 
 BOOST_FIXTURE_TEST_CASE(test_adddemand, FixtureSingleNode)
 {
-    int demand_index;
+    int demand_key;
 
-    error = EN_adddemand(ph, node_qhut, 100.0, "PrimaryPattern", "PrimaryDemand", &demand_index);
+    error = EN_adddemand(ph, node_qhut, 100.0, "PrimaryPattern", "PrimaryDemand", &demand_key);
     BOOST_CHECK(error != 0);
 
     error = EN_addpattern(ph, (char *)"PrimaryPattern");
     BOOST_REQUIRE(error == 0);
 
-    error = EN_adddemand(ph, node_qhut, 100.0, "PrimaryPattern", "PrimaryDemand", &demand_index);
+    error = EN_adddemand(ph, node_qhut, 100.0, "PrimaryPattern", "PrimaryDemand", &demand_key);
     BOOST_CHECK(error == 0);
 }
 
