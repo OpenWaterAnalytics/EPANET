@@ -165,7 +165,7 @@ typedef struct Project *EN_Project;
   @return an error code
   */
   int  DLLEXPORT EN_setcomment(EN_Project ph, int object, int index, char *comment);
-  
+
   /**
   @brief Retrieves the number of objects of a given type in a project.
   @param ph an EPANET project handle.
@@ -851,7 +851,14 @@ typedef struct Project *EN_Project;
   These properties have units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_setjuncdata(EN_Project ph, int index, double elev, double dmnd,
-                 char *dmndpat);
+      char *dmndpat);
+
+
+  int DLLEXPORT EN_adddemand(EN_Project p, int node_index, double demand,
+      char *demand_pattern, const char *category_name, int *demand_index);
+
+  int DLLEXPORT EN_removedemand(EN_Project p, int node_index, int demand_index);
+
 
   /**
   @brief Sets a group of properties for a tank node.

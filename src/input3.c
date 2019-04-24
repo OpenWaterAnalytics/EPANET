@@ -23,6 +23,7 @@ Last Updated: 04/03/2019
 
 #include <math.h>
 
+#include "demand.h"
 #include "types.h"
 #include "funcs.h"
 #include "hash.h"
@@ -80,12 +81,15 @@ int juncdata(Project *pr)
     Parser  *parser = &pr->parser;
     Hydraul *hyd = &pr->hydraul;
 
-    int p = 0;          // time pattern index
-    int n;              // number of tokens
-    int njuncs;         // number of network junction nodes
-    double el,          // elevation
-           y = 0.0;     // base demand
-    Pdemand demand;     // demand record
+    int p = 0;                  // time pattern index
+    int n;                      // number of tokens
+    int njuncs;                 // number of network junction nodes
+    double el,                  // elevation
+           y = 0.0;             // base demand
+    
+	list_t *demand_list = NULL; // demand list
+
+
     Snode *node;
 
     // Add new junction to data base
@@ -118,14 +122,13 @@ int juncdata(Project *pr)
     node->Type = JUNCTION;
     node->Comment = xstrcpy(&node->Comment, parser->Comment, MAXMSG);
 
-    // create a demand record, even if no demand is specified here.
-    demand = (struct Sdemand *) malloc(sizeof(struct Sdemand));
-    if (demand == NULL) return 101;
-    demand->Base = y;
-    demand->Pat = p;
-    demand->Name = NULL;
-    demand->next = NULL;
-    node->D = demand;
+	// create demand data only if a demand has been specified
+	if (y != 0.0) {
+		demand_list = create_demand_list(y, p, NULL);
+		if (!demand_list) return 101;
+	}
+    node->D = demand_list;
+
     hyd->NodeDemand[njuncs] = y;
     return 0;
 }
@@ -709,8 +712,12 @@ int demanddata(Project *pr)
 
     int j, n, p = 0;
     double y;
-    Pdemand demand;
-    Pdemand cur_demand;
+
+	list_t *demand_list = NULL;
+	demand_data_t *demand_data = NULL;
+    
+	//Pdemand demand;
+    //Pdemand cur_demand;
 
     // Extract data from tokens
     n = parser->Ntokens;
@@ -734,38 +741,27 @@ int demanddata(Project *pr)
         if (p == 0) return setError(parser, 2, 205);
     }
 
-    // Replace any demand entered in [JUNCTIONS] section
-    demand = net->Node[j].D;
-    if (hyd->NodeDemand[j] != MISSING)
-    {
-        // First category encountered will overwrite "dummy" demand category
-        // with what is specified in this section
-        demand->Base = y;
-        demand->Pat = p;
-        if (parser->Comment[0])
-        {
-            demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXID);
-        }
-        hyd->NodeDemand[j] = MISSING; // marker - next iteration will append a new category.
-    }
+   
+	// if no demands were specified in [JUNCTIONS] create the list here 
+	demand_list = net->Node[j].D;
+	if (demand_list == NULL) {
+		demand_list = create_list(get_demand_data_size(), delete_demand_data);
+		if (demand_list == NULL) return 101;
+		net->Node[j].D = demand_list;
+	}
+	
+	// else replace the demand data entered in [JUNCTIONS] section
+	else if (size_list(demand_list) == 1) {
+		list_node_t *lnode = head_list(demand_list, true);
+		delete_node(demand_list, lnode);
+	}
 
-    // Otherwise add new demand to junction
-    else
-    {
-        cur_demand = net->Node[j].D;
-        while (cur_demand->next != NULL) cur_demand = cur_demand->next;
-        demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
-        if (demand == NULL) return 101;
-        demand->Base = y;
-        demand->Pat = p;
-        demand->Name = NULL;
-        if (parser->Comment[0])
-        {
-            demand->Name = xstrcpy(&demand->Name, parser->Comment, MAXID);
-        }
-        demand->next = NULL;
-        cur_demand->next = demand;
-    }
+	// append the data to the list
+	demand_data = create_demand_data(y, p, parser->Comment);
+	if (demand_data == NULL) return 101;
+
+	append_list(demand_list, &demand_data);
+
     return 0;
 }
 

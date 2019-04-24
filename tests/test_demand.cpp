@@ -18,6 +18,7 @@
 
 BOOST_AUTO_TEST_SUITE (test_demand)
 
+
 BOOST_AUTO_TEST_CASE(test_categories_save)
 {
     int error = 0;
@@ -38,7 +39,7 @@ BOOST_AUTO_TEST_CASE(test_categories_save)
     error = EN_getdemandname(ph, Nindex, ndem, demname);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_setdemandname(ph, Nindex, ndem, (char *)"Demand category name");
+    error = EN_setdemandname(ph, Nindex, ndem, (char *)"CUB_SCOUT_MOTOR_POOL");
     BOOST_REQUIRE(error == 0);
     error = EN_saveinpfile(ph, "net1_dem_cat.inp");
     BOOST_REQUIRE(error == 0);
@@ -48,6 +49,7 @@ BOOST_AUTO_TEST_CASE(test_categories_save)
     error = EN_deleteproject(&ph);
     BOOST_REQUIRE(error == 0);
 }
+
 
 BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("test_demand/test_categories_save"))
 {
@@ -70,14 +72,44 @@ BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("tes
 
     char demname[31];
     error = EN_getdemandname(ph, Nindex, ndem, demname);
-    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(error == 0);
 
-    BOOST_CHECK(check_string(demname, "Demand category name"));
+    BOOST_CHECK(check_string(demname, "CUB_SCOUT_MOTOR_POOL"));
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
     error = EN_deleteproject(&ph);
     BOOST_REQUIRE(error == 0);
 }
+
+BOOST_FIXTURE_TEST_CASE(test_adddemand, FixtureSingleNode)
+{
+    int key, demand_key;
+
+    error = EN_adddemand(ph, node_qhut, 100.0, "PrimaryPattern", "PrimaryDemand", &demand_key);
+    BOOST_CHECK(error != 0);
+
+    error = EN_addpattern(ph, (char *)"PrimaryPattern");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_adddemand(ph, node_qhut, 100.0, "PrimaryPattern", "PrimaryDemand", &demand_key);
+    BOOST_CHECK(error == 0);
+
+    error = EN_addpattern(ph, (char *)"SecondaryPattern");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_adddemand(ph, node_qhut, 10.0, "SecondaryPattern", "SecondaryDemand", &key);
+    BOOST_CHECK(error == 0);
+
+    error = EN_addpattern(ph, (char *)"TertiaryPattern");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_adddemand(ph, node_qhut, 1.0, "TertiaryPattern", "TertiaryDemand", &demand_key);
+    BOOST_CHECK(error == 0);
+
+    error = EN_removedemand(ph, node_qhut, key);
+    BOOST_CHECK(error == 0);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
