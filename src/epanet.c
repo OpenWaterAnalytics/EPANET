@@ -2560,7 +2560,7 @@ int DLLEXPORT EN_removedemand(EN_Project p, int node_index, int demand_key)
 
     list_t *dlist = Node[node_index].D;
 
-    remove_node(dlist, search_list(dlist, demand_key));
+    remove_node(dlist, demand_key);
 
     return 0;
 }
