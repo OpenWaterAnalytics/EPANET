@@ -195,14 +195,14 @@ char *get_name(list_node_t *lnode)
 
 BOOST_AUTO_TEST_CASE(test_struct_list){
 
-    int key;
+    int key, head_key, tail_key;
 
     list_t *list = NULL;
     list = create_list(sizeof(test_data_t *), delete_test_data);
 
 
     test_data_t *data = create_test_data(1, "David");
-    append_list(list, &data);
+    head_key = append_list(list, &data);
 
     data = create_test_data(2, "Kevin");
     key = append_list(list, &data);
@@ -210,8 +210,13 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
     data = create_test_data(3, "Michael");
     append_list(list, &data);
 
+    data = create_test_data(4, "Craig");
+    append_list(list, &data);
 
-    BOOST_CHECK(size_list(list) == 3);
+    data = create_test_data(5, "Jimi");
+    tail_key = append_list(list, &data);
+
+    BOOST_CHECK(size_list(list) == 5);
 
 	listIterator iterator = (listIterator)iterate_test_data;
     for_each_list(list, iterator);
@@ -220,6 +225,17 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
     // locate a list node by a key
     printf("Found %s!\n", get_name(search_list(list, key)));
 
+    printf("Removing Kevin\n");
+    remove_node(list, key);
+    for_each_list(list, iterator);
+
+    printf("Removing David\n");
+    remove_node(list, head_key);
+    for_each_list(list, iterator);
+
+    printf("Removing Jimi\n");
+    remove_node(list, tail_key);
+    for_each_list(list, iterator);
 
     list_node_t *lnode = head_list(list, true);
     delete_node(list, lnode);

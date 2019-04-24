@@ -108,6 +108,11 @@ list_node_t *get_nth_list(list_t *list, int index);
 */
 list_node_t *search_list(list_t *list, int key);
 
+/**
+@brief Removes the list node with the given key from the list. 
+*/
+void remove_node(list_t *list, int key);
+
 //
 // Iterator first/done/next operations
 // http://www.cs.yale.edu/homes/aspnes/pinewiki/C(2f)Iterators.html

@@ -132,16 +132,14 @@ void for_each_list(list_t *list, listIterator iterator)
 list_node_t *head_list(list_t *list, bool removeFromList)
 // Warning: When node is removed caller is responsible for freeing it.
 {
-//    assert(list->head != NULL);
-
-	if (list) {
-		list_node_t *node = list->head;
-		if (removeFromList) {
-			// Disconnecting head node
-			list->head = node->next;
-			list->logicalLength--;
-		}
-		return node;
+    if (list) {
+        list_node_t *node = list->head;
+        if (removeFromList) {
+            // Disconnecting head node
+            list->head = node->next;
+            list->logicalLength--;
+        }
+        return node;
     }
     return NULL;
 }
@@ -154,14 +152,14 @@ list_node_t *tail_list(list_t *list)
 
 list_node_t *get_nth_list(list_t *list, int index)
 {
-	int n;
-	list_node_t *lnode;
+    int n;
+    list_node_t *lnode;
 
-	for (n = 1, lnode = first_list(list); n < index && done_list(lnode); n++, lnode = next_list(lnode));
-	if (n != index)
-		return NULL;
-	else
-		return lnode;
+    for (n = 1, lnode = first_list(list); n < index && done_list(lnode); n++, lnode = next_list(lnode));
+    if (n != index)
+        return NULL;
+    else
+        return lnode;
 }
 
 list_node_t *search_list(list_t *list, int key)
@@ -170,13 +168,43 @@ list_node_t *search_list(list_t *list, int key)
     list_node_t *lnode = first_list(list);
 
     while (done_list(lnode)) {
-
         if (get_key(lnode) == key)
             return lnode;
-
         lnode = next_list(lnode);
     }
     return NULL;
+}
+
+void remove_node(list_t *list, int key)
+{
+    list_node_t *temp;
+    list_node_t *target = search_list(list, key);
+
+    if (target == list->head)
+        delete_node(list, head_list(list, true));
+
+    else if (target == list->tail) {
+        // find next to last node
+        temp = list->head;
+        while (temp != NULL) {
+            if (temp->next == target)
+                break;
+            temp = temp->next;
+        }
+        // detatch tail
+        temp->next = NULL;
+        delete_node(list, list->tail);
+    }
+    else {
+        temp = target->next;
+        list->freeFn(target->data);
+        free(target->data);
+
+        target->data = temp->data;
+        target->next = temp->next;
+
+        free(temp);
+    }
 }
 
 int size_list(list_t *list)
