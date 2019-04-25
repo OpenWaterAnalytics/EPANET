@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/18/2019
+ Last Updated: 04/25/2019
  ******************************************************************************
 */
 
@@ -2257,6 +2257,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     int i, j, n;
     Psource source;
     double hTmp;
+    double vTmp;
 
     if (!p->Openflag) return 102;
     if (index <= 0 || index > nNodes) return 203;
@@ -2365,77 +2366,132 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         break;
 
     case EN_TANKDIAM:
-        if (value <= 0.0) return 209;
-        if (index <= nJuncs) return 0;
-        j = index - nJuncs;
-        if (Tank[j].A > 0.0)
+        if (value <= 0.0) return 209;                  // invalid diameter
+        if (index <= nJuncs) return 0;                 // node is not a tank
+        j = index - nJuncs;                            // tank index
+        if (Tank[j].A == 0.0) return 0;                // tank is a reservoir
+        value /= Ucf[ELEV];                            // diameter in feet
+        Tank[j].A = PI * SQR(value) / 4.0;             // new tank area
+        if (Tank[j].Vcurve > 0)                        // tank has a volume curve
         {
-            value /= Ucf[ELEV];
-            Tank[j].A = PI * SQR(value) / 4.0;
-            Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
-            Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
-            Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
-            Tank[j].Vcurve = 0;
+            Tank[j].Vcurve = 0;                        // remove volume curve
+
+            // Since the volume curve no longer applies we assume that the tank's
+            // shape below Hmin is cylindrical and Vmin equals area times Hmin
+            Tank[j].Vmin = Tank[j].A * Tank[j].Hmin;
         }
+        // Since tank's area has changed its volumes must be updated
+        // NOTE: For a non-volume curve tank we can't change the Vmin
+        //       associated with a Hmin since we don't know the tank's
+        //       shape below Hmin. Vmin can always be changed by setting
+        //       EN_MINVOLUME in a subsequent function call.
+        Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
+        vTmp = Tank[j].Vmax;                           // old max. volume
+        Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
+        Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
         break;
 
     case EN_MINVOLUME:
-        if (value < 0.0) return 209;
-        if (index <= nJuncs) return 0;
-        j = index - nJuncs;
-        if (Tank[j].A > 0.0)
+        if (value < 0.0) return 209;               // invalid volume
+        if (index <= nJuncs) return 0;             // node is not a tank
+        j = index - nJuncs;                        // tank index
+        if (Tank[j].A == 0.0) return 0;            // tank is a reservoir
+        i = Tank[j].Vcurve;                        // volume curve index
+        if (i > 0)                                 // tank has a volume curve
         {
-            Tank[j].Vmin = value / Ucf[VOLUME];
-            Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
-            Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
+            curve = &net->Curve[i];                // curve object
+            if (value < curve->Y[0]) return 225;   // volume off of curve
+            value /= Ucf[VOLUME];                  // volume in ft3
+            hTmp = tankgrade(p, j, value);         // head at given volume
+            if (hTmp > Tank[j].H0 ||
+                hTmp > Tank[j].Hmax) return 225;   // invalid water levels
+            Tank[j].Hmin = hTmp;                   // new min. head
+            Tank[j].Vmin = value;                  // new min. volume
+        }
+        else                                       // tank has no volume curve
+        {
+            // If the volume supplied by the function is 0 then the tank shape
+            // below Hmin is assumed to be cylindrical and a new Vmin value is
+            // computed. Otherwise Vmin is set to the supplied value.
+            if (value == 0.0) Tank[j].Vmin = Tank[j].A * Tank[j].Hmin;
+            else Tank[j].Vmin = value / Ucf[VOLUME];
+
+            // Since Vmin changes the other volumes need updating
+            Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
+            vTmp = Tank[j].Vmax;                           // old max. volume
+            Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
+            Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
         }
         break;
 
     case EN_VOLCURVE:
-        if (index < nJuncs) return 0;
-        i = ROUND(value);
-        if (i < 0 || i > net->Ncurves) return 205;
-        curve = &net->Curve[i];
-        j = index - nJuncs;
-        if (Tank[j].A == 0.0) return 0;
+        // NOTE: Setting EN_VOLCURVE to 0 to remove a volume curve is not valid.
+        //       One should instead set a value for EN_TANKDIAM.
+        i = ROUND(value);                          // curve index
+        if (i <= 0 ||
+            i > net->Ncurves) return 205;          // invalid curve index
+        if (index <= nJuncs) return 0;             // node not a tank
+        j = index - nJuncs;                        // tank index
+        if (Tank[j].A == 0.0) return 0;            // tank is a reservoir
+        curve = &net->Curve[i];                    // curve object
+
+        // Check that tank's min/max levels lie within curve
+        value = (Tank[j].Hmin - Node[index].El) * Ucf[ELEV];
+        if (value < curve->X[0]) return 225;
+        value = (Tank[j].Hmax - Node[index].El) * Ucf[ELEV];
         n = curve->Npts - 1;
-        if (Tank[j].Vmin * Ucf[VOLUME] < curve->Y[0] ||
-            Tank[j].Vmax * Ucf[VOLUME] > curve->Y[n]) return 225;
-        Tank[j].Vcurve = i;
-        Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
-        Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
-        Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
-        Tank[j].A = (curve->Y[n] - curve->Y[0]) / (curve->X[n] - curve->X[0]);
+        if (value > curve->X[n]) return 225;
+
+        Tank[j].Vcurve = i;                            // assign curve to tank
+        Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin); // new min. volume
+        Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
+        vTmp = Tank[j].Vmax;                           // old max. volume
+        Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
+        Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
+        Tank[j].A = (curve->Y[n] - curve->Y[0]) /      // nominal area 
+            (curve->X[n] - curve->X[0]);
         break;
 
     case EN_MINLEVEL:
-        if (value < 0.0) return 209;
-        if (index <= nJuncs) return 0; // not a tank or reservoir
-        j = index - nJuncs;
-        if (Tank[j].A == 0.0) return  0; // node is a reservoir
-        hTmp = value / Ucf[ELEV] + Node[index].El;
-        if (hTmp < Tank[j].Hmax && hTmp <= Tank[j].H0)
+        if (value < 0.0) return 209;               // invalid water level
+        if (index <= nJuncs) return 0;             // node not a tank
+        j = index - nJuncs;                        // tank index
+        if (Tank[j].A == 0.0) return  0;           // tank is a reservoir
+        hTmp = value / Ucf[ELEV] + Node[index].El; // convert level to head
+        if (hTmp >= Tank[j].Hmax ||
+            hTmp > Tank[j].H0) return 225;         // invalid water levels
+        i = Tank[j].Vcurve;                        // volume curve index
+        if (i > 0)                                 // tank has a volume curve
         {
-            if (Tank[j].Vcurve > 0) return 0;
-            Tank[j].Hmin = hTmp;
-            Tank[j].Vmin = (Tank[j].Hmin - Node[index].El) * Tank[j].A;
+            curve = &net->Curve[i];
+            if (value < curve->X[0]) return 225;   // new level is off curve
+            Tank[j].Vmin = tankvolume(p, j, hTmp); // new min. volume
         }
-        else return 225;
+        Tank[j].Hmin = hTmp;
+        // NOTE: We assume that for non-volume curve tanks Vmin doesn't change
+        //       with Hmin. If not the case then a subsequent call setting
+        //       EN_MINVOLUME must be made.
         break;
 
     case EN_MAXLEVEL:
-        if (value < 0.0) return 209;
-        if (index <= nJuncs) return 0; // not a tank or reservoir
-        j = index - nJuncs;
-        if (Tank[j].A == 0.0) return 0; // node is a reservoir
-        hTmp = value / Ucf[ELEV] + Node[index].El;
-        if (hTmp > Tank[j].Hmin && hTmp >= Tank[j].H0)
+        if (value <= 0.0) return 209;              // invalid water level
+        if (index <= nJuncs) return 0;             // node not a tank
+        j = index - nJuncs;                        // tank index
+        if (Tank[j].A == 0.0) return 0;            // tank is a reservoir
+        hTmp = value / Ucf[ELEV] + Node[index].El; // convert level to head
+        if (hTmp < Tank[j].Hmin ||
+            hTmp < Tank[j].H0) return 225;         // invalid water levels
+        i = Tank[j].Vcurve;                        // volume curve index
+        if (i > 0)                                 // tank has a volume curve
         {
-            if (Tank[j].Vcurve > 0) return 0;
-            Tank[j].Hmax = hTmp;
-            Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
+            curve = &net->Curve[i];
+            n = curve->Npts - 1;                   // last point on curve
+            if (value > curve->X[n]) return 225;   // new level is off curve
         }
-        else return 225;
+        Tank[j].Hmax = hTmp;                       // new max. head
+        vTmp = Tank[j].Vmax;                       // old max. volume
+        Tank[j].Vmax = tankvolume(p, j, hTmp);     // new max. volume
+        Tank[j].V1max *= Tank[j].Vmax / vTmp;      // new mix zone volume
         break;
 
     case EN_MIXMODEL:
@@ -2631,7 +2687,12 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     Tank[j].Hmin = elevation + minlvl / Ucf[ELEV];
     Tank[j].Hmax = elevation + maxlvl / Ucf[ELEV];
     Tank[j].Vcurve = curveIndex;
-    Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
+    if (curveIndex == 0)
+    {
+        if (minvol > 0.0) Tank[j].Vmin = minvol / Ucf[VOLUME];
+        else Tank[j].Vmin = Tank[j].A * Tank[j].Hmin;
+    }
+    else Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
     Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
     Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
     return 0;
