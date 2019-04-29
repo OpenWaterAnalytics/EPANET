@@ -40,6 +40,7 @@ typedef struct list_s {
     size_t elementSize;
     list_node_t *head;
     list_node_t *tail;
+    list_node_t *current;
     freeFunction freeFn;
 } list_t;
 
@@ -56,6 +57,7 @@ list_t *create_list(size_t elementSize, freeFunction freeFn)
     list->logicalLength = 0;
     list->elementSize = elementSize;
     list->head = list->tail = NULL;
+    list->current = NULL;
     list->freeFn = freeFn;
     return list;
 }
@@ -63,7 +65,6 @@ list_t *create_list(size_t elementSize, freeFunction freeFn)
 void delete_list(list_t *list)
 {
     list_node_t *current;
-
     while(list->head != NULL) {
         current = list->head;
         list->head = current->next;
@@ -88,6 +89,8 @@ int prepend_list(list_t *list, void *element)
         list->tail = list->head;
     }
 
+    list->current = node;
+
     list->logicalLength++;
 
     return node->key;
@@ -95,7 +98,7 @@ int prepend_list(list_t *list, void *element)
 
 int append_list(list_t *list, void *element)
 {
-	list_node_t *node = malloc(sizeof(list_node_t));
+    list_node_t *node = malloc(sizeof(list_node_t));
     node->data = malloc(list->elementSize);
     node->next = NULL;
 
@@ -110,6 +113,8 @@ int append_list(list_t *list, void *element)
         list->tail = node;
     }
 
+    list->current = node;
+
     list->logicalLength++;
 
     return node->key;
@@ -121,15 +126,28 @@ void for_each_list(list_t *list, listIterator iterator)
     assert(iterator != NULL);
 
     list_node_t *node = list->head;
-    bool result = true;
+    BOOL result = TRUE;
 
-	while(node != NULL && result) {
-		result = iterator(node);
+    while(node != NULL && result) {
+        result = iterator(node->data);
         node = node->next;
     }
 }
 
-list_node_t *head_list(list_t *list, bool removeFromList)
+int get_index(list_t *list, int key)
+{
+    list_node_t *node = list->head;
+    int index = 1;
+    while (node)
+    {
+        if (node->key == key) return index;
+        index++;
+        node = node->next;
+    }
+    return 0;
+}
+
+list_node_t *head_list(list_t *list, BOOL removeFromList)
 // Warning: When node is removed caller is responsible for freeing it.
 {
     if (list) {
@@ -139,6 +157,7 @@ list_node_t *head_list(list_t *list, bool removeFromList)
             list->head = node->next;
             list->logicalLength--;
         }
+        list->current = list->head;
         return node;
     }
     return NULL;
@@ -147,15 +166,17 @@ list_node_t *head_list(list_t *list, bool removeFromList)
 list_node_t *tail_list(list_t *list)
 {
     assert(list->tail != NULL);
+    list->current = list->tail;
     return list->tail;
 }
 
-list_node_t *get_nth_list(list_t *list, int index)
+list_node_t *get_nth_node(list_t *list, int index)
 {
     int n;
     list_node_t *lnode;
 
-    for (n = 1, lnode = first_list(list); n < index && done_list(lnode); n++, lnode = next_list(lnode));
+    for (n = 1, lnode = first_list(list); n < index && done_list(lnode);
+         n++, lnode = next_list(lnode));
     if (n != index)
         return NULL;
     else
@@ -181,7 +202,7 @@ void remove_node(list_t *list, int key)
     list_node_t *target = search_list(list, key);
 
     if (target == list->head)
-        delete_node(list, head_list(list, true));
+        delete_node(list, head_list(list, TRUE));
 
     else if (target == list->tail) {
         // find next to last node
@@ -205,6 +226,50 @@ void remove_node(list_t *list, int key)
 
         free(temp);
     }
+    list->current = list->head;
+}
+
+void remove_nth_node(list_t *list, int n)
+{
+    list_node_t *target_node = list->head;
+    list_node_t *prev_node = list->head;
+    int count = 1;
+
+    // List is empty or n exceeds list size
+    if (list->head == NULL) return;
+    if (n < 1 || n > list->logicalLength) return;
+
+    // Target is first node
+    if (n == 1)
+    {
+        list->head = target_node->next;
+        delete_node(list, target_node);
+    }
+
+    // Target is an interior node
+    else
+    {
+        // Locate target node
+        while (target_node && count < n)
+        {
+            prev_node = target_node;
+            target_node = target_node->next;
+            count++;
+        }
+
+        // Target not found
+        if (target_node == NULL) return;
+
+        // Link the nodes that precede and follow the target
+        prev_node->next = target_node->next;
+
+        // Delete the target node
+        delete_node(list, target_node);
+    }
+
+    // Reduce the list length
+    list->logicalLength--;
+    list->current = list->head;
 }
 
 int size_list(list_t *list)
@@ -224,7 +289,7 @@ void *get_data(list_node_t *lnode)
 
 list_node_t *get_next(list_node_t *lnode)
 {
-	return lnode->next;
+    return lnode->next;
 }
 
 void delete_node(list_t *list, list_node_t *lnode)
@@ -236,11 +301,59 @@ void delete_node(list_t *list, list_node_t *lnode)
     free(lnode);
 }
 
+void *get_first_data(list_t *list)
+{
+    if (list == NULL) return NULL;
+    list->current = list->head;
+    return list->head->data;
+}
+
+void *get_next_data(list_t *list)
+{
+    if (list == NULL) return NULL;
+    if (list->current == list->tail) return NULL;
+    list->current = list->current->next;
+    return list->current->data;
+}
+
+void *get_nth_data(list_t *list, int n)
+{
+    int count = 1;
+    list_node_t *lnode;
+
+    // check for valid arguments
+    if (list == NULL) return NULL;
+    if (n < 1 || n > list->logicalLength) return NULL;
+
+    // if last list entry sought return its data
+    if (n == list->logicalLength)
+    {
+        lnode = list->tail;
+        if (lnode) return lnode->data;
+        else return NULL;
+    }
+
+    // traverse list until n-th entry is reached
+    lnode = list->head;
+    while (lnode && count < n)
+    {
+        count++;
+        lnode = lnode->next;
+    }
+
+    // return data for nth entry
+    if (count == n && lnode != NULL)
+    {
+        return lnode->data;
+    }
+    return NULL;
+}
+
 
 // local functions
 
 int gen_key()
 // Naive key generator. No guarentee of uniqueness
 {
-    return rand();
+    return rand() + 1;
 }
