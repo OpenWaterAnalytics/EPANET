@@ -129,7 +129,7 @@ void for_each_list(list_t *list, listIterator iterator)
     BOOL result = TRUE;
 
     while(node != NULL && result) {
-        result = iterator(node->data);
+        result = iterator(node);
         node = node->next;
     }
 }
