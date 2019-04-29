@@ -120,6 +120,7 @@ int juncdata(Project *pr)
     node->Comment = xstrcpy(&node->Comment, parser->Comment, MAXMSG);
 
 	// Add demand data to junction's demand list
+    if (!create_demand_list(&node->D)) return 101;
     add_demand(node->D, y, p, NULL);
 
     // Save base demand value for use in processing [DEMANDS] section

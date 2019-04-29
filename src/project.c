@@ -373,15 +373,6 @@ int allocdata(Project *pr)
         }
     }
 
-    // Create demand lists for all junction nodes
-    if (!errcode)
-    {
-        for (n = 1; n <= pr->parser.MaxJuncs; n++)
-        {
-            if (!create_demand_list(&pr->network.Node[n].D)) errcode = 101;
-        }
-    }
-
     // Allocate memory for rule base (see RULES.C)
     if (!errcode) errcode = allocrules(pr);
     return errcode;
@@ -811,7 +802,7 @@ void adjustpatterns(Network *network, int index)
     demand_data_t *demand;
 
     // Adjust patterns used by junctions
-    for (j = 1; j <= network->Nnodes; j++)
+    for (j = 1; j <= network->Njuncs; j++)
     {
         // Adjust demand patterns
         dlist = network->Node[j].D;

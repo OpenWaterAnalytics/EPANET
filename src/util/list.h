@@ -158,7 +158,7 @@ static inline list_node_t *first_list(list_t *list) { return head_list(list, FAL
 /**
 @brief Returns true if end of list false otherwise.
 */
-static inline BOOL done_list(list_node_t *lnode) { return lnode != NULL; }
+static inline int done_list(list_node_t *lnode) { return lnode != NULL; }
 
 /**
 @brief Returns next node in the list.

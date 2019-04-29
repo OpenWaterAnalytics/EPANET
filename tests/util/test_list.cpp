@@ -35,10 +35,10 @@ int *get_int_data(list_node_t *lnode) {
     return (int *)get_data(lnode);
 }
 
-bool iterate_int(list_node_t *lnode)
+BOOL iterate_int(list_node_t *lnode)
 {
     printf("At Key: %d  Found value: %d\n", get_key(lnode), *get_int_data(lnode));
-    return true;
+    return TRUE;
 }
 
 
@@ -85,10 +85,10 @@ inline char *get_string_data(list_node_t *lnode)
     return *(char **)get_data(lnode);
 }
 
-bool iterate_string(list_node_t *lnode)
+BOOL iterate_string(list_node_t *lnode)
 {
     printf("Found string value: %s\n", get_string_data(lnode));
-    return true;
+    return TRUE;
 }
 
 void free_string(void *data)
@@ -128,14 +128,14 @@ BOOST_FIXTURE_TEST_CASE(test_string_list, FixtureStrings) {
 
 BOOST_FIXTURE_TEST_CASE(test_head_list, FixtureStrings) {
 
-    BOOST_CHECK(check_string(get_string_data(head_list(list, false)), "David"));
+    BOOST_CHECK(check_string(get_string_data(head_list(list, FALSE)), "David"));
     BOOST_CHECK(size_list(list) == 5);
 
-    list_node_t *lnode = head_list(list, true);
+    list_node_t *lnode = head_list(list, TRUE);
     BOOST_CHECK(check_string(get_string_data(lnode), "David"));
     delete_node(list, lnode);
 
-    BOOST_CHECK(check_string(get_string_data(head_list(list, false)), "Kevin"));
+    BOOST_CHECK(check_string(get_string_data(head_list(list, FALSE)), "Kevin"));
     BOOST_CHECK(size_list(list) == 4);
 }
 
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
     remove_node(list, tail_key);
     for_each_list(list, iterator);
 
-    list_node_t *lnode = head_list(list, true);
+    list_node_t *lnode = head_list(list, TRUE);
     delete_node(list, lnode);
 
     delete_list(list);
