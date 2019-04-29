@@ -123,10 +123,11 @@ int append_list(list_t *list, void *element)
 
 void for_each_list(list_t *list, listIterator iterator)
 {
-    assert(iterator != NULL);
 
     list_node_t *node = list->head;
     BOOL result = TRUE;
+
+    assert(iterator != NULL);
 
     while(node != NULL && result) {
         result = iterator(node);
@@ -299,6 +300,21 @@ void delete_node(list_t *list, list_node_t *lnode)
 
     free(lnode->data);
     free(lnode);
+}
+
+list_node_t *first_list(list_t *list)
+{ 
+    return head_list(list, FALSE);
+}
+
+int done_list(list_node_t *lnode)
+{
+    return lnode != NULL;
+}
+
+list_node_t *next_list(list_node_t *lnode)
+{
+    return get_next(lnode);
 }
 
 void *get_first_data(list_t *list)

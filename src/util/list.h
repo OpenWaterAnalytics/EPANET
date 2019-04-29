@@ -153,17 +153,17 @@ void *get_nth_data(list_t *list, int n);
 /**
 @brief Returns list head node.
 */
-static inline list_node_t *first_list(list_t *list) { return head_list(list, FALSE); }
+list_node_t *first_list(list_t *list);
 
 /**
 @brief Returns true if end of list false otherwise.
 */
-static inline int done_list(list_node_t *lnode) { return lnode != NULL; }
+int done_list(list_node_t *lnode);
 
 /**
 @brief Returns next node in the list.
 */
-static inline list_node_t *next_list(list_node_t *lnode) { return get_next(lnode); }
+list_node_t *next_list(list_node_t *lnode);
 
 
 #if defined(__cplusplus)

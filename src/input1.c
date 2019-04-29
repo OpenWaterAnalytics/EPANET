@@ -558,7 +558,8 @@ void convertunits(Project *pr)
     Spump *pump;
     Scontrol *control;
     demand_data_t *demand;
-
+    list_t *dlist;
+    
     // Convert nodal elevations & initial WQ
     // (WQ source units are converted in QUALITY.C
     for (i = 1; i <= net->Nnodes; i++)
@@ -572,8 +573,7 @@ void convertunits(Project *pr)
     ucf = pr->Ucf[DEMAND];
     for (i = 1; i <= net->Njuncs; i++)
     {
-        node = &net->Node[i];
-		list_t *dlist = node->D;
+        dlist = net->Node[i].D;
         for (demand = get_first_demand(dlist); demand != NULL;
              demand = get_next_demand(dlist))
         {
