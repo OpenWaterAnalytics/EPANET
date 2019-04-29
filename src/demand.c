@@ -21,34 +21,10 @@
 
 #include <string.h>
 
+#include "util/list.h"
 #include "demand.h"
 
-
-typedef struct demand_data_s
-{
-  double base_demand;
-  int    pattern_index;
-  char   *category_name;
-} demand_data_t;
-
-
-
-list_t *create_demand_list(double base_demand, int pattern_index, const char *category_name)
-{
-	list_t *demand_list;
-	demand_data_t *demand_data;
-
-	demand_list = create_list(get_demand_data_size(), delete_demand_data);
-	if (!demand_list) return NULL;
-
-	demand_data = create_demand_data(base_demand, pattern_index, category_name);
-	if (!demand_data) return NULL;
-
-	append_list(demand_list, &demand_data);
-
-	return demand_list;
-}
-
+// --- Local functions --- //
 
 demand_data_t *create_demand_data(double base_demand, int pattern_index, const char *category_name)
 {
@@ -66,68 +42,102 @@ demand_data_t *create_demand_data(double base_demand, int pattern_index, const c
 }
 
 void delete_demand_data(void *data)
-{ 
+{
     demand_data_t *demand_data = *(demand_data_t **)data;
 
     if (demand_data->category_name)
         free(demand_data->category_name);
 
-	free(demand_data);
+    free(demand_data);
 }
 
-size_t get_demand_data_size(void)
+// ---  Exported functions  --- //
+
+int create_demand_list(list_t **dlist)
 {
-	return sizeof(demand_data_t *);
+    list_t *demand_list = create_list(sizeof(demand_data_t *), delete_demand_data);
+	if (!demand_list) return 0;
+	*dlist = demand_list;
+    return 1;
 }
 
-demand_data_t *get_demand_data(list_node_t *lnode)
+void delete_demand_list(list_t **dlist)
 {
-    return *(demand_data_t **)get_data(lnode);
+    if (*dlist) delete_list(*dlist);
+    *dlist = NULL;
 }
 
-
-bool convert_units(list_node_t *lnode, double unit_conversion)
+int add_demand(list_t *dlist, double baseDemand, int pattern, const char *name)
 {
-	double base_demand = get_base_demand(lnode);
-
-	set_base_demand(lnode, base_demand/unit_conversion);
-	return true;
+    demand_data_t *demand_data;
+    demand_data = create_demand_data(baseDemand, pattern, name);
+    return append_list(dlist, &demand_data);
 }
 
-
-double get_base_demand(list_node_t *lnode)
+void remove_nth_demand(list_t *dlist, int n)
 {
-	return get_demand_data(lnode)->base_demand;
+    remove_nth_node(dlist, n);
 }
 
-void set_base_demand(list_node_t *lnode, double base_demand)
+int get_num_demands(list_t *dlist)
 {
-	get_demand_data(lnode)->base_demand = base_demand;
+    return size_list(dlist);
 }
 
-int get_pattern_index(list_node_t *lnode)
+int get_demand_index(list_t *dlist, const char *name, int key)
 {
-    return get_demand_data(lnode)->pattern_index;
+    demand_data_t *dd;
+    int index = 1;
+
+    // Search for key
+    if (name == NULL || strlen(name) == 0)
+    {
+        return get_index(dlist, key);
+    }
+
+    // Search for category name
+    dd = get_first_demand(dlist);
+    while (dd)
+    {
+        if (strcmp(dd->category_name, name) == 0) return index;
+        index++;
+        dd = get_next_demand(dlist);
+    }
+    return 0;
 }
 
-void set_pattern_index(list_node_t *lnode, int pattern_index)
+demand_data_t *get_first_demand(list_t *dlist)
 {
-	get_demand_data(lnode)->pattern_index = pattern_index;
+    if (size_list(dlist) == 0) return NULL;
+    return *(demand_data_t **)get_first_data(dlist);
 }
 
-char *get_category_name(list_node_t *lnode)
-// Be advised: caller must free memory returned
+demand_data_t *get_next_demand(list_t *dlist)
 {
-    char *temp = get_demand_data(lnode)->category_name;
-
-    if (temp)
-        return strdup(temp);
-    else
-        return NULL;
+    void *dd = NULL;
+    dd = get_next_data(dlist);
+    if (dd) return *(demand_data_t **)dd;
+    return NULL;
 }
 
-void set_category_name(list_node_t *lnode, const char *category_name)
+demand_data_t *get_nth_demand(list_t *dlist, int n)
 {
-	free(get_demand_data(lnode)->category_name);
-	get_demand_data(lnode)->category_name = strdup(category_name);
+    void *dd = NULL;
+    demand_data_t *ddata;
+    dd = get_nth_data(dlist, n);
+    ddata = *(demand_data_t **)dd;
+    if (dd) return *(demand_data_t **)dd;
+    return NULL;
+}
+
+void replace_demand(demand_data_t *dd, double baseDemand, int pattern, const char *name)
+{
+    if (dd)
+    {
+        dd->base_demand = baseDemand;
+        dd->pattern_index = pattern;
+        if (dd->category_name) free(dd->category_name);
+        if (name == NULL || strlen(name) == 0) dd->category_name = NULL;
+        else dd->category_name = strdup(name);
+    }
 }

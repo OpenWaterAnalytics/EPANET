@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(test_categories_reopen, * boost::unit_test::depends_on("tes
 
 BOOST_FIXTURE_TEST_CASE(test_adddemand, FixtureSingleNode)
 {
-    int key, demand_key;
+    int key, demand_key, index;
 
     error = EN_adddemand(ph, node_qhut, 100.0, "PrimaryPattern", "PrimaryDemand", &demand_key);
     BOOST_CHECK(error != 0);
@@ -106,8 +106,11 @@ BOOST_FIXTURE_TEST_CASE(test_adddemand, FixtureSingleNode)
 
     error = EN_adddemand(ph, node_qhut, 1.0, "TertiaryPattern", "TertiaryDemand", &demand_key);
     BOOST_CHECK(error == 0);
+    
+    error = EN_getdemandindex(ph, node_qhut, NULL, key, &index);
+    BOOST_CHECK(error == 0);
 
-    error = EN_removedemand(ph, node_qhut, key);
+    error = EN_deletedemand(ph, node_qhut, index);
     BOOST_CHECK(error == 0);
 }
 

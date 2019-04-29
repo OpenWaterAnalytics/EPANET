@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/25/2019
+ Last Updated: 04/18/2019
  ******************************************************************************
 */
 
@@ -1726,6 +1726,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
     Stank *tank;
     Snode *node;
     Scontrol *control;
+    list_t *dlist = NULL;
 
     // Cannot modify network structure while solvers are active
     *index = 0;
@@ -1737,6 +1738,13 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
 
     // Check if a node with same id already exists
     if (EN_getnodeindex(p, id, &i) == 0) return 215;
+
+    // Create a demand list for a Junction node
+    if (nodeType == JUNCTION)
+    {
+        if (!create_demand_list(&dlist)) return 101;
+        add_demand(dlist, 0.0, 0, NULL);
+    }
 
     // Grow node-related arrays to accomodate the new node
     size = (net->Nnodes + 2) * sizeof(Snode);
@@ -1752,8 +1760,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
         net->Njuncs++;
         nIdx = net->Njuncs;
         node = &net->Node[nIdx];
-
-		node->D = NULL;
+        node->D = dlist;
 
         // shift rest of Node array
         for (i = net->Nnodes; i >= net->Njuncs; i--)
@@ -1761,6 +1768,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
             hashtable_update(net->NodeHashTable, net->Node[i].ID, i + 1);
             net->Node[i + 1] = net->Node[i];
         }
+
         // shift indices of Tank array
         for (i = 1; i <= net->Ntanks; i++)
         {
@@ -1854,7 +1862,6 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
 
     int i, nodeType, tankindex;
     Snode *node;
-	list_t *demand;
 
     // Cannot modify network structure while solvers are active
     if (!p->Openflag) return 102;
@@ -1887,10 +1894,7 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
     hashtable_delete(net->NodeHashTable, node->ID);
 
     // Free memory allocated to node's demands, WQ source & comment
-    demand = node->D;
-    if (demand)
-        delete_list(demand);
-
+    delete_demand_list(&(node->D));
     free(node->S);
     free(node->Comment);
 
@@ -2083,26 +2087,23 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_BASEDEMAND:
         v = 0.0;
-        // NOTE: primary demand category is first on demand list
-        if (index <= nJuncs)
+        // Node is a junction: return value from first of its demands
+        if (index <= nJuncs && get_num_demands(Node[index].D) > 0)
         {
-            list_t *demand = Node[index].D;
-            if (demand)
-                v = get_base_demand(head_list(demand, false));
+            v = get_first_demand(Node[index].D)->base_demand * Ucf[FLOW];
         }
-        v *= Ucf[FLOW];
         break;
 
     case EN_PATTERN:
         v = 0.0;
-        // NOTE: primary demand category is first on demand list
-        if (index <= nJuncs)
+        // Node is a tank: return its elevation pattern
+        if (index > nJuncs) v = (double)(Tank[index - nJuncs].Pat);
+        
+        // Node is a junction: return pattern from first of its demands
+        else if (get_num_demands(Node[index].D) > 0)
         {
-            list_t *demand = Node[index].D;
-            if (demand)
-                v = get_pattern_index(head_list(demand, false));
+            v = get_first_demand(Node[index].D)->pattern_index;
         }
-        else v = (double)(Tank[index - nJuncs].Pat);
         break;
 
     case EN_EMITTER:
@@ -2278,26 +2279,26 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         break;
 
     case EN_BASEDEMAND:
-        // NOTE: primary demand category is first on demand list
-        if (index <= nJuncs)
+        // If node is a junction set value for the first of its demands
+        if (index <= nJuncs && get_num_demands(Node[index].D) > 0)
         {
-            list_t *demand = Node[index].D;
-            if (demand)
-                set_base_demand(head_list(demand, false), value / Ucf[FLOW]);
+            get_first_demand(Node[index].D)->base_demand = value / Ucf[FLOW];
         }
         break;
 
     case EN_PATTERN:
-        // NOTE: primary demand category is first on demand list
+        // Check for valid pattern index
         j = ROUND(value);
         if (j < 0 || j > nPats) return 205;
-        if (index <= nJuncs)
+
+        // Node is a tank: set its elevation pattern
+        if (index > nJuncs) Tank[index - nJuncs].Pat = j;
+
+        // Node is a junction: set pattern for first of its demands
+        else if (get_num_demands(Node[index].D) > 0)
         {
-            list_t *demand = Node[index].D;
-            if (demand)
-                set_pattern_index(head_list(demand, false), j);
+            get_first_demand(Node[index].D)->pattern_index = j;
         }
-        else Tank[index - nJuncs].Pat = j;
         break;
 
     case EN_EMITTER:
@@ -2566,58 +2567,11 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
         if (patIndex == 0) return 205;
     }
 
-    // Assign values to junction's parameters
+    // Assign junction's elevation
     Node[index].El = elev / p->Ucf[ELEV];
 
-    list_t *demand_list = Node[index].D;
-    if (!demand_list) {
-        demand_list = create_list(get_demand_data_size(), delete_demand_data);
-        if (!demand_list) return 101;
-    }
-    demand_data_t *demand_data = create_demand_data(dmnd/p->Ucf[FLOW], patIndex, NULL);
-    if (!demand_data) return 101;
-
-    append_list(demand_list, &demand_data);
-
-    return 0;
-}
-
-int DLLEXPORT EN_adddemand(EN_Project p, int node_index, double demand,
-    char *demand_pattern, const char *category_name, int *demand_key)
-{
-    Network *net = &p->network;
-
-    int pattern_index, error = 0;
-    *demand_key = -1;
-
-    if (error = EN_getpatternindex(p, demand_pattern, &pattern_index) != 0) return error;
-
-    Snode *Node = net->Node;
-    list_t *demand_list = Node[node_index].D;
-    if (!demand_list) {
-        demand_list = create_demand_list(demand/p->Ucf[FLOW], pattern_index, category_name);
-        if (!demand_list) return 101;
-
-        Node[node_index].D = demand_list;
-    }
-    else {
-        demand_data_t *demand_data = create_demand_data(demand/p->Ucf[FLOW], pattern_index, category_name);
-        if (!demand_data) return 101;
-
-        *demand_key = append_list(demand_list, &demand_data);
-    }
-    return 0;
-}
-
-int DLLEXPORT EN_removedemand(EN_Project p, int node_index, int demand_key)
-{
-    Network *net = &p->network;
-    Snode *Node = net->Node;
-
-    list_t *dlist = Node[node_index].D;
-
-    remove_node(dlist, demand_key);
-
+    // Replace data in first demand category
+    replace_demand(get_first_demand(Node[index].D), dmnd/p->Ucf[FLOW], patIndex, NULL);
     return 0;
 }
 
@@ -2687,12 +2641,7 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     Tank[j].Hmin = elevation + minlvl / Ucf[ELEV];
     Tank[j].Hmax = elevation + maxlvl / Ucf[ELEV];
     Tank[j].Vcurve = curveIndex;
-    if (curveIndex == 0)
-    {
-        if (minvol > 0.0) Tank[j].Vmin = minvol / Ucf[VOLUME];
-        else Tank[j].Vmin = Tank[j].A * Tank[j].Hmin;
-    }
-    else Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
+    Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
     Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
     Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
     return 0;
@@ -2794,6 +2743,72 @@ int DLLEXPORT EN_setdemandmodel(EN_Project p, int model, double pmin,
     return 0;
 }
 
+int DLLEXPORT EN_adddemand(EN_Project p, int index, double dmnd,
+                           char *dmndpat, const char *dmndname, int *dmndkey)
+/*----------------------------------------------------------------
+**  Input:   index = node index
+**           dmnd = base demand value
+**           dmndpat = demand pattern name
+**           dmndname = name of demand category
+**  Output:  dmndkey = key value of new demand category
+**  Returns: error code
+**  Purpose: adds a new demand category to a junction's demand list
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+
+    int patIndex, error = 0;
+
+    *dmndkey = -1;
+
+    // Check that node exists
+    if (!p->Openflag) return 102;
+    if (index <= 0 || index > net->Nnodes) return 203;
+
+    // Do nothing if node is not a junction
+    if (index > net->Njuncs) return 0;
+
+    // Check that demand pattern exists
+    if (dmndpat == NULL || strlen(dmndpat) == 0) patIndex = 0;
+    else
+    {
+        error = EN_getpatternindex(p, dmndpat, &patIndex);
+        if (error != 0) return error;
+    }
+
+    // Append a new demand to the node's demand list
+    *dmndkey = add_demand(net->Node[index].D, dmnd / p->Ucf[FLOW], patIndex, dmndname);
+    return 0;
+}
+
+int DLLEXPORT EN_deletedemand(EN_Project p, int nodeIndex, int demandIndex)
+/*----------------------------------------------------------------
+**  Input:   nodeIndex = a node index
+**           damandIndex = the index of an item in the node's demand list
+**  Output:  none
+**  Returns: error code
+**  Purpose: deletes a demand category from a junction's demand list
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    Snode *Node = net->Node;
+    list_t *dlist;
+
+    // Check that junction exists
+    if (!p->Openflag) return 102;
+    if (nodeIndex <= 0 || nodeIndex > net->Njuncs) return 203;
+
+    // Check that demand category exists
+    dlist = Node[nodeIndex].D;
+    if (demandIndex < 1 || demandIndex > get_num_demands(dlist)) return 253;
+
+    // Delete the indexed demand
+    remove_nth_demand(dlist, demandIndex);
+    return 0;
+}
+
 int DLLEXPORT EN_getnumdemands(EN_Project p, int nodeIndex, int *numDemands)
 /*----------------------------------------------------------------
 **  Input:   nodeIndex = node index
@@ -2803,19 +2818,39 @@ int DLLEXPORT EN_getnumdemands(EN_Project p, int nodeIndex, int *numDemands)
 **----------------------------------------------------------------
 */
 {
-    //Pdemand d;
-    //int n = 0;
-
     // Check for valid arguments
+    *numDemands = 0;
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
+    if (nodeIndex > p->network.Njuncs) return 0;
 
-    // Count the number of demand categories
-	list_t *demand_list = p->network.Node[nodeIndex].D;
-	if (demand_list)
-		*numDemands = size_list(demand_list);
-	else
-		*numDemands = 0;
+    // Return number of demand categories
+	*numDemands = get_num_demands(p->network.Node[nodeIndex].D);
+    return 0;
+}
+
+int DLLEXPORT EN_getdemandindex(EN_Project p, int nodeIndex, const char *name,
+                                int key, int *demandIndex)
+/*----------------------------------------------------------------
+**  Input:   nodeIndex = node index
+**           name = name of demand category to search for
+**           key = key value of demand category to search for
+**  Output:  demandIndex = position of desired demand in demand list
+**  Returns: error code
+**  Purpose: retrieves the list position of a demand given its name
+**           or key value (used only if name is NULL or empty).
+**----------------------------------------------------------------
+*/
+{
+    // Check for valid arguments
+    *demandIndex = 0;
+    if (!p->Openflag) return 102;
+    if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
+    if (nodeIndex > p->network.Njuncs) return 0;
+
+    // Retrieve the specified demand category's index
+    *demandIndex = get_demand_index(p->network.Node[nodeIndex].D, name, key);
+    if (*demandIndex == 0) return 253;
 
     return 0;
 }
@@ -2831,22 +2866,22 @@ int DLLEXPORT EN_getbasedemand(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
+    list_t *dlist;
+
     // Check for valid arguments
+    *baseDemand = 0.0;
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
 
-    // Retrieve demand for specified category
-    if (nodeIndex <= p->network.Njuncs)
-    {
-        // Locate demand category record and assign demandName to it
-        list_t *dlist = p->network.Node[nodeIndex].D;
-        list_node_t *lnode = get_nth_list(dlist, demandIndex);
-        if (!lnode)
-            return 253;
-        else
-            *baseDemand = get_base_demand(lnode) * p->Ucf[FLOW];
-    }
-    else *baseDemand = (double)(0.0);
+    // Check that node is a junction
+    if (nodeIndex > p->network.Njuncs) return 0;
+
+    // Check that demand category exists
+    dlist = p->network.Node[nodeIndex].D;
+    if (demandIndex < 1 || demandIndex > get_num_demands(dlist)) return 253;
+
+    // Retrieve the base demand for the designated category
+    *baseDemand = get_nth_demand(dlist, demandIndex)->base_demand * p->Ucf[FLOW];
     return 0;
 }
 
@@ -2862,30 +2897,22 @@ int DLLEXPORT EN_setbasedemand(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
+    list_t *dlist;
+
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
 
-    // Set baseline demand for specified category
-    if (nodeIndex <= p->network.Njuncs)
-    {
-        list_t *dlist = p->network.Node[nodeIndex].D;
-        // If demand list is null create one and set demand
-        if (!dlist) {
-            dlist = create_demand_list(baseDemand / p->Ucf[FLOW], 0, NULL);
-            if (!dlist) return 101;
+    // Check that node is a junction
+    if (nodeIndex > p->network.Njuncs) return 0;
 
-            p->network.Node[nodeIndex].D = dlist;
-        }
-        // else find the demand entry and set demand
-        else {
-            list_node_t *lnode = get_nth_list(dlist, demandIndex);
-            if (!lnode)
-                return 253;
-            else
-            set_base_demand(lnode, baseDemand / p->Ucf[FLOW]);
-        }
-    }
+    // Check that demand category exists    
+    dlist = p->network.Node[nodeIndex].D;
+    if (dlist == NULL) return 253;
+    if (demandIndex < 1 || demandIndex > get_num_demands(dlist)) return 253;
+
+    // Retrieve designated demand category and set its base demand
+    get_nth_demand(dlist, demandIndex)->base_demand = baseDemand / p->Ucf[FLOW];
     return 0;
 }
 
@@ -2900,30 +2927,26 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    char *temp = NULL;
-
-    strcpy(demandName, "");
+    char *dname = NULL;
+    list_t *dlist;
 
     // Check for valid arguments
+    strcpy(demandName, "");
     if (!p->Openflag) return 102;
-    if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs) return 203;
+    if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
 
-    // Locate demand category record and retrieve its name
-    list_t *dlist = p->network.Node[nodeIndex].D;
-    if (dlist) {
-        list_node_t *lnode = get_nth_list(dlist, demandIndex);
-        if (!lnode)
-            return 253;
-        else
-            temp = get_category_name(lnode);
+    // Check that node is a junction
+    if (nodeIndex > p->network.Njuncs) return 0;
 
-        if (temp) {
-            strcpy(demandName, temp);
-            free(temp);
-        }
-    }
-    else return 253;
+    // Check that demand category exists    
+    dlist = p->network.Node[nodeIndex].D;
+    if (demandIndex < 1 || demandIndex > get_num_demands(dlist)) return 253;
 
+    // Retrieve name of demand category from demand list
+    dname = get_nth_demand(dlist, demandIndex)->category_name;
+
+    // Copy name into returned string
+    if (dname) strcpy(demandName, dname);
     return 0;
 }
 
@@ -2939,29 +2962,23 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
+    list_t *dlist;
+    demand_data_t *dd;
 
     // Check for valid arguments
     if (!p->Openflag) return 102;
-    if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs) return 203;
+    if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
 
-    // Check that demandName is not too long
-    if (strlen(demandName) > MAXID) return 252;
+    // Check that node is a junction
+    if (nodeIndex > p->network.Njuncs) return 0;
 
-    // Locate demand category record and assign demandName to it
-    list_t *dlist = p->network.Node[nodeIndex].D;
-    if (!dlist) {
-        dlist = create_demand_list(0, 0, demandName);
-        if (!dlist) return 101;
+    // Check that demand category exists    
+    dlist = p->network.Node[nodeIndex].D;
+    if (demandIndex < 1 || demandIndex > get_num_demands(dlist)) return 253;
 
-        p->network.Node[nodeIndex].D = dlist;
-    }
-    else {
-        list_node_t *lnode = get_nth_list(dlist, demandIndex);
-        if (!lnode)
-            return 253;
-        else
-            set_category_name(lnode, demandName);
-    }
+    // Retrieve demand from demand list and replace it's name
+    dd = get_nth_demand(dlist, demandIndex);
+    replace_demand(dd, dd->base_demand, dd->pattern_index, demandName);
     return 0;
 }
 
@@ -2977,18 +2994,22 @@ int DLLEXPORT EN_getdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
+    list_t *dlist;
+
     // Check for valid arguments
+    *patIndex = 0;
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
 
-    // Locate demand category record and assign demandName to it
-    list_t *dlist = p->network.Node[nodeIndex].D;
-    list_node_t *lnode = get_nth_list(dlist, demandIndex);
-    if (!lnode)
-        return 253;
-    else
-        *patIndex = get_pattern_index(lnode);
+    // Check that node is a junction
+    if (nodeIndex > p->network.Njuncs) return 0;
 
+    // Check that demand category exists
+    dlist = p->network.Node[nodeIndex].D;
+    if (demandIndex < 1 || demandIndex > get_num_demands(dlist)) return 253;
+
+    // Retrieve the demand pattern for the designated category
+    *patIndex = get_nth_demand(dlist, demandIndex)->pattern_index;
     return 0;
 }
 
@@ -3004,31 +3025,22 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    Network *net = &p->network;
+    list_t *dlist;
 
     // Check for valid arguments
     if (!p->Openflag) return 102;
-    if (nodeIndex <= 0 || nodeIndex > net->Nnodes) return 203;
-    if (patIndex <= 0 || patIndex > net->Npats) return 205;
+    if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
+    if (patIndex <= 0 || patIndex > p->network.Npats) return 205;
 
-    // Locate demand category record and assign time pattern to it
-    if (nodeIndex <= net->Njuncs) {
+    // Check that node is a junction
+    if (nodeIndex > p->network.Njuncs) return 0;
 
-        list_t *dlist = p->network.Node[nodeIndex].D;
-        if (!dlist) {
-            dlist = create_demand_list(0, patIndex, NULL);
-            if (!dlist) return 101;
+    // Check that demand category exists    
+    dlist = p->network.Node[nodeIndex].D;
+    if (demandIndex < 1 || demandIndex > get_num_demands(dlist)) return 253;
 
-            p->network.Node[nodeIndex].D = dlist;
-        }
-        else {
-            list_node_t *lnode = get_nth_list(dlist, demandIndex);
-            if (!lnode)
-                return 253;
-            else
-                set_pattern_index(lnode, patIndex);
-        }
-    }
+    // Retrieve designated demand category and set its demand pattern
+    get_nth_demand(dlist, demandIndex)->pattern_index = patIndex;
     return 0;
 }
 

@@ -385,6 +385,22 @@ int DLLEXPORT ENsetdemandmodel(int model, EN_API_FLOAT_TYPE pmin,
     return EN_setdemandmodel(_defaultProject, model, pmin, preq, pexp);
 }
 
+int DLLEXPORT ENadddemand(int nodeIndex, EN_API_FLOAT_TYPE baseDemand,
+              char *pattern, char *name, int *key)
+{
+    return EN_adddemand(_defaultProject, nodeIndex, baseDemand, pattern, name, key);
+}
+
+int DLLEXPORT ENdeletedemand(int nodeIndex, int demandIndex)
+{
+    return EN_deletedemand(_defaultProject, nodeIndex, demandIndex);
+}
+
+int DLLEXPORT ENgetdemandindex(int nodeIndex, char *name, int key, int *demandIndex)
+{
+    return EN_getdemandindex(_defaultProject, nodeIndex, name, key, demandIndex);
+}
+
 int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands)
 {
     return EN_getnumdemands(_defaultProject, nodeIndex, numDemands);

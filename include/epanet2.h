@@ -230,6 +230,13 @@ extern "C" {
   int DLLEXPORT ENsetdemandmodel(int model, EN_API_FLOAT_TYPE pmin,
                 EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
 
+  int DLLEXPORT ENadddemand(int nodeIndex, EN_API_FLOAT_TYPE baseDemand,
+                char *pattern, char *name, int *key);
+
+  int DLLEXPORT ENdeletedemand(int nodeIndex, int demandIndex);
+
+  int DLLEXPORT ENgetdemandindex(int nodeIndex, char *name, int key, int *demandIndex);
+
   int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
 
   int DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex,

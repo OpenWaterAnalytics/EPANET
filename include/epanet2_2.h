@@ -851,14 +851,7 @@ typedef struct Project *EN_Project;
   These properties have units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_setjuncdata(EN_Project ph, int index, double elev, double dmnd,
-      char *dmndpat);
-
-
-  int DLLEXPORT EN_adddemand(EN_Project p, int node_index, double demand,
-      char *demand_pattern, const char *category_name, int *demand_index);
-
-  int DLLEXPORT EN_removedemand(EN_Project p, int node_index, int demand_index);
-
+                 char *dmndpat);
 
   /**
   @brief Sets a group of properties for a tank node.
@@ -939,6 +932,24 @@ typedef struct Project *EN_Project;
   */
   int DLLEXPORT EN_setdemandmodel(EN_Project ph, int type, double pmin,
                 double preq, double pexp);
+
+  /**
+  @brief Adds a new category of demand data to a junction node.
+  */
+  int DLLEXPORT EN_adddemand(EN_Project p, int nodeIndex, double baseDemand,
+                char *pattern, const char *name, int *key);
+
+  /**
+  @brief Removes a demand category from a junction node.
+  */
+  int DLLEXPORT EN_deletedemand(EN_Project p, int nodeIndex, int demandIndex);
+
+  /**
+  @brief Gets the index of the demand category at a junction node with a specific
+         name or key.
+  */
+  int DLLEXPORT EN_getdemandindex(EN_Project p, int nodeIndex, const char *name,
+      int key, int *demandIndex);
 
   /**
   @brief Retrieves the number of demand categories for a junction node.

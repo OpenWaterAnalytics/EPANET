@@ -121,47 +121,42 @@ void saveauxdata(Project *pr, FILE *f)
     InFile = NULL;
 }
 
-
-void write_demands(Project *pr, FILE *f) {
-    int i, j;
-
-    Snode *node = NULL;
-    list_node_t *lnode = NULL;
-    char *temp = NULL;
-
-    char  s[MAXLINE + 1],
-    s1[MAXLINE + 1];
-
-    double ucf = pr->Ucf[DEMAND];
+void write_demands(Project *pr, FILE *f)
+/*
+------------------------------------------------------------
+Writes demand data to text file.
+------------------------------------------------------------
+*/
+{
     Network *net = &pr->network;
+    int i, j;
+    Snode *node = NULL;
+    list_t *dlist;
+    demand_data_t *demand;
+    char  s[MAXLINE + 1];
+    char  s1[MAXLINE + 1];
+    double ucf = pr->Ucf[DEMAND];
 
     fprintf(f, "\n\n");
     fprintf(f, s_DEMANDS);
 
-    for (i = 1; i <= net->Njuncs; i++) {
+    for (i = 1; i <= net->Njuncs; i++)
+    {
         node = &net->Node[i];
-        if (node->D) {
-            for (lnode = first_list(node->D); done_list(lnode); lnode = next_list(lnode)) {
-                if (lnode) {
-                    sprintf(s, " %-31s %14.6f", node->ID, ucf * get_base_demand(lnode));
-
-                    if
-                        ((j = get_pattern_index(lnode)) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
-                    else
-                        strcpy(s1, " ");
-
-                    fprintf(f, "\n%s %-31s", s, s1);
-
-                    if (temp = get_category_name(lnode)) {
-                        fprintf(f, " ;%s", temp);
-                        free(temp);
-                    }
-                }
-            }
+        dlist = node->D;
+        demand = get_first_demand(dlist);
+        while (demand)
+        {
+            sprintf(s, " %-31s %14.6f", node->ID, ucf * demand->base_demand);
+            j = demand->pattern_index;
+            if (j > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
+            else strcpy(s1, " ");
+            fprintf(f, "\n%s %-31s", s, s1);
+            if (demand->category_name) fprintf(f, " ;%s", demand->category_name);
+            demand = get_next_demand(dlist);
         }
     }
 }
-
 
 int saveinpfile(Project *pr, const char *fname)
 /*

@@ -557,6 +557,8 @@ void  demands(Project *pr)
     long k, p;
     double djunc, sum;
 //    Pdemand demand;
+    list_t *dlist;
+    demand_data_t *demand;
 
     // Determine total elapsed number of pattern periods
     p = (time->Htime + time->Pstart) / time->Pstep;
@@ -566,19 +568,17 @@ void  demands(Project *pr)
     for (i = 1; i <= net->Njuncs; i++)
     {
         sum = 0.0;
-		list_t *dlist = net->Node[i].D;
-		
-		if (dlist) {
-			for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
-			{
-				// pattern period (k) = (elapsed periods) modulus (periods per pattern)
-				j = get_pattern_index(lnode);
-				k = p % (long)net->Pattern[j].Length;
-				djunc = (get_base_demand(lnode)) * net->Pattern[j].F[k] * hyd->Dmult;
-				if (djunc > 0.0) hyd->Dsystem += djunc;
-				sum += djunc;
-			}
-		}
+		dlist = net->Node[i].D;
+        for (demand = get_first_demand(dlist); demand != NULL;
+             demand = get_next_demand(dlist))
+        {
+            // pattern period (k) = (elapsed periods) modulus (periods per pattern)
+             j = demand->pattern_index;
+             k = p % (long)net->Pattern[j].Length;
+             djunc = demand->base_demand * net->Pattern[j].F[k] * hyd->Dmult;
+             if (djunc > 0.0) hyd->Dsystem += djunc;
+             sum += djunc;
+        }
         hyd->NodeDemand[i] = sum;
 
         // Initialize pressure dependent demand

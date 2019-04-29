@@ -35,12 +35,14 @@ boost::test_tools::predicate_result check_string(std::string test, std::string r
 
 BOOST_AUTO_TEST_SUITE(test_demand_data)
 
-
+////  The re-factored version of demand.c is no longer compatible  ////
+////  with the commented-out test cases.                           ////
+/*
 BOOST_AUTO_TEST_CASE(test_create_destroy_demand_list)
 {
     list_t *dlist;
 
-    dlist = create_demand_list(100.0, 1, "CUB_SCOUT_DAY_CAMP");
+    create_demand_list(100.0, 1, "CUB_SCOUT_DAY_CAMP");
     BOOST_CHECK(dlist != NULL);
 
     delete_list(dlist);
@@ -151,7 +153,7 @@ BOOST_FIXTURE_TEST_CASE(test_convert_demand, Fixture)
     double demand = get_base_demand(lnode);
     BOOST_TEST(demand == 6.31, boost::test_tools::tolerance(0.01));
 }
-
+*/
 BOOST_AUTO_TEST_CASE(test_initclose)
 {
     int error;
@@ -202,6 +204,11 @@ BOOST_FIXTURE_TEST_CASE(test_single_node, FixtureSingleNode)
     int demand_idx, pattern_idx, n;
     double demand;
 
+
+//// Commented out code no longer applies since junction nodes are now 
+//// always created with a default demand record assigned to it (i.e.,
+//// junction demand lists are never allowed to be empty)
+/*  
     error = EN_getnumdemands(ph, node_qhut, &n);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(n == 0);
@@ -217,7 +224,8 @@ BOOST_FIXTURE_TEST_CASE(test_single_node, FixtureSingleNode)
     error = EN_getdemandname(ph, node_qhut, demand_idx, demname);
     BOOST_REQUIRE(error == 253);
     BOOST_CHECK(check_string(demname, "\0"));
-
+*/
+    demand_idx = 1;
     error = EN_setbasedemand(ph, node_qhut, demand_idx, 100.0);
     BOOST_REQUIRE(error == 0);
 

@@ -373,6 +373,15 @@ int allocdata(Project *pr)
         }
     }
 
+    // Create demand lists for all junction nodes
+    if (!errcode)
+    {
+        for (n = 1; n <= pr->parser.MaxJuncs; n++)
+        {
+            if (!create_demand_list(&pr->network.Node[n].D)) errcode = 101;
+        }
+    }
+
     // Allocate memory for rule base (see RULES.C)
     if (!errcode) errcode = allocrules(pr);
     return errcode;
@@ -387,7 +396,6 @@ void freedata(Project *pr)
 */
 {
     int j;
-    //Pdemand demand, nextdemand;
 
     // Free memory for computed results
     free(pr->hydraul.NodeDemand);
@@ -406,9 +414,7 @@ void freedata(Project *pr)
         for (j = 1; j <= pr->parser.MaxNodes; j++)
         {
             // Free memory used for demand category list
-			list_t *demand = pr->network.Node[j].D;
-			if(demand)
-				delete_list(demand);
+            delete_demand_list(&(pr->network.Node[j].D));
 
             // Free memory used for WQ source data
             free(pr->network.Node[j].S);
@@ -790,16 +796,6 @@ void adjustpattern(int *pat, int index)
 	else if (*pat > index) (*pat)--;
 }
 
-
-void adjust_demand_pattern(list_node_t *list_node, int deletion_index)
-{
-	int pat_idx = get_pattern_index(list_node);
-
-	if (pat_idx == deletion_index) set_pattern_index(list_node, 0);
-	else if (pat_idx > deletion_index) set_pattern_index(list_node, --pat_idx);
-}
-
-
 void adjustpatterns(Network *network, int index)
 /*----------------------------------------------------------------
 **  Input:   index = index of time pattern being deleted
@@ -811,16 +807,20 @@ void adjustpatterns(Network *network, int index)
     int j;
     //Pdemand demand;
     Psource source;
+    list_t *dlist;
+    demand_data_t *demand;
 
     // Adjust patterns used by junctions
     for (j = 1; j <= network->Nnodes; j++)
     {
         // Adjust demand patterns
-        list_t *dlist = network->Node[j].D;
-        if (dlist) {
-            for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
-                adjust_demand_pattern(lnode, index);
+        dlist = network->Node[j].D;
+        for (demand = get_first_demand(dlist); demand != NULL;
+             demand = get_next_demand(dlist))
+        {
+            adjustpattern(&demand->pattern_index, index);
         }
+
         // Adjust WQ source patterns
         source = network->Node[j].S;
         if (source) adjustpattern(&source->Pat, index);

@@ -23,11 +23,11 @@ Last Updated: 04/03/2019
 
 #include <math.h>
 
-#include "demand.h"
 #include "types.h"
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
+#include "demand.h"
 
 // Defined in ENUMSTXT.H
 extern char *MixTxt[];
@@ -87,9 +87,6 @@ int juncdata(Project *pr)
     double el,                  // elevation
            y = 0.0;             // base demand
     
-	list_t *demand_list = NULL; // demand list
-
-
     Snode *node;
 
     // Add new junction to data base
@@ -122,13 +119,10 @@ int juncdata(Project *pr)
     node->Type = JUNCTION;
     node->Comment = xstrcpy(&node->Comment, parser->Comment, MAXMSG);
 
-	// create demand data only if a demand has been specified
-	if (y != 0.0) {
-		demand_list = create_demand_list(y, p, NULL);
-		if (!demand_list) return 101;
-	}
-    node->D = demand_list;
+	// Add demand data to junction's demand list
+    add_demand(node->D, y, p, NULL);
 
+    // Save base demand value for use in processing [DEMANDS] section
     hyd->NodeDemand[njuncs] = y;
     return 0;
 }
@@ -713,11 +707,7 @@ int demanddata(Project *pr)
     int j, n, p = 0;
     double y;
 
-	list_t *demand_list = NULL;
-	demand_data_t *demand_data = NULL;
-    
-	//Pdemand demand;
-    //Pdemand cur_demand;
+	list_t *dlist = NULL;
 
     // Extract data from tokens
     n = parser->Ntokens;
@@ -732,35 +722,34 @@ int demanddata(Project *pr)
         return 0;
     }
 
-    // Otherwise find node (and pattern) being referenced
+    // Otherwise find index of designated junction node 
     if ((j = findnode(net, parser->Tok[0])) == 0) return setError(parser, 0, 203);
     if (j > net->Njuncs) return 0;
-    if (n >= 3)
+
+    // Find index of designated demand pattern
+    if (n >= 3 && strlen(parser->Tok[2]) > 0)
     {
         p = findpattern(net, parser->Tok[2]);
         if (p == 0) return setError(parser, 2, 205);
     }
 
-   
-	// if no demands were specified in [JUNCTIONS] create the list here 
-	demand_list = net->Node[j].D;
-	if (demand_list == NULL) {
-		demand_list = create_list(get_demand_data_size(), delete_demand_data);
-		if (demand_list == NULL) return 101;
-		net->Node[j].D = demand_list;
-	}
-	
-	// else replace the demand data entered in [JUNCTIONS] section
-	else if (size_list(demand_list) == 1) {
-		list_node_t *lnode = head_list(demand_list, true);
-		delete_node(demand_list, lnode);
-	}
+    // Add demand to junction's demand list (comment at end of line serves as
+    // name of demand's category):
+    dlist = net->Node[j].D;
 
-	// append the data to the list
-	demand_data = create_demand_data(y, p, parser->Comment);
-	if (demand_data == NULL) return 101;
+    // If NodeDemand[j] has non-missing value it means a demand was already
+    // assigned from the [JUNCTIONS] section so overwrite it
+    if (hyd->NodeDemand[j] != MISSING)
+    {
+        // Set NodeDemand to MISSING to serve as a NO OVERWRITE marker
+        hyd->NodeDemand[j] = MISSING; 
 
-	append_list(demand_list, &demand_data);
+        // Replace demand from [JUNCTIONS] section with this new demand
+        replace_demand(get_first_demand(dlist), y, p, parser->Comment);
+    }
+
+    // Otherwise append this demand to the junction's demand list
+    else add_demand(dlist, y, p, parser->Comment);
 
     return 0;
 }

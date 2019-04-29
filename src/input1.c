@@ -226,6 +226,8 @@ void adjustdata(Project *pr)
     Slink *link;
     //Snode *node;
     Stank *tank;
+    list_t *dlist;
+    demand_data_t *demand;
 
     // Use 1 hr pattern & report time step if none specified
     if (time->Pstep <= 0) time->Pstep = 3600;
@@ -334,14 +336,19 @@ void adjustdata(Project *pr)
  
 	// Use default pattern if none assigned to a demand
 	parser->DefPat = findpattern(net, parser->DefPatID);
-	if (parser->DefPat > 0) {
-		for (i = 1; i <= net->Nnodes; i++) {
-			for (list_node_t *lnode = first_list((&net->Node[i])->D); done_list(lnode); lnode = next_list(lnode)) {
-				if (get_pattern_index(lnode) == 0)
-					set_pattern_index(lnode, parser->DefPat);
-			}
-		}
-	}
+	if (parser->DefPat > 0)
+    {
+        for (i = 1; i <= net->Njuncs; i++)
+        {
+            dlist = net->Node[i].D;
+            for (demand = get_first_demand(dlist); demand != NULL;
+                 demand = get_next_demand(dlist))
+            {
+                if (demand->pattern_index == 0)
+                    demand->pattern_index = parser->DefPat;
+            }
+        }
+    }
 
     // Remove QUALITY as a reporting variable if no WQ analysis
     if (qual->Qualflag == NONE) rpt->Field[QUALITY].Enabled = FALSE;
@@ -550,6 +557,7 @@ void convertunits(Project *pr)
     Slink *link;
     Spump *pump;
     Scontrol *control;
+    demand_data_t *demand;
 
     // Convert nodal elevations & initial WQ
     // (WQ source units are converted in QUALITY.C
@@ -561,20 +569,19 @@ void convertunits(Project *pr)
     }
 
     // Convert demands
+    ucf = pr->Ucf[DEMAND];
     for (i = 1; i <= net->Njuncs; i++)
     {
         node = &net->Node[i];
 		list_t *dlist = node->D;
-		if (dlist) {
-			for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
-				convert_units(lnode, pr->Ucf[DEMAND]);
-		}
-      //  for (demand = node->D; demand != NULL; demand = demand->next)
-      //  {
-      //      demand->Base /= pr->Ucf[DEMAND];
-      //  }
+        for (demand = get_first_demand(dlist); demand != NULL;
+             demand = get_next_demand(dlist))
+        {
+            demand->base_demand /= ucf;
+        }
     }
 
+    // Convert pressure limits for PDA model
     hyd->Pmin /= pr->Ucf[PRESSURE];
     hyd->Preq /= pr->Ucf[PRESSURE];
 
