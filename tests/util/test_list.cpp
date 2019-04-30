@@ -227,14 +227,17 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
 
     printf("Removing Kevin\n");
     remove_node(list, key);
+    BOOST_CHECK(size_list(list) == 4);
     for_each_list(list, iterator);
 
     printf("Removing David\n");
     remove_node(list, head_key);
+    BOOST_CHECK(size_list(list) == 3);
     for_each_list(list, iterator);
 
     printf("Removing Jimi\n");
     remove_node(list, tail_key);
+    BOOST_CHECK(size_list(list) == 2);
     for_each_list(list, iterator);
 
     list_node_t *lnode = head_list(list, true);
