@@ -22,7 +22,6 @@
 #endif
 
 #include <string.h>
-#include <time.h>
 #include <assert.h>
 
 #include "list.h"
