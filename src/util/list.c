@@ -192,6 +192,7 @@ void remove_node(list_t *list, int key)
         }
         // detatch tail
         temp->next = NULL;
+        list->logicalLength--;
         delete_node(list, list->tail);
     }
     else {
@@ -202,6 +203,7 @@ void remove_node(list_t *list, int key)
         target->data = temp->data;
         target->next = temp->next;
 
+        list->logicalLength--;
         free(temp);
     }
 }
