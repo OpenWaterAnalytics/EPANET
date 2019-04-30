@@ -18,7 +18,7 @@ Last Updated: 04/18/2019
 #include "epanet2_2.h"
 
 
-#define DATA_PATH_NET1 "./net1.inp"
+#define DATA_PATH_NET1 "./example1_mdc.inp"
 #define DATA_PATH_TMP "./tmp.inp"
 #define DATA_PATH_RPT "./test.rpt"
 #define DATA_PATH_OUT "./test.out"
@@ -170,12 +170,6 @@ BOOST_AUTO_TEST_CASE(test_initclose)
 }
 
 
-#define DATA_PATH_NET1 "./net1.inp"
-#define DATA_PATH_TMP "./tmp.inp"
-#define DATA_PATH_RPT "./test.rpt"
-#define DATA_PATH_OUT "./test.out"
-
-
 struct FixtureSingleNode {
     FixtureSingleNode() {
         error = 0;
@@ -289,7 +283,36 @@ BOOST_FIXTURE_TEST_CASE(test_pattern_edits, FixtureSingleNode)
     BOOST_CHECK(n == 4);
 }
 
+struct FixtureOpenClose{
+    FixtureOpenClose() {
+        error = 0;
+        ph = NULL;
 
+        EN_createproject(&ph);
+        error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
+    }
+
+    ~FixtureOpenClose() {
+      error = EN_close(ph);
+      EN_deleteproject(&ph);
+  }
+
+  int error;
+  EN_Project ph;
+};
+
+
+BOOST_FIXTURE_TEST_CASE(test_demand_parse, FixtureOpenClose)
+{
+    int n, node_idx;
+
+    error = EN_getnodeindex(ph, "22", &node_idx);
+    BOOST_CHECK(error == 0);
+
+    error = EN_getnumdemands(ph, node_idx, &n);
+    BOOST_CHECK(error == 0);
+    BOOST_CHECK(n == 3);
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()

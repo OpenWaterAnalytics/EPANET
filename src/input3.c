@@ -86,7 +86,7 @@ int juncdata(Project *pr)
     int njuncs;                 // number of network junction nodes
     double el,                  // elevation
            y = 0.0;             // base demand
-    
+
 	list_t *demand_list = NULL; // demand list
 
 
@@ -715,7 +715,7 @@ int demanddata(Project *pr)
 
 	list_t *demand_list = NULL;
 	demand_data_t *demand_data = NULL;
-    
+
 	//Pdemand demand;
     //Pdemand cur_demand;
 
@@ -741,19 +741,20 @@ int demanddata(Project *pr)
         if (p == 0) return setError(parser, 2, 205);
     }
 
-   
-	// if no demands were specified in [JUNCTIONS] create the list here 
+
+	// if no demands were specified in [JUNCTIONS] create the list here
 	demand_list = net->Node[j].D;
 	if (demand_list == NULL) {
 		demand_list = create_list(get_demand_data_size(), delete_demand_data);
 		if (demand_list == NULL) return 101;
 		net->Node[j].D = demand_list;
 	}
-	
+
 	// else replace the demand data entered in [JUNCTIONS] section
-	else if (size_list(demand_list) == 1) {
+	else if (hyd->NodeDemand[j] != MISSING) {
 		list_node_t *lnode = head_list(demand_list, true);
 		delete_node(demand_list, lnode);
+        hyd->NodeDemand[j] = MISSING;
 	}
 
 	// append the data to the list
