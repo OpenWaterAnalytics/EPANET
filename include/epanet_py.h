@@ -81,7 +81,7 @@ int EXPORT_PY_API anlys_getqualtype(Handle ph, int *qualcode, int *tracenode);
 int EXPORT_PY_API anlys_setqualtype(Handle ph, EN_QualityType qualcode, char *chemname, char *chemunits, char *tracenode);
 
 
-int EXPORT_PY_API node_add(Handle ph, char *id, EN_NodeType nodeType);
+int EXPORT_PY_API node_add(Handle ph, char *id, EN_NodeType nodeType, int *index);
 int EXPORT_PY_API node_delete(Handle ph, int index, int actionCode);
 int EXPORT_PY_API node_getindex(Handle ph, char *id, int *index);
 int EXPORT_PY_API node_getid(Handle ph, int index, char *id);
@@ -104,7 +104,7 @@ int EXPORT_PY_API dmnd_getname(Handle ph, int nodeIndex, int demandIdx, char *de
 int EXPORT_PY_API dmnd_setname(Handle ph, int nodeIndex, int demandIdx, char *demandName);
 
 
-int EXPORT_PY_API link_add(Handle ph, char *id, EN_LinkType linkType, char *fromNode, char *toNode);
+int EXPORT_PY_API link_add(Handle ph, char *id, EN_LinkType linkType, char *fromNode, char *toNode, int *index);
 int EXPORT_PY_API link_delete(Handle ph, int index, int actionCode);
 int EXPORT_PY_API link_getindex(Handle ph, char *id, int *index);
 int EXPORT_PY_API link_getid(Handle ph, int index, char *id);

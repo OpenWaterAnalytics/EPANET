@@ -26,14 +26,14 @@ BOOST_FIXTURE_TEST_CASE(test_adddelete_link, FixtureInitClose)
     int index;
 
     // Build a network
-    EN_addnode(ph, (char *)"N1", EN_JUNCTION);
-    EN_addnode(ph, (char *)"N2", EN_JUNCTION);
-    EN_addnode(ph, (char *)"N3", EN_RESERVOIR);
+    EN_addnode(ph, (char *)"N1", EN_JUNCTION, &index);
+    EN_addnode(ph, (char *)"N2", EN_JUNCTION, &index);
+    EN_addnode(ph, (char *)"N3", EN_RESERVOIR, &index);
 
-    error = EN_addlink(ph, (char *)"L1", EN_PUMP, (char *)"N3", (char *)"N1");
+    error = EN_addlink(ph, (char *)"L1", EN_PUMP, (char *)"N3", (char *)"N1", &index);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_addlink(ph, (char *)"L2", EN_PIPE, (char *)"N1", (char *)"N3");
+    error = EN_addlink(ph, (char *)"L2", EN_PIPE, (char *)"N1", (char *)"N3", &index);
     BOOST_REQUIRE(error == 0);
 
     error = EN_getlinkindex(ph, (char *)"L2", &index);
@@ -41,7 +41,7 @@ BOOST_FIXTURE_TEST_CASE(test_adddelete_link, FixtureInitClose)
     error = EN_deletelink(ph, index, EN_UNCONDITIONAL);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_addlink(ph, (char *)"L3", EN_PIPE, (char *)"N1", (char *)"N2");
+    error = EN_addlink(ph, (char *)"L3", EN_PIPE, (char *)"N1", (char *)"N2", &index);
     BOOST_REQUIRE(error == 0);
 
     error = EN_getlinkindex(ph, (char *)"L1", &index);
@@ -60,20 +60,20 @@ BOOST_FIXTURE_TEST_CASE(test_link_id_isvalid, FixtureInitClose)
     int index;
 
     // Build a network
-    EN_addnode(ph, (char *)"N1", EN_JUNCTION);
-    EN_addnode(ph, (char *)"N2", EN_JUNCTION);
-    EN_addnode(ph, (char *)"N3", EN_RESERVOIR);
+    EN_addnode(ph, (char *)"N1", EN_JUNCTION, &index);
+    EN_addnode(ph, (char *)"N2", EN_JUNCTION, &index);
+    EN_addnode(ph, (char *)"N3", EN_RESERVOIR, &index);
 
-    error = EN_addlink(ph, (char *)"L1", EN_PUMP, (char *)"N1", (char *)"N2");
+    error = EN_addlink(ph, (char *)"L1", EN_PUMP, (char *)"N1", (char *)"N2", &index);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_addlink(ph, (char *)"L 2", EN_PIPE, (char *)"N1", (char *)"N2");
+    error = EN_addlink(ph, (char *)"L 2", EN_PIPE, (char *)"N1", (char *)"N2", &index);
     BOOST_REQUIRE(error == 252);
 
-    error = EN_addlink(ph, (char *)"L\"2", EN_PIPE, (char *)"N1", (char *)"N2");
+    error = EN_addlink(ph, (char *)"\"L2", EN_PIPE, (char *)"N1", (char *)"N2", &index);
     BOOST_REQUIRE(error == 252);
 
-    error = EN_addlink(ph, (char *)"L;2", EN_PIPE, (char *)"N1", (char *)"N2");
+    error = EN_addlink(ph, (char *)"L;2", EN_PIPE, (char *)"N1", (char *)"N2", &index);
     BOOST_REQUIRE(error == 252);
 
     EN_getlinkindex(ph, (char *)"L1", &index);

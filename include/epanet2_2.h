@@ -165,7 +165,7 @@ typedef struct Project *EN_Project;
   @return an error code
   */
   int  DLLEXPORT EN_setcomment(EN_Project ph, int object, int index, char *comment);
-  
+
   /**
   @brief Retrieves the number of objects of a given type in a project.
   @param ph an EPANET project handle.
@@ -752,11 +752,12 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param id the ID name of the node to be added.
   @param nodeType the type of node being added (see @ref EN_NodeType)
+  @param[out] index the index of the newly added node
   @return an error code.
 
   When a new node is created all of it's properties (see @ref EN_NodeProperty) are set to 0.
   */
-  int DLLEXPORT EN_addnode(EN_Project ph, char *id, int nodeType);
+  int DLLEXPORT EN_addnode(EN_Project ph, char *id, int nodeType, int *index);
 
   /**
   @brief Deletes a node from a project.
@@ -850,7 +851,14 @@ typedef struct Project *EN_Project;
   These properties have units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_setjuncdata(EN_Project ph, int index, double elev, double dmnd,
-                 char *dmndpat);
+      char *dmndpat);
+
+
+  int DLLEXPORT EN_adddemand(EN_Project p, int node_index, double demand,
+      char *demand_pattern, const char *category_name, int *demand_index);
+
+  int DLLEXPORT EN_removedemand(EN_Project p, int node_index, int demand_index);
+
 
   /**
   @brief Sets a group of properties for a tank node.
@@ -1027,6 +1035,7 @@ typedef struct Project *EN_Project;
   @param linkType The type of link being added (see @ref EN_LinkType)
   @param fromNode The ID name of the link's starting node.
   @param toNode The ID name of the link's ending node.
+  @param[out] index the index of the newly added link.
   @return an error code.
 
   A new pipe is assigned a diameter of 10 inches (or 254 mm), a length of 100
@@ -1039,7 +1048,8 @@ typedef struct Project *EN_Project;
 
   See @ref EN_LinkProperty.
   */
-  int DLLEXPORT EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode, char *toNode);
+  int DLLEXPORT EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode,
+                          char *toNode, int *index);
 
   /**
   @brief Deletes a link from the project.

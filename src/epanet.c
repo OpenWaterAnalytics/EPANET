@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/03/2019
+ Last Updated: 04/25/2019
  ******************************************************************************
 */
 
@@ -30,7 +30,7 @@
 #include "text.h"
 #include "enumstxt.h"
 
-#include "util/cstr_helper.h"
+#include "demand.h"
 
 #ifdef _WIN32
 #define snprintf _snprintf
@@ -1707,11 +1707,11 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
 
 ********************************************************************/
 
-int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
+int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = node ID name
 **           nodeType = type of node (see EN_NodeType)
-**  Output:  none
+**  Output:  index = index of newly added node
 **  Returns: error code
 **  Purpose: adds a new node to a project
 **----------------------------------------------------------------
@@ -1722,25 +1722,21 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
     Quality  *qual = &p->quality;
 
     int i, nIdx;
-    int index;
     int size;
-    struct Sdemand *demand;
     Stank *tank;
     Snode *node;
     Scontrol *control;
 
     // Cannot modify network structure while solvers are active
+    *index = 0;
     if (!p->Openflag) return 102;
     if (hyd->OpenHflag || qual->OpenQflag) return 262;
 
-    // Check if id contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Check if a node with same id already exists
     if (EN_getnodeindex(p, id, &i) == 0) return 215;
-
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
 
     // Grow node-related arrays to accomodate the new node
     size = (net->Nnodes + 2) * sizeof(Snode);
@@ -1757,36 +1753,31 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
         nIdx = net->Njuncs;
         node = &net->Node[nIdx];
 
-        demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
-        demand->Base = 0.0;
-        demand->Pat = 0;
-        demand->Name = NULL;
-        demand->next = NULL;
-        node->D = demand;
+		node->D = NULL;
 
         // shift rest of Node array
-        for (index = net->Nnodes; index >= net->Njuncs; index--)
+        for (i = net->Nnodes; i >= net->Njuncs; i--)
         {
-            hashtable_update(net->NodeHashTable, net->Node[index].ID, index + 1);
-            net->Node[index + 1] = net->Node[index];
+            hashtable_update(net->NodeHashTable, net->Node[i].ID, i + 1);
+            net->Node[i + 1] = net->Node[i];
         }
         // shift indices of Tank array
-        for (index = 1; index <= net->Ntanks; index++)
+        for (i = 1; i <= net->Ntanks; i++)
         {
-            net->Tank[index].Node += 1;
+            net->Tank[i].Node += 1;
         }
 
         // shift indices of Links, if necessary
-        for (index = 1; index <= net->Nlinks; index++)
+        for (i = 1; i <= net->Nlinks; i++)
         {
-            if (net->Link[index].N1 > net->Njuncs - 1) net->Link[index].N1 += 1;
-            if (net->Link[index].N2 > net->Njuncs - 1) net->Link[index].N2 += 1;
+            if (net->Link[i].N1 > net->Njuncs - 1) net->Link[i].N1 += 1;
+            if (net->Link[i].N2 > net->Njuncs - 1) net->Link[i].N2 += 1;
         }
 
         // shift indices of tanks/reservoir nodes in controls
-        for (index = 1; index <= net->Ncontrols; ++index)
+        for (i = 1; i <= net->Ncontrols; ++i)
         {
-            control = &net->Control[index];
+            control = &net->Control[i];
             if (control->Node > net->Njuncs - 1) control->Node += 1;
         }
 
@@ -1841,6 +1832,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType)
 
     // Insert new node into hash table
     hashtable_insert(net->NodeHashTable, node->ID, nIdx);
+    *index = nIdx;
     return 0;
 }
 
@@ -1862,7 +1854,7 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
 
     int i, nodeType, tankindex;
     Snode *node;
-    Pdemand demand, nextdemand;
+	list_t *demand;
 
     // Cannot modify network structure while solvers are active
     if (!p->Openflag) return 102;
@@ -1896,13 +1888,9 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
 
     // Free memory allocated to node's demands, WQ source & comment
     demand = node->D;
-    while (demand != NULL)
-    {
-        nextdemand = demand->next;
-        free(demand->Name);
-        free(demand);
-        demand = nextdemand;
-    }
+    if (demand)
+        delete_list(demand);
+
     free(node->S);
     free(node->Comment);
 
@@ -2015,13 +2003,10 @@ int DLLEXPORT EN_setnodeid(EN_Project p, int index, char *newid)
 */
 {
     Network *net = &p->network;
-    size_t n;
 
     // Check for valid arguments
     if (index <= 0 || index > net->Nnodes) return 203;
-    n = strlen(newid);
-    if (n < 1 || n > MAXID) return 209;
-    if (!cstr_isvalid(newid)) return 252;
+    if (!namevalid(newid)) return 252;
 
     // Check if another node with same name exists
     if (hashtable_find(net->NodeHashTable, newid) > 0) return 215;
@@ -2072,7 +2057,6 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
     Quality *qual = &p->quality;
 
     double v = 0.0;
-    Pdemand demand;
     Psource source;
 
     Snode *Node = net->Node;
@@ -2099,26 +2083,24 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_BASEDEMAND:
         v = 0.0;
-        // NOTE: primary demand category is last on demand list
+        // NOTE: primary demand category is first on demand list
         if (index <= nJuncs)
         {
-            for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            {
-                v = (demand->Base);
-            }
+            list_t *demand = Node[index].D;
+            if (demand)
+                v = get_base_demand(head_list(demand, false));
         }
         v *= Ucf[FLOW];
         break;
 
     case EN_PATTERN:
         v = 0.0;
-        // NOTE: primary demand category is last on demand list
+        // NOTE: primary demand category is first on demand list
         if (index <= nJuncs)
         {
-            for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            {
-                v = (double)(demand->Pat);
-            }
+            list_t *demand = Node[index].D;
+            if (demand)
+                v = get_pattern_index(head_list(demand, false));
         }
         else v = (double)(Tank[index - nJuncs].Pat);
         break;
@@ -2273,9 +2255,9 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     double *Ucf = p->Ucf;
 
     int i, j, n;
-    Pdemand demand;
     Psource source;
     double hTmp;
+    double vTmp;
 
     if (!p->Openflag) return 102;
     if (index <= 0 || index > nNodes) return 203;
@@ -2296,26 +2278,24 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         break;
 
     case EN_BASEDEMAND:
-        // NOTE: primary demand category is last on demand list
+        // NOTE: primary demand category is first on demand list
         if (index <= nJuncs)
         {
-            for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            {
-                if (demand->next == NULL) demand->Base = value / Ucf[FLOW];
-            }
+            list_t *demand = Node[index].D;
+            if (demand)
+                set_base_demand(head_list(demand, false), value / Ucf[FLOW]);
         }
         break;
 
     case EN_PATTERN:
-        // NOTE: primary demand category is last on demand list
+        // NOTE: primary demand category is first on demand list
         j = ROUND(value);
         if (j < 0 || j > nPats) return 205;
         if (index <= nJuncs)
         {
-            for (demand = Node[index].D; demand != NULL; demand = demand->next)
-            {
-                if (demand->next == NULL) demand->Pat = j;
-            }
+            list_t *demand = Node[index].D;
+            if (demand)
+                set_pattern_index(head_list(demand, false), j);
         }
         else Tank[index - nJuncs].Pat = j;
         break;
@@ -2386,77 +2366,132 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         break;
 
     case EN_TANKDIAM:
-        if (value <= 0.0) return 209;
-        if (index <= nJuncs) return 0;
-        j = index - nJuncs;
-        if (Tank[j].A > 0.0)
+        if (value <= 0.0) return 209;                  // invalid diameter
+        if (index <= nJuncs) return 0;                 // node is not a tank
+        j = index - nJuncs;                            // tank index
+        if (Tank[j].A == 0.0) return 0;                // tank is a reservoir
+        value /= Ucf[ELEV];                            // diameter in feet
+        Tank[j].A = PI * SQR(value) / 4.0;             // new tank area
+        if (Tank[j].Vcurve > 0)                        // tank has a volume curve
         {
-            value /= Ucf[ELEV];
-            Tank[j].A = PI * SQR(value) / 4.0;
-            Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
-            Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
-            Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
-            Tank[j].Vcurve = 0;
+            Tank[j].Vcurve = 0;                        // remove volume curve
+
+            // Since the volume curve no longer applies we assume that the tank's
+            // shape below Hmin is cylindrical and Vmin equals area times Hmin
+            Tank[j].Vmin = Tank[j].A * Tank[j].Hmin;
         }
+        // Since tank's area has changed its volumes must be updated
+        // NOTE: For a non-volume curve tank we can't change the Vmin
+        //       associated with a Hmin since we don't know the tank's
+        //       shape below Hmin. Vmin can always be changed by setting
+        //       EN_MINVOLUME in a subsequent function call.
+        Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
+        vTmp = Tank[j].Vmax;                           // old max. volume
+        Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
+        Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
         break;
 
     case EN_MINVOLUME:
-        if (value < 0.0) return 209;
-        if (index <= nJuncs) return 0;
-        j = index - nJuncs;
-        if (Tank[j].A > 0.0)
+        if (value < 0.0) return 209;               // invalid volume
+        if (index <= nJuncs) return 0;             // node is not a tank
+        j = index - nJuncs;                        // tank index
+        if (Tank[j].A == 0.0) return 0;            // tank is a reservoir
+        i = Tank[j].Vcurve;                        // volume curve index
+        if (i > 0)                                 // tank has a volume curve
         {
-            Tank[j].Vmin = value / Ucf[VOLUME];
-            Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
-            Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
+            curve = &net->Curve[i];                // curve object
+            if (value < curve->Y[0]) return 225;   // volume off of curve
+            value /= Ucf[VOLUME];                  // volume in ft3
+            hTmp = tankgrade(p, j, value);         // head at given volume
+            if (hTmp > Tank[j].H0 ||
+                hTmp > Tank[j].Hmax) return 225;   // invalid water levels
+            Tank[j].Hmin = hTmp;                   // new min. head
+            Tank[j].Vmin = value;                  // new min. volume
+        }
+        else                                       // tank has no volume curve
+        {
+            // If the volume supplied by the function is 0 then the tank shape
+            // below Hmin is assumed to be cylindrical and a new Vmin value is
+            // computed. Otherwise Vmin is set to the supplied value.
+            if (value == 0.0) Tank[j].Vmin = Tank[j].A * Tank[j].Hmin;
+            else Tank[j].Vmin = value / Ucf[VOLUME];
+
+            // Since Vmin changes the other volumes need updating
+            Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
+            vTmp = Tank[j].Vmax;                           // old max. volume
+            Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
+            Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
         }
         break;
 
     case EN_VOLCURVE:
-        if (index < nJuncs) return 0;
-        i = ROUND(value);
-        if (i < 0 || i > net->Ncurves) return 205;
-        curve = &net->Curve[i];
-        j = index - nJuncs;
-        if (Tank[j].A == 0.0) return 0;
+        // NOTE: Setting EN_VOLCURVE to 0 to remove a volume curve is not valid.
+        //       One should instead set a value for EN_TANKDIAM.
+        i = ROUND(value);                          // curve index
+        if (i <= 0 ||
+            i > net->Ncurves) return 205;          // invalid curve index
+        if (index <= nJuncs) return 0;             // node not a tank
+        j = index - nJuncs;                        // tank index
+        if (Tank[j].A == 0.0) return 0;            // tank is a reservoir
+        curve = &net->Curve[i];                    // curve object
+
+        // Check that tank's min/max levels lie within curve
+        value = (Tank[j].Hmin - Node[index].El) * Ucf[ELEV];
+        if (value < curve->X[0]) return 225;
+        value = (Tank[j].Hmax - Node[index].El) * Ucf[ELEV];
         n = curve->Npts - 1;
-        if (Tank[j].Vmin * Ucf[VOLUME] < curve->Y[0] ||
-            Tank[j].Vmax * Ucf[VOLUME] > curve->Y[n]) return 225;
-        Tank[j].Vcurve = i;
-        Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
-        Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
-        Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
-        Tank[j].A = (curve->Y[n] - curve->Y[0]) / (curve->X[n] - curve->X[0]);
+        if (value > curve->X[n]) return 225;
+
+        Tank[j].Vcurve = i;                            // assign curve to tank
+        Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin); // new min. volume
+        Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
+        vTmp = Tank[j].Vmax;                           // old max. volume
+        Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
+        Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
+        Tank[j].A = (curve->Y[n] - curve->Y[0]) /      // nominal area 
+            (curve->X[n] - curve->X[0]);
         break;
 
     case EN_MINLEVEL:
-        if (value < 0.0) return 209;
-        if (index <= nJuncs) return 0; // not a tank or reservoir
-        j = index - nJuncs;
-        if (Tank[j].A == 0.0) return  0; // node is a reservoir
-        hTmp = value / Ucf[ELEV] + Node[index].El;
-        if (hTmp < Tank[j].Hmax && hTmp <= Tank[j].H0)
+        if (value < 0.0) return 209;               // invalid water level
+        if (index <= nJuncs) return 0;             // node not a tank
+        j = index - nJuncs;                        // tank index
+        if (Tank[j].A == 0.0) return  0;           // tank is a reservoir
+        hTmp = value / Ucf[ELEV] + Node[index].El; // convert level to head
+        if (hTmp >= Tank[j].Hmax ||
+            hTmp > Tank[j].H0) return 225;         // invalid water levels
+        i = Tank[j].Vcurve;                        // volume curve index
+        if (i > 0)                                 // tank has a volume curve
         {
-            if (Tank[j].Vcurve > 0) return 0;
-            Tank[j].Hmin = hTmp;
-            Tank[j].Vmin = (Tank[j].Hmin - Node[index].El) * Tank[j].A;
+            curve = &net->Curve[i];
+            if (value < curve->X[0]) return 225;   // new level is off curve
+            Tank[j].Vmin = tankvolume(p, j, hTmp); // new min. volume
         }
-        else return 225;
+        Tank[j].Hmin = hTmp;
+        // NOTE: We assume that for non-volume curve tanks Vmin doesn't change
+        //       with Hmin. If not the case then a subsequent call setting
+        //       EN_MINVOLUME must be made.
         break;
 
     case EN_MAXLEVEL:
-        if (value < 0.0) return 209;
-        if (index <= nJuncs) return 0; // not a tank or reservoir
-        j = index - nJuncs;
-        if (Tank[j].A == 0.0) return 0; // node is a reservoir
-        hTmp = value / Ucf[ELEV] + Node[index].El;
-        if (hTmp > Tank[j].Hmin && hTmp >= Tank[j].H0)
+        if (value <= 0.0) return 209;              // invalid water level
+        if (index <= nJuncs) return 0;             // node not a tank
+        j = index - nJuncs;                        // tank index
+        if (Tank[j].A == 0.0) return 0;            // tank is a reservoir
+        hTmp = value / Ucf[ELEV] + Node[index].El; // convert level to head
+        if (hTmp < Tank[j].Hmin ||
+            hTmp < Tank[j].H0) return 225;         // invalid water levels
+        i = Tank[j].Vcurve;                        // volume curve index
+        if (i > 0)                                 // tank has a volume curve
         {
-            if (Tank[j].Vcurve > 0) return 0;
-            Tank[j].Hmax = hTmp;
-            Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
+            curve = &net->Curve[i];
+            n = curve->Npts - 1;                   // last point on curve
+            if (value > curve->X[n]) return 225;   // new level is off curve
         }
-        else return 225;
+        Tank[j].Hmax = hTmp;                       // new max. head
+        vTmp = Tank[j].Vmax;                       // old max. volume
+        Tank[j].Vmax = tankvolume(p, j, hTmp);     // new max. volume
+        Tank[j].V1max *= Tank[j].Vmax / vTmp;      // new mix zone volume
         break;
 
     case EN_MIXMODEL:
@@ -2512,7 +2547,6 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
 
     int i, patIndex = 0;
     Snode *Node = net->Node;
-    Pdemand demand;
 
     // Check that junction exists
     if (!p->Openflag) return 102;
@@ -2534,14 +2568,56 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
 
     // Assign values to junction's parameters
     Node[index].El = elev / p->Ucf[ELEV];
-    for (demand = Node[index].D; demand != NULL; demand = demand->next)
-    {
-        if (demand->next == NULL)
-        {
-            demand->Base = dmnd / p->Ucf[FLOW];
-            demand->Pat = patIndex;
-        }
+
+    list_t *demand_list = Node[index].D;
+    if (!demand_list) {
+        demand_list = create_list(get_demand_data_size(), delete_demand_data);
+        if (!demand_list) return 101;
     }
+    demand_data_t *demand_data = create_demand_data(dmnd/p->Ucf[FLOW], patIndex, NULL);
+    if (!demand_data) return 101;
+
+    append_list(demand_list, &demand_data);
+
+    return 0;
+}
+
+int DLLEXPORT EN_adddemand(EN_Project p, int node_index, double demand,
+    char *demand_pattern, const char *category_name, int *demand_key)
+{
+    Network *net = &p->network;
+
+    int pattern_index, error = 0;
+    *demand_key = -1;
+
+    if (error = EN_getpatternindex(p, demand_pattern, &pattern_index) != 0) return error;
+
+    Snode *Node = net->Node;
+    list_t *demand_list = Node[node_index].D;
+    if (!demand_list) {
+        demand_list = create_demand_list(demand/p->Ucf[FLOW], pattern_index, category_name);
+        if (!demand_list) return 101;
+
+        Node[node_index].D = demand_list;
+    }
+    else {
+        demand_data_t *demand_data = create_demand_data(demand/p->Ucf[FLOW], pattern_index, category_name);
+        if (!demand_data) return 101;
+
+        *demand_key = append_list(demand_list, &demand_data);
+    }
+    return 0;
+}
+
+int DLLEXPORT EN_removedemand(EN_Project p, int node_index, int demand_key)
+{
+    Network *net = &p->network;
+    Snode *Node = net->Node;
+
+    list_t *dlist = Node[node_index].D;
+
+    remove_node(dlist, demand_key);
+
     return 0;
 }
 
@@ -2611,7 +2687,12 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     Tank[j].Hmin = elevation + minlvl / Ucf[ELEV];
     Tank[j].Hmax = elevation + maxlvl / Ucf[ELEV];
     Tank[j].Vcurve = curveIndex;
-    Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
+    if (curveIndex == 0)
+    {
+        if (minvol > 0.0) Tank[j].Vmin = minvol / Ucf[VOLUME];
+        else Tank[j].Vmin = Tank[j].A * Tank[j].Hmin;
+    }
+    else Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
     Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
     Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
     return 0;
@@ -2722,16 +2803,20 @@ int DLLEXPORT EN_getnumdemands(EN_Project p, int nodeIndex, int *numDemands)
 **----------------------------------------------------------------
 */
 {
-    Pdemand d;
-    int n = 0;
+    //Pdemand d;
+    //int n = 0;
 
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
 
     // Count the number of demand categories
-    for (d = p->network.Node[nodeIndex].D; d != NULL; d = d->next) n++;
-    *numDemands = n;
+	list_t *demand_list = p->network.Node[nodeIndex].D;
+	if (demand_list)
+		*numDemands = size_list(demand_list);
+	else
+		*numDemands = 0;
+
     return 0;
 }
 
@@ -2746,9 +2831,6 @@ int DLLEXPORT EN_getbasedemand(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    Pdemand d;
-    int n = 1;
-
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
@@ -2756,10 +2838,13 @@ int DLLEXPORT EN_getbasedemand(EN_Project p, int nodeIndex, int demandIndex,
     // Retrieve demand for specified category
     if (nodeIndex <= p->network.Njuncs)
     {
-        for (d = p->network.Node[nodeIndex].D; n < demandIndex && d->next != NULL;
-             d = d->next) n++;
-        if (n != demandIndex) return 253;
-        *baseDemand = (double)(d->Base * p->Ucf[FLOW]);
+        // Locate demand category record and assign demandName to it
+        list_t *dlist = p->network.Node[nodeIndex].D;
+        list_node_t *lnode = get_nth_list(dlist, demandIndex);
+        if (!lnode)
+            return 253;
+        else
+            *baseDemand = get_base_demand(lnode) * p->Ucf[FLOW];
     }
     else *baseDemand = (double)(0.0);
     return 0;
@@ -2777,9 +2862,6 @@ int DLLEXPORT EN_setbasedemand(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    Pdemand d;
-    int n = 1;
-
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
@@ -2787,10 +2869,22 @@ int DLLEXPORT EN_setbasedemand(EN_Project p, int nodeIndex, int demandIndex,
     // Set baseline demand for specified category
     if (nodeIndex <= p->network.Njuncs)
     {
-        for (d = p->network.Node[nodeIndex].D; n < demandIndex && d->next != NULL;
-             d = d->next) n++;
-        if (n != demandIndex) return 253;
-        d->Base = baseDemand / p->Ucf[FLOW];
+        list_t *dlist = p->network.Node[nodeIndex].D;
+        // If demand list is null create one and set demand
+        if (!dlist) {
+            dlist = create_demand_list(baseDemand / p->Ucf[FLOW], 0, NULL);
+            if (!dlist) return 101;
+
+            p->network.Node[nodeIndex].D = dlist;
+        }
+        // else find the demand entry and set demand
+        else {
+            list_node_t *lnode = get_nth_list(dlist, demandIndex);
+            if (!lnode)
+                return 253;
+            else
+            set_base_demand(lnode, baseDemand / p->Ucf[FLOW]);
+        }
     }
     return 0;
 }
@@ -2806,8 +2900,7 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    Pdemand d;
-    int n = 1;
+    char *temp = NULL;
 
     strcpy(demandName, "");
 
@@ -2816,12 +2909,21 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
     if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs) return 203;
 
     // Locate demand category record and retrieve its name
-    for (d = p->network.Node[nodeIndex].D;
-        n < demandIndex && d->next != NULL; d = d->next) n++;
-    if (n != demandIndex) return 253;
+    list_t *dlist = p->network.Node[nodeIndex].D;
+    if (dlist) {
+        list_node_t *lnode = get_nth_list(dlist, demandIndex);
+        if (!lnode)
+            return 253;
+        else
+            temp = get_category_name(lnode);
 
-    if (d->Name) strcpy(demandName, d->Name);
-    else demandName[0] = '\0';
+        if (temp) {
+            strcpy(demandName, temp);
+            free(temp);
+        }
+    }
+    else return 253;
+
     return 0;
 }
 
@@ -2837,21 +2939,29 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    Pdemand d;
-    int n = 1;
 
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Njuncs) return 203;
 
-	// Check that demandName is not too long
-    if (strlen(demandName) > MAXID) return 250;
+    // Check that demandName is not too long
+    if (strlen(demandName) > MAXID) return 252;
 
     // Locate demand category record and assign demandName to it
-    for (d = p->network.Node[nodeIndex].D;
-         n < demandIndex && d->next != NULL; d = d->next) n++;
-    if (n != demandIndex) return 253;
-    d->Name = xstrcpy(&d->Name, demandName, MAXID);
+    list_t *dlist = p->network.Node[nodeIndex].D;
+    if (!dlist) {
+        dlist = create_demand_list(0, 0, demandName);
+        if (!dlist) return 101;
+
+        p->network.Node[nodeIndex].D = dlist;
+    }
+    else {
+        list_node_t *lnode = get_nth_list(dlist, demandIndex);
+        if (!lnode)
+            return 253;
+        else
+            set_category_name(lnode, demandName);
+    }
     return 0;
 }
 
@@ -2867,16 +2977,18 @@ int DLLEXPORT EN_getdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
-    Pdemand d;
-    int n = 1;
-
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
-    for (d = p->network.Node[nodeIndex].D;
-         n < demandIndex && d->next != NULL; d = d->next) n++;
-    if (n != demandIndex) return 253;
-    *patIndex = d->Pat;
+
+    // Locate demand category record and assign demandName to it
+    list_t *dlist = p->network.Node[nodeIndex].D;
+    list_node_t *lnode = get_nth_list(dlist, demandIndex);
+    if (!lnode)
+        return 253;
+    else
+        *patIndex = get_pattern_index(lnode);
+
     return 0;
 }
 
@@ -2894,21 +3006,28 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 {
     Network *net = &p->network;
 
-    Pdemand d;
-    int n = 1;
-
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > net->Nnodes) return 203;
     if (patIndex <= 0 || patIndex > net->Npats) return 205;
 
     // Locate demand category record and assign time pattern to it
-    if (nodeIndex <= net->Njuncs)
-    {
-        for (d = net->Node[nodeIndex].D;
-             n < demandIndex && d->next != NULL; d = d->next) n++;
-        if (n != demandIndex) return 253;
-        d->Pat = patIndex;
+    if (nodeIndex <= net->Njuncs) {
+
+        list_t *dlist = p->network.Node[nodeIndex].D;
+        if (!dlist) {
+            dlist = create_demand_list(0, patIndex, NULL);
+            if (!dlist) return 101;
+
+            p->network.Node[nodeIndex].D = dlist;
+        }
+        else {
+            list_node_t *lnode = get_nth_list(dlist, demandIndex);
+            if (!lnode)
+                return 253;
+            else
+                set_pattern_index(lnode, patIndex);
+        }
     }
     return 0;
 }
@@ -2920,13 +3039,13 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 ********************************************************************/
 
 int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
-                         char *fromNode, char *toNode)
+                         char *fromNode, char *toNode, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = link ID name
 **           type = link type (see EN_LinkType)
 **           fromNode = name of link's starting node
 **           toNode = name of link's ending node
-**  Output:  none
+**  Output:  index = position of new link in Link array
 **  Returns: error code
 **  Purpose: adds a new link to a project
 **----------------------------------------------------------------
@@ -2941,11 +3060,12 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     Spump *pump;
 
     // Cannot modify network structure while solvers are active
+    *index = 0;
     if (!p->Openflag) return 102;
     if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
 
-    // Check if id contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Check if a link with same id already exists
     if (EN_getlinkindex(p, id, &i) == 0) return 215;
@@ -2958,9 +3078,6 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     n2 = hashtable_find(net->NodeHashTable, toNode);
     if (n1 == 0 || n2 == 0) return 203;
 
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
-
     // Check that valve link has legal connections
     if (linkType > PUMP)
     {
@@ -2970,6 +3087,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
 
     // Grow link-related arrays to accomodate the new link
     net->Nlinks++;
+    p->parser.MaxLinks = net->Nlinks;
     n = net->Nlinks;
     size = (n + 1) * sizeof(Slink);
     net->Link = (Slink *)realloc(net->Link, size);
@@ -3049,6 +3167,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     link->Comment = NULL;
 
     hashtable_insert(net->LinkHashTable, link->ID, n);
+    *index = n;
     return 0;
 }
 
@@ -3202,13 +3321,10 @@ int DLLEXPORT EN_setlinkid(EN_Project p, int index, char *newid)
 */
 {
     Network *net = &p->network;
-    size_t n;
 
     // Check for valid arguments
     if (index <= 0 || index > net->Nlinks) return 204;
-    n = strlen(newid);
-    if (n < 1 || n > MAXID) return 211;
-    if (!cstr_isvalid(newid)) return 252;
+    if (!namevalid(newid)) return 252;
 
     // Check if another link with same name exists
     if (hashtable_find(net->LinkHashTable, newid) > 0) return 215;
@@ -3306,10 +3422,7 @@ int DLLEXPORT EN_setlinktype(EN_Project p, int *index, int linkType, int actionC
     EN_deletelink(p, i, actionCode);
 
     // Create a new link of new type and old id
-    errcode = EN_addlink(p, id, linkType, id1, id2);
-
-    // Find the index of this new link
-    EN_getlinkindex(p, id, index);
+    errcode = EN_addlink(p, id, linkType, id1, id2, index);
     return errcode;
 }
 
@@ -3959,11 +4072,8 @@ int DLLEXPORT EN_addpattern(EN_Project p, char *id)
     if (!p->Openflag) return 102;
     if (EN_getpatternindex(p, id, &i) == 0) return 215;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
-
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Expand the project's array of patterns
     n = net->Npats + 1;
@@ -4086,10 +4196,8 @@ int DLLEXPORT EN_setpatternid(EN_Project p, int index, char *id)
     if (!p->Openflag) return 102;
     if (index < 1 || index > p->network.Npats) return 205;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
-
-    if (strlen(id) > MAXID) return 250;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     for (i = 1; i <= p->network.Npats; i++)
     {
@@ -4235,11 +4343,8 @@ int DLLEXPORT EN_addcurve(EN_Project p, char *id)
     if (!p->Openflag) return 102;
     if (EN_getcurveindex(p, id, &i) == 0) return 215;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
-
-    // Check that id name is not too long
-    if (strlen(id) > MAXID) return 250;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
     // Expand the array of curves
     n = net->Ncurves + 1;
@@ -4358,10 +4463,9 @@ int DLLEXPORT EN_setcurveid(EN_Project p, int index, char *id)
     if (!p->Openflag) return 102;
     if (index < 1 || index > p->network.Ncurves) return 205;
 
-    // Check is id name contains invalid characters
-    if (!cstr_isvalid(id)) return 252;
+    // Check if id name contains invalid characters
+    if (!namevalid(id)) return 252;
 
-    if (strlen(id) > MAXID) return 250;
     for (i = 1; i <= p->network.Ncurves; i++)
     {
         if (i != index && strcmp(id, p->network.Curve[i].ID) == 0) return 215;

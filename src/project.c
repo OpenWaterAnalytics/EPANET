@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/03/2019
+ Last Updated: 04/20/2019
  ******************************************************************************
 */
 
@@ -28,6 +28,8 @@
 
 #include "types.h"
 #include "funcs.h"
+
+#include "demand.h"
 
 int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
 /*----------------------------------------------------------------
@@ -385,7 +387,7 @@ void freedata(Project *pr)
 */
 {
     int j;
-    Pdemand demand, nextdemand;
+    //Pdemand demand, nextdemand;
 
     // Free memory for computed results
     free(pr->hydraul.NodeDemand);
@@ -404,14 +406,10 @@ void freedata(Project *pr)
         for (j = 1; j <= pr->parser.MaxNodes; j++)
         {
             // Free memory used for demand category list
-            demand = pr->network.Node[j].D;
-            while (demand != NULL)
-            {
-                nextdemand = demand->next;
-                free(demand->Name);
-                free(demand);
-                demand = nextdemand;
-            }
+			list_t *demand = pr->network.Node[j].D;
+			if(demand)
+				delete_list(demand);
+
             // Free memory used for WQ source data
             free(pr->network.Node[j].S);
             free(pr->network.Node[j].Comment);
@@ -788,9 +786,19 @@ void adjustpattern(int *pat, int index)
 **----------------------------------------------------------------
 */
 {
-    if (*pat == index) *pat = 0;
-    else if (*pat > index) (*pat)--;
+	if (*pat == index) *pat = 0;
+	else if (*pat > index) (*pat)--;
 }
+
+
+void adjust_demand_pattern(list_node_t *list_node, int deletion_index)
+{
+	int pat_idx = get_pattern_index(list_node);
+
+	if (pat_idx == deletion_index) set_pattern_index(list_node, 0);
+	else if (pat_idx > deletion_index) set_pattern_index(list_node, --pat_idx);
+}
+
 
 void adjustpatterns(Network *network, int index)
 /*----------------------------------------------------------------
@@ -801,16 +809,17 @@ void adjustpatterns(Network *network, int index)
 */
 {
     int j;
-    Pdemand demand;
+    //Pdemand demand;
     Psource source;
 
     // Adjust patterns used by junctions
-    for (j = 1; j <= network->Njuncs; j++)
+    for (j = 1; j <= network->Nnodes; j++)
     {
         // Adjust demand patterns
-        for (demand = network->Node[j].D; demand != NULL; demand = demand->next)
-        {
-            adjustpattern(&demand->Pat, index);
+        list_t *dlist = network->Node[j].D;
+        if (dlist) {
+            for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
+                adjust_demand_pattern(lnode, index);
         }
         // Adjust WQ source patterns
         source = network->Node[j].S;
@@ -988,6 +997,18 @@ int setcomment(Network *network, int object, int index, const char *newcomment)
     }
 }
 
+int namevalid(const char *name)
+//----------------------------------------------------------------
+//  Input:   name = name used to ID an object
+//  Output:  returns TRUE if name is valid, FALSE if not
+//  Purpose: checks that an object's ID name is valid.
+//----------------------------------------------------------------
+{
+    size_t n = strlen(name);
+    if (n < 1 || n > MAXID || strpbrk(name, " ;") || name[0] == '"') return FALSE;
+    return TRUE;
+}
+
 char *getTmpName(char *fname)
 //----------------------------------------------------------------
 //  Input:   fname = file name string
@@ -1027,33 +1048,37 @@ char *xstrcpy(char **s1, const char *s2, const size_t n)
 //           n = maximum size of strings
 //  Output:  none
 //  Purpose: like strcpy except for dynamic strings.
+//  Note:    The calling program is responsible for ensuring that
+//           s1 points to a valid memory location or is NULL. E.g.,
+//           the following code will likely cause a segment fault:
+//             char *s;
+//             s = xstrcpy(s, "Some text");
+//           while this would work correctly:
+//             char *s = NULL;
+//             s = xstrcpy(s, "Some text");
 //----------------------------------------------------------------
 {
-    size_t n1 = 0, n2;
+    size_t n1 = 0, n2 = 0;
+
+    // Find size of source string
+    if (s2) n2 = strlen(s2);
+    if (n2 > n) n2 = n;
 
     // Source string is empty -- free destination string
-    if (s2 == NULL || strlen(s2) == 0)
+    if (n2 == 0)
     {
         free(*s1);
+        *s1 = NULL;
         return NULL;
     }
 
-    // Source string not empty -- overwrite destination string
-    else
-    {
-        // See if size of destination string needs to grow
-        if (*s1) n1 = strlen(*s1);
-        if ((n2 = strlen(s2)) > n) n2 = n;
-        if (n2 > n1)
-        {
-            free(*s1);
-            *s1 = (char *)malloc((n2 + 1) * sizeof(char));
-        }
+    // See if size of destination string needs to grow
+    if (*s1) n1 = strlen(*s1);
+    if (n2 > n1) *s1 = realloc(*s1, (n2 + 1) * sizeof(char));
 
-        // Copy the new comment string into the existing one
-        if (*s1) strcpy(*s1, s2);
-        return *s1;
-    }
+    // Copy the source string into the destination string
+    strcpy(*s1, s2);
+    return *s1;
 }
 
 int strcomp(const char *s1, const char *s2)

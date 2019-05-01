@@ -23,9 +23,9 @@ BOOST_FIXTURE_TEST_CASE(test_adddelete_node, FixtureInitClose)
 {
     int index;
 
-    error = EN_addnode(ph, (char *)"N2", EN_JUNCTION);
+    error = EN_addnode(ph, (char *)"N2", EN_JUNCTION, &index);
     BOOST_REQUIRE(error == 0);
-    error = EN_addnode(ph, (char *)"N3", EN_RESERVOIR);
+    error = EN_addnode(ph, (char *)"N3", EN_RESERVOIR, &index);
     BOOST_REQUIRE(error == 0);
 
     error = EN_getnodeindex(ph, (char *)"N2", &index);
@@ -33,7 +33,7 @@ BOOST_FIXTURE_TEST_CASE(test_adddelete_node, FixtureInitClose)
     error = EN_deletenode(ph, index, EN_UNCONDITIONAL);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_addnode(ph, (char *)"N4", EN_TANK);
+    error = EN_addnode(ph, (char *)"N4", EN_TANK, &index);
     BOOST_REQUIRE(error == 0);
 
     error = EN_getnodeindex(ph, (char *)"N4", &index);
@@ -51,16 +51,16 @@ BOOST_FIXTURE_TEST_CASE(test_node_validate_id, FixtureInitClose)
 {
     int index;
 
-    error = EN_addnode(ph, (char *)"N2", EN_JUNCTION);
+    error = EN_addnode(ph, (char *)"N2", EN_JUNCTION, &index);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_addnode(ph, (char *)"N 3", EN_JUNCTION);
+    error = EN_addnode(ph, (char *)"N 3", EN_JUNCTION, &index);
     BOOST_REQUIRE(error == 252);
 
-    error = EN_addnode(ph, (char *)"N\"3", EN_JUNCTION);
+    error = EN_addnode(ph, (char *)"\"N3", EN_JUNCTION, &index);
     BOOST_REQUIRE(error == 252);
 
-    error = EN_addnode(ph, (char *)"N;3", EN_JUNCTION);
+    error = EN_addnode(ph, (char *)"N;3", EN_JUNCTION, &index);
     BOOST_REQUIRE(error == 252);
 
     EN_getnodeindex(ph, (char *)"N2", &index);

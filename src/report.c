@@ -237,7 +237,7 @@ void writesummary(Project *pr)
   Parser  *parser = &pr->parser;
   Times   *time = &pr->times;
 
-  char s[MAXFNAME + 1];
+  char s[MAXLINE + 1];
   int i;
   int nres = 0;
 

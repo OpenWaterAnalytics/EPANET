@@ -13,7 +13,9 @@
  ******************************************************************************
 */
 
+#include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define BOOST_TEST_MODULE list
 #include <boost/test/unit_test.hpp>
@@ -35,7 +37,7 @@ int *get_int_data(list_node_t *lnode) {
 
 bool iterate_int(list_node_t *lnode)
 {
-    printf("Found value: %d\n", *get_int_data(lnode));
+    printf("At Key: %d  Found value: %d\n", get_key(lnode), *get_int_data(lnode));
     return true;
 }
 
@@ -57,14 +59,22 @@ BOOST_AUTO_TEST_CASE(test_int_list){
     int i, numbers = 10;
     list_t *list = NULL;
 
+    int key[10 + 1];
+
+    srand((unsigned int)time(0));
+
     list = create_list(sizeof(int), NULL);
 
     for(i = 1; i <= numbers; i++) {
-        append_list(list, &i);
+        key[i] = append_list(list, &i);
     }
     BOOST_CHECK(size_list(list) == 10);
 
-    for_each_list(list, iterate_int);
+	listIterator iterator = (listIterator)iterate_int;
+    for_each_list(list, iterator);
+
+    list_node_t *lnode = search_list(list, key[5]);
+    BOOST_CHECK(get_key(lnode) == key[5]);
 
     delete_list(list);
 }
@@ -111,7 +121,8 @@ BOOST_FIXTURE_TEST_CASE(test_string_list, FixtureStrings) {
 
     BOOST_CHECK(size_list(list) == 5);
 
-    for_each_list(list, iterate_string);
+	listIterator iterator = (listIterator)iterate_string;
+	for_each_list(list, iterator);
 }
 
 
@@ -177,38 +188,56 @@ bool iterate_test_data(list_node_t *lnode)
 }
 
 
+char *get_name(list_node_t *lnode)
+{
+    return get_test_data(lnode)->name;
+}
 
 BOOST_AUTO_TEST_CASE(test_struct_list){
+
+    int key, head_key, tail_key;
 
     list_t *list = NULL;
     list = create_list(sizeof(test_data_t *), delete_test_data);
 
 
     test_data_t *data = create_test_data(1, "David");
-    append_list(list, &data);
+    head_key = append_list(list, &data);
 
     data = create_test_data(2, "Kevin");
-    append_list(list, &data);
+    key = append_list(list, &data);
 
     data = create_test_data(3, "Michael");
     append_list(list, &data);
 
+    data = create_test_data(4, "Craig");
+    append_list(list, &data);
 
-    BOOST_CHECK(size_list(list) == 3);
+    data = create_test_data(5, "Jimi");
+    tail_key = append_list(list, &data);
 
-    for_each_list(list, iterate_test_data);
+    BOOST_CHECK(size_list(list) == 5);
+
+	listIterator iterator = (listIterator)iterate_test_data;
+    for_each_list(list, iterator);
 
 
-    list_node_t *lnode;
-    // Iterate over list while maintaining containment of list abstraction
-    for (lnode = first_list(list); done_list(lnode); lnode = next_list(lnode)) {
-        test_data_t *test_data = get_test_data(lnode);
+    // locate a list node by a key
+    printf("Found %s!\n", get_name(search_list(list, key)));
 
-        if (test_data->num == 2)
-            printf("Found %s!\n", test_data->name);
-    }
+    printf("Removing Kevin\n");
+    remove_node(list, key);
+    for_each_list(list, iterator);
 
-    lnode = head_list(list, true);
+    printf("Removing David\n");
+    remove_node(list, head_key);
+    for_each_list(list, iterator);
+
+    printf("Removing Jimi\n");
+    remove_node(list, tail_key);
+    for_each_list(list, iterator);
+
+    list_node_t *lnode = head_list(list, true);
     delete_node(list, lnode);
 
     delete_list(list);

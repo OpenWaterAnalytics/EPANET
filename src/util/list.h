@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -28,8 +29,8 @@ extern "C" {
 typedef struct list_node_s list_node_t;
 typedef struct list_s list_t;
 
-typedef void(*freeFunction)(void *);
-typedef bool(*listIterator)(list_node_t *);
+typedef void (*freeFunction) (void *);
+typedef bool (*listIterator) (list_node_t *);
 
 
 /**
@@ -45,14 +46,14 @@ with each node’s data pointer.
 void delete_list(list_t *list);
 
 /**
-@brief Adds a node to the head of the list.
+@brief Adds a node to the head of the list and returns its key.
 */
-void prepend_list(list_t *list, void *element);
+int prepend_list(list_t *list, void *element);
 
 /**
-@brief Adds a node to the tail of the list.
+@brief Adds a node to the tail of the list and returns its key.
 */
-void append_list(list_t *list, void *element);
+int append_list(list_t *list, void *element);
 
 /**
 @brief Returns the number of items in the list.
@@ -64,6 +65,16 @@ int size_list(list_t *list);
 @brief Returns pointer to list node's data.
 */
 void *get_data(list_node_t *lnode);
+
+/**
+@brief Returns list node's key value.
+*/
+int get_key(list_node_t *lnode);
+
+/**
+@brief Returns next list node.
+*/
+list_node_t *get_next(list_node_t *lnode);
 
 /**
 @brief Frees memory associated with a list node.
@@ -87,21 +98,41 @@ list_node_t *head_list(list_t *list, bool removeFromList);
 */
 list_node_t *tail_list(list_t *list);
 
+/**
+@brief Returns nth node of the list or NULL.
+*/
+list_node_t *get_nth_list(list_t *list, int index);
+
+/**
+@brief Returns the list node with the given key or NULL.
+*/
+list_node_t *search_list(list_t *list, int key);
+
+/**
+@brief Removes the list node with the given key from the list. 
+*/
+void remove_node(list_t *list, int key);
+
+//
+// Iterator first/done/next operations
+// http://www.cs.yale.edu/homes/aspnes/pinewiki/C(2f)Iterators.html
+// Accessed on April 11, 2019
+//
 
 /**
 @brief Returns list head node.
 */
-list_node_t *first_list(list_t *list);
+static inline list_node_t *first_list(list_t *list) { return head_list(list, false); }
 
 /**
 @brief Returns true if end of list false otherwise.
 */
-bool done_list(list_node_t *lnode);
+static inline bool done_list(list_node_t *lnode) { return lnode != NULL; }
 
 /**
 @brief Returns next node in the list.
 */
-list_node_t *next_list(list_node_t *lnode);
+static inline list_node_t *next_list(list_node_t *lnode) { return get_next(lnode); }
 
 
 #if defined(__cplusplus)
