@@ -72,31 +72,33 @@ build_script:
   - cmake --build . --config Release
 
 before_test:
-  if "%BUILD_TESTS%" == "ON" (
-    cd %EPANET_HOME% &
-    tools\before-test.cmd %PLATFORM% %REF_BUILD_ID% %SUT_BUILD_ID% %APPVEYOR_REPO_COMMIT%
-  )
+  - cd %EPANET_HOME%
+  - tools\before-test.cmd %PLATFORM% %REF_BUILD_ID% %SUT_BUILD_ID% %APPVEYOR_REPO_COMMIT%
 
 # run custom test script
 test_script:
   # run unit tests
-  if "%BUILD_TESTS%" == "ON" (
-    cd %BUILD_HOME%\tests &
-    ctest -C Release --output-on-failure &
-    cd %EPANET_HOME% &
-    tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%
+  if "%BUILD_TESTS%" == "OFF" (
+    off
   )
+  - cd %BUILD_HOME%\tests
+  - ctest -C Release --output-on-failure
+  - cd %EPANET_HOME%
+  - tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%
 
 on_success:
-  if "%BUILD_TESTS%" == "ON" (
-    cd %TEST_HOME%\benchmark &
-    appveyor PushArtifact receipt.json
+  if "%BUILD_TESTS%" == "OFF" (
+    off
   )
+  - cd %TEST_HOME%\benchmark
+  - appveyor PushArtifact receipt.json
+
 
 on_failure:
   # zip up the SUT benchmarks
-  if "%BUILD_TESTS%" == "ON" (
-    cd %TEST_HOME%\benchmark &
-    7z a benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip .\epanet-%SUT_BUILD_ID% &
-    appveyor PushArtifact benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip
+  if "%BUILD_TESTS%" == "OFF" (
+    off
   )
+  - cd %TEST_HOME%\benchmark
+  - 7z a benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip .\epanet-%SUT_BUILD_ID%
+  - appveyor PushArtifact benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip
