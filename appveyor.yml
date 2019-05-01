@@ -64,7 +64,7 @@ before_build:
   - mkdir %BUILD_HOME%
   - cd %BUILD_HOME%
   - cmake -G "%GENERATOR%"
-    -DBUILD_TESTS=%BUILD_TESTS%
+    -DBUILD_TESTS="%BUILD_TESTS%"
     -DBOOST_ROOT="%BOOST_ROOT%" ..
 
 # run custom build script
@@ -79,9 +79,9 @@ before_test:
 test_script:
   # run unit tests
   if %BUILD_TESTS% == "ON" (
-    cd %BUILD_HOME%\tests &
-    ctest -C Release --output-on-failure &
-    cd %EPANET_HOME% &
+    cd %BUILD_HOME%\tests &&
+    ctest -C Release --output-on-failure &&
+    cd %EPANET_HOME% &&
     tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%
   )
 
