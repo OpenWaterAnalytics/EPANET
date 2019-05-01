@@ -22,6 +22,7 @@ environment:
     GROUP: "SUPPORTED"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
     PLATFORM: "win32"
+    BUILD_TESTS: "ON"
     REF_BUILD_ID: "538_1"
   # New build on Visual Studio 15 2017
   - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -29,7 +30,16 @@ environment:
     GROUP: "EXPERIMENTAL"
     BOOST_ROOT: "C:/Libraries/boost_1_67_0"
     PLATFORM: "win64"
+    BUILD_TESTS: "ON"
     REF_BUILD_ID: "538_2"
+  # Backward compatibility build on Visual Studio 2010
+  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    GENERATOR: "Visual Studio 15 2010"
+    GROUP: "EXPERIMENTAL"
+    BOOST_ROOT: "C:/Libraries/boost_1_58_0"
+    PLATFORM: "win32"
+    BUILD_TESTS: "OFF"
+    REF_BUILD_ID: "538_1"
 
 # called before repo cloning
 init:
@@ -54,7 +64,7 @@ before_build:
   - mkdir %BUILD_HOME%
   - cd %BUILD_HOME%
   - cmake -G "%GENERATOR%"
-    -DBUILD_TESTS=ON
+    -DBUILD_TESTS=%BUILD_TESTS%
     -DBOOST_ROOT="%BOOST_ROOT%" ..
 
 # run custom build script
@@ -68,11 +78,13 @@ before_test:
 # run custom test script
 test_script:
   # run unit tests
-  - cd %BUILD_HOME%\tests
-  - ctest -C Release --output-on-failure
+  if %BUILD_TESTS% == "ON" (
+    cd %BUILD_HOME%\tests
+    ctest -C Release --output-on-failure
   # run regression tests
-  - cd %EPANET_HOME%
-  - tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%
+    cd %EPANET_HOME%
+    tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%
+  )
 
 on_success:
   - cd %TEST_HOME%\benchmark
