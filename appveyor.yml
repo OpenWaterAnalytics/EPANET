@@ -34,7 +34,7 @@ environment:
     REF_BUILD_ID: "538_2"
   # Backward compatibility build on Visual Studio 2010
   - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-    GENERATOR: "Visual Studio 15 2010"
+    GENERATOR: "Visual Studio 10 2010"
     GROUP: "EXPERIMENTAL"
     BOOST_ROOT: "C:/Libraries/boost_1_58_0"
     PLATFORM: "win32"
