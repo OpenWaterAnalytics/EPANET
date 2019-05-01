@@ -45,8 +45,10 @@ typedef  int          INT4;
 #define   MAXFNAME  259      // Max. # characters in file name
 #define   MAXTOKS   40       // Max. items per line of input
 #define   TZERO     1.E-4    // Zero time tolerance
+
 #define   TRUE      1
 #define   FALSE     0
+
 #define   FULL      2
 #define   BIG       1.E10
 #define   TINY      1.E-6

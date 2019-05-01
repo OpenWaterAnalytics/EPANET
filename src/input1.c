@@ -226,6 +226,8 @@ void adjustdata(Project *pr)
     Slink *link;
     //Snode *node;
     Stank *tank;
+	
+	list_node_t *lnode;
 
     // Use 1 hr pattern & report time step if none specified
     if (time->Pstep <= 0) time->Pstep = 3600;
@@ -336,7 +338,7 @@ void adjustdata(Project *pr)
 	parser->DefPat = findpattern(net, parser->DefPatID);
 	if (parser->DefPat > 0) {
 		for (i = 1; i <= net->Nnodes; i++) {
-			for (list_node_t *lnode = first_list((&net->Node[i])->D); done_list(lnode); lnode = next_list(lnode)) {
+			for (lnode = first_list((&net->Node[i])->D); done_list(lnode); lnode = next_list(lnode)) {
 				if (get_pattern_index(lnode) == 0)
 					set_pattern_index(lnode, parser->DefPat);
 			}
@@ -550,6 +552,9 @@ void convertunits(Project *pr)
     Slink *link;
     Spump *pump;
     Scontrol *control;
+	
+	list_t *dlist;
+	list_node_t *lnode;
 
     // Convert nodal elevations & initial WQ
     // (WQ source units are converted in QUALITY.C
@@ -564,15 +569,11 @@ void convertunits(Project *pr)
     for (i = 1; i <= net->Njuncs; i++)
     {
         node = &net->Node[i];
-		list_t *dlist = node->D;
+		dlist = node->D;
 		if (dlist) {
-			for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
+			for (lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
 				convert_units(lnode, pr->Ucf[DEMAND]);
 		}
-      //  for (demand = node->D; demand != NULL; demand = demand->next)
-      //  {
-      //      demand->Base /= pr->Ucf[DEMAND];
-      //  }
     }
 
     hyd->Pmin /= pr->Ucf[PRESSURE];

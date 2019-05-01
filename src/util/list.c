@@ -117,7 +117,7 @@ int append_list(list_t *list, void *element)
 
 void for_each_list(list_t *list, listIterator iterator)
 {
-    assert(iterator != NULL);
+    //assert(iterator != NULL);
 
     list_node_t *node = list->head;
     bool result = true;
@@ -236,6 +236,15 @@ void delete_node(list_t *list, list_node_t *lnode)
     free(lnode->data);
     free(lnode);
 }
+
+
+#if (_MSC_VER <= 1600)
+list_node_t *first_list(list_t *list) { return head_list(list, false); }
+
+bool done_list(list_node_t *lnode) { return lnode != NULL; }
+
+list_node_t *next_list(list_node_t *lnode) { return get_next(lnode); }
+#endif
 
 
 // local functions

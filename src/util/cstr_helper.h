@@ -15,7 +15,13 @@
 #define CSTR_HELPER_H_
 
 
-#include <stdbool.h>
+#if (_MSC_VER <= 1900)
+  #define bool  int
+  #define true  1
+  #define false 0
+#else
+  #include <stdbool.h>
+#endif
 
 
 #if defined(__cplusplus)
@@ -25,7 +31,6 @@ extern "C" {
 
 int cstr_duplicate(char **dest, const char *source);
 
-bool cstr_isvalid(const char *element_id);
 
 bool cstr_isnullterm(const char *source);
 

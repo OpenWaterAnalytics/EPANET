@@ -812,13 +812,16 @@ void adjustpatterns(Network *network, int index)
     //Pdemand demand;
     Psource source;
 
+	list_t *dlist;
+	list_node_t *lnode;
+
     // Adjust patterns used by junctions
     for (j = 1; j <= network->Nnodes; j++)
     {
         // Adjust demand patterns
-        list_t *dlist = network->Node[j].D;
+        dlist = network->Node[j].D;
         if (dlist) {
-            for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
+            for (lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
                 adjust_demand_pattern(lnode, index);
         }
         // Adjust WQ source patterns

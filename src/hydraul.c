@@ -556,7 +556,9 @@ void  demands(Project *pr)
     int  i ,j, n;
     long k, p;
     double djunc, sum;
-//    Pdemand demand;
+
+	list_node_t *lnode;
+	list_t *dlist;
 
     // Determine total elapsed number of pattern periods
     p = (time->Htime + time->Pstart) / time->Pstep;
@@ -566,10 +568,10 @@ void  demands(Project *pr)
     for (i = 1; i <= net->Njuncs; i++)
     {
         sum = 0.0;
-		list_t *dlist = net->Node[i].D;
 		
+		dlist = net->Node[i].D;
 		if (dlist) {
-			for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
+			for (lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
 			{
 				// pattern period (k) = (elapsed periods) modulus (periods per pattern)
 				j = get_pattern_index(lnode);

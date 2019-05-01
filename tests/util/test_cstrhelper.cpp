@@ -44,14 +44,4 @@ BOOST_AUTO_TEST_CASE(test_duplicate) {
 }
 
 
-BOOST_AUTO_TEST_CASE(test_isvalid) {
-
-    BOOST_CHECK(cstr_isvalid("big tank") == false);
-    BOOST_CHECK(cstr_isvalid("big\"tank") == false);
-    BOOST_CHECK(cstr_isvalid("big;tank") == false);
-
-    BOOST_CHECK(cstr_isvalid("big-tank") == true);
-}
-
-
 BOOST_AUTO_TEST_SUITE_END()
