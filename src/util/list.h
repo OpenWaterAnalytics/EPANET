@@ -17,7 +17,7 @@
 #define LIST_H
 
 
-#if (_MSC_VER > 1600)
+#if (_MSC_VER <= 1600)
   #define bool  int
   #define true  1
   #define false 0
@@ -126,7 +126,7 @@ void remove_node(list_t *list, int key);
 //
 
 
-#if (_MSC_VER > 1600)
+#if (_MSC_VER <= 1600)
 
 list_node_t *first_list(list_t *list);
 

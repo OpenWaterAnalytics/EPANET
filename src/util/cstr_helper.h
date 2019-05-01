@@ -15,7 +15,7 @@
 #define CSTR_HELPER_H_
 
 
-#if (_MSC_VER > 1600)
+#if (_MSC_VER <= 1600)
   #define bool  int
   #define true  1
   #define false 0
