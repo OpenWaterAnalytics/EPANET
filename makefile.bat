@@ -7,12 +7,15 @@
 ::          US EPA - ORD/NRMRL
 ::
 :: Requires:
-::     CMake
-::     Visual Studio Build Tools
+::    Visual Studio downloads:
+::      https://visualstudio.microsoft.com/downloads/
+::
+::    CMake download:
+::      https://cmake.org/download/
 ::
 :: Note:
-::     This script must be located at the root of the project folder
-::     in order to work properly.
+::    This script must be located at the root of the project folder
+::    in order to work properly.
 ::
 
 @echo off
