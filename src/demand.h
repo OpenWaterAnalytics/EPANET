@@ -29,7 +29,7 @@ typedef struct demand_data_s demand_data_t;
 // demand list gets declared in types.h struct Snode
 
 
-list_t *create_demand_list(double base_demand, int pattern_index, const char *category_name);
+list_t *create_demand_list(double base_demand, int pattern_index, const char *category_name, int *key);
 
 
 demand_data_t *create_demand_data(double base_demand, int pat_index, const char *cat_name);

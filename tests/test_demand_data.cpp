@@ -38,11 +38,13 @@ BOOST_AUTO_TEST_SUITE(test_demand_data)
 
 BOOST_AUTO_TEST_CASE(test_create_destroy_demand_list)
 {
+    int key;
     list_t *dlist;
 
-    dlist = create_demand_list(100.0, 1, "CUB_SCOUT_DAY_CAMP");
+    dlist = create_demand_list(100.0, 1, "CUB_SCOUT_DAY_CAMP", &key);
     BOOST_CHECK(dlist != NULL);
-
+    BOOST_CHECK(key != NULL);
+    
     delete_list(dlist);
 }
 

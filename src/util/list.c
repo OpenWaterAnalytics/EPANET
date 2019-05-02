@@ -116,6 +116,7 @@ int append_list(list_t *list, void *element)
 
 
 void for_each_list(list_t *list, listIterator iterator)
+// TODO: Figure out how to pass arguments in with an iterator.
 {
     //assert(iterator != NULL);
 

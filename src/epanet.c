@@ -2448,7 +2448,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         vTmp = Tank[j].Vmax;                           // old max. volume
         Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
         Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
-        Tank[j].A = (curve->Y[n] - curve->Y[0]) /      // nominal area 
+        Tank[j].A = (curve->Y[n] - curve->Y[0]) /      // nominal area
             (curve->X[n] - curve->X[0]);
         break;
 
@@ -2547,7 +2547,7 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
 
     int i, patIndex = 0;
     Snode *Node = net->Node;
-	
+
 	list_t *demand_list;
 	demand_data_t *demand_data;
 
@@ -2589,7 +2589,7 @@ int DLLEXPORT EN_adddemand(EN_Project p, int node_index, double demand,
 {
     Network *net = &p->network;
 	Snode *Node = net->Node;
-	
+
 	list_t *demand_list;
 	demand_data_t *demand_data;
 
@@ -2600,7 +2600,7 @@ int DLLEXPORT EN_adddemand(EN_Project p, int node_index, double demand,
 
     demand_list = Node[node_index].D;
     if (!Node[node_index].D) {
-        demand_list = create_demand_list(demand/p->Ucf[FLOW], pattern_index, category_name);
+        demand_list = create_demand_list(demand/p->Ucf[FLOW], pattern_index, category_name, demand_key);
         if (!demand_list) return 101;
 
         Node[node_index].D = demand_list;
@@ -2867,6 +2867,8 @@ int DLLEXPORT EN_setbasedemand(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
+    int key;
+
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
@@ -2877,7 +2879,7 @@ int DLLEXPORT EN_setbasedemand(EN_Project p, int nodeIndex, int demandIndex,
         list_t *dlist = p->network.Node[nodeIndex].D;
         // If demand list is null create one and set demand
         if (!dlist) {
-            dlist = create_demand_list(baseDemand / p->Ucf[FLOW], 0, NULL);
+            dlist = create_demand_list(baseDemand / p->Ucf[FLOW], 0, NULL, &key);
             if (!dlist) return 101;
 
             p->network.Node[nodeIndex].D = dlist;
@@ -2946,6 +2948,8 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
+    int key;
+
 	list_node_t *lnode;
 	list_t *dlist = p->network.Node[nodeIndex].D;
 
@@ -2958,7 +2962,7 @@ int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
 
     // Locate demand category record and assign demandName to it
     if (!dlist) {
-        dlist = create_demand_list(0, 0, demandName);
+        dlist = create_demand_list(0, 0, demandName, &key);
         if (!dlist) return 101;
 
         p->network.Node[nodeIndex].D = dlist;
@@ -3013,6 +3017,8 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 **----------------------------------------------------------------
 */
 {
+    int key;
+
     Network *net = &p->network;
 
     // Check for valid arguments
@@ -3025,7 +3031,7 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 
         list_t *dlist = p->network.Node[nodeIndex].D;
         if (!dlist) {
-            dlist = create_demand_list(0, patIndex, NULL);
+            dlist = create_demand_list(0, patIndex, NULL, &key);
             if (!dlist) return 101;
 
             p->network.Node[nodeIndex].D = dlist;
