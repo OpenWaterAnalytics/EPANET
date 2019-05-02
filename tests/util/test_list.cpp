@@ -260,6 +260,12 @@ BOOST_AUTO_TEST_CASE(test_null_list)
 
     // test null list returns 0 size
     BOOST_CHECK(size_list(NULL) == 0);
+
+    // check that for loop is not entered when list is NULL
+    bool entry = false;
+    for (list_node_t *lnode=first_list(NULL); done_list(lnode); lnode=next_list(lnode))
+        entry = true;
+    BOOST_CHECK(entry == false);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

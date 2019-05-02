@@ -113,6 +113,8 @@ double get_base_demand(list_node_t *lnode)
 {
     if (lnode)
 	   return get_demand_data(lnode)->base_demand;
+    else
+       return 0.0;
 }
 
 void set_base_demand(list_node_t *lnode, double base_demand)
