@@ -237,7 +237,13 @@ int  ruledata()
    {
       case -1:     err = 201;      /* Unrecognized keyword */
                    break;
-      case r_RULE: Nrules++;
+      case r_RULE: /* Missing the rule label -> set error */
+                   if (parser->Ntokens != 2)
+                   {
+                      err = 201;
+                      break;
+                   }
+                   Nrules++;
                    newrule();
                    RuleState = r_RULE;
                    break;
