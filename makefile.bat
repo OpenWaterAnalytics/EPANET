@@ -7,7 +7,7 @@
 ::          US EPA - ORD/NRMRL
 ::
 :: Requires:
-::    Visual Studio downloads:
+::    Build Tools for Visual Studio download:
 ::      https://visualstudio.microsoft.com/downloads/
 ::
 ::    CMake download:
