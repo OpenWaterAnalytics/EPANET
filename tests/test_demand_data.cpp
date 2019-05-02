@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(test_create_destroy_demand_list)
     dlist = create_demand_list(100.0, 1, "CUB_SCOUT_DAY_CAMP", &key);
     BOOST_CHECK(dlist != NULL);
     BOOST_CHECK(key != NULL);
-    
+
     delete_list(dlist);
 }
 
@@ -192,6 +192,15 @@ struct FixtureSingleNode {
     EN_Project ph;
 };
 
+
+BOOST_FIXTURE_TEST_CASE(test_replace_demand, FixtureSingleNode)
+{
+    error = EN_addpattern(ph, (char *)"Pat5");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_setjuncdata(ph, node_qhut, 555.5, 55.5, (char *)"Pat5");
+    BOOST_CHECK(error == 0);
+}
 
 BOOST_FIXTURE_TEST_CASE(test_single_node, FixtureSingleNode)
 {

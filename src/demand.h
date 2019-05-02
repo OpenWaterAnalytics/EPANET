@@ -41,6 +41,8 @@ size_t get_demand_data_size(void);
 
 bool convert_units(list_node_t *lnode, double unit_conversion);
 
+int replace_demand(list_node_t *lnode, double base_demand, int pattern_index,
+    char *category_name);
 
 double get_base_demand(list_node_t *lnode);
 void set_base_demand(list_node_t *lnode, double base_demand);

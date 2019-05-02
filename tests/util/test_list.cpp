@@ -240,12 +240,26 @@ BOOST_AUTO_TEST_CASE(test_struct_list){
     BOOST_CHECK(size_list(list) == 2);
     for_each_list(list, iterator);
 
+    // test remove node to handle a bad key
+    key = rand();
+    remove_node(list, key);
+
     list_node_t *lnode = head_list(list, true);
     delete_node(list, lnode);
 
     delete_list(list);
 }
 
-// TODO: search for an index and return data
+BOOST_AUTO_TEST_CASE(test_null_list)
+{
+    BOOST_CHECK(first_list(NULL) == NULL);
+    BOOST_CHECK(done_list(NULL) == false);
+    BOOST_CHECK(next_list(NULL) == NULL);
+
+    BOOST_CHECK(get_nth_list(NULL, 1) == NULL);
+
+    // test null list returns 0 size
+    BOOST_CHECK(size_list(NULL) == 0);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -196,7 +196,7 @@ void remove_node(list_t *list, int key)
         list->logicalLength--;
         delete_node(list, list->tail);
     }
-    else {
+    else if (target) {
         temp = target->next;
         list->freeFn(target->data);
         free(target->data);
@@ -211,7 +211,10 @@ void remove_node(list_t *list, int key)
 
 int size_list(list_t *list)
 {
-    return list->logicalLength;
+    if (list)
+        return list->logicalLength;
+    else
+        return 0;
 }
 
 int get_key(list_node_t *lnode)
@@ -226,7 +229,10 @@ void *get_data(list_node_t *lnode)
 
 list_node_t *get_next(list_node_t *lnode)
 {
-	return lnode->next;
+    if (lnode)
+        return lnode->next;
+    else
+        return NULL;
 }
 
 void delete_node(list_t *list, list_node_t *lnode)

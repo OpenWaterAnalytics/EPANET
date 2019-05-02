@@ -35,6 +35,8 @@ typedef struct demand_data_s
 
 list_t *create_demand_list(double base_demand, int pattern_index, const char *category_name, int *key)
 {
+    int temp;
+
 	list_t *demand_list;
 	demand_data_t *demand_data;
 
@@ -44,7 +46,10 @@ list_t *create_demand_list(double base_demand, int pattern_index, const char *ca
 	demand_data = create_demand_data(base_demand, pattern_index, category_name);
 	if (!demand_data) return NULL;
 
-	*key = append_list(demand_list, &demand_data);
+	temp = append_list(demand_list, &demand_data);
+
+    if (key)
+        *key = temp;
 
 	return demand_list;
 }
@@ -94,6 +99,15 @@ bool convert_units(list_node_t *lnode, double unit_conversion)
 	return true;
 }
 
+int replace_demand(list_node_t *lnode, double base_demand, int pattern_index,
+    char *category_name){
+
+    set_base_demand(lnode, base_demand);
+    set_pattern_index(lnode, pattern_index);
+    set_category_name(lnode, category_name);
+
+    return get_key(lnode);
+}
 
 double get_base_demand(list_node_t *lnode)
 {

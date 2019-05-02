@@ -125,7 +125,7 @@ int juncdata(Project *pr)
 
 	// create demand data only if a demand has been specified
 	if (y != 0.0) {
-		demand_list = create_demand_list(y, p, NULL, &key);
+		demand_list = create_demand_list(y, p, NULL, NULL);
 		if (!demand_list) return 101;
 	}
     node->D = demand_list;
