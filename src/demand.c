@@ -111,28 +111,37 @@ int replace_demand(list_node_t *lnode, double base_demand, int pattern_index,
 
 double get_base_demand(list_node_t *lnode)
 {
-	return get_demand_data(lnode)->base_demand;
+    if (lnode)
+	   return get_demand_data(lnode)->base_demand;
 }
 
 void set_base_demand(list_node_t *lnode, double base_demand)
 {
-	get_demand_data(lnode)->base_demand = base_demand;
+    if (lnode)
+	   get_demand_data(lnode)->base_demand = base_demand;
 }
 
 int get_pattern_index(list_node_t *lnode)
 {
-    return get_demand_data(lnode)->pattern_index;
+    if (lnode)
+        return get_demand_data(lnode)->pattern_index;
+    else
+        return -1;
 }
 
 void set_pattern_index(list_node_t *lnode, int pattern_index)
 {
-	get_demand_data(lnode)->pattern_index = pattern_index;
+    if (lnode)
+	   get_demand_data(lnode)->pattern_index = pattern_index;
 }
 
 char *get_category_name(list_node_t *lnode)
 // Be advised: caller must free memory returned
 {
-    char *temp = get_demand_data(lnode)->category_name;
+    char *temp = NULL;
+
+    if (lnode)
+        temp = get_demand_data(lnode)->category_name;
 
     if (temp)
         return strdup(temp);
@@ -142,6 +151,8 @@ char *get_category_name(list_node_t *lnode)
 
 void set_category_name(list_node_t *lnode, const char *category_name)
 {
-	free(get_demand_data(lnode)->category_name);
-	get_demand_data(lnode)->category_name = strdup(category_name);
+    if (lnode) {
+	   free(get_demand_data(lnode)->category_name);
+	   get_demand_data(lnode)->category_name = strdup(category_name);
+   }
 }
