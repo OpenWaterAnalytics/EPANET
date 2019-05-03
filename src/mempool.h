@@ -1,36 +1,24 @@
 /*
-**  mempool.h
-**
-**  Header for mempool.c
-**
-**  The type alloc_handle_t provides an opaque reference to the
-**  alloc pool - only the alloc routines know its structure.
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       mempool.h
+ Description:  header for a simple pooled memory allocator
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/27/2018
+ ******************************************************************************
 */
-#ifndef DLLEXPORT
-  #ifdef DLL
-    #ifdef __cplusplus
-    #define DLLEXPORT extern "C" __declspec(dllexport)
-    #else
-    #define DLLEXPORT __declspec(dllexport) __stdcall
-    #endif
-  #elif defined(CYGWIN)
-    #define DLLEXPORT __stdcall
-  #else
-    #ifdef __cplusplus
-    #define DLLEXPORT
-    #else
-    #define DLLEXPORT
-    #endif
-  #endif
+
+#ifndef MEMPOOL_H
+#define MEMPOOL_H
+
+struct Mempool;
+
+struct Mempool * mempool_create();
+void   mempool_delete(struct Mempool *mempool);
+void   mempool_reset(struct Mempool *mempool);
+char * mempool_alloc(struct Mempool *mempool, size_t size);
+
 #endif
-
-typedef struct
-{
-   long  dummy;
-}  alloc_handle_t;
-
-DLLEXPORT alloc_handle_t *AllocInit(void);
-DLLEXPORT char           *Alloc(long);
-DLLEXPORT alloc_handle_t *AllocSetPool(alloc_handle_t *);
-DLLEXPORT void            AllocReset(void);
-DLLEXPORT void            AllocFreePool(void);

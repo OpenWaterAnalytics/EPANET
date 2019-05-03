@@ -1,0 +1,98 @@
+/** 
+@mainpage Overview
+
+EPANET is a program that performs extended period simulation of hydraulic and water quality behavior within pressurized pipe networks. A network can consist of pipes, nodes (pipe junctions), pumps, valves and storage tanks or reservoirs. EPANET tracks the flow of water in each pipe, the pressure at each node, the height of water in each tank, and the concentration of a chemical species throughout the network during a multi-time period simulation. In addition to chemical species, water age and source tracing can also be simulated. The EPANET Programmer's Toolkit is a library of functions (or API) that allow programmers to customize the use of EPANET's hydraulic and water quality solution engine to their own applications. Both EPANET and its toolkit were originally developed and are currently maintained by the U.S. Environmental Protection Agency (USEPA).
+
+The OWA-EPANET Toolkit is an open-source version of the original EPANET Toolkit that extends its capabilities by:
+- providing a full set of functions to set and retrieve values for all parameters contained in a network model
+- allowing networks to be built completely from function calls instead of from an input file
+- allowing multiple projects to be analyzed in parallel in a thread-safe manner
+- adding the ability to use pressure dependent demands in hydraulic analyses
+- producing more robust results with regard to hydraulic convergence, low/zero flow conditions, and water quality mass balance
+- achieving faster run times for hydraulic analyses.
+
+Before using the OWA-EPANET Toolkit one should be familiar with the way that EPANET represents a pipe network, the design and operating information it requires, and the steps it uses to simulate a network's behavior. The following topics provide some introductory material on these subjects:
+- @subpage DataModel "Network Data Model"
+- @subpage DataFlow "Data Flow Diagram"
+- @subpage ToolkitVersions "Toolkit Versions"
+
+More detailed information can be obtained from reading the <a href="https://nepis.epa.gov/Adobe/PDF/P1007WWU.pdf">EPANET 2 Users Manual</a>.
+
+__Note:__ OWA (Open Water Analytics) exists on GitHub as an open community for the exchange of information and ideas related to computing in the water & wastewater industries. It's activities and code projects are neither affiliated with nor endorsed by the USEPA.
+*/
+
+/**
+@page DataModel Network Data Model
+
+EPANET models a pipe network as a collection of links connected to nodes. The links represent pipes, pumps, and control valves. The nodes represent junctions, tanks, and reservoirs. The figure below illustrates how these objects can be connected to one another to form a network.
+@image html Network.png
+@image latex Network.eps
+
+Junctions have a user-supplied water withdrawal rate (i.e., consumer demand) associated with them. Tanks are storage units whose water level changes over time. Reservoirs are boundary points where a fixed hydraulic head applies.
+
+Pipes have a length, diameter and roughness coefficient that determines their head loss as a function of flow rate. Pumps have either a constant power rating or a head curve that determines the head they add as a function of flow rate. Valves are used to regulate either flow or pressure. Controls can be applied to completely open or close a link or to adjust its setting (pump speed or valve setting).
+
+In addition to these physical objects an EPANET model can also contain the following data objects:
+- time patterns that allow demands, quality source inflows and pump speed settings to vary at fixed
+intervals of time
+- data curves that describe relationships between two quantities, such as head versus flow for pumps and
+volume versus water level for tanks
+- simple controls that adjust a link's setting (such as a pump's status) based on node pressure, tank
+level, elapsed time, ot time of day
+- rule-based controls that consist of one or more premises that if true result in one set of actions
+being taken and if false result in a different set of actions being taken.
+
+An EPANET model also contains a number of analysis options that specify:
+- the project's flow units which in turn determines its unit system (US or SI)
+- the formula used to compute head loss
+- whether to use a demand driven or a pressure driven analysis
+- hydraulic convergence criteria
+- the type of water quality analysis to perform
+- time steps used for hydraulic, water quality and reporting
+- global values for reaction coefficients that can be overridden for individual pipes
+- global values for energy usage parameters that can be overridden for individual pumps.
+
+Please refer to the <a href="https://nepis.epa.gov/Adobe/PDF/P1007WWU.pdf">EPANET 2 Users Manual</a>
+for more information on EPANET's data model.
+*/
+
+/**
+@page DataFlow Data Flow Diagram
+
+The EPANET Toolkit contains separate code modules for network building, hydraulic analysis, water quality analysis, and report generation. The data flow diagram for analyzing a pipe network is shown below. The processing steps depicted in this diagram can be summarized as follows:
+@image html DataFlow.png
+@image latex DataFlow.eps
+
+- The network builder receives a description of the network being simulated either from an external input file (.inp) or from a series of function calls that create network objects and assign their properties via code. These data are stored in a Project data structure.  
+
+- The hydraulics solver carries out an extended period hydraulic simulation. The results obtained at every time step can be written to an external, unformatted (binary) hydraulics file (.hyd). Some of these time steps might represent intermediate points in time where system conditions change because of tanks becoming full or empty or pumps turning on or off due to level controls or timed operation.  
+
+- If a water quality simulation is requested, the water quality solver accesses the flow data from the hydraulics file as it computes substance transport and reaction throughout the network over each hydraulic time step. During this process it can write both the formerly computed hydraulic results as well as its water quality results for each preset reporting interval to an unformatted (binary) output file (.out). If no water quality analysis was called for, then the hydraulic results stored in the .hyd file can simply be written out to the binary output file at uniform reporting intervals.  
+
+- If requested, a report writer reads back the computed simulation results from the binary output file (.out) for each reporting period and writes out selected values to a formatted report file (.rpt). Any error or warning messages generated during the run are also written to this file.  
+
+Toolkit functions exist to carry out all of these steps under the programmer's control, including the ability to read and modify the contents of the Project data structure.
+*/
+
+/**
+@page ToolkitVersions Toolkit Versions
+
+The toolkit comes with two sets of identical functions that programmers can utilize:
+- the single-threaded version of the toolkit is compatible with previous releases and only works
+with single threaded applications.
+- the multi-threaded version allows users to create multiple EPANET data sets (called projects) that can be
+analyzed concurrently.
+
+Both toolkit versions utilize identical function names and argument lists with the following exceptions:
+- Function names in the single-threaded library begin with `EN` while those in the multi-threaded
+library begin with `EN_`.
+- The multi-threaded functions contain an additional argument that references a particular network project
+that the function is applied to.
+- The multi-threaded library contains two additional functions that allow users to create and delete
+EPANET projects.
+- The single-threaded library uses single precision for its floating point arguments while the
+multi-threaded library uses double precision.
+
+To avoid unnecessary duplication this document only discusses the multi-threaded version of the
+toolkit.
+*/

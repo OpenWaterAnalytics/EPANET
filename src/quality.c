@@ -1,1656 +1,692 @@
 /*
-*******************************************************************************
-                                                                      
-QUALITY.C -- Water Quality Simulator for EPANET Program         
-                                                                      
-VERSION:    2.00
-DATE:       5/29/00
-            9/7/00
-            10/25/00
-            8/15/07    (2.00.11)
-            2/14/08    (2.00.12)
-AUTHOR:     L. Rossman
-            US EPA - NRMRL
-                                                                      
-  This module contains the network water quality simulator.           
-                                                                      
-  For each time period, hydraulic results are read in from the        
-  binary file HydFile, hydraulic and water quality results are        
-  written to the binary output file OutFile (if the current period    
-  is a reporting period), and the water quality is transported
-  and reacted over the duration of the time period.                                      
-
-  The entry points for this module are:
-    openqual()   -- called from ENopenQ() in EPANET.C
-    initqual()   -- called from ENinitQ() in EPANET.C
-    runqual()    -- called from ENrunQ() in EPANET.C
-    nextqual()   -- called from ENnextQ() in EPANET.C
-    stepqual()   -- called from ENstepQ() in EPANET.C
-    closequal()  -- called from ENcloseQ() in EPANET.C
-                                                                      
-  Calls are made to:
-    AllocInit()
-    Alloc()
-    AllocFree()   
-  in MEMPOOL.C to utilize a memory pool to prevent excessive malloc'ing  
-  when constantly creating and destroying pipe sub-segments during    
-  the water quality transport calculations.
-
-  Calls are also made to:
-    readhyd()
-    readhydstep()
-    savenetdata()
-    saveoutput()
-    savefinaloutput()
-  in OUTPUT.C to retrieve hydraulic results and save all results.
-
-******************************************************************************* 
+******************************************************************************
+Project:      OWA EPANET
+Version:      2.2
+Module:       quality.c
+Description:  implements EPANET's water quality engine
+Authors:      see AUTHORS
+Copyright:    see AUTHORS
+License:      see LICENSE
+Last Updated: 11/27/2018
+******************************************************************************
 */
 
+#ifdef _DEBUG
+  #define _CRTDBG_MAP_ALLOC
+  #include <stdlib.h>
+  #include <crtdbg.h>
+#else
+  #include <stdlib.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
+
 #include <math.h>
-#include "hash.h"
-#include "text.h"
+
+#include "mempool.h"
 #include "types.h"
 #include "funcs.h"
-#define  EXTERN  extern
-#include "vars.h"
-#include "mempool.h"
 
-/*
-** Macros to identify upstream & downstream nodes of a link
-** under the current flow and to compute link volume
-*/
-#define   UP_NODE(x)   ( (FlowDir[(x)]=='+') ? Link[(x)].N1 : Link[(x)].N2 )
-#define   DOWN_NODE(x) ( (FlowDir[(x)]=='+') ? Link[(x)].N2 : Link[(x)].N1 )
-#define   LINKVOL(k)   ( 0.785398*Link[(k)].Len*SQR(Link[(k)].Diam) )
+// Stagnant flow tolerance
+const double Q_STAGNANT = 0.005 / GPMperCFS;     // 0.005 gpm = 1.114e-5 cfs
 
-Pseg      FreeSeg;              /* Pointer to unused segment               */
-Pseg      *FirstSeg,            /* First (downstream) segment in each pipe */
-          *LastSeg;             /* Last (upstream) segment in each pipe    */
-char      *FlowDir;             /* Flow direction for each pipe            */
-double    *VolIn;               /* Total volume inflow to node             */
-double    *MassIn;              /* Total mass inflow to node               */
-double    Sc;                   /* Schmidt Number                          */
-double    Bucf;                 /* Bulk reaction units conversion factor   */
-double    Tucf;                 /* Tank reaction units conversion factor   */
+// Exported functions
+double  findsourcequal(Project *, int, double, long);
 
-/*** Moved to vars.h ***/                                                      //(2.00.12 - LR)
-//char      Reactflag;            /* Reaction indicator                      */
+// Imported functions
+extern char    setreactflag(Project *);
+extern double  getucf(double);
+extern void    ratecoeffs(Project *);
+extern void    initsegs(Project *);
+extern void    reversesegs(Project *, int);
+extern int     sortnodes(Project *);
+extern void    transport(Project *, long);
 
-char      OutOfMemory;          /* Out of memory indicator                 */
-static    alloc_handle_t *SegPool; // Memory pool for water quality segments   //(2.00.11 - LR)
+// Local functions
+static double  sourcequal(Project *, Psource);
+static void    evalmassbalance(Project *);
+static double  findstoredmass(Project *);
+static int     flowdirchanged(Project *);
 
 
-int  openqual()
+int openqual(Project *pr)
 /*
 **--------------------------------------------------------------
-**   Input:   none     
-**   Output:  returns error code                                          
-**   Purpose: opens WQ solver system 
+**   Input:   none
+**   Output:  returns error code
+**   Purpose: opens water quality solver
 **--------------------------------------------------------------
 */
 {
-   int errcode = 0;
-   int n;
+    Network  *net = &pr->network;
+    Quality *qual = &pr->quality;
 
-   /* Allocate memory pool for WQ segments */
-   OutOfMemory = FALSE;
-   SegPool = AllocInit();                                                      //(2.00.11 - LR)
-   if (SegPool == NULL) errcode = 101;                                         //(2.00.11 - LR)
+    int errcode = 0;
+    int n;
 
-   /* Allocate scratch array & reaction rate array*/
-   X  = (double *) calloc(MAX((Nnodes+1),(Nlinks+1)),sizeof(double));
-   R  = (double *) calloc((Nlinks+1), sizeof(double));
-   ERRCODE(MEMCHECK(X));
-   ERRCODE(MEMCHECK(R));
+    // Return if no quality analysis requested
+    if (qual->Qualflag == NONE) return errcode;
 
-   /* Allocate memory for WQ solver */
-   n        = Nlinks+Ntanks+1;
-   FirstSeg = (Pseg *) calloc(n, sizeof(Pseg));
-   LastSeg  = (Pseg *) calloc(n, sizeof(Pseg));
-   FlowDir  = (char *) calloc(n, sizeof(char));
-   n        = Nnodes+1;
-   VolIn    = (double *) calloc(n, sizeof(double));
-   MassIn   = (double *) calloc(n, sizeof(double));
-   ERRCODE(MEMCHECK(FirstSeg));
-   ERRCODE(MEMCHECK(LastSeg));
-   ERRCODE(MEMCHECK(FlowDir));
-   ERRCODE(MEMCHECK(VolIn));
-   ERRCODE(MEMCHECK(MassIn));
-   return(errcode);
+    // Build nodal adjacency lists if they don't already exist
+    if (net->Adjlist == NULL)
+    {
+        errcode = buildadjlists(net);
+        if (errcode ) return errcode;
+    }
+
+    // Create a memory pool for water quality segments
+    qual->OutOfMemory = FALSE;
+    qual->SegPool = mempool_create();
+    if (qual->SegPool == NULL) errcode = 101;
+
+    // Allocate arrays for link flow direction & reaction rates
+    n = net->Nlinks + 1;
+    qual->FlowDir = (FlowDirection *)calloc(n, sizeof(FlowDirection));
+    qual->PipeRateCoeff = (double *)calloc(n, sizeof(double));
+
+    // Allocate arrays used for volume segments in links & tanks
+    n = net->Nlinks + net->Ntanks + 1;
+    qual->FirstSeg = (Pseg *)calloc(n, sizeof(Pseg));
+    qual->LastSeg = (Pseg *)calloc(n, sizeof(Pseg));
+
+    // Allocate memory for topologically sorted nodes
+    qual->SortedNodes = (int *)calloc(n, sizeof(int));
+
+    ERRCODE(MEMCHECK(qual->FlowDir));
+    ERRCODE(MEMCHECK(qual->PipeRateCoeff));
+    ERRCODE(MEMCHECK(qual->FirstSeg));
+    ERRCODE(MEMCHECK(qual->LastSeg));
+    ERRCODE(MEMCHECK(qual->SortedNodes));
+    return errcode;
 }
 
-/* Local function to compute unit conversion factor for bulk reaction rates */
-   double getucf(double order)
-   {
-      if (order < 0.0) order = 0.0;
-      if (order == 1.0) return(1.0);
-      else return(1./pow(LperFT3,(order-1.0)));
-   }
 
-
-void  initqual()
+int initqual(Project *pr)
 /*
 **--------------------------------------------------------------
-**   Input:   none     
-**   Output:  none                                          
-**   Purpose: re-initializes WQ solver system 
+**   Input:   none
+**   Output:  none
+**   Purpose: re-initializes water quality solver
 **--------------------------------------------------------------
 */
 {
-   int i;
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
 
-   /* Initialize quality, tank volumes, & source mass flows */
-   for (i=1; i<=Nnodes; i++) C[i] = Node[i].C0;
-   for (i=1; i<=Ntanks; i++) Tank[i].C = Node[Tank[i].Node].C0;
-   for (i=1; i<=Ntanks; i++) Tank[i].V = Tank[i].V0;
-   for (i=1; i<=Nnodes; i++)
-      if (Node[i].S != NULL) Node[i].S->Smass = 0.0;
+    int i;
+    int errcode = 0;
 
-   /* Set WQ parameters */
-   Bucf = 1.0;
-   Tucf = 1.0;
-   Reactflag = 0;
-   if (Qualflag != NONE)
-   {
-      /* Initialize WQ at trace node (if applicable) */
-      if (Qualflag == TRACE) C[TraceNode] = 100.0;
+    // Re-position hydraulics file
+    if (!hyd->OpenHflag)
+    {
+        fseek(pr->outfile.HydFile, pr->outfile.HydOffset, SEEK_SET);
+    }
 
-      /* Compute Schmidt number */
-      if (Diffus > 0.0)
-         Sc = Viscos/Diffus;
-      else
-         Sc = 0.0;
+    // Set elapsed times to zero
+    time->Qtime = 0;
+    time->Htime = 0;
+    time->Rtime = time->Rstart;
+    pr->report.Nperiods = 0;
 
-      /* Compute unit conversion factor for bulk react. coeff. */
-      Bucf = getucf(BulkOrder);
-      Tucf = getucf(TankOrder);
+    // Initialize node quality
+    for (i = 1; i <= net->Nnodes; i++)
+    {
+        if (qual->Qualflag == TRACE) qual->NodeQual[i] = 0.0;
+        else                         qual->NodeQual[i] = net->Node[i].C0;
+        if (net->Node[i].S != NULL) net->Node[i].S->Smass = 0.0;
+    }
+    if (qual->Qualflag == NONE) return errcode;
 
-      /* Check if modeling a reactive substance */
-      Reactflag = setReactflag();
+    // Initialize tank quality
+    for (i = 1; i <= net->Ntanks; i++)
+    {
+        net->Tank[i].C = qual->NodeQual[net->Tank[i].Node];
+    }
 
-      /* Reset memory pool */
-      FreeSeg = NULL;
-      AllocSetPool(SegPool);                                                   //(2.00.11 - LR)
-      AllocReset();                                                            //(2.00.11 - LR)
-   }
+    // Initialize quality at trace node (if applicable)
+    if (qual->Qualflag == TRACE) qual->NodeQual[qual->TraceNode] = 100.0;
 
-   /* Initialize avg. reaction rates */
-   Wbulk = 0.0;
-   Wwall = 0.0;
-   Wtank = 0.0;
-   Wsource = 0.0;
+    // Compute Schmidt number
+    if (qual->Diffus > 0.0) qual->Sc = hyd->Viscos / qual->Diffus;
+    else                    qual->Sc = 0.0;
 
-   /* Re-position hydraulics file */
-   fseek(HydFile,HydOffset,SEEK_SET);
+    // Compute unit conversion factor for bulk react. coeff.
+    qual->Bucf = getucf(qual->BulkOrder);
+    qual->Tucf = getucf(qual->TankOrder);
 
-   /* Set elapsed times to zero */
-   Htime = 0;
-   Qtime = 0;
-   Rtime = Rstart;
-   Nperiods = 0;
+    // Check if modeling a reactive substance
+    qual->Reactflag = setreactflag(pr);
+
+    // Reset memory pool used for pipe & tank segments
+    qual->FreeSeg = NULL;
+    mempool_reset(qual->SegPool);
+
+    // Create initial set of pipe & tank segments
+    initsegs(pr);
+
+    // Initialize link flow direction indicator
+    for (i = 1; i <= net->Nlinks; i++) qual->FlowDir[i] = ZERO_FLOW;
+
+    // Initialize avg. reaction rates
+    qual->Wbulk = 0.0;
+    qual->Wwall = 0.0;
+    qual->Wtank = 0.0;
+    qual->Wsource = 0.0;
+
+    // Initialize mass balance components
+    qual->MassBalance.initial = findstoredmass(pr);
+    qual->MassBalance.inflow = 0.0;
+    qual->MassBalance.outflow = 0.0;
+    qual->MassBalance.reacted = 0.0;
+    qual->MassBalance.final = 0.0;
+    qual->MassBalance.ratio = 0.0;
+    return errcode;
 }
 
 
-int runqual(long *t)
+int runqual(Project *pr, long *t)
 /*
 **--------------------------------------------------------------
-**   Input:   none     
-**   Output:  t = pointer to current simulation time (sec)
-**   Returns: error code                                          
+**   Input:   none
+**   Output:  t = current simulation time (sec)
+**   Returns: error code
 **   Purpose: retrieves hydraulics for next hydraulic time step
-**            (at time *t) and saves current results to file
+**            (at time t) and saves current results to file
 **--------------------------------------------------------------
 */
 {
-   long    hydtime;       /* Hydraulic solution time */
-   long    hydstep;       /* Hydraulic time step     */
-   int     errcode = 0;
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
 
-   /* Update reported simulation time */
-   *t = Qtime;
+    long hydtime = 0;       // Hydraulic solution time
+    long hydstep = 0;       // Hydraulic time step
+    int errcode = 0;
 
-   /* Read hydraulic solution from hydraulics file */
-   if (Qtime == Htime)
-   {
-      errcode = gethyd(&hydtime, &hydstep);
-      Htime = hydtime + hydstep;
-   }
-   return(errcode);
-}
+    // Update reported simulation time
+    *t = time->Qtime;
 
+    // Read hydraulic solution from hydraulics file
+    if (time->Qtime == time->Htime)
+    {
+        // Read hydraulic results from file
+        if (!hyd->OpenHflag)
+        {
+            if (!readhyd(pr, &hydtime)) return 307;
+            if (!readhydstep(pr, &hydstep)) return 307;
+            time->Htime = hydtime;
+        }
 
-int nextqual(long *tstep)
-/*
-**--------------------------------------------------------------
-**   Input:   none     
-**   Output:  tstep = pointer to time step (sec)
-**   Returns: error code                                          
-**   Purpose: updates WQ conditions until next hydraulic 
-**            solution occurs (after *tstep secs.)
-**--------------------------------------------------------------
-*/
-{
-   long    hydstep;       /* Hydraulic solution time step */
-   int     errcode = 0;
-
-   /* Determine time step */
-   *tstep = 0;
-   hydstep = Htime - Qtime;
-
-   /* Perform water quality routing over this time step */
-   if (Qualflag != NONE && hydstep > 0) transport(hydstep);
-
-   /* Update current time */
-   if (OutOfMemory) errcode = 101;
-   if (!errcode) *tstep = hydstep;
-   Qtime += hydstep;
-
-   /* Save final output if no more time steps */
-   if (!errcode && Saveflag && *tstep == 0) errcode = savefinaloutput();
-   return(errcode);
-}
-
-
-int stepqual(long *tleft)
-/*
-**--------------------------------------------------------------
-**   Input:   none     
-**   Output:  tleft = pointer to time left in simulation
-**   Returns: error code                                          
-**   Purpose: updates WQ conditions over a single WQ time step
-**--------------------------------------------------------------
-*/
-{  long dt, hstep, t, tstep;
-   int  errcode = 0;
-   tstep = Qstep;
-   do
-   {
-      dt = tstep;
-      hstep = Htime - Qtime;
-      if (hstep < dt)
-      {
-         dt = hstep;
-         if (Qualflag != NONE) transport(dt);
-         Qtime += dt;
-         errcode = runqual(&t);
-         Qtime = t;
-      }
-      else
-      {
-         if (Qualflag != NONE) transport(dt);
-         Qtime += dt;
-      }
-      tstep -= dt;
-      if (OutOfMemory) errcode = 101;
-   }  while (!errcode && tstep > 0);
-   *tleft = Dur - Qtime;
-   if (!errcode && Saveflag && *tleft == 0) errcode = savefinaloutput();
-   return(errcode);
-}
-
-
-int closequal()
-/*
-**--------------------------------------------------------------
-**   Input:   none     
-**   Output:  returns error code                                          
-**   Purpose: closes WQ solver system 
-**--------------------------------------------------------------
-*/
-{
-   int errcode = 0;
-
-   /* Free memory pool */
-   if ( SegPool )                                                              //(2.00.11 - LR)
-   {                                                                           //(2.00.11 - LR)
-        AllocSetPool(SegPool);                                                 //(2.00.11 - LR)
-        AllocFreePool();                                                       //(2.00.11 - LR)
-   }                                                                           //(2.00.11 - LR)
-
-   free(FirstSeg);
-   free(LastSeg);
-   free(FlowDir);
-   free(VolIn);
-   free(MassIn);
-   free(R);
-   free(X);
-   return(errcode);
-}
-
-
-int  gethyd(long *hydtime, long *hydstep)
-/*
-**-----------------------------------------------------------
-**   Input:   none     
-**   Output:  hydtime = pointer to hydraulic solution time
-**            hydstep = pointer to hydraulic time step
-**   Returns: error code                                          
-**   Purpose: retrieves hydraulic solution and hydraulic
-**            time step for next hydraulic event
-**
-**   NOTE: when this function is called, WQ results have
-**         already been updated to the point in time when
-**         the next hydraulic event occurs.
-**-----------------------------------------------------------
-*/
-{
-   int errcode = 0;
-
-   /* Read hydraulic results from file */
-   if (!readhyd(hydtime)) return(307);
-   if (!readhydstep(hydstep)) return(307);
-   Htime = *hydtime;
-
-   /* Save current results to output file */
-   if (Htime >= Rtime)
-   {
-      if (Saveflag)
-      {
-         errcode = saveoutput();
-         Nperiods++;
-      }
-      Rtime += Rstep;
-   }
-
-   /* If simulating WQ: */
-   if (Qualflag != NONE && Qtime < Dur)
-   {
-
-      /* Compute reaction rate coeffs. */
-      if (Reactflag && Qualflag != AGE) ratecoeffs();
-
-      /* Initialize pipe segments (at time 0) or  */
-      /* else re-orient segments if flow reverses.*/
-      if (Qtime == 0) initsegs();
-      else            reorientsegs();
-   }
-   return(errcode);
-}
-
-
-char  setReactflag()
-/*
-**-----------------------------------------------------------
-**   Input:   none     
-**   Output:  returns 1 for reactive WQ constituent, 0 otherwise                                          
-**   Purpose: checks if reactive chemical being simulated            
-**-----------------------------------------------------------
-*/
-{
-   int  i;
-   if      (Qualflag == TRACE) return(0);
-   else if (Qualflag == AGE)   return(1);
-   else
-   {
-      for (i=1; i<=Nlinks; i++)
-      {
-         if (Link[i].Type <= PIPE)
-         {
-            if (Link[i].Kb != 0.0 || Link[i].Kw != 0.0) return(1);
-         }
-      }
-      for (i=1; i<=Ntanks; i++)
-         if (Tank[i].Kb != 0.0) return(1);
-   }
-   return(0);
-}
-
-
-void  transport(long tstep)
-/*
-**--------------------------------------------------------------
-**   Input:   tstep = length of current time step     
-**   Output:  none
-**   Purpose: transports constituent mass through pipe network        
-**            under a period of constant hydraulic conditions.        
-**--------------------------------------------------------------
-*/
-{
-   long   qtime, dt;
-
-   /* Repeat until elapsed time equals hydraulic time step */
-
-   AllocSetPool(SegPool);                                                      //(2.00.11 - LR)
-   qtime = 0;
-   while (!OutOfMemory && qtime < tstep)
-   {                                  /* Qstep is quality time step */
-      dt = MIN(Qstep,tstep-qtime);    /* Current time step */
-      qtime += dt;                    /* Update elapsed time */
-      if (Reactflag) updatesegs(dt);  /* Update quality in inner link segs */
-      accumulate(dt);                 /* Accumulate flow at nodes */
-      updatenodes(dt);                /* Update nodal quality */
-      sourceinput(dt);                /* Compute inputs from sources */
-      release(dt);                    /* Release new nodal flows */
-   }
-   updatesourcenodes(tstep);          /* Update quality at source nodes */
-}
-
-
-void  initsegs()
-/*
-**--------------------------------------------------------------
-**   Input:   none     
-**   Output:  none
-**   Purpose: initializes water quality segments                      
-**--------------------------------------------------------------
-*/
-{
-   int     j,k;
-   double   c,v;
-
-   /* Examine each link */
-   for (k=1; k<=Nlinks; k++)
-   {
-
-      /* Establish flow direction */
-      FlowDir[k] = '+';
-      if (Q[k] < 0.) FlowDir[k] = '-';
-
-      /* Set segs to zero */
-      LastSeg[k] = NULL;
-      FirstSeg[k] = NULL;
-
-      /* Find quality of downstream node */
-      j = DOWN_NODE(k);
-      if (j <= Njuncs) c = C[j];
-      else             c = Tank[j-Njuncs].C;
-
-      /* Fill link with single segment with this quality */
-      addseg(k,LINKVOL(k),c);
-   }
-
-   /* Initialize segments in tanks that use them */
-   for (j=1; j<=Ntanks; j++)
-   {
-
-      /* Skip reservoirs & complete mix tanks */
-      if (Tank[j].A == 0.0
-      ||  Tank[j].MixModel == MIX1) continue;
-
-      /* Tank segment pointers are stored after those for links */
-      k = Nlinks + j;
-      c = Tank[j].C;
-      LastSeg[k] = NULL;
-      FirstSeg[k] = NULL;
-
-      /* Add 2 segments for 2-compartment model */
-      if (Tank[j].MixModel == MIX2)
-      {
-         v = MAX(0,Tank[j].V-Tank[j].V1max);
-         addseg(k,v,c);
-         v = Tank[j].V - v;
-         addseg(k,v,c);
-      }
-
-      /* Add one segment for FIFO & LIFO models */
-      else
-      {
-         v = Tank[j].V;
-         addseg(k,v,c);
-      }
-   }
-}
-
-
-void  reorientsegs()
-/*
-**--------------------------------------------------------------
-**   Input:   none     
-**   Output:  none
-**   Purpose: re-orients segments (if flow reverses)                  
-**--------------------------------------------------------------
-*/
-{
-   Pseg   seg, nseg, pseg;
-   int    k;
-   char   newdir;
-
-   /* Examine each link */
-   for (k=1; k<=Nlinks; k++)
-   {
-
-      /* Find new flow direction */
-      newdir = '+';
-      if (Q[k] == 0.0)     newdir = FlowDir[k];
-      else if (Q[k] < 0.0) newdir = '-';
-
-      /* If direction changes, then reverse order of segments */
-      /* (first to last) and save new direction */
-      if (newdir != FlowDir[k])
-      {
-         seg = FirstSeg[k];
-         FirstSeg[k] = LastSeg[k];
-         LastSeg[k] = seg;
-         pseg = NULL;
-         while (seg != NULL)
-         {
-            nseg = seg->prev;
-            seg->prev = pseg;
-            pseg = seg;
-            seg = nseg;
-         }
-         FlowDir[k] = newdir;
-      }
-   }
-}
-
-
-void  updatesegs(long dt)
-/*
-**-------------------------------------------------------------
-**   Input:   t = time from last WQ segment update     
-**   Output:  none
-**   Purpose: reacts material in pipe segments up to time t               
-**-------------------------------------------------------------
-*/
-{
-   int    k;
-   Pseg   seg;
-   double  cseg, rsum, vsum;
-
-   /* Examine each link in network */
-   for (k=1; k<=Nlinks; k++)
-   {
-
-      /* Skip zero-length links (pumps & valves) */
-      rsum = 0.0;
-      vsum = 0.0;
-      if (Link[k].Len == 0.0) continue;
-
-      /* Examine each segment of the link */
-      seg = FirstSeg[k];
-      while (seg != NULL)
-      {
-
-            /* React segment over time dt */
-            cseg = seg->c;
-            seg->c = pipereact(k,seg->c,seg->v,dt);
-
-            /* Accumulate volume-weighted reaction rate */
-            if (Qualflag == CHEM)
+        // Save current results to output file
+        if (time->Htime >= time->Rtime)
+        {
+            if (pr->outfile.Saveflag)
             {
-               rsum += ABS((seg->c - cseg))*seg->v;
-               vsum += seg->v;
+                errcode = saveoutput(pr);
+                pr->report.Nperiods++;
             }
+            time->Rtime += time->Rstep;
+        }
+        if (errcode) return errcode;
+
+        // If simulating water quality
+        if (qual->Qualflag != NONE && time->Qtime < time->Dur)
+        {
+            // ... compute reaction rate coeffs.
+            if (qual->Reactflag && qual->Qualflag != AGE) ratecoeffs(pr);
+
+            // ... topologically sort network nodes if flow directions change
+            if (flowdirchanged(pr) == TRUE)
+            {
+                errcode = sortnodes(pr);
+            }
+        }
+        if (!hyd->OpenHflag) time->Htime = hydtime + hydstep;
+    }
+    return errcode;
+}
+
+
+int nextqual(Project *pr, long *tstep)
+/*
+**--------------------------------------------------------------
+**   Input:   none
+**   Output:  tstep = time step (sec) over which quality was updated
+**   Returns: error code
+**   Purpose: updates water quality in network until next hydraulic
+**            event occurs (after tstep secs.)
+**--------------------------------------------------------------
+*/
+{
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
+
+    long hydstep;            // Time step until next hydraulic event
+    long dt, qtime;
+    int errcode = 0;
+
+    // Find time step till next hydraulic event
+    *tstep = 0;
+    hydstep = 0;
+    if (time->Htime <= time->Dur) hydstep = time->Htime - time->Qtime;
+
+    // Perform water quality routing over this time step
+    if (qual->Qualflag != NONE && hydstep > 0)
+    {
+        // Repeat over each quality time step until tstep is reached
+        qtime = 0;
+        while (!qual->OutOfMemory && qtime < hydstep)
+        {
+            dt = MIN(time->Qstep, hydstep - qtime);
+            qtime += dt;
+            transport(pr, dt);
+        }
+        if (qual->OutOfMemory) errcode = 101;
+    }
+
+    // Update mass balance ratio
+    evalmassbalance(pr);
+
+    // Update current time
+    if (!errcode) *tstep = hydstep;
+    time->Qtime += hydstep;
+
+    // If no more time steps remain
+    if (!errcode && *tstep == 0)
+    {
+        // ... report overall mass balance
+        if (qual->Qualflag != NONE && pr->report.Statflag)
+        {
+            writemassbalance(pr);
+        }
+
+        // ... write the final portion of the binary output file
+        if (pr->outfile.Saveflag) errcode = savefinaloutput(pr);
+    }
+    return errcode;
+}
+
+
+int stepqual(Project *pr, long *tleft)
+/*
+**--------------------------------------------------------------
+**   Input:   none
+**   Output:  tleft = time left in simulation
+**   Returns: error code
+**   Purpose: updates quality conditions over a single
+**            quality time step
+**--------------------------------------------------------------
+*/
+{
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
+
+    long dt, hstep, t, tstep;
+    int errcode = 0;
+
+    tstep = time->Qstep;
+    do
+    {
+        // Set local time step to quality time step
+        dt = tstep;
+
+        // Find time step until next hydraulic event
+        hstep = time->Htime - time->Qtime;
+
+        // If next hydraulic event occurs before end of local time step
+        if (hstep < dt)
+        {
+            // ... adjust local time step to next hydraulic event
+            dt = hstep;
+
+            // ... transport quality over local time step
+            if (qual->Qualflag != NONE) transport(pr, dt);
+            time->Qtime += dt;
+
+            // ... quit if running quality concurrently with hydraulics
+            if (pr->hydraul.OpenHflag) break;
+
+            // ... otherwise call runqual() to update hydraulics
+            errcode = runqual(pr, &t);
+            time->Qtime = t;
+        }
+
+        // Otherwise transport quality over current local time step
+        else
+        {
+            if (qual->Qualflag != NONE) transport(pr, dt);
+            time->Qtime += dt;
+        }
+
+        // Reduce quality time step by local time step
+        tstep -= dt;
+        if (qual->OutOfMemory) errcode = 101;
+
+    } while (!errcode && tstep > 0);
+
+    // Update mass balance ratio
+    evalmassbalance(pr);
+
+    // Update total simulation time left
+    *tleft = time->Dur - time->Qtime;
+
+    // If no more time steps remain
+    if (!errcode && *tleft == 0)
+    {
+        // ... report overall mass balance
+        if (qual->Qualflag != NONE && pr->report.Statflag)
+        {
+            writemassbalance(pr);
+        }
+
+        // ... write the final portion of the binary output file
+        if (pr->outfile.Saveflag) errcode = savefinaloutput(pr);
+    }
+    return errcode;
+}
+
+
+int closequal(Project *pr)
+/*
+**--------------------------------------------------------------
+**   Input:   none
+**   Output:  returns error code
+**   Purpose: closes water quality solver
+**--------------------------------------------------------------
+*/
+{
+    Quality *qual = &pr->quality;
+    int errcode = 0;
+
+    if (qual->Qualflag != NONE)
+    {
+        if (qual->SegPool) mempool_delete(qual->SegPool);
+        FREE(qual->FirstSeg);
+        FREE(qual->LastSeg);
+        FREE(qual->PipeRateCoeff);
+        FREE(qual->FlowDir);
+        FREE(qual->SortedNodes);
+    }
+    return errcode;
+}
+
+
+double avgqual(Project *pr, int k)
+/*
+**--------------------------------------------------------------
+**   Input:   k = link index
+**   Output:  returns quality concentration
+**   Purpose: computes current average quality in link k
+**--------------------------------------------------------------
+*/
+{
+    Network  *net = &pr->network;
+    Quality  *qual = &pr->quality;
+
+    double vsum = 0.0, msum = 0.0;
+    Pseg seg;
+
+    if (qual->Qualflag == NONE) return 0.0;
+
+    // Sum up the quality and volume in each segment of the link
+    if (qual->FirstSeg != NULL)
+    {
+        seg = qual->FirstSeg[k];
+        while (seg != NULL)
+        {
+            vsum += seg->v;
+            msum += (seg->c) * (seg->v);
             seg = seg->prev;
-      }
-
-      /* Normalize volume-weighted reaction rate */
-      if (vsum > 0.0) R[k] = rsum/vsum/dt*SECperDAY;
-      else R[k] = 0.0;
-   }
-}
-
-
-void  removesegs(int k)
-/*
-**-------------------------------------------------------------
-**   Input:   k = link index     
-**   Output:  none
-**   Purpose: removes all segments in link k                                 
-**-------------------------------------------------------------
-*/
-{
-    Pseg seg;
-    seg = FirstSeg[k];
-    while (seg != NULL)
-    {
-        FirstSeg[k] = seg->prev;
-        seg->prev = FreeSeg;
-        FreeSeg = seg;
-        seg = FirstSeg[k];
+        }
     }
-    LastSeg[k] = NULL;
-}
 
+    // Compute average quality if link has volume
+    if (vsum > 0.0) return (msum / vsum);
 
-void  addseg(int k, double v, double c)
-/*
-**-------------------------------------------------------------
-**   Input:   k = link segment
-**            v = segment volume
-**            c = segment quality
-**   Output:  none
-**   Purpose: adds a segment to start of link k (i.e., upstream
-**            of current last segment).
-**-------------------------------------------------------------
-*/
-{
-    Pseg seg;
-
-    if (FreeSeg != NULL)
-    {
-       seg = FreeSeg;
-       FreeSeg = seg->prev;
-    }
+    // Otherwise use the average quality of the link's end nodes
     else
     {
-        seg = (struct Sseg *) Alloc(sizeof(struct Sseg));
-        if (seg == NULL)
-        {
-           OutOfMemory = TRUE;
-           return;
-        }     
+        return ((qual->NodeQual[net->Link[k].N1] +
+            qual->NodeQual[net->Link[k].N2]) / 2.);
     }
-    seg->v = v;
-    seg->c = c;
-    seg->prev = NULL;
-    if (FirstSeg[k] == NULL) FirstSeg[k] = seg;
-    if (LastSeg[k] != NULL) LastSeg[k]->prev = seg;
-    LastSeg[k] = seg;
 }
 
 
-void accumulate(long dt)
-/*
-**-------------------------------------------------------------
-**   Input:   dt = current WQ time step
-**   Output:  none
-**   Purpose: accumulates mass flow at nodes and updates nodal
-**            quality   
-**-------------------------------------------------------------
-*/
-{
-   int    i,j,k;
-   double  cseg,v,vseg;
-   Pseg   seg;
-
-   /* Re-set memory used to accumulate mass & volume */
-   memset(VolIn,0,(Nnodes+1)*sizeof(double));
-   memset(MassIn,0,(Nnodes+1)*sizeof(double));
-   memset(X,0,(Nnodes+1)*sizeof(double));
-
-   /* Compute average conc. of segments adjacent to each node */
-   /* (For use if there is no transport through the node) */
-   for (k=1; k<=Nlinks; k++)
-   {
-      j = DOWN_NODE(k);             /* Downstream node */
-      if (FirstSeg[k] != NULL)      /* Accumulate concentrations */
-      {
-         MassIn[j] += FirstSeg[k]->c;
-         VolIn[j]++;
-      }
-      j = UP_NODE(k);              /* Upstream node */
-      if (LastSeg[k] != NULL)      /* Accumulate concentrations */
-      {
-         MassIn[j] += LastSeg[k]->c;
-         VolIn[j]++;
-      }
-   }
-   for (k=1; k<=Nnodes; k++)
-     if (VolIn[k] > 0.0) X[k] = MassIn[k]/VolIn[k];
-
-   /* Move mass from first segment of each pipe into downstream node */
-   memset(VolIn,0,(Nnodes+1)*sizeof(double));
-   memset(MassIn,0,(Nnodes+1)*sizeof(double));
-   for (k=1; k<=Nlinks; k++)
-   {
-      i = UP_NODE(k);               /* Upstream node */
-      j = DOWN_NODE(k);             /* Downstream node */
-      v = ABS(Q[k])*dt;             /* Flow volume */
-
-////  Start of deprecated code segment  ////                                   //(2.00.12 - LR)
-         
-      /* If link volume < flow volume, then transport upstream    */
-      /* quality to downstream node and remove all link segments. */
-/*      if (LINKVOL(k) < v)
-      {
-         VolIn[j] += v;
-         seg = FirstSeg[k];
-         cseg = C[i];
-         if (seg != NULL) cseg = seg->c;
-         MassIn[j] += v*cseg;
-         removesegs(k);
-      }
-*/
-      /* Otherwise remove flow volume from leading segments */
-      /* and accumulate flow mass at downstream node        */
-      //else
-
-////  End of deprecated code segment.  ////                                    //(2.00.12 - LR)
-
-      while (v > 0.0)                                                          //(2.00.12 - LR)
-      {
-         /* Identify leading segment in pipe */
-         seg = FirstSeg[k];
-         if (seg == NULL) break;
-
-         /* Volume transported from this segment is */
-         /* minimum of flow volume & segment volume */
-         /* (unless leading segment is also last segment) */
-         vseg = seg->v;
-         vseg = MIN(vseg,v);
-         if (seg == LastSeg[k]) vseg = v;
-
-         /* Update volume & mass entering downstream node  */
-         cseg = seg->c;
-         VolIn[j] += vseg;
-         MassIn[j] += vseg*cseg;
-
-         /* Reduce flow volume by amount transported */
-         v -= vseg;
-
-         /* If all of segment's volume was transferred, then */
-         /* replace leading segment with the one behind it   */
-         /* (Note that the current seg is recycled for later use.) */
-         if (v >= 0.0 && vseg >= seg->v)
-         {
-            FirstSeg[k] = seg->prev;
-            if (FirstSeg[k] == NULL) LastSeg[k] = NULL;
-            seg->prev = FreeSeg;
-            FreeSeg = seg;
-         }
-
-         /* Otherwise reduce segment's volume */
-         else
-         {
-            seg->v -= vseg;
-         }
-      }     /* End while */
-   }        /* Next link */
-}
-
-
-void updatenodes(long dt)
-/*
-**---------------------------------------------------------------------------
-**   Input:   dt = current WQ time step     
-**   Output:  none
-**   Purpose: updates concentration at all nodes to mixture of accumulated
-**            inflow from connecting pipes.
-**
-**  Note:     Does not account for source flow effects. X[i] contains
-**            average concen. of segments adjacent to node i, used in case
-**            there was no inflow into i.
-**---------------------------------------------------------------------------
-*/
-{
-   int i;
-
-   /* Update junction quality */
-   for (i=1; i<=Njuncs; i++)
-   {
-      if (D[i] < 0.0) VolIn[i] -= D[i]*dt;
-      if (VolIn[i] > 0.0) C[i] = MassIn[i]/VolIn[i];
-      else                C[i] = X[i];
-   }
-
-   /* Update tank quality */
-   updatetanks(dt);
-
-   /* For flow tracing, set source node concen. to 100. */
-   if (Qualflag == TRACE) C[TraceNode] = 100.0;
-}
-
-
-void sourceinput(long dt)
+double findsourcequal(Project *pr, int n, double volout, long tstep)
 /*
 **---------------------------------------------------------------------
-**   Input:   dt = current WQ time step     
-**   Output:  none
-**   Purpose: computes contribution (if any) of mass additions from WQ
-**            sources at each node.
+**   Input:   n = node index
+**            volout = volume of node outflow over time step
+**            tstep = current quality time step
+**   Output:  returns concentration added by an external quality source.
+**   Purpose: computes contribution (if any) of mass addition from an
+**            external quality source at a node.
 **---------------------------------------------------------------------
 */
 {
-   int   j,n;
-   double massadded = 0.0, s, volout;
-   double qout, qcutoff;
-   Psource source;
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
+    Times   *time = &pr->times;
 
-   /* Establish a flow cutoff which indicates no outflow from a node */
-   qcutoff = 10.0*TINY;
+    double massadded = 0.0, c;
+    Psource source;
 
-   /* Zero-out the work array X */
-   memset(X,0,(Nnodes+1)*sizeof(double));
-   if (Qualflag != CHEM) return;
+    // Sources only apply to CHEMICAL analyses
+    if (qual->Qualflag != CHEM) return 0.0;
 
-   /* Consider each node */
-   for (n=1; n<=Nnodes; n++)
-   {
+    // Return 0 if node is not a quality source or has no outflow
+    source = net->Node[n].S;
+    if (source == NULL)    return 0.0;
+    if (source->C0 == 0.0) return 0.0;
+    if (volout / tstep <= Q_STAGNANT) return 0.0;
 
-      /* Skip node if no WQ source */
-      source = Node[n].S;
-      if (source == NULL) continue;
-      if (source->C0 == 0.0) continue;
-    
-      /* Find total flow volume leaving node */
-      if (n <= Njuncs) volout = VolIn[n];  /* Junctions */
-      else volout = VolIn[n] - D[n]*dt;    /* Tanks */
-      qout = volout / (double) dt;
+    // Added source concentration depends on source type
+    c = sourcequal(pr, source);
+    switch (source->Type)
+    {
+        // Concentration Source:
+        case CONCEN:
+        if (net->Node[n].Type == JUNCTION)
+        {
+            // ... source requires a negative demand at the node
+            if (hyd->NodeDemand[n] < 0.0)
+            {
+                c = -c * hyd->NodeDemand[n] * tstep / volout;
+            }
+            else c = 0.0;
+        }
+        break;
 
-      /* Evaluate source input only if node outflow > cutoff flow */
-      if (qout > qcutoff)
-      {
+        // Mass Inflow Booster Source:
+        case MASS:
+            // ... convert source input from mass/sec to concentration
+            c = c * tstep / volout;
+            break;
 
-         /* Mass added depends on type of source */
-         s = sourcequal(source);
-         switch(source->Type)
-         {
-            /* Concen. Source: */
-            /* Mass added = source concen. * -(demand) */
-            case CONCEN:
+        // Setpoint Booster Source:
+        // Source quality is difference between source strength
+        // & node quality
+        case SETPOINT:
+            c = MAX(c - qual->NodeQual[n], 0.0);
+            break;
 
-               /* Only add source mass if demand is negative */
-               if (D[n] < 0.0)
-               {
-                  massadded = -s*D[n]*dt;
+        // Flow-Paced Booster Source:
+        // Source quality equals source strength
+        case FLOWPACED:
+            break;
+    }
 
-                  /* If node is a tank then set concen. to 0. */
-                  /* (It will be re-set to true value in updatesourcenodes()) */
-                  if (n > Njuncs) C[n] = 0.0;
-               }
-               else massadded = 0.0;
-               break;
+    // Source mass added over time step = source concen. * outflow volume
+    massadded = c * volout;
 
-            /* Mass Inflow Booster Source: */
-            case MASS:
-               massadded = s*dt;
-               break;
+    // Update source's total mass added
+    source->Smass += massadded;
 
-            /* Setpoint Booster Source: */
-            /* Mass added is difference between source */
-            /* & node concen. times outflow volume  */
-            case SETPOINT:
-               if (s > C[n]) massadded = (s-C[n])*volout;
-               else massadded = 0.0;
-               break;
-
-            /* Flow-Paced Booster Source: */
-            /* Mass added = source concen. times outflow volume */
-            case FLOWPACED:
-               massadded = s*volout;
-               break;
-         }
-
-         /* Source concen. contribution = (mass added / outflow volume) */
-         X[n] = massadded/volout;
-
-         /* Update total mass added for time period & simulation */
-         source->Smass += massadded;
-         if (Htime >= Rstart) Wsource += massadded;
-      }
-   }
-
-   /* Add mass inflows from reservoirs to Wsource*/
-   if (Htime >= Rstart)
-   {
-      for (j=1; j<=Ntanks; j++)
-      {
-         if (Tank[j].A == 0.0)
-         {
-            n = Njuncs + j;
-            volout = VolIn[n] - D[n]*dt;
-            if (volout > 0.0) Wsource += volout*C[n];
-         }
-      }
-   }
+    // Update Wsource
+    if (time->Htime >= time->Rstart)
+    {
+        qual->Wsource += massadded;
+    }
+    return c;
 }
 
 
-void release(long dt)
-/*
-**---------------------------------------------------------
-**   Input:   dt = current WQ time step
-**   Output:  none
-**   Purpose: creates new segments in outflow links from nodes.
-**---------------------------------------------------------
-*/
-{
-   int    k,n;
-   double  c,q,v;
-   Pseg   seg;
-
-   /* Examine each link */
-   for (k=1; k<=Nlinks; k++)
-   {
-
-      /* Ignore links with no flow */
-      if (Q[k] == 0.0) continue;
-
-      /* Find flow volume released to link from upstream node */
-      /* (NOTE: Flow volume is allowed to be > link volume.) */
-      n = UP_NODE(k);
-      q = ABS(Q[k]);
-      v = q*dt;
-
-      /* Include source contribution in quality released from node. */
-      c = C[n] + X[n];
-
-      /* If link has a last seg, check if its quality     */
-      /* differs from that of the flow released from node.*/
-      if ( (seg = LastSeg[k]) != NULL)
-      {
-         /* Quality of seg close to that of node */
-         if (ABS(seg->c - c) < Ctol)
-         {
-            seg->c = (seg->c*seg->v + c*v) / (seg->v + v);                     //(2.00.11 - LR)
-            seg->v += v;
-         }
-
-         /* Otherwise add a new seg to end of link */
-         else addseg(k,v,c);
-      }
-
-      /* If link has no segs then add a new one. */
-      else addseg(k,LINKVOL(k),c);
-   }
-}
-
-
-void  updatesourcenodes(long dt)
-/*
-**---------------------------------------------------
-**   Input:   dt = current WQ time step     
-**   Output:  none
-**   Purpose: updates quality at source nodes.
-**            (X[n] = concen. added by source at node n)
-**---------------------------------------------------
-*/
-{
-   int i,n;
-   Psource source;
-
-   if (Qualflag != CHEM) return;
-
-   /* Examine each WQ source node */
-   for (n=1; n<=Nnodes; n++)
-   {
-      source = Node[n].S;
-      if (source == NULL) continue;
-
-      /* Add source to current node concen. */
-      C[n] += X[n];
-
-      /* For tanks, node concen. = internal concen. */
-      if (n > Njuncs)
-      {
-         i = n - Njuncs;
-         if (Tank[i].A > 0.0) C[n] = Tank[i].C;
-      }
-
-      /* Normalize mass added at source to time step */
-      source->Smass /= (double)dt;
-   }
-}
-
-
-void  updatetanks(long dt)
-/*
-**---------------------------------------------------
-**   Input:   dt = current WQ time step     
-**   Output:  none
-**   Purpose: updates tank volumes & concentrations            
-**---------------------------------------------------
-*/
-{
-    int   i,n;
-
-   /* Examine each reservoir & tank */
-   for (i=1; i<=Ntanks; i++)
-   {
-
-      /* Use initial quality for reservoirs */
-      if (Tank[i].A == 0.0)
-      {
-         n = Tank[i].Node;
-         C[n] = Node[n].C0;
-      }
-
-      /* Update tank WQ based on mixing model */
-      else switch(Tank[i].MixModel)
-      {
-         case MIX2: tankmix2(i,dt); break;
-         case FIFO: tankmix3(i,dt); break;
-         case LIFO: tankmix4(i,dt); break;
-         default:   tankmix1(i,dt); break;
-      }
-   }
-}
-
-
-////  Deprecated version of tankmix1  ////                                     //(2.00.12 - LR)
-//void  tankmix1(int i, long dt)
-/*
-**---------------------------------------------
-**   Input:   i = tank index
-**            dt = current WQ time step     
-**   Output:  none
-**   Purpose: complete mix tank model                     
-**---------------------------------------------
-*/
-//{
-//    int   n;
-//    double cin;
-
-//   /* Blend inflow with contents */
-//   n = Tank[i].Node;
-//   if (VolIn[n] > 0.0) cin = MassIn[n]/VolIn[n];
-//   else                 cin = 0.0;
-//   if (Tank[i].V > 0.0)
-//      Tank[i].C = tankreact(Tank[i].C,Tank[i].V,Tank[i].Kb,dt) +
-//                  (cin - Tank[i].C)*VolIn[n]/Tank[i].V;
-//   else Tank[i].C = cin;
-//   Tank[i].C = MAX(0.0, Tank[i].C);
-
-//   /* Update tank volume & nodal quality */
-//   Tank[i].V += D[n]*dt;
-//   C[n] = Tank[i].C;
-//}
-
-
-////  New version of tankmix1  ////                                            //(2.00.12 - LR)
-void  tankmix1(int i, long dt)
-/*
-**---------------------------------------------
-**   Input:   i = tank index
-**            dt = current WQ time step     
-**   Output:  none
-**   Purpose: complete mix tank model                     
-**---------------------------------------------
-*/
-{
-    int   n;
-    double cin;
-    double c, cmax, vold, vin;
-
-   /* React contents of tank */
-   c = tankreact(Tank[i].C,Tank[i].V,Tank[i].Kb,dt);
-
-   /* Determine tank & volumes */
-   vold = Tank[i].V;
-   n = Tank[i].Node;
-   Tank[i].V += D[n]*dt;
-   vin  = VolIn[n];
-
-   /* Compute inflow concen. */
-   if (vin > 0.0) cin = MassIn[n]/vin;
-   else           cin = 0.0;
-   cmax = MAX(c, cin);
-
-   /* Mix inflow with tank contents */
-   if (vin > 0.0) c = (c*vold + cin*vin)/(vold + vin);
-   c = MIN(c, cmax);
-   c = MAX(c, 0.0);
-   Tank[i].C = c;
-   C[n] = Tank[i].C;
-}
-
-/*** Updated 10/25/00 ***/
-////  New version of tankmix2  ////                                            //(2.00.12 - LR) 
-void  tankmix2(int i, long dt)
-/*
-**------------------------------------------------
-**   Input:   i = tank index
-**            dt = current WQ time step     
-**   Output:  none
-**   Purpose: 2-compartment tank model                      
-**            (seg1 = mixing zone,
-**             seg2 = ambient zone)      
-**------------------------------------------------
-*/
-{
-    int     k,n;
-    double  cin,        /* Inflow quality */
-            vin,        /* Inflow volume */
-            vt,         /* Transferred volume */
-            vnet,       /* Net volume change */
-            v1max;      /* Full mixing zone volume */
-   Pseg     seg1,seg2;  /* Compartment segments */
-
-   /* Identify segments for each compartment */
-   k = Nlinks + i;
-   seg1 = LastSeg[k];
-   seg2 = FirstSeg[k];
-   if (seg1 == NULL || seg2 == NULL) return;
-
-   /* React contents of each compartment */
-   seg1->c = tankreact(seg1->c,seg1->v,Tank[i].Kb,dt);
-   seg2->c = tankreact(seg2->c,seg2->v,Tank[i].Kb,dt);
-
-   /* Find inflows & outflows */
-   n = Tank[i].Node;
-   vnet = D[n]*dt;
-   vin = VolIn[n];
-   if (vin > 0.0) cin = MassIn[n]/vin;
-   else           cin = 0.0;
-   v1max = Tank[i].V1max;
-
-   /* Tank is filling */
-   vt = 0.0;
-   if (vnet > 0.0)
-   {
-      vt = MAX(0.0, (seg1->v + vnet - v1max));
-      if (vin > 0.0)
-      {
-         seg1->c = ((seg1->c)*(seg1->v) + cin*vin) / (seg1->v + vin);
-      }
-      if (vt > 0.0)
-      {
-         seg2->c = ((seg2->c)*(seg2->v) + (seg1->c)*vt) / (seg2->v + vt);
-      }
-   }
-
-   /* Tank is emptying */
-   if (vnet < 0.0)
-   {
-      if (seg2->v > 0.0)
-      {
-         vt = MIN(seg2->v, (-vnet));
-      }
-      if (vin + vt > 0.0)
-      {
-         seg1->c = ((seg1->c)*(seg1->v) + cin*vin + (seg2->c)*vt) /
-                   (seg1->v + vin + vt);
-      }
-   }
-
-   /* Update segment volumes */
-   if (vt > 0.0)
-   {
-      seg1->v = v1max;
-      if (vnet > 0.0) seg2->v += vt;
-      else            seg2->v = MAX(0.0, ((seg2->v)-vt));
-   }
-   else
-   {
-      seg1->v += vnet;
-      seg1->v = MIN(seg1->v, v1max);
-      seg1->v = MAX(0.0, seg1->v);
-      seg2->v = 0.0;
-   }
-   Tank[i].V += vnet;
-   Tank[i].V = MAX(0.0, Tank[i].V);
-
-   /* Use quality of mixed compartment (seg1) to */
-   /* represent quality of tank since this is where */
-   /* outflow begins to flow from */
-   Tank[i].C = seg1->c;
-   C[n] = Tank[i].C;
-}
-
-
-void  tankmix3(int i, long dt)
-/*
-**----------------------------------------------------------
-**   Input:   i = tank index
-**            dt = current WQ time step     
-**   Output:  none
-**   Purpose: First-In-First-Out (FIFO) tank model                    
-**----------------------------------------------------------
-*/
-{
-   int   k,n;
-   double vin,vnet,vout,vseg;
-   double cin,vsum,csum;
-   Pseg  seg;
-
-   k = Nlinks + i;
-   if (LastSeg[k] == NULL || FirstSeg[k] == NULL) return;
-
-   /* React contents of each compartment */
-   if (Reactflag)
-   {
-      seg = FirstSeg[k];
-      while (seg != NULL)
-      {
-         seg->c = tankreact(seg->c,seg->v,Tank[i].Kb,dt);
-         seg = seg->prev;
-      }
-   }
-
-   /* Find inflows & outflows */
-   n = Tank[i].Node;
-   vnet = D[n]*dt;
-   vin = VolIn[n];
-   vout = vin - vnet;
-   if (vin > 0.0) cin = MassIn[n]/VolIn[n];
-   else           cin = 0.0;
-   Tank[i].V += vnet;
-   Tank[i].V = MAX(0.0, Tank[i].V);                                            //(2.00.12 - LR)
-
-   /* Withdraw flow from first segment */
-   vsum = 0.0;
-   csum = 0.0;
-   while (vout > 0.0)
-   {
-      seg = FirstSeg[k];
-      if (seg == NULL) break;
-      vseg = seg->v;           /* Flow volume from leading seg */
-      vseg = MIN(vseg,vout);
-      if (seg == LastSeg[k]) vseg = vout;
-      vsum += vseg;
-      csum += (seg->c)*vseg;
-      vout -= vseg;            /* Remaining flow volume */
-      if (vout >= 0.0 && vseg >= seg->v)  /* Seg used up */
-      {
-         if (seg->prev)                                                        //(2.00.12 - LR)
-         {                                                                     //(2.00.12 - LR)
-            FirstSeg[k] = seg->prev;
-            //if (FirstSeg[k] == NULL) LastSeg[k] = NULL;                      //(2.00.12 - LR)
-            seg->prev = FreeSeg;
-            FreeSeg = seg;
-         }                                                                     //(2.00.12 - LR)
-      }
-      else                /* Remaining volume in segment */
-      {
-         seg->v -= vseg;
-      }
-   }
-
-   /* Use quality withdrawn from 1st segment */
-   /* to represent overall quality of tank */
-   if (vsum > 0.0) Tank[i].C = csum/vsum;
-   else            Tank[i].C = FirstSeg[k]->c;
-   C[n] = Tank[i].C;
-
-   /* Add new last segment for new flow entering tank */
-   if (vin > 0.0)
-   {
-      if ( (seg = LastSeg[k]) != NULL)
-      {
-         /* Quality is the same, so just add flow volume to last seg */
-         if (ABS(seg->c - cin) < Ctol) seg->v += vin;
-
-         /* Otherwise add a new seg to tank */
-         else addseg(k,vin,cin);
-      }
-
-      /* If no segs left then add a new one. */
-      else addseg(k,vin,cin);
-   }
-}   
-
-
-void  tankmix4(int i, long dt)
-/*
-**----------------------------------------------------------
-**   Input:   i = tank index
-**            dt = current WQ time step     
-**   Output:  none
-**   Purpose: Last In-First Out (LIFO) tank model                     
-**----------------------------------------------------------
-*/
-{
-   int   k, n;
-   double vin, vnet, cin, vsum, csum, vseg;
-   Pseg  seg, tmpseg;
-
-   k = Nlinks + i;
-   if (LastSeg[k] == NULL || FirstSeg[k] == NULL) return;
-
-   /* React contents of each compartment */
-   if (Reactflag)
-   {
-      seg = LastSeg[k];
-      while (seg != NULL)
-      {
-         seg->c = tankreact(seg->c,seg->v,Tank[i].Kb,dt);
-         seg = seg->prev;
-      }
-   }
-
-   /* Find inflows & outflows */
-   n = Tank[i].Node;
-   vnet = D[n]*dt;
-   vin = VolIn[n];
-   if (vin > 0.0) cin = MassIn[n]/VolIn[n];
-   else           cin = 0.0;
-   Tank[i].V += vnet;
-   Tank[i].V = MAX(0.0, Tank[i].V);                                            //(2.00.12 - LR)
-   Tank[i].C = LastSeg[k]->c;
-
-   /* If tank filling, then create new last seg */ 
-   if (vnet > 0.0)
-   {
-      if ( (seg = LastSeg[k]) != NULL)
-      {
-         /* Quality is the same, so just add flow volume to last seg */
-         if (ABS(seg->c - cin) < Ctol) seg->v += vnet;
-
-         /* Otherwise add a new last seg to tank */
-         /* which points to old last seg */ 
-         else
-         {
-            tmpseg = seg;
-            LastSeg[k] = NULL;
-            addseg(k,vnet,cin);
-            LastSeg[k]->prev = tmpseg;
-         }
-      }
-
-      /* If no segs left then add a new one. */
-      else addseg(k,vnet,cin);
-
-      /* Update reported tank quality */
-      Tank[i].C = LastSeg[k]->c;
-   }
-
-   /* If net emptying then remove last segments until vnet consumed */
-   else if (vnet < 0.0)
-   {
-      vsum = 0.0;
-      csum = 0.0;
-      vnet = -vnet;
-      while (vnet > 0.0)
-      {
-         seg = LastSeg[k];
-         if (seg == NULL) break;
-         vseg = seg->v;
-         vseg = MIN(vseg,vnet);
-         if (seg == FirstSeg[k]) vseg = vnet;
-         vsum += vseg;
-         csum += (seg->c)*vseg;
-         vnet -= vseg;
-         if (vnet >= 0.0 && vseg >= seg->v)  /* Seg used up */
-         {
-            if (seg->prev)                                                     //(2.00.12 - LR)
-            {                                                                  //(2.00.12 - LR)
-               LastSeg[k] = seg->prev;
-               //if (LastSeg[k] == NULL) FirstSeg[k] = NULL;                   //(2.00.12 - LR)
-               seg->prev = FreeSeg;
-               FreeSeg = seg;
-            }                                                                  //(2.00.12 - LR)
-         }
-         else                /* Remaining volume in segment */
-         {
-            seg->v -= vseg;
-         }
-      }
-      /* Reported tank quality is mixture of flow released and any inflow */
-      Tank[i].C = (csum + MassIn[n])/(vsum + vin);
-   }
-   C[n] = Tank[i].C;
-}         
-
-
-double  sourcequal(Psource source)
+double sourcequal(Project *pr, Psource source)
 /*
 **--------------------------------------------------------------
-**   Input:   j = source index
-**   Output:  returns source WQ value
-**   Purpose: determines source concentration in current time period  
+**   Input:   source = a water quality source object
+**   Output:  returns strength of quality source
+**   Purpose: determines source strength in current time period
 **--------------------------------------------------------------
 */
 {
-   int   i;
-   long  k;
-   double c;
+    Network *net = &pr->network;
+    Times   *time = &pr->times;
 
-   /* Get source concentration (or mass flow) in original units */
-   c = source->C0;
+    int i;
+    long k;
+    double c;
 
-   /* Convert mass flow rate from min. to sec. */
-   /* and convert concen. from liters to cubic feet */
-   if (source->Type == MASS) c /= 60.0;
-   else c /= Ucf[QUALITY];
+    // Get source concentration (or mass flow) in original units
+    c = source->C0;
 
-   /* Apply time pattern if assigned */
-   i = source->Pat;
-   if (i == 0) return(c);
-   k = ((Qtime+Pstart)/Pstep) % (long)Pattern[i].Length;
-   return(c*Pattern[i].F[k]);
+    // Convert mass flow rate from min. to sec.
+    // and convert concen. from liters to cubic feet
+    if (source->Type == MASS) c /= 60.0;
+    else                      c /= pr->Ucf[QUALITY];
+
+    // Apply time pattern if assigned
+    i = source->Pat;
+    if (i == 0)  return c;
+    k = ((time->Qtime + time->Pstart) / time->Pstep) %
+        (long)net->Pattern[i].Length;
+    return (c * net->Pattern[i].F[k]);
 }
 
 
-double  avgqual(int k)
+void  evalmassbalance(Project *pr)
 /*
 **--------------------------------------------------------------
-**   Input:   k = link index
-**   Output:  returns WQ value
-**   Purpose: computes average quality in link k                      
+**   Input:   none
+**   Output:  none
+**   Purpose: computes the overall mass balance ratio of a
+**            quality constituent.
 **--------------------------------------------------------------
 */
 {
-   double  vsum = 0.0,
-          msum = 0.0;
-   Pseg   seg;
+    Quality *qual = &pr->quality;
 
-   if (Qualflag == NONE) return(0.);
-   seg = FirstSeg[k];
-   while (seg != NULL)
-   {
-       vsum += seg->v;
-       msum += (seg->c)*(seg->v);
-       seg = seg->prev;
-   }
-   if (vsum > 0.0) return(msum/vsum);
-   else return( (C[Link[k].N1] + C[Link[k].N2])/2. );
+    double massin;
+    double massout;
+    double massreacted;
+
+    if (qual->Qualflag == NONE) qual->MassBalance.ratio = 1.0;
+    else
+    {
+        qual->MassBalance.final = findstoredmass(pr);
+        massin = qual->MassBalance.initial + qual->MassBalance.inflow;
+        massout = qual->MassBalance.outflow + qual->MassBalance.final;
+        massreacted = qual->MassBalance.reacted;
+        if (massreacted > 0.0) massout += massreacted;
+        else                   massin -= massreacted;
+        if (massin == 0.0) qual->MassBalance.ratio = 1.0;
+        else               qual->MassBalance.ratio = massout / massin;
+    }
 }
 
 
-void  ratecoeffs()
+double  findstoredmass(Project *pr)
 /*
 **--------------------------------------------------------------
-**   Input:   none                                                
-**   Output:  none                                                
-**   Purpose: determines wall reaction coeff. for each pipe       
-**--------------------------------------------------------------
-*/
-{
-   int   k;
-   double kw;
-
-   for (k=1; k<=Nlinks; k++)
-   {
-      kw = Link[k].Kw;
-      if (kw != 0.0) kw = piperate(k);
-      Link[k].R = kw;
-      R[k] = 0.0;
-   }
-}                         /* End of ratecoeffs */
-
-
-double piperate(int k)
-/*
-**--------------------------------------------------------------
-**   Input:   k = link index                                      
-**   Output:  returns reaction rate coeff. for 1st-order wall     
-**            reactions or mass transfer rate coeff. for 0-order  
-**            reactions                                           
-**   Purpose: finds wall reaction rate coeffs.                    
+**   Input:   none
+**   Output:  returns total constituent mass stored in the network
+**   Purpose: finds the current mass of a constituent stored in
+**            all pipes and tanks.
 **--------------------------------------------------------------
 */
 {
-   double a,d,u,kf,kw,y,Re,Sh;
+    Network  *net = &pr->network;
+    Quality  *qual = &pr->quality;
 
-   d = Link[k].Diam;                    /* Pipe diameter, ft */
+    int    i, k;
+    double totalmass = 0.0;
+    Pseg   seg;
 
-/* Ignore mass transfer if Schmidt No. is 0 */
-   if (Sc == 0.0)
-   {
-      if (WallOrder == 0.0) return(BIG);
-      else return(Link[k].Kw*(4.0/d)/Ucf[ELEV]);
-   }
+    // Mass residing in each pipe
+    for (k = 1; k <= net->Nlinks; k++)
+    {
+        // Sum up the quality and volume in each segment of the link
+        seg = qual->FirstSeg[k];
+        while (seg != NULL)
+        {
+            totalmass += (seg->c) * (seg->v);
+            seg = seg->prev;
+        }
+    }
 
-/* Compute Reynolds No. */
-   a = PI*d*d/4.0;
-   u = ABS(Q[k])/a;
-   Re = u*d/Viscos;
+    // Mass residing in each tank
+    for (i = 1; i <= net->Ntanks; i++)
+    {
+        // ... skip reservoirs
+        if (net->Tank[i].A == 0.0) continue;
 
-/* Compute Sherwood No. for stagnant flow  */
-/* (mass transfer coeff. = Diffus./radius) */
-   if (Re < 1.0) Sh = 2.0;
-
-/* Compute Sherwood No. for turbulent flow */
-/* using the Notter-Sleicher formula.      */
-   else if (Re >= 2300.0)
-      Sh = 0.0149*pow(Re,0.88)*pow(Sc,0.333);
-
-/* Compute Sherwood No. for laminar flow */
-/* using Graetz solution formula.        */
-   else
-   {
-      y = d/Link[k].Len*Re*Sc;
-      Sh = 3.65+0.0668*y/(1.0+0.04*pow(y,0.667));
-   }
-
-/* Compute mass transfer coeff. (in ft/sec) */
-   kf = Sh*Diffus/d;
-
-/* For zero-order reaction, return mass transfer coeff. */
-   if (WallOrder == 0.0) return(kf);
-
-/* For first-order reaction, return apparent wall coeff. */
-   kw = Link[k].Kw/Ucf[ELEV];       /* Wall coeff, ft/sec */
-   kw = (4.0/d)*kw*kf/(kf+ABS(kw)); /* Wall coeff, 1/sec  */
-   return(kw);
-}                         /* End of piperate */
-
-
-double  pipereact(int k, double c, double v, long dt)
-/*
-**------------------------------------------------------------
-**   Input:   k = link index
-**            c = current WQ in segment
-**            v = segment volume
-**            dt = time step
-**   Output:  returns new WQ value
-**   Purpose: computes new quality in a pipe segment after
-**            reaction occurs              
-**------------------------------------------------------------
-*/
-{
-   double cnew, dc, dcbulk, dcwall, rbulk, rwall;
-
-   /* For water age (hrs), update concentration by timestep */
-   if (Qualflag == AGE) return(c+(double)dt/3600.0);
-
-   /* Otherwise find bulk & wall reaction rates */
-   rbulk = bulkrate(c,Link[k].Kb,BulkOrder)*Bucf;
-   rwall = wallrate(c,Link[k].Diam,Link[k].Kw,Link[k].R);
-
-   /* Find change in concentration over timestep */
-   dcbulk = rbulk*(double)dt;
-   dcwall = rwall*(double)dt;
-
-   /* Update cumulative mass reacted */
-   if (Htime >= Rstart)
-   {
-      Wbulk += ABS(dcbulk)*v;
-      Wwall += ABS(dcwall)*v;
-   }
-
-   /* Update concentration */
-   dc = dcbulk + dcwall;
-   cnew = c + dc;
-   cnew = MAX(0.0,cnew);
-   return(cnew);
+        // ... add up mass in each volume segment
+        else
+        {
+            k = net->Nlinks + i;
+            seg = qual->FirstSeg[k];
+            while (seg != NULL)
+            {
+                totalmass += seg->c * seg->v;
+                seg = seg->prev;
+            }
+        }
+    }
+    return totalmass;
 }
 
-
-double  tankreact(double c, double v, double kb, long dt)
+int flowdirchanged(Project *pr)
 /*
-**-------------------------------------------------------
-**   Input:   c = current WQ in tank
-**            v = tank volume
-**            kb = reaction coeff.
-**            dt = time step
-**   Output:  returns new WQ value
-**   Purpose: computes new quality in a tank after
-**            reaction occurs
-**-------------------------------------------------------
+**--------------------------------------------------------------
+**   Input:   none
+**   Output:  returns TRUE if flow direction changes in any link
+**   Purpose: finds new flow directions for each network link.
+**--------------------------------------------------------------
 */
 {
-   double cnew, dc, rbulk;
+    Hydraul *hyd = &pr->hydraul;
+    Quality *qual = &pr->quality;
 
-/*** Updated 9/7/00 ***/
-   /* If no reaction then return current WQ */
-   if (!Reactflag) return(c);
+    int k;
+    int result = FALSE;
+    int newdir;
+    int olddir;
+    double q;
 
-   /* For water age, update concentration by timestep */
-   if (Qualflag == AGE) return(c + (double)dt/3600.0);
+    // Examine each network link
+    for (k = 1; k <= pr->network.Nlinks; k++)
+    {
+        // Determine sign (+1 or -1) of new flow rate
+        olddir = qual->FlowDir[k];
+        q = (hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlow[k];
+        newdir = SGN(q);
 
-   /* Find bulk reaction rate */
-   rbulk = bulkrate(c,kb,TankOrder)*Tucf;
+        // Indicate if flow is negligible
+        if (fabs(q) < Q_STAGNANT) newdir = 0;
 
-   /* Find concentration change & update quality */
-   dc = rbulk*(double)dt;
-   if (Htime >= Rstart) Wtank += ABS(dc)*v;
-   cnew = c + dc;
-   cnew = MAX(0.0,cnew);
-   return(cnew);
+        // Reverse link's volume segments if flow direction changes sign
+        if (newdir * olddir < 0) reversesegs(pr, k);
+
+        // If flow direction changes either sign or magnitude then set
+        // result to true (e.g., if a link's positive flow becomes
+        // negligible then the network still needs to be re-sorted)
+        if (newdir != olddir) result = TRUE;
+
+        // ... replace old flow direction with the new direction
+        qual->FlowDir[k] = newdir;
+    }
+    return result;
 }
-   
-
-double  bulkrate(double c, double kb, double order)
-/*
-**-----------------------------------------------------------
-**   Input:   c = current WQ concentration
-**            kb = bulk reaction coeff.
-**            order = bulk reaction order
-**   Output:  returns bulk reaction rate
-**   Purpose: computes bulk reaction rate (mass/volume/time)           
-**-----------------------------------------------------------
-*/
-{
-   double c1;
-
-   /* Find bulk reaction potential taking into account */
-   /* limiting potential & reaction order. */
-
-      /* Zero-order kinetics: */
-      if (order == 0.0) c = 1.0;
-
-      /* Michaelis-Menton kinetics: */
-      else if (order < 0.0)
-      {
-         c1 = Climit + SGN(kb)*c;
-         if (ABS(c1) < TINY) c1 = SGN(c1)*TINY;
-         c = c/c1;
-      }
-
-      /* N-th order kinetics: */
-      else
-      {
-         /* Account for limiting potential */
-         if (Climit == 0.0) c1 = c;
-         else c1 = MAX(0.0, SGN(kb)*(Climit-c));
-
-         /* Compute concentration potential */
-         if (order == 1.0) c = c1;
-         else if (order == 2.0) c = c1*c;
-         else c = c1*pow(MAX(0.0,c),order-1.0);
-      }
-
-   /* Reaction rate = bulk coeff. * potential) */
-   if (c < 0) c = 0;
-   return(kb*c);
-}
-
-
-double  wallrate(double c, double d, double kw, double kf)
-/*
-**------------------------------------------------------------
-**   Input:   c = current WQ concentration
-**            d = pipe diameter
-**            kw = intrinsic wall reaction coeff.
-**            kf = mass transfer coeff. for 0-order reaction
-**                 (ft/sec) or apparent wall reaction coeff.
-**                 for 1-st order reaction (1/sec)
-**   Output:  returns wall reaction rate in mass/ft3/sec
-**   Purpose: computes wall reaction rate
-**------------------------------------------------------------
-*/
-{
-   if (kw == 0.0 || d == 0.0) return(0.0);
-   if (WallOrder == 0.0)       /* 0-order reaction */
-   {
-      kf = SGN(kw)*c*kf;       /* Mass transfer rate (mass/ft2/sec)*/
-      kw = kw*SQR(Ucf[ELEV]);  /* Reaction rate (mass/ft2/sec) */                 
-      if (ABS(kf) < ABS(kw))   /* Reaction mass transfer limited */
-         kw = kf;  
-      return(kw*4.0/d);        /* Reaction rate (mass/ft3/sec) */
-   }
-   else return(c*kf);          /* 1st-order reaction */
-}
-
-/************************* End of QUALITY.C ***************************/

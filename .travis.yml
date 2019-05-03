@@ -1,0 +1,58 @@
+language: python
+
+matrix:
+  include:
+    # works on Precise and Trusty
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:mhier/libboost-latest'
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - boost1.67
+      env:
+         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+         - PLATFORM="linux"
+         - REF_BUILD_ID="220dev1"
+
+python:
+    - "3.6"
+
+env:
+  global:
+    - SUT_BUILD_ID=$TRAVIS_JOB_NUMBER
+    - EPANET_HOME=`pwd`
+    - BUILD_HOME=buildprod
+    - TEST_HOME=nrtestsuite
+
+before_install:
+#  - sudo apt-get -qq update
+  - eval "${MATRIX_EVAL}"
+
+#install:
+#  - sudo apt-get install -y libboost-test-dev
+#  - sudo apt-get install -y libboost-thread-dev
+
+before_script:
+  - mkdir -p $BUILD_HOME
+  - cd $BUILD_HOME
+  - cmake -DCMAKE_C_COMPILER=${CC}
+          -DCMAKE_CXX_COMPILER=${CXX}
+          -DBUILD_TESTS=ON
+          -DBUILD_COVERAGE=ON ..
+
+script:
+  - cmake --build .
+  # run unit tests
+  - cd tests
+  - ctest --output-on-failure
+  # run regression tests
+  - cd $EPANET_HOME
+  - pip install -r tools/requirements.txt
+  - tools/before-test.sh $PLATFORM $REF_BUILD_ID $SUT_BUILD_ID $TRAVIS_COMMIT
+  - tools/run-nrtest.sh -c -s $SUT_BUILD_ID
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

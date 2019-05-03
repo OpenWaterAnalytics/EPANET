@@ -1,15 +1,19 @@
 /*
-***********************************************************************
-                                                                     
-ENUMSTXT.H -- Text strings for enumerated data types in EPANET  
-                                                                     
-VERSION:    2.00                                               
-DATE:       5/8/00
-AUTHOR:     L. Rossman                                         
-            US EPA - NRMRL
-                                                                     
-**********************************************************************
+ *****************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       enumstxt.h
+ Description:  text strings for enumerated data types
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 11/27/2018
+ ******************************************************************************
 */
+
+#ifndef ENUMSTXT_H
+#define ENUMSTXT_H
+#include "text.h"
 
 char *NodeTxt[]         = {t_JUNCTION,
                            t_RESERVOIR,
@@ -70,6 +74,10 @@ char *PressUnitsTxt[]   = {w_PSI,
                            w_KPA,
                            w_METERS};
 
+char *DemandModelTxt[] = { w_DDA,
+                           w_PDA,
+                           NULL };
+
 char *QualTxt[]         = {w_NONE,
                            w_CHEM,
                            w_AGE,
@@ -114,15 +122,6 @@ char *SectTxt[]         = {s_TITLE,     s_JUNCTIONS, s_RESERVOIRS,
                            s_TAGS,      s_END,
                            NULL};
 
-char *RptSectTxt[]      = {NULL,       t_JUNCTION, t_RESERVOIR,
-                           t_TANK,     t_PIPE,     t_PUMP,
-                           t_VALVE,    t_CONTROL,  t_RULE,
-                           t_DEMANDFOR,t_SOURCE,   t_EMITTER,
-                           t_PATTERN,  t_CURVE,    t_QUALITY,
-                           t_STATUS,   t_ROUGHNESS,t_ENERGY,
-                           t_REACTION, t_MIXING,   t_REPORT,
-                           t_TIME,     t_OPTION};
-
 char *Fldname[]         = {t_ELEV,      t_DEMAND,    t_HEAD,
                            t_PRESSURE,  t_QUALITY,   t_LENGTH,
                            t_DIAM,      t_FLOW,      t_VELOCITY,
@@ -130,6 +129,5 @@ char *Fldname[]         = {t_ELEV,      t_DEMAND,    t_HEAD,
                            t_SETTING,   t_REACTRATE, t_FRICTION,
                            "", "", "", "", "", "", NULL};
 
-char *LogoTxt[]         = {LOGO1,LOGO2,LOGO3,LOGO4,LOGO5,LOGO6,NULL};
 
-
+#endif
