@@ -102,10 +102,13 @@ bool convert_units(list_node_t *lnode, double unit_conversion)
 int replace_demand(list_node_t *lnode, double base_demand, int pattern_index,
     char *category_name){
 
-    set_base_demand(lnode, base_demand);
-    set_pattern_index(lnode, pattern_index);
-    set_category_name(lnode, category_name);
+    if (lnode) {
+        get_demand_data(lnode)->base_demand = base_demand;
+        get_demand_data(lnode)->pattern_index = pattern_index;
 
+        free(get_demand_data(lnode)->category_name);
+        get_demand_data(lnode)->category_name = strdup(category_name);
+    }
     return get_key(lnode);
 }
 
@@ -128,7 +131,7 @@ int get_pattern_index(list_node_t *lnode)
     if (lnode)
         return get_demand_data(lnode)->pattern_index;
     else
-        return -1;
+        return 0;
 }
 
 void set_pattern_index(list_node_t *lnode, int pattern_index)

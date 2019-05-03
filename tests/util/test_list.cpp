@@ -256,8 +256,6 @@ BOOST_AUTO_TEST_CASE(test_null_list)
     BOOST_CHECK(done_list(NULL) == false);
     BOOST_CHECK(next_list(NULL) == NULL);
 
-    BOOST_CHECK(get_nth_list(NULL, 1) == NULL);
-
     // test null list returns 0 size
     BOOST_CHECK(size_list(NULL) == 0);
 
@@ -266,6 +264,8 @@ BOOST_AUTO_TEST_CASE(test_null_list)
     for (list_node_t *lnode=first_list(NULL); done_list(lnode); lnode=next_list(lnode))
         entry = true;
     BOOST_CHECK(entry == false);
+
+    delete_list(NULL);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

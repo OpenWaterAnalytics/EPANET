@@ -72,9 +72,9 @@ extern "C" {
 
   int  DLLEXPORT ENopen(const char *inpFile, const char *rptFile,
                  const char *outFile);
-  
+
   int  DLLEXPORT ENgettitle(char *line1, char *line2, char *line3);
-  
+
   int  DLLEXPORT ENsettitle(char *line1, char *line2, char *line3);
 
   int  DLLEXPORT ENgetcomment(int object, int index, char *comment);
@@ -156,7 +156,7 @@ extern "C" {
   int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen);
 
   int  DLLEXPORT ENgetstatistic(int type, EN_API_FLOAT_TYPE* value);
-  
+
 
 /********************************************************************
 
@@ -235,16 +235,16 @@ extern "C" {
   int DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex,
                 EN_API_FLOAT_TYPE *baseDemand);
 
-  int DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIndex,
-                EN_API_FLOAT_TYPE baseDemand);
+//  int DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIndex,
+//                EN_API_FLOAT_TYPE baseDemand);
 
   int DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIndex, int *patIndex);
 
-  int DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIndex, int patIndex);
+//  int DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIndex, int patIndex);
 
   int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIndex, char *demandName);
 
-  int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, char *demandName);
+//  int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, char *demandName);
 
 /********************************************************************
 
@@ -407,7 +407,7 @@ extern "C" {
 
   int DLLEXPORT ENsetelseaction(int ruleIndex, int actionIndex, int linkIndex,
                 int status, EN_API_FLOAT_TYPE setting);
-  
+
   int DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
 
   #if defined(__cplusplus)

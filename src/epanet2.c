@@ -399,16 +399,16 @@ int DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex,
     return errcode;
 }
 
-int DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIndex,
-              EN_API_FLOAT_TYPE baseDemand)
-{
-    return EN_setbasedemand(_defaultProject, nodeIndex, demandIndex, baseDemand);
-}
+//int DLLEXPORT ENsetbasedemand(int nodeIndex, int demandIndex,
+//              EN_API_FLOAT_TYPE baseDemand)
+//{
+//    return EN_setbasedemand(_defaultProject, nodeIndex, demandIndex, baseDemand);
+//}
 
-int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIndex, int patIndex)
-{
-    return EN_setdemandpattern(_defaultProject, nodeIndex, demandIndex, patIndex);
-}
+//int  DLLEXPORT ENsetdemandpattern(int nodeIndex, int demandIndex, int patIndex)
+//{
+//    return EN_setdemandpattern(_defaultProject, nodeIndex, demandIndex, patIndex);
+//}
 
 int DLLEXPORT ENgetdemandpattern(int nodeIndex, int demandIndex, int *pattIdx)
 {
@@ -420,10 +420,10 @@ int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIndex, char *demandName)
     return EN_getdemandname(_defaultProject, nodeIndex, demandIndex, demandName);
 }
 
-int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, char *demandName)
-{
-    return EN_setdemandname(_defaultProject, nodeIndex, demandIndex, demandName);
-}
+//int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, char *demandName)
+//{
+//    return EN_setdemandname(_defaultProject, nodeIndex, demandIndex, demandName);
+//}
 
 /********************************************************************
 

@@ -104,7 +104,7 @@ BOOST_FIXTURE_TEST_CASE(test_demand_getset, Fixture)
     demand = get_base_demand(lnode);
     BOOST_CHECK(demand == 100.0);
 
-    set_base_demand(lnode, 200.0);
+    replace_demand(lnode, 200.0, 1, "CUB_SCOUT_BASE_CAMP");
 
     demand = get_base_demand(lnode);
     BOOST_CHECK(demand == 200.0);
@@ -118,7 +118,7 @@ BOOST_FIXTURE_TEST_CASE(test_pattern_getset, Fixture)
     index = get_pattern_index(lnode);
     BOOST_CHECK(index == 1);
 
-    set_pattern_index(lnode, 2);
+    replace_demand(lnode, 100.0, 2, "CUB_SCOUT_BASE_CAMP");
 
     index = get_pattern_index(lnode);
     BOOST_CHECK(index == 2);
@@ -135,7 +135,7 @@ BOOST_FIXTURE_TEST_CASE(test_category_getset, Fixture)
     free(name);
     name = NULL;
 
-    set_category_name(lnode, (char *)"CUB_SCOUT_COMMAND");
+    replace_demand(lnode, 200.0, 1, "CUB_SCOUT_COMMAND");
 
     name = get_category_name(lnode);
     BOOST_CHECK(check_string(name, "CUB_SCOUT_COMMAND"));
@@ -204,32 +204,33 @@ BOOST_FIXTURE_TEST_CASE(test_replace_demand, FixtureSingleNode)
 
 BOOST_FIXTURE_TEST_CASE(test_single_node, FixtureSingleNode)
 {
-    int demand_idx, pattern_idx, n;
+    int demand_key, pattern_idx, n;
     double demand;
 
     error = EN_getnumdemands(ph, node_qhut, &n);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(n == 0);
 
-    demand_idx = 1;
-    error = EN_getbasedemand(ph, node_qhut, demand_idx, &demand);
+    demand_key = 1;
+    error = EN_getbasedemand(ph, node_qhut, demand_key, &demand);
     BOOST_REQUIRE(error == 253);
 
-    error = EN_getdemandpattern(ph, node_qhut, demand_idx, &pattern_idx);
+    error = EN_getdemandpattern(ph, node_qhut, demand_key, &pattern_idx);
     BOOST_REQUIRE(error == 253);
 
     char demname[31];
-    error = EN_getdemandname(ph, node_qhut, demand_idx, demname);
+    error = EN_getdemandname(ph, node_qhut, demand_key, demname);
     BOOST_REQUIRE(error == 253);
     BOOST_CHECK(check_string(demname, "\0"));
 
-    error = EN_setbasedemand(ph, node_qhut, demand_idx, 100.0);
-    BOOST_REQUIRE(error == 0);
+
+//    error = EN_setbasedemand(ph, node_qhut, demand_key, 100.0);
+//    BOOST_REQUIRE(error == 0);
 
     // only one demand category
-    pattern_idx = 1;
-    error = EN_setdemandpattern(ph, node_qhut, demand_idx, pattern_idx);
-    BOOST_REQUIRE(error == 205);
+//    pattern_idx = 1;
+//    error = EN_setdemandpattern(ph, node_qhut, demand_key, pattern_idx);
+//    BOOST_REQUIRE(error == 205);
 
     // create pattern
     error = EN_addpattern(ph, (char *)"Pat2");
@@ -237,21 +238,21 @@ BOOST_FIXTURE_TEST_CASE(test_single_node, FixtureSingleNode)
     error = EN_getpatternindex(ph, (char *)"Pat2", &pattern_idx);
     BOOST_REQUIRE(error == 0);
 
-    error = EN_setdemandpattern(ph, node_qhut, demand_idx, pattern_idx);
-    BOOST_REQUIRE(error == 0);
+//    error = EN_setdemandpattern(ph, node_qhut, demand_key, pattern_idx);
+//    BOOST_REQUIRE(error == 0);
 
-    error = EN_setdemandname(ph, node_qhut, demand_idx, (char *)"CUB_SCOUT_MESS_HALL");
-    BOOST_REQUIRE(error == 0);
+//    error = EN_setdemandname(ph, node_qhut, demand_key, (char *)"CUB_SCOUT_MESS_HALL");
+//    BOOST_REQUIRE(error == 0);
 
 }
 
 
 BOOST_FIXTURE_TEST_CASE(test_pattern_edits, FixtureSingleNode)
 {
-    int n, node_cpoint, pat2_idx, pat3_idx;
+    int n, node_cpoint, key, pat2_idx, pat3_idx;
+	double pat_idx;
 
     EN_addnode(ph, (char *)"CUB_SCOUT_CHECKPOINT", EN_JUNCTION, &node_cpoint);
-    //EN_getnodeindex(ph, (char *)"CUB_SCOUT_CHECKPOINT", &node_cpoint);
 
     // Add 2 new patterns
     error = EN_addpattern(ph, (char *)"DefPat");
@@ -273,9 +274,9 @@ BOOST_FIXTURE_TEST_CASE(test_pattern_edits, FixtureSingleNode)
     error = EN_setpattern(ph, pat3_idx, f3, 4);
     BOOST_REQUIRE(error == 0);
 
-    // Assign Pat3 to 3rd junction
-    error = EN_setdemandpattern(ph, node_cpoint, 1, pat3_idx);
-    BOOST_REQUIRE(error == 0);
+	// Assign Pat3 to 3rd junction
+	error = EN_adddemand(ph, node_cpoint, 1.0, (char *)"Pat3", NULL, &key);
+	BOOST_REQUIRE(error == 0);
 
     // Delete Pat2
     error = EN_deletepattern(ph, pat2_idx);
@@ -287,9 +288,9 @@ BOOST_FIXTURE_TEST_CASE(test_pattern_edits, FixtureSingleNode)
     BOOST_CHECK(n == 2);
 
     // Check that Pat3 with 4 factors is still assigned to 3rd junction
-    error = EN_getdemandpattern(ph, node_cpoint, 1, &pat3_idx);
+    error = EN_getnodevalue(ph, node_cpoint, EN_PATTERN, &pat_idx);
     BOOST_REQUIRE(error == 0);
-    error = EN_getpatternlen(ph, pat3_idx, &n);
+    error = EN_getpatternlen(ph, (int)pat_idx, &n);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(n == 4);
 }

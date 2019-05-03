@@ -1,14 +1,14 @@
 /*
- ******************************************************************************
- Project:      OWA EPANET
- Version:      2.2
- Module:       test_project.cpp
- Description:  Tests EPANET toolkit api functions
- Authors:      see AUTHORS
- Copyright:    see AUTHORS
- License:      see LICENSE
- Last Updated: 03/21/2019
- ******************************************************************************
+******************************************************************************
+Project:      OWA EPANET
+Version:      2.2
+Module:       test_project.cpp
+Description:  Tests EPANET toolkit api functions
+Authors:      see AUTHORS
+Copyright:    see AUTHORS
+License:      see LICENSE
+Last Updated: 03/21/2019
+******************************************************************************
 */
 
 #include <string.h>
@@ -39,9 +39,9 @@ BOOST_AUTO_TEST_CASE (test_create_delete)
 
 BOOST_AUTO_TEST_CASE (test_open_close)
 {
-	int error;
+    int error;
 
-	EN_Project ph = NULL;
+    EN_Project ph = NULL;
 
     EN_createproject(&ph);
 
@@ -56,25 +56,25 @@ BOOST_AUTO_TEST_CASE (test_open_close)
 
 BOOST_AUTO_TEST_CASE(test_init_close)
 {
-	EN_Project ph = NULL;
-	EN_createproject(&ph);
+    EN_Project ph = NULL;
+    EN_createproject(&ph);
 
-	int error = EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_GPM, EN_HW);
-	BOOST_REQUIRE(error == 0);
+    int error = EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_GPM, EN_HW);
+    BOOST_REQUIRE(error == 0);
 
-	error = EN_close(ph);
-	BOOST_REQUIRE(error == 0);
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
 
-	EN_deleteproject(&ph);
+    EN_deleteproject(&ph);
 }
 
 BOOST_AUTO_TEST_CASE(test_save)
 {
     int error;
 
-	EN_Project ph_save;
+    EN_Project ph_save;
 
-	EN_createproject(&ph_save);
+    EN_createproject(&ph_save);
     error = EN_open(ph_save, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
     BOOST_REQUIRE(error == 0);
 
@@ -95,17 +95,17 @@ BOOST_AUTO_TEST_CASE(test_reopen, * boost::unit_test::depends_on("test_project/t
     EN_Project ph_reopen;
 
     EN_createproject(&ph_reopen);
-	error = EN_open(ph_reopen, "test_reopen.inp", DATA_PATH_RPT, DATA_PATH_OUT);
+    error = EN_open(ph_reopen, "test_reopen.inp", DATA_PATH_RPT, DATA_PATH_OUT);
     BOOST_REQUIRE(error == 0);
 
     error = EN_close(ph_reopen);
     BOOST_REQUIRE(error == 0);
-	EN_deleteproject(&ph_reopen);
+    EN_deleteproject(&ph_reopen);
 }
 
 BOOST_AUTO_TEST_CASE(test_run)
 {
-	int error;
+    int error;
 
     EN_Project ph;
 
@@ -140,15 +140,14 @@ BOOST_FIXTURE_TEST_CASE(test_title, FixtureOpenClose)
         std::string test (c_test[i]);
         BOOST_CHECK(check_string(test, ref[i]));
     }
-
-   // Need a test for EN_settitle
+    // Need a test for EN_settitle
 }
 
 BOOST_FIXTURE_TEST_CASE(test_getcount, FixtureOpenClose)
 {
     int i;
 
-	std::vector<int> test(7);
+    std::vector<int> test(7);
     int *array = test.data();
 
     std::vector<int> ref = { 11, 2, 13, 1, 1, 2, 0 };
@@ -160,42 +159,37 @@ BOOST_FIXTURE_TEST_CASE(test_getcount, FixtureOpenClose)
 
     BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
 
-	error = EN_getcount(ph, 7, &i);
-	BOOST_CHECK(error == 251);
+    error = EN_getcount(ph, 7, &i);
+    BOOST_CHECK(error == 251);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_setdemandpattern, FixtureOpenClose)
 {
-    int i, j, pat_index, pat_index_2, numDemands, nnodes;
-	char newpat[] = "new_pattern";
+    int i, pat_index, nnodes;
+    char newpat[] = "new_pattern";
+	double pat_index_2;
 
-	// get the number of nodes
+    // get the number of nodes
     error = EN_getcount(ph, EN_NODECOUNT, &nnodes);
     BOOST_REQUIRE(error == 0);
 
-	// add a new pattern
+    // add a new pattern
     error = EN_addpattern(ph, newpat);
-	BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(error == 0);
 
-	// get the new patterns index, should be as the number of patterns
+    // get the new patterns index, should be as the number of patterns
     error = EN_getpatternindex(ph, newpat, &pat_index);
-	BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(error == 0);
 
-	for (i = 1; i <= nnodes; i++) {
-		// get the number of demand categories
-		error = EN_getnumdemands(ph, i, &numDemands);
-		BOOST_REQUIRE(error == 0);
+    for (i = 1; i <= nnodes; i++) {
+        // Demands loaded from input file so only have access to primary demands
+        error = EN_setnodevalue(ph, i, EN_PATTERN, (double)pat_index);
+        BOOST_REQUIRE(error == 0);
 
-		for (j = 1; j <= numDemands; j++) {
-			// set demand patterns
-			error = EN_setdemandpattern(ph, i, j, pat_index);
-			BOOST_REQUIRE(error == 0);
-			// get demand patterns should be the same with set
-			error = EN_getdemandpattern(ph, i, j, &pat_index_2);
-			BOOST_REQUIRE(error == 0);
-			BOOST_CHECK(pat_index == pat_index_2);
-		}
-	}
+        error = EN_getnodevalue(ph, i, EN_PATTERN, &pat_index_2);
+        BOOST_REQUIRE(error == 0);
+        BOOST_CHECK(pat_index == (int)pat_index_2);
+    }
 }
 
 BOOST_FIXTURE_TEST_CASE(test_addpattern, FixtureOpenClose)

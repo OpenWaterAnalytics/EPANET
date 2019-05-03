@@ -81,7 +81,6 @@ int juncdata(Project *pr)
     Parser  *parser = &pr->parser;
     Hydraul *hyd = &pr->hydraul;
 
-    int key;
     int p = 0;                  // time pattern index
     int n;                      // number of tokens
     int njuncs;                 // number of network junction nodes

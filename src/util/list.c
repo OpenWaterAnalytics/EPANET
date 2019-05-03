@@ -61,14 +61,14 @@ list_t *create_list(size_t elementSize, freeFunction freeFn)
 
 void delete_list(list_t *list)
 {
-    list_node_t *current;
-
-    while(list->head != NULL) {
-        current = list->head;
-        list->head = current->next;
-        delete_node(list, current);
+    if (list) {
+        while(list->head != NULL) {
+            list_node_t *current = list->head;
+            list->head = current->next;
+            delete_node(list, current);
+        }
+        free(list);
     }
-    free(list);
 }
 
 int prepend_list(list_t *list, void *element)
@@ -150,17 +150,17 @@ list_node_t *tail_list(list_t *list)
     return list->tail;
 }
 
-list_node_t *get_nth_list(list_t *list, int index)
-{
-    int n;
-    list_node_t *lnode;
-
-    for (n = 1, lnode = first_list(list); n < index && done_list(lnode); n++, lnode = next_list(lnode));
-    if (n != index)
-        return NULL;
-    else
-        return lnode;
-}
+// list_node_t *get_nth_list(list_t *list, int index)
+// {
+//     int n;
+//     list_node_t *lnode;
+//
+//     for (n = 1, lnode = first_list(list); n < index && done_list(lnode); n++, lnode = next_list(lnode));
+//     if (n != index)
+//         return NULL;
+//     else
+//         return lnode;
+// }
 
 list_node_t *search_list(list_t *list, int key)
 // Naive list search. Will not perform for large lists.

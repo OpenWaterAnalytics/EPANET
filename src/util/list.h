@@ -107,7 +107,7 @@ list_node_t *tail_list(list_t *list);
 /**
 @brief Returns nth node of the list or NULL.
 */
-list_node_t *get_nth_list(list_t *list, int index);
+//list_node_t *get_nth_list(list_t *list, int index);
 
 /**
 @brief Returns the list node with the given key or NULL.

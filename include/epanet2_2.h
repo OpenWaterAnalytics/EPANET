@@ -968,8 +968,8 @@ typedef struct Project *EN_Project;
   @param baseDemand the new base demand for the category.
   @return an error code.
   */
-  int  DLLEXPORT EN_setbasedemand(EN_Project ph, int nodeIndex, int demandIndex,
-                 double baseDemand);
+//  int  DLLEXPORT EN_setbasedemand(EN_Project ph, int nodeIndex, int demandIndex,
+//                 double baseDemand);
 
   /**
   @brief Retrieves the index of a time pattern assigned to one of a node's demand categories.
@@ -996,7 +996,7 @@ typedef struct Project *EN_Project;
   Specifying a pattern index of 0 indicates that no time pattern is assigned to the
   demand category.
   */
-  int  DLLEXPORT EN_setdemandpattern(EN_Project ph, int nodeIndex, int demandIndex, int patIndex);
+//  int  DLLEXPORT EN_setdemandpattern(EN_Project ph, int nodeIndex, int demandIndex, int patIndex);
 
   /**
   @brief Retrieves the name of a node's demand category.
@@ -1020,7 +1020,7 @@ typedef struct Project *EN_Project;
 
   The category name must contain no more than @ref EN_MAXID characters.
   */
-  int DLLEXPORT EN_setdemandname(EN_Project ph, int nodeIndex, int demandIdx, char *demandName);
+//  int DLLEXPORT EN_setdemandname(EN_Project ph, int nodeIndex, int demandIdx, char *demandName);
 
   /********************************************************************
 
