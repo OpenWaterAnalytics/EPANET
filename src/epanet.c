@@ -1867,16 +1867,15 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
     // Can't delete a water quality trace node
     if (index == p->quality.TraceNode) return 260;
 
-    // Count number of simple & rule-based controls that contain the node
+    // Do not delete a node contained in a control or is connected to a link
     if (actionCode == EN_CONDITIONAL)
     {
-        actionCode = incontrols(p, NODE, index);
+        if (incontrols(p, NODE, index)) return 261;
         for (i = 1; i <= net->Nlinks; i++)
         {
             if (net->Link[i].N1 == index ||
-                net->Link[i].N2 == index)  actionCode += incontrols(p, LINK, i);
+                net->Link[i].N2 == index)  return 259;
         }
-        if (actionCode > 0) return 261;
     }
 
     // Get a reference to the node & its type
