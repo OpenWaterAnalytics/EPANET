@@ -110,6 +110,10 @@ void initrules(Project *pr)
 //--------------------------------------------------------------
 {
     pr->rules.RuleState = r_PRIORITY;
+    pr->rules.LastPremise = NULL;
+    pr->rules.LastThenAction = NULL;
+    pr->rules.LastElseAction = NULL;
+    pr->rules.ActionList = NULL;
     pr->network.Rule = NULL;
 }
 
@@ -169,8 +173,14 @@ void freerules(Project *pr)
 //--------------------------------------------------------------
 {
     int i;
+ 
+    // Already freed
+    if (pr->network.Rule == NULL)
+        return;
+
     for (i = 1; i <= pr->network.Nrules; i++) clearrule(pr, i);
     free(pr->network.Rule);
+    pr->network.Rule = NULL;
 }
 
 int ruledata(Project *pr)
@@ -199,6 +209,12 @@ int ruledata(Project *pr)
           break;
 
         case r_RULE:
+          // Missing the rule label
+          if (parser->Ntokens != 2)
+          {
+              err = 201;
+              break;
+          }
           net->Nrules++;
           newrule(pr);
           rules->RuleState = r_RULE;
@@ -302,24 +318,24 @@ void ruleerrmsg(Project *pr)
     // Get label of rule being parsed
     if (net->Nrules > 0)
     {
-        strcpy(label, t_RULE);
-        strcat(label, " ");
-        strcat(label, net->Rule[net->Nrules].label);
+        strncpy(label, t_RULE, MAXMSG);
+        strncat(label, " ", MAXMSG);
+        strncat(label, net->Rule[net->Nrules].label, MAXMSG);
     }
-    else strcpy(label, t_RULES_SECT);
+    else strncpy(label, t_RULES_SECT, MAXMSG);
 
     // Write rule label and error message to status report
-    sprintf(pr->Msg, "%s", msg);
-    strcat(pr->Msg, label);
-    strcat(pr->Msg, ":");
+    snprintf(pr->Msg, MAXMSG, "%s", msg);
+    strncat(pr->Msg, label, MAXMSG);
+    strncat(pr->Msg, ":", MAXMSG);
     writeline(pr, pr->Msg);
 
     // Write text of rule clause being parsed to status report
     strcpy(msg, Tok[0]);
     for (i = 1; i < parser->Ntokens; i++)
     {
-        strcat(msg, " ");
-        strcat(msg, Tok[i]);
+        strncat(msg, " ", MAXLINE);
+        strncat(msg, Tok[i], MAXLINE);
     }
     writeline(pr, msg);
 }
