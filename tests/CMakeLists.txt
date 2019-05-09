@@ -23,16 +23,6 @@ add_test(NAME test_net_builder
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
 
 
-add_executable(test_demand_data test_demand_data.cpp
-                                ../src/demand.c
-                                ../src/util/list.c)
-target_include_directories(test_demand_data PUBLIC ../src/ ../src/util/)
-target_link_libraries(test_demand_data ${Boost_LIBRARIES} epanet2)
-add_test(NAME test_demand_data
-    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_demand_data
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
-
-
 set(toolkit_test_srcs
      test_toolkit.cpp
      test_project.cpp
@@ -81,6 +71,3 @@ add_test(NAME test_filemanager
 add_test(NAME test_output
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_output
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/outfile/data)
-
-add_test(NAME test_list
-    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_list)

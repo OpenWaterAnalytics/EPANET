@@ -5,6 +5,7 @@ EXPORTS
     ENaddcurve                    = _ENaddcurve@4                     
     ENaddlink                     = _ENaddlink@20
     ENaddnode                     = _ENaddnode@12
+    ENadddemand                   = _ENadddemand@16
     ENaddpattern                  = _ENaddpattern@4
     ENaddrule                     = _ENaddrule@4
     ENclearreport                 = _ENclearreport@0
@@ -14,6 +15,7 @@ EXPORTS
     ENcopyreport                  = _ENcopyreport@4
     ENdeletecontrol               = _ENdeletecontrol@4
     ENdeletecurve                 = _ENdeletecurve@4
+    ENdeletedemand                = _ENdeletedemand@8
     ENdeletelink                  = _ENdeletelink@8
     ENdeletenode                  = _ENdeletenode@8
     ENdeletepattern               = _ENdeletepattern@4
@@ -30,7 +32,8 @@ EXPORTS
     ENgetcurveindex               = _ENgetcurveindex@8                
     ENgetcurvelen                 = _ENgetcurvelen@8                  
     ENgetcurvetype                = _ENgetcurvetype@8
-    ENgetcurvevalue               = _ENgetcurvevalue@16               
+    ENgetcurvevalue               = _ENgetcurvevalue@16 
+    ENgetdemandindex              = _ENgetdemandindex@12
     ENgetdemandmodel              = _ENgetdemandmodel@16
     ENgetdemandname               = _ENgetdemandname@12
     ENgetdemandpattern            = _ENgetdemandpattern@12

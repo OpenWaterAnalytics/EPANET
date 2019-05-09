@@ -312,6 +312,9 @@ Public Const EN_R_IS_ACTIVE = 3
 'Nodal Demand Functions
  Declare Function ENgetdemandmodel Lib "epanet2.dll" (type_ As Int32, pmin As Single, preq As Single, pexp As Single) As Int32
  Declare Function ENsetdemandmodel Lib "epanet2.dll" (ByVal type_ As Int32, ByVal pmin As Single, ByVal preq As Single, ByVal pexp As Single) As Int32
+ Declare Function ENadddemand Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal baseDemand As Single, ByVal patternName As String, ByVal demandName As String) As Int32
+ Declare Function ENdeletedemand Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32) As Int32
+ Declare Function ENgetdemandindex Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandName As String, demandIndex As Int32) As Int32
  Declare Function ENgetnumdemands Lib "epanet2.dll" (ByVal nodeIndex As Int32, numDemands As Int32) As Int32
  Declare Function ENgetbasedemand Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32, value As Single) As Int32
  Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal nodeIndex As Int32, ByVal demandIndex As Int32, ByVal BaseDemand As Single) As Int32

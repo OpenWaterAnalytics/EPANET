@@ -37,6 +37,10 @@ int     findpump(Network *, int);
 int     findpattern(Network *, char *);
 int     findcurve(Network *, char *);
 
+Pdemand finddemand(Pdemand, int);
+int     adddemand(Snode *, double, int, char *);
+void    freedemands(Snode *);
+
 void    adjustpatterns(Network *, int);
 void    adjustcurves(Network *, int);
 int     resizecurve(Scurve *, int);
