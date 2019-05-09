@@ -960,12 +960,13 @@ typedef struct Project *EN_Project;
 
   /**
   @brief Retrieves the index of a node's named demand category
+  @param ph an EPANET project handle.
   @param nodeIndex the index of a node (starting from 1)
   @param demandName the name of a demand category for the node
   @param[out] demandIndex the index of the demand being sought
   @return an error code
   */
-  int DLLEXPORT EN_getdemandindex(EN_Project p, int nodeIndex, char *demandName,
+  int DLLEXPORT EN_getdemandindex(EN_Project ph, int nodeIndex, char *demandName,
                 int *demandIndex);
 
   /**

@@ -379,6 +379,7 @@ When the Toolkit function @ref EN_solveH is used to make a hydraulic analysis, r
 | 254  | Function call refers to node with no coordinates |
 | 257  | Function call refers to nonexistent rule |
 | 258  | Function call refers to nonexistent rule clause |
+| 259  | Function call attempts to delete a node that still has links connected to it |
 | 260  | Function call attempts to delete node assigned as a Trace Node |
 | 261  | Function call attempts to delete a node or link contained in a control |
 | 262  | Function call attempts to modify network structure while a solver is open |
