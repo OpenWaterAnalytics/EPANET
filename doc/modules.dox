@@ -162,6 +162,9 @@ These are symbolic constants used as function arguments.
 @{
 @fn int EN_getdemandmodel(EN_Project ph, int *type, double *pmin, double *preq, double *pexp)
 @fn int EN_setdemandmodel(EN_Project ph, int type, double pmin, double preq, double pexp)
+@fn int EN_adddemand(EN_Project ph, int nodeIndex, double baseDemand, char *demandPattern, char *demandName)
+@fn int EN_deletedemand(EN_Project ph, int nodeIndex, int demandIndex)
+@fn int EN_getdemandindex(EN_Project p, int nodeIndex, char *demandName, int *demandIndex)
 @fn int EN_getnumdemands(EN_Project ph, int nodeIndex, int *numDemands)
 @fn int EN_getbasedemand(EN_Project ph, int nodeIndex, int demandIndex, double *baseDemand)
 @fn int EN_setbasedemand(EN_Project ph, int nodeIndex, int demandIndex, double baseDemand)
