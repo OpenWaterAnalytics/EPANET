@@ -26,6 +26,10 @@
 #include "hash.h"
 #include "text.h"
 
+#ifdef _WIN32
+#define snprintf _snprintf
+#endif
+
 enum Rulewords {
   r_RULE,
   r_IF,

@@ -853,13 +853,6 @@ typedef struct Project *EN_Project;
   int  DLLEXPORT EN_setjuncdata(EN_Project ph, int index, double elev, double dmnd,
       char *dmndpat);
 
-
-  int DLLEXPORT EN_adddemand(EN_Project p, int node_index, double demand,
-      char *demand_pattern, const char *category_name, int *demand_index);
-
-  int DLLEXPORT EN_removedemand(EN_Project p, int node_index, int demand_index);
-
-
   /**
   @brief Sets a group of properties for a tank node.
   @param ph an EPANET project handle.
@@ -939,6 +932,42 @@ typedef struct Project *EN_Project;
   */
   int DLLEXPORT EN_setdemandmodel(EN_Project ph, int type, double pmin,
                 double preq, double pexp);
+
+
+  /**
+  @brief appends a new demand to a junction node demands list.
+  @param ph an EPANET project handle.
+  @param nodeIndex the index of a node (starting from 1).
+  @param baseDemand the demand's base value.
+  @param demandPattern the name of a time pattern used by the demand
+  @param demandName the name of the demand's category
+  @return an error code.
+
+  A NULL or blank string can be used for `demandPattern` and for `demandName` to indicate
+  that no time pattern or category name is associated with the demand.
+  */
+  int DLLEXPORT EN_adddemand(EN_Project ph, int nodeIndex, double baseDemand,
+                char *demandPattern, char *demandName);
+
+  /**
+  @brief deletes a demand from a junction node.
+  @param ph an EPANET project handle.
+  @param nodeIndex the index of a node (starting from 1).
+  @param demandIndex the position of the demand in the node's demands list (starting from 1).
+  @return an error code.
+  */
+  int DLLEXPORT EN_deletedemand(EN_Project ph, int nodeIndex, int demandIndex);
+
+  /**
+  @brief Retrieves the index of a node's named demand category
+  @param ph an EPANET project handle.
+  @param nodeIndex the index of a node (starting from 1)
+  @param demandName the name of a demand category for the node
+  @param[out] demandIndex the index of the demand being sought
+  @return an error code
+  */
+  int DLLEXPORT EN_getdemandindex(EN_Project ph, int nodeIndex, char *demandName,
+                int *demandIndex);
 
   /**
   @brief Retrieves the number of demand categories for a junction node.

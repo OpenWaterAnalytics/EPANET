@@ -16,9 +16,7 @@
 
 #include <stdio.h>
 
-
 #include "hash.h"
-#include "util/list.h"
 
 /*
 -------------------------------------------
@@ -339,14 +337,14 @@ typedef struct             // Curve Object
   double    *Y;            // y-values
 } Scurve;
 
-//struct Sdemand             // Demand List Item
-//{
-//  double Base;             // baseline demand
-//  int    Pat;              // pattern index
-//  char   *Name;            // demand category name
-//  struct Sdemand *next;    // next demand list item
-//};
-//typedef struct Sdemand *Pdemand; // Pointer to demand list
+struct Sdemand             // Demand List Item
+{
+  double Base;             // baseline demand
+  int    Pat;              // pattern index
+  char   *Name;            // demand category name
+  struct Sdemand *next;    // next demand list item
+};
+typedef struct Sdemand *Pdemand; // Pointer to demand list
 
 typedef struct             // Energy Usage Object
 {
@@ -373,8 +371,7 @@ typedef struct             // Node Object
   double   X;              // x-coordinate
   double   Y;              // y-coordinate
   double   El;             // elevation
-//  Pdemand  D;              // demand pointer
-  list_t   *D;             // pointer to demand list
+  Pdemand  D;              // demand pointer
   Psource  S;              // source pointer
   double   C0;             // initial quality
   double   Ke;             // emitter coeff.

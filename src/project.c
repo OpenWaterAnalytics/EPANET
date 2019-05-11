@@ -29,7 +29,6 @@
 #include "types.h"
 #include "funcs.h"
 
-#include "demand.h"
 
 int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
 /*----------------------------------------------------------------
@@ -387,7 +386,6 @@ void freedata(Project *pr)
 */
 {
     int j;
-    //Pdemand demand, nextdemand;
 
     // Free memory for computed results
     free(pr->hydraul.NodeDemand);
@@ -405,12 +403,8 @@ void freedata(Project *pr)
     {
         for (j = 1; j <= pr->parser.MaxNodes; j++)
         {
-            // Free memory used for demand category list
-			list_t *demand = pr->network.Node[j].D;
-			if(demand)
-				delete_list(demand);
-
-            // Free memory used for WQ source data
+            // Free memory used for demands and WQ source data
+            freedemands(&(pr->network.Node[j]));
             free(pr->network.Node[j].S);
             free(pr->network.Node[j].Comment);
         }
@@ -471,6 +465,83 @@ void freedata(Project *pr)
     }
 }
 
+Pdemand finddemand(Pdemand d, int index)
+/*----------------------------------------------------------------
+**  Input:   d = pointer to start of a list of demands
+**           index = the position of the demand to retrieve
+**  Output:  none
+**  Returns: the demand at the requested position
+**  Purpose: finds the demand at a given position in a demand list
+**----------------------------------------------------------------
+*/
+{
+    int n = 1;
+    if (index <= 0)return NULL;
+    while (d)
+    {
+        if (n == index) break;
+        n++;
+        d = d->next;
+    }
+    return d;
+}
+
+int adddemand(Snode *node, double dbase, int dpat, char *dname)
+/*----------------------------------------------------------------
+**  Input:   node = a network junction node
+**           dbase = base demand value
+**           dpat = demand pattern index
+**           dname = name of demand category
+**  Output:  returns TRUE if successful, FALSE if not
+**  Purpose: adds a new demand category to a node.
+**----------------------------------------------------------------
+*/
+{
+    Pdemand demand, lastdemand;
+
+    // Create a new demand struct
+    demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
+    if (demand == NULL) return FALSE;
+
+    // Assign it the designated properties
+    demand->Base = dbase;
+    demand->Pat = dpat;
+    demand->Name = NULL;
+    if (dname && strlen(dname) > 0) xstrcpy(&demand->Name, dname, MAXID);
+    demand->next = NULL;
+
+    // If node has no demands make this its first demand category
+    if (node->D == NULL) node->D = demand;
+
+    // Otherwise append this demand to the end of the node's demands list
+    else
+    {
+        lastdemand = node->D;
+        while (lastdemand->next) lastdemand = lastdemand->next;
+        lastdemand->next = demand;
+    }
+    return TRUE;
+}
+
+void freedemands(Snode *node)
+/*----------------------------------------------------------------
+**  Input:   node = a network junction node
+**  Output:  node
+**  Purpose: frees the memory used for a node's list of demands.
+**----------------------------------------------------------------
+*/
+{
+    Pdemand nextdemand;
+    Pdemand demand = node->D;
+    while (demand != NULL)
+    {
+        nextdemand = demand->next;
+        free(demand->Name);
+        free(demand);
+        demand = nextdemand;
+    }
+    node->D = NULL;
+}
 
 int  buildadjlists(Network *net)
 /*
@@ -790,16 +861,6 @@ void adjustpattern(int *pat, int index)
 	else if (*pat > index) (*pat)--;
 }
 
-
-void adjust_demand_pattern(list_node_t *list_node, int deletion_index)
-{
-	int pat_idx = get_pattern_index(list_node);
-
-	if (pat_idx == deletion_index) set_pattern_index(list_node, 0);
-	else if (pat_idx > deletion_index) set_pattern_index(list_node, --pat_idx);
-}
-
-
 void adjustpatterns(Network *network, int index)
 /*----------------------------------------------------------------
 **  Input:   index = index of time pattern being deleted
@@ -809,17 +870,16 @@ void adjustpatterns(Network *network, int index)
 */
 {
     int j;
-    //Pdemand demand;
+    Pdemand demand;
     Psource source;
 
     // Adjust patterns used by junctions
     for (j = 1; j <= network->Nnodes; j++)
     {
         // Adjust demand patterns
-        list_t *dlist = network->Node[j].D;
-        if (dlist) {
-            for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
-                adjust_demand_pattern(lnode, index);
+        for (demand = network->Node[j].D; demand != NULL; demand = demand->next)
+        {
+            adjustpattern(&demand->Pat, index);
         }
         // Adjust WQ source patterns
         source = network->Node[j].S;

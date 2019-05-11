@@ -162,6 +162,9 @@ These are symbolic constants used as function arguments.
 @{
 @fn int EN_getdemandmodel(EN_Project ph, int *type, double *pmin, double *preq, double *pexp)
 @fn int EN_setdemandmodel(EN_Project ph, int type, double pmin, double preq, double pexp)
+@fn int EN_adddemand(EN_Project ph, int nodeIndex, double baseDemand, char *demandPattern, char *demandName)
+@fn int EN_deletedemand(EN_Project ph, int nodeIndex, int demandIndex)
+@fn int EN_getdemandindex(EN_Project p, int nodeIndex, char *demandName, int *demandIndex)
 @fn int EN_getnumdemands(EN_Project ph, int nodeIndex, int *numDemands)
 @fn int EN_getbasedemand(EN_Project ph, int nodeIndex, int demandIndex, double *baseDemand)
 @fn int EN_setbasedemand(EN_Project ph, int nodeIndex, int demandIndex, double baseDemand)
@@ -376,6 +379,7 @@ When the Toolkit function @ref EN_solveH is used to make a hydraulic analysis, r
 | 254  | Function call refers to node with no coordinates |
 | 257  | Function call refers to nonexistent rule |
 | 258  | Function call refers to nonexistent rule clause |
+| 259  | Function call attempts to delete a node that still has links connected to it |
 | 260  | Function call attempts to delete node assigned as a Trace Node |
 | 261  | Function call attempts to delete a node or link contained in a control |
 | 262  | Function call attempts to modify network structure while a solver is open |

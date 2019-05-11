@@ -20,10 +20,7 @@ Last Updated: 04/03/2019
 #endif
 #include <stdio.h>
 #include <string.h>
-
 #include <math.h>
-
-#include "demand.h"
 
 #include "types.h"
 #include "funcs.h"
@@ -222,9 +219,9 @@ void adjustdata(Project *pr)
 
     int i;
     double ucf;     // Unit conversion factor
-    //Pdemand demand; // Pointer to demand record
+    Pdemand demand; // Pointer to demand record
     Slink *link;
-    //Snode *node;
+    Snode *node;
     Stank *tank;
 
     // Use 1 hr pattern & report time step if none specified
@@ -334,14 +331,14 @@ void adjustdata(Project *pr)
  
 	// Use default pattern if none assigned to a demand
 	parser->DefPat = findpattern(net, parser->DefPatID);
-	if (parser->DefPat > 0) {
-		for (i = 1; i <= net->Nnodes; i++) {
-			for (list_node_t *lnode = first_list((&net->Node[i])->D); done_list(lnode); lnode = next_list(lnode)) {
-				if (get_pattern_index(lnode) == 0)
-					set_pattern_index(lnode, parser->DefPat);
-			}
-		}
-	}
+	if (parser->DefPat > 0) for (i = 1; i <= net->Nnodes; i++)
+    {
+        node = &net->Node[i];
+        for (demand = node->D; demand != NULL; demand = demand->next)
+        {
+            if (demand->Pat == 0) demand->Pat = parser->DefPat;
+        }
+    }
 
     // Remove QUALITY as a reporting variable if no WQ analysis
     if (qual->Qualflag == NONE) rpt->Field[QUALITY].Enabled = FALSE;
@@ -544,7 +541,7 @@ void convertunits(Project *pr)
 
     int i, j, k;
     double ucf;     // Unit conversion factor
-    //Pdemand demand; // Pointer to demand record
+    Pdemand demand; // Pointer to demand record
     Snode *node;
     Stank *tank;
     Slink *link;
@@ -564,15 +561,10 @@ void convertunits(Project *pr)
     for (i = 1; i <= net->Njuncs; i++)
     {
         node = &net->Node[i];
-		list_t *dlist = node->D;
-		if (dlist) {
-			for (list_node_t *lnode = first_list(dlist); done_list(lnode); lnode = next_list(lnode))
-				convert_units(lnode, pr->Ucf[DEMAND]);
-		}
-      //  for (demand = node->D; demand != NULL; demand = demand->next)
-      //  {
-      //      demand->Base /= pr->Ucf[DEMAND];
-      //  }
+        for (demand = node->D; demand != NULL; demand = demand->next)
+        {
+            demand->Base /= pr->Ucf[DEMAND];
+        }
     }
 
     hyd->Pmin /= pr->Ucf[PRESSURE];
