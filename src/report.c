@@ -1142,6 +1142,7 @@ int writehydwarn(Project *pr, int iter, double relerr)
     {
         disconnected(pr);
         pr->Warnflag = flag;
+        if (rpt->Messageflag) writeline(pr, " ");
     }
     return flag;
 }
