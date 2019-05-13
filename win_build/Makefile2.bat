@@ -21,7 +21,7 @@ rem : 64 bit
 MKDIR "%COMPILE_PATH_WIN64TMP%"
 CD "%COMPILE_PATH_WIN64TMP%"
 MKDIR "%COMPILE_PATH_WIN64%"
-%CMAKE_PATH% -G "%GENERATOR% Win64" ../../../
+%CMAKE_PATH% -G "%GENERATOR% Win64" ../../
 rem : %CMAKE_PATH% --build . --config Debug
 %CMAKE_PATH% --build . --config Release
 
@@ -33,7 +33,7 @@ rem : 32 bit
 MKDIR "%COMPILE_PATH_WIN32TMP%"
 CD "%COMPILE_PATH_WIN32TMP%"
 MKDIR "%COMPILE_PATH_WIN32%"
-%CMAKE_PATH% -G "%GENERATOR%" ../../../
+%CMAKE_PATH% -G "%GENERATOR%" ../../
 rem : %CMAKE_PATH% --build . --config Debug
 %CMAKE_PATH% --build . --config Release
 
