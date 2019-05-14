@@ -7,20 +7,13 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 05/15/2019
  ******************************************************************************
 */
 
-#ifdef _DEBUG
-  #define _CRTDBG_MAP_ALLOC
-  #include <stdlib.h>
-  #include <crtdbg.h>
-#else
-  #include <stdlib.h>
-#endif
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <math.h>
 
 #include "types.h"
@@ -532,18 +525,18 @@ double demandflowchange(Project *pr, int i, double dp, double n)
 
 void demandheadloss(double d, double dfull, double dp, double n,
                     double *hloss, double *hgrad)
-    /*
-    **--------------------------------------------------------------
-    **   Input:   d     = actual junction demand (cfs)
-    **            dfull = full junction demand required (cfs)
-    **            dp    = pressure range for demand function (ft)
-    **            n     = exponent in head v. demand function
-    **   Output:  hloss = head loss delivering demand d (ft)
-    **            hgrad = gradient of head loss (ft/cfs)
-    **  Purpose:  computes head loss and its gradient for delivering
-    **            a pressure dependent demand flow.
-    **--------------------------------------------------------------
-    */
+/*
+**--------------------------------------------------------------
+**   Input:   d     = actual junction demand (cfs)
+**            dfull = full junction demand required (cfs)
+**            dp    = pressure range for demand function (ft)
+**            n     = exponent in head v. demand function
+**   Output:  hloss = head loss delivering demand d (ft)
+**            hgrad = gradient of head loss (ft/cfs)
+**  Purpose:  computes head loss and its gradient for delivering
+**            a pressure dependent demand flow.
+**--------------------------------------------------------------
+*/
 {
     const double RB = 1.0e9;
     const double EPS = 0.001;

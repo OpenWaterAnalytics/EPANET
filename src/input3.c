@@ -7,17 +7,11 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 04/03/2019
+Last Updated: 05/15/2019
 ******************************************************************************
 */
 
-#ifdef _DEBUG
-  #define _CRTDBG_MAP_ALLOC
-  #include <stdlib.h>
-  #include <crtdbg.h>
-#else
-  #include <stdlib.h>
-#endif
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -703,7 +697,7 @@ int demanddata(Project *pr)
     int j, n, p = 0;
     double y;
 
-	Pdemand demand;
+    Pdemand demand;
 
     // Extract data from tokens
     n = parser->Ntokens;
@@ -866,7 +860,7 @@ int sourcedata(Project *pr)
 **  Purpose: processes water quality source data
 **  Formats:
 **     [SOURCE]
-**        node  sourcetype  quality  (pattern start stop)
+**        node  sourcetype  quality  (pattern)
 **
 **  NOTE: units of mass-based source are mass/min
 **--------------------------------------------------------------
@@ -934,7 +928,7 @@ int emitterdata(Project *pr)
 **  Purpose: processes junction emitter data
 **  Format:
 **     [EMITTER]
-**        node   K
+**        node   Ke
 **--------------------------------------------------------------
 */
 {
@@ -1674,7 +1668,7 @@ int optionchoice(Project *pr, int n)
 **    VERIFY              filename
 **    UNBALANCED          STOP/CONTINUE {Niter}
 **    PATTERN             id
-**    DEMAND MODEL        DDA/PDA/PPA
+**    DEMAND MODEL        DDA/PDA
 **--------------------------------------------------------------
 */
 {
@@ -1833,8 +1827,8 @@ int optionvalue(Project *pr, int n)
 **    TRIALS              value
 **    ACCURACY            value
 
-**    HEADLIMIT           value
-**    FLOWLIMIT           value
+**    HEADERROR           value
+**    FLOWCHANGE          value
 **    MINIMUM PRESSURE    value
 **    REQUIRED PRESSURE   value
 **    PRESSURE EXPONENT   value

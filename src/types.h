@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/03/2019
+ Last Updated: 05/15/2019
  ******************************************************************************
 */
 
@@ -675,7 +675,6 @@ typedef struct {
     *XLNZ,       // Start position of each column in NZSUB
     *NZSUB,      // Row index of each coeff. in each column
     *LNZ,        // Position of each coeff. in Aij array
-    *Degree,     // Number of links adjacent to each node
     *link,       // Array used by linear eqn. solver
     *first;      // Array used by linear eqn. solver
 

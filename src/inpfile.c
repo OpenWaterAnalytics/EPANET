@@ -7,27 +7,19 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 04/03/2019
+Last Updated: 05/15/2019
 ******************************************************************************
 */
 
-#ifdef _DEBUG
-  #define _CRTDBG_MAP_ALLOC
-  #include <stdlib.h>
-  #include <crtdbg.h>
-#else
-  #include <stdlib.h>
-#endif
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <math.h>
 
 #include "types.h"
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
-
 
 // Defined in enumstxt.h in EPANET.C
 extern char *LinkTxt[];

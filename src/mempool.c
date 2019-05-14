@@ -7,20 +7,14 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 05/15/2019
 
  This module is based code by Steve Hill in Graphics Gems III,
  David Kirk (ed.), Academic Press, Boston, MA, 1992
  ******************************************************************************
 */
 
-#ifdef _DEBUG
-  #define _CRTDBG_MAP_ALLOC
-  #include <stdlib.h>
-  #include <crtdbg.h>
-#else
-  #include <stdlib.h>
-#endif
+#include <stdlib.h>
 
 #include "mempool.h"
 

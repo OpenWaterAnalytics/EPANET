@@ -9,7 +9,7 @@ The OWA-EPANET Toolkit is an open-source version of the original EPANET Toolkit 
 - allowing multiple projects to be analyzed in parallel in a thread-safe manner
 - adding the ability to use pressure dependent demands in hydraulic analyses
 - producing more robust results with regard to hydraulic convergence, low/zero flow conditions, and water quality mass balance
-- achieving faster run times for hydraulic analyses.
+- achieving faster run times for single period hydraulic analyses.
 
 Before using the OWA-EPANET Toolkit one should be familiar with the way that EPANET represents a pipe network, the design and operating information it requires, and the steps it uses to simulate a network's behavior. The following topics provide some introductory material on these subjects:
 - @subpage DataModel "Network Data Model"
