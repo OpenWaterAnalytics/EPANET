@@ -50,9 +50,6 @@ int DLLEXPORT EN_createproject(EN_Project *p)
 {
     struct Project *project = (struct Project *)calloc(1, sizeof(struct Project));
     if (project == NULL) return -1;
-    //getTmpName(project->TmpHydFname);
-    //getTmpName(project->TmpOutFname);
-    //getTmpName(project->TmpStatFname);
     *p = project;
     return 0;
 }
