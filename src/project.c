@@ -56,7 +56,6 @@ int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
     else
     {
         pr->outfile.Outflag = SCRATCH;
-        strcpy(pr->outfile.OutFname, pr->TmpOutFname);
     }
 
     // Check that file names are not identical
@@ -68,11 +67,17 @@ int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
     {
         if ((pr->parser.InFile = fopen(f1, "rt")) == NULL) return 302;
     }
-    if (strlen(f2) == 0) pr->report.RptFile = stdout;
+    if (strlen(f2) == 0) {
+        pr->report.RptFile = tmpfile();
+    }
     else
     {
+      if (strcomp(f2, "stdout")) {
+        pr->report.RptFile = stdout;
+      } else {
         pr->report.RptFile = fopen(f2, "wt");
-        if (pr->report.RptFile == NULL) return 303;
+      }
+      if (pr->report.RptFile == NULL) return 303;
     }
     writelogo(pr);
     return 0;
@@ -112,8 +117,7 @@ int openhydfile(Project *pr)
     switch (pr->outfile.Hydflag)
     {
       case SCRATCH:
-        strcpy(pr->outfile.HydFname, pr->TmpHydFname);
-        pr->outfile.HydFile = fopen(pr->outfile.HydFname, "w+b");
+        pr->outfile.HydFile = tmpfile();
         break;
       case SAVE:
         pr->outfile.HydFile = fopen(pr->outfile.HydFname, "w+b");
@@ -194,7 +198,7 @@ int openoutfile(Project *pr)
     {
         if (pr->report.Tstatflag != SERIES)
         {
-            pr->outfile.TmpOutFile = fopen(pr->TmpStatFname, "w+b");
+          pr->outfile.TmpOutFile = tmpfile();
             if (pr->outfile.TmpOutFile == NULL) errcode = 304;
         }
         else pr->outfile.TmpOutFile = pr->outfile.OutFile;

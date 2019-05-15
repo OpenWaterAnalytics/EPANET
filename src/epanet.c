@@ -50,9 +50,9 @@ int DLLEXPORT EN_createproject(EN_Project *p)
 {
     struct Project *project = (struct Project *)calloc(1, sizeof(struct Project));
     if (project == NULL) return -1;
-    getTmpName(project->TmpHydFname);
-    getTmpName(project->TmpOutFname);
-    getTmpName(project->TmpStatFname);
+    //getTmpName(project->TmpHydFname);
+    //getTmpName(project->TmpOutFname);
+    //getTmpName(project->TmpStatFname);
     *p = project;
     return 0;
 }
@@ -68,9 +68,6 @@ int DLLEXPORT EN_deleteproject(EN_Project *p)
 {
     if (*p == NULL) return -1;
     if ((*p)->Openflag) EN_close(*p);
-    remove((*p)->TmpHydFname);
-    remove((*p)->TmpOutFname);
-    remove((*p)->TmpStatFname);
     free(*p);
     *p = NULL;
     return 0;
@@ -545,6 +542,7 @@ int DLLEXPORT EN_initH(EN_Project p, int initFlag)
     // Initialize hydraulics solver
     inithyd(p, fflag);
     if (p->report.Statflag > 0) writeheader(p, STATHDR, 0);
+ 
     return errcode;
 }
 

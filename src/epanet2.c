@@ -31,22 +31,6 @@
 Project __defaultProject;
 Project *_defaultProject = &__defaultProject;
 
-// Functions for creating and removing default temporary files
-void createtmpfiles()
-{
-    getTmpName(_defaultProject->TmpHydFname);
-    getTmpName(_defaultProject->TmpOutFname);
-    getTmpName(_defaultProject->TmpStatFname);
-}
-
-void removetmpfiles()
-{
-    remove(_defaultProject->TmpHydFname);
-    remove(_defaultProject->TmpOutFname);
-    remove(_defaultProject->TmpStatFname);
-}
-
-
 /********************************************************************
 
     Project Functions
@@ -77,10 +61,8 @@ int DLLEXPORT ENepanet(const char *inpFile, const char *rptFile,
     int warncode = 0;
 
     // Run the project and record any warning
-    createtmpfiles();
     errcode = EN_runproject(_defaultProject, inpFile, rptFile, outFile, pviewprog);
     if (errcode < 100) warncode = errcode;
-    removetmpfiles();
 
     // Return the warning code if the run had no errors
     if (warncode) errcode = MAX(errcode, warncode);
@@ -91,7 +73,6 @@ int DLLEXPORT ENinit(const char *rptFile, const char *outFile, int unitsType,
                      int headlossType)
 {
     int errcode = 0;
-    createtmpfiles();
     errcode = EN_init(_defaultProject, rptFile, outFile, unitsType, headlossType);
     return errcode;
 }
@@ -99,7 +80,6 @@ int DLLEXPORT ENinit(const char *rptFile, const char *outFile, int unitsType,
 int DLLEXPORT ENopen(const char *inpFile, const char *rptFile, const char *outFile)
 {
     int errcode = 0;
-    createtmpfiles();
     errcode = EN_open(_defaultProject, inpFile, rptFile, outFile);
     return errcode;
 }
@@ -137,7 +117,6 @@ int DLLEXPORT ENsaveinpfile(const char *filename)
 int DLLEXPORT ENclose()
 {
     EN_close(_defaultProject);
-    removetmpfiles();
     return 0;
 }
 
