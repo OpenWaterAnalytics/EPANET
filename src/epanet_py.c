@@ -7,17 +7,11 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/08/2019
+ Last Updated: 05/15/2019
  ******************************************************************************
 */
 
-#ifdef _DEBUG
-  #define _CRTDBG_MAP_ALLOC
-  #include <stdlib.h>
-  #include <crtdbg.h>
-#else
-  #include <stdlib.h>
-#endif
+#include <stdlib.h>
 #include <string.h>
 
 #include "epanet_py.h"
@@ -27,12 +21,15 @@
 #include "types.h"
 
 
-typedef struct {
+typedef struct
+{
     Project *project;
     error_handle_t *error;
-}handle_t;
+} handle_t;
+
 // Extern functions
 extern char *geterrmsg(int, char *);
+
 // Local functions
 void error_lookup(int errcode, char *errmsg, int len);
 
@@ -782,7 +779,7 @@ int EXPORT_PY_API toolkit_getversion(int *version)
 
 void EXPORT_PY_API toolkit_free(void **memory)
 {
-	free(*memory);
+    free(*memory);
     *memory = NULL;
 }
 
@@ -790,6 +787,7 @@ void error_lookup(int errcode, char *dest_msg, int dest_len)
 // Purpose: takes error code returns error message
 {
     char *msg = NULL;
+    char new_msg[MAXMSG + 1];
 
     switch (errcode)
     {
@@ -805,11 +803,7 @@ void error_lookup(int errcode, char *dest_msg, int dest_len)
     break;
     case 6: msg = WARN6;
     break;
-    default:
-	{
-		char new_msg[MAXMSG + 1];
-		msg = geterrmsg(errcode, new_msg);
-	}
+    default: msg = geterrmsg(errcode, new_msg);
     }
     strncpy(dest_msg, msg, dest_len);
 }

@@ -7,17 +7,11 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 04/03/2019
+Last Updated: 05/15/2019
 ******************************************************************************
 */
 
-#ifdef _DEBUG
-  #define _CRTDBG_MAP_ALLOC
-  #include <stdlib.h>
-  #include <crtdbg.h>
-#else
-  #include <stdlib.h>
-#endif
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -26,7 +20,6 @@ Last Updated: 04/03/2019
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
-
 
 // Default values
 #define MAXITER  200  // Default max. # hydraulic iterations

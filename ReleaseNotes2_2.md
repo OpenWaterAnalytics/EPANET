@@ -84,11 +84,11 @@ Two new analysis options have been added to provide more rigorous convergence cr
 
 These new parameters augment the current `EN_ACCURACY` option which always remains in effect. In addition, both `EN_HEADERROR` and `EN_FLOWCHANGE` can be used as parameters in the `ENgetstatistic` (or `EN_getstatistic`) function to retrieve their computed values (even when their option values are 0) after a hydraulic solution has been completed.  
 
-## Improved Linear Solver Routine
+## More Efficient Node Re-ordering
 
 EPANET's hydraulic solver requires solving a system of linear equations over a series of iterations until a set of convergence criteria are met. The coefficient matrix of this linear system is square and symmetric. It has a row for each network node and a non-zero off-diagonal coefficient for each link. The numerical effort needed to solve the linear system can be reduced if the nodes are re-ordered so that the non-zero coefficients cluster more tightly around the diagonal.
 
-EPANET's original node re-ordering scheme has been replaced by the more powerful **Multiple Minimum Degree (MMD)** algorithm. On a series of eight networks ranging in size from 7,700 to 100,000 nodes **MMD** reduced the solution time for a single period (steady state) hydraulic analysis by an average of 58%.
+EPANET's original node re-ordering scheme has been replaced by the more efficient **Multiple Minimum Degree (MMD)** algorithm. On a series of eight networks ranging in size from 7,700 to 100,000 nodes MMD reduced the solution time for a single period (steady state) hydraulic analysis, where most of the work is for node-reordering, by an average of 55%. Since MMD did not reduce the time needed to solve the linear equations generated at each iteration of the hydraulic solver longer extended period simulations will not exhibit a similar speedup. 
 
 ## Improved Handling of Near-Zero Flows
 
