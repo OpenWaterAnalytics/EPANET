@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/15/2019
+Last Updated: 05/24/2019
 ******************************************************************************
 */
 
@@ -95,7 +95,7 @@ int juncdata(Project *pr)
     if (n >= 4)
     {
         p = findpattern(net, parser->Tok[3]);
-        if (p == 0) return setError(parser, 3, 205);
+        if (p < 0) return setError(parser, 3, 205);
     }
 
     // Save junction data
@@ -170,7 +170,7 @@ int tankdata(Project *pr)
         if (n == 3)
         {
             pattern = findpattern(net, parser->Tok[2]);
-            if (pattern == 0) return setError(parser, 2, 205);
+            if (pattern < 0) return setError(parser, 2, 205);
         }
     }
     else if (n < 6) return 201;
@@ -420,7 +420,7 @@ int pumpdata(Project *pr)
         else if (match(parser->Tok[m - 1], w_PATTERN))  // Speed/status pattern
         {
             p = findpattern(net, parser->Tok[m]);
-            if (p == 0) return setError(parser, m, 205);
+            if (p < 0) return setError(parser, m, 205);
             pump->Upat = p;
         }
         else if (match(parser->Tok[m - 1], w_SPEED))   // Speed setting
@@ -557,7 +557,7 @@ int patterndata(Project *pr)
     else
     {
         i = findpattern(net, parser->Tok[0]);
-        if (i == 0) return setError(parser, 0, 205);
+        if (i <= 0) return setError(parser, 0, 205);
         pattern = &(net->Pattern[i]);
         if (pattern->Comment == NULL && parser->Comment[0])
         {
@@ -718,7 +718,7 @@ int demanddata(Project *pr)
     if (n >= 3)
     {
         p = findpattern(net, parser->Tok[2]);
-        if (p == 0) return setError(parser, 2, 205);
+        if (p < 0) return setError(parser, 2, 205);
     }
 
     // Replace any demand entered in [JUNCTIONS] section
@@ -904,7 +904,7 @@ int sourcedata(Project *pr)
         strcmp(parser->Tok[i + 1], "*") != 0)
     {
         p = findpattern(net, parser->Tok[i + 1]);
-        if (p == 0) return setError(parser, i + 1, 205);
+        if (p < 0) return setError(parser, i + 1, 205);
     }
 
     // Destroy any existing source assigned to node
@@ -1358,7 +1358,7 @@ int energydata(Project *pr)
     else if (match(parser->Tok[n - 2], w_PATTERN))
     {
         p = findpattern(net, parser->Tok[n - 1]);
-        if (p == 0) return setError(parser, n - 1, 205);
+        if (p < 0) return setError(parser, n - 1, 205);
         if (j == 0) hyd->Epat = p;
         else        Pump[j].Epat = p;
         return 0;
