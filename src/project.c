@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/15/2019
+ Last Updated: 05/24/2019
  ******************************************************************************
 */
 
@@ -815,17 +815,19 @@ int findpattern(Network *network, char *id)
 /*----------------------------------------------------------------
 **  Input:   id = time pattern ID
 **  Output:  none
-**  Returns: time pattern index, or 0 if pattern not found
+**  Returns: time pattern index, or -1 if pattern not found
 **  Purpose: finds index of time pattern given its ID
 **----------------------------------------------------------------
 */
 {
     int i;
-    for (i = 1; i <= network->Npats; i++)
+
+    // Don't forget to include the "dummy" pattern 0 in the search
+    for (i = 0; i <= network->Npats; i++)
     {
         if (strcmp(id, network->Pattern[i].ID) == 0) return i;
     }
-    return 0;
+    return -1;
 }
 
 int findcurve(Network *network, char *id)
