@@ -3152,10 +3152,18 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     }
     else if (linkType <= PIPE)  // pipe or cvpipe
     {
+        // 10" diameter new ductile iron pipe with
+        // length of average city block
         link->Diam = 10 / p->Ucf[DIAM];
-        link->Kc = 100; // Rough. coeff
+        switch (hyd->Formflag)
+        {
+        case HW: link->Kc = 130;    break;
+        case DW: link->Kc = 0.0005; break;
+        case CM: link->Kc = 0.01;   break;
+        default: link->Kc = 1.0;
+        }
         link->Km = 0.0; // Loss coeff
-        link->Len = 1000;
+        link->Len = 330.0;
     }
     else  // Valve
     {
