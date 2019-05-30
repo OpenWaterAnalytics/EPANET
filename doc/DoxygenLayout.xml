@@ -4,8 +4,8 @@
   <navindex>
     <tab type="mainpage" visible="yes" title=""/>
     <tab type="pages" visible="yes" title="" intro=""/>
-    <tab type="modules" visible="yes" title="Reference"
-    intro="These topics describe the Toolkit's functions, symbolic constants, and other details related to its usage."/>
+    <tab type="modules" visible="yes" title="API Reference"
+    intro="These topics describe the Toolkit's functions, enumerations, and error/warning codes."/>
     <tab type="namespaces" visible="yes" title="">
       <tab type="namespacelist" visible="yes" title="" intro=""/>
       <tab type="namespacemembers" visible="yes" title="" intro=""/>

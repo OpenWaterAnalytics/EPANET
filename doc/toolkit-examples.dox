@@ -12,9 +12,9 @@ Here are several examples of how the Toolkit can be used for different types of 
 This example shows how simple it is for the Toolkit to provide a network analysis engine for other applications. There are three steps that the application would need to take: 
 -# Have the application write network data to an EPANET-formatted input file.
 
--# Create a project and call EN_runproject, supplying the name of the EPANET input file, the name of a Report file where status and error messages are written, and the name of a binary Output file which will contain analysis results.
+-# Create a project and call @ref EN_runproject, supplying the name of the EPANET input file, the name of a Report file where status and error messages are written, and the name of a binary Output file which will contain analysis results.
 
--# Have the application access the output file to display desired analysis results (see @ref OutFileFormat).
+-# Have the application access the output file to display desired analysis results (see @ref OutFile).
 
 Here is an example where a callback function `writeConsole` is provided to write EPANET's progress messages to the console:
 
@@ -44,7 +44,12 @@ need to always use an EPANET formatted input file. This creates opportunities to
 of network data in one's code, such as relational database files or GIS/CAD files.
 
 Below is a schematic of the network to be built.
+<table style = "border: 0px solid black">
+<tr><td>
 @image html Example2.png
+@image latex Example2.eps
+</td></tr>
+</table>
 
 \code {.c}
 #include "epanet2_2.h"
@@ -174,7 +179,7 @@ double cl2dose(char *SourceID, double Ctarget)
     EN_solveH(ph); 
 
     // Get the number of nodes and the source node's index 
-    EN_getcount(ph, EN_NODES, &nnodes); 
+    EN_getcount(ph, EN_NODECOUNT, &nnodes); 
     EN_getnodeindex(ph, SourceID, &sourceindex); 
 
     // Setup the system to analyze for chlorine

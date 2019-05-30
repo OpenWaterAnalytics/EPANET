@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/03/2019
+ Last Updated: 05/30/2019
  ******************************************************************************
 */
 
@@ -20,14 +20,20 @@
 
 // --- Define the EPANET toolkit constants
 
-#define  EN_MAXID  31  //!< Max. # characters in ID name
-#define  EN_MAXMSG 255 //!< Max. # characters in message text
+/// Size Limts
+/**
+Limits on the size of character arrays used to store ID names
+and text messages.
+*/
+typedef enum {
+  EN_MAXID   = 31,     //!< Max. # characters in ID name
+  EN_MAXMSG  = 255     //!< Max. # characters in message text
+} EN_SizeLimits;
 
 /// Node properties
 /**
-These node properties can be accessed with @ref EN_getnodevalue and
-@ref EN_setnodevalue. Those marked as read only are computed values that can
-only be retrieved.
+These node properties are used with @ref EN_getnodevalue and @ref EN_setnodevalue.
+Those marked as read only are computed values that can only be retrieved.
 */
 typedef enum {
   EN_ELEVATION    = 0, //!< Elevation
@@ -60,7 +66,7 @@ typedef enum {
 
 /// Link properties
 /**
-These link properties can be accessed with @ref EN_getlinkvalue and @ref EN_setlinkvalue.
+These link properties are used with @ref EN_getlinkvalue and @ref EN_setlinkvalue.
 Those marked as read only are computed values that can only be retrieved.
 */
 typedef enum {
@@ -91,7 +97,7 @@ typedef enum {
 
 /// Time parameters
 /**
-These time parameters are accessed using @ref EN_gettimeparam and@ref EN_settimeparam.
+These time-related options are used with @ref EN_gettimeparam and@ref EN_settimeparam.
 All times are expressed in seconds The parameters marked as read only are
 computed values that can only be retrieved.
 */
@@ -130,7 +136,7 @@ typedef enum {
 
 /// Types of network objects
 /**
-A network model is composed of these types of objects.
+The types of objects that comprise a network model.
 */
 typedef enum {
     EN_NODE    = 0,     //!< Nodes
@@ -152,10 +158,10 @@ typedef enum {
   EN_PATCOUNT     = 3,  //!< Number of time patterns
   EN_CURVECOUNT   = 4,  //!< Number of data curves
   EN_CONTROLCOUNT = 5,  //!< Number of simple controls
-  EN_RULECOUNT	  = 6   //!< Number of rule-based controls
+  EN_RULECOUNT    = 6   //!< Number of rule-based controls
 } EN_CountType;
 
-/// Types of nodes
+/// Node Types
 /**
 These are the different types of nodes that can be returned by calling @ref EN_getnodetype.
 */
@@ -165,7 +171,7 @@ typedef enum {
   EN_TANK        = 2    //!< Storage tank node
 } EN_NodeType;
 
-/// Types of links
+/// Link types
 /**
 These are the different types of links that can be returned by calling @ref EN_getlinktype.
 */
@@ -184,7 +190,7 @@ typedef enum {
 /// Link status
 /**
 One of these values is returned when @ref EN_getlinkvalue is used to retrieve a link's
-initial status (EN_INITSTATUS) or its current status (EN_STATUS). These options are
+initial status ( \b EN_INITSTATUS ) or its current status ( \b EN_STATUS ). These options are
 also used with @ref EN_setlinkvalue to set values for these same properties.
 */
 typedef enum {
@@ -195,8 +201,8 @@ typedef enum {
 /// Pump states
 /**
 One of these codes is returned when @ref EN_getlinkvalue is used to retrieve a pump's
-current operating state (EN_PUMP_STATE). EN_PUMP_XHEAD indicates that the pump has been
-shut down because it is being asked to deliver more than its shutoff head. EN_PUMP_XFLOW
+current operating state ( \b EN_PUMP_STATE ). \b EN_PUMP_XHEAD indicates that the pump has been
+shut down because it is being asked to deliver more than its shutoff head. \b EN_PUMP_XFLOW
 indicates that the pump is being asked to deliver more than its maximum flow.
 */
 typedef enum {
@@ -218,25 +224,23 @@ typedef enum {
   EN_TRACE       = 3    //!< Source tracing analysis
 } EN_QualityType;
 
-/// Types of water quality sources
+/// Water quality source types
 /**
-These are the options for EN_SOURCETYPE, the type of external water quality
-source assigned to a node. They are used in @ref EN_getnodevalue and @ref EN_setnodevalue.
-The EN_SOURCEQUAL property is used in these functions to access a source's strength
-and EN_SOURCEPATTERN to access a time pattern applied to the source.
+These are the different types of external water quality sources that can be assigned
+to a node's \b EN_SOURCETYPE property as used by @ref EN_getnodevalue and @ref EN_setnodevalue.
 */
 typedef enum {
-  EN_CONCEN      = 0,   //!< Concentration of any external inflow entering a node
+  EN_CONCEN      = 0,   //!< Sets the concentration of external inflow entering a node
   EN_MASS        = 1,   //!< Injects a given mass/minute into a node
   EN_SETPOINT    = 2,   //!< Sets the concentration leaving a node to a given value
   EN_FLOWPACED   = 3    //!< Adds a given value to the concentration leaving a node
 } EN_SourceType;
 
-/// Head loss formula choices
+/// Head loss formulas
 /**
-These are the choices for the EN_HEADLOSSFORM option in @ref EN_getoption and
+The available choices for the \b EN_HEADLOSSFORM option in @ref EN_getoption and
 @ref EN_setoption. They are also used for the head loss type argument in @ref EN_init.
-Each head loss formula uses a different type of roughness coefficient (EN_ROUGHNESS)
+Each head loss formula uses a different type of roughness coefficient ( \b EN_ROUGHNESS )
 that can be set with @ref EN_setlinkvalue.
 */
 typedef enum {
@@ -245,11 +249,11 @@ typedef enum {
   EN_CM          = 2    //!< Chezy-Manning
 } EN_HeadLossType;
 
-/// Flow units choices
+/// Flow units
 /**
 These choices for flow units are used with @ref EN_getflowunits and @ref EN_setflowunits.
 They are also used for the flow units type argument in @ref EN_init. If flow units are
-expressed in US Customary units (EN_CFS through EN_AFD) then all other quantities are
+expressed in US Customary units ( \b EN_CFS through \b EN_AFD ) then all other quantities are
 in US Customary units. Otherwise they are in metric units.
 */
 typedef enum {
@@ -265,9 +269,9 @@ typedef enum {
   EN_CMD         = 9    //!< Cubic meters per day
 } EN_FlowUnits;
 
-/// Types of demand models
+/// Demand models
 /**
-These choices for representing consumer demands are used with @ref EN_getdemandmodel
+These choices for modeling consumer demands are used with @ref EN_getdemandmodel
 and @ref EN_setdemandmodel.
 
 A demand driven analysis requires that a junction's full demand be supplied
@@ -287,7 +291,7 @@ that are applied on a network-wide basis. They are accessed using the
 @ref EN_getoption and @ref EN_setoption functions.
 */
 typedef enum {
-  EN_TRIALS         = 0,  //!< Maximum hydraulic trials allowed for hydraulic convergence
+  EN_TRIALS         = 0,  //!< Maximum trials allowed for hydraulic convergence
   EN_ACCURACY       = 1,  //!< Total normalized flow change for hydraulic convergence
   EN_TOLERANCE      = 2,  //!< Water quality tolerance
   EN_EMITEXPON      = 3,  //!< Exponent in emitter discharge formula
@@ -312,7 +316,7 @@ typedef enum {
   EN_CONCENLIMIT    = 22  //!< Limiting concentration for growth reactions
 } EN_Option;
 
-/// Types of simple controls
+/// Simple control types
 /**
 These are the different types of simple (single statement) controls that can be applied
 to network links. They are used as an argument to @ref EN_addcontrol,@ref EN_getcontrol,
@@ -329,7 +333,7 @@ typedef enum {
 /**
 These options determine what kind of statistical post-processing should be done on
 the time series of simulation results generated before they are reported using
-@ref EN_report. An option can be chosen by using `STATISTIC option` as the argument
+@ref EN_report. An option can be chosen by using \b STATISTIC _option_ as the argument
 to @ref EN_setreport.
 */
 typedef enum {
@@ -343,7 +347,7 @@ typedef enum {
 /// Tank mixing models
 /**
 These are the different types of models that describe water quality mixing in storage tanks.
-The choice of model is accessed with the EN_MIXMODEL property of a Tank node using
+The choice of model is accessed with the \b EN_MIXMODEL property of a Tank node using
 @ref EN_getnodevalue and @ref EN_setnodevalue.
 */
 typedef enum {
@@ -377,7 +381,7 @@ typedef enum {
 
 /// Types of data curves
 /**
-These are the different types of physical relationships that a data curve could
+These are the different types of physical relationships that a data curve can
 represent as returned by calling @ref EN_getcurvetype.
 */
 typedef enum {
@@ -392,11 +396,11 @@ typedef enum {
 /**
 These codes are used in @ref EN_deletenode and @ref EN_deletelink to indicate what action
 should be taken if the node or link being deleted appears in any simple or rule-based
-controls.
+controls or if a deleted node has any links connected to it.
 */
 typedef enum {
-  EN_UNCONDITIONAL = 0, //!< Delete all controls that contain object
-  EN_CONDITIONAL   = 1  //!< Cancel object deletion if contained in controls
+  EN_UNCONDITIONAL = 0, //!< Delete all controls and connecing links
+  EN_CONDITIONAL   = 1  //!< Cancel object deletion if it appears in controls or has connecting links
 } EN_ActionCodeType;
 
 /// Status reporting levels
