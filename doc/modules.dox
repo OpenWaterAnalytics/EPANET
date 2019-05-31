@@ -59,8 +59,8 @@ These functions are used for working with rule-based controls.
 */
 
 /**
-@defgroup Constants Symbolic Constants
-These are symbolic constants used as function arguments.
+@defgroup Enumerations Enumerated Types
+These are the toolkit's enumerated types whose members are used as function arguments.
 */
 
 /**
@@ -83,13 +83,13 @@ These are symbolic constants used as function arguments.
 @addtogroup Hydraulics
 @{
 @fn int EN_solveH(EN_Project ph)
-@fn int EN_usehydfile(EN_Project ph, char *filename)
+@fn int EN_usehydfile(EN_Project ph, const char *filename)
 @fn int EN_openH(EN_Project ph)
 @fn int EN_initH(EN_Project ph, int initFlag)
 @fn int EN_runH(EN_Project ph, long *currentTime)
 @fn int EN_nextH(EN_Project ph, long *tStep)
 @fn int EN_saveH(EN_Project ph)
-@fn int EN_savehydfile(EN_Project ph, char *filename)
+@fn int EN_savehydfile(EN_Project ph, const char *filename)
 @fn int EN_closeH(EN_Project ph)
 @}
 */
@@ -262,13 +262,15 @@ These are symbolic constants used as function arguments.
 */
 
 /**
-@addtogroup Constants
+@addtogroup Enumerations
 @{
-@file epanet2_enums.h
+\enum EN_SizeLimits
+\enum EN_ObjectType
 \enum EN_CountType
 \enum EN_NodeType
 \enum EN_LinkType
 \enum EN_PumpType
+\enum EN_PumpStateType
 \enum EN_CurveType
 \enum EN_QualityType
 \enum EN_SourceType
@@ -276,55 +278,22 @@ These are symbolic constants used as function arguments.
 \enum EN_HeadLossType
 \enum EN_NodeProperty
 \enum EN_LinkProperty
+\enum EN_LinkStatusType
 \enum EN_TimeParameter
 \enum EN_Option
 \enum EN_FlowUnits
 \enum EN_DemandModel
 \enum EN_MixingModel
-\enum EN_StatusReport
 \enum EN_StatisticType
 \enum EN_InitHydOption
 \enum EN_ActionCodeType
 \enum EN_AnalysisStatistic
+\enum EN_StatusReport
 \enum EN_RuleObject
 \enum EN_RuleVariable
 \enum EN_RuleOperator
 \enum EN_RuleStatus
 @}
-*/
-
-/**
-@defgroup Files File Descriptions
-
-These are the various files used by the Toolkit.
-
-@section InputFile Input File
-
-The Input file is a standard EPANET input data file that describes the system being analyzed. It can either be created external to the application being developed with the Toolkit or by the application itself. It is the first file name supplied to the @ref EN_open function. The format of the file is described in Appendix C of the <a href="https://nepis.epa.gov/Adobe/PDF/P1007WWU.pdf">EPANET 2 Users Manual</a>. A project's data associated with its Input file remains accessible until the project is closed down with the @ref EN_close or deleted with @ref EN_deleteproject. 
-
-@section ReportFile Report File
-
-The Report file is the second file name supplied to the @ref EN_open function (or the first file name to @ref EN_init). It is used to log any error messages that occur when the Input file is being processed and to record all status messages that are generated during a hydraulic simulation. In addition, if the @ref EN_report function is called the resulting report can also be written to this file as can user-generated lines of text using the @ref EN_writeline function. The format of the report is controlled by statements placed in the [REPORT] section of the Input file and by similar statements included in calls to the @ref EN_setreport function. Only results at a specified uniform reporting time interval are written to this file. 
-
-To suppress the writing of all error and warning messages to the Report file either include the command `MESSAGES NO` in the [REPORT] section of the Input file or call the Toolkit function `EN_setreport("MESSAGES NO")`. 
-
-To route a formatted report to a different file than the Report file either include the command `FILE filename` in the [REPORT] section of the Input file or call the Toolkit function `EN_setreport("FILE filename")`, where `filename` is the name of the file to use. 
-
-Toolkit clients will not be able to access the contents of a Report file until a project is closed. If access is needed before then, the @ref EN_copyreport function can be used to copy its current contents to another file. A @ref EN_clearreport function is also available to clear the current contents of the Report file.
-
-@section OutputFile Output File
-
-The Output file is an unformatted binary file used to store both hydraulic and water quality results at uniform reporting intervals (see @ref OutFileFormat). It is the third file name supplied to the @ref EN_open function (or second name to @ref EN_init). If an empty string ("") is used as its name then a scratch temporary file will be used. Otherwise the Output file will be saved after the @ref EN_close function is called. Saving this file is useful if further post-processing of the output results are needed. The function @ref EN_saveH will transfer hydraulic results to the Output file if no water quality analysis will be made. Using @ref EN_solveQ to run a water quality analysis automatically saves both hydraulic and water quality results to this file. If the @ref EN_initQ - @ref EN_runQ - @ref EN_nextQ set of functions is used to perform a water quality analysis, then results will be saved only if the `saveflag` argument of @ref EN_initQ is set to @ref EN_SAVE. Again, the need to save results to the Output file is application-dependent. If a formatted output report is to be generated using @ref EN_report, then results must first be saved to the Output file. 
-
-@section HydraulicsFile Hydraulics File
-The Hydraulics file is an unformatted binary file used to store the results of a hydraulic analysis. Results for all time periods are stored, including those at intermediate times when special hydraulic events occur (e.g., pumps and tanks opening or closing because control conditions have been satisfied). 
-
-Normally it is a temporary file that is deleted after the @ref EN_deleteproject function is called. However, it will be saved if the @ref EN_savehydfile function is called before that. 
-
-Likewise, a previously saved Hydraulics file can be used if the command `HYDRAULICS USE` filename appears in the [OPTIONS] section of the input file, or if the @ref EN_usehydfile function is called. 
-
-When the Toolkit function @ref EN_solveH is used to make a hydraulic analysis, results are automatically saved to the Hydraulics file. When the @ref EN_initH - @ref EN_runH - @ref EN_nextH set of functions is used, the `initFlag` argument to @ref EN_initH determines whether results are saved or not. The need to save hydraulic results is application-dependent. They must always be saved to the Hydraulics file if a water quality analysis will follow. 
-
 */
 
 /**
@@ -409,44 +378,3 @@ When the Toolkit function @ref EN_solveH is used to make a hydraulic analysis, r
 |6 | System has negative pressures - negative pressures occurred at one or more junctions with positive demand |
  
 */
-
-/**
-@defgroup Units Parameter Units
-
-| Parameter      | US Customary            | SI Metric                 |
-|----------------|-------------------------|---------------------------| 
-|Concentration   | mg/L or ug/L            | mg/L or ug/L              |
-|Demand          | (see Flow units)        | (see Flow units)          |
-|Diameter (Pipes)| inches                  | millimeters               |
-|Diameter (Tanks)| feet                    | meters                    |
-|Efficiency      | percent                 | percent                   |
-|Elevation       | feet                    | meters                    |
-|Emitter Coeff.  | flow units @ 1 psi drop | flow units @ 1 meter drop |
-|Energy          | kwatt - hours           | kwatt - hours             |
-|Flow            | CFS (cubic feet / sec)  | LPS (liters / sec)        |
-|                | GPM (gallons / min)     | LPM (liters / min)        |
-|                | MGD (million gal / day) | MLD (megaliters / day)    |
-|                | IMGD (Imperial MGD)     | CMH (cubic meters / hr)   |
-|                | AFD (acre-feet / day)   | CMD (cubic meters / day)  |
-|Friction Factor | unitless                | unitless                  |
-|Head            | feet                    | meters                    |
-|Length          | feet                    | meters                    |
-|Minor Loss Coeff. | unitless              | unitless                  |
-|Power             | horsepower            | kwatts                    |
-|Pressure          | psi                   | meters                    |
-|Reaction Coeff. (Bulk) | 1/day (1st-order)| 1/day (1st-order)         |
-|Reaction Coeff. (Wall) | mass/sq-ft/day (0-order) | mass/sq-m/day (0-order) |
-|                       | ft/day (1st-order)       | meters/day (1st-order)  |
-|Roughness Coeff. | millifeet (Darcy-Weisbach) unitless otherwise| mm (Darcy-Weisbach) unitless otherwise |
-|Source Mass Injection  | mass/minute      | mass/minute               |
-|Velocity               | ft/sec           | meters/sec                |
-|Volume                 | cubic feet       | cubic meters              |
-|Water Age              | hours            | hours                     |
-
-*/
-
-/**
-@defgroup OutFileFormat Output File Format
-
-*/
-

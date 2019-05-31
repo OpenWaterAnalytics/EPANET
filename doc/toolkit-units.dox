@@ -1,0 +1,37 @@
+
+/**
+@page Units Measurement Units
+
+The toolkit can use data expressed in either US Customary of SI Metric units. A project's unit system depends on the unit system used for its choice of flow units. If the @ref EN_open function is used to supply data to a project from an Input File then its flow units are set in the @ref OptionsPage section of the file. If the @ref EN_init function is used to initialize a project then the choice of flow units is the fourth argument to the function. The following table lists the units used to express the various parameters in an EPANET model.
+
+| Parameter      | US Customary            | SI Metric                 |
+|----------------|-------------------------|---------------------------| 
+|Concentration   | mg/L or ug/L            | mg/L or ug/L              |
+|Demand          | (see Flow units)        | (see Flow units)          |
+|Diameter (Pipes)| inches                  | millimeters               |
+|Diameter (Tanks)| feet                    | meters                    |
+|Efficiency      | percent                 | percent                   |
+|Elevation       | feet                    | meters                    |
+|Emitter Coeff.  | flow units @ 1 psi drop | flow units @ 1 meter drop |
+|Energy          | kwatt - hours           | kwatt - hours             |
+|Flow            | CFS (cubic feet / sec)  | LPS (liters / sec)        |
+|                | GPM (gallons / min)     | LPM (liters / min)        |
+|                | MGD (million gal / day) | MLD (megaliters / day)    |
+|                | IMGD (Imperial MGD)     | CMH (cubic meters / hr)   |
+|                | AFD (acre-feet / day)   | CMD (cubic meters / day)  |
+|Friction Factor | unitless                | unitless                  |
+|Head            | feet                    | meters                    |
+|Length          | feet                    | meters                    |
+|Minor Loss Coeff. | unitless              | unitless                  |
+|Power             | horsepower            | kwatts                    |
+|Pressure          | psi                   | meters                    |
+|Reaction Coeff. (Bulk) | 1/day (1st-order)| 1/day (1st-order)         |
+|Reaction Coeff. (Wall) | mass/sq-ft/day (0-order) | mass/sq-m/day (0-order) |
+|                       | ft/day (1st-order)       | meters/day (1st-order)  |
+|Roughness Coeff. | millifeet (Darcy-Weisbach) unitless otherwise| mm (Darcy-Weisbach) unitless otherwise |
+|Source Mass Injection  | mass/minute      | mass/minute               |
+|Velocity               | ft/sec           | meters/sec                |
+|Volume                 | cubic feet       | cubic meters              |
+|Water Age              | hours            | hours                     |
+
+*/

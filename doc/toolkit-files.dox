@@ -1,0 +1,144 @@
+/** @page Files Toolkit Files
+The Toolkit can make use of several different types of files when analyzing a pipe network. These include:
+- @subpage InpFile "Input File"
+- @subpage RptFile "Report File"
+- @subpage OutFile "Output File"
+- @subpage HydFile "Hydraulics File"
+*/
+
+/**
+@page RptFile Report File
+The Report file is the second file name supplied to the @ref EN_open function (or the first file name to @ref EN_init). It is used to log any error messages that occur when an Input file is being processed and to record all status messages that are generated during a hydraulic simulation. In addition, if the @ref EN_report function is called the resulting report can also be written to this file as can user-generated lines of text using the @ref EN_writeline function. The format of the report is controlled by statements placed in the @ref ReportPage section of the Input file and by similar statements included in calls to the @ref EN_setreport function. Only results at a specified uniform reporting time interval are written to this file. 
+
+To suppress the writing of all error and warning messages to the Report file either include the command <b>`MESSAGES NO`</b> in the @ref ReportPage section of the Input file or call the Toolkit function <b>`EN_setreport("MESSAGES NO")`</b>. 
+
+To route a formatted report to a different file than the Report file either include the command <b>`FILE filename`</b> in the @ref ReportPage section of the Input file or call the Toolkit function <b>`EN_setreport("FILE filename")`</b>, where `filename` is the name of the file to use. 
+
+Toolkit clients will not be able to access the contents of a Report file until a project is closed. If access is needed before then, the @ref EN_copyreport function can be used to copy its current contents to another file. A @ref EN_clearreport function is also available to clear the current contents of the Report file.
+*/
+
+/**
+@page OutFile Output File
+
+The Output file is an unformatted binary file used to store both hydraulic and water quality results at uniform reporting intervals. It is the third file name supplied to the @ref EN_open function (or second name to @ref EN_init). If an empty string ("") is used as its name then a scratch temporary file will be used. Otherwise the Output file will be saved after the @ref EN_close function is called. Saving this file is useful if further post-processing of the output results are needed.
+
+The function @ref EN_saveH will transfer hydraulic results to the Output file if no water quality analysis will be made. Using @ref EN_solveQ to run a water quality analysis automatically saves both hydraulic and water quality results to this file. If the @ref EN_initQ - @ref EN_runQ - @ref EN_nextQ set of functions is used to perform a water quality analysis, then results will be saved only if the \b saveflag argument of @ref EN_initQ is set to <B>`EN_SAVE`</B>. Again, the need to save results to the Output file is application-dependent. If a formatted output report is to be generated using @ref EN_report, then results must first be saved to the Output file.
+ 
+The data written to the file is either 4-byte integers, 4-byte floats, or fixed-size strings whose size is a multiple of 4 bytes. This allows the file to be divided conveniently into 4-byte records. The file consists of four sections of the following sizes in bytes:
+
+| Section        | Size in Bytes                          |
+|----------------|----------------------------------------|
+|Prolog          | 884 + 36*Nnodes + 52*Nlinks + 8*Ntanks |
+|Energy Usage    | 28*Npumps + 4                          |
+|Dynamic Results | (16*Nnodes + 32*Nlinks)*Nperiods       |
+|Epilog          | 28                                     |
+
+where:
+- Nnodes = number of nodes (junctions + reservoirs + tanks),
+- Nlinks = number of links (pipes + pumps + valves),
+- Ntanks = number of tanks and reservoirs,
+- Npumps =  number of pumps,
+- Nperiods = number of reporting periods.
+
+All of these counts are themselves written to the file's Prolog or Epilog sections.
+
+@section Output_Prolog Prolog Section
+
+The Prolog section of an EPANET binary output file contains the following data:
+
+|Item            | Type      | # Bytes   |
+|----------------|-----------|-----------|
+| Magic Number = 516114521   | Integer | 4 |
+| Version (= 200)            | Integer | 4 |
+| Number of Nodes            | Integer | 4 |
+| Number of Reservoirs & Tanks | Integer | 4|
+| Number of Links              | Integer | 4 |
+| Number of Pumps              | Integer | 4 |
+| Number of Valves             | Integer | 4 |
+| Water Quality Option - see @ref EN_QualityType | Integer | 4 |
+| Traced Node Index            | Integer | 4 |
+| Flow Units Option            | Integer | 4 |
+| Pressure Units Option:<br>0 = psi<br>1 = meters<br>2 = kPa | Integer | 4 |
+| Report Statistic Type - see @ref EN_StatisticType | Integer | 4 |
+| Reporting Start Time (sec)   | Integer | 4 |
+| Reporting Time Step (sec)    | Integer | 4 |
+| Simulation Duration (sec)    | Integer | 4 |
+| Project Title (1st line)     | Char    | 80 |
+| Project Title (2nd line)     | Char    | 80 |
+| Project Title (3rd line)     | Char    | 80 |
+| Name of Input File           | Char    | 260 |
+| Name of Report File          | Char    | 260 |
+| Name of Quality Chemical     | Char    | 32 |
+| Chemical Concentration Units | Char    | 32 |
+| ID String of Each Node       | Char    | 32*Nnodes |
+| ID String of Each Link       | Char    | 32*Nlinks |
+| Index of Head Node of Each Link | Integer | 4*Nlinks |
+| Index of Tail Node of Each Link | Integer | 4*Nlinks |
+| Type Code of Each Link (see @ref EN_LinkType)  | Integer | 4*Nlinks |
+| Node Index of Each Tank   |  Integer | 4*Ntanks |
+| Surface Area of Each Tank | Float | 4*Ntanks |
+| Elevation of Each Node  | Float | 4*Nnodes |
+| Length of Each Link | Float | 4*Nlinks |
+| Diameter of Each Link | Float | 4*Nlinks | 
+
+@section Output_Energy Energy Usage Section
+
+The Energy Usage section of an EPANET binary output file contains the following data: 
+
+|Item (Repeated for Each Pump) | Type    | # Bytes |
+|------------------------------|---------|---------| 
+| Pump Index in list of links  | Integer | 4 |
+| Pump Utilization (%)         | Float   | 4 |
+| Average Efficiency (%)       | Float | 4 |
+| Average kW/MGal (or kW/m^3)  | Float | 4 |
+| Average kW | Float | 4 |
+| Peak kW | Float | 4 |
+| Average Cost per Day | Float | 4 |
+| Peak Energy Usage (kWh) | Float | 4 |
+
+@section Output_Results Dynamic Results Section
+
+The Dynamic Results section of an EPANET binary output file contains the following set of data for each reporting period (the reporting time step is written to the Output File's @ref Output_Prolog and the number of such steps is written to the @ref Output_Epilog): 
+
+| Item | Type | # Bytes |
+|------|------|---------| 
+|Demand at Each Node | Float | 4*Nnodes |
+|Head (Grade) at Each Node | Float | 4*Nnodes |
+|Pressure at Each Node | Float | 4*Nnodes |
+|Water Quality at Each Node | Float | 4*Nnodes |
+|Flow in Each Link<br> (negative for reverse flow)| Float | 4*Nlinks |
+|Velocity in Each Link | Float | 4*Nlinks |
+|Head Loss per 1000 Units of Length for Each Link<br> (total head for pumps and head loss for valves) | Float | 4*Nlinks |
+|Average Water Quality in Each Link | Float | 4*Nlinks |
+| Status Code for Each Link:<br>0 = closed (pump shutoff head exceeded)<br>1 = temporarily closed<br>2 = closed<br>3 = open<br>4 = active (partially open)<br>5 = open (pump max. flow exceeded)<br>6 = open (FCV can't supply flow)<br>7 = open (PRV/PSV can't supply pressure) | Float | 4*Nlinks |
+| Setting for Each Link | Float | 4*Nlinks |
+|Reaction Rate for Each Link (mass/L/day) | Float | 4*Nlinks |
+|Friction Factor for Each Link | Float | 4*Nlinks |
+
+@section Output_Epilog Epilog Section
+
+The Epilog section of an EPANET binary output file contains the following data: 
+
+|Item | Type | # Bytes |
+|-----|------|---------| 
+|Average bulk reaction rate (mass/hr) | Float | 4 |
+|Average wall reaction rate (mass/hr) | Float | 4 |
+|Average tank reaction rate (mass/hr) | Float | 4 |
+|Average source inflow rate (mass/hr) | Float | 4 |
+|Number of Reporting Periods | Integer | 4 |
+|Warning Flag:<br>0 = no warnings<br>1 = warnings were generated | Integer | 4 |
+|Magic Number = 516114521 | Integer | 4 |
+
+*/
+
+/**
+@page HydFile Hydraulics File
+The Hydraulics file is an unformatted binary file used to store the results of a hydraulic analysis. Results for all time periods are stored, including those at intermediate times when special hydraulic events occur (e.g., pumps and tanks opening or closing because control conditions have been satisfied). 
+
+Normally it is a temporary file that is deleted after the @ref EN_deleteproject function is called. However, it will be saved if the @ref EN_savehydfile function is called before that. 
+
+Likewise, a previously saved Hydraulics file can be used if the command <b>`HYDRAULICS USE`</b> filename appears in the @ref OptionsPage section of the input file, or if the @ref EN_usehydfile function is called. 
+
+When the Toolkit function @ref EN_solveH is used to make a hydraulic analysis, results are automatically saved to the Hydraulics file. When the @ref EN_initH - @ref EN_runH - @ref EN_nextH set of functions is used, the \b initFlag argument to @ref EN_initH determines whether results are saved or not. The need to save hydraulic results is application-dependent. They must always be saved to the Hydraulics file if a water quality analysis will follow. 
+
+*/
