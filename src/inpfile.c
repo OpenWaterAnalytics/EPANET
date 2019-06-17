@@ -195,8 +195,10 @@ int saveinpfile(Project *pr, const char *fname)
                     sqrt(4.0 * tank->A / PI) * pr->Ucf[ELEV],
                     tank->Vmin * SQR(pr->Ucf[ELEV]) * pr->Ucf[ELEV]);
             if ((j = tank->Vcurve) > 0) sprintf(s1, "%s", net->Curve[j].ID);
+            else if (tank->CanOverflow) strcpy(s1, "*");
             else strcpy(s1, " ");
             fprintf(f, "\n%s %-31s", s, s1);
+            if (tank->CanOverflow) fprintf(f, "  YES  ");
             if (node->Comment) fprintf(f, " ;%s", node->Comment);
         }
     }

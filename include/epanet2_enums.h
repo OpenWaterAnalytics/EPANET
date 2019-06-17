@@ -61,7 +61,8 @@ typedef enum {
   EN_MIXFRACTION  = 22, //!< Tank mixing fraction
   EN_TANK_KBULK   = 23, //!< Tank bulk decay coefficient
   EN_TANKVOLUME   = 24, //!< Current computed tank volume (read only)
-  EN_MAXVOLUME    = 25  //!< Tank maximum volume (read only)
+  EN_MAXVOLUME    = 25, //!< Tank maximum volume (read only)
+  EN_CANOVERFLOW  = 26  //!< Tank can overflow (= 1) or not (= 0)
 } EN_NodeProperty;
 
 /// Link properties

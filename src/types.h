@@ -417,6 +417,7 @@ typedef struct             // Tank Object
   int     Vcurve;          // volume v. elev. curve index
   MixType MixModel;        // type of mixing model
   double  V1max;           // mixing compartment size
+  int     CanOverflow;     // tank can overflow or not
 } Stank;
 
 typedef struct             // Pump Object
