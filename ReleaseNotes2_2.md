@@ -131,6 +131,11 @@ for the thread-safe API. Some additional points regarding the new **PDA** option
  - This implementation of **PDA** assumes that the same parameters apply to all nodes in the network. Extending the framework to allow different parameters for specific nodes is left as a future feature to implement.
  - Pmin is allowed to equal to Preq. This condition can be used to find a solution that results in the smallest amount of demand reductions needed to insure that no node delivers positive demand at a pressure below Pmin.
 
+## Tank Overflows
+EPANET has always prevented tanks from overflowing by closing any links that supply inflow to a full tank. A new option `EN_CANOVERFLOW`, has been added to the list of Tank node properties. When set to 1 it will allow its tank to overflow when it becomes full. The spillage rate is returned in the tank's EN_DEMAND property. The default value for `EN_CANOVERFLOW` is 0 indicating that the tank cannot overflow.
+
+For the input file, a new field has been appended to the data supplied for each tank in the `[TANKS]` section of the file. A value of **YES** indicates that the tank can over flow while **NO** (the default) indicates that it cannot. For the volume curve field that precedes it, an asterisk (*) can be used if the tank does not utilize a volume curve.
+
 ## Improved Water Quality Mass Balance
 
 As described by [Davis et al. (2018)](https://www.drink-water-eng-sci.net/11/25/2018/dwes-11-25-2018.pdf) EPANET's water quality simulations can result in some significant mass balance errors when modeling short term mass injections (errors are much smaller for continuous source flows). The entire water quality engine has been re-written to eliminate these errors. It still uses the Lagrangian Time Driven transport method but now analyzes each network node in topologically sorted order rather than in arbitrary order.
@@ -208,6 +213,8 @@ Access to the following global energy options have been added to  `EN_getoption`
  - `EN_DEMANDCHARGE` (price per maximum kW of energy consumption)
 
 ## New API Constants
+### Node value types:
+- `EN_CANOVERFLOW`
 
 ### Link value types:
 - `EN_PUMP_STATE`
