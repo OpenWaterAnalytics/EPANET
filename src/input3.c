@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/24/2019
+Last Updated: 06/19/2019
 ******************************************************************************
 */
 
@@ -197,8 +197,12 @@ int tankdata(Project *pr)
         }
 
         // Parse overflow indicator if present
-        if (n >= 9 && match(parser->Tok[8], w_YES))
-            overflow = TRUE;
+        if (n >= 9)
+        {
+            if (match(parser->Tok[8], w_YES)) overflow = TRUE;
+            else if (match(parser->Tok[8], w_NO)) overflow = FALSE;
+            else return setError(parser, 8, 213);
+        }
 
         if (initlevel < 0.0) return setError(parser, 2, 209);
         if (minlevel  < 0.0) return setError(parser, 3, 209);
