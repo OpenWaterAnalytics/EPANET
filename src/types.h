@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/15/2019
+ Last Updated: 06/20/2019
  ******************************************************************************
 */
 
@@ -200,7 +200,8 @@ typedef enum {
   XFCV,          // FCV cannot supply flow
   XPRESSURE,     // valve cannot supply pressure
   FILLING,       // tank filling
-  EMPTYING       // tank emptying
+  EMPTYING,      // tank emptying
+  OVERFLOWING    // tank overflowing
 } StatusType;
 
 typedef enum {
