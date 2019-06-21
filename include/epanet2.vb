@@ -38,8 +38,9 @@ Public Const EN_MAXLEVEL = 21
 Public Const EN_MIXFRACTION = 22
 Public Const EN_TANK_KBULK = 23
 
-Public Const EN_TANKVOLUME = 24 'ES
+Public Const EN_TANKVOLUME = 24
 Public Const EN_MAXVOLUME = 25
+Public Const EN_CANOVERFLOW  = 26
 
 Public Const EN_DIAMETER = 0      ' Link parameters
 Public Const EN_LENGTH = 1

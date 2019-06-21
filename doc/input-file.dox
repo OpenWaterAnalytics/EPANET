@@ -912,23 +912,26 @@ One line for each junction containing:
 - Nominal diameter, ft (m)
 - Minimum volume, cubic ft (cubic meters)
 - Volume curve ID (optional)
+- Overflow indicator (<b>YES / NO</b>) (optional)
 
 __Remarks:__
 1. Water surface elevation equals bottom elevation plus water level.
 2. Non-cylindrical tanks can be modeled by specifying a curve of volume versus water depth in the @ref CurvesPage section.
 3. If a volume curve is supplied the diameter value can be any non-zero number
 4. Minimum volume (tank volume at minimum water level) can be zero for a cylindrical tank or if a volume curve is supplied.
-5. A network must contain at least one tank or reservoir.
+5. If the overflow indicator is \b YES then the tank is allowed to overflow once it reaches it maximum water level. The default is no overflow.
+6. If the tank does not use a volume curve then an asterisk (*) can be used as a placeholder for it if an overflow indicator is specified.
+7. A network must contain at least one tank or reservoir.
 
 __Example:__
 @code
 [TANKS] 
-;ID   Elev.  InitLvl  MinLvl  MaxLvl  Diam  MinVol  VolCurve 
-;----------------------------------------------------------- 
-;Cylindrical tank 
-T1    100     15       5       25     120   0 
+;ID   Elev.  InitLvl  MinLvl  MaxLvl  Diam  MinVol  VolCurve  Overflow 
+;--------------------------------------------------------------------- 
+;Cylindrical tank that can overflow
+T1    100     15       5       25     120   0       *          YES 
 
-;Non-cylindrical tank with arbitrary diameter 
+;Non-cylindrical tank with arbitrary diameter
 T2   100     15       5       25     1     0        VC1    
 @endcode
 */

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 06/20/2019
  ******************************************************************************
 */
 
@@ -38,7 +38,8 @@ char *StatTxt[]         = {t_XHEAD,
                            t_XFCV,
                            t_XPRESSURE,
                            t_FILLING,
-                           t_EMPTYING};
+                           t_EMPTYING,
+                           t_OVERFLOWING};
 
 char *FormTxt[]         = {w_HW,
                            w_DW,
