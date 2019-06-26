@@ -27,6 +27,7 @@ rem : %CMAKE_PATH% --build . --config Debug
 
 XCOPY "%COMPILE_PATH_WIN64TMP%bin\Release\epanet2.dll" "%COMPILE_PATH_WIN64%epanet2.dll*" /y
 XCOPY "%COMPILE_PATH_WIN64TMP%bin\Release\runepanet.exe" "%COMPILE_PATH_WIN64%runepanet.exe*" /y
+XCOPY "%COMPILE_PATH_WIN64TMP%lib\Release\epanet2.lib" "%COMPILE_PATH_WIN64%epanet2.lib*" /y
 
 rem : CMAKE the root directory of the EPANET project 
 rem : 32 bit
@@ -39,6 +40,7 @@ rem : %CMAKE_PATH% --build . --config Debug
 
 XCOPY "%COMPILE_PATH_WIN32TMP%bin\Release\epanet2.dll" "%COMPILE_PATH_WIN32%epanet2.dll*" /y
 XCOPY "%COMPILE_PATH_WIN32TMP%bin\Release\runepanet.exe" "%COMPILE_PATH_WIN32%runepanet.exe*" /y
+XCOPY "%COMPILE_PATH_WIN32TMP%lib\Release\epanet2.lib" "%COMPILE_PATH_WIN32%epanet2.lib*" /y
 
 CD "%Build_PATH%"
 
