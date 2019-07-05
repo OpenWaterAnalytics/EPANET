@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(test_setid_save)
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 
 }
 
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(test_setid_reopen, * boost::unit_test::depends_on("setid_sa
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -345,7 +345,7 @@ BOOST_AUTO_TEST_CASE(test_reopen_comment, * boost::unit_test::depends_on("node_c
 
     // Close project
     EN_close(ph);
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 }
 
 

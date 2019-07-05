@@ -33,7 +33,7 @@ struct FixtureOpenClose{
 
     ~FixtureOpenClose() {
       error = EN_close(ph);
-      EN_deleteproject(&ph);
+      EN_deleteproject(ph);
   }
 
   int error;
@@ -52,7 +52,7 @@ struct FixtureInitClose {
 
 	~FixtureInitClose() {
 		EN_close(ph);
-		EN_deleteproject(&ph);
+		EN_deleteproject(ph);
 	}
 	int error;
 	EN_Project ph;
@@ -94,7 +94,7 @@ struct FixtureAfterStep{
         BOOST_REQUIRE(error == 0);
 
         error = EN_close(ph);
-        EN_deleteproject(&ph);
+        EN_deleteproject(ph);
     }
 
     int error, flag;
@@ -115,7 +115,7 @@ struct FixtureSingleNode {
 
     ~FixtureSingleNode() {
         EN_close(ph);
-        EN_deleteproject(&ph);
+        EN_deleteproject(ph);
     }
     int error, index, node_qhut;
     EN_Project ph;

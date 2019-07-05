@@ -67,7 +67,7 @@ These are the toolkit's enumerated types whose members are used as function argu
 @addtogroup Project
 @{
 @fn int EN_createproject(EN_Project *ph)
-@fn int EN_deleteproject(EN_Project *ph)
+@fn int EN_deleteproject(EN_Project ph)
 @fn int EN_runproject(EN_Project ph, const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
 @fn int EN_init(EN_Project ph, const char *rptFile, const char *outFile, int unitsType, int headLossType)
 @fn int EN_open(EN_Project ph, const char *inpFile, const char *rptFile, const char *binOutFile)
@@ -376,5 +376,5 @@ These are the toolkit's enumerated types whose members are used as function argu
 |4 | Pumps cannot deliver enough flow or head - one or more pumps were forced to either shut down (due to insufficient head) or operate beyond the maximum rated flow |
 |5 | Valves cannot deliver enough flow - one or more flow control valves could not deliver the required flow even when fully open |
 |6 | System has negative pressures - negative pressures occurred at one or more junctions with positive demand |
- 
+
 */

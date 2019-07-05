@@ -148,7 +148,7 @@ BOOST_AUTO_TEST_CASE(test_setlinktype)
     // Close and delete project
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 }
 
 
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(test_link_setid_save)
 
 	error = EN_close(ph);
 	BOOST_REQUIRE(error == 0);
-	EN_deleteproject(&ph);
+	EN_deleteproject(ph);
 }
 
 BOOST_AUTO_TEST_CASE(test_link_setid_reopen, * boost::unit_test::depends_on("test_link/test_link_setid_save"))
@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE(test_link_setid_reopen, * boost::unit_test::depends_on("tes
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_link_comments, FixtureOpenClose)
