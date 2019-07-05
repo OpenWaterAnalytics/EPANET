@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/24/2019
+Last Updated: 06/19/2019
 ******************************************************************************
 */
 
@@ -138,7 +138,8 @@ int tankdata(Project *pr)
     int    i,               // Node index
            n,               // # data items
            pattern = 0,     // Time pattern index
-           curve = 0;       // Curve index
+           curve = 0,       // Curve index
+           overflow = FALSE;// Overflow indicator    
     double el = 0.0,        // Elevation
            initlevel = 0.0, // Initial level
            minlevel = 0.0,  // Minimum level
@@ -185,12 +186,24 @@ int tankdata(Project *pr)
         if (n >= 7 && !getfloat(parser->Tok[6], &minvol)) return setError(parser, 6, 202);
 
         // If volume curve supplied check it exists
-        if (n == 8)
+        if (n >= 8)
         {
-            curve = findcurve(net, parser->Tok[7]);
-            if (curve == 0) return setError(parser, 7, 206);
-            net->Curve[curve].Type = VOLUME_CURVE;
+            if (strlen(parser->Tok[7]) > 0 && *(parser->Tok[7]) != '*')
+            {
+                curve = findcurve(net, parser->Tok[7]);
+                if (curve == 0) return setError(parser, 7, 206);
+                net->Curve[curve].Type = VOLUME_CURVE;
+            }
         }
+
+        // Parse overflow indicator if present
+        if (n >= 9)
+        {
+            if (match(parser->Tok[8], w_YES)) overflow = TRUE;
+            else if (match(parser->Tok[8], w_NO)) overflow = FALSE;
+            else return setError(parser, 8, 213);
+        }
+
         if (initlevel < 0.0) return setError(parser, 2, 209);
         if (minlevel  < 0.0) return setError(parser, 3, 209);
         if (maxlevel  < 0.0) return setError(parser, 4, 209);
@@ -216,6 +229,7 @@ int tankdata(Project *pr)
     tank->A = diam;
     tank->Pat = pattern;
     tank->Kb = MISSING;
+    tank->CanOverflow = overflow;
 
     //*******************************************************************
     // NOTE: The min, max, & initial volumes set here are based on a
