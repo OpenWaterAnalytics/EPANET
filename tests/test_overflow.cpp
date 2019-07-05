@@ -89,14 +89,14 @@ BOOST_AUTO_TEST_CASE(test_tank_overflow)
     BOOST_REQUIRE(spillage > 0.0001);
     error = EN_getlinkvalue(ph, Lindex, EN_FLOW, &inflow);
     BOOST_REQUIRE(error == 0);
-    BOOST_REQUIRE(abs(-inflow - spillage) < 0.0001);    
-    
+    BOOST_REQUIRE(abs(-inflow - spillage) < 0.0001);
+
     // Save project to file and then close it
     error = EN_saveinpfile(ph, testFile);
     BOOST_REQUIRE(error == 0);
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
-    
+
     // Re-open saved file & run it
     error = EN_open(ph, testFile, DATA_PATH_RPT, "");
     BOOST_REQUIRE(error == 0);
@@ -107,13 +107,13 @@ BOOST_AUTO_TEST_CASE(test_tank_overflow)
     error = EN_getnodevalue(ph, Nindex, EN_DEMAND, &spillage2);
     BOOST_REQUIRE(error == 0);
     BOOST_REQUIRE(abs(spillage - spillage2) < 0.0001);
-    
+
     // Clean up
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
-    error = EN_deleteproject(&ph);
+    error = EN_deleteproject(ph);
     BOOST_REQUIRE(error == 0);
-    
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

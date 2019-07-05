@@ -43,7 +43,7 @@ struct FixtureInitClose {
 
     ~FixtureInitClose() {
         EN_close(ph);
-        EN_deleteproject(&ph);
+        EN_deleteproject(ph);
     }
     int error;
     EN_Project ph;
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE(test_open_net1, * boost::unit_test::depends_on("test_net_bu
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
 
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 
     //---------------------------------------------------------------------
     // if we got this far we can compare results
@@ -408,7 +408,7 @@ BOOST_AUTO_TEST_CASE(test_reopen_net2, *boost::unit_test::depends_on("test_net_b
 
     // Close project
     EN_close(ph);
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

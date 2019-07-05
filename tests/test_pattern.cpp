@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(test_add_set)
     BOOST_REQUIRE(y == y3[0]);
 
     EN_close(ph);
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_pattern_comments, FixtureOpenClose)

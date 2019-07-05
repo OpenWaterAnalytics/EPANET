@@ -42,7 +42,7 @@ void  epanet_thread(long i)
 
     EN_createproject(&ph);
     errorcode = EN_runproject(ph, input.c_str(), report.c_str(), output.c_str(), NULL);
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 
     printf("Thread #%ld EPANET done. Status = %d\n", i, errorcode);
 }

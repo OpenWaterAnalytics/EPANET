@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE (test_create_delete)
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ph != NULL);
 
-    error = EN_deleteproject(&ph);
+    error = EN_deleteproject(ph);
 
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ph == NULL);
@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE (test_open_close)
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
 
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 }
 
 BOOST_AUTO_TEST_CASE(test_init_close)
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(test_init_close)
 	error = EN_close(ph);
 	BOOST_REQUIRE(error == 0);
 
-	EN_deleteproject(&ph);
+	EN_deleteproject(ph);
 }
 
 BOOST_AUTO_TEST_CASE(test_save)
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(test_save)
 
     error = EN_close(ph_save);
     BOOST_REQUIRE(error == 0);
-    EN_deleteproject(&ph_save);
+    EN_deleteproject(ph_save);
 }
 
 BOOST_AUTO_TEST_CASE(test_reopen, * boost::unit_test::depends_on("test_project/test_save"))
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(test_reopen, * boost::unit_test::depends_on("test_project/t
 
     error = EN_close(ph_reopen);
     BOOST_REQUIRE(error == 0);
-	EN_deleteproject(&ph_reopen);
+	EN_deleteproject(ph_reopen);
 }
 
 BOOST_AUTO_TEST_CASE(test_run)
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE(test_run)
     error = EN_runproject(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT, NULL);
     BOOST_REQUIRE(error == 0);
 
-    EN_deleteproject(&ph);
+    EN_deleteproject(ph);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
