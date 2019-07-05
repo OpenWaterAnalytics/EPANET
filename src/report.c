@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/15/2019
+ Last Updated: 06/20/2019
  ******************************************************************************
 */
 
@@ -370,8 +370,13 @@ void writehydstat(Project *pr, int iter, double relerr)
     n = net->Tank[i].Node;
     NodeDemand = hyd->NodeDemand;
     if (ABS(NodeDemand[n]) < 0.001) newstat = CLOSED;
-    else if (NodeDemand[n] > 0.0)   newstat = FILLING;
     else if (NodeDemand[n] < 0.0)   newstat = EMPTYING;
+    else if (NodeDemand[n] > 0.0)
+    {
+        if (Tank[i].A > 0.0 && ABS(hyd->NodeHead[n] - Tank[i].Hmax) < 0.001)
+            newstat = OVERFLOWING;
+        else newstat = FILLING;
+    }
     else newstat = hyd->OldStatus[net->Nlinks + i];
     if (newstat != hyd->OldStatus[net->Nlinks + i])
     {

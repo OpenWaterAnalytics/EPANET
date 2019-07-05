@@ -1802,6 +1802,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
         tank->Vcurve = 0;
         tank->MixModel = 0;
         tank->V1max = 10000;
+        tank->CanOverflow = FALSE;
     }
     net->Nnodes++;
     p->parser.MaxNodes = net->Nnodes;
@@ -2197,6 +2198,11 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         v = tankvolume(p, index - nJuncs, NodeHead[index]) * Ucf[VOLUME];
         break;
 
+    case EN_CANOVERFLOW:
+        if (Node[index].Type != TANK) return 0;
+        v = Tank[index - nJuncs].CanOverflow;
+        break;
+
     default:
         return 251;
     }
@@ -2493,6 +2499,11 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
             Tank[j].Kb = value / SECperDAY;
             qual->Reactflag = 1;
         }
+        break;
+
+    case EN_CANOVERFLOW:
+        if (Node[index].Type != TANK) return 0;
+        Tank[index - nJuncs].CanOverflow = (value != 0.0);
         break;
 
     default:

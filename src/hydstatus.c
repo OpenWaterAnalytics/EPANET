@@ -441,7 +441,7 @@ void  tankstatus(Project *pr, int k, int n1, int n2)
     h = hyd->NodeHead[n1] - hyd->NodeHead[n2];
 
     // If tank is full, then prevent flow into it
-    if (hyd->NodeHead[n1] >= tank->Hmax - hyd->Htol)
+    if (hyd->NodeHead[n1] >= tank->Hmax - hyd->Htol && !tank->CanOverflow)
     {
         // Case 1: Link is a pump discharging into tank
         if (link->Type == PUMP)

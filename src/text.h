@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/27/2018
+ Last Updated: 06/20/2019
  ******************************************************************************
 */
 
@@ -282,6 +282,7 @@
 #define   t_XPRESSURE   "open but cannot deliver pressure"
 #define   t_FILLING     "filling"
 #define   t_EMPTYING    "emptying"
+#define   t_OVERFLOWING "overflowing"
 
 #define   t_ELEV        "Elevation"
 #define   t_DEMAND      "Demand"
