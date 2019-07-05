@@ -34,7 +34,6 @@ BOOST_AUTO_TEST_CASE (test_create_delete)
     error = EN_deleteproject(ph);
 
     BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(ph == NULL);
 }
 
 BOOST_AUTO_TEST_CASE (test_open_close)
