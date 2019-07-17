@@ -70,7 +70,7 @@ typedef struct Project *EN_Project;
 
   EN_deleteproject should be called after all network analysis has been completed.
   */
-  int DLLEXPORT EN_deleteproject(EN_Project *ph);
+  int DLLEXPORT EN_deleteproject(EN_Project ph);
 
   /**
   @brief Runs a complete EPANET simulation.
@@ -94,7 +94,7 @@ typedef struct Project *EN_Project;
   the pviewprog argument should be `NULL`.
   */
   int DLLEXPORT EN_runproject(EN_Project ph, const char *inpFile, const char *rptFile,
-                const char *outFile, void (*pviewprog)(char *));
+                const char *outputFile, void (*pviewprog)(char *));
 
   /**
   @brief Initializes an EPANET project.
@@ -134,7 +134,7 @@ typedef struct Project *EN_Project;
   @param[out] line3 third title line
   @return an error code
   */
-  int  DLLEXPORT EN_gettitle(EN_Project ph, char *line1, char *line2, char *line3);
+  int  DLLEXPORT EN_gettitle(EN_Project ph, char *out_line1, char *out_line2, char *out_line3);
 
   /**
   @brief Sets the title lines of the project
@@ -154,7 +154,7 @@ typedef struct Project *EN_Project;
   @param[out] comment the comment string assigned to the object
   @return an error code
   */
-  int  DLLEXPORT EN_getcomment(EN_Project ph, int object, int index, char *comment);
+  int  DLLEXPORT EN_getcomment(EN_Project ph, int object, int index, char *out_comment);
 
   /**
   @brief Assigns a descriptive comment to a Node, Link, Pattern or Curve.
@@ -627,7 +627,7 @@ typedef struct Project *EN_Project;
 
   Error message strings should be at least @ref EN_SizeLimits "EN_MAXMSG" characters in length.
   */
-  int  DLLEXPORT EN_geterror(int errcode, char *errmsg, int maxLen);
+  int  DLLEXPORT EN_geterror(int errcode, char *out_errmsg, int maxLen);
 
   /**
   @brief Retrieves a particular simulation statistic.
@@ -712,8 +712,8 @@ typedef struct Project *EN_Project;
   @param[out] traceNode index of the node being traced (if applicable).
   @return an error code.
   */
-  int  DLLEXPORT EN_getqualinfo(EN_Project ph, int *qualType, char *chemName,
-                 char *chemUnits, int *traceNode);
+  int  DLLEXPORT EN_getqualinfo(EN_Project ph, int *qualType, char *out_chemName,
+                 char *out_chemUnits, int *traceNode);
 
   /**
   @brief Retrieves the type of water quality analysis to be run.
@@ -792,7 +792,7 @@ typedef struct Project *EN_Project;
 
   The ID name must be sized to hold at least @ref EN_SizeLimits "EN_MAXID" characters.
   */
-  int  DLLEXPORT EN_getnodeid(EN_Project ph, int index, char *id);
+  int  DLLEXPORT EN_getnodeid(EN_Project ph, int index, char *out_id);
 
   /**
   @brief Changes the ID name of a node.
@@ -1037,7 +1037,7 @@ typedef struct Project *EN_Project;
 
   \b demandName must be sized to contain at least @ref EN_SizeLimits "EN_MAXID" characters.
   */
-  int DLLEXPORT EN_getdemandname(EN_Project ph, int nodeIndex, int demandIndex, char *demandName);
+  int DLLEXPORT EN_getdemandname(EN_Project ph, int nodeIndex, int demandIndex, char *out_demandName);
 
   /**
   @brief Assigns a name to a node's demand category.
@@ -1072,7 +1072,7 @@ typedef struct Project *EN_Project;
   - Hazen-Williams formula: 130
   - Darcy-Weisbach formula: 0.5 millifeet (0.15 mm)
   - Chezy-Manning formula: 0.01
-  
+
   All other pipe properties are set to 0.
 
   A new pump has a status of \b EN_OPEN, a speed setting of 1, and has no pump
@@ -1116,7 +1116,7 @@ typedef struct Project *EN_Project;
 
   The ID name must be sized to hold at least @ref EN_SizeLimits "EN_MAXID" characters.
   */
-  int  DLLEXPORT EN_getlinkid(EN_Project ph, int index, char *id);
+  int  DLLEXPORT EN_getlinkid(EN_Project ph, int index, char *out_id);
 
   /**
   @brief Changes the ID name of a link.
@@ -1151,7 +1151,7 @@ typedef struct Project *EN_Project;
   \b EN_CONDITIONAL then the type change is cancelled if the link appears in any
   control and error 261 is returned.
   */
-  int  DLLEXPORT EN_setlinktype(EN_Project ph, int *index, int linkType, int actionCode);
+  int  DLLEXPORT EN_setlinktype(EN_Project ph, int *inout_index, int linkType, int actionCode);
 
   /**
   @brief Gets the indexes of a link's start- and end-nodes.
@@ -1288,7 +1288,7 @@ typedef struct Project *EN_Project;
 
   The ID name must be sized to hold at least @ref EN_SizeLimits "EN_MAXID" characters.
   */
-  int  DLLEXPORT EN_getpatternid(EN_Project ph, int index, char *id);
+  int  DLLEXPORT EN_getpatternid(EN_Project ph, int index, char *out_id);
 
   /**
   @brief Changes the ID name of a time pattern given its index.
@@ -1396,7 +1396,7 @@ typedef struct Project *EN_Project;
 
   The ID name must be sized to hold at least @ref EN_SizeLimits "EN_MAXID" characters.
   */
-  int  DLLEXPORT EN_getcurveid(EN_Project ph, int index, char *id);
+  int  DLLEXPORT EN_getcurveid(EN_Project ph, int index, char *out_id);
 
   /**
   @brief Changes the ID name of a data curve given its index.
@@ -1465,7 +1465,7 @@ typedef struct Project *EN_Project;
   to hold `nPoints` number of data points and for sizing `id` to hold at least
   @ref EN_SizeLimits "EN_MAXID" characters.
   */
-  int  DLLEXPORT EN_getcurve(EN_Project ph, int index, char* id, int *nPoints,
+  int  DLLEXPORT EN_getcurve(EN_Project ph, int index, char *out_id, int *nPoints,
                  double *xValues, double *yValues);
 
   /**
@@ -1595,7 +1595,7 @@ typedef struct Project *EN_Project;
 
   The ID name must be sized to hold at least @ref EN_SizeLimits "EN_MAXID" characters.
   */
-  int  DLLEXPORT EN_getruleID(EN_Project ph, int index, char* id);
+  int  DLLEXPORT EN_getruleID(EN_Project ph, int index, char *out_id);
 
   /**
   @brief Gets the properties of a premise in a rule-based control.

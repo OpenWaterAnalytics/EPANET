@@ -51,7 +51,7 @@ int DLLEXPORT EN_createproject(EN_Project *p)
     return 0;
 }
 
-int DLLEXPORT EN_deleteproject(EN_Project *p)
+int DLLEXPORT EN_deleteproject(EN_Project p)
 /*----------------------------------------------------------------
 **  Input:   none
 **  Output:  none
@@ -60,13 +60,15 @@ int DLLEXPORT EN_deleteproject(EN_Project *p)
 **----------------------------------------------------------------
 */
 {
-    if (*p == NULL) return -1;
-    if ((*p)->Openflag) EN_close(*p);
-    remove((*p)->TmpHydFname);
-    remove((*p)->TmpOutFname);
-    remove((*p)->TmpStatFname);
-    free(*p);
-    *p = NULL;
+    if (p == NULL) return -1;
+    if (p->Openflag) {
+      EN_close(p);
+    }
+    remove(p->TmpHydFname);
+    remove(p->TmpOutFname);
+    remove(p->TmpStatFname);
+    free(p);
+    p = NULL;
     return 0;
 }
 
