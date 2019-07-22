@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/20/2019
+ Last Updated: 07/22/2019
  ******************************************************************************
 */
 
@@ -358,7 +358,15 @@ void writehydstat(Project *pr, int iter, double relerr)
   {
     if (relerr <= hyd->Hacc) sprintf(s1, FMT58, atime, iter);
     else sprintf(s1, FMT59, atime, iter, relerr);
-    writeline(pr, s1);
+    writeline(pr, s1); 
+    if (hyd->DemandModel == PDA && hyd->DeficientNodes > 0)
+    {
+        if (hyd->DeficientNodes == 1)
+          sprintf(s1, FMT69a, hyd->DemandReduction);
+        else
+          sprintf(s1, FMT69b, hyd->DeficientNodes, hyd->DemandReduction);
+        writeline(pr, s1);        
+    }    
   }
 
   // Display status changes for tanks:
@@ -1064,14 +1072,9 @@ int writehydwarn(Project *pr, int iter, double relerr)
     int i, j;
     char flag = 0;
     int s;
-    Snode *Node = net->Node;
-    Slink *Link = net->Link;
-    Spump *Pump = net->Pump;
-    Svalve *Valve = net->Valve;
-    const int Njuncs = net->Njuncs;
-    double *NodeDemand = hyd->NodeDemand;
-    double *LinkFlow = hyd->LinkFlow;
-    double *LinkSetting = hyd->LinkSetting;
+    Snode *node;
+    Slink *link;
+    Spump *pump;
 
     // Check if system unstable
     if (iter > hyd->MaxIter && relerr <= hyd->Hacc)
@@ -1081,29 +1084,41 @@ int writehydwarn(Project *pr, int iter, double relerr)
         flag = 2;
     }
 
-    // Check for negative pressures
-    for (i = 1; i <= Njuncs; i++)
+    // Check for pressure deficient nodes
+    if (hyd->DemandModel == DDA)
     {
-        Snode *node = &Node[i];
-        if (hyd->NodeHead[i] < node->El && NodeDemand[i] > 0.0)
+        hyd->DeficientNodes = 0;
+        for (i = 1; i <= net->Njuncs; i++)
         {
-            sprintf(pr->Msg, WARN06, clocktime(rpt->Atime, time->Htime));
-            if (rpt->Messageflag) writeline(pr, pr->Msg);
+            node = &net->Node[i];
+            if (hyd->NodeHead[i] < node->El && hyd->NodeDemand[i] > 0.0)
+                hyd->DeficientNodes++;
+        }
+        if (hyd->DeficientNodes > 0)
+        {
+            if (rpt->Messageflag)
+            {
+                sprintf(pr->Msg, WARN06, clocktime(rpt->Atime, time->Htime));
+                writeline(pr, pr->Msg);
+            }
             flag = 6;
-            break;
         }
     }
 
     // Check for abnormal valve condition
     for (i = 1; i <= net->Nvalves; i++)
     {
-        j = Valve[i].Link;
+        j = net->Valve[i].Link;
+        link = &net->Link[j];
         if (hyd->LinkStatus[j] >= XFCV)
         {
-            sprintf(pr->Msg, WARN05, LinkTxt[Link[j].Type], Link[j].ID,
-                    StatTxt[hyd->LinkStatus[j]],
-                    clocktime(rpt->Atime, time->Htime));
-            if (rpt->Messageflag) writeline(pr, pr->Msg);
+            if (rpt->Messageflag)
+            {
+                sprintf(pr->Msg, WARN05, LinkTxt[link->Type], link->ID,
+                        StatTxt[hyd->LinkStatus[j]],
+                        clocktime(rpt->Atime, time->Htime));
+                writeline(pr, pr->Msg);
+            }
             flag = 5;
         }
     }
@@ -1111,18 +1126,22 @@ int writehydwarn(Project *pr, int iter, double relerr)
     // Check for abnormal pump condition
     for (i = 1; i <= net->Npumps; i++)
     {
-        j = Pump[i].Link;
+        pump = &net->Pump[i];
+        j = pump->Link;
         s = hyd->LinkStatus[j];
         if (hyd->LinkStatus[j] >= OPEN)
         {
-            if (LinkFlow[j] > LinkSetting[j] * Pump[i].Qmax) s = XFLOW;
-            if (LinkFlow[j] < 0.0) s = XHEAD;
+            if (hyd->LinkFlow[j] > hyd->LinkSetting[j] * pump->Qmax) s = XFLOW;
+            if (hyd->LinkFlow[j] < 0.0) s = XHEAD;
         }
         if (s == XHEAD || s == XFLOW)
         {
-            sprintf(pr->Msg, WARN04, Link[j].ID, StatTxt[s],
-                    clocktime(rpt->Atime, time->Htime));
-            if (rpt->Messageflag) writeline(pr, pr->Msg);
+            if (rpt->Messageflag)
+            {
+                sprintf(pr->Msg, WARN04, net->Link[j].ID, StatTxt[s],
+                        clocktime(rpt->Atime, time->Htime));
+                writeline(pr, pr->Msg);
+            }
             flag = 4;
         }
     }
@@ -1130,9 +1149,12 @@ int writehydwarn(Project *pr, int iter, double relerr)
     // Check if system is unbalanced
     if (iter > hyd->MaxIter && relerr > hyd->Hacc)
     {
-        sprintf(pr->Msg, WARN01, clocktime(rpt->Atime, time->Htime));
-        if (hyd->ExtraIter == -1) strcat(pr->Msg, t_HALTED);
-        if (rpt->Messageflag) writeline(pr, pr->Msg);
+        if (rpt->Messageflag)
+        {
+            sprintf(pr->Msg, WARN01, clocktime(rpt->Atime, time->Htime));
+            if (hyd->ExtraIter == -1) strcat(pr->Msg, t_HALTED);
+            writeline(pr, pr->Msg);
+        }
         flag = 1;
     }
 
@@ -1162,9 +1184,12 @@ void writehyderr(Project *pr, int errnode)
 
     Snode *Node = net->Node;
 
-    sprintf(pr->Msg, FMT62, clocktime(rpt->Atime, time->Htime),
-            Node[errnode].ID);
-    if (rpt->Messageflag) writeline(pr, pr->Msg);
+    if (rpt->Messageflag)
+    {
+        sprintf(pr->Msg, FMT62, clocktime(rpt->Atime, time->Htime),
+                Node[errnode].ID);
+        writeline(pr, pr->Msg);
+    }
     writehydstat(pr, 0, 0);
     disconnected(pr);
 }

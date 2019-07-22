@@ -7,7 +7,7 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/15/2019
+Last Updated: 07/08/2019
 ******************************************************************************
 */
 
@@ -109,7 +109,7 @@ void setdefaults(Project *pr)
     hyd->HeadErrorLimit = 0.0;  // Default head error limit
     hyd->DemandModel = DDA;     // Demand driven analysis
     hyd->Pmin = 0.0;            // Minimum demand pressure (ft)
-    hyd->Preq = 0.0;            // Required demand pressure (ft)
+    hyd->Preq = MINPDIFF;       // Required demand pressure (ft)
     hyd->Pexp = 0.5;            // Pressure function exponent
     hyd->MaxIter = MAXITER;     // Default max. hydraulic trials
     hyd->ExtraIter = -1;        // Stop if network unbalanced
@@ -267,7 +267,7 @@ void adjustdata(Project *pr)
     // Revise pressure units depending on flow units
     if (parser->Unitsflag != SI) parser->Pressflag = PSI;
     else if (parser->Pressflag == PSI) parser->Pressflag = METERS;
-
+    
     // Store value of viscosity & diffusivity
     ucf = 1.0;
     if (parser->Unitsflag == SI) ucf = SQR(MperFT);
@@ -322,9 +322,9 @@ void adjustdata(Project *pr)
         if (tank->Kb == MISSING) tank->Kb = qual->Kbulk;
     }
  
-	// Use default pattern if none assigned to a demand
-	parser->DefPat = findpattern(net, parser->DefPatID);
-	if (parser->DefPat > 0) for (i = 1; i <= net->Nnodes; i++)
+    // Use default pattern if none assigned to a demand
+    parser->DefPat = findpattern(net, parser->DefPatID);
+    if (parser->DefPat > 0) for (i = 1; i <= net->Nnodes; i++)
     {
         node = &net->Node[i];
         for (demand = node->D; demand != NULL; demand = demand->next)
@@ -559,7 +559,8 @@ void convertunits(Project *pr)
             demand->Base /= pr->Ucf[DEMAND];
         }
     }
-
+    
+    // Convert PDA pressure limits
     hyd->Pmin /= pr->Ucf[PRESSURE];
     hyd->Preq /= pr->Ucf[PRESSURE];
 

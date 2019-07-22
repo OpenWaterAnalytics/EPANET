@@ -12,7 +12,7 @@ one would use:
 
 `EN_getnodevalue(ph, nodeIndex, EN_ELEVATION, &elev)`
 
-where `ph` is the handle assigned to the project.
+where `ph` is the handle assigned to the project. 
 
 Two new functions have been added to the API to manage the creation and deletion of project handles. `EN_createproject` creates a new project along with its handle, while `EN_deleteproject` deletes a project. An example of using the thread-safe version of the API is shown below:
 ```
@@ -47,32 +47,32 @@ int buildandrunEpanet(char *rptfile)
     err = EN_createproject(&ph);
     if (err) return err;
     EN_init(ph, rptfile, "", EN_GPM, EN_HW);
-
+    
     //Add a junction node with 710 ft elevation and 500 gpm demand
     EN_addnode(ph, "J1", EN_JUNCTION, &index);
     EN_setjuncdata(ph, index, 710, 500, "");
-
+    
     // Add a reservoir node at 800 ft elevation
     EN_addnode(ph, "R1", EN_RESERVOIR, &index);
     EN_setnodevalue(ph, index, EN_ELEVATION, 800);
-
+    
     // Add a 5280 ft long, 14-inch pipe with C-factor of 100
     // from the reservoir to the demand node
     EN_addlink(ph, "P1", EN_PIPE, "R1", "J1", &index);
     EN_setpipedata(ph, index, 5280, 14, 100, 0);
-
+    
     // Solve for hydraulics and report nodal results
     EN_setreport(ph, "NODES ALL");
     err = EN_solveH(ph);
     if (!err) err = EN_report(ph);
-
+    
     // Close and delete the project
     EN_close(ph);
     EN_deleteproject(ph);
     return err;
 }
 ```
-Instead of using `EN_open` to load data from a file, `EN_init` is used to initialize a project with the names of its report and binary files, and its flow units and head loss formula. The legacy-style API has a complementary set of functions for building networks from code.
+Instead of using `EN_open` to load data from a file, `EN_init` is used to initialize a project with the names of its report and binary files, and its flow units and head loss formula. The legacy-style API has a complementary set of functions for building networks from code. 
 
 ## Additional Convergence Parameters
 
@@ -82,13 +82,13 @@ Two new analysis options have been added to provide more rigorous convergence cr
 
 `EN_FLOWCHANGE` is the largest change in flow that any network element (link, emitter, or pressure-dependent demand) can have for hydraulic convergence to occur. It is specified in whatever flow units the project is using. The default value of 0 indicates that no flow change limit applies.
 
-These new parameters augment the current `EN_ACCURACY` option which always remains in effect. In addition, both `EN_HEADERROR` and `EN_FLOWCHANGE` can be used as parameters in the `ENgetstatistic` (or `EN_getstatistic`) function to retrieve their computed values (even when their option values are 0) after a hydraulic solution has been completed.
+These new parameters augment the current `EN_ACCURACY` option which always remains in effect. In addition, both `EN_HEADERROR` and `EN_FLOWCHANGE` can be used as parameters in the `EN_getstatistic` (or `ENgetstatistic`) function to retrieve their computed values (even when their option values are 0) after a hydraulic solution has been completed.  
 
 ## More Efficient Node Re-ordering
 
 EPANET's hydraulic solver requires solving a system of linear equations over a series of iterations until a set of convergence criteria are met. The coefficient matrix of this linear system is square and symmetric. It has a row for each network node and a non-zero off-diagonal coefficient for each link. The numerical effort needed to solve the linear system can be reduced if the nodes are re-ordered so that the non-zero coefficients cluster more tightly around the diagonal.
 
-EPANET's original node re-ordering scheme has been replaced by the more efficient **Multiple Minimum Degree (MMD)** algorithm. On a series of eight networks ranging in size from 7,700 to 100,000 nodes MMD reduced the solution time for a single period (steady state) hydraulic analysis, where most of the work is for node-reordering, by an average of 55%. Since MMD did not reduce the time needed to solve the linear equations generated at each iteration of the hydraulic solver longer extended period simulations will not exhibit a similar speedup.
+EPANET's original node re-ordering scheme has been replaced by the more efficient **Multiple Minimum Degree (MMD)** algorithm. On a series of eight networks ranging in size from 7,700 to 100,000 nodes MMD reduced the solution time for a single period (steady state) hydraulic analysis, where most of the work is for node-reordering, by an average of 55%. Since MMD did not reduce the time needed to solve the linear equations generated at each iteration of the hydraulic solver longer extended period simulations will not exhibit a similar speedup. 
 
 ## Improved Handling of Near-Zero Flows
 
@@ -98,7 +98,7 @@ The hydraulic solver has been modified to use a linear head loss v. flow relatio
 
 ## Pressure Dependent Demands
 
-EPANET has always employed a Demand Driven Analysis (**DDA**) when modeling network hydraulics. Under this approach nodal demands at a given point in time are fixed values that must be delivered no matter what nodal heads and link flows are produced by a hydraulic solution. This can result in situations where required demands are satisfied at nodes that have negative pressures - a physical impossibility.
+EPANET has always employed a Demand Driven Analysis (**DDA**) when modeling network hydraulics. Under this approach nodal demands at a given point in time are fixed values that must be delivered no matter what nodal heads and link flows are produced by a hydraulic solution. This can result in situations where required demands are satisfied at nodes that have negative pressures - a physical impossibility. 
 
 To address this issue EPANET has been extended to use a Pressure Driven Analysis (**PDA**) if so desired. Under **PDA**, the demand D delivered at a node depends on the node's available pressure P according to:
 
@@ -110,10 +110,10 @@ To implement pressure driven analysis four new parameters have been added to the
 
 | Parameter | Description  | Default |
 |-----------|--------------|---------|
-| DEMAND MODEL | either DDA or PDA | DDA |
-| MINIMUM PRESSURE | value for Pmin | 0
-| REQUIRED PRESSURE | value for Preq | 0
-| PRESSURE EXPONENT | value for Pexp | 0.5 |
+| `DEMAND MODEL` | either DDA or PDA | DDA |
+| `MINIMUM PRESSURE` | value for Pmin | 0
+| `REQUIRED PRESSURE` | value for Preq | 0.1
+| `PRESSURE EXPONENT` | value for Pexp | 0.5 |
 
 These parameters can also be set and retrieved in code using the following API functions
 ```
@@ -126,10 +126,12 @@ int EN_setdemandmodel(EN_Project ph, int modelType, double pMin, double pReq, do
 int EN_getdemandmodel(EN_Project ph, int *modelType, double *pMin, double *pReq, double *pExp);
 ```
 for the thread-safe API. Some additional points regarding the new **PDA** option are:
-
  - If no DEMAND  MODEL and its parameters are specified then the analysis defaults to being demand driven (**DDA**).
  - This implementation of **PDA** assumes that the same parameters apply to all nodes in the network. Extending the framework to allow different parameters for specific nodes is left as a future feature to implement.
- - Pmin is allowed to equal to Preq. This condition can be used to find a solution that results in the smallest amount of demand reductions needed to insure that no node delivers positive demand at a pressure below Pmin.
+ - Preq must be at least 0.1 (either psi or m) higher than Pmin to avoid numerical issues caused by having too steep a demand curve.
+ - Using `EN_DEFICIENTNODES` as the argument to `EN_getstatistic` (or `ENgetstatistic`) will retrieve the number of nodes that are pressure deficient. These are nodes with positive required demand whose pressure is below 0 under **DDA**  or below Preq under **PDA**.
+ - Using `EN_DEMANDREDUCTION` as an argument will retrieve the total percent reduction of demands at pressure deficient nodes under **PDA**.
+ - Using `EN_DEMANDDEFICIT` with the `EN_getnodevalue` (or `ENgetnodevalue`) function will return the amount of demand reduction produced by a **PDA** at any particular node.
 
 ## Tank Overflows
 EPANET has always prevented tanks from overflowing by closing any links that supply inflow to a full tank. A new option `EN_CANOVERFLOW`, has been added to the list of Tank node properties. When set to 1 it will allow its tank to overflow when it becomes full. The spillage rate is returned in the tank's EN_DEMAND property. The default value for `EN_CANOVERFLOW` is 0 indicating that the tank cannot overflow.
@@ -163,7 +165,7 @@ With this change EPANET 2.2 now produces perfect mass balances when tested again
 |`EN_deleterule`|Deletes a rule-based control from the project|
 |`EN_setnodeid`|Changes the ID name for a node|
 |`EN_setjuncdata` |Sets values for a junction's parameters |
-|`EN_settankdata` |Sets values for a tank's parameters|
+|`EN_settankdata` |Sets values for a tank's parameters| 
 |`EN_setlinkid`|Changes the ID name for a link|
 |`EN_setlinknodes`|Sets a link's start- and end-nodes|
 |`EN_setlinktype`|Changes the type of a specific link|
@@ -205,7 +207,7 @@ In addition to these new functions, a tank's volume curve `EN_VOLCURVE` can be s
  - `EN_PUMP_ECOST` (average energy price)
  - `EN_PUMP_EPAT` (energy pricing pattern)
  - `EN_LINKPATTERN` (speed setting pattern)
-
+ 
 Access to the following global energy options have been added to  `EN_getoption` and `EN_setoption`:
  - `EN_GLOBALEFFIC` (global pump efficiency)
  - `EN_GLOBALPRICE` (global average energy price per kW-Hour)
@@ -215,6 +217,7 @@ Access to the following global energy options have been added to  `EN_getoption`
 ## New API Constants
 ### Node value types:
 - `EN_CANOVERFLOW`
+- `EN_DEMANDDEFICIT`
 
 ### Link value types:
 - `EN_PUMP_STATE`
@@ -254,11 +257,13 @@ Access to the following global energy options have been added to  `EN_getoption`
  - `EN_WALLORDER`
  - `EN_TANKORDER`
  - `EN_CONCENLIMIT`
-
+ 
 ### Simulation statistic types:
  - `EN_MAXHEADERROR`
  - `EN_MAXFLOWCHANGE`
  - `EN_MASSBALANCE`
+ - `EN_DEFICIENTNODES`
+ - `EN_DEMANDREDUCTION`
 
 ### Action code types:
  - `EN_UNCONDITIONAL`
@@ -276,7 +281,7 @@ Access to the following global energy options have been added to  `EN_getoption`
  - `EN_PDA`
 
 ## Documentation
-Doxygen files have been created to generate a complete Users Guide for version 2.2's API. The guide's format is similar to the original EPANET Programmer's Toolkit help file and can be produced as a set of HTML pages, a Windows help file or a PDF document.
-
+Doxygen files have been created to generate a complete Users Guide for version 2.2's API. The guide's format is similar to the original EPANET Programmer's Toolkit help file and can be produced as a set of HTML pages, a Windows help file or a PDF document. 
+  
 ## Authors contributing to this release:
  - List item

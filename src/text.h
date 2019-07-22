@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/20/2019
+ Last Updated: 07/15/2019
  ******************************************************************************
 */
 
@@ -428,6 +428,8 @@
 #define FMT66  "                      maximum  flow change = %.4f for Link %s"
 #define FMT67  "                      maximum  flow change = %.4f for Node %s"
 #define FMT68  "                      maximum  head error  = %.4f for Link %s\n"
+#define FMT69a "            1 node had its demand reduced by a total of %.2f%%"
+#define FMT69b "            %-d nodes had demands reduced by a total of %.2f%%"
 
 //----- Energy Report Table -------------------------------
 

@@ -1924,12 +1924,20 @@ int optionvalue(Project *pr, int n)
     else if (match(tok0, w_MINIMUM))
     {
         if (y < 0.0) return setError(parser, nvalue, 213);
+        // Required pressure still at default value
+        if (hyd->Preq == MINPDIFF)
+            hyd->Preq = y + MINPDIFF;
+        // Required pressure already entered
+        else if (hyd->Preq - y < MINPDIFF)
+            return setError(parser, nvalue, 208);
         hyd->Pmin = y;
         return 0;
     }
     else if (match(tok0, w_REQUIRED))
     {
         if (y < 0.0) return setError(parser, nvalue, 213);
+        if (y - hyd->Pmin < MINPDIFF)
+            return setError(parser, nvalue, 208);
         hyd->Preq = y;
         return 0;
     }

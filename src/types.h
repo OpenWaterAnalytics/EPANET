@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/20/2019
+ Last Updated: 07/08/2019
  ******************************************************************************
 */
 
@@ -42,7 +42,6 @@ typedef  int          INT4;
 #define   MAXLINE   1024     // Max. # characters read from input line
 #define   MAXFNAME  259      // Max. # characters in file name
 #define   MAXTOKS   40       // Max. items per line of input
-#define   TZERO     1.E-4    // Zero time tolerance
 #define   TRUE      1
 #define   FALSE     0
 #define   FULL      2
@@ -53,6 +52,7 @@ typedef  int          INT4;
                                // @ 20 deg C (sq ft/sec)
 #define   VISCOS    1.1E-5     // Kinematic viscosity of water
                                // @ 20 deg C (sq ft/sec)
+#define   MINPDIFF  0.1        // PDA min. pressure difference (psi or m)
 #define   SEPSTR    " \t\n\r"  // Token separator characters
 #ifdef M_PI
   #define   PI        M_PI
@@ -689,7 +689,7 @@ typedef struct {
   double
     *NodeHead,             // Node hydraulic heads
     *NodeDemand,           // Node demand + emitter flows
-    *DemandFlow,           // Demand outflows
+    *DemandFlow,           // Work array of demand flows
     *EmitterFlow,          // Emitter outflows
     *LinkFlow,             // Link flows
     *LinkSetting,          // Link settings
@@ -716,6 +716,7 @@ typedef struct {
     RelativeError,         // Total flow change / total flow
     MaxHeadError,          // Max. error for link head loss
     MaxFlowChange,         // Max. change in link flow
+    DemandReduction,       // % demand reduction at pressure deficient nodes
     RelaxFactor,           // Relaxation factor for flow updating
     *P,                    // Inverse of head loss derivatives
     *Y,                    // Flow correction factors
@@ -731,7 +732,8 @@ typedef struct {
     CheckFreq,             // Hydraulic trials between status checks
     MaxCheck,              // Hydraulic trials limit on status checks
     OpenHflag,             // Hydraulic system opened flag
-    Haltflag;              // Flag to halt simulation
+    Haltflag,              // Flag to halt simulation
+    DeficientNodes;        // Number of pressure deficient nodes
 
   StatusType
     *LinkStatus,           // Link status

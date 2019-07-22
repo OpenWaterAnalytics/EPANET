@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/30/2019
+ Last Updated: 07/22/2019
  ******************************************************************************
 */
 
@@ -62,7 +62,8 @@ typedef enum {
   EN_TANK_KBULK   = 23, //!< Tank bulk decay coefficient
   EN_TANKVOLUME   = 24, //!< Current computed tank volume (read only)
   EN_MAXVOLUME    = 25, //!< Tank maximum volume (read only)
-  EN_CANOVERFLOW  = 26  //!< Tank can overflow (= 1) or not (= 0)
+  EN_CANOVERFLOW  = 26, //!< Tank can overflow (= 1) or not (= 0)
+  EN_DEMANDDEFICIT = 27 //!< Amount that full demand is reduced under PDA (read only)
 } EN_NodeProperty;
 
 /// Link properties
@@ -128,11 +129,13 @@ and the cumulative water quality mass balance error at the current simulation ti
 can be retrieved with @ref EN_getstatistic.
 */
 typedef enum {
-  EN_ITERATIONS    = 0, //!< Number of hydraulic iterations taken
-  EN_RELATIVEERROR = 1, //!< Sum of link flow changes / sum of link flows
-  EN_MAXHEADERROR  = 2, //!< Largest head loss error for links
-  EN_MAXFLOWCHANGE = 3, //!< Largest flow change in links
-  EN_MASSBALANCE   = 4  //!< Cumulative water quality mass balance ratio
+  EN_ITERATIONS      = 0, //!< Number of hydraulic iterations taken
+  EN_RELATIVEERROR   = 1, //!< Sum of link flow changes / sum of link flows
+  EN_MAXHEADERROR    = 2, //!< Largest head loss error for links
+  EN_MAXFLOWCHANGE   = 3, //!< Largest flow change in links
+  EN_MASSBALANCE     = 4, //!< Cumulative water quality mass balance ratio
+  EN_DEFICIENTNODES  = 5, //!< Number of pressure deficient nodes
+  EN_DEMANDREDUCTION = 6  //!< % demand reduction at pressure deficient nodes
 } EN_AnalysisStatistic;
 
 /// Types of network objects
