@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/15/2019
+ Last Updated: 07/08/2019
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -157,9 +157,8 @@ double  tankgrade(Project *, int, double);
 void    resistcoeff(Project *, int);
 void    headlosscoeffs(Project *);
 void    matrixcoeffs(Project *);
-void    emitheadloss(Project *, int, double *, double *);           
-double  demandflowchange(Project *, int, double, double);
-void    demandparams(Project *, double *, double *); 
+void    emitterheadloss(Project *, int, double *, double *);           
+void    demandheadloss(Project *, int, double, double, double *, double *);
 
 // ------- QUALITY.C --------------------
 

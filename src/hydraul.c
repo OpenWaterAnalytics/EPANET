@@ -195,7 +195,7 @@ int   runhyd(Project *pr, long *t)
     int   iter;          // Iteration count
     int   errcode;       // Error code
     double relerr;       // Solution accuracy
-
+    
     // Find new demands & control actions
     *t = time->Htime;
     demands(pr);
@@ -203,7 +203,6 @@ int   runhyd(Project *pr, long *t)
 
     // Solve network hydraulic equations
     errcode = hydsolve(pr,&iter,&relerr);
-
     if (!errcode)
     {
         // Report new status & save results

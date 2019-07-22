@@ -8,7 +8,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/15/2019
+ Last Updated: 07/15/2019
  ******************************************************************************
 */
 
@@ -50,6 +50,7 @@ static void   newdemandflows(Project *, Hydbalance *, double *, double *);
 
 static void   checkhydbalance(Project *, Hydbalance *);
 static int    hasconverged(Project *, double *, Hydbalance *);
+static int    pdaconverged(Project *);
 static void   reporthydbal(Project *, Hydbalance *);
 
 
@@ -92,12 +93,17 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     int    valveChange;           // Valve status change flag
     int    statChange;            // Non-valve status change flag
     Hydbalance hydbal;            // Hydraulic balance errors
+    double fullDemand;            // Full demand for a node (cfs)
 
     // Initialize status checking & relaxation factor
     nextcheck = hyd->CheckFreq;
     hyd->RelaxFactor = 1.0;
+    
+    // Initialize convergence criteria and PDA results
     hydbal.maxheaderror = 0.0;
     hydbal.maxflowchange = 0.0;
+    hyd->DeficientNodes = 0;
+    hyd->DemandReduction = 0.0;
 
     // Repeat iterations until convergence or trial limit is exceeded.
     // (ExtraIter used to increase trials in case of status cycling.)
@@ -189,10 +195,12 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
         errcode = 110;
     }
 
-    // Replace junction demands with total outflow values
+    // Store actual junction outflow in NodeDemand & full demand in DemandFlow
     for (i = 1; i <= net->Njuncs; i++)
     {
+        fullDemand = hyd->NodeDemand[i];
         hyd->NodeDemand[i] = hyd->DemandFlow[i] + hyd->EmitterFlow[i];
+        hyd->DemandFlow[i] = fullDemand;
     }
 
     // Save convergence info
@@ -200,7 +208,6 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     hyd->MaxHeadError = hydbal.maxheaderror;
     hyd->MaxFlowChange = hydbal.maxflowchange;
     hyd->Iterations = *iter;
-
     return errcode;
 }
 
@@ -484,11 +491,12 @@ void newemitterflows(Project *pr, Hydbalance *hbal, double *qsum,
         if (net->Node[i].Ke == 0.0) continue;
 
         // Find emitter head loss and gradient
-        emitheadloss(pr, i, &hloss, &hgrad);
+        emitterheadloss(pr, i, &hloss, &hgrad);
 
         // Find emitter flow change
         dh = hyd->NodeHead[i] - net->Node[i].El;
         dq = (hloss - dh) / hgrad;
+        dq *= hyd->RelaxFactor;
         hyd->EmitterFlow[i] -= dq;
 
         // Update system flow summation
@@ -523,32 +531,39 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
 
     double  dp,         // pressure range over which demand can vary (ft)
             dq,         // change in demand flow (cfs)
-            n;          // exponent in head loss v. demand  function
-    int     k;
-
+            n,          // exponent in head loss v. demand  function
+            hloss,      // current head loss through outflow junction (ft)
+            hgrad,      // head loss gradient with respect to flow (ft/cfs)
+            dh;         // new head loss through outflow junction (ft)
+    int     i;
+    
     // Get demand function parameters
     if (hyd->DemandModel == DDA) return;
-    demandparams(pr, &dp, &n);
+    dp = MAX((hyd->Preq - hyd->Pmin), MINPDIFF);
+    n = 1.0 / hyd->Pexp;
 
     // Examine each junction
-    for (k = 1; k <= net->Njuncs; k++)
+    for (i = 1; i <= net->Njuncs; i++)
     {
         // Skip junctions with no positive demand
-        if (hyd->NodeDemand[k] <= 0.0) continue;
-
+        if (hyd->NodeDemand[i] <= 0.0) continue;
+        
         // Find change in demand flow (see hydcoeffs.c)
-        dq = demandflowchange(pr, k, dp, n);
-        hyd->DemandFlow[k] -= dq;
+        demandheadloss(pr, i, dp, n, &hloss, &hgrad);
+        dh = hyd->NodeHead[i] - net->Node[i].El - hyd->Pmin;
+        dq = (hloss - dh) / hgrad;
+        dq *= hyd->RelaxFactor;
+        hyd->DemandFlow[i] -= dq;
 
         // Update system flow summation
-        *qsum += ABS(hyd->DemandFlow[k]);
+        *qsum += ABS(hyd->DemandFlow[i]);
         *dqsum += ABS(dq);
 
         // Update identity of element with max. flow change
         if (ABS(dq) > hbal->maxflowchange)
         {
             hbal->maxflowchange = ABS(dq);
-            hbal->maxflownode = k;
+            hbal->maxflownode = i;
             hbal->maxflowlink = -1;
         }
     }
@@ -605,18 +620,70 @@ int  hasconverged(Project *pr, double *relerr, Hydbalance *hbal)
 */
 {
     Hydraul *hyd = &pr->hydraul;
-
+    
+    // Check that total relative flow change is small enough
     if (*relerr > hyd->Hacc) return 0;
+
+    // Find largest head loss error and absolute flow change
     checkhydbalance(pr, hbal);
     if (pr->report.Statflag == FULL)
     {
         reporthydbal(pr, hbal);
     }
+    
+    // Check that head loss error and flow change criteria are met
     if (hyd->HeadErrorLimit > 0.0 &&
         hbal->maxheaderror > hyd->HeadErrorLimit) return 0;
     if (hyd->FlowChangeLimit > 0.0 &&
         hbal->maxflowchange > hyd->FlowChangeLimit) return 0;
+        
+    // Check for pressure driven analysis convergence
+    if (hyd->DemandModel == PDA) return pdaconverged(pr);
     return 1;
+}
+
+int pdaconverged(Project *pr)
+/*
+**--------------------------------------------------------------
+**   Input:   none
+**   Output:  returns 1 if PDA converged, 0 if not
+**   Purpose: checks if pressure driven analysis has converged
+**            and updates total demand deficit
+**--------------------------------------------------------------
+*/
+{
+    Hydraul *hyd = &pr->hydraul;
+
+    const double TOL = 0.001;
+    int i, converged = 1;
+    double totalDemand = 0.0, totalReduction = 0.0;
+    
+    hyd->DeficientNodes = 0;
+    hyd->DemandReduction = 0.0;
+    
+    // Add up number of junctions with demand deficits
+    for (i = 1; i <= pr->network.Njuncs; i++)
+    {
+        // Skip nodes whose required demand is non-positive
+        if (hyd->NodeDemand[i] <= 0.0) continue;
+        
+        // Check for negative demand flow or positive demand flow at negative pressure
+        if (hyd->DemandFlow[i] < -TOL) converged = 0;
+        if (hyd->DemandFlow[i] > TOL &&
+            hyd->NodeHead[i] - pr->network.Node[i].El - hyd->Pmin < -TOL)
+            converged = 0;
+            
+        // Accumulate total required demand and demand deficit
+        if (hyd->DemandFlow[i] + 0.0001 < hyd->NodeDemand[i])
+        {
+            hyd->DeficientNodes++;
+            totalDemand += hyd->NodeDemand[i];
+            totalReduction += hyd->NodeDemand[i] - hyd->DemandFlow[i];
+        }
+    }
+    if (totalDemand > 0.0)
+        hyd->DemandReduction = totalReduction / totalDemand * 100.0;
+    return converged;
 }
 
 

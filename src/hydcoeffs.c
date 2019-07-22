@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/15/2019
+ Last Updated: 07/08/2019
  ******************************************************************************
 */
 
@@ -38,9 +38,8 @@ const double CBIG   = 1.e8;
 //void   resistcoeff(Project *, int );
 //void   headlosscoeffs(Project *);
 //void   matrixcoeffs(Project *);
-//void   emitheadloss(Project *, int, double *, double *);
-//double demandflowchange(Project *, int, double, double);
-//void   demandparams(Project *, double *, double *);
+//void   emitterheadloss(Project *, int, double *, double *);
+//void   demandheadloss(Project *, int, double, double, double *, double *);
 
 // Local functions
 static void    linkcoeffs(Project *pr);
@@ -48,8 +47,6 @@ static void    nodecoeffs(Project *pr);
 static void    valvecoeffs(Project *pr);
 static void    emittercoeffs(Project *pr);
 static void    demandcoeffs(Project *pr);
-static void    demandheadloss(double d, double dfull, double dp,
-               double n, double *hloss, double *hgrad);
 
 static void    pipecoeff(Project *pr, int k);
 static void    DWpipecoeff(Project *pr, int k);
@@ -370,7 +367,7 @@ void  emittercoeffs(Project *pr)
         if (node->Ke == 0.0) continue;
 
         // Find emitter head loss and gradient
-        emitheadloss(pr, i, &hloss, &hgrad);
+        emitterheadloss(pr, i, &hloss, &hgrad);
 
         // Row of solution matrix
         row = sm->Row[i];
@@ -385,7 +382,7 @@ void  emittercoeffs(Project *pr)
 }
 
 
-void emitheadloss(Project *pr, int i, double *hloss, double *hgrad)
+void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
 /*
 **-------------------------------------------------------------
 **   Input:   i = node index
@@ -424,37 +421,6 @@ void emitheadloss(Project *pr, int i, double *hloss, double *hgrad)
 }
 
 
-void demandparams(Project *pr, double *dp, double *n)
-/*
-**--------------------------------------------------------------
-**   Input:   none
-**   Output:  dp = pressure range over which demands can vary
-**            n = exponent in head loss v. demand function
-**   Purpose: retrieves parameters that define a pressure
-**            dependent demand function.
-**--------------------------------------------------------------
-*/
-{
-    Hydraul *hyd = &pr->hydraul;
-
-    // If required pressure equals minimum pressure, use a linear demand
-    // curve with a 0.01 PSI pressure range to approximate an all or
-    // nothing demand solution
-    if (hyd->Preq == hyd->Pmin)
-    {
-        *dp = 0.01 / PSIperFT;
-        *n = 1.0;
-    }
-
-    // Otherwise use the user-supplied demand curve parameters
-    else
-    {
-        *dp = hyd->Preq - hyd->Pmin;
-        *n = 1.0 / hyd->Pexp;
-    }
-}
-
-
 void  demandcoeffs(Project *pr)
 /*
 **--------------------------------------------------------------
@@ -479,81 +445,57 @@ void  demandcoeffs(Project *pr)
             n,          // exponent in head loss v. demand function
             hloss,      // head loss in supplying demand (ft)
             hgrad;      // gradient of demand head loss (ft/cfs)
-
+            
     // Get demand function parameters
     if (hyd->DemandModel == DDA) return;
-    demandparams(pr, &dp, &n);
+    dp = hyd->Preq - hyd->Pmin;
+    n = 1.0 / hyd->Pexp;
 
     // Examine each junction node
     for (i = 1; i <= net->Njuncs; i++)
     {
         // Skip junctions with non-positive demands
         if (hyd->NodeDemand[i] <= 0.0) continue;
-
+        
         // Find head loss for demand outflow at node's elevation
-        demandheadloss(hyd->DemandFlow[i], hyd->NodeDemand[i], dp, n,
-                    &hloss, &hgrad);
-
+        demandheadloss(pr, i, dp, n, &hloss, &hgrad);
+                    
         // Update row of solution matrix A & its r.h.s. F
-        row = sm->Row[i];
-        sm->Aii[row] += 1.0 / hgrad;
-        sm->F[row] += (hloss + net->Node[i].El + hyd->Pmin) / hgrad;
+        if (hgrad > 0.0)
+        {
+            row = sm->Row[i];
+            sm->Aii[row] += 1.0 / hgrad;
+            sm->F[row] += (hloss + net->Node[i].El + hyd->Pmin) / hgrad;
+        }
     }
 }
 
-
-double demandflowchange(Project *pr, int i, double dp, double n)
-/*
-**--------------------------------------------------------------
-**   Input:   i  = node index
-**            dp = pressure range fro demand funtion (ft)
-**            n  = exponent in head v. demand function
-**   Output:  returns change in pressure dependent demand flow
-**   Purpose: computes change in outflow at at a node subject to
-**            pressure dependent demands
-**--------------------------------------------------------------
-*/
-{
-    Hydraul *hyd = &pr->hydraul;
-
-    double hloss, hgrad;
-
-    demandheadloss(hyd->DemandFlow[i], hyd->NodeDemand[i], dp, n, &hloss, &hgrad);
-    return (hloss - hyd->NodeHead[i] + pr->network.Node[i].El + hyd->Pmin) / hgrad;
-}
-
-
-void demandheadloss(double d, double dfull, double dp, double n,
+void demandheadloss(Project *pr, int i, double dp, double n,
                     double *hloss, double *hgrad)
 /*
 **--------------------------------------------------------------
-**   Input:   d     = actual junction demand (cfs)
-**            dfull = full junction demand required (cfs)
-**            dp    = pressure range for demand function (ft)
-**            n     = exponent in head v. demand function
-**   Output:  hloss = head loss delivering demand d (ft)
+**   Input:   i  = junction index
+**            dp = pressure range for demand function (ft)
+**            n  = exponent in head v. demand function
+**   Output:  hloss = pressure dependent demand head loss (ft)
 **            hgrad = gradient of head loss (ft/cfs)
 **  Purpose:  computes head loss and its gradient for delivering
 **            a pressure dependent demand flow.
 **--------------------------------------------------------------
 */
 {
-    const double RB = 1.0e9;
-    const double EPS = 0.001;
+    Hydraul *hyd = &pr->hydraul;
+   
+    const double EPS = 0.01;
+    double d = hyd->DemandFlow[i];
+    double dfull = hyd->NodeDemand[i];
     double r = d / dfull;
-
-    // Use upper barrier function for excess demand above full value
-    if (r > 1.0)
-    {
-        *hgrad = RB;
-        *hloss = dp + RB * (d - dfull);
-    }
-
+    
     // Use lower barrier function for negative demand
-    else if (r < 0)
+    if (r <= 0)
     {
-        *hgrad = RB;
-        *hloss = RB * d;
+        *hgrad = CBIG;
+        *hloss = CBIG * d;
     }
 
     // Use linear head loss function for near zero demand
@@ -568,7 +510,15 @@ void demandheadloss(double d, double dfull, double dp, double n,
     {
         *hgrad = n * dp * pow(r, n - 1.0) / dfull;
         *hloss = (*hgrad) * d / n;
+      
+        // Add on barrier function for any demand above full value
+        if (r >= 1.0)
+        {
+            *hgrad += CBIG;
+            *hloss += CBIG * (d - dfull);
+        }
     }
+    
 }
 
 
