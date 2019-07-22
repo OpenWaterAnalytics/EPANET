@@ -21,7 +21,7 @@
 
 BOOST_AUTO_TEST_SUITE (test_pda)
 
-BOOST_AUTO_TEST_CASE(test_pda)
+BOOST_AUTO_TEST_CASE(test_pda_model)
 
 {
     int error = 0;
