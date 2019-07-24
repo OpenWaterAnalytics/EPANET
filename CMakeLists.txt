@@ -78,7 +78,7 @@ ENDIF (APPLE)
 
 IF (MSVC)
   set(CMAKE_C_FLAGS_RELEASE "/GL")
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -MT)
 ENDIF (MSVC)
 
 # configure file groups
