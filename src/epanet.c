@@ -5373,7 +5373,7 @@ int DLLEXPORT EN_getelseaction(EN_Project p, int ruleIndex, int actionIndex,
 
   if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
-  actions = p->network.Rule[ruleIndex].ThenActions;
+  actions = p->network.Rule[ruleIndex].ElseActions;
   action = getaction(actions, actionIndex);
   if (action == NULL) return 258;
 
@@ -5401,7 +5401,7 @@ int DLLEXPORT EN_setelseaction(EN_Project p, int ruleIndex, int actionIndex,
 
   if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
-  actions = p->network.Rule[ruleIndex].ThenActions;
+  actions = p->network.Rule[ruleIndex].ElseActions;
   action = getaction(actions, actionIndex);
   if (action == NULL) return 258;
 
