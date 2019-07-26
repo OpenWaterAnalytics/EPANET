@@ -15,6 +15,6 @@ Under Windows the resulting EPANET toolkit library `epanet2.dll` and its command
 
 As an alternative to using `CMake` for a Windows build, two one-click-build scripts are included in the `win_build` directory:
 1. `Makefile2.bat`: this script requires both `CMake` and the build tools for Visual Studio (available from [https://visualstudio.microsoft.com/downloads/](https://visualstudio.microsoft.com/downloads/) be installed on your machine. It can be executed from any command prompt window. The Community version of Visual Studio will work just fine. This script was tested with both Visual Studio 2017 and 2019.
-2. `Makefile.bat`: this build script uses only Visual Studio commands and does not require `CMake`. It is  compatible with both Visual Studio 2010 and 2017 and should be executed from a Visual Studio x86 Native Tools command prompt window.
+2. `Makefile.bat`: this build script uses only Visual Studio commands and does not require `CMake`. It is compatible with Visual Studio 2010 and higher and should be executed from a Visual Studio command prompt window.
  
 Both scripts will build the EPANET library and the command line executable for the 32 and 64 bit Windows platforms, placing them in the `win_build\32bit` and `win_build\64bit` directories, respectively.
