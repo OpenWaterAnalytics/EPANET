@@ -1,13 +1,17 @@
 /** 
 @mainpage Overview
 
-EPANET is a program that performs extended period simulation of hydraulic and water quality behavior within water distribution system pipe networks. A network can consist of pipes, nodes (pipe junctions), pumps, valves and storage tanks or reservoirs. EPANET tracks the flow of water in each pipe, the pressure at each node, the height of water in each tank, and the concentration of a chemical species throughout the network during a multi-time period simulation. In addition to chemical species, water age and source tracing can also be simulated. The EPANET Programmer's Toolkit is a library of functions (or API) that allow programmers to customize the use of EPANET's hydraulic and water quality solution engine to their own applications. Both EPANET and its toolkit were originally developed and are currently maintained by the U.S. Environmental Protection Agency (USEPA).
+EPANET is a program that performs extended period simulation of hydraulic and water quality behavior within water distribution system pipe networks. A network can consist of pipes, nodes (pipe junctions), pumps, valves and storage tanks or reservoirs. EPANET tracks the flow of water in each pipe, the pressure at each node, the height of water in each tank, and the concentration of a chemical species throughout the network during a multi-time period simulation. In addition to chemical species, water age and source tracing can also be simulated.
 
 <table style = "border: 0px solid black">
 <tr><td style="vertical-align: top">
 @image html DistributionSystem.png
 @image latex DistributionSystem.eps
-</td><td style="vertical-align: top">
+</td></tr>
+</table>
+
+The EPANET Programmer's Toolkit is a library of functions (or API) written in C that allow programmers to customize the use of EPANET's hydraulic and water quality solution engine to their own applications. Both EPANET and its toolkit were originally developed by the U.S. Environmental Protection Agency (USEPA).
+
 The OWA-EPANET Toolkit is an open-source version of the original EPANET Toolkit that extends its capabilities by:
 - providing a full set of functions to set and retrieve values for all parameters contained in a network model
 - allowing networks to be built completely from function calls instead of from an input file
@@ -15,8 +19,6 @@ The OWA-EPANET Toolkit is an open-source version of the original EPANET Toolkit 
 - adding the ability to use pressure dependent demands in hydraulic analyses
 - producing more robust results with regard to hydraulic convergence, low/zero flow conditions, and water quality mass balance
 - achieving faster run times for single period hydraulic analyses.
-</td></tr>
-</table>
 
 Before using the OWA-EPANET Toolkit one should be familiar with the way that EPANET represents a pipe network, the design and operating information it requires, and the steps it uses to simulate a network's behavior. The following topics provide some introductory material on these subjects:
 - @subpage DataModel "Network Data Model"
@@ -45,23 +47,24 @@ Junctions have a user-supplied water withdrawal rate (i.e., consumer demand) ass
 Pipes have a length, diameter and roughness coefficient that determines their head loss as a function of flow rate. Pumps have either a constant power rating or a head curve that determines the head they add as a function of flow rate. Valves are used to regulate either flow or pressure. Controls can be applied to completely open or close a link or to adjust its setting (pump speed or valve setting).
 
 In addition to these physical objects an EPANET model can also contain the following data objects:
-- time patterns that allow demands, quality source inflows and pump speed settings to vary at fixed
+- time patterns that allow demands, quality source strength and pump speed settings to vary at fixed
 intervals of time
 - data curves that describe relationships between two quantities, such as head versus flow for pumps and
 volume versus water level for tanks
 - simple controls that adjust a link's setting (such as a pump's status) based on node pressure, tank
 level, elapsed time, ot time of day
 - rule-based controls that consist of one or more premises that if true result in one set of actions
-being taken and if false result in a different set of actions being taken.
+being taken and if false result in a different set of actions being taken
+- water quality sources that introduce a chemical constituent into the network at specified nodes.
 
 An EPANET model also contains a number of analysis options that specify:
 - the project's flow units which in turn determines its unit system (US or SI)
 - the formula used to compute head loss
 - whether to use a demand driven or a pressure driven analysis
 - hydraulic convergence criteria
-- the type of water quality analysis to perform
 - time steps used for hydraulic, water quality and reporting
-- global values for reaction coefficients that can be overridden for individual pipes
+- the type of water quality analysis to perform (chemical reaction, source tracing or water age)
+- global values for chemical reaction coefficients that can be overridden for individual pipes
 - global values for energy usage parameters that can be overridden for individual pumps.
 
 Please refer to the <a href="https://nepis.epa.gov/Adobe/PDF/P1007WWU.pdf">EPANET 2 Users Manual</a>
@@ -94,15 +97,16 @@ Toolkit functions exist to carry out all of these steps under the programmer's c
 /**
 @page ToolkitVersions Toolkit Versions
 
-The toolkit comes with two sets of identical functions that programmers can utilize:
-- the single-threaded version of the toolkit is compatible with previous releases and only works
+The Toolkit comes with two sets of identical functions that programmers can utilize:
+- the single-threaded version of the Toolkit is compatible with previous releases and only works
 with single threaded applications.
 - the multi-threaded version allows users to create multiple EPANET data sets (called projects) that can be
 analyzed concurrently.
 
-Both toolkit versions utilize identical function names and argument lists with the following exceptions:
+Both Toolkit versions utilize identical function names and argument lists with the following exceptions:
+- The `#include "epanet2.h"` directive must appear in all C/C++ code modules that use the single-threaded library while `#include "epanet2_2.h"` must be used for the multi-threaded library.
 - Function names in the single-threaded library begin with \b EN while those in the multi-threaded
-library begin with \b EN_.
+library begin with \b EN_ .
 - The multi-threaded functions contain an additional argument that references a particular network project
 that the function is applied to.
 - The multi-threaded library contains two additional functions that allow users to create and delete
@@ -111,5 +115,5 @@ EPANET projects.
 multi-threaded library uses double precision.
 
 To avoid unnecessary duplication this document only discusses the multi-threaded version of the
-toolkit.
+Toolkit.
 */

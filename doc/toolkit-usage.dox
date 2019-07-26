@@ -1,7 +1,7 @@
 /**
 @page toolkit-usage Usage
 
-The following topics briefly describe how to accomplish some basic tasks using the OWA-EPANET Toolkit. See the @ref ToolkitExamples  topic for code listings of complete applications of the Toolkit.
+The following topics briefly describe how to accomplish some basic tasks using the OWA-EPANET Toolkit in C/C++ code. See the @ref ToolkitExamples topic for code listings of complete applications of the Toolkit.
 
 @section CreateProject Creating a Project
 
@@ -180,12 +180,13 @@ The @ref EN_getnodevalue and @ref EN_getlinkvalue functions can also be used to 
 |For Nodes:                          | For Links:                                |
 |----------------------------------- | ----------------------------------------- |
 |\b EN_DEMAND (demand)                |\b EN_FLOW (flow rate)                      |
-|\b EN_HEAD (hydraulic head)          |\b EN_VELOCITY (flow velocity)              |
-|\b EN_PRESSURE (pressure)            |\b EN_HEADLOSS (head loss)                  |
-|\b EN_TANKLEVEL (tank water level)   |\b EN_STATUS (link status)                  |
-|\b EN_TANKVOLUME (tank water volume) |\b EN_SETTING (pump speed or valve setting) |
-|\b EN_QUALITY (water quality)        |\b EN_ENERGY (pump energy usage)            |
-|\b EN_SOURCEMASS (source mass inflow)|\b EN_PUMP_EFFIC (pump efficiency)          |
+|\b EN_DEMANDDEFICIT (demand deficit) |\b EN_VELOCITY (flow velocity)              |
+|\b EN_HEAD (hydraulic head)          |\b EN_HEADLOSS (head loss)                  |
+|\b EN_PRESSURE (pressure)            |\b EN_STATUS (link status)                  |
+|\b EN_TANKLEVEL (tank water level)   |\b EN_SETTING (pump speed or valve setting) |
+|\b EN_TANKVOLUME (tank water volume) |\b EN_ENERGY (pump energy usage)            |
+|\b EN_QUALITY (water quality)        |\b EN_PUMP_EFFIC (pump efficiency)          |
+|\b EN_SOURCEMASS (source mass inflow)| |
 
 The following code shows how to retrieve the pressure at each node of a network after each time step of a hydraulic analysis (`writetofile` is a user-defined function that will write a record to a file):
 \code {.c}

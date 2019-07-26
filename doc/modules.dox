@@ -321,6 +321,7 @@ These are the toolkit's enumerated types whose members are used as function argu
 | 205  | Function call refers to an undefined time pattern |
 | 206  | Function call refers to an undefined curve |
 | 207  | Function call attempts to control a check valve pipe or a GPV valve |
+| 208  | Function call contains illegal PDA pressure limits |
 | 209  | Function call contains an illegal node property value |
 | 211  | Function call contains an illegal link property value |
 | 212  | Function call refers to an undefined Trace Node |
