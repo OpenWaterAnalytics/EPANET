@@ -11,6 +11,12 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 
+# Link to multi-threaded static runtime library
+IF (MSVC)
+  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -MT)
+ENDIF (MSVC)
+
+
 # Set up file groups for exe target
 set(EPANET_CLI_SOURCES main.c)
 include_directories(include)

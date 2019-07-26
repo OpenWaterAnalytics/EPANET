@@ -19,6 +19,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
+# Disable deprecation & link to multi-threaded static runtime library
+IF (MSVC)
+  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -MT)
+ENDIF (MSVC)
+
+
 # configure file groups
 set(EPANET_OUT_SOURCES  src/epanet_output.c
                        ../util/errormanager.c
