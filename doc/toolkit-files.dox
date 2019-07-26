@@ -4,6 +4,7 @@ The Toolkit can make use of several different types of files when analyzing a pi
 - @subpage RptFile "Report File"
 - @subpage OutFile "Output File"
 - @subpage HydFile "Hydraulics File"
+- @subpage HeaderFiles "Header Files"
 */
 
 /**
@@ -141,4 +142,21 @@ Likewise, a previously saved Hydraulics file can be used if the command <b>`HYDR
 
 When the Toolkit function @ref EN_solveH is used to make a hydraulic analysis, results are automatically saved to the Hydraulics file. When the @ref EN_initH - @ref EN_runH - @ref EN_nextH set of functions is used, the \b initFlag argument to @ref EN_initH determines whether results are saved or not. The need to save hydraulic results is application-dependent. They must always be saved to the Hydraulics file if a water quality analysis will follow. 
 
+*/
+
+/**
+@page HeaderFiles Header Files
+The Toolkit provides several header files that are needed to develop C/C++ applications:
+- <b>`epanet2.h`</b> contains declarations of the single-threaded version of the Toolkit (the ENxxx named functions).
+- <b>`epanet2_2.h`</b> contains declarations of the multi-threaded version of the Toolkit (the EN_xxx named functions).
+- <b>`epanet2_enums.h`</b> contains definitions of the symbolic constants used by the Toolkit.
+- <b>`epanet2.lib`</b> must be linked in to any Toolkit application compiled for Windows using MS Visual C++.  
+Developers need to issue an `#include` directive for either `epanet2.h` or `epanet2_2.h` in their C/C++ code depending on whether they are building a single-threaded or multi-threaded application. There is no need to explicitly include `epanet2_enums.h` as it is automatically included by both of the other header files.
+
+Several additional function declaration files that provide bindings for other programming languages are included with the Toolkit package: 
+- <b>`epanet2.bas`</b> for Visual Basic for Applications and Visual Basic 6
+- <b>`epanet2.vb`</b> for Visual Basic .NET
+- <b>`epanet2.pas`</b> for Delphi Pascal, Free Pascal or Lazarus. 
+
+These bindings only support the single-threaded version of the Toolkit.
 */

@@ -344,7 +344,7 @@ The \b HYDRAULICS option allows you to either <B>SAVE</B> the current hydraulics
 
 \b MINIMUM PRESSURE is the pressure below which no demand can be delivered under a pressure driven analysis. It has no effect on a demand driven analysis. Its default value is 0.
 
-\b REQUIRED PRESSURE is the pressure required to supply a node's full demand under a pressure driven analysis. It has no effect on a demand driven analysis. Its default value is 0.
+\b REQUIRED PRESSURE is the pressure required to supply a node's full demand under a pressure driven analysis. It has no effect on a demand driven analysis. It must be at least 0.1 psi or m higher than the MINIMUM PRESSURE, which is also its default value.
 
 \b PRESSURE EXPONENT is the power to which pressure is raised when computing the demand delivered to a node under a pressure driven analysis. It has no effect on a demand driven analysis. Its default value is 0.5.
 
