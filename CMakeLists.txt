@@ -61,7 +61,7 @@ IF (BUILD_TESTS)
 ENDIF (BUILD_TESTS)
 
 
-# Sets for output directory for executables and libraries.
+# Sets the output directory for executables and libraries.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -89,11 +89,14 @@ list(REMOVE_ITEM EPANET_LIB_ALL "src/epanet_py.c")
 source_group("Library" FILES ${EPANET_LIB_ALL})
 
 # the shared library
-IF("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)" OR NOT MSVC)
-  add_library(epanet2 SHARED ${EPANET_LIB_ALL})
-ELSE(TRUE)
+IF(MSVC AND "${CMAKE_VS_PLATFORM_NAME}" MATCHES "(Win32)")
+  message("   ************************************")
+  message("   Configuring with epanet2.def mapping")
+  message("   ************************************")
   add_library(epanet2 SHARED ${EPANET_LIB_ALL} ${PROJECT_SOURCE_DIR}/include/epanet2.def)
   set_source_files_properties(${PROJECT_SOURCE_DIR}/include/epanet2.def PROPERTIES_HEADER_FILE_ONLY TRUE)
-ENDIF("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)" OR NOT MSVC)
+ELSE(TRUE)
+  add_library(epanet2 SHARED ${EPANET_LIB_ALL})
+ENDIF(MSVC AND "${CMAKE_VS_PLATFORM_NAME}" MATCHES "(Win32)")
 
 target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
