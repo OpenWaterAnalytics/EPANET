@@ -3890,7 +3890,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         if (Link[index].Type == PUMP)
         {
             patIndex = ROUND(value);
-            if (patIndex <= 0 || patIndex > net->Npats) return 205;
+            if (patIndex < 0 || patIndex > net->Npats) return 205;
             pumpIndex = findpump(&p->network, index);
             net->Pump[pumpIndex].Upat = patIndex;
         }
@@ -3923,7 +3923,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         if (Link[index].Type == PUMP)
         {
             curveIndex = ROUND(value);
-            if (curveIndex <= 0 || curveIndex > net->Ncurves) return 205;
+            if (curveIndex < 0 || curveIndex > net->Ncurves) return 205;
             pumpIndex = findpump(&p->network, index);
             net->Pump[pumpIndex].Ecurve = curveIndex;
         }
@@ -3942,7 +3942,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         if (Link[index].Type == PUMP)
         {
             patIndex = ROUND(value);
-            if (patIndex <= 0 || patIndex > net->Npats) return 205;
+            if (patIndex < 0 || patIndex > net->Npats) return 205;
             pumpIndex = findpump(&p->network, index);
             net->Pump[pumpIndex].Epat = patIndex;
         }
@@ -4068,13 +4068,14 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
     if (!p->Openflag) return 102;
     if (linkIndex < 1 || linkIndex > net->Nlinks) return 204;
     if (PUMP != net->Link[linkIndex].Type) return 0;
-    if (curveIndex <= 0 || curveIndex > net->Ncurves) return 206;
+    if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
 
     // Assign the new curve to the pump
     pumpIndex = findpump(net, linkIndex);
     pump = &p->network.Pump[pumpIndex];
     pump->Ptype = NOCURVE;
     pump->Hcurve = curveIndex;
+    if (curveIndex == 0) return 0;
 
     // Update the pump curve's parameters and convert their units
     updatepumpparams(p, pumpIndex);
