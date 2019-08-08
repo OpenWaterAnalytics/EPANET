@@ -3261,7 +3261,7 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
 
     // Remove link's comment
     free(net->Link[index].Comment);
-    net->Link[net->Nlinks].Comment = NULL;
+    //net->Link[net->Nlinks].Comment = NULL;
 
     // Shift position of higher entries in Link array down one
     for (i = index; i <= net->Nlinks - 1; i++)
