@@ -1892,11 +1892,6 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
         hashtable_update(net->NodeHashTable, net->Node[i].ID, i);
     }
 
-    // Remove references to demands & source in last (inactive) Node array entry
-    net->Node[net->Nnodes].D = NULL;
-    net->Node[net->Nnodes].S = NULL;
-    net->Node[net->Nnodes].Comment = NULL;
-
     // If deleted node is a tank, remove it from the Tank array
     if (nodeType != EN_JUNCTION)
     {
@@ -3261,7 +3256,6 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
 
     // Remove link's comment
     free(net->Link[index].Comment);
-    //net->Link[net->Nlinks].Comment = NULL;
 
     // Shift position of higher entries in Link array down one
     for (i = index; i <= net->Nlinks - 1; i++)
