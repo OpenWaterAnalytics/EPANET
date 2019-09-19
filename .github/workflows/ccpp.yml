@@ -9,6 +9,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+    - name: setup_build_dir
+      run: mkdir buildproducts
     - name: cmake
       working-directory: ./buildproducts
       run: cmake ..
