@@ -10,6 +10,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: cmake
-      run: mkdir buildproducts && cd buildproducts && cmake ..
+      working-directory: ./buildproducts
+      run: cmake ..
     - name: make
+      working-directory: ./buildproducts
       run: make
