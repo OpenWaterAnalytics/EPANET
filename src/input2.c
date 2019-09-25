@@ -173,12 +173,12 @@ int readdata(Project *pr)
     net->Ncontrols = 0;
     net->Nrules = 0;
 
-    // Patterns & Curves were created previously in netsize() 
+    // Patterns & Curves were created previously in netsize()
     parser->MaxPats = net->Npats;
     parser->MaxCurves = net->Ncurves;
     parser->PrevPat = NULL;
     parser->PrevCurve = NULL;
-    
+
     // Initialize full line comment, input data section and error count
     parser->LineComment[0] = '\0';
     sect = -1;
@@ -472,7 +472,10 @@ int addnodeID(Network *net, int n, char *id)
 **--------------------------------------------------------------
 */
 {
-    if (findnode(net,id)) return 0;
+    if (findnode(net,id))
+      return 0;
+    if (strlen(id) >= MAXID)
+      return 214; //
     strncpy(net->Node[n].ID, id, MAXID);
     hashtable_insert(net->NodeHashTable, net->Node[n].ID, n);
     return 1;
@@ -488,7 +491,10 @@ int addlinkID(Network *net, int n, char *id)
 **--------------------------------------------------------------
 */
 {
-    if (findlink(net,id)) return 0;
+    if (findlink(net,id))
+      return 0;
+    if (strlen(id) >= MAXID)
+      return 214;
     strncpy(net->Link[n].ID, id, MAXID);
     hashtable_insert(net->LinkHashTable, net->Link[n].ID, n);
     return 1;
