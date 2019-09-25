@@ -475,7 +475,7 @@ int addnodeID(Network *net, int n, char *id)
     if (findnode(net,id))
       return 0;
     if (strlen(id) >= MAXID)
-      return 214; //
+      return 214;
     strncpy(net->Node[n].ID, id, MAXID);
     hashtable_insert(net->NodeHashTable, net->Node[n].ID, n);
     return 1;
