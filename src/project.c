@@ -18,8 +18,8 @@
 //*** For the Windows SDK _tempnam function ***//
 #ifdef _WIN32
 #include <windows.h>
-#else
-#include <unistd.h >
+//#else
+//#include <unistd.h >
 #endif
 
 #include "types.h"
@@ -1093,11 +1093,17 @@ char *getTmpName(char *fname)
     // --- for non-Windows systems:
 #else
     // --- use system function mkstemp() to create a temporary file name
+/*    
     int f = -1;
     strcpy(fname, "enXXXXXX");
     f = mkstemp(fname);
     close(f);
     remove(fname);
+*/
+    strcpy(fname, "enXXXXXX");
+    FILE *f = fdopen(mkstemp(fname), "r");
+    fclose(f);
+    remove(fname);    
 #endif
     return fname;
 }
