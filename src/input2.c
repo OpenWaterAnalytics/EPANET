@@ -173,12 +173,12 @@ int readdata(Project *pr)
     net->Ncontrols = 0;
     net->Nrules = 0;
 
-    // Patterns & Curves were created previously in netsize()
+    // Patterns & Curves were created previously in netsize() 
     parser->MaxPats = net->Npats;
     parser->MaxCurves = net->Ncurves;
     parser->PrevPat = NULL;
     parser->PrevCurve = NULL;
-
+    
     // Initialize full line comment, input data section and error count
     parser->LineComment[0] = '\0';
     sect = -1;
@@ -472,13 +472,11 @@ int addnodeID(Network *net, int n, char *id)
 **--------------------------------------------------------------
 */
 {
-    if (findnode(net,id))
-      return 0;
-    if (strlen(id) >= MAXID)
-      return 214;
+    if (findnode(net,id)) return 215;
+    if (strlen(id) > MAXID) return 252;
     strncpy(net->Node[n].ID, id, MAXID);
     hashtable_insert(net->NodeHashTable, net->Node[n].ID, n);
-    return 1;
+    return 0;
 }
 
 int addlinkID(Network *net, int n, char *id)
@@ -491,13 +489,11 @@ int addlinkID(Network *net, int n, char *id)
 **--------------------------------------------------------------
 */
 {
-    if (findlink(net,id))
-      return 0;
-    if (strlen(id) >= MAXID)
-      return 214;
+    if (findlink(net,id)) return 215;
+    if (strlen(id) > MAXID) return 252;
     strncpy(net->Link[n].ID, id, MAXID);
     hashtable_insert(net->LinkHashTable, net->Link[n].ID, n);
-    return 1;
+    return 0;
 }
 
 int addpattern(Network *network, char *id)
@@ -518,7 +514,7 @@ int addpattern(Network *network, char *id)
         if (strcmp(id, network->Pattern[n].ID) == 0) return 0;
         if (findpattern(network, id) > 0) return 0;
     }
-    if (strlen(id) > MAXID) return 250;
+    if (strlen(id) > MAXID) return 252;
 
     // Update pattern count & add a new pattern to the database
     n = n + 2;
@@ -553,7 +549,7 @@ int addcurve(Network *network, char *id)
         if (strcmp(id, network->Curve[n].ID) == 0) return 0;
         if (findcurve(network, id) > 0) return 0;
     }
-    if (strlen(id) > MAXID) return 250;
+    if (strlen(id) > MAXID) return 252;
 
     n = n + 2;
     network->Curve = (Scurve *)realloc(network->Curve, n * sizeof(Scurve));
