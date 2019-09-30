@@ -49,7 +49,7 @@ int     getcomment(Network *, int, int, char *);
 int     setcomment(Network *, int, int, const char *);
 
 int     namevalid(const char *);
-char    *getTmpName(char *);
+void    getTmpName(char *);
 char    *xstrcpy(char **, const char *, const size_t n);
 int     strcomp(const char *, const char *);
 double  interp(int, double [], double [], double);

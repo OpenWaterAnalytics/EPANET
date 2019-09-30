@@ -18,8 +18,6 @@
 //*** For the Windows SDK _tempnam function ***//
 #ifdef _WIN32
 #include <windows.h>
-//#else
-//#include <unistd.h >
 #endif
 
 #include "types.h"
@@ -855,8 +853,8 @@ void adjustpattern(int *pat, int index)
 **----------------------------------------------------------------
 */
 {
-	if (*pat == index) *pat = 0;
-	else if (*pat > index) (*pat)--;
+    if (*pat == index) *pat = 0;
+    else if (*pat > index) (*pat)--;
 }
 
 void adjustpatterns(Network *network, int index)
@@ -1067,11 +1065,12 @@ int namevalid(const char *name)
     return TRUE;
 }
 
-char *getTmpName(char *fname)
+void getTmpName(char *fname)
 //----------------------------------------------------------------
 //  Input:   fname = file name string
-//  Output:  returns pointer to file name
-//  Purpose: creates a temporary file name with path prepended to it.
+//  Output:  an unused file name
+//  Purpose: creates a temporary file name with an "en" prefix
+//           or a blank name if an error occurs.
 //----------------------------------------------------------------
 {
 #ifdef _WIN32
@@ -1080,32 +1079,25 @@ char *getTmpName(char *fname)
 
     // --- use Windows _tempnam function to get a pointer to an
     //     unused file name that begins with "en"
+    strcpy(fname, "");
     name = _tempnam(NULL, "en");
-    if (name == NULL) return NULL;
+    if (name)
+    {
+        // --- copy the file name to fname
+        if (strlen(name) < MAXFNAME) strncpy(fname, name, MAXFNAME);
 
-    // --- copy the file name to fname
-    if (strlen(name) < MAXFNAME) strncpy(fname, name, MAXFNAME);
-    else fname = NULL;
-
-    // --- free the pointer returned by _tempnam
-    if (name) free(name);
-
+        // --- free the pointer returned by _tempnam
+        free(name);
+    }
     // --- for non-Windows systems:
 #else
     // --- use system function mkstemp() to create a temporary file name
-/*    
-    int f = -1;
-    strcpy(fname, "enXXXXXX");
-    f = mkstemp(fname);
-    close(f);
-    remove(fname);
-*/
     strcpy(fname, "enXXXXXX");
     FILE *f = fdopen(mkstemp(fname), "r");
-    fclose(f);
-    remove(fname);    
+    if (f == NULL) strcpy(fname, "");
+    else fclose(f);
+    remove(fname);
 #endif
-    return fname;
 }
 
 char *xstrcpy(char **s1, const char *s2, const size_t n)
@@ -1144,7 +1136,7 @@ char *xstrcpy(char **s1, const char *s2, const size_t n)
     if (n2 > n1) *s1 = realloc(*s1, (n2 + 1) * sizeof(char));
 
     // Copy the source string into the destination string
-    strcpy(*s1, s2);
+    strncpy(*s1, s2, n2);
     return *s1;
 }
 
