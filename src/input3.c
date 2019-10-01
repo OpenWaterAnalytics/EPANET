@@ -76,7 +76,6 @@ int juncdata(Project *pr)
     int p = 0;                  // time pattern index
     int n;                      // number of tokens
     int njuncs;                 // number of network junction nodes
-    int err;                    // error code
     double el,                  // elevation
            y = 0.0;             // base demand
     Snode *node;
@@ -87,9 +86,8 @@ int juncdata(Project *pr)
     net->Njuncs++;
     net->Nnodes++;
     njuncs = net->Njuncs;
-    err = addnodeID(net, net->Njuncs, parser->Tok[0]);
-    if (err) return setError(parser, 0, err);
-    
+    if (!addnodeID(net, net->Njuncs, parser->Tok[0])) return setError(parser, 0, 215);
+
     // Check for valid data
     if (n < 2) return 201;
     if (!getfloat(parser->Tok[1], &el)) return setError(parser, 1, 202);
@@ -139,7 +137,6 @@ int tankdata(Project *pr)
 
     int    i,               // Node index
            n,               // # data items
-           err,             // error code
            pattern = 0,     // Time pattern index
            curve = 0,       // Curve index
            overflow = FALSE;// Overflow indicator    
@@ -161,8 +158,7 @@ int tankdata(Project *pr)
     net->Nnodes++;
 
     i = parser->MaxJuncs + net->Ntanks;
-    err = addnodeID(net, i, parser->Tok[0]);
-    if (err) return setError(parser, 0, err);
+    if (!addnodeID(net, i, parser->Tok[0])) return setError(parser, 0, 215);
 
     // Check for valid data
     if (n < 2) return 201;
@@ -269,7 +265,6 @@ int pipedata(Project *pr)
 
     int      j1,               // Start-node index
              j2,               // End-node index
-             err,              // Error code
              n;                // # data items
     double   length,           // Pipe length
              diam,             // Pipe diameter
@@ -284,8 +279,7 @@ int pipedata(Project *pr)
     if (net->Nlinks == parser->MaxLinks) return 200;
     net->Npipes++;
     net->Nlinks++;
-    err = addlinkID(net, net->Nlinks, parser->Tok[0]);
-    if (err) return setError(parser, 0, err);
+    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return setError(parser, 0, 215);
 
     // Check for valid data
     if (n < 6) return 201;
@@ -361,7 +355,6 @@ int pumpdata(Project *pr)
     int    j, m,  // Token array indexes
            j1,    // Start-node index
            j2,    // End-node index
-           err,   // Error code
            n,     // # data items
            c, p;  // Curve & Pattern indexes
     double y;
@@ -374,8 +367,7 @@ int pumpdata(Project *pr)
         net->Npumps == parser->MaxPumps) return 200;
     net->Nlinks++;
     net->Npumps++;
-    err = addlinkID(net, net->Nlinks, parser->Tok[0]);
-    if (err) return setError(parser, 0, err);
+    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return setError(parser, 0, 215);
 
     // Check for valid data
     if (n < 3) return 201;
@@ -475,7 +467,6 @@ int valvedata(Project *pr)
     int c,                     // Curve index
         j1,                    // Start-node index
         j2,                    // End-node index
-        err,                   // Error code
         n;                     // # data items
     char  status = ACTIVE,     // Valve status
           type;                // Valve type
@@ -490,8 +481,7 @@ int valvedata(Project *pr)
         net->Nvalves == parser->MaxValves) return 200;
     net->Nvalves++;
     net->Nlinks++;
-    err = addlinkID(net, net->Nlinks, parser->Tok[0]);
-    if (err) return setError(parser, 0, err);
+    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return setError(parser, 0, 215);
 
     // Check for valid data
     if (n < 6) return 201;
