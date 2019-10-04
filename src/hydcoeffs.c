@@ -505,20 +505,19 @@ void demandheadloss(Project *pr, int i, double dp, double n,
         *hloss = (*hgrad) * d;
     }
 
-    // Otherwise use power head loss function
-    else
+    // Use power head loss function for demand less than full
+    else if (r < 1.0)
     {
         *hgrad = n * dp * pow(r, n - 1.0) / dfull;
         *hloss = (*hgrad) * d / n;
-      
-        // Add on barrier function for any demand above full value
-        if (r >= 1.0)
-        {
-            *hgrad += CBIG;
-            *hloss += CBIG * (d - dfull);
-        }
     }
     
+    // Use upper barrier function for demand above full value
+    else
+    {
+        *hgrad = CBIG;
+        *hloss = dp + CBIG * (d - dfull);
+    }
 }
 
 
@@ -761,7 +760,8 @@ void  pumpcoeff(Project *pr, int k)
         if (n != 1.0)
         {
              // ... use linear approx. to pump curve for small flows
-            qa = pow(hyd->RQtol / n / r, 1.0 / (n - 1.0));
+            if (pump->Ptype == CONST_HP) qa = -CBIG;
+            else qa = pow(hyd->RQtol / n / r, 1.0 / (n - 1.0));
             if (q <= qa)
             {
                 hgrad = hyd->RQtol;
