@@ -473,9 +473,9 @@ int addnodeID(Network *net, int n, char *id)
 */
 {
     if (findnode(net,id))
-      return 0;
-    if (strlen(id) >= MAXID)
-      return 214;
+      return 215;  // duplicate id
+    if (strlen(id) > MAXID)
+      return 250;  // invalid format (too long)
     strncpy(net->Node[n].ID, id, MAXID);
     hashtable_insert(net->NodeHashTable, net->Node[n].ID, n);
     return 1;
@@ -492,9 +492,9 @@ int addlinkID(Network *net, int n, char *id)
 */
 {
     if (findlink(net,id))
-      return 0;
-    if (strlen(id) >= MAXID)
-      return 214;
+      return 215;  // duplicate id
+    if (strlen(id) > MAXID)
+      return 250; // invalid formt (too long);
     strncpy(net->Link[n].ID, id, MAXID);
     hashtable_insert(net->LinkHashTable, net->Link[n].ID, n);
     return 1;

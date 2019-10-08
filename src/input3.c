@@ -79,6 +79,7 @@ int juncdata(Project *pr)
     double el,                  // elevation
            y = 0.0;             // base demand
     Snode *node;
+    int err = 0;
 
     // Add new junction to data base
     n = parser->Ntokens;
@@ -86,7 +87,8 @@ int juncdata(Project *pr)
     net->Njuncs++;
     net->Nnodes++;
     njuncs = net->Njuncs;
-    if (!addnodeID(net, net->Njuncs, parser->Tok[0])) return setError(parser, 0, 215);
+    err = addnodeID(net, net->Njuncs, parser->Tok[0]);
+    if (err) return setError(parser, 0, err);
 
     // Check for valid data
     if (n < 2) return 201;
@@ -139,7 +141,8 @@ int tankdata(Project *pr)
            n,               // # data items
            pattern = 0,     // Time pattern index
            curve = 0,       // Curve index
-           overflow = FALSE;// Overflow indicator    
+           overflow = FALSE;// Overflow indicator
+
     double el = 0.0,        // Elevation
            initlevel = 0.0, // Initial level
            minlevel = 0.0,  // Minimum level
@@ -150,6 +153,8 @@ int tankdata(Project *pr)
     Snode *node;
     Stank *tank;
 
+    int err = 0;
+
     // Add new tank to data base
     n = parser->Ntokens;
     if (net->Ntanks == parser->MaxTanks ||
@@ -158,7 +163,8 @@ int tankdata(Project *pr)
     net->Nnodes++;
 
     i = parser->MaxJuncs + net->Ntanks;
-    if (!addnodeID(net, i, parser->Tok[0])) return setError(parser, 0, 215);
+    err = addnodeID(net, i, parser->Tok[0]);
+    if (err) return setError(parser, 0, err);
 
     // Check for valid data
     if (n < 2) return 201;
@@ -273,13 +279,15 @@ int pipedata(Project *pr)
     LinkType type = PIPE;      // Link type
     StatusType status = OPEN;  // Link status
     Slink *link;
+    int err = 0;
 
     // Add new pipe to data base
     n = parser->Ntokens;
     if (net->Nlinks == parser->MaxLinks) return 200;
     net->Npipes++;
     net->Nlinks++;
-    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return setError(parser, 0, 215);
+    err = addlinkID(net, net->Nlinks, parser->Tok[0]);
+    if (err) return setError(parser, 0, err);
 
     // Check for valid data
     if (n < 6) return 201;
@@ -360,6 +368,7 @@ int pumpdata(Project *pr)
     double y;
     Slink *link;
     Spump *pump;
+    int err = 0;
 
     /* Add new pump to data base */
     n = parser->Ntokens;
@@ -367,7 +376,8 @@ int pumpdata(Project *pr)
         net->Npumps == parser->MaxPumps) return 200;
     net->Nlinks++;
     net->Npumps++;
-    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return setError(parser, 0, 215);
+    err = addlinkID(net, net->Nlinks, parser->Tok[0]);
+    if (err) return setError(parser, 0, err);
 
     // Check for valid data
     if (n < 3) return 201;
@@ -474,6 +484,7 @@ int valvedata(Project *pr)
            setting,            // Valve setting
            lcoeff = 0.0;       // Minor loss coeff.
     Slink *link;
+    int err = 0;
 
     // Add new valve to data base
     n = parser->Ntokens;
@@ -481,21 +492,33 @@ int valvedata(Project *pr)
         net->Nvalves == parser->MaxValves) return 200;
     net->Nvalves++;
     net->Nlinks++;
-    if (!addlinkID(net, net->Nlinks, parser->Tok[0])) return setError(parser, 0, 215);
+    err = addlinkID(net, net->Nlinks, parser->Tok[0]);
+    if (err) return setError(parser, 0, err);
 
     // Check for valid data
-    if (n < 6) return 201;
-    if ((j1 = findnode(net, parser->Tok[1])) == 0) return setError(parser, 1, 203);
-    if ((j2 = findnode(net, parser->Tok[2])) == 0) return setError(parser, 2, 203);
-    if (j1 == j2) return setError(parser, 0, 222);
+    if (n < 6)
+      return 201;
+    if ((j1 = findnode(net, parser->Tok[1])) == 0)
+      return setError(parser, 1, 203);
+    if ((j2 = findnode(net, parser->Tok[2])) == 0)
+      return setError(parser, 2, 203);
+    if (j1 == j2)
+      return setError(parser, 0, 222);
 
-    if (match(parser->Tok[4], w_PRV))       type = PRV;
-    else if (match(parser->Tok[4], w_PSV))  type = PSV;
-    else if (match(parser->Tok[4], w_PBV))  type = PBV;
-    else if (match(parser->Tok[4], w_FCV))  type = FCV;
-    else if (match(parser->Tok[4], w_TCV))  type = TCV;
-    else if (match(parser->Tok[4], w_GPV))  type = GPV;
-    else return setError(parser, 4, 213);
+    if (match(parser->Tok[4], w_PRV))
+      type = PRV;
+    else if (match(parser->Tok[4], w_PSV))
+      type = PSV;
+    else if (match(parser->Tok[4], w_PBV))
+      type = PBV;
+    else if (match(parser->Tok[4], w_FCV))
+      type = FCV;
+    else if (match(parser->Tok[4], w_TCV))
+      type = TCV;
+    else if (match(parser->Tok[4], w_GPV))
+      type = GPV;
+    else
+      return setError(parser, 4, 213);
 
     if (!getfloat(parser->Tok[3], &diam)) return setError(parser, 3, 202);
     if (diam <= 0.0) return setError(parser, 3, 211);
