@@ -1,5 +1,7 @@
 
-
+if(UNIX)
+    set(CMAKE_CXX_FLAGS "-std=c++11")
+endif(UNIX)
 
 # Sets for output directory for executables and libraries
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

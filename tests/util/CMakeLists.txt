@@ -1,5 +1,7 @@
 
-
+if(UNIX)
+    set(CMAKE_CXX_FLAGS "-std=c++11")
+endif(UNIX)
 
 # Sets for output directory for executables and libraries
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -24,4 +26,3 @@ add_executable(test_filemanager ./test_filemanager.cpp
                                 ../../src/util/cstr_helper.c)
 target_include_directories(test_filemanager PUBLIC ../../src/)
 target_link_libraries(test_filemanager ${Boost_LIBRARIES})
-
