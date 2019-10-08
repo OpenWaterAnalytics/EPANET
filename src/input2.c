@@ -478,7 +478,7 @@ int addnodeID(Network *net, int n, char *id)
       return 250;  // invalid format (too long)
     strncpy(net->Node[n].ID, id, MAXID);
     hashtable_insert(net->NodeHashTable, net->Node[n].ID, n);
-    return 1;
+    return 0;
 }
 
 int addlinkID(Network *net, int n, char *id)
@@ -497,7 +497,7 @@ int addlinkID(Network *net, int n, char *id)
       return 250; // invalid formt (too long);
     strncpy(net->Link[n].ID, id, MAXID);
     hashtable_insert(net->LinkHashTable, net->Link[n].ID, n);
-    return 1;
+    return 0;
 }
 
 int addpattern(Network *network, char *id)
