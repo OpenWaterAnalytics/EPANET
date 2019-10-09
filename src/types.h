@@ -394,7 +394,6 @@ typedef struct             // Link Object
   double   Kw;             // wall react. coef.
   double   R;              // flow resistance
   double   Rc;             // reaction coeff.
-  double   Qa;             // low flow limit
   LinkType Type;           // link type
   StatusType Status;       // initial status
   int      Rpt;            // reporting flag

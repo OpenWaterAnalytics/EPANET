@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/08/2019
+ Last Updated: 10/04/2019
  ******************************************************************************
 */
 
@@ -79,7 +79,6 @@ void  resistcoeff(Project *pr, int k)
     double e, d, L;
     Slink *link = &net->Link[k];
 
-    link->Qa = 0.0;
     switch (link->Type) {
 
     // ... Link is a pipe. Compute resistance based on headloss formula.
@@ -93,20 +92,14 @@ void  resistcoeff(Project *pr, int k)
         switch (hyd->Formflag)
         {
         case HW:
-            // ... resistance coeff.
             link->R = 4.727 * L / pow(e, hyd->Hexp) / pow(d, 4.871);
-            // ... flow below which linear head loss applies
-            link->Qa = pow(hyd->RQtol / hyd->Hexp / link->R, 1.17371);
             break;
         case DW:
             link->R = L / 2.0 / 32.2 / d / SQR(PI * SQR(d) / 4.0);
             break;
         case CM:
-            // ... resistance coeff.
             link->R = SQR(4.0 * e / (1.49 * PI * SQR(d))) *
                       pow((d / 4.0), -1.333) * L;
-            // ... flow below which linear head loss applies
-            link->Qa = hyd->RQtol / 2.0 / link->R;
         }
         break;
 
@@ -396,28 +389,23 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
 
     double  ke;
     double  q;
-    double  qa;
 
     // Set adjusted emitter coeff.
     ke = MAX(CSMALL, pr->network.Node[i].Ke);
 
-    // Find flow below which head loss is linear
-    qa = pow(hyd->RQtol / ke / hyd->Qexp, 1.0 / (hyd->Qexp - 1.0));
-
-    // Use linear head loss relation for small flow
+    // Compute gradient of head loss through emitter
     q = hyd->EmitterFlow[i];
-    if (fabs(q) <= qa)
+    *hgrad = hyd->Qexp * ke * pow(fabs(q), hyd->Qexp - 1.0);
+    
+    // Use linear head loss function for small gradient
+    if (*hgrad < hyd->RQtol)
     {
         *hgrad = hyd->RQtol;
         *hloss = (*hgrad) * q;
-    }
+    }            
 
-    // Otherwise use normal emitter function
-    else
-    {
-        *hgrad = hyd->Qexp * ke * pow(fabs(q), hyd->Qexp - 1.0);
-        *hloss = (*hgrad) * q / hyd->Qexp;
-    }
+    // Otherwise use normal emitter head loss function
+    else *hloss = (*hgrad) * q / hyd->Qexp;
 }
 
 
@@ -486,7 +474,6 @@ void demandheadloss(Project *pr, int i, double dp, double n,
 {
     Hydraul *hyd = &pr->hydraul;
    
-    const double EPS = 0.01;
     double d = hyd->DemandFlow[i];
     double dfull = hyd->NodeDemand[i];
     double r = d / dfull;
@@ -498,27 +485,25 @@ void demandheadloss(Project *pr, int i, double dp, double n,
         *hloss = CBIG * d;
     }
 
-    // Use linear head loss function for near zero demand
-    else if (r < EPS)
-    {
-        *hgrad = dp * pow(EPS, n) / dfull / EPS;
-        *hloss = (*hgrad) * d;
-    }
-
-    // Otherwise use power head loss function
-    else
+    // Use power head loss function for demand less than full
+    else if (r < 1.0)
     {
         *hgrad = n * dp * pow(r, n - 1.0) / dfull;
-        *hloss = (*hgrad) * d / n;
-      
-        // Add on barrier function for any demand above full value
-        if (r >= 1.0)
+        // ... use linear function for very small gradient
+        if (*hgrad < hyd->RQtol)
         {
-            *hgrad += CBIG;
-            *hloss += CBIG * (d - dfull);
+            *hgrad = hyd->RQtol;
+            *hloss = (*hgrad) * d;
         }
+        else *hloss = (*hgrad) * d / n;
     }
     
+    // Use upper barrier function for demand above full value
+    else
+    {
+        *hgrad = CBIG;
+        *hloss = dp + CBIG * (d - dfull);
+    }
 }
 
 
@@ -561,20 +546,19 @@ void  pipecoeff(Project *pr, int k)
     ml = pr->network.Link[k].Km;
     r = pr->network.Link[k].R;
 
-    // Friction head loss
-    // ... use linear relation for small flows
-    if (q <= pr->network.Link[k].Qa)
+    // Friction head loss gradient
+    hgrad = hyd->Hexp * r * pow(q, hyd->Hexp - 1.0);
+    
+    // Friction head loss:
+    // ... use linear function for very small gradient
+    if (hgrad < hyd->RQtol)
     {
         hgrad = hyd->RQtol;
         hloss = hgrad * q;
     }
-    // ... use original formula for other flows
-    else
-    {
-        hgrad = hyd->Hexp * r * pow(q, hyd->Hexp - 1.0);
-        hloss = hgrad * q / hyd->Hexp;
-    }
-
+    // ... otherwise use original formula
+    else hloss = hgrad * q / hyd->Hexp;
+    
     // Contribution of minor head loss
     if (ml > 0.0)
     {
@@ -703,7 +687,6 @@ void  pumpcoeff(Project *pr, int k)
            r,                // Flow resistance coeff.
            n,                // Flow exponent coeff.
            setting,          // Pump speed setting
-           qa,               // Flow limit for linear head loss
            hloss,            // Head loss across pump
            hgrad;            // Head loss gradient
     Spump  *pump;
@@ -744,7 +727,7 @@ void  pumpcoeff(Project *pr, int k)
         pump->R = -r;
         pump->N = 1.0;
 
-        // Compute head loss and its gradient
+        // Compute head loss and its gradient (with speed adjustment)
         hgrad = pump->R * setting ;
         hloss = pump->H0 * SQR(setting) + hgrad * hyd->LinkFlow[k];
     }
@@ -755,24 +738,44 @@ void  pumpcoeff(Project *pr, int k)
         n = pump->N;
         if (ABS(n - 1.0) < TINY) n = 1.0;
         r = pump->R * pow(setting, 2.0 - n);
+        
+        // Constant HP pump
+        if (pump->Ptype == CONST_HP)
+        {
+            // ... compute pump curve's gradient
+            hgrad = -r / q / q;
+            // ... use linear curve if gradient too large or too small
+            if (hgrad > CBIG)
+            {
+                hgrad = CBIG;
+                hloss = -hgrad * hyd->LinkFlow[k];
+            }
+            else if (hgrad < hyd->RQtol)
+            {
+                hgrad = hyd->RQtol;
+                hloss = -hgrad * hyd->LinkFlow[k];
+            }
+            // ... otherwise compute head loss from pump curve
+            else
+            {
+                hloss = r / hyd->LinkFlow[k];
+            }
+        }            
 
         // Compute head loss and its gradient
         // ... pump curve is nonlinear
-        if (n != 1.0)
+        else if (n != 1.0)
         {
-             // ... use linear approx. to pump curve for small flows
-            qa = pow(hyd->RQtol / n / r, 1.0 / (n - 1.0));
-            if (q <= qa)
+            // ... compute pump curve's gradient
+            hgrad = n * r * pow(q, n - 1.0);
+            // ... use linear pump curve if gradient too small
+            if (hgrad < hyd->RQtol)
             {
                 hgrad = hyd->RQtol;
                 hloss = h0 + hgrad * hyd->LinkFlow[k];
             }
-            // ... use original pump curve for normal flows
-            else
-            {
-                hgrad = n * r * pow(q, n - 1.0);
-                hloss = h0 + hgrad * hyd->LinkFlow[k] / n;
-            }
+            // ... otherwise compute head loss from pump curve
+            else hloss = h0 + hgrad * hyd->LinkFlow[k] / n;
         }
         // ... pump curve is linear
         else
@@ -1107,7 +1110,7 @@ void valvecoeff(Project *pr, int k)
     Hydraul *hyd = &pr->hydraul;
     Slink *link = &pr->network.Link[k];
 
-    double flow, q, y, qa, hgrad;
+    double flow, q, hloss, hgrad;
 
     flow = hyd->LinkFlow[k];
 
@@ -1122,23 +1125,20 @@ void valvecoeff(Project *pr, int k)
     // Account for any minor headloss through the valve
     if (link->Km > 0.0)
     {
-        // Adjust for very small flow
         q = fabs(flow);
-        qa = hyd->RQtol / 2.0 / link->Km;
-        if (q <= qa)
+        hgrad = 2.0 * link->Km * q;
+        
+        // Guard against too small a head loss gradient
+        if (hgrad < hyd->RQtol)
         {
             hgrad = hyd->RQtol;
-            y = flow;
+            hloss = flow * hgrad;
         }
-        else
-        {
-            hgrad = 2.0 * link->Km * q;
-            y = flow / 2.0;
-        }
-
+        else hloss = flow * hgrad / 2.0;        
+        
         // P and Y coeffs.
         hyd->P[k] = 1.0 / hgrad;
-        hyd->Y[k] = y;
+        hyd->Y[k] = hloss / hgrad;
     }
 
     // If no minor loss coeff. specified use a
