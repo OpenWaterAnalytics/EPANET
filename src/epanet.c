@@ -1734,6 +1734,9 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
 
     // Check if a node with same id already exists
     if (EN_getnodeindex(p, id, &i) == 0) return 215;
+    
+    // Check for valid node type
+    if (nodeType < EN_JUNCTION || nodeType > EN_TANK) return 251; 
 
     // Grow node-related arrays to accomodate the new node
     size = (net->Nnodes + 2) * sizeof(Snode);
@@ -1746,18 +1749,20 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
     // Actions taken when a new Junction is added
     if (nodeType == EN_JUNCTION)
     {
+        // shift indices of non-Junction nodes at end of Node array
+        for (i = net->Nnodes; i > net->Njuncs; i--)
+        {
+            hashtable_update(net->NodeHashTable, net->Node[i].ID, i + 1);
+            net->Node[i + 1] = net->Node[i];
+        }
+    
+        // set index of new Junction node
         net->Njuncs++;
         nIdx = net->Njuncs;
         node = &net->Node[nIdx];
         node->D = NULL;
         adddemand(node, 0.0, 0, NULL);
 
-        // shift rest of Node array
-        for (i = net->Nnodes; i >= net->Njuncs; i--)
-        {
-            hashtable_update(net->NodeHashTable, net->Node[i].ID, i + 1);
-            net->Node[i + 1] = net->Node[i];
-        }
         // shift indices of Tank array
         for (i = 1; i <= net->Ntanks; i++)
         {
@@ -1816,6 +1821,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
     strncpy(node->ID, id, MAXID);
 
     // set default values for new node
+    node->Type = nodeType;
     node->El = 0;
     node->S = NULL;
     node->C0 = 0;
