@@ -25,15 +25,19 @@ BOOST_FIXTURE_TEST_CASE(test_adddelete_node, FixtureInitClose)
 
     error = EN_addnode(ph, (char *)"N2", EN_JUNCTION, &index);
     BOOST_REQUIRE(error == 0);
+    error = EN_addnode(ph, (char *)"N4", EN_TANK, &index);
+    BOOST_REQUIRE(error == 0);
     error = EN_addnode(ph, (char *)"N3", EN_RESERVOIR, &index);
     BOOST_REQUIRE(error == 0);
+    error = EN_addnode(ph, (char *)"N1", EN_JUNCTION, &index);
+    BOOST_REQUIRE(error == 0);
 
+    error = EN_getnodeindex(ph, (char *)"N1", &index);
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(index == 2);
     error = EN_getnodeindex(ph, (char *)"N2", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_deletenode(ph, index, EN_UNCONDITIONAL);
-    BOOST_REQUIRE(error == 0);
-
-    error = EN_addnode(ph, (char *)"N4", EN_TANK, &index);
     BOOST_REQUIRE(error == 0);
 
     error = EN_getnodeindex(ph, (char *)"N4", &index);
