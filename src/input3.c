@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 06/19/2019
+Last Updated: 10/26/2019
 ******************************************************************************
 */
 
@@ -109,6 +109,7 @@ int juncdata(Project *pr)
     node->S = NULL;
     node->Ke = 0.0;
     node->Rpt = 0;
+    node->ResultIndex = 0;
     node->Type = JUNCTION;
     node->Comment = xstrcpy(&node->Comment, parser->Comment, MAXMSG);
 
@@ -222,6 +223,7 @@ int tankdata(Project *pr)
     node->X = MISSING;
     node->Y = MISSING;
     node->Rpt = 0;
+    node->ResultIndex = 0;
     node->El = el;
     node->C0 = 0.0;
     node->S = NULL;
@@ -335,6 +337,7 @@ int pipedata(Project *pr)
     link->Type = type;
     link->Status = status;
     link->Rpt = 0;
+    link->ResultIndex = 0;
     link->Comment = xstrcpy(&link->Comment, parser->Comment, MAXMSG);
     return 0;
 }
@@ -400,6 +403,7 @@ int pumpdata(Project *pr)
     link->Type = PUMP;
     link->Status = OPEN;
     link->Rpt = 0;
+    link->ResultIndex = 0;
     link->Comment = xstrcpy(&link->Comment, parser->Comment, MAXMSG);
     pump->Link = net->Nlinks;
     pump->Ptype = NOCURVE; // NOCURVE is a placeholder
@@ -556,6 +560,7 @@ int valvedata(Project *pr)
     link->Type = type;
     link->Status = status;
     link->Rpt = 0;
+    link->ResultIndex = 0;
     link->Comment = xstrcpy(&link->Comment, parser->Comment, MAXMSG);
     net->Valve[net->Nvalves].Link = net->Nlinks;
     return 0;

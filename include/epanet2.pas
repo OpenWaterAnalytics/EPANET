@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 7/18/19}
+{Last updated on 10/26/19}
 
 interface
 
@@ -297,7 +297,8 @@ const
  function  ENsetstatusreport(Code: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetversion(var Version: Integer): Integer; stdcall; external EpanetLib;
  function  ENgeterror(Errcode: Integer; Errmsg: PAnsiChar; MaxLen: Integer): Integer; stdcall; external EpanetLib;
- function  ENgetstatistic(StatType: Integer; var Value: Single): Integer; stdcall; external EpanetLib; 
+ function  ENgetstatistic(StatType: Integer; var Value: Single): Integer; stdcall; external EpanetLib;
+ function  ENgetresultindex(Code: Integer; Index: Integer; var Value: Integer): Integer; stdcall; external EpanetLib; 
 
 {Analysis Options Functions}
  function  ENgetoption(Code: Integer; var Value: Single): Integer; stdcall; external EpanetLib;

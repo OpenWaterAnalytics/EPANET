@@ -11,7 +11,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/20/2019
+ Last Updated: 10/26/2019
  ******************************************************************************
  */
 
@@ -638,6 +638,8 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_getstatistic(EN_Project ph, int type, double* value);
 
+  int  DLLEXPORT EN_getresultindex(EN_Project ph, int type, int index, int *value);
+  
   /********************************************************************
 
   Analysis Options Functions

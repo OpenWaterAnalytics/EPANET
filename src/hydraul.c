@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/15/2019
+ Last Updated: 10/26/2019
  ******************************************************************************
 */
 
@@ -115,8 +115,9 @@ void inithyd(Project *pr, int initflag)
 
     // Initialize emitter flows
     memset(hyd->EmitterFlow,0,(net->Nnodes+1)*sizeof(double));
-    for (i = 1; i <= net->Njuncs; i++)
+    for (i = 1; i <= net->Nnodes; i++)
     {
+        net->Node[i].ResultIndex = i;
         if (net->Node[i].Ke > 0.0) hyd->EmitterFlow[i] = 1.0;
     }
 
@@ -124,6 +125,7 @@ void inithyd(Project *pr, int initflag)
     for (i = 1; i <= net->Nlinks; i++)
     {
         link = &net->Link[i];
+        link->ResultIndex = i;
 
         // Initialize status and setting
         hyd->LinkStatus[i] = link->Status;

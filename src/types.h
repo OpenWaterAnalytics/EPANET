@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/08/2019
+ Last Updated: 10/26/2019
  ******************************************************************************
 */
 
@@ -377,6 +377,7 @@ typedef struct             // Node Object
   double   C0;             // initial quality
   double   Ke;             // emitter coeff.
   int      Rpt;            // reporting flag
+  int      ResultIndex;    // saved result index
   NodeType Type;           // node type
   char     *Comment;       // node comment
 } Snode;
@@ -397,6 +398,7 @@ typedef struct             // Link Object
   LinkType Type;           // link type
   StatusType Status;       // initial status
   int      Rpt;            // reporting flag
+  int      ResultIndex;    // saved result index
   char     *Comment;       // link comment
 } Slink;
 
