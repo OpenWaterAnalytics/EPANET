@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/17/2019
+ Last Updated: 10/26/2019
  ******************************************************************************
  */
 
@@ -157,6 +157,7 @@ extern "C" {
 
   int  DLLEXPORT ENgetstatistic(int type, EN_API_FLOAT_TYPE* value);
   
+  int  DLLEXPORT ENgetresultindex(int type, int index, int *value);
 
 /********************************************************************
 

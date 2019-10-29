@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/24/2019
+ Last Updated: 10/26/2019
  ******************************************************************************
 */
 
@@ -174,10 +174,9 @@ int openoutfile(Project *pr)
     // Close output file if already opened
     closeoutfile(pr);
 
-    // If output file name was supplied, then attempt to
-    // open it. Otherwise open a temporary output file.
+    // Try to open binary output file
     pr->outfile.OutFile = fopen(pr->outfile.OutFname, "w+b");
-    if (pr->outfile.OutFile == NULL) errcode = 304;
+    if (pr->outfile.OutFile == NULL) return 304;
 
     // Save basic network data & energy usage results
     ERRCODE(savenetdata(pr));

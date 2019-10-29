@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/18/2019
+ Last Updated: 10/26/2019
  ******************************************************************************
 */
 
@@ -1066,6 +1066,33 @@ int DLLEXPORT EN_getstatistic(EN_Project p, int type, double *value)
     return 0;
 }
 
+int DLLEXPORT EN_getresultindex(EN_Project p, int type, int index, int *value)
+/*----------------------------------------------------------------
+**  Input:   type = type of object (either EN_NODE or EN_LINK)
+**           index = the object's index
+**  Output:  value = the order in which the object's results were saved
+**  Returns: error code
+**  Purpose: retrieves the order in which a node's or link's results
+**           were saved to an output file.
+**----------------------------------------------------------------
+*/
+{
+    *value = 0;
+    if (!p->Openflag) return 102;
+    if (type == EN_NODE)
+    {
+        if (index <= 0 || index > p->network.Nnodes) return 203;
+        *value = p->network.Node[index].ResultIndex;
+    }
+    else if (type == EN_LINK)
+    {
+        if (index <= 0 || index > p->network.Nlinks) return 204;
+        *value = p->network.Link[index].ResultIndex;
+    }
+    else return 251;
+    return 0;
+}
+
 /********************************************************************
 
     Analysis Options Functions
@@ -1827,6 +1854,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
     node->C0 = 0;
     node->Ke = 0;
     node->Rpt = 0;
+    node->ResultIndex = 0;
     node->X = MISSING;
     node->Y = MISSING;
     node->Comment = NULL;
@@ -3210,6 +3238,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     link->R = 0;
     link->Rc = 0;
     link->Rpt = 0;
+    link->ResultIndex = 0;
     link->Comment = NULL;
 
     hashtable_insert(net->LinkHashTable, link->ID, n);

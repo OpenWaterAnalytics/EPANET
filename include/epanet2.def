@@ -60,7 +60,8 @@ EXPORTS
     ENgetpremise                  = _ENgetpremise@36
     ENgetpumptype                 = _ENgetpumptype@8
     ENgetqualinfo                 = _ENgetqualinfo@16
-    ENgetqualtype                 = _ENgetqualtype@8                    
+    ENgetqualtype                 = _ENgetqualtype@8
+    ENgetresultindex              = _ENgetresultindex@12    
     ENgetrule                     = _ENgetrule@20
     ENgetruleID                   = _ENgetruleID@8
     ENgetstatistic                = _ENgetstatistic@8

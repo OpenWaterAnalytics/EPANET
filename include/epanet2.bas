@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 07/18/2019
+'Last updated on 10/26/2019
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -282,6 +282,7 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENgetcount Lib "epanet2.dll" (ByVal object As Long, count As Long) As Long
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal errcode As Long, ByVal errmsg As String, ByVal maxLen As Long) As Long
  Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal type_ As Long, ByRef value As Single) As Long
+ Declare Function ENgetresultindex Lib "epanet2.dll" (ByVal type_ As Long, ByVal index As Long, ByRef value As Long) As Long
 
 'Analysis Options Functions
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal option_ As Long, value As Single) As Long

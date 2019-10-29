@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/15/2019
+ Last Updated: 10/26/2019
  ******************************************************************************
 */
 
@@ -226,6 +226,12 @@ int DLLEXPORT ENgetstatistic(int type, EN_API_FLOAT_TYPE *value)
     *value = (EN_API_FLOAT_TYPE)v;
     return errcode;
 }
+
+int DLLEXPORT ENgetresultindex(int type, int index, int *value)
+{
+    return EN_getresultindex(_defaultProject, type, index, value);
+}
+
 
 /********************************************************************
 
