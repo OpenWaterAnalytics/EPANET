@@ -11,7 +11,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/26/2019
+ Last Updated: 10/29/2019
  ******************************************************************************
  */
 
@@ -1214,6 +1214,36 @@ typedef struct Project *EN_Project;
   int DLLEXPORT EN_setpipedata(EN_Project ph, int index, double length, double diam,
                 double rough,  double mloss);
 
+  /**
+  @brief Retrieves the number of internal vertex points assigned to a link.
+  @param ph an EPANET project handle.
+  @param index a link's index.
+  @param[out] count the number of vertex points that describe the link's shape.
+  @return an error code.
+  */
+  int DLLEXPORT EN_getvertexcount(EN_Project ph, int index, int *count);
+  
+  /**
+  @brief Retrieves the coordinate's of a vertex point assigned to a link.
+  @param ph an EPANET project handle.
+  @param index a link's index.
+  @param vertex a vertex point index.
+  @param[out] x the vertex's X-coordinate value.
+  @param[out] y the vertex's Y-coordinate value.
+  @return an error code.
+  */
+  int DLLEXPORT EN_getvertex(EN_Project ph, int index, int vertex, double *x, double *y);
+  
+  /**
+  @brief Assigns a set of internal vertex points to a link.
+  @param ph an EPANET project handle.
+  @param index a link's index.
+  @param x an array of X-coordinates for the vertex points.
+  @param y an array of Y-coordinates for the vertex points.
+  @param count the number of vertex points being assigned.
+  @return an error code.
+  */
+  int DLLEXPORT EN_setvertices(EN_Project ph, int index, double *x, double *y, int count);
 
   /********************************************************************
 

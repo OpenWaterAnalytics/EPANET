@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/26/2019
+ Last Updated: 10/29/2019
  ******************************************************************************
 */
 
@@ -18,8 +18,6 @@
 //*** For the Windows SDK _tempnam function ***//
 #ifdef _WIN32
 #include <windows.h>
-//#else
-//#include <unistd.h >
 #endif
 
 #include "types.h"
@@ -363,6 +361,7 @@ int allocdata(Project *pr)
         }
         for (n = 0; n <= pr->parser.MaxLinks; n++)
         {
+            pr->network.Link[n].Vertices = NULL;
             pr->network.Link[n].Comment = NULL;
         }
     }
@@ -409,8 +408,9 @@ void freedata(Project *pr)
     // Free memory for link data
     if (pr->network.Link != NULL)
     {
-        for (j = 0; j <= pr->parser.MaxLinks; j++)
+        for (j = 1; j <= pr->parser.MaxLinks; j++)
         {
+            freelinkvertices(&pr->network.Link[j]);
             free(pr->network.Link[j].Comment);
         }
     }
@@ -536,6 +536,61 @@ void freedemands(Snode *node)
         demand = nextdemand;
     }
     node->D = NULL;
+}
+
+int  addlinkvertex(Slink *link, double x, double y)
+/*----------------------------------------------------------------
+**  Input:   link = pointer to a network link
+**           x = x-coordinate of a new vertex
+**           y = y-coordiante of a new vertex
+**  Returns: an error code
+**  Purpose: adds to a link's collection of vertex points.
+**----------------------------------------------------------------
+*/
+{
+    static int CHUNKSIZE = 5;
+    int n;
+    Pvertices vertices;
+    if (link->Vertices == NULL)
+    {
+        vertices = (struct Svertices *) malloc(sizeof(struct Svertices));
+        if (vertices == NULL) return 101;
+        vertices->Npts = 0;
+        vertices->Capacity = CHUNKSIZE;
+        vertices->X = (double *) calloc(vertices->Capacity, sizeof(double));
+        vertices->Y = (double *) calloc(vertices->Capacity, sizeof(double));
+        link->Vertices = vertices;
+    }
+    vertices = link->Vertices;
+    if (vertices->Npts >= vertices->Capacity)
+    {
+        vertices->Capacity += CHUNKSIZE;
+        vertices->X = realloc(vertices->X, vertices->Capacity * sizeof(double));
+        vertices->Y = realloc(vertices->Y, vertices->Capacity * sizeof(double));
+    }
+    if (vertices->X == NULL || vertices->Y == NULL) return 101;
+    n = vertices->Npts;
+    vertices->X[n] = x;
+    vertices->Y[n] = y;
+    vertices->Npts++;
+    return 0;    
+}
+
+void freelinkvertices(Slink *link)
+/*----------------------------------------------------------------
+**  Input:   vertices = list of link vertex points
+**  Output:  none
+**  Purpose: frees the memory used for a link's list of vertices.
+**----------------------------------------------------------------
+*/
+{
+    if (link->Vertices)
+    {
+        free(link->Vertices->X);
+        free(link->Vertices->Y);
+        free(link->Vertices);
+        link->Vertices = NULL;
+    }
 }
 
 int  buildadjlists(Network *net)

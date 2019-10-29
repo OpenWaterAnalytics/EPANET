@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/26/2019
+ Last Updated: 10/29/2019
  ******************************************************************************
  */
 
@@ -285,6 +285,12 @@ extern "C" {
   int DLLEXPORT ENsetpipedata(int index, EN_API_FLOAT_TYPE length,
                 EN_API_FLOAT_TYPE diam, EN_API_FLOAT_TYPE rough,
                 EN_API_FLOAT_TYPE mloss);
+                
+  int DLLEXPORT ENgetvertexcount(int index, int *count);
+  
+  int DLLEXPORT ENgetvertex(int index, int vertex, double *x, double *y);
+  
+  int DLLEXPORT ENsetvertices(int index, double *x, double *y, int count);
 
 /********************************************************************
 
