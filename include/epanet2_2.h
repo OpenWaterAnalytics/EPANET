@@ -638,6 +638,20 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_getstatistic(EN_Project ph, int type, double* value);
 
+  /**
+  @brief Retrieves the order in which a node or link appears in an @ref OutFile "output file".
+  @param ph an EPANET project handle.
+  @param type a type of element (either @ref EN_NODE or @ref EN_LINK).
+  @param index the element's current index (starting from 1).
+  @param[out] value the order in which the element's results were written to file.
+  @return an error code.
+  
+  If the element does not appear in the file then its result index is 0.
+  
+  This function can be used to correctly retrieve results from an EPANET binary output file
+  after the order of nodes or links in a network's database has been changed due to editing
+  operations.  
+  */  
   int  DLLEXPORT EN_getresultindex(EN_Project ph, int type, int index, int *value);
   
   /********************************************************************
@@ -1217,7 +1231,7 @@ typedef struct Project *EN_Project;
   /**
   @brief Retrieves the number of internal vertex points assigned to a link.
   @param ph an EPANET project handle.
-  @param index a link's index.
+  @param index a link's index (starting from 1).
   @param[out] count the number of vertex points that describe the link's shape.
   @return an error code.
   */
@@ -1226,8 +1240,8 @@ typedef struct Project *EN_Project;
   /**
   @brief Retrieves the coordinate's of a vertex point assigned to a link.
   @param ph an EPANET project handle.
-  @param index a link's index.
-  @param vertex a vertex point index.
+  @param index a link's index (starting from 1).
+  @param vertex a vertex point index (starting from 1).
   @param[out] x the vertex's X-coordinate value.
   @param[out] y the vertex's Y-coordinate value.
   @return an error code.
@@ -1237,11 +1251,13 @@ typedef struct Project *EN_Project;
   /**
   @brief Assigns a set of internal vertex points to a link.
   @param ph an EPANET project handle.
-  @param index a link's index.
+  @param index a link's index (starting from 1).
   @param x an array of X-coordinates for the vertex points.
   @param y an array of Y-coordinates for the vertex points.
   @param count the number of vertex points being assigned.
   @return an error code.
+  
+  Replaces any existing vertices previously assigned to the link. 
   */
   int DLLEXPORT EN_setvertices(EN_Project ph, int index, double *x, double *y, int count);
 
