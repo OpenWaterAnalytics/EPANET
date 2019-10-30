@@ -3240,6 +3240,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     link->Rpt = 0;
     link->ResultIndex = 0;
     link->Comment = NULL;
+    link->Vertices = NULL;
 
     hashtable_insert(net->LinkHashTable, link->ID, n);
     *index = n;
@@ -3289,8 +3290,9 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
     // Remove link from its hash table
     hashtable_delete(net->LinkHashTable, link->ID);
 
-    // Remove link's comment
-    free(net->Link[index].Comment);
+    // Remove link's comment and vertices
+    free(link->Comment);
+    freelinkvertices(link);
 
     // Shift position of higher entries in Link array down one
     for (i = index; i <= net->Nlinks - 1; i++)
