@@ -4,7 +4,7 @@
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL) for use with VB.Net.
 
-'Last updated on 10/26/2019
+'Last updated on 10/29/2019
 
 Imports System.Runtime.InteropServices
 Imports System.Text
@@ -341,6 +341,9 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENgetlinkvalue Lib "epanet2.dll" (ByVal index As Int32, ByVal property As Int32, value As Single) As Int32
  Declare Function ENsetlinkvalue Lib "epanet2.dll" (ByVal index As Int32, ByVal property As Int32, ByVal value As Single) As Int32
  Declare Function ENsetpipedata Lib "epanet2.dll" (ByVal index As Int32, ByVal length As Single, ByVal diam As Single, ByVal rough As Single, ByVal mloss As Single) As Int32
+ Declare Function ENgetvertexcount Lib "epanet2.dll" (ByVal index As Int32, count As Int32) As Int32
+ Declare Function ENgetvertex Lib "epanet2.dll" (ByVal index As Int32, ByVal vertex As Int32, x As Double, y As Double) As Int32
+ Declare Function ENsetvertices Lib "epanet2.dll" (ByVal index As Int32, xCoords As Any, yCoords As Any, ByVal count As Int32) As Int32
 
 'Pump Functions
  Declare Function ENgetheadcurveindex Lib "epanet2.dll" (ByVal linkIndex As Int32, curveIndex As Int32) As Int32

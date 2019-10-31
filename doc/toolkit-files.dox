@@ -151,7 +151,7 @@ The Toolkit provides several header files that are needed to develop C/C++ appli
 - <b>`epanet2_2.h`</b> contains declarations of the multi-threaded version of the Toolkit (the EN_xxx named functions).
 - <b>`epanet2_enums.h`</b> contains definitions of the symbolic constants used by the Toolkit.
 - <b>`epanet2.lib`</b> must be linked in to any Toolkit application compiled for Windows using MS Visual C++.  
-Developers need to issue an `#include` directive for either `epanet2.h` or `epanet2_2.h` in their C/C++ code depending on whether they are building a single-threaded or multi-threaded application. There is no need to explicitly include `epanet2_enums.h` as it is automatically included by both of the other header files.
+Developers need to issue an include directive for either `epanet2.h` or `epanet2_2.h` in their C/C++ code depending on whether they are building a single-threaded or multi-threaded application. There is no need to explicitly include `epanet2_enums.h` as it is automatically included by both of the other header files.
 
 Several additional function declaration files that provide bindings for other programming languages are included with the Toolkit package: 
 - <b>`epanet2.bas`</b> for Visual Basic for Applications and Visual Basic 6

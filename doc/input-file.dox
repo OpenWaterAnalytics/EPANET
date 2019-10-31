@@ -4,22 +4,24 @@ The Input file is a standard EPANET input data file that describes the system be
 
 The file is organized by sections where each section begins with a keyword enclosed in brackets. The various keywords are listed below. Click on a section to see the format of the data it contains.
 
-|Network Components              |System Operation                |Water Quality                    |Options & Reporting             |
-|:-------------------------------|:-------------------------------|:--------------------------------|:-------------------------------|
-|@subpage TitlePage "[Title]"    |@subpage CurvesPage "[Curves]"  |@subpage QualPage "[Quality]"    |@subpage OptionsPage "[Options]"|
-|@subpage JuncsPage "[Junctions]"|@subpage PatsPage "[Patterns]"  |@subpage ReactsPage "[Reactions]"|@subpage TimesPage "[Times]"    |
-|@subpage ResvPage "[Reservoirs]"|@subpage EnergyPage "[Energy]"  |@subpage SourcesPage "[Sources]" |@subpage ReportPage "[Report]"  |
-|@subpage TanksPage "[Tanks]"    |@subpage StatusPage "[Status]"  |@subpage MixingPage "[Mixing]"   |                                |
-|@subpage PipesPage "[Pipes]"    |@subpage CtrlsPage "[Controls]" |                                 |                                |
-|@subpage PumpsPage "[Pumps]"    |@subpage RulesPage "[Rules]"    |                                 |                                |
-|@subpage ValvesPage "[Valves]"  |@subpage DmndsPage "[Demands]"  |                                 |                                |
-|@subpage EmitsPage "[Emitters]" |                                |                                 |                                |
+|Network Components              |System Operation                |Water Quality                    |Options & Reporting             |GUI Support                         |
+|:-------------------------------|:-------------------------------|:--------------------------------|:-------------------------------|------------------------------------|
+|@subpage TitlePage "[Title]"    |@subpage CurvesPage "[Curves]"  |@subpage QualPage "[Quality]"    |@subpage OptionsPage "[Options]"|@subpage BackdropPage "[Backdrop]"  |
+|@subpage JuncsPage "[Junctions]"|@subpage PatsPage "[Patterns]"  |@subpage ReactsPage "[Reactions]"|@subpage TimesPage "[Times]"    |@subpage CoordsPage "[Coordinates]" |
+|@subpage ResvPage "[Reservoirs]"|@subpage EnergyPage "[Energy]"  |@subpage SourcesPage "[Sources]" |@subpage ReportPage "[Report]"  |@subpage VertexPage "[Vertices]"    |
+|@subpage TanksPage "[Tanks]"    |@subpage StatusPage "[Status]"  |@subpage MixingPage "[Mixing]"   |                                |@subpage LabelsPage "[Labels]"      |
+|@subpage PipesPage "[Pipes]"    |@subpage CtrlsPage "[Controls]" |                                 |                                |                                    |
+|@subpage PumpsPage "[Pumps]"    |@subpage RulesPage "[Rules]"    |                                 |                                |                                    |
+|@subpage ValvesPage "[Valves]"  |@subpage DmndsPage "[Demands]"  |                                 |                                |                                    |
+|@subpage EmitsPage "[Emitters]" |                                |                                 |                                |                                    |
     
 The order of sections is not important. However, whenever a node or link is referred to in a section it must have already been defined in the [JUNCTIONS], [RESERVOIRS], [TANKS], [PIPES], [PUMPS], or [VALVES] sections. Thus it is recommended that these sections be placed first.
 
 Each section can contain one or more lines of data. Blank lines can appear anywhere in the file and the semicolon (;) can be used to indicate that what follows on the line is a comment, not data. A maximum of 1024 characters can appear on a line.
 
 The ID labels used to identify nodes, links, curves and patterns can be any combination of up to 31 characters and numbers.
+
+The GUI Support sections are provided to assist an external program that wishes to draw a visual representation of a project's network.
 
 */
 
@@ -1039,4 +1041,112 @@ __Remarks:__
 |<B>TCV</B> (throttle control valve) | Loss Coefficient |
 |<B>GPV</B> (general purpose valve) | ID of head loss curve |
 2. Shutoff valves and check valves are considered to be part of a pipe, not a separate control valve component (see @ref PipesPage).
+*/
+
+/**
+@page BackdropPage [BACKDROP]
+
+__Purpose:__
+
+Identifies a backdrop image and dimensions for visualizing the network's layout.
+
+__Formats:__
+<table style = "border: 0px solid black">
+<tr>  <td><b>DIMENSIONS</b></td>  <td><I>LLx  LLy  URx  URy</I></td> </tr>
+<tr>  <td><b>UNITS</b></td> <td><b>FEET/METERS/DEGREES/NONE</b></td> </tr>
+<tr>  <td><b>FILE</b></td><td><I>filename</I></td> </tr>
+<tr>  <td><b>OFFSET</b></td><td><I>X  Y</I></td> </tr>
+</table>
+
+__Definitions:__
+
+<b>DIMENSIONS</b> provides the X and Y coordinates of the lower-left and upper-right corners of the network's
+bounding rectangle. Defaults are the extents of the nodal coordinates supplied in the @ref CoordsPage "[COORDINATES]" section.
+
+<b>UNITS</b> specifies the units that the network's dimensions are given in. Default is <b>NONE</b>.
+
+<b>FILE</b> supplies the name of the file that contains a backdrop image for the network.
+
+<b>OFFSET</b> lists the X and Y distance that the upper-left corner of the backdrop image is offset from the
+upper-left corner of the network’s bounding rectangle. Default is zero offset.
+
+__Remarks:__
+
+1. The [BACKDROP] section is optional and only provides support for an external GUI program that uses the EPANET engine.
+
+2. Only Windows Enhanced Metafiles and bitmap files can be used as backdrops.
+*/
+
+/**
+@page CoordsPage [COORDINATES]
+
+__Purpose:__
+
+Assigns map coordinates to network's nodes.
+
+__Format__:
+
+One line for each node containing:
+- Node ID label
+- X-coordinate
+- Y-coordinate
+
+__Remarks:__
+
+1. Include one line for each node that has coordinates.
+
+2. The coordinates represent the distance from the node to an arbitrary origin at the lower left of the network. Any convenient units of measure for this distance can be used.
+
+3. The locations  of the nodes need not be to actual scale.
+
+4. A [COORDINATES] section is optional and only provides support for an external GUI program that uses the EPANET engine.
+*/
+
+/**
+@page VertexPage [VERTICES]
+
+__Purpose:__
+
+Assigns interior vertex points that describe the shape of network links.
+
+__Format:__
+
+One line for each vertex point in each link containing such points that includes:
+- Link ID label
+- X-coordinate
+- Y-coordinate
+
+__Remarks:__
+
+1. Vertex points allow links to be drawn as polylines instead of simple straight-lines between their end nodes.
+
+2. The coordinates refer to the same coordinate system used for node and label coordinates.
+
+3. A [VERTICES] section is optional and only provides support for an external GUI program that uses the EPANET engine.
+*/
+
+/**
+@page LabelsPage [LABELS]
+
+__Purpose:__
+ 
+Assigns coordinates to labels added to a network's visualization.
+
+__Format:__
+
+One line for each label containing:
+- X-coordinate
+- Y-coordinate
+- Text of label in double quotes
+- ID label of an anchor node (optional)
+
+__Remarks:__
+
+1. Include one line for each label.
+
+2. The coordinates refer to the upper left corner of the label and are with respect to an arbitrary origin at the lower left of the network.
+
+3. The optional anchor node anchors the label to the node when the network layout is re-scaled during zoom-in operations.
+
+4. The [LABELS] section is optional and only provides support for an external GUI program that uses the EPANET engine.
 */

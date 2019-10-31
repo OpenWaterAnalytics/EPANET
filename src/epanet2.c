@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/26/2019
+ Last Updated: 10/29/2019
  ******************************************************************************
 */
 
@@ -512,6 +512,20 @@ int DLLEXPORT ENsetpipedata(int index, EN_API_FLOAT_TYPE length,
     return EN_setpipedata(_defaultProject, index, length, diam, rough, mloss);
 }
 
+int DLLEXPORT ENgetvertexcount(int index, int *count)
+{
+    return EN_getvertexcount(_defaultProject, index, count);
+}
+    
+int DLLEXPORT ENgetvertex(int index, int vertex, double *x, double *y)
+{
+    return EN_getvertex(_defaultProject, index, vertex, x, y);
+}
+
+int DLLEXPORT ENsetvertices(int index, double *x, double *y, int count)
+{
+    return EN_setvertices(_defaultProject, index, x, y, count);
+}    
 
 /********************************************************************
 

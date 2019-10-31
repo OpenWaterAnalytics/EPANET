@@ -200,6 +200,10 @@ With this change EPANET 2.2 now produces perfect mass balances when tested again
 |`EN_setcomment` |Assigns a descriptive comment to an object|
 |`EN_clearreport` |Clears the contents of a project's report file |
 |`EN_copyreport` | Copies the contents of a project's report file |
+|`EN_getresultindex` | Gets the order in which a node or link was saved to file |
+|`EN_getvertexcount` | Gets the number of vertex points in a link |
+|`EN_getvertex` | Gets the coordinates of a vertex point in a link |
+|`EN_setvertices` | Assigns a new set of vertex points to a link |
 In addition to these new functions, a tank's volume curve `EN_VOLCURVE` can be set using `EN_setnodevalue` and `EN_setlinkvalue` can now be used to set the following pump properties:
  - `EN_PUMP_POWER` (constant power rating)
  - `EN_PUMP_HCURVE` (head characteristic curve)

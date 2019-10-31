@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/26/2019
+Last Updated: 10/29/2019
 ******************************************************************************
 */
 
@@ -715,6 +715,37 @@ int coordata(Project *pr)
     node->Y = y;
     return 0;
 }
+
+int vertexdata(Project *pr)
+/*
+ **--------------------------------------------------------------
+ **  Input:   none
+ **  Output:  returns error code
+ **  Purpose: processes link vertex data
+ **  Format:
+ **    [VERTICES]
+ **      id  x  y
+ **--------------------------------------------------------------
+ */
+{
+    Network *net = &pr->network;
+    Parser  *parser = &pr->parser;
+
+    int j;
+    double x, y;
+    
+    // Check for valid link ID
+    if (parser->Ntokens < 3) return 201;
+    if ((j = findlink(net, parser->Tok[0])) == 0) return setError(parser, 0, 204);
+
+    // Check for valid coordinate data
+    if (!getfloat(parser->Tok[1], &x)) return setError(parser, 1, 202);
+    if (!getfloat(parser->Tok[2], &y)) return setError(parser, 2, 202);
+
+    // Add to link's list of vertex points
+    return addlinkvertex(&net->Link[j], x, y);
+}
+
 
 int demanddata(Project *pr)
 /*

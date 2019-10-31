@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 10/26/19}
+{Last updated on 10/29/19}
 
 interface
 
@@ -353,6 +353,10 @@ const
  function  ENsetlinkvalue(Index: Integer; Code: Integer; Value: Single): Integer; stdcall; external EpanetLib;
  function  ENsetpipedata(Index: Integer; Length: Single; Diam: Single; Rough: Single; Mloss:Single): Integer; stdcall; external EpanetLib;
 
+ function  ENgetvertexcount(Index: Integer; var Count: Integer): Integer; stdcall; external EpanetLib;
+ function  ENgetvertex(Index: Integer; Vertex: Integer; var X: Double; var Y: Double): Integer; stdcall; external EpanetLib;
+ function  ENsetvertices(Index: Integer; X: array of Double; Y: array of Double; Count: Integer): Integer; stdcall; external EpanetLib;
+ 
 {Pump Functions}
  function  ENgetpumptype(LinkIndex: Integer; var PumpType: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetheadcurveindex(LinkIndex: Integer; var CurveIndex: Integer): Integer; stdcall; external EpanetLib;

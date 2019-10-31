@@ -120,6 +120,8 @@ These are the toolkit's enumerated types whose members are used as function argu
 @fn int EN_getversion(int *version)
 @fn int EN_geterror(int errcode, char *errmsg, int maxLen)
 @fn int EN_getstatistic(EN_Project ph, int type, double* value)
+@fn int EN_getresultindex(EN_Project ph, int type, int index, int *value)
+
 @}
 */
 
@@ -193,6 +195,9 @@ These are the toolkit's enumerated types whose members are used as function argu
 @fn int EN_getpumptype(EN_Project ph, int linkIndex, int *pumpType)
 @fn int EN_getheadcurveindex(EN_Project ph, int pumpIndex, int *curveIndex)
 @fn int EN_setheadcurveindex(EN_Project ph, int pumpIndex, int curveIndex)
+@fn int EN_getvertexcount(EN_Project ph, int index, int *count)
+@fn int EN_getvertex(EN_Project ph, int index, int vertex, double *x, double *y)
+@fn int EN_setvertices(EN_Project ph, int index, double *x, double *y, int count)
 @}
 */
 

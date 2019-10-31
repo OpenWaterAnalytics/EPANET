@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/15/2019
+Last Updated: 10/29/2019
 ******************************************************************************
 */
 
@@ -76,7 +76,6 @@ void saveauxdata(Project *pr, FILE *f)
                 // Write section heading to file
                 switch (sect)
                 {
-                case _VERTICES:
                 case _LABELS:
                 case _BACKDROP:
                 case _TAGS:
@@ -91,8 +90,6 @@ void saveauxdata(Project *pr, FILE *f)
             write = FALSE;
             switch (sect)
             {
-            case _VERTICES:
-                if (findlink(&pr->network, tok) || *tok == ';') write = TRUE; break;
             case _TAGS:
                 if (*tok == ';' ||
                     (match("NODE", tok) && findnode(&pr->network, strtok(NULL, SEPSTR))) ||
@@ -786,6 +783,20 @@ int saveinpfile(Project *pr, const char *fname)
         node = &net->Node[i];
         if (node->X == MISSING || node->Y == MISSING) continue;
         fprintf(f, "\n %-31s %14.6f %14.6f", node->ID, node->X, node->Y);
+    }
+
+    // Write [VERTICES] section
+    fprintf(f, "\n\n");
+    fprintf(f, s_VERTICES);
+    for (i = 1; i <= net->Nlinks; i++)
+    {
+        link = &net->Link[i];
+        if (link->Vertices != NULL)
+        {
+            for (j = 0; j < link->Vertices->Npts; j++)
+                fprintf(f, "\n %-31s %14.6f %14.6f",
+                    link->ID, link->Vertices->X[j], link->Vertices->Y[j]);
+        }
     }
 
     // Save auxilary data to new input file

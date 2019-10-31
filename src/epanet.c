@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/26/2019
+ Last Updated: 10/29/2019
  ******************************************************************************
 */
 
@@ -3240,6 +3240,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     link->Rpt = 0;
     link->ResultIndex = 0;
     link->Comment = NULL;
+    link->Vertices = NULL;
 
     hashtable_insert(net->LinkHashTable, link->ID, n);
     *index = n;
@@ -3289,8 +3290,9 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
     // Remove link from its hash table
     hashtable_delete(net->LinkHashTable, link->ID);
 
-    // Remove link's comment
-    free(net->Link[index].Comment);
+    // Remove link's comment and vertices
+    free(link->Comment);
+    freelinkvertices(link);
 
     // Shift position of higher entries in Link array down one
     for (i = index; i <= net->Nlinks - 1; i++)
@@ -3985,17 +3987,17 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
 
 int DLLEXPORT EN_setpipedata(EN_Project p, int index, double length,
                              double diam, double rough, double mloss)
-    /*----------------------------------------------------------------
-    **  Input:   index = pipe link index
-    **           length = pipe length
-    **           diam = pipe diameter
-    **           rough = pipe roughness coefficient
-    **           mloss = minor loss coefficient
-    **  Output:  none
-    **  Returns: error code
-    **  Purpose: sets several properties for a pipe link
-    **----------------------------------------------------------------
-    */
+/*----------------------------------------------------------------
+**  Input:   index = pipe link index
+**           length = pipe length
+**           diam = pipe diameter
+**           rough = pipe roughness coefficient
+**           mloss = minor loss coefficient
+**  Output:  none
+**  Returns: error code
+**  Purpose: sets several properties for a pipe link
+**----------------------------------------------------------------
+*/
 {
     Network *net = &p->network;
 
@@ -4024,6 +4026,96 @@ int DLLEXPORT EN_setpipedata(EN_Project p, int index, double length,
     return 0;
 }
 
+int DLLEXPORT EN_getvertexcount(EN_Project p, int index, int *count)
+/*----------------------------------------------------------------
+**  Input:   index = link index
+**  Output:  count = number of link's vertex points
+**  Returns: error code
+**  Purpose: retrieves number of vertex points in a link
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    
+    Slink *Link = net->Link;
+    Pvertices vertices;
+    
+    // Check that link exists
+    *count = 0;
+    if (!p->Openflag) return 102;
+    if (index <= 0 || index > net->Nlinks) return 204;
+    
+    // Set count to number of vertices
+    vertices = Link[index].Vertices;
+    if (vertices) *count = vertices->Npts;
+    return 0;
+}    
+
+int DLLEXPORT EN_getvertex(EN_Project p, int index, int vertex, double *x, double *y)
+/*----------------------------------------------------------------
+**  Input:   index = link index
+**           vertex = index of a link vertex point
+**  Output:  x = vertex point's X-coordinate
+**           y = vertex point's Y-coordinate
+**  Returns: error code
+**  Purpose: retrieves the coordinates of a vertex point in a link
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    
+    Slink *Link = net->Link;
+    Pvertices vertices;
+    
+    // Check that link exists
+    *x = MISSING;
+    *y = MISSING;
+    if (!p->Openflag) return 102;
+    if (index <= 0 || index > net->Nlinks) return 204;
+    
+    // Check that vertex exists
+    vertices = Link[index].Vertices;
+    if (vertices == NULL) return 255;
+    if (vertex <= 0 || vertex > vertices->Npts) return 255;
+    *x = vertices->X[vertex - 1];
+    *y = vertices->Y[vertex - 1];    
+    return 0;
+}
+    
+int DLLEXPORT EN_setvertices(EN_Project p, int index, double *x, double *y, int count)
+/*----------------------------------------------------------------
+**  Input:   index = link index
+**           x = array of X-coordinates for vertex points
+**           y = array of Y-coordinates for vertex points
+**           count = number of vertex points
+**  Returns: error code
+**  Purpose: assigns a set of vertex points to a link
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    
+    Slink *link;
+    int i;
+    int err = 0;
+    
+    // Check that link exists
+    if (!p->Openflag) return 102;
+    if (index <= 0 || index > net->Nlinks) return 204;
+    link = &net->Link[index];
+
+    // Delete existing set of vertices
+    freelinkvertices(link);
+    
+    // Add each new vertex to the link
+    for (i = 0; i < count; i++)
+    {
+        err = addlinkvertex(link, x[i], y[i]);
+        if (err) break;
+    }
+    if (err) freelinkvertices(link);
+    return err;
+}    
 
 /********************************************************************
 

@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 10/26/2019
+'Last updated on 10/29/2019
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -336,6 +336,9 @@ Public Const EN_R_IS_ACTIVE = 3
  Declare Function ENgetlinkvalue Lib "epanet2.dll" (ByVal index As Long, ByVal property As Long, value As Single) As Long
  Declare Function ENsetlinkvalue Lib "epanet2.dll" (ByVal index As Long, ByVal property As Long, ByVal value As Single) As Long
  Declare Function ENsetpipedata Lib "epanet2.dll" (ByVal index As Long, ByVal length As Single, ByVal diam As Single, ByVal rough As Single, ByVal mloss As Single) As Long
+ Declare Function ENgetvertexcount Lib "epanet2.dll" (ByVal index As Long, count As Long) As Long
+ Declare Function ENgetvertex Lib "epanet2.dll" (ByVal index As Long, ByVal vertex As Long, x As Double, y As Double) As Long
+ Declare Function ENsetvertices Lib "epanet2.dll" (ByVal index As Long, xCoords As Any, yCoords As Any, ByVal count As Long) As Long
 
 'Pump Functions
  Declare Function ENgetheadcurveindex Lib "epanet2.dll" (ByVal linkIndex As Long, curveIndex As Long) As Long

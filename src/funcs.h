@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/08/2019
+ Last Updated: 10/29/2019
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -40,6 +40,9 @@ int     findcurve(Network *, char *);
 Pdemand finddemand(Pdemand, int);
 int     adddemand(Snode *, double, int, char *);
 void    freedemands(Snode *);
+
+int     addlinkvertex(Slink *, double, double);
+void    freelinkvertices(Slink *);
 
 void    adjustpatterns(Network *, int);
 void    adjustcurves(Network *, int);
@@ -101,6 +104,7 @@ int     statusdata(Project *);
 int     reportdata(Project *);
 int     timedata(Project *);
 int     optiondata(Project *);
+int     vertexdata(Project *);
 
 // ------- RULES.C ------------------
 
