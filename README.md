@@ -30,4 +30,4 @@ The **Open Water Analytics** (OWA) Community is an international group of EPANET
 ## DISCLAIMER
 This repository is not affiliated with, or endorsed by, the USEPA. For the last "official" release of EPANET (2.00.12 UI and Toolkit) please go to the [USEPA's GitHub repo](https://github.com/USEPA/Water-Distribution-Network-Model) or the [USEPA website](http://www2.epa.gov/water-research/epanet). 
 
-For more general community discussion, FAQ, and roadmapping of the project, please go to the Community Forum.
+For more general community discussion, FAQ, and roadmapping of the project, please go to the [Community Forum](http://community/wateranalytics.org).
