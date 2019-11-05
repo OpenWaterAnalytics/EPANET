@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/29/2019
+ Last Updated: 11/02/2019
  ******************************************************************************
 */
 
@@ -4474,7 +4474,8 @@ int DLLEXPORT EN_setpattern(EN_Project p, int index, double *values, int len)
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Npats) return 205;
-    if (len <= 0) return 251;
+    if (values == NULL) return 205;
+    if (len <= 0) return 202;
 
     // Re-set number of time periods & reallocate memory for multipliers
     Pattern[index].Length = len;
@@ -4741,7 +4742,9 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
     // Insert new point into curve
     curve->X[n] = x;
     curve->Y[n] = y;
-    return 0;
+    
+    // Adjust parameters for pumps using curve as a head curve
+    return adjustpumpparams(p, curveIndex);
 }
 
 int DLLEXPORT EN_getcurve(EN_Project p, int index, char *id, int *nPoints,
@@ -4765,6 +4768,7 @@ int DLLEXPORT EN_getcurve(EN_Project p, int index, char *id, int *nPoints,
 
     if (!p->Openflag) return 102;
     if (index <= 0 || index > p->network.Ncurves) return 206;
+    if (xValues == NULL || yValues == NULL) return 206;
     curve = &p->network.Curve[index];
     strncpy(id, curve->ID, MAXID);
     *nPoints = curve->Npts;
@@ -4795,6 +4799,7 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Ncurves) return 206;
+    if (xValues == NULL || yValues == NULL) return 206;
     if (nPoints <= 0) return 202;
 
     // Check that x values are increasing
@@ -4811,7 +4816,9 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
         curve->X[j] = xValues[j];
         curve->Y[j] = yValues[j];
     }
-    return 0;
+    
+    // Adjust parameters for pumps using curve as a head curve
+    return adjustpumpparams(p, index);
 }
 
 /********************************************************************

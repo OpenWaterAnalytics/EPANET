@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/29/2019
+ Last Updated: 11/02/2019
  ******************************************************************************
 */
 
@@ -609,6 +609,7 @@ int DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *values, int len)
 {
     double *v = NULL;
     int i, errcode;
+    if (values == NULL) return 206;
     v = (double *)calloc(len, sizeof(double));
     if (v)
     {
@@ -685,6 +686,7 @@ int DLLEXPORT ENgetcurve(int index, char *id, int *nPoints,
     Scurve *curve;
 
     if (index <= 0 || index > net->Ncurves) return 206;
+    if (xValues == NULL || yValues == NULL) return 206;
     curve = &net->Curve[index];
     strncpy(id, curve->ID, MAXID);
     *nPoints = curve->Npts;
@@ -701,7 +703,11 @@ int DLLEXPORT ENsetcurve(int index, EN_API_FLOAT_TYPE *xValues,
 {
     double *xx = NULL;
     double *yy = NULL;
-    int i, errcode;
+    int i, errcode = 0;
+    
+    if (xValues == NULL || yValues == NULL) return 206;
+    if (nPoints < 1) return 202;
+    
     xx = (double *)calloc(nPoints, sizeof(double));
     yy = (double *)calloc(nPoints, sizeof(double));
     if (xx && yy)

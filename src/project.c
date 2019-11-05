@@ -7,13 +7,14 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/29/2019
+ Last Updated: 11/02/2019
  ******************************************************************************
 */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h> 
 
 //*** For the Windows SDK _tempnam function ***//
 #ifdef _WIN32
@@ -997,6 +998,48 @@ void adjustcurves(Network *network, int index)
         }
     }
 }
+
+int adjustpumpparams(Project *pr, int curveIndex)
+/*----------------------------------------------------------------
+**  Input:   curveIndex = index of a data curve
+**  Output:  returns an error code
+**  Purpose: updates head curve parameters for pumps using a 
+**           curve whose data have been modified.
+**----------------------------------------------------------------
+*/
+{
+    Network *network = &pr->network;
+
+    double *Ucf = pr->Ucf;
+    int j, err = 0;
+    Spump *pump;
+    
+    // Check each pump
+    for (j = 1; j <= network->Npumps; j++)
+    {
+        // Pump uses curve as head curve
+        pump = &network->Pump[j];
+        if ( curveIndex == pump->Hcurve)
+        {
+            // Update its head curve parameters
+            pump->Ptype = NOCURVE;
+            err = updatepumpparams(pr, curveIndex);
+            if (err > 0) break;
+            
+            // Convert parameters to internal units
+            if (pump->Ptype == POWER_FUNC)
+            {
+                pump->H0 /= Ucf[HEAD];
+                pump->R *= (pow(Ucf[FLOW], pump->N) / Ucf[HEAD]);
+            }
+            pump->Q0 /= Ucf[FLOW];
+            pump->Qmax /= Ucf[FLOW];
+            pump->Hmax /= Ucf[HEAD];
+        }
+    }
+    return err;
+}
+        
 
 int resizecurve(Scurve *curve, int size)
 /*----------------------------------------------------------------

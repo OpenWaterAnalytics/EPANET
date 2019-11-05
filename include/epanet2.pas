@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 10/29/19}
+{Last updated on 11/02/19}
 
 interface
 
@@ -355,7 +355,7 @@ const
 
  function  ENgetvertexcount(Index: Integer; var Count: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetvertex(Index: Integer; Vertex: Integer; var X: Double; var Y: Double): Integer; stdcall; external EpanetLib;
- function  ENsetvertices(Index: Integer; X: array of Double; Y: array of Double; Count: Integer): Integer; stdcall; external EpanetLib;
+ function  ENsetvertices(Index: Integer; var X: Double; var Y: Double; Count: Integer): Integer; stdcall; external EpanetLib;
  
 {Pump Functions}
  function  ENgetpumptype(LinkIndex: Integer; var PumpType: Integer): Integer; stdcall; external EpanetLib;
@@ -372,7 +372,7 @@ const
  function  ENgetpatternvalue(Index: Integer; Period: Integer; var Value: Single): Integer; stdcall; external EpanetLib;
  function  ENsetpatternvalue(Index: Integer; Period: Integer; Value: Single): Integer; stdcall; external EpanetLib;
  function  ENgetaveragepatternvalue(Index: Integer; var Value: Single): Integer; stdcall; external EpanetLib;
- function  ENsetpattern(Index: Integer; F: array of Single; N: Integer): Integer; stdcall; external EpanetLib;
+ function  ENsetpattern(Index: Integer; var F: Single; N: Integer): Integer; stdcall; external EpanetLib;
            
 {Curve Functions}
  function  ENaddcurve(ID: PAnsiChar): Integer; stdcall; external EpanetLib;
@@ -384,8 +384,8 @@ const
  function  ENgetcurvetype(Index: Integer; var CurveType: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetcurvevalue(CurveIndex: Integer; PointIndex: Integer; var X: Single; var Y: Single): Integer; stdcall; external EpanetLib;
  function  ENsetcurvevalue(CurveIndex: Integer; PointIndex: Integer; X: Single; Y: Single): Integer; stdcall; external EpanetLib;
- function  ENgetcurve(Index: Integer; ID: PAnsiChar; var N: Integer; var X: array of Single; var Y: array of Single): Integer; stdcall; external EpanetLib;
- function  ENsetcurve(Index: Integer; X: array of Single; Y: array of Single; N: Integer): Integer; stdcall; external EpanetLib;
+ function  ENgetcurve(Index: Integer; ID: PAnsiChar; var N: Integer; var X: Single; var Y: Single): Integer; stdcall; external EpanetLib;
+ function  ENsetcurve(Index: Integer; var X: Single; var Y: Single; N: Integer): Integer; stdcall; external EpanetLib;
 
 {Control Functions}
  function  ENaddcontrol(Ctype: Integer; Link: Integer; Setting: Single; Node: Integer; Level: Single; var Index: Integer): Integer; stdcall; external EpanetLib;
