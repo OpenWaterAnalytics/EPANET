@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 10/29/2019
+'Last updated on 11/04/2019
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -238,6 +238,8 @@ Public Const EN_R_ABOVE = 9
 Public Const EN_R_IS_OPEN = 1     ' Rule status types
 Public Const EN_R_IS_CLOSED = 2
 Public Const EN_R_IS_ACTIVE = 3
+
+Public Const EN_MISSING As Double = -1.0E10
 
 'These are the external functions that comprise the DLL
 
