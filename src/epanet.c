@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/02/2019
+ Last Updated: 11/04/2019
  ******************************************************************************
 */
 
@@ -5227,34 +5227,30 @@ int DLLEXPORT EN_getrule(EN_Project p, int index, int *nPremises,
     if (index < 1 || index > net->Nrules) return 257;
     *priority = (double)p->network.Rule[index].priority;
 
-    count = 1;
+    count = 0;
     premise = net->Rule[index].Premises;
-    while (premise->next != NULL)
+    while (premise != NULL)
     {
         count++;
         premise = premise->next;
     }
     *nPremises = count;
 
-    count = 1;
+    count = 0;
     action = net->Rule[index].ThenActions;
-    while (action->next != NULL)
+    while (action != NULL)
     {
         count++;
         action = action->next;
     }
     *nThenActions = count;
 
-    action = net->Rule[index].ElseActions;
     count = 0;
-    if (action != NULL)
+    action = net->Rule[index].ElseActions;
+    while (action != NULL)
     {
-        count = 1;
-        while (action->next != NULL)
-        {
-            count++;
-            action = action->next;
-        }
+        count++;
+        action = action->next;
     }
     *nElseActions = count;
     return 0;

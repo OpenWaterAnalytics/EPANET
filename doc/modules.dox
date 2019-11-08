@@ -298,6 +298,7 @@ These are the toolkit's enumerated types whose members are used as function argu
 \enum EN_RuleVariable
 \enum EN_RuleOperator
 \enum EN_RuleStatus
+\def EN_MISSING
 @}
 */
 

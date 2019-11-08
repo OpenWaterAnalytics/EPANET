@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/22/2019
+ Last Updated: 11/06/2019
  ******************************************************************************
 */
 
@@ -463,5 +463,6 @@ typedef enum {
   EN_R_IS_ACTIVE = 3    //!< Control valve is active
 } EN_RuleStatus;
 
+#define EN_MISSING -1.E10  //!< Missing value indicator
 
 #endif //EPANET2_ENUMS_H

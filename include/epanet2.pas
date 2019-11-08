@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 11/02/19}
+{Last updated on 11/04/19}
 
 interface
 
@@ -12,6 +12,7 @@ const
 { These are codes used by the DLL functions }
  EN_MAXID = 31;        { Max. # characters in ID name }
  EN_MAXMSG = 255;      { Max. # characters in strings }
+ EN_MISSING = -1.E10;
 
  EN_ELEVATION  = 0;    { Node parameters }
  EN_BASEDEMAND = 1;
@@ -331,7 +332,7 @@ const
  function  ENgetnumdemands(NodeIndex: Integer; var NumDemands: Integer): Integer; stdcall; external EpanetLib;
  function  ENadddemand(NodeIndex: Integer; BaseDemand: Single; PatIndex: Integer; DemandName: PAnsiChar): Integer; stdcall; external EpanetLib;
  function  ENdeletedemand(NodeIndex: Integer; DemandIndex: Integer): Integer; stdcall; external EpanetLib;
- function  ENgetdemandindex(NodeIndex: Integer; DemandName: PAnsiString; var DemandIndex: Integer): Integer; stdcall; external EpanetLib;
+ function  ENgetdemandindex(NodeIndex: Integer; DemandName: PAnsiChar; var DemandIndex: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetbasedemand(NodeIndex: Integer; DemandIndex: Integer; var BaseDemand: Single): Integer; stdcall; external EpanetLib;
  function  ENsetbasedemand(NodeIndex: Integer; DemandIndex: Integer; BaseDemand: Single): Integer; stdcall; external EpanetLib;
  function  ENgetdemandpattern(NodeIndex: Integer; DemandIndex: Integer; var PatIndex: Integer): Integer; stdcall; external EpanetLib;
@@ -394,11 +395,11 @@ const
  function  ENsetcontrol(Index: Integer; Ctype: Integer; Link: Integer; Setting: Single; Node: Integer; Level: Single): Integer; stdcall; external EpanetLib;
 
  {Rule-Based Control Functions}
- function ENaddrule(Rule: PAnsiString): Integer; stdcall; external EpanetLib;
+ function ENaddrule(Rule: PAnsiChar): Integer; stdcall; external EpanetLib;
  function ENdeleterule(Index: Integer): Integer; stdcall; external EpanetLib;
  function ENgetrule(Index: Integer; var Npremises: Integer; var NthenActions: Integer;
                     var NelseActions: Integer; var Priority: Single): Integer; stdcall; external EpanetLib;
- function ENgetruleID(Index: Integer; ID: PAnsiString): Integer; stdcall; external EpanetLib;
+ function ENgetruleID(Index: Integer; ID: PAnsiChar): Integer; stdcall; external EpanetLib;
  function ENsetrulepriority(Index: Integer; Priority: Single): Integer; stdcall; external EpanetLib;
  function ENgetpremise(RuleIndex: Integer; PremiseIndex: Integer; var LogOp: Integer;
           var ObjType: Integer; var ObjIndex: Integer; var Param: Integer; var RelOp: Integer;
