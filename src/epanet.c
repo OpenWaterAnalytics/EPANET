@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/04/2019
+ Last Updated: 11/09/2019
  ******************************************************************************
 */
 
@@ -4183,6 +4183,9 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
 
     double *Ucf = p->Ucf;
     int pumpIndex;
+    int oldCurveIndex;
+    int newCurveType;
+    int err = 0;
     Spump *pump;
 
     // Check for valid parameters
@@ -4191,15 +4194,33 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
     if (PUMP != net->Link[linkIndex].Type) return 0;
     if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
 
-    // Assign the new curve to the pump
+    // Save values that need to be restored in case new curve is invalid
     pumpIndex = findpump(net, linkIndex);
     pump = &p->network.Pump[pumpIndex];
+    oldCurveIndex = pump->Hcurve;
+    newCurveType = p->network.Curve[curveIndex].Type;
+    
+    // Assign the new curve to the pump
     pump->Ptype = NOCURVE;
     pump->Hcurve = curveIndex;
     if (curveIndex == 0) return 0;
-
-    // Update the pump curve's parameters and convert their units
-    updatepumpparams(p, pumpIndex);
+    
+    // Update the pump's head curve parameters (which also changes
+    // the new curve's Type to PUMP_CURVE)
+    err = updatepumpparams(p, pumpIndex);
+    
+    // If the parameter updating failed (new curve was not a valid pump curve)
+    // restore the pump's original curve and its parameters
+    if (err > 0)
+    {
+        p->network.Curve[curveIndex].Type = newCurveType;
+        pump->Ptype = NOCURVE;
+        pump->Hcurve = oldCurveIndex;
+        if (oldCurveIndex == 0) return err;
+        updatepumpparams(p, pumpIndex);
+    }    
+    
+    // Convert the units of the updated pump parameters to feet and cfs
     if (pump->Ptype == POWER_FUNC)
     {
         pump->H0 /= Ucf[HEAD];
@@ -4209,9 +4230,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
     pump->Qmax /= Ucf[FLOW];
     pump->Hmax /= Ucf[HEAD];
 
-    // Designate the newly assigned curve as being a Pump Curve
-    p->network.Curve[curveIndex].Type = PUMP_CURVE;
-    return 0;
+    return err;
 }
 
 /********************************************************************
