@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 11/04/19}
+{Last updated on 11/12/19}
 
 interface
 
@@ -313,7 +313,7 @@ const
  function  ENsetqualtype(QualCode: Integer; ChemName: PAnsiChar; ChemUnits: PAnsiChar; TraceNodeID: PAnsiChar): Integer; stdcall; external EpanetLib;
 
 {Node Functions} 
- function  ENaddnode(ID: PAnsiChar; NodeType: Integer): Integer; stdcall; external EpanetLib;
+ function  ENaddnode(ID: PAnsiChar; NodeType: Integer; var Index: Integer): Integer; stdcall; external EpanetLib;
  function  ENdeletenode(Index: Integer; ActionCode: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetnodeindex(ID: PAnsiChar; var Index: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetnodeid(Index: Integer; ID: PAnsiChar): Integer; stdcall; external EpanetLib;
@@ -330,7 +330,7 @@ const
  function  ENgetdemandmodel(var Model: Integer; var Pmin: Single; var Preq: Single; var Pexp: Single): Integer; stdcall; external EpanetLib;
  function  ENsetdemandmodel(Model: Integer; Pmin: Single; Preq: Single; Pexp: Single): Integer; stdcall; external EpanetLib;
  function  ENgetnumdemands(NodeIndex: Integer; var NumDemands: Integer): Integer; stdcall; external EpanetLib;
- function  ENadddemand(NodeIndex: Integer; BaseDemand: Single; PatIndex: Integer; DemandName: PAnsiChar): Integer; stdcall; external EpanetLib;
+ function  ENadddemand(NodeIndex: Integer; BaseDemand: Single; PatName: PAnsiChar; DemandName: PAnsiChar): Integer; stdcall; external EpanetLib;
  function  ENdeletedemand(NodeIndex: Integer; DemandIndex: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetdemandindex(NodeIndex: Integer; DemandName: PAnsiChar; var DemandIndex: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetbasedemand(NodeIndex: Integer; DemandIndex: Integer; var BaseDemand: Single): Integer; stdcall; external EpanetLib;
@@ -341,7 +341,7 @@ const
  function  ENsetdemandname(NodeIndex: Integer; DemandIndex: Integer; DemandName: PAnsiChar): Integer; stdcall; external EpanetLib;
 
 {Link Functions}
- function  ENaddlink(ID: PAnsiChar; LinkType: Integer; FromNode: PAnsiChar; ToNode: PAnsiChar): Integer; stdcall; external EpanetLib;
+ function  ENaddlink(ID: PAnsiChar; LinkType: Integer; FromNode: PAnsiChar; ToNode: PAnsiChar; var Index: Integer): Integer; stdcall; external EpanetLib;
  function  ENdeletelink(Index: Integer; ActionCode: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetlinkindex(ID: PAnsiChar; var Index: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetlinkid(Index: Integer; ID: PAnsiChar): Integer; stdcall; external EpanetLib;
