@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 11/09/19}
+{Last updated on 11/12/19}
 
 interface
 
@@ -330,7 +330,7 @@ const
  function  ENgetdemandmodel(var Model: Integer; var Pmin: Single; var Preq: Single; var Pexp: Single): Integer; stdcall; external EpanetLib;
  function  ENsetdemandmodel(Model: Integer; Pmin: Single; Preq: Single; Pexp: Single): Integer; stdcall; external EpanetLib;
  function  ENgetnumdemands(NodeIndex: Integer; var NumDemands: Integer): Integer; stdcall; external EpanetLib;
- function  ENadddemand(NodeIndex: Integer; BaseDemand: Single; PatIndex: Integer; DemandName: PAnsiChar): Integer; stdcall; external EpanetLib;
+ function  ENadddemand(NodeIndex: Integer; BaseDemand: Single; PatName: PAnsiChar; DemandName: PAnsiChar): Integer; stdcall; external EpanetLib;
  function  ENdeletedemand(NodeIndex: Integer; DemandIndex: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetdemandindex(NodeIndex: Integer; DemandName: PAnsiChar; var DemandIndex: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetbasedemand(NodeIndex: Integer; DemandIndex: Integer; var BaseDemand: Single): Integer; stdcall; external EpanetLib;
