@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/02/2019
+ Last Updated: 11/15/2019
  ******************************************************************************
 */
 
@@ -396,7 +396,7 @@ void freedata(Project *pr)
     // Free memory for node data
     if (pr->network.Node != NULL)
     {
-        for (j = 1; j <= pr->network.Nnodes; j++)
+        for (j = 1; j <= pr->parser.MaxNodes; j++)
         {
             // Free memory used for demands and WQ source data
             freedemands(&(pr->network.Node[j]));
@@ -409,7 +409,7 @@ void freedata(Project *pr)
     // Free memory for link data
     if (pr->network.Link != NULL)
     {
-        for (j = 1; j <= pr->network.Nlinks; j++)
+        for (j = 1; j <= pr->parser.MaxLinks; j++)
         {
             freelinkvertices(&pr->network.Link[j]);
             free(pr->network.Link[j].Comment);
@@ -426,7 +426,7 @@ void freedata(Project *pr)
     // Free memory for time patterns
     if (pr->network.Pattern != NULL)
     {
-        for (j = 0; j <= pr->network.Npats; j++)
+        for (j = 0; j <= pr->parser.MaxPats; j++)
         {
             free(pr->network.Pattern[j].F);
             free(pr->network.Pattern[j].Comment);
@@ -438,7 +438,7 @@ void freedata(Project *pr)
     if (pr->network.Curve != NULL)
     {
         // There is no Curve[0]
-        for (j = 1; j <= pr->network.Ncurves; j++)
+        for (j = 1; j <= pr->parser.MaxCurves; j++)
         {
             free(pr->network.Curve[j].X);
             free(pr->network.Curve[j].Y);
@@ -734,10 +734,11 @@ int incontrols(Project *pr, int objType, int index)
     return 0;
 }
 
-int valvecheck(Project *pr, int type, int j1, int j2)
+int valvecheck(Project *pr, int index, int type, int j1, int j2)
 /*
 **--------------------------------------------------------------
-**  Input:   type = valve type
+**  Input:   index = link index
+**           type = valve type
 **           j1   = index of upstream node
 **           j2   = index of downstream node
 **  Output:  returns an error code
@@ -761,6 +762,7 @@ int valvecheck(Project *pr, int type, int j1, int j2)
         for (k = 1; k <= net->Nvalves; k++)
         {
             valve = &net->Valve[k];
+            if (valve->Link == index) continue;
             link = &net->Link[valve->Link];
             vj1 = link->N1;
             vj2 = link->N2;

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/09/2019
+ Last Updated: 11/15/2019
  ******************************************************************************
 */
 
@@ -3147,7 +3147,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     // Check that valve link has legal connections
     if (linkType > PUMP)
     {
-        errcode = valvecheck(p, linkType, n1, n2);
+        errcode = valvecheck(p, 0, linkType, n1, n2);
         if (errcode) return errcode;
     }
 
@@ -3491,7 +3491,7 @@ int DLLEXPORT EN_setlinktype(EN_Project p, int *index, int linkType, int actionC
     EN_getnodeid(p, n2, id2);
 
     // Check for illegal valve connections
-    errcode = valvecheck(p, linkType, n1, n2);
+    errcode = valvecheck(p, i, linkType, n1, n2);
     if (errcode) return errcode;
 
     // Delete the original link (and any controls containing it)
@@ -3537,6 +3537,9 @@ int DLLEXPORT EN_setlinknodes(EN_Project p, int index, int node1, int node2)
     // Cannot modify network structure while solvers are active
     if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
 
+    // Check for valid link index
+    if (index <= 0 || index > net->Nlinks) return 204;
+
     // Check that nodes exist
     if (node1 < 0 || node1 > net->Nnodes) return 203;
     if (node2 < 0 || node2 > net->Nnodes) return 203;
@@ -3544,11 +3547,15 @@ int DLLEXPORT EN_setlinknodes(EN_Project p, int index, int node1, int node2)
     // Check that nodes are not the same
     if (node1 == node2) return 222;
 
+    // Do nothing if the new nodes are the same as the old ones
+    if (node1 == net->Link[index].N1 && node2 == net->Link[index].N2)
+        return 0;
+
     // Check for illegal valve connection
     type = net->Link[index].Type;
     if (type > PUMP)
     {
-        errcode = valvecheck(p, type, node1, node2);
+        errcode = valvecheck(p, index, type, node1, node2);
         if (errcode) return errcode;
     }
 
