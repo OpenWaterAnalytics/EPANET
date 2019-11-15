@@ -396,7 +396,7 @@ void freedata(Project *pr)
     // Free memory for node data
     if (pr->network.Node != NULL)
     {
-        for (j = 1; j <= pr->parser.Nnodes; j++)
+        for (j = 1; j <= pr->network.Nnodes; j++)
         {
             // Free memory used for demands and WQ source data
             freedemands(&(pr->network.Node[j]));
@@ -409,7 +409,7 @@ void freedata(Project *pr)
     // Free memory for link data
     if (pr->network.Link != NULL)
     {
-        for (j = 1; j <= pr->parser.Nlinks; j++)
+        for (j = 1; j <= pr->network.Nlinks; j++)
         {
             freelinkvertices(&pr->network.Link[j]);
             free(pr->network.Link[j].Comment);
@@ -426,7 +426,7 @@ void freedata(Project *pr)
     // Free memory for time patterns
     if (pr->network.Pattern != NULL)
     {
-        for (j = 0; j <= pr->parser.Npats; j++)
+        for (j = 0; j <= pr->network.Npats; j++)
         {
             free(pr->network.Pattern[j].F);
             free(pr->network.Pattern[j].Comment);
@@ -438,7 +438,7 @@ void freedata(Project *pr)
     if (pr->network.Curve != NULL)
     {
         // There is no Curve[0]
-        for (j = 1; j <= pr->parser.Ncurves; j++)
+        for (j = 1; j <= pr->network.Ncurves; j++)
         {
             free(pr->network.Curve[j].X);
             free(pr->network.Curve[j].Y);
