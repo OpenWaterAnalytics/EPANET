@@ -1068,7 +1068,7 @@ bounding rectangle. Defaults are the extents of the nodal coordinates supplied i
 <b>FILE</b> supplies the name of the file that contains a backdrop image for the network.
 
 <b>OFFSET</b> lists the X and Y distance that the upper-left corner of the backdrop image is offset from the
-upper-left corner of the network’s bounding rectangle. Default is zero offset.
+upper-left corner of the network's bounding rectangle. Default is zero offset.
 
 __Remarks:__
 
