@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/29/2019
+Last Updated: 11/15/2019
 ******************************************************************************
 */
 
@@ -540,7 +540,7 @@ int valvedata(Project *pr)
     if (n >= 7 && !getfloat(parser->Tok[6], &lcoeff)) return setError(parser, 6, 202);
 
     // Check for illegal connections
-    if (valvecheck(pr, type, j1, j2))
+    if (valvecheck(pr, net->Nlinks, type, j1, j2))
     {
         if      (j1 > net->Njuncs) return setError(parser, 1, 219);
         else if (j2 > net->Njuncs) return setError(parser, 2, 219);

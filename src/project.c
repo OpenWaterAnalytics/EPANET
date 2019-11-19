@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/02/2019
+ Last Updated: 11/15/2019
  ******************************************************************************
 */
 
@@ -734,10 +734,11 @@ int incontrols(Project *pr, int objType, int index)
     return 0;
 }
 
-int valvecheck(Project *pr, int type, int j1, int j2)
+int valvecheck(Project *pr, int index, int type, int j1, int j2)
 /*
 **--------------------------------------------------------------
-**  Input:   type = valve type
+**  Input:   index = link index
+**           type = valve type
 **           j1   = index of upstream node
 **           j2   = index of downstream node
 **  Output:  returns an error code
@@ -761,6 +762,7 @@ int valvecheck(Project *pr, int type, int j1, int j2)
         for (k = 1; k <= net->Nvalves; k++)
         {
             valve = &net->Valve[k];
+            if (valve->Link == index) continue;
             link = &net->Link[valve->Link];
             vj1 = link->N1;
             vj2 = link->N2;
