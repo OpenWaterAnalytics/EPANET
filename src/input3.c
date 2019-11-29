@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/15/2019
+Last Updated: 11/29/2019
 ******************************************************************************
 */
 
@@ -1170,9 +1170,6 @@ int reactdata(Project *pr)
     else if (match(parser->Tok[0], w_WALL)) item = 2;
     else if (match(parser->Tok[0], w_TANK)) item = 3;
     else return setError(parser, 0, 213);
-
-    // Save the first link/node ID in the first token
-    strcpy(parser->Tok[0], parser->Tok[1]);
 
     // Case where tank rate coeffs. are being set
     if (item == 3)
