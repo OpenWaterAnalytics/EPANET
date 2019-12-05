@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/26/2019
+ Last Updated: 12/05/2019
  ******************************************************************************
 */
 
@@ -31,7 +31,6 @@ extern int  hydsolve(Project *, int *, double *);
 int     allocmatrix(Project *);
 void    freematrix(Project *);
 void    initlinkflow(Project *, int, char, double);
-void    setlinkflow(Project *, int, double);
 void    demands(Project *);
 int     controls(Project *);
 long    timestep(Project *);
@@ -39,7 +38,7 @@ void    controltimestep(Project *, long *);
 void    ruletimestep(Project *, long *);
 void    addenergy(Project *, long);
 void    tanklevels(Project *, long);
-
+void    resetpumpflow(Project *, int);
 
 int  openhyd(Project *pr)
 /*
@@ -375,80 +374,6 @@ void  initlinkflow(Project *pr, int i, char s, double k)
 }
 
 
-void  setlinkflow(Project *pr, int k, double dh)
-/*
-**--------------------------------------------------------------
-**  Input:   k = link index
-**           dh = head loss across link
-**  Output:  none
-**  Purpose: sets flow in link based on current headloss
-**--------------------------------------------------------------
-*/
-{
-    Network *net = &pr->network;
-    Hydraul *hyd = &pr->hydraul;
-
-    int    i, p;
-    double h0;
-    double x ,y;
-    Slink  *link = &net->Link[k];
-    Scurve *curve;
-
-    switch (link->Type)
-    {
-      case CVPIPE:
-      case PIPE:
-        // For Darcy-Weisbach formula use approx. inverse of formula
-        if (hyd->Formflag == DW)
-        {
-            x = -log(hyd->LinkSetting[k] / 3.7 / link->Diam);
-            y = sqrt(ABS(dh) / link->R / 1.32547);
-            hyd->LinkFlow[k] = x * y;
-        }
-
-        // For Hazen-Williams or Manning formulas use inverse of formula
-        else
-        {
-            x = ABS(dh) / link->R;
-            y = 1.0 / hyd->Hexp;
-            hyd->LinkFlow[k] = pow(x, y);
-         }
-
-        // Change sign of flow to match sign of head loss
-        if (dh < 0.0) hyd->LinkFlow[k] = -hyd->LinkFlow[k];
-        break;
-
-      case PUMP:
-        // Convert headloss to pump head gain
-        dh = -dh;
-        p = findpump(net, k);
-
-        // For custom pump curve, interpolate from curve
-        if (net->Pump[p].Ptype == CUSTOM)
-        {
-            dh = -dh * pr->Ucf[HEAD] / SQR(hyd->LinkSetting[k]);
-            i = net->Pump[p].Hcurve;
-            curve = &net->Curve[i];
-            hyd->LinkFlow[k] = interp(curve->Npts, curve->Y, curve->X, dh) *
-                                hyd->LinkSetting[k] / pr->Ucf[FLOW];
-        }
-
-        // Otherwise use inverse of power curve
-        else
-        {
-            h0 = -SQR(hyd->LinkSetting[k]) * net->Pump[p].H0;
-            x = pow(hyd->LinkSetting[k], 2.0 - net->Pump[p].N);
-            x = ABS(h0 - dh) / (net->Pump[p].R * x),
-            y = 1.0 / net->Pump[p].N;
-            hyd->LinkFlow[k] = pow(x, y);
-        }
-        break;
-
-      default:
-        break;
-    }
-}
-
 void  setlinkstatus(Project *pr, int index, char value, StatusType *s, double *k)
 /*----------------------------------------------------------------
 **  Input:   index  = link index
@@ -469,10 +394,13 @@ void  setlinkstatus(Project *pr, int index, char value, StatusType *s, double *k
     if (value == 1)
     {
         // Adjust link setting for pumps & valves
-        if (t == PUMP) *k = 1.0;
+        if (t == PUMP)
+        {
+            *k = 1.0;
+            // Check if a re-opened pump needs its flow reset            
+            if (*s == CLOSED) resetpumpflow(pr, index);
+        }
         if (t > PUMP &&  t != GPV) *k = MISSING;
-
-        // Reset link flow if it was originally closed
         *s = OPEN;
      }
 
@@ -482,9 +410,7 @@ void  setlinkstatus(Project *pr, int index, char value, StatusType *s, double *k
          // Adjust link setting for pumps & valves
          if (t == PUMP) *k = 0.0;
          if (t > PUMP && t != GPV) *k = MISSING;
-
-        // Reset link flow if it was originally open
-        *s = CLOSED;
+         *s = CLOSED;
      }
 }
 
@@ -511,7 +437,12 @@ void  setlinksetting(Project *pr, int index, double value, StatusType *s,
     if (t == PUMP)
     {
         *k = value;
-        if (value > 0 && *s <= CLOSED) *s = OPEN;
+        if (value > 0 && *s <= CLOSED)
+        {
+            // Check if a re-opened pump needs its flow reset
+            resetpumpflow(pr, index);
+            *s = OPEN;
+        }
         if (value == 0 && *s > CLOSED) *s = CLOSED;
     }
 
@@ -670,6 +601,11 @@ int  controls(Project *pr)
             k1 = hyd->LinkSetting[k];
             k2 = k1;
             if (link->Type > PIPE) k2 = control->Setting;
+            
+            // Check if a re-opened pump needs its flow reset
+            if (link->Type == PUMP && s1 == CLOSED && s2 == OPEN)
+                resetpumpflow(pr, k);
+                
             if (s1 != s2 || k1 != k2)
             {
                 hyd->LinkStatus[k] = s2;
@@ -1163,3 +1099,19 @@ double  tankgrade(Project *pr, int i, double v)
         return h;
     }
 }
+
+void resetpumpflow(Project *pr, int i)
+/*
+**-------------------------------------------------------------------
+**  Input:   i = link index
+**  Output:  none
+**  Purpose: resets flow in a constant HP pump to its initial value.
+**-------------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    Spump *pump = &net->Pump[findpump(net, i)];
+    if (pump->Ptype == CONST_HP)
+        pr->hydraul.LinkFlow[i] = pump->Q0; 
+}
+
