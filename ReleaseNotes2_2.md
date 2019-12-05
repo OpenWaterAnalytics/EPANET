@@ -1,4 +1,4 @@
-﻿Release Notes for EPANET 2.2 (Draft)
+﻿Release Notes for EPANET 2.2
 ============================
 This document describes the changes and updates that have been made in version 2.2 of EPANET.
 
@@ -204,6 +204,7 @@ With this change EPANET 2.2 now produces perfect mass balances when tested again
 |`EN_getvertexcount` | Gets the number of vertex points in a link |
 |`EN_getvertex` | Gets the coordinates of a vertex point in a link |
 |`EN_setvertices` | Assigns a new set of vertex points to a link |
+
 In addition to these new functions, a tank's volume curve `EN_VOLCURVE` can be set using `EN_setnodevalue` and `EN_setlinkvalue` can now be used to set the following pump properties:
  - `EN_PUMP_POWER` (constant power rating)
  - `EN_PUMP_HCURVE` (head characteristic curve)
@@ -288,4 +289,11 @@ Access to the following global energy options have been added to  `EN_getoption`
 Doxygen files have been created to generate a complete Users Guide for version 2.2's API. The guide's format is similar to the original EPANET Programmer's Toolkit help file and can be produced as a set of HTML pages, a Windows help file or a PDF document. 
   
 ## Authors contributing to this release:
- - List item
+(In alphabetical order)
+ - Demetrios Eliades
+ - Sam Hatchett
+ - Marios Kyriakou
+ - Lewis Rossman
+ - Elad Salomons
+ - Michael Tryby
+
