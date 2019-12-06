@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['how_20to_20use_20the_20toolkit',['How to Use the Toolkit',['../how-to-use.html',1,'toolkit-overview']]],
-  ['htentrystruct',['HTentryStruct',['../struct_h_tentry_struct.html',1,'']]],
-  ['hydraulic_20analysis',['Hydraulic Analysis',['../group___hydraulic_functions.html',1,'']]]
+  ['hydrant_20rating_20curve_20example_382',['Hydrant Rating Curve Example',['../_example3.html',1,'ToolkitExamples']]],
+  ['header_20files_383',['Header Files',['../_header_files.html',1,'Files']]],
+  ['hydraulics_20file_384',['Hydraulics File',['../_hyd_file.html',1,'Files']]],
+  ['hydraulic_20analysis_20functions_385',['Hydraulic Analysis Functions',['../group___hydraulics.html',1,'']]]
 ];

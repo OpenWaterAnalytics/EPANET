@@ -1,12 +1,13 @@
 var group___patterns =
 [
-    [ "ENaddpattern", "group___patterns.html#ga9c966836d9ff3504ebe8c8dcda76afc7", null ],
-    [ "ENgetaveragepatternvalue", "group___patterns.html#ga7cd84b93c0e506c6e2df496fd4c2c35d", null ],
-    [ "ENgetdemandpattern", "group___patterns.html#gae7cc1c703895259d6b78d7e1b1eaf6f3", null ],
-    [ "ENgetpatternid", "group___patterns.html#gae076b731219ff118b6f50bb8711af7b3", null ],
-    [ "ENgetpatternindex", "group___patterns.html#ga6ac0400363a551043dde86216b674d57", null ],
-    [ "ENgetpatternlen", "group___patterns.html#ga9d90042683e66033d6e90bfd554e92ec", null ],
-    [ "ENgetpatternvalue", "group___patterns.html#ga685a97d800f19eb4ef5cfd8cccec931f", null ],
-    [ "ENsetpattern", "group___patterns.html#ga56473628033253fe6ad21497f2904c08", null ],
-    [ "ENsetpatternvalue", "group___patterns.html#gae8eaddc602b802ea5200de66bedc7c3a", null ]
+    [ "EN_addpattern", "group___patterns.html#gacc1d8a7379fbdc4b40760673d10bd9a6", null ],
+    [ "EN_deletepattern", "group___patterns.html#gaf1cc9818fdb77bcec9bd1a093a92257a", null ],
+    [ "EN_getaveragepatternvalue", "group___patterns.html#gad3dd9cb11e011de400e0ccc66a74cdc6", null ],
+    [ "EN_getpatternid", "group___patterns.html#ga5b5e35ae927c4eb768bfce2d9fa339ac", null ],
+    [ "EN_getpatternindex", "group___patterns.html#gadb022e5bf50c026afc92d08bfa33405b", null ],
+    [ "EN_getpatternlen", "group___patterns.html#ga49c56622a54b63d0ef977a32c0cdf4fc", null ],
+    [ "EN_getpatternvalue", "group___patterns.html#gad931e47785bc318e58d4129c055d8ad1", null ],
+    [ "EN_setpattern", "group___patterns.html#ga80e5825d8a554c75f757e3bdaa20ea05", null ],
+    [ "EN_setpatternid", "group___patterns.html#gac3fc8924d242d8211289c13f201d6b7d", null ],
+    [ "EN_setpatternvalue", "group___patterns.html#ga9469c0f8ab490f3433c7337aae093bca", null ]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['file_20management',['File Management',['../group___file_management.html',1,'']]]
+  ['data_20curve_20functions_779',['Data Curve Functions',['../group___curves.html',1,'']]]
 ];

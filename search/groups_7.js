@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['water_20quality_20functions',['Water Quality Functions',['../group___quality_functions.html',1,'']]]
+  ['simple_20control_20functions_789',['Simple Control Functions',['../group___controls.html',1,'']]]
 ];

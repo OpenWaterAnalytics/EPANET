@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['tmplist',['Tmplist',['../struct_tmplist.html',1,'']]],
-  ['toolkit_20overview',['Toolkit Overview',['../toolkit-overview.html',1,'index']]],
-  ['toolkit_20options',['Toolkit Options',['../group___toolkit_options.html',1,'']]]
+  ['simple_20control_20functions_399',['Simple Control Functions',['../group___controls.html',1,'']]]
 ];

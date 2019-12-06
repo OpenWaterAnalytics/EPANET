@@ -1,5 +1,7 @@
 var group___controls =
 [
-    [ "ENgetcontrol", "group___controls.html#ga751178cd37ef05a126a374ddcf09ef0e", null ],
-    [ "ENsetcontrol", "group___controls.html#gaab9f4ca455ca0d49672ec15632493853", null ]
+    [ "EN_addcontrol", "group___controls.html#ga2379d731510e7bb120138bc2aa77d179", null ],
+    [ "EN_deletecontrol", "group___controls.html#gac135202d581c19e0254957af7e6c68f3", null ],
+    [ "EN_getcontrol", "group___controls.html#ga8f199bc0855a057ae2f6459411f199bf", null ],
+    [ "EN_setcontrol", "group___controls.html#gad0264d5a38be27444a8fcc91fbe0a4b1", null ]
 ];
