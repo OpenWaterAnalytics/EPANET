@@ -645,15 +645,15 @@ typedef struct Project *EN_Project;
   @param index the element's current index (starting from 1).
   @param[out] value the order in which the element's results were written to file.
   @return an error code.
-  
+
   If the element does not appear in the file then its result index is 0.
-  
+
   This function can be used to correctly retrieve results from an EPANET binary output file
   after the order of nodes or links in a network's database has been changed due to editing
-  operations.  
-  */  
+  operations.
+  */
   int  DLLEXPORT EN_getresultindex(EN_Project ph, int type, int index, int *value);
-  
+
   /********************************************************************
 
   Analysis Options Functions
@@ -771,7 +771,7 @@ typedef struct Project *EN_Project;
   @param[out] index the index of the newly added node
   @return an error code.
 
-  When a new node is created all of it's properties (see @ref EN_NodeProperty) are set to 0.
+  When a new node is created all of its properties (see @ref EN_NodeProperty) are set to 0.
   */
   int DLLEXPORT EN_addnode(EN_Project ph, char *id, int nodeType, int *index);
 
@@ -1236,7 +1236,7 @@ typedef struct Project *EN_Project;
   @return an error code.
   */
   int DLLEXPORT EN_getvertexcount(EN_Project ph, int index, int *count);
-  
+
   /**
   @brief Retrieves the coordinate's of a vertex point assigned to a link.
   @param ph an EPANET project handle.
@@ -1247,7 +1247,7 @@ typedef struct Project *EN_Project;
   @return an error code.
   */
   int DLLEXPORT EN_getvertex(EN_Project ph, int index, int vertex, double *x, double *y);
-  
+
   /**
   @brief Assigns a set of internal vertex points to a link.
   @param ph an EPANET project handle.
@@ -1256,8 +1256,8 @@ typedef struct Project *EN_Project;
   @param y an array of Y-coordinates for the vertex points.
   @param count the number of vertex points being assigned.
   @return an error code.
-  
-  Replaces any existing vertices previously assigned to the link. 
+
+  Replaces any existing vertices previously assigned to the link.
   */
   int DLLEXPORT EN_setvertices(EN_Project ph, int index, double *x, double *y, int count);
 

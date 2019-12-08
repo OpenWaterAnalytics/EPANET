@@ -1,4 +1,4 @@
-/** 
+/**
 @mainpage Overview
 
 EPANET is a program that performs extended period simulation of hydraulic and water quality behavior within water distribution system pipe networks. A network can consist of pipes, nodes (pipe junctions), pumps, valves and storage tanks or reservoirs. EPANET tracks the flow of water in each pipe, the pressure at each node, the height of water in each tank, and the concentration of a chemical species throughout the network during a multi-time period simulation. In addition to chemical species, water age and source tracing can also be simulated.
@@ -27,7 +27,7 @@ Before using the OWA-EPANET Toolkit one should be familiar with the way that EPA
 
 More detailed information can be obtained from reading the <a href="https://nepis.epa.gov/Adobe/PDF/P1007WWU.pdf">EPANET 2 Users Manual</a>.
 
-__Note:__ <a href="https://github.com/OpenWaterAnalytics">OWA (Open Water Analytics)</a> exists on GitHub as an open community for the exchange of information and ideas related to computing in the water & wastewater industries. It's activities and code projects are neither affiliated with nor endorsed by the USEPA.
+__Note:__ <a href="https://github.com/OpenWaterAnalytics">OWA (Open Water Analytics)</a> exists on GitHub as an open community for the exchange of information and ideas related to computing in the water & wastewater industries. Its activities and code projects are neither affiliated with nor endorsed by the USEPA.
 */
 
 /**
@@ -83,13 +83,13 @@ The EPANET Toolkit contains separate code modules for network building, hydrauli
 </td></tr>
 </table>
 
-- The network builder receives a description of the network being simulated either from an external input file (.inp) or from a series of function calls that create network objects and assign their properties via code. These data are stored in a Project data structure.  
+- The network builder receives a description of the network being simulated either from an external input file (.inp) or from a series of function calls that create network objects and assign their properties via code. These data are stored in a Project data structure.
 
-- The hydraulics solver carries out an extended period hydraulic simulation. The results obtained at every time step can be written to an external, unformatted (binary) hydraulics file (.hyd). Some of these time steps might represent intermediate points in time where system conditions change because of tanks becoming full or empty or pumps turning on or off due to level controls or timed operation.  
+- The hydraulics solver carries out an extended period hydraulic simulation. The results obtained at every time step can be written to an external, unformatted (binary) hydraulics file (.hyd). Some of these time steps might represent intermediate points in time where system conditions change because of tanks becoming full or empty or pumps turning on or off due to level controls or timed operation.
 
-- If a water quality simulation is requested, the water quality solver accesses the flow data from the hydraulics file as it computes substance transport and reaction throughout the network over each hydraulic time step. During this process it can write both the formerly computed hydraulic results as well as its water quality results for each preset reporting interval to an unformatted (binary) output file (.out). If no water quality analysis was called for, then the hydraulic results stored in the .hyd file can simply be written out to the binary output file at uniform reporting intervals.  
+- If a water quality simulation is requested, the water quality solver accesses the flow data from the hydraulics file as it computes substance transport and reaction throughout the network over each hydraulic time step. During this process it can write both the formerly computed hydraulic results as well as its water quality results for each preset reporting interval to an unformatted (binary) output file (.out). If no water quality analysis was called for, then the hydraulic results stored in the .hyd file can simply be written out to the binary output file at uniform reporting intervals.
 
-- If requested, a report writer reads back the computed simulation results from the binary output file (.out) for each reporting period and writes out selected values to a formatted report file (.rpt). Any error or warning messages generated during the run are also written to this file.  
+- If requested, a report writer reads back the computed simulation results from the binary output file (.out) for each reporting period and writes out selected values to a formatted report file (.rpt). Any error or warning messages generated during the run are also written to this file.
 
 Toolkit functions exist to carry out all of these steps under the programmer's control, including the ability to read and modify the contents of the Project data structure.
 */
