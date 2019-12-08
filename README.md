@@ -13,7 +13,7 @@ OWA-EPANET
 
 ## INSTALLATION
 
-Instructions for building the OWA-EPANET Toolkit's function library as well as its command line executable from the source files in this repository can be found [here](https://github.com/OpenWaterAnalytics/EPANET/blob/dev/BUILDING.md).
+Instructions for building the OWA-EPANET Toolkit's function library as well as its command line executable from the source files in this repository can be found [here](https://github.com/OpenWaterAnalytics/EPANET/blob/master/BUILDING.md).
 
 ## USAGE
 
