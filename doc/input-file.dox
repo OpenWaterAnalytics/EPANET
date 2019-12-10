@@ -1,0 +1,1152 @@
+/**
+@page InpFile Input File
+The Input file is a standard EPANET input data file that describes the system being analyzed. It can either be created external to the application being developed with the Toolkit or by the application itself. It is the first file name supplied to the @ref EN_open function. A project's data associated with its Input file remains accessible until the project is closed down with the @ref EN_close or deleted with @ref EN_deleteproject. 
+
+The file is organized by sections where each section begins with a keyword enclosed in brackets. The various keywords are listed below. Click on a section to see the format of the data it contains.
+
+|Network Components              |System Operation                |Water Quality                    |Options & Reporting             |GUI Support                         |
+|:-------------------------------|:-------------------------------|:--------------------------------|:-------------------------------|------------------------------------|
+|@subpage TitlePage "[Title]"    |@subpage CurvesPage "[Curves]"  |@subpage QualPage "[Quality]"    |@subpage OptionsPage "[Options]"|@subpage BackdropPage "[Backdrop]"  |
+|@subpage JuncsPage "[Junctions]"|@subpage PatsPage "[Patterns]"  |@subpage ReactsPage "[Reactions]"|@subpage TimesPage "[Times]"    |@subpage CoordsPage "[Coordinates]" |
+|@subpage ResvPage "[Reservoirs]"|@subpage EnergyPage "[Energy]"  |@subpage SourcesPage "[Sources]" |@subpage ReportPage "[Report]"  |@subpage VertexPage "[Vertices]"    |
+|@subpage TanksPage "[Tanks]"    |@subpage StatusPage "[Status]"  |@subpage MixingPage "[Mixing]"   |                                |@subpage LabelsPage "[Labels]"      |
+|@subpage PipesPage "[Pipes]"    |@subpage CtrlsPage "[Controls]" |                                 |                                |                                    |
+|@subpage PumpsPage "[Pumps]"    |@subpage RulesPage "[Rules]"    |                                 |                                |                                    |
+|@subpage ValvesPage "[Valves]"  |@subpage DmndsPage "[Demands]"  |                                 |                                |                                    |
+|@subpage EmitsPage "[Emitters]" |                                |                                 |                                |                                    |
+    
+The order of sections is not important. However, whenever a node or link is referred to in a section it must have already been defined in the [JUNCTIONS], [RESERVOIRS], [TANKS], [PIPES], [PUMPS], or [VALVES] sections. Thus it is recommended that these sections be placed first.
+
+Each section can contain one or more lines of data. Blank lines can appear anywhere in the file and the semicolon (;) can be used to indicate that what follows on the line is a comment, not data. A maximum of 1024 characters can appear on a line.
+
+The ID labels used to identify nodes, links, curves and patterns can be any combination of up to 31 characters and numbers.
+
+The GUI Support sections are provided to assist an external program that wishes to draw a visual representation of a project's network.
+
+*/
+
+/**
+@page CtrlsPage [CONTROLS]
+
+__Purpose:__
+
+Defines simple controls that modify links based on a single condition.<br>
+
+__Format:__
+
+One line for each control which can be of the form:
+
+<b>&nbsp;&nbsp; LINK </b> _linkID_ &nbsp;_status_ &nbsp;<b>IF NODE &nbsp;</b> _nodeID_ &nbsp;<b>ABOVE / BELOW </b>&nbsp; _value_
+
+<b>&nbsp;&nbsp; LINK</b> _linkID_ &nbsp; _status_ &nbsp;<b> AT TIME&nbsp;</b> _time_
+
+<b>&nbsp;&nbsp; LINK</b> _linkID_ &nbsp; _status_ &nbsp;<b> AT CLOCKTIME</b> _clocktime_ &nbsp;<b> AM / PM</b>
+
+where:
+<table style = "border: 0px solid black">
+<tr><td><I>linkID</I></td><td> = </td><td>&nbsp;a link ID label</td></tr>
+<tr><td><I>status</I></td><td> = </td><td>&nbsp;<b> OPEN / CLOSED</b>, a pump speed setting, or a control valve setting</td></tr>    
+<tr><td><I>nodeID</I></td><td> = </td><td>&nbsp;a node ID label</td></tr>
+<tr><td><I>value</I></td><td> = </td><td>&nbsp;a pressure for a junction or a water level for a tank</td></tr>
+<tr><td><I>time</I></td><td> = </td><td>&nbsp;a time since the start of the simulation in hours</td></tr>
+<tr><td><I>clocktime</I></td><td> = </td><td>&nbsp;a 24-hour clock time (hrs:min)</td></tr>
+</table>
+
+__Remarks:__
+1. Simple controls are used to change link status or settings based on tank water level, junction pressure, time into the simulation or time of day.  
+2. See the notes for the @ref StatusPage section for conventions used in specifying link status and setting, particularly for control valves.  
+
+__Examples:__ 
+
+<tt>[CONTROLS]<br>
+;Close Link 12 if the level in Tank 23 exceeds 20 ft.<br>
+LINK 12 CLOSED IF NODE 23 ABOVE 20
+
+;Open Link 12 if the pressure at Node 130 is under 30 psi<br>
+LINK 12 OPEN IF NODE 130 BELOW 30
+
+;Pump PUMP02's speed is set to 1.5 at 16 hours into the simulation<br>
+LINK PUMP02 1.5 AT TIME 16
+
+;Link 12 is closed at 10 am and opened at 8 pm throughout the simulation<br>
+LINK 12 CLOSED AT CLOCKTIME 10 AM<br>
+LINK 12 OPEN AT CLOCKTIME 8 PM </tt>
+*/
+
+/**
+@page CurvesPage [CURVES]
+
+__Purpose:__
+
+Defines data curves and their X,Y points.<br>
+
+__Format:__
+
+One line for each X,Y point on each curve containing:
+- Curve ID label
+- an X value
+- a Y value
+
+__Remarks:__
+1. Curves can be used to represent the following relations:
+   - Head v. Flow for pumps
+   - Efficiency v. Flow for pumps
+   - Volume v. Depth for tanks
+   - Head Loss v. Flow for General Purpose Valves
+2. The points of a curve must be entered in order of increasing X-values (lower to higher).
+3. If the input file will be used with the Windows version of EPANET, then adding a comment which contains the curve type and description, separated by a colon, directly above the first entry for a curve will ensure that these items appear correctly in EPANET's Curve Editor. Curve types include <B>PUMP, EFFICIENCY, VOLUME</B>, and <B>HEADLOSS</B>. See the examples below.
+
+__Example:__
+```
+[CURVES]
+;ID   Flow    Head
+;PUMP: Curve for Pump 1
+C1    0       200
+C1    1000    100
+C1    3000    0
+
+;ID   Flow    Effic.
+;EFFICIENCY:
+E1    200     50
+E1    1000    85
+E1    2000    75
+E1    3000    65
+```
+*/
+
+/**
+@page DmndsPage [DEMANDS]
+
+__Purpose:__
+
+Supplement to @ref JuncsPage section for defining multiple water demands at junction nodes.
+
+__Format:__
+
+One line for each category of demand at a junction containing:
+- Junction ID label
+- Base demand (flow units)
+- Demand pattern ID (optional)
+- Name of demand category preceded by a semicolon (optional)
+
+__Remarks:__
+1. Only use for junctions whose demands need to be changed or supplemented from entries in <b>[JUNCTIONS]</b> section.
+2. Data in this section replaces any demand entered in the <b>[JUNCTIONS]</b> section for the same junction.
+3. An unlimited number of demand categories can be entered per junction.
+4. If no demand pattern is supplied then the junction demand follows the \b Pattern entry in the @ref OptionsPage section, or Pattern 1 if no such pattern is supplied. If the default pattern (or Pattern 1) does not exist, then the demand remains constant.
+
+__Example:__
+```
+[DEMANDS]
+;ID    Demand   Pattern   Category
+;---------------------------------
+J1     100       101     ;Domestic
+J1     25        102     ;School
+J256   50        101     ;Domestic
+```
+*/
+
+/**
+@page EmitsPage [EMITTERS]
+
+__Purpose:__
+
+Defines junctions modeled as emitters (sprinklers or orifices).
+
+__Format:__
+
+One line for each emitter containing:
+- Junction ID label
+- Flow coefficient, flow units at 1 psi (1 meter) pressure drop
+
+__Remarks:__
+1. Emitters are used to model flow through sprinkler heads or pipe leaks.
+2. Flow out of the emitter equals the product of the flow coefficient and the junction pressure raised to a power.
+3. The power can be specified using the <b>EMITTER EXPONENT</b> option in the @ref OptionsPage section. The default power is 0.5, which normally applies to sprinklers and nozzles.
+4. Actual demand reported in the program's results includes both the normal demand at the junction plus flow through the emitter.
+5. An <b>[EMITTERS]</b> section is optional.
+*/
+
+/**
+@page EnergyPage [ENERGY]
+
+__Purpose:__
+
+Defines parameters used to compute pumping energy and cost.
+
+__Formats:__
+
+<b>&nbsp;&nbsp; GLOBAL &nbsp; PRICE / PATTERN / EFFIC&nbsp;&nbsp; </b><I>value</I>
+
+<b>&nbsp;&nbsp; PUMP&nbsp; </b><I>pumpID</I><b>&nbsp;&nbsp; PRICE / PATTERN / EFFIC&nbsp;&nbsp;</b><I>value</I>
+
+<b>&nbsp;&nbsp; DEMAND CHARGE&nbsp;&nbsp; </b><I>value</I>
+
+__Remarks:__
+1. First format is used to set global default values of energy price, price pattern, and pumping efficiency for all pumps.
+2. Second format is used to override global defaults for specific pumps.
+3. Parameters are defined as follows:
+   - \b PRICE = average cost per kW-hour,
+   - \b PATTERN = ID label of time pattern describing how energy price varies with time,
+   - \b EFFIC = either a single percent efficiency for global setting or the ID label of an efficiency curve for a specific pump,
+   - <b>DEMAND CHARGE</b> = added cost per maximum kW usage during the simulation period.
+4. The default global pump efficiency is 75% and the default global energy price is 0.
+5. All entries in this section are optional. Items offset by slashes (/) indicate allowable choices.
+
+__Example:__
+```
+[ENERGY]
+GLOBAL PRICE      0.05   ;Sets global energy price
+GLOBAL PATTERN    PAT1   ;and time-of-day pattern
+PUMP   23  PRICE  0.10   ;Overrides price for Pump 23
+PUMP   23  EFFIC  E23    ;Assigns effic. curve to Pump 23
+```
+*/
+
+/**
+@page JuncsPage [JUNCTIONS]
+
+__Purpose:__
+
+Defines junction nodes contained in the network.
+
+__Format:__
+
+One line for each junction containing:
+- ID label
+- Elevation, ft (m)
+- Base demand flow (flow units) (optional)
+- Demand pattern ID (optional)
+
+__Remarks:__ 
+1. A <b>[JUNCTIONS]</b> section with at least one junction is required.
+2. If no demand pattern is supplied then the junction demand follows the Default Demand Pattern provided in the @ref OptionsPage section, or Pattern 1 if no Default Pattern is specified. If the Default Pattern (or Pattern 1) does not exist, then the demand remains constant.
+3. Demands can also be entered in the @ref DmndsPage section and include multiple demand categories per junction.
+
+__Example:__
+```
+[JUNCTIONS]
+;ID    Elev.   Demand   Pattern
+;------------------------------
+J1    100      50       Pat1
+J2    120      10              ;Uses default demand pattern
+J3    115                      ;No demand at this junction
+```
+*/
+
+/**
+@page MixingPage [MIXING]
+
+__Purpose:__
+
+Identifies the model that governs mixing within storage tanks.
+
+__Format:__
+
+One line per tank containing:
+- Tank ID label
+- Mixing model (<b>MIXED, 2COMP, FIFO, or LIFO</b>)
+- Compartment volume (fraction)
+
+__Remarks:__
+1. Mixing models include:
+   - Single compartment, complete mix model ( \b MIXED )
+   - Two-compartment complete mix model ( \b 2COMP )
+   - Plug flow, first in, first out model ( \b FIFO )
+   - Stacked plug flow, last in, first out model ( \b LIFO )
+2. The compartment volume parameter only applies to the two-compartment model and represents the fraction of the total tank volume devoted to the inlet/outlet compartment.
+3. The <b>[MIXING]</b> section is optional. Tanks not described in this section are assumed to be completely mixed.
+
+__Example:__
+```
+[MIXING]
+;Tank      Model
+;----------------------- 
+T12        LIFO 
+T23        2COMP     0.2
+```
+*/
+
+/**
+@page OptionsPage [OPTIONS]
+
+__Purpose:__
+
+Defines various simulation options.
+
+__Formats:__
+<table style = "border: 0px solid black">
+<tr><td><B>UNITS</B></td><td><B>CFS / GPM / MGD / IMGD / AFD /</B></td></tr>
+<tr><td>  </td><td><B>LPS / LPM / MLD / CMH / CMD</B></td></tr>
+<tr><td><B>HEADLOSS</B></td><td><B>H-W / D-W / C-M</B></td></tr>
+<tr><td><B>HYDRAULICS</B></td><td><B>USE / SAVE </B><I>&nbsp;filename</I></td></tr>
+<tr><td><B>VISCOSITY</B></td><td><I>value</I></td></tr>
+<tr><td><B>SPECIFIC GRAVITY</B></td><td><I>value</I></td></tr>
+<tr><td><B>TRIALS</B></td><td><I>value</I></td></tr>
+<tr><td><B>ACCURACY</B></td><td><I>value</I></td></tr>
+<tr><td><B>FLOWCHANGE</B></td><td><I>value</I></td></tr>
+<tr><td><B>HEADERROR</B></td><td><I>value</I></td></tr>
+<tr><td><B>CHECKFREQ</B></td><td><I>value</I></td></tr>
+<tr><td><B>MAXCHECK</B></td><td><I>value</I></td></tr>
+<tr><td><B>DAMPLIMIT</B></td><td><I>value</I></td></tr>
+<tr><td><B>UNBALANCED</B></td><td><B>STOP / CONTINUE / CONTINUE </B><I>n</I></td></tr>
+<tr><td><B>DEMAND MODEL</B></td><td><B>DDA / PDA</B></td></tr>
+<tr><td><B>MINIMUM PRESSURE</B></td><td><I>value</I></td></tr>
+<tr><td><B>REQUIRED PRESSURE</B></td><td><I>value</I></td></tr>
+<tr><td><B>PRESSURE EXPONENT</B></td><td><I>value</I></td></tr>
+<tr><td><B>PATTERN</B></td><td><I>id</I></td></tr>
+<tr><td><B>DEMAND MULTIPLIER</B></td><td><I>value</I></td></tr>
+<tr><td><B>EMITTER EXPONENT</B></td><td><I>value</I></td></tr>
+<tr><td><B>QUALITY</B></td><td><B>NONE / CHEMICAL / AGE / TRACE&nbsp;&nbsp; </B><I>nodeID</I></td></tr>
+<tr><td><B>DIFFUSIVITY</B></td><td><I>value</I></td></tr>
+<tr><td><B>TOLERANCE</B></td><td><I>value</I></td></tr>
+<tr><td><B>MAP</B></td><td><I>filename</I></td></tr>
+</table>
+__Definitions:__
+
+<B>UNITS</B> sets the units in which flow rates are expressed where:
+- \b CFS = cubic feet per second
+- \b GPM = gallons per minute
+- \b MGD = million gallons per day
+- \b IMGD = Imperial MGD
+- \b AFD = acre-feet per day
+- \b LPS = liters per second
+- \b LPM = liters per minute
+- \b MLD = million liters per day
+- \b CMH = cubic meters per hour
+- \b CMD = cubic meters per day
+
+For <b>CFS, GPM, MGD, IMGD</b>, and <b>AFD</b> other input quantities are expressed in US Customary Units. If flow units are in liters or cubic meters then Metric Units must be used for all other input quantities as well. (See the @ref Units topic). The default flow units are \b GPM.
+
+\b HEADLOSS selects a formula to use for computing head loss for flow through a pipe. The choices are the Hazen-Williams (\b H-W ), Darcy-Weisbach (\b D-W ), or Chezy-Manning (\b C-M ) formulas. The default is \b H-W.
+
+The \b HYDRAULICS option allows you to either <B>SAVE</B> the current hydraulics solution to a file or \b USE a previously saved hydraulics solution. This is useful when studying factors that only affect water quality behavior.
+
+\b VISCOSITY is the kinematic viscosity of the fluid being modeled relative to that of water at 20 deg. C (1.0 centistoke). The default value is 1.0.
+
+\b SPECIFIC GRAVITY is the ratio of the density of the fluid being modeled to that of water at 4 deg. C (unitless). The default value is 1.0.
+
+\b TRIALS are the maximum number of trials used to solve network hydraulics at each hydraulic time step of a simulation. The default is 40.
+
+\b ACCURACY prescribes the convergence criterion that determines when a hydraulic solution has been reached. The trials end when the sum of all flow changes from the previous solution divided by the total flow in all links is less than this number. The default is 0.001.
+
+\b FLOWCHANGE is a similar convergence criterion requiring that the largest absolute flow change between the current and previous solutions be less than the specified value (in flow units). The default is 0 which means that this criterion is not used. 
+
+\b HEADERROR is yet another convergence criterion requiring that the head loss computed by the head loss formula compared to the difference in nodal heads across each link be less than the specified value (in ft or m). The default is 0 which means that this criterion is not used.
+
+\b CHECKFREQ sets the number of solution trials that pass during hydraulic balancing before the status of pumps, check valves, flow control valves and pipes connected to tanks are once again updated. The default value is 2, meaning that status checks are made every other trial.
+
+\b MAXCHECK is the number of solution trials after which periodic status checks are discontinued. Instead, a status check is made only after convergence is achieved. The default value is 10, meaning that after 10 trials, instead of checking status every \b CHECKFREQ trials, status is checked only at convergence.
+
+\b DAMPLIMIT is the accuracy value at which solution damping and status checks on PRVs and PSVs should begin. Damping limits all flow changes to 60% of what they would otherwise be as future trials unfold. The default is 0 which indicates that no damping should be used and that status checks on control valves are made at every iteration.
+
+\b UNBALANCED determines what happens if a hydraulic solution cannot be reached within the prescribed number of \b TRIALS at some hydraulic time step into the simulation. \b STOP will halt the entire analysis at that point. \b CONTINUE will continue the analysis with a warning message issued. <b>CONTINUE n</b> will continue the search for a solution for another \b n trials with the status of all links held fixed at their current settings. The simulation will be continued at this point with a message issued about whether convergence was achieved or not. The default choice is \b STOP.
+
+\b DEMAND MODEL specifies whether a demand driven analysis ( \b DDA ) or a pressure driven analysis ( \b PDA ) should be made. Under \b DDA full nodal demands are always met even if negative pressures result. \b PDA assumes that demand varies between 0 and its full value as a power function of nodal pressure. The default demand model is \b DDA.
+
+\b MINIMUM PRESSURE is the pressure below which no demand can be delivered under a pressure driven analysis. It has no effect on a demand driven analysis. Its default value is 0.
+
+\b REQUIRED PRESSURE is the pressure required to supply a node's full demand under a pressure driven analysis. It has no effect on a demand driven analysis. It must be at least 0.1 psi or m higher than the MINIMUM PRESSURE, which is also its default value.
+
+\b PRESSURE EXPONENT is the power to which pressure is raised when computing the demand delivered to a node under a pressure driven analysis. It has no effect on a demand driven analysis. Its default value is 0.5.
+
+\b PATTERN provides the ID label of a default demand pattern to be applied to all junctions where no demand pattern was specified. If no such pattern exists in the \b [PATTERNS] section then by default the pattern consists of a single multiplier equal to 1.0. If this option is not used, then the global default demand pattern has a label of "1".
+
+The <b>DEMAND MULTIPLIER</b> is used to adjust the values of baseline demands for all junctions and all demand categories. For example, a value of 2 doubles all baseline demands, while a value of 0.5 would halve them. The default value is 1.0.
+
+<b>EMITTER EXPONENT</b> specifies the power to which the pressure at a junction is raised when computing the flow issuing from an emitter. The default is 0.5.
+
+\b QUALITY selects the type of water quality analysis to perform. The choices are <b>NONE, CHEMICAL, AGE</b>, and \b TRACE. In place of \b CHEMICAL the actual name of the chemical can be used followed by its concentration units (e.g., <b>CHLORINE mg/L</b>). If \b TRACE is selected it must be followed by the ID label of the node being traced. The default selection is \b NONE (no water quality analysis).
+
+\b DIFFUSIVITY is the molecular diffusivity of the chemical being analyzed relative to that of chlorine in water. The default value is 1.0. Diffusivity is only used when mass transfer limitations are considered in pipe wall reactions. A value of 0 will cause EPANET to ignore mass transfer limitations.
+
+\b TOLERANCE is the difference in water quality level below which one can say that one parcel of water is essentially the same as another. The default is 0.01 for all types of quality analyses (chemical, age (measured in hours), or source tracing (measured in percent)).
+
+\b MAP is used to supply the name of a file containing coordinates of the network's nodes so that a map of the network can be drawn. It is not used for any hydraulic or water quality computations.
+
+__Remarks:__
+1. All options assume their default values if not explicitly specified in this section.
+2. Items offset by slashes (/) indicate allowable choices.
+
+__Example:__ 
+```
+[OPTIONS]
+UNITS  CFS
+HEADLOSS  D-W
+DEMAND MODEL  PDA
+REQUIRED PRESSURE  40
+QUALITY  TRACE  Tank23
+UNBALANCED  CONTINUE  10
+```
+*/
+
+/**
+@page PatsPage [PATTERNS]
+
+__Purpose:__
+
+Defines time patterns.
+
+__Format:__
+
+One or more lines for each pattern containing:
+- Pattern ID label
+- One or more multipliers
+
+__Remarks:__
+1. Multipliers define how some base quantity (e.g., demand) is adjusted for each time period.
+2. All patterns share the same time period interval as defined in the @ref TimesPage section.
+3. Each pattern can have a different number of time periods.
+4. When the simulation time exceeds the pattern length the pattern wraps around to its first period.
+5. Use as many lines as it takes to include all multipliers for each pattern.
+
+__Example:__
+```
+[PATTERNS]
+;Pattern P1
+P1    1.1   1.4   0.9   0.7
+P1    0.6   0.5   0.8   1.0
+;Pattern P2
+P2    1     1     1     1
+P2    0     0     1
+```
+*/
+
+/**
+@page PipesPage [PIPES]
+
+__Purpose:__
+
+Defines all pipe links contained in the network.<br>
+
+__Format:__
+
+One line for each pipe containing:
+- ID label
+- ID of start node
+- ID of end node
+- Length, ft (m)
+- Diameter, inches (mm)
+- Roughness coefficient
+- Minor loss coefficient
+- Status (<b>OPEN, CLOSED, or CV</b>)
+
+__Remarks:__
+1. Roughness coefficient is unitless for Hazen-Williams and Chezy-Manning head loss formulas and has units of millifeet (mm) for the Darcy-Weisbach formula. Choice of head loss formula is supplied in the @ref OptionsPage section.
+2. Setting status to \b CV means that the pipe contains a check valve restricting flow to one direction.
+3. If minor loss coefficient is 0 and pipe is \b OPEN then these two items can be dropped from the input line.
+
+__Example:__
+```
+[PIPES]
+;ID   Node1  Node2   Length   Diam.  Roughness  Mloss   Status
+;-------------------------------------------------------------
+P1    J1     J2     1200      12      120       0.2     OPEN
+P2    J3     J2      600       6      110       0       CV
+P3    J1     J10    1000      12      120
+```
+*/
+
+/**
+@page PumpsPage [PUMPS]
+
+__Purpose:__
+
+Defines all pump links contained in the network.
+
+__Format:__
+
+One line for each pump containing:
+- ID label
+- ID of start node
+- ID of end node
+- Keyword and Value (can be repeated)
+
+__Remarks:__
+1. Keywords consists of:
+   - \b POWER - power for constant energy pump, hp (kw)
+   - \b HEAD - ID of curve that describes head versus flow for the pump
+   - \b SPEED - relative speed setting (normal speed is 1.0, 0 means pump is off)
+   - \b PATTERN - ID of time pattern that describes how speed setting varies with time
+2. Either \b POWER or \b HEAD must be supplied for each pump. The other keywords are optional.
+
+__Example:__
+```
+[PUMPS]
+;ID    Node1    Node2   Properties
+;---------------------------------------------
+Pump1   N12     N32     HEAD Curve1
+Pump2   N121    N55     HEAD Curve1  SPEED 1.2
+Pump3   N22     N23     POWER 100
+```
+*/
+
+/**
+@page QualPage [QUALITY]
+
+__Purpose:__
+
+Defines initial water quality at nodes.
+
+__Format:__
+
+One line per node containing:
+- Node ID label
+- Initial quality
+
+__Remarks:__
+1. Quality is assumed to be zero for nodes not listed.
+2. Quality represents concentration for chemicals, hours for water age, or percent for source tracing.
+3. The <b>[QUALITY]</b> section is optional.
+*/
+
+/**
+@page ReactsPage [REACTIONS]
+
+__Purpose:__
+
+Defines parameters related to chemical reactions occurring in the network.
+
+__Formats:__
+
+<b>&nbsp;&nbsp; ORDER &nbsp;BULK / WALL / TANK&nbsp; </b> _value_
+
+<b>&nbsp;&nbsp; GLOBAL &nbsp;BULK / WALL&nbsp; </b> _value_
+
+<b>&nbsp;&nbsp; BULK / WALL&nbsp; </b>&nbsp; _pipeID_&nbsp; _value_
+
+<b>&nbsp;&nbsp; TANK&nbsp; </b>&nbsp; _tankID_&nbsp; _value_
+
+<b>&nbsp;&nbsp; LIMITING POTENTIAL&nbsp; </b>&nbsp; _value_
+
+<b>&nbsp;&nbsp; ROUGHNESS CORRELATION&nbsp; </b>&nbsp; _value_
+
+__Definitions:__
+
+\b ORDER is used to set the order of reactions occurring in the bulk fluid, at the pipe wall, or in tanks, respectively. Values for wall reactions must be either 0 or 1. If not supplied the default reaction order is 1.0.
+
+\b GLOBAL is used to set a global value for all bulk reaction coefficients (pipes and tanks) or for all pipe wall coefficients. The default value is zero.
+
+<b>BULK, WALL,</b> and \b TANK are used to override the global reaction coefficients for specific pipes and tanks.
+
+<b>LIMITING POTENTIAL</b> specifies that reaction rates are proportional to the difference between the current concentration and some limiting potential value.
+
+<b>ROUGHNESS CORRELATION</b> will make all default pipe wall reaction coefficients be related to pipe roughness in the following manner:
+|Head Loss Equation|Roughness Correlation|
+|------------------|---------------------|
+|Hazen-Williams    | <b>F / C</b>        |
+|Darcy-Weisbach    | <b>F / log(e/D)</b> |
+|Chezy-Manning     | <b>F * n</b>        |
+
+where \b F = roughness correlation, \b C = Hazen-Williams C-factor, \b e = Darcy-Weisbach roughness, \b D = pipe diameter, and \b n = Chezy-Manning roughness coefficient. The default value computed this way can be overridden for any pipe by using the \b WALL format to supply a specific value for the pipe.
+
+__Remarks:__
+1. Remember to use positive numbers for growth reaction coefficients and negative numbers for decay coefficients.
+2. The time units for all reaction coefficients are 1/days.
+3. All entries in this section are optional. Items offset by slashes (/) indicate allowable choices.
+
+__Example:__
+```
+[REACTIONS]
+ORDER WALL    0    ;Wall reactions are zero-order
+GLOBAL BULK  -0.5  ;Global bulk decay coeff.
+GLOBAL WALL  -1.0  ;Global wall decay coeff.
+WALL   P220  -0.5  ;Pipe-specific wall coeffs.
+WALL   P244  -0.7
+```
+*/
+
+/**
+@page ReportPage [REPORT]
+
+__Purpose:__
+
+Describes the contents of the output report produced from a simulation.
+
+__Formats:__
+<table style = "border: 0px solid black">
+<tr><td>\b PAGESIZE</td><td>&nbsp;\a value</td></tr>
+<tr><td>\b FILE</td><td>&nbsp;\a filename</td></tr>
+<tr><td>\b STATUS</td><td>&nbsp;<b>YES / NO / FULL</b></td></tr>
+<tr><td>\b SUMMARY</td><td>&nbsp;<b>YES / NO</b></td></tr>
+<tr><td>\b MESSAGES</td><td>&nbsp;<b>YES / NO</b></td></tr>
+<tr><td>\b ENERGY</td><td>&nbsp;<b>YES / NO</b></td></tr>
+<tr><td>\b NODES</td><td>&nbsp;<b>NONE / ALL/ </b><a>node1 node2 ...</a></td></tr>
+<tr><td>\b LINKS</td><td>&nbsp;<b>NONE / ALL/ </b><a>node1 node2 ...</a></td></tr>
+<tr><td>\a variable</td><td>&nbsp;<b>YES / NO</b></td></tr>
+<tr><td>\a variable </td><td>&nbsp;<b>BELOW / ABOVE / PRECISION</b> \a value</td></tr>
+</table>
+
+__Definitions:__
+
+\b PAGESIZE sets the number of lines written per page of the output report. The default is 0, meaning that no line limit per page is in effect.
+
+\b FILE supplies the name of a file to which the output report will be written (ignored by the Windows version of EPANET). The default is to write the report to the project's @ref RptFile file.
+
+\b STATUS determines whether a hydraulic status report should be generated. If \b YES is selected the report will identify all network components that change status during each time step of the simulation. If \b FULL is selected, then the status report will also include information from each trial of each hydraulic analysis. This level of detail is only useful for de-bugging networks that become hydraulically unbalanced. The default is \b NO.
+
+\b SUMMARY determines whether a summary table of number of network components and key analysis options is generated. The default is \b YES.
+
+\b ENERGY determines if a table reporting average energy usage and cost for each pump is provided. The default is \b NO.
+
+\b NODES identifies which nodes will be reported on. You can either list individual node ID labels or use the keywords \b NONE or \b ALL. Additional \b NODES lines can be used to continue the list. The default is \b NONE.
+
+\b LINKS identifies which links will be reported on. You can either list individual link ID labels or use the keywords \b NONE or \b ALL Additional \b LINKS lines can be used to continue the list. The default is \b NONE.
+
+The _variable_ reporting option is used to identify which quantities are reported on, how many decimal places are displayed, and what kind of filtering should be used to limit output reporting. Node variables that can be reported on include:
+- \b Elevation
+- \b Demand
+- \b Head
+- \b Pressure
+- \b Quality
+
+Link variables include:
+- \b Length
+- \b Diameter
+- \b Flow
+- \b Velocity
+- \b Headloss
+- \b State (same as status: open, active, closed)
+- \b Setting (roughness for pipes, speed for pumps, pressure/flow setting for valves)
+- \b Reaction (reaction rate)
+- \b F-Factor (friction factor).
+
+The default quantities reported are <b>Demand, Head, Pressure,</b> and \b Quality for nodes and <b>Flow, Velocity,</b> and \b Headloss for links. The default precision is two decimal places.
+
+__Remarks:__
+1. All options assume their default values if not explicitly specified in this section.
+2. Items offset by slashes (/) indicate allowable choices.
+3. The default is to not report on any nodes or links, so a \b NODES or \b LINKS option must be supplied if you wish to report results for these items.
+
+__Example:__
+
+The following example reports on nodes N1, N2, N3, and N17 and all links with velocity above 3.0. The standard node variables (Demand, Head, Pressure, and Quality) are reported on while only Flow, Velocity, and F-Factor (friction factor) are displayed for links.
+```
+[REPORT]
+NODES N1 N2 N3 N17
+LINKS ALL
+FLOW YES
+VELOCITY PRECISION 4
+F-FACTOR PRECISION 4
+VELOCITY ABOVE 3.0
+```
+*/
+
+/**
+@page ResvPage [RESERVOIRS]
+
+__Purpose:__
+
+Defines all reservoir nodes contained in the network.
+
+__Format:__
+
+One line for each reservoir containing:
+- ID label
+- Head, ft (m)
+- Head pattern ID (optional)
+
+__Remarks:__
+1. Head is the hydraulic head (elevation + pressure head) of water in the reservoir.
+2. A head pattern can be used to make the reservoir head vary with time.
+3. At least one reservoir or tank must be contained in the network.
+
+__Example:__
+```
+[RESERVOIRS]
+;ID    Head      Pattern
+;----------------------- 
+R1     512               ;Head stays constant
+R2     120       Pat1    ;Head varies with time
+```
+*/
+
+/**
+@page RulesPage [RULES]
+
+__Purpose:__
+
+Defines rule-based controls which modify links based on a combination of conditions.
+
+__Format:__
+
+Each rule is a series of statements of the form:
+
+  <B>RULE</B> &nbsp; _ruleID_ <br>
+  <B>IF</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; _condition_1_ <br>
+  <B>AND</B> &nbsp; _condition_2_ <br>
+  <B>OR</B> &nbsp; &nbsp; _condition_3_ <br>
+  <B>AND</B> &nbsp; _condition_4_ <br>
+  etc. <br>
+  <B>THEN</B> &nbsp;_action_1_ <br>
+  <B>AND</B> &nbsp; _action_2_ <br>
+  etc. <br>
+  <B>ELSE</B> &nbsp;_action_3_ <br>
+  <B>AND</B> &nbsp; _action_4_ <br>
+  etc. <br>
+  <B>PRIORITY</B> _value_ <br>
+
+where:
+<table style = "border: 0px solid black">
+<tr> <td><I>ruleID</I></td> <td> = </td> <td> &nbsp;an ID label assigned to the rule</td> </tr>
+<tr> <td><I>conditon_n</I></td> <td> = </td> <td> &nbsp;a @subpage ConditionClauses "condition clause"</td> </tr>
+<tr> <td><I>action_n</I></td> <td> = </td> <td> &nbsp;an @subpage ActionClauses "action clause"</td> </tr>
+<tr> <td><B>PRIORITY</B></td> <td> = </td> <td> &nbsp;a priority value (e.g., a number from 1 to 5)</td> </tr>
+</table>
+
+__Remarks:__
+1. Only the <B>RULE, IF</B> and <B>THEN</B> portions of a rule are required; the other portions are optional.
+2. When mixing <B>AND</B> and <B>OR</B> clauses, the <B>OR</B> operator has higher precedence than <B>AND</B>, i.e.,<br>
+ &nbsp; &nbsp; &nbsp; `IF A or B and C` <br>
+ is equivalent to<br>  
+ &nbsp; &nbsp; &nbsp; `IF (A or B) and C` <br>
+ If the interpretation was meant to be<br>
+ &nbsp; &nbsp; &nbsp; `IF A or (B and C)`<br>
+ then this can be expressed using two rules as in<br>
+ &nbsp; &nbsp; &nbsp;  `IF A THEN ...`  <br>
+ &nbsp; &nbsp; &nbsp;  `IF B and C THEN ...`  <br>
+3. The <B>PRIORITY</B> value is used to determine which rule applies when two or more rules require that conflicting actions be taken on a link. A rule without a priority value always has a lower priority than one with a value. For two rules with the same priority value, the rule that appears first is given the higher priority.
+
+__Example:__
+```
+[RULES]
+RULE 1
+IF   TANK   1 LEVEL ABOVE 19.1
+THEN PUMP 335 STATUS IS CLOSED
+AND  PIPE 330 STATUS IS OPEN 
+
+RULE 2
+IF   SYSTEM CLOCKTIME >= 8 AM
+AND  SYSTEM CLOCKTIME < 6 PM
+AND  TANK 1 LEVEL BELOW 12
+THEN PUMP 335 STATUS IS OPEN 
+
+RULE 3
+IF   SYSTEM CLOCKTIME >= 6 PM
+OR   SYSTEM CLOCKTIME < 8 AM
+AND  TANK 1 LEVEL BELOW 14
+THEN PUMP 335 STATUS IS OPEN
+```
+*/
+
+/**
+@page ConditionClauses Condition Clauses
+
+A condition clause in a @ref RulesPage "Rule-Based Control" takes the form of: 
+
+&nbsp;&nbsp;_object &nbsp;id &nbsp;attribute &nbsp;relation &nbsp;value_    
+
+where
+<table style = "border: 0px solid black">
+<tr> <td><I>object &nbsp; &nbsp;</I></td> <td> = </td> <td>&nbsp; a category of network object</td> </tr>
+<tr> <td><I>id &nbsp; &nbsp;</I></td> <td> = </td> <td>&nbsp; the object's ID label </td> </tr>
+<tr> <td><I>attribute &nbsp;</I></td> <td> = </td> <td>&nbsp; an attribute or property of the object</td> </tr>
+<tr> <td><I>relation &nbsp;&nbsp;</I></td> <td> = </td> <td>&nbsp; a relational operator</td> </tr>
+<tr> <td><I>value &nbsp; &nbsp;</I></td> <td> = </td> <td>&nbsp; an attribute value</td> </tr>
+</table>
+
+Some example conditional clauses are:<br>
+<tt>&nbsp;&nbsp;JUNCTION 23 PRESSURE > 20</tt> <br>
+<tt>&nbsp;&nbsp;TANK T200 FILLTIME BELOW 3.5</tt> <br>
+<tt>&nbsp;&nbsp;LINK 44 STATUS IS OPEN</tt> <br>
+<tt>&nbsp;&nbsp;SYSTEM CLOCKTIME = 7:30 AM</tt> <br>
+<tt>&nbsp;&nbsp;SYSTEM DEMAND >= 1500</tt>  
+
+Objects can be any of the following keywords:<br>
+<b>&nbsp;&nbsp;NODE&nbsp;&nbsp;JUNCTION&nbsp;&nbsp;TANK&nbsp;&nbsp;RESERVOIR</b><br>
+<b>&nbsp;&nbsp;LINK&nbsp;&nbsp;PIPE&nbsp;&nbsp;PUMP&nbsp;&nbsp;VALVE</b><br>
+<b>&nbsp;&nbsp;SYSTEM</b> 
+
+When \b SYSTEM is used in a condition no ID is supplied. 
+
+The following attributes can be used with Node-type objects: <br>
+<b>&nbsp;&nbsp; DEMAND</b><br> 
+<b>&nbsp;&nbsp; HEAD</b><br>
+<b>&nbsp;&nbsp; PRESSURE</b>
+
+The following attributes can be used with Tanks: <br>
+<b>&nbsp;&nbsp; LEVEL</b><br> 
+<b>&nbsp;&nbsp; FILLTIME&nbsp;</b> (hours needed to fill a tank) <br>
+<b>&nbsp;&nbsp; DRAINTIME</b> (hours needed to empty a tank)
+
+These attributes can be used with Link-Type objects: <br>
+<b>&nbsp;&nbsp; FLOW</b><br>
+<b>&nbsp;&nbsp; STATUS&nbsp; (OPEN, CLOSED, or ACTIVE)</b> <br>
+<b>&nbsp;&nbsp; SETTING&nbsp;</b> (pump speed or valve setting) 
+
+The \b SYSTEM object can use the following attributes:
+<table style = "border: 0px solid black">
+<tr><td><b>&nbsp;&nbsp; DEMAND</b></td><td> (total system demand)</td></tr>
+<tr><td><b>&nbsp;&nbsp; TIME</b></td><td> (hours from the start of the simulation expressed</td></tr> 
+<tr><td><b>&nbsp;&nbsp; </b></td><td> either as a decimal number or in hours:minutes format)</td></tr>
+<tr><td><b>&nbsp;&nbsp; CLOCKTIME</b></td><td> &nbsp;(24-hour clock time with \b AM or \b PM appended)</td></tr>
+</table>
+
+Relation operators consist of the following: <br>
+<table style = "border: 0px solid black">
+<tr><td>&nbsp;&nbsp;\b = </td><td>\b IS</td></tr> 
+<tr><td>&nbsp;&nbsp;\b <> </td><td>\b NOT</td></tr>
+<tr><td>&nbsp;&nbsp;\b < </td><td>\b BELOW</td></tr>
+<tr><td>&nbsp;&nbsp;\b > </td><td>\b ABOVE</td></tr>
+<tr><td>&nbsp;&nbsp;\b <= </td></tr>
+<tr><td>&nbsp;&nbsp;\b >= </td></tr>
+</table>
+*/
+
+/**
+@page ActionClauses Action Clauses
+
+An action clause in a @ref RulesPage "Rule-Based Control" takes the form of: 
+
+&nbsp; &nbsp; _object_ &nbsp;_id_ &nbsp;<b>STATUS / SETTING &nbsp;IS</b> &nbsp;_value_ 
+
+where
+<table style = "border: 0px solid black">
+<tr> <td><I>object &nbsp;</I></td> <td> = </td> <td>&nbsp; <B>LINK, PIPE, PUMP, or VALVE</B> keyword</td> </tr>
+<tr> <td><I>id &nbsp; &nbsp;</I></td> <td> = </td> <td>&nbsp; the object's ID label</td> </tr>
+<tr> <td><I>value &nbsp;</I></td> <td> = </td> <td>&nbsp; a status condition (<b>OPEN or CLOSED</b>), pump speed setting, or valve setting</td></tr>
+</table>  
+Some example action clauses are: <br>
+<tt>
+  LINK 23 STATUS IS CLOSED <br>
+  PUMP P100 SETTING IS 1.5  <br>
+  VALVE 123 SETTING IS 90  <br>
+</tt>
+
+See the notes for the @ref StatusPage section for conventions used in specifying link status and setting, particularly for control valves. 
+*/
+
+/**
+@page SourcesPage [SOURCES]
+
+__Purpose:__
+
+Defines locations of water quality sources.
+
+__Format:__
+
+One line for each water quality source containing:
+- Node ID label
+- Source type (<b>CONCEN, MASS, FLOWPACED, or SETPOINT</b>)
+- Baseline source strength
+- Time pattern ID (optional)
+
+__Remarks:__
+1. For \b MASS type sources, strength is measured in mass flow per minute. All other types measure source strength in concentration units.
+2. Source strength can be made to vary over time by specifying a time pattern.
+3. A \b CONCEN source:
+   - represents the concentration of any external source inflow to the node
+   - applies only when the node has a net negative demand (water enters the network at the node)
+   - if the node is a junction, reported concentration is the result of mixing the source flow and inflow from the rest of the network
+   - if the node is a reservoir, the reported concentration is the source concentration
+   - if the node is a tank, the reported concentration is the internal concentration of the tank
+   - is best used for nodes that represent source water supplies or treatment works (e.g., reservoirs or nodes assigned a negative demand)
+   - do not use at storage tanks with simultaneous inflow/outflow.
+4. A <b>MASS, FLOWPACED, or SETPOINT</b> source:
+   - represents a booster source, where the substance is injected directly into the network regardless of what the demand at the node is
+   - affects water leaving the node to the rest of the network in the following way:
+     - a \b MASS booster adds a fixed mass flow to that resulting from inflow to the node
+     - a \b FLOWPACED booster adds a fixed concentration to the resultant inflow concentration at the node
+     - a \b SETPOINT booster fixes the concentration of any flow leaving the node (as long as the concentration resulting from the inflows is below the setpoint)
+   - the reported concentration at a junction or reservoir booster source is the concentration that results after the boosting is applied; the reported concentration for a tank with a booster source is the internal concentration of the tank
+   - is best used to model direct injection of a tracer or disinfectant into the network or to model a contaminant intrusion.
+5. A \b [SOURCES] section is not needed for simulating water age or source tracing.
+
+__Example:__<br>
+@code
+[SOURCES] 
+;Node  Type    Strength  Pattern 
+;-------------------------------- 
+N1     CONCEN  1.2       Pat1    ;Concentration varies with time 
+N44    MASS    12                ;Constant mass injection    
+@endcode
+*/
+
+/**
+@page StatusPage [STATUS]
+
+__Purpose:__
+
+Defines initial status of selected links at the start of a simulation.
+
+__Format:__
+
+One line per link being controlled containing:
+- Link ID label
+- Status or setting
+
+__Remarks:__
+1. Links not listed in this section have a default status of \b OPEN (for pipes and pumps) or \b ACTIVE (for valves).
+2. The Status value assigned in this section can be \b OPEN or \b CLOSED. For control valves (e.g., PRVs, FCVs, etc.) this means that the valve is either fully opened or closed, not active at its control setting.
+3. The Setting value can be a speed setting for pumps or valve setting for valves.
+4. The initial status of pipes can also be set in the @ref PipesPage section.
+5. Check valves cannot have their status be preset.
+6. Use @ref CtrlsPage or @ref RulesPage to change status or setting at some future point in the simulation.
+7. If a \b CLOSED or \b OPEN control valve is to become \b ACTIVE again, then its pressure or flow setting must be specified in the control or rule that reactivates it.
+
+__Example:__
+@code
+[STATUS] 
+; Link   Status/Setting 
+;---------------------- 
+  L22    CLOSED       ;Link L22 is closed 
+  P14    1.5          ;Speed for pump P14 
+  PRV1   OPEN         ;PRV1 forced open 
+                      ;(overrides normal operation)
+@endcode
+*/
+
+/**
+@page TanksPage [TANKS]
+
+__Purpose:__
+
+Defines all tank nodes contained in the network.
+
+__Format:__
+
+One line for each junction containing:
+- ID label
+- Bottom elevation, ft (m)
+- Initial water level, ft (m)
+- Minimum water level, ft (m)
+- Maximum water level, ft (m)
+- Nominal diameter, ft (m)
+- Minimum volume, cubic ft (cubic meters)
+- Volume curve ID (optional)
+- Overflow indicator (<b>YES / NO</b>) (optional)
+
+__Remarks:__
+1. Water surface elevation equals bottom elevation plus water level.
+2. Non-cylindrical tanks can be modeled by specifying a curve of volume versus water depth in the @ref CurvesPage section.
+3. If a volume curve is supplied the diameter value can be any non-zero number
+4. Minimum volume (tank volume at minimum water level) can be zero for a cylindrical tank or if a volume curve is supplied.
+5. If the overflow indicator is \b YES then the tank is allowed to overflow once it reaches it maximum water level. The default is no overflow.
+6. If the tank does not use a volume curve then an asterisk (*) can be used as a placeholder for it if an overflow indicator is specified.
+7. A network must contain at least one tank or reservoir.
+
+__Example:__
+@code
+[TANKS] 
+;ID   Elev.  InitLvl  MinLvl  MaxLvl  Diam  MinVol  VolCurve  Overflow 
+;--------------------------------------------------------------------- 
+;Cylindrical tank that can overflow
+T1    100     15       5       25     120   0       *          YES 
+
+;Non-cylindrical tank with arbitrary diameter
+T2   100     15       5       25     1     0        VC1    
+@endcode
+*/
+
+/**
+@page TimesPage [TIMES]
+
+__Purpose:__
+Defines various time step parameters used in the simulation.
+
+__Formats:__
+<table style = "border: 0px solid black">
+<tr>  <td><b>DURATION</b></td>  <td><I>value</I> (units)</td> </tr>
+<tr>  <td><b>HYDRAULIC TIMESTEP</b></td> <td><I>value</I> (units)</td> </tr>
+<tr>  <td><b>QUALITY TIMESTEP</b></td><td><I>value</I> (units) </td> </tr>
+<tr>  <td><b>RULE TIMESTEP</b></td><td><I>value</I> (units)</td> </tr>
+<tr>  <td><b>PATTERN TIMESTEP</b></td><td><I>value</I> (units)</td> </tr>
+<tr>  <td><b>PATTERN START</b></td><td><I>value</I> (units)</td> </tr>
+<tr>  <td><b>REPORT TIMESTEP</b></td><td><I>value</I> (units)</td> </tr>
+<tr>  <td><b>REPORT START</b></td><td><I>value</I> (units)</td> </tr>
+<tr>  <td><b>START CLOCKTIME</b></td><td><I>value</I> (<b>AM / PM</b>)</td> </tr>
+<tr>  <td><b>STATISTIC</b></td><td><b>NONE / AVERAGED / MINIMUM / MAXIMUM / RANGE</b></td> </tr>
+</table>
+
+__Definitions:__
+
+\b DURATION is the duration of the simulation. Use 0 to run a single period snapshot analysis. The default is 0.
+
+<b>HYDRAULIC TIMESTEP</b> determines how often a new hydraulic state of the network is computed. If greater than either the \b PATTERN or \b REPORT time step it will be automatically reduced. The default is 1 hour.
+
+<b>QUALITY TIMESTEP</b> is the time step used to track changes in water quality throughout the network. The default is 1/10 of the hydraulic time step.
+
+<b>RULE TIMESTEP</b> is the time step used to check for changes in system status due to activation of rule-based controls between hydraulic time steps. The default is 1/10 of the hydraulic time step.
+
+<b>PATTERN TIMESTEP</b> is the interval between time periods in all time patterns. The default is 1 hour.
+
+<b>PATTERN START</b> is the time offset at which all patterns will start. For example, a value of 6 hours would start the simulation with each pattern in the time period that corresponds to hour 6. The default is 0.
+
+<b>REPORT TIMESTEP</b> sets the time interval between which output results are reported. The default is 1 hour.
+
+<b>REPORT START</b> is the length of time into the simulation at which output results begin to be reported. The default is 0.
+
+<b>START CLOCKTIME</b> is the time of day (e.g., 3:00 PM) at which the simulation begins. The default is 12:00 AM midnight.
+
+\b STATISTIC determines what kind of statistical post-processing should be done on the time series of simulation results generated. \b AVERAGED reports a set of time-averaged results, \b MINIMUM reports only the minimum values, \b MAXIMUM the maximum values, and \b RANGE reports the difference between the minimum and maximum values. \b NONE reports the full time series for all quantities for all nodes and links and is the default.
+
+__Remarks:__
+1. Units can be <b>SECONDS (SEC), MINUTES (MIN), HOURS</b>, or \b DAYS. The default is \b HOURS.
+2. If no units are supplied, then time values can be expressed in either decimal hours or in hours:minutes notation.
+3. All entries in the \b [TIMES] section are optional. Items offset by slashes (/) indicate allowable choices.
+
+__Example:__
+@code
+[TIMES]       
+DURATION   240 HOURS    
+QUALITY TIMESTEP   3 MIN    
+QUALITY TIMESTEP   0:03    
+REPORT START   120    
+START CLOCKTIME   6:00 AM   
+@endcode
+*/
+
+/**
+@page TitlePage [TITLE]
+
+__Purpose:__
+
+Attaches a descriptive title to the network being analyzed.
+
+__Format:__
+
+Any number of lines of text.
+
+__Remarks:__
+
+The <b>[TITLE]</b> section is optional. 
+*/
+
+/**
+@page ValvesPage [VALVES]
+
+__Purpose:__
+
+Defines all control valve links contained in the network.
+
+__Format:__
+
+One line for each valve containing:
+- ID label
+- ID of start node
+- ID of end node
+- Diameter, inches (mm)
+- Valve type
+- Valve setting
+- Minor loss coefficient
+
+__Remarks:__
+1. Valve types and settings include:
+|Valve Type | Setting |
+|-----------|---------|
+|<B>PRV</B> (pressure reducing valve) | Pressure, psi (m) |
+|<B>PSV</B> (pressure sustaining valve) | Pressure, psi (m) |
+|<B>PBV</B> (pressure breaker valve) | Pressure, psi (m) |
+|<B>FCV</B> (flow control valve) | Flow (flow units) |
+|<B>TCV</B> (throttle control valve) | Loss Coefficient |
+|<B>GPV</B> (general purpose valve) | ID of head loss curve |
+2. Shutoff valves and check valves are considered to be part of a pipe, not a separate control valve component (see @ref PipesPage).
+*/
+
+/**
+@page BackdropPage [BACKDROP]
+
+__Purpose:__
+
+Identifies a backdrop image and dimensions for visualizing the network's layout.
+
+__Formats:__
+<table style = "border: 0px solid black">
+<tr>  <td><b>DIMENSIONS</b></td>  <td><I>LLx  LLy  URx  URy</I></td> </tr>
+<tr>  <td><b>UNITS</b></td> <td><b>FEET/METERS/DEGREES/NONE</b></td> </tr>
+<tr>  <td><b>FILE</b></td><td><I>filename</I></td> </tr>
+<tr>  <td><b>OFFSET</b></td><td><I>X  Y</I></td> </tr>
+</table>
+
+__Definitions:__
+
+<b>DIMENSIONS</b> provides the X and Y coordinates of the lower-left and upper-right corners of the network's
+bounding rectangle. Defaults are the extents of the nodal coordinates supplied in the @ref CoordsPage "[COORDINATES]" section.
+
+<b>UNITS</b> specifies the units that the network's dimensions are given in. Default is <b>NONE</b>.
+
+<b>FILE</b> supplies the name of the file that contains a backdrop image for the network.
+
+<b>OFFSET</b> lists the X and Y distance that the upper-left corner of the backdrop image is offset from the
+upper-left corner of the network's bounding rectangle. Default is zero offset.
+
+__Remarks:__
+
+1. The [BACKDROP] section is optional and only provides support for an external GUI program that uses the EPANET engine.
+
+2. Only Windows Enhanced Metafiles and bitmap files can be used as backdrops.
+*/
+
+/**
+@page CoordsPage [COORDINATES]
+
+__Purpose:__
+
+Assigns map coordinates to network's nodes.
+
+__Format__:
+
+One line for each node containing:
+- Node ID label
+- X-coordinate
+- Y-coordinate
+
+__Remarks:__
+
+1. Include one line for each node that has coordinates.
+
+2. The coordinates represent the distance from the node to an arbitrary origin at the lower left of the network. Any convenient units of measure for this distance can be used.
+
+3. The locations  of the nodes need not be to actual scale.
+
+4. A [COORDINATES] section is optional and only provides support for an external GUI program that uses the EPANET engine.
+*/
+
+/**
+@page VertexPage [VERTICES]
+
+__Purpose:__
+
+Assigns interior vertex points that describe the shape of network links.
+
+__Format:__
+
+One line for each vertex point in each link containing such points that includes:
+- Link ID label
+- X-coordinate
+- Y-coordinate
+
+__Remarks:__
+
+1. Vertex points allow links to be drawn as polylines instead of simple straight-lines between their end nodes.
+
+2. The coordinates refer to the same coordinate system used for node and label coordinates.
+
+3. A [VERTICES] section is optional and only provides support for an external GUI program that uses the EPANET engine.
+*/
+
+/**
+@page LabelsPage [LABELS]
+
+__Purpose:__
+ 
+Assigns coordinates to labels added to a network's visualization.
+
+__Format:__
+
+One line for each label containing:
+- X-coordinate
+- Y-coordinate
+- Text of label in double quotes
+- ID label of an anchor node (optional)
+
+__Remarks:__
+
+1. Include one line for each label.
+
+2. The coordinates refer to the upper left corner of the label and are with respect to an arbitrary origin at the lower left of the network.
+
+3. The optional anchor node anchors the label to the node when the network layout is re-scaled during zoom-in operations.
+
+4. The [LABELS] section is optional and only provides support for an external GUI program that uses the EPANET engine.
+*/

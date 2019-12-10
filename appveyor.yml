@@ -1,0 +1,85 @@
+#
+#  appveyor.yml - Appveyor CI configuration for OWA EPANET
+#
+#  Date created: 01/09/2018
+#
+#  Author: Michael E. Tryby
+#          US EPA - ORD/NRMRL
+#
+
+version: 2.0.{build}
+
+matrix:
+  allow_failures:
+  #GROUP: (SUPPORTED/EXPERIMENTAL)
+  #EXPERIMENTAL is allowed to fail under build matrix
+  - GROUP: "EXPERIMENTAL"
+
+environment:
+  matrix:
+  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    GENERATOR: "Visual Studio 15 2017"
+    GROUP: "SUPPORTED"
+    BOOST_ROOT: "C:/Libraries/boost_1_67_0"
+    PLATFORM: "win32"
+    REF_BUILD_ID: "538_1"
+  # New build on Visual Studio 15 2017
+  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    GENERATOR: "Visual Studio 15 2017 Win64"
+    GROUP: "EXPERIMENTAL"
+    BOOST_ROOT: "C:/Libraries/boost_1_67_0"
+    PLATFORM: "win64"
+    REF_BUILD_ID: "538_2"
+
+# called before repo cloning
+init:
+  - set SUT_BUILD_ID=%APPVEYOR_BUILD_NUMBER%_%APPVEYOR_JOB_NUMBER%
+  - set EPANET_HOME=%APPVEYOR_BUILD_FOLDER%
+  - set BUILD_HOME=buildprod
+  - set TEST_HOME=nrtestsuite
+  - set PATH=%PATH%;%BOOST_ROOT%/
+
+  # See values set
+  - echo %APPVEYOR_BUILD_WORKER_IMAGE%
+  - echo %BUILD_HOME%
+  - echo %GENERATOR%
+  - echo %BOOST_ROOT%
+
+# called after repo clone
+install:
+  - python -m pip install -r tools\requirements-appveyor.txt
+
+# called before build
+before_build:
+  - mkdir %BUILD_HOME%
+  - cd %BUILD_HOME%
+  - cmake -G "%GENERATOR%"
+    -DBUILD_TESTS=ON
+    -DBOOST_ROOT="%BOOST_ROOT%" ..
+
+# run custom build script
+build_script:
+  - cmake --build . --config Release
+
+before_test:
+  - cd %EPANET_HOME%
+  - tools\before-test.cmd %PLATFORM% %REF_BUILD_ID% %SUT_BUILD_ID% %APPVEYOR_REPO_COMMIT%
+
+# run custom test script
+test_script:
+  # run unit tests
+  - cd %BUILD_HOME%\tests
+  - ctest -C Release --output-on-failure
+  # run regression tests
+  - cd %EPANET_HOME%
+  - tools\run-nrtest.cmd %REF_BUILD_ID% %SUT_BUILD_ID%
+
+on_success:
+  - cd %TEST_HOME%\benchmark
+  - appveyor PushArtifact receipt.json
+
+on_failure:
+  - cd %TEST_HOME%\benchmark
+  # zip up the SUT benchmarks
+  - 7z a benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip .\epanet-%SUT_BUILD_ID%
+  - appveyor PushArtifact benchmark-%PLATFORM%-%SUT_BUILD_ID%.zip

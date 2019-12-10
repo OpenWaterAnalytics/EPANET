@@ -1,0 +1,19 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: setup_build_dir
+      run: mkdir buildproducts
+    - name: cmake
+      working-directory: ./buildproducts
+      run: cmake ..
+    - name: make
+      working-directory: ./buildproducts
+      run: make

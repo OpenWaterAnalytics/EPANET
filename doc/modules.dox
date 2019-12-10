@@ -1,0 +1,387 @@
+/**
+@defgroup Project Project Functions
+These functions are used to manage a project.
+*/
+
+/**
+@defgroup Hydraulics Hydraulic Analysis Functions
+These functions are used to perform a hydraulic analysis.
+*/
+
+/**
+@defgroup Quality Water Quality Analysis Functions
+These functions are used to perform a water quality analysis.
+*/
+
+/**
+@defgroup Reporting Reporting Functions
+These functions are used to report simulation results.
+*/
+
+/**
+@defgroup Options Analysis Options Functions
+These functions are used to get and set analysis options.
+*/
+
+/**
+@defgroup Nodes Network Node Functions
+These functions are used for working with network nodes.
+*/
+
+/**
+@defgroup Demands Nodal Demand Functions
+These functions are used for managing nodal demands.
+*/
+
+/**
+@defgroup Links Network Link Functions
+These functions are used for working with network links.
+*/
+
+/**
+@defgroup Patterns Time Pattern Functions
+These functions are used for working with time patterns.
+*/
+
+/**
+@defgroup Curves Data Curve Functions
+These functions are used for working with data curves.
+*/
+
+/**
+@defgroup Controls Simple Control Functions
+These functions are used for working with simple conditional controls.
+*/
+
+/**
+@defgroup Rules Rule-Based Control Functions
+These functions are used for working with rule-based controls.
+*/
+
+/**
+@defgroup Enumerations Enumerated Types
+These are the toolkit's enumerated types whose members are used as function arguments.
+*/
+
+/**
+@addtogroup Project
+@{
+@fn int EN_createproject(EN_Project *ph)
+@fn int EN_deleteproject(EN_Project ph)
+@fn int EN_runproject(EN_Project ph, const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
+@fn int EN_init(EN_Project ph, const char *rptFile, const char *outFile, int unitsType, int headLossType)
+@fn int EN_open(EN_Project ph, const char *inpFile, const char *rptFile, const char *binOutFile)
+@fn int EN_getcount(EN_Project ph, int code, int *count)
+@fn int EN_gettitle(EN_Project ph, char *line1, char *line2, char *line3)
+@fn int EN_settitle(EN_Project ph, char *line1, char *line2, char *line3)
+@fn int EN_saveinpfile(EN_Project ph, const char *filename)
+@fn int EN_close(EN_Project ph)
+@}
+*/
+
+/**
+@addtogroup Hydraulics
+@{
+@fn int EN_solveH(EN_Project ph)
+@fn int EN_usehydfile(EN_Project ph, const char *filename)
+@fn int EN_openH(EN_Project ph)
+@fn int EN_initH(EN_Project ph, int initFlag)
+@fn int EN_runH(EN_Project ph, long *currentTime)
+@fn int EN_nextH(EN_Project ph, long *tStep)
+@fn int EN_saveH(EN_Project ph)
+@fn int EN_savehydfile(EN_Project ph, const char *filename)
+@fn int EN_closeH(EN_Project ph)
+@}
+*/
+
+/**
+@addtogroup Quality
+@{
+@fn int EN_solveQ(EN_Project ph)
+@fn int EN_openQ(EN_Project ph)
+@fn int EN_initQ(EN_Project ph, int saveFlag)
+@fn int EN_runQ(EN_Project ph, long *currentTime)
+@fn int EN_nextQ(EN_Project ph, long *tStep)
+@fn int EN_stepQ(EN_Project ph, long *timeLeft)
+@fn int EN_closeQ(EN_Project ph)
+@}
+*/
+
+/**
+@addtogroup Reporting
+@{
+@fn int EN_writeline(EN_Project ph, char *line)
+@fn int EN_report(EN_Project ph)
+@fn int EN_copyreport(EN_Project ph, char *filename)
+@fn int EN_clearreport(EN_Project ph)
+@fn int EN_resetreport(EN_Project ph)
+@fn int EN_setreport(EN_Project ph, char *reportFormat)
+@fn int EN_setstatusreport(EN_Project ph, int code)
+@fn int EN_getversion(int *version)
+@fn int EN_geterror(int errcode, char *errmsg, int maxLen)
+@fn int EN_getstatistic(EN_Project ph, int type, double* value)
+@fn int EN_getresultindex(EN_Project ph, int type, int index, int *value)
+
+@}
+*/
+
+/**
+@addtogroup Options
+@{
+@fn int EN_getoption(EN_Project ph, int option, double *value)
+@fn int EN_setoption(EN_Project ph, int option, double value)
+@fn int EN_getflowunits(EN_Project ph, int *units)
+@fn int EN_setflowunits(EN_Project ph, int units)
+@fn int EN_gettimeparam(EN_Project ph, int param, long *value)
+@fn int EN_settimeparam(EN_Project ph, int param, long value)
+@fn int EN_getqualinfo(EN_Project ph, int *qualType, char *chemName, char *chemUnits, int *traceNode)
+@fn int EN_getqualtype(EN_Project ph, int *qualType, int *traceNode)
+@fn int EN_setqualtype(EN_Project ph, int qualType, char *chemName, char *chemUnits, char *traceNode)
+@}
+*/
+
+/**
+@addtogroup Nodes
+@{
+@fn int EN_addnode(EN_Project ph, char *id, int nodeType, int *index)
+@fn int EN_deletenode(EN_Project ph, int index, int actionCode)
+@fn int EN_getnodeindex(EN_Project ph, char *id, int *index)
+@fn int EN_getnodeid(EN_Project ph, int index, char *id)
+@fn int EN_setnodeid(EN_Project ph, int index, char *newid)
+@fn int EN_getnodetype(EN_Project ph, int index, int *code)
+@fn int EN_getnodevalue(EN_Project ph, int index, int code, double *value)
+@fn int EN_setnodevalue(EN_Project ph, int index, int code, double v)
+@fn int EN_setjuncdata(EN_Project ph, int index, double elev, double dmnd, char *dmndpat)
+@fn int EN_settankdata(EN_Project ph, int index, double elev, double initlvl,
+        double minlvl, double maxlvl, double diam, double minvol, char *volcurve)
+@fn int EN_getcoord(EN_Project ph, int index, double *x, double *y)
+@fn int EN_setcoord(EN_Project ph, int index, double x, double y)
+@}
+*/
+
+/**
+@addtogroup Demands
+@{
+@fn int EN_getdemandmodel(EN_Project ph, int *type, double *pmin, double *preq, double *pexp)
+@fn int EN_setdemandmodel(EN_Project ph, int type, double pmin, double preq, double pexp)
+@fn int EN_adddemand(EN_Project ph, int nodeIndex, double baseDemand, char *demandPattern, char *demandName)
+@fn int EN_deletedemand(EN_Project ph, int nodeIndex, int demandIndex)
+@fn int EN_getdemandindex(EN_Project p, int nodeIndex, char *demandName, int *demandIndex)
+@fn int EN_getnumdemands(EN_Project ph, int nodeIndex, int *numDemands)
+@fn int EN_getbasedemand(EN_Project ph, int nodeIndex, int demandIndex, double *baseDemand)
+@fn int EN_setbasedemand(EN_Project ph, int nodeIndex, int demandIndex, double baseDemand)
+@fn int EN_getdemandpattern(EN_Project ph, int nodeIndex, int demandIndex, int *pattIndex)
+@fn int EN_setdemandpattern(EN_Project ph, int nodeIndex, int demandIndex, int patIndex)
+@fn int EN_getdemandname(EN_Project ph, int nodeIndex, int demandIdx, char *demandName)
+@fn int EN_setdemandname(EN_Project ph, int nodeIndex, int demandIdx, char *demandName)
+@}
+*/
+
+/**
+@addtogroup Links
+@{
+@fn int EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode, char *toNode, int *index)
+@fn int EN_deletelink(EN_Project ph, int index, int actionCode)
+@fn int EN_getlinkindex(EN_Project ph, char *id, int *index)
+@fn int EN_getlinkid(EN_Project ph, int index, char *id)
+@fn int EN_setlinkid(EN_Project ph, int index, char *newid)
+@fn int EN_getlinktype(EN_Project ph, int index, int *linkType)
+@fn int EN_setlinktype(EN_Project ph, int *index, int linkType, int actionCode)
+@fn int EN_getlinknodes(EN_Project ph, int index, int *node1, int *node2)
+@fn int EN_setlinknodes(EN_Project ph, int index, int node1, int node2)
+@fn int EN_getlinkvalue(EN_Project ph, int index, int property, double *value)
+@fn int EN_setlinkvalue(EN_Project ph, int index, int property, double value)
+@fn int EN_setpipedata(EN_Project ph, int index, double length, double diam, double rough,  double mloss)
+@fn int EN_getpumptype(EN_Project ph, int linkIndex, int *pumpType)
+@fn int EN_getheadcurveindex(EN_Project ph, int pumpIndex, int *curveIndex)
+@fn int EN_setheadcurveindex(EN_Project ph, int pumpIndex, int curveIndex)
+@fn int EN_getvertexcount(EN_Project ph, int index, int *count)
+@fn int EN_getvertex(EN_Project ph, int index, int vertex, double *x, double *y)
+@fn int EN_setvertices(EN_Project ph, int index, double *x, double *y, int count)
+@}
+*/
+
+/**
+@addtogroup Patterns
+@{
+@fn int EN_addpattern(EN_Project ph, char *id)
+@fn int EN_deletepattern(EN_Project ph, int index)
+@fn int EN_getpatternindex(EN_Project ph, char *id, int *index)
+@fn int EN_getpatternid(EN_Project ph, int index, char *id)
+@fn int EN_setpatternid(EN_Project ph, int index, char *id)
+@fn int EN_getpatternlen(EN_Project ph, int index, int *len)
+@fn int EN_getpatternvalue(EN_Project ph, int index, int period, double *value)
+@fn int EN_setpatternvalue(EN_Project ph, int index, int period, double value)
+@fn int EN_getaveragepatternvalue(EN_Project ph, int index, double *value)
+@fn int EN_setpattern(EN_Project ph, int index, double *f, int len)
+@}
+*/
+
+/**
+@addtogroup Curves
+@{
+@fn int EN_addcurve(EN_Project ph, char *id)
+@fn int EN_deletecurve(EN_Project ph, int index)
+@fn int EN_getcurveindex(EN_Project ph, char *id, int *index)
+@fn int EN_getcurveid(EN_Project ph, int index, char *id)
+@fn int EN_setcurveid(EN_Project ph, int index, char *id)
+@fn int EN_getcurvelen(EN_Project ph, int index, int *len)
+@fn int EN_getcurvetype(EN_Project ph, int index, int *type)
+@fn int EN_getcurvevalue(EN_Project ph, int curveIndex, int pointIndex, double *x, double *y)
+@fn int EN_setcurvevalue(EN_Project ph, int curveIndex, int pointIndex, double x, double y)
+@fn int EN_getcurve(EN_Project ph, int curveIndex, char* id, int *nPoints, double **xValues, double **yValues)
+@fn int EN_setcurve(EN_Project ph, int index, double *xValues, double *yValues, int nPoints)
+@}
+*/
+
+/**
+@addtogroup Controls
+@{
+@fn int EN_addcontrol(EN_Project ph, int type, int linkIndex, double setting, int nodeIndex, double level, int *index)
+@fn int EN_deletecontrol(EN_Project ph, int index)
+@fn int EN_getcontrol(EN_Project ph, int index, int *type, int *linkIndex, double *setting, int *nodeIndex, double *level)
+@fn int EN_setcontrol(EN_Project ph, int index, int type, int linkIndex, double setting, int nodeIndex, double level)
+@}
+*/
+
+/**
+@addtogroup Rules
+@{
+@fn int EN_addrule(EN_Project ph, char *rule)
+@fn int EN_deleterule(EN_Project ph, int index)
+@fn int EN_getrule(EN_Project ph, int index, int *nPremises, int *nThenActions, int *nElseActions, double *priority)
+@fn int EN_getruleID(EN_Project ph, int index, char* id);
+@fn int EN_getpremise(EN_Project ph, int ruleIndex, int premiseIndex, int *logop,  int *object, int *objIndex,
+        int *variable, int *relop, int *status, double *value)
+@fn int EN_setpremise(EN_Project ph, int ruleIndex, int premiseIndex,
+                 int logop, int object, int objIndex, int variable, int relop, int status, double value)
+@fn int EN_setpremiseindex(EN_Project ph, int ruleIndex, int premiseIndex, int objIndex)
+@fn int EN_setpremisestatus(EN_Project ph, int ruleIndex, int premiseIndex, int status)
+@fn int EN_setpremisevalue(EN_Project ph, int ruleIndex, int premiseIndex, double value)
+@fn int EN_getthenaction(EN_Project ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, double *setting)
+@fn int EN_setthenaction(EN_Project ph, int ruleIndex, int actionIndex, int linkIndex, int status, double setting)
+@fn int EN_getelseaction(EN_Project ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, double *setting)
+@fn int EN_setelseaction(EN_Project ph, int ruleIndex, int actionIndex, int linkIndex, int status, double setting)
+@fn int EN_setrulepriority(EN_Project ph, int index, double priority)
+@}
+*/
+
+/**
+@addtogroup Enumerations
+@{
+\enum EN_SizeLimits
+\enum EN_ObjectType
+\enum EN_CountType
+\enum EN_NodeType
+\enum EN_LinkType
+\enum EN_PumpType
+\enum EN_PumpStateType
+\enum EN_CurveType
+\enum EN_QualityType
+\enum EN_SourceType
+\enum EN_ControlType
+\enum EN_HeadLossType
+\enum EN_NodeProperty
+\enum EN_LinkProperty
+\enum EN_LinkStatusType
+\enum EN_TimeParameter
+\enum EN_Option
+\enum EN_FlowUnits
+\enum EN_DemandModel
+\enum EN_MixingModel
+\enum EN_StatisticType
+\enum EN_InitHydOption
+\enum EN_ActionCodeType
+\enum EN_AnalysisStatistic
+\enum EN_StatusReport
+\enum EN_RuleObject
+\enum EN_RuleVariable
+\enum EN_RuleOperator
+\enum EN_RuleStatus
+\def EN_MISSING
+@}
+*/
+
+/**
+@defgroup ErrorCodes Error Codes
+
+| Code | Meaning                           |
+|------|---------                          |
+| 0    | No error                          |
+| 101  | Insufficient memory available     |
+| 102  | No network data available         |
+| 103  | Hydraulic solver not opened   |
+| 104  | No hydraulics for water quality analysis |
+| 105  | Water quality solver not opened |
+| 106  | No results saved to report on |
+| 107  | Hydraulics supplied from external file |
+| 108  | Cannot use external file while hydraulics solver is open |
+| 110  | Cannot solve network hydraulic equations |
+| 120  | Cannot solve water quality transport equations |
+|  ||
+| 200  | One or more errors in an input file |
+| 201  | Syntax error |
+| 202  | Function call contains an illegal numeric value |
+| 203  | Function call refers to an undefined node |
+| 204  | Function call refers to an undefined link |
+| 205  | Function call refers to an undefined time pattern |
+| 206  | Function call refers to an undefined curve |
+| 207  | Function call attempts to control a check valve pipe or a GPV valve |
+| 208  | Function call contains illegal PDA pressure limits |
+| 209  | Function call contains an illegal node property value |
+| 211  | Function call contains an illegal link property value |
+| 212  | Function call refers to an undefined Trace Node |
+| 213  | Function call contains an invalid option value |
+| 214  | Too many characters in a line of an input file |
+| 215  | Function call contains a duplicate ID label |
+| 216  | Function call refers to an undefined pump |
+| 217  | Invalid pump energy data |
+| 219  | Illegal valve connection to tank node |
+| 220  | Illegal valve connection to another valve |
+| 221  | Mis-placed clause in rule-based control |
+| 222  | Link assigned same start and end nodes |
+| 223  | Not enough nodes in network |
+| 224  | No tanks or reservoirs in network |
+| 225  | Invalid lower/upper levels for tank |
+| 226  | No head curve or power rating for pump |
+| 227  | Invalid head curve for pump |
+| 230  | Nonincreasing x-values for curve |
+| 233  | Network has unconnected node |
+| 240  | Function call refers to nonexistent water quality source |
+| 241  | Function call refers to nonexistent control |
+| 250  | Function call contains invalid format (e.g. too long an ID name) |
+| 251  | Function call contains invalid parameter code |
+| 253  | Function call refers to nonexistent demand category |
+| 254  | Function call refers to node with no coordinates |
+| 257  | Function call refers to nonexistent rule |
+| 258  | Function call refers to nonexistent rule clause |
+| 259  | Function call attempts to delete a node that still has links connected to it |
+| 260  | Function call attempts to delete node assigned as a Trace Node |
+| 261  | Function call attempts to delete a node or link contained in a control |
+| 262  | Function call attempts to modify network structure while a solver is open |
+|  ||
+| 301  | Identical file names used for different types of files |
+| 302  | Cannot open input file |
+| 303  | Cannot open report file |
+| 304  | Cannot open output file |
+| 305  | Cannot open hydraulics file |
+| 306  | Hydraulics file does not match network data |
+| 307  | Cannot read hydraulics file |
+| 308  | Cannot save results to binary file |
+| 309  | Cannot save results to report file |
+
+*/
+
+/**
+@defgroup WarningCodes Warning Codes
+
+| Code | Description                       |
+|------|---------                          |
+|1 | System hydraulically unbalanced - convergence to a hydraulic solution was not achieved in the allowed number of trials |
+|2 | System may be hydraulically unstable - hydraulic convergence was only achieved after the status of all links was held fixed |
+|3 | System disconnected - one or more nodes with positive demands were disconnected from all supply sources |
+|4 | Pumps cannot deliver enough flow or head - one or more pumps were forced to either shut down (due to insufficient head) or operate beyond the maximum rated flow |
+|5 | Valves cannot deliver enough flow - one or more flow control valves could not deliver the required flow even when fully open |
+|6 | System has negative pressures - negative pressures occurred at one or more junctions with positive demand |
+
+*/

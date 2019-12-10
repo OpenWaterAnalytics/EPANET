@@ -41,7 +41,6 @@ xcuserdata
 *~.nib/
 *.swp
 *~
-*.dat
 *.dep
 
 *.xcodeproj/
@@ -202,3 +201,36 @@ $RECYCLE.BIN/
 # WindSDK compiled folders
 build/WinSDK/32bit/
 build/WinSDK/64bit/
+=======
+
+
+# Python compiler files
+*.py[c]
+
+# Python distribution and packaging
+dist/
+temp/
+*.cfg
+*.egg-info/
+
+# Eclipse Stuff
+.metadata/
+.settings/
+.project
+.cproject
+.pydevproject
+
+# Testing Stuff
+nrtestsuite/
+tests/data/
+tests/outfile/data/en*
+
+
+#Cmake stuff
+__cmake_systeminformation/
+buildprod*/
+*_export.h
+
+
+# git merge
+*.orig

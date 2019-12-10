@@ -1,24 +1,21 @@
-/*  mempool.c
-**
-**  A simple fast memory allocation package.
-**
-**  By Steve Hill in Graphics Gems III, David Kirk (ed.),
-**    Academic Press, Boston, MA, 1992
-**
-**  Modified by Lew Rossman, 8/13/94.
-**
-**  AllocInit()     - create an alloc pool, returns the old pool handle
-**  Alloc()         - allocate memory
-**  AllocReset()    - reset the current pool
-**  AllocSetPool()  - set the current pool
-**  AllocFree()     - free the memory used by the current pool.
-**
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.2
+ Module:       mempool.c
+ Description:  a simple fast poooled memory allocation package
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 05/15/2019
+
+ This module is based code by Steve Hill in Graphics Gems III,
+ David Kirk (ed.), Academic Press, Boston, MA, 1992
+ ******************************************************************************
 */
 
 #include <stdlib.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#endif
+
 #include "mempool.h"
 
 /*
@@ -28,91 +25,80 @@
 
 #define ALLOC_BLOCK_SIZE   64000       /*(62*1024)*/
 
-/*
-**  alloc_hdr_t - Header for each block of memory.
-*/
-
-typedef struct alloc_hdr_s
+struct MemBlock
 {
-    struct alloc_hdr_s *next;   /* Next Block          */
-    char               *block,  /* Start of block      */
-                       *free,   /* Next free in block  */
-                       *end;    /* block + block size  */
-}  alloc_hdr_t;
+    struct MemBlock *next;   // Next block
+    char            *block,  // Start of block
+                    *free,   // Next free position in block
+                    *end;    // block + block size
+};
 
-/*
-**  alloc_root_t - Header for the whole pool.
-*/
-
-typedef struct alloc_root_s
+struct Mempool
 {
-    alloc_hdr_t *first,    /* First header in pool */
-                *current;  /* Current header       */
-}  alloc_root_t;
+    struct MemBlock *first;
+    struct MemBlock *current;
+};
 
-/*
-**  root - Pointer to the current pool.
-*/
-
-static alloc_root_t *root;
-
-
-/*
-**  AllocHdr()
-**
-**  Private routine to allocate a header and memory block.
-*/
-
-static alloc_hdr_t *AllocHdr(void);
-                
-static alloc_hdr_t * AllocHdr()
+static struct MemBlock* createMemBlock()
 {
-    alloc_hdr_t     *hdr;
-    char            *block;
-
-    block = (char *) malloc(ALLOC_BLOCK_SIZE);
-    hdr   = (alloc_hdr_t *) malloc(sizeof(alloc_hdr_t));
-
-    if (hdr == NULL || block == NULL) return(NULL);
-    hdr->block = block;
-    hdr->free  = block;
-    hdr->next  = NULL;
-    hdr->end   = block + ALLOC_BLOCK_SIZE;
-
-    return(hdr);
+    struct MemBlock* memBlock = malloc(sizeof(struct MemBlock));
+    if (memBlock)
+    {
+        memBlock->block = malloc(ALLOC_BLOCK_SIZE * sizeof(char));
+        if (memBlock->block == NULL)
+        {
+            free(memBlock);
+            return NULL;
+        }
+        memBlock->free = memBlock->block;
+        memBlock->next = NULL;
+        memBlock->end = memBlock->block + ALLOC_BLOCK_SIZE;
+    }
+    return memBlock;
 }
 
 
-/*
-**  AllocInit()
-**
-**  Create a new memory pool with one block.
-**  Returns pointer to the new pool.
-*/
-
-DLLEXPORT alloc_handle_t * AllocInit()
+static void deleteMemBlock(struct MemBlock* memBlock)
 {
-    alloc_handle_t *newpool;
-    root = (alloc_root_t *) malloc(sizeof(alloc_root_t));
-    if (root == NULL) return(NULL);
-    if ( (root->first = AllocHdr()) == NULL) return(NULL);
-    root->current = root->first;
-    newpool = (alloc_handle_t *) root;
-    return(newpool);
+    free(memBlock->block);
+    free(memBlock);
 }
 
 
-/*
-**  Alloc()
-**
-**  Use as a direct replacement for malloc().  Allocates
-**  memory from the current pool.
-*/
-
-DLLEXPORT char *Alloc(long size)
+struct Mempool * mempool_create()
 {
-    alloc_hdr_t  *hdr = root->current;
-    char         *ptr;
+    struct Mempool *mempool;
+    mempool = (struct Mempool *)malloc(sizeof(struct Mempool));
+    if (mempool == NULL) return NULL;
+    mempool->first = createMemBlock();
+    mempool->current = mempool->first;
+    if (mempool->first == NULL) return NULL;
+    return mempool;
+}
+
+void mempool_delete(struct Mempool *mempool)
+{
+    if (mempool == NULL) return;
+    while (mempool->first)
+    {
+        mempool->current = mempool->first->next;
+        deleteMemBlock(mempool->first);
+        mempool->first = mempool->current;
+    }
+    free(mempool);
+    mempool = NULL;
+}
+
+void mempool_reset(struct Mempool *mempool)
+{
+    mempool->current = mempool->first;
+    mempool->current->free = mempool->current->block;
+}
+
+
+char * mempool_alloc(struct Mempool *mempool, size_t size)
+{
+    char* ptr;
 
     /*
     **  Align to 4 byte boundary - should be ok for most machines.
@@ -120,86 +106,37 @@ DLLEXPORT char *Alloc(long size)
     */
     size = (size + 3) & 0xfffffffc;
 
-    ptr = hdr->free;
-    hdr->free += size;
+    if (!mempool->current) return NULL;
+    ptr = mempool->current->free;
+    mempool->current->free += size;
 
-    /* Check if the current block is exhausted. */
+    // Check if the current block is exhausted
 
-    if (hdr->free >= hdr->end)
+    if (mempool->current->free >= mempool->current->end)
     {
-        /* Is the next block already allocated? */
+        // Is the next block already allocated?
 
-        if (hdr->next != NULL)
+        if (mempool->current->next)
         {
-            /* re-use block */
-            hdr->next->free = hdr->next->block;
-            root->current = hdr->next;
+            // re-use block
+            mempool->current->next->free = mempool->current->next->block;
+            mempool->current = mempool->current->next;
         }
         else
         {
-            /* extend the pool with a new block */
-            if ( (hdr->next = AllocHdr()) == NULL) return(NULL);
-            root->current = hdr->next;
+            // extend the pool with a new block
+            mempool->current->next = createMemBlock();
+            if (!mempool->current->next) return NULL;
+            mempool->current = mempool->current->next;
         }
 
-        /* set ptr to the first location in the next block */
-        ptr = root->current->free;
-        root->current->free += size;
+        // set ptr to the first location in the next block
+
+        ptr = mempool->current->free;
+        mempool->current->free += size;
     }
 
-    /* Return pointer to allocated memory. */
+    // Return pointer to allocated memory
 
-    return(ptr);
-}
-
-
-/*
-**  AllocSetPool()
-**
-**  Change the current pool.  Return the old pool.
-*/
-
-DLLEXPORT alloc_handle_t * AllocSetPool(alloc_handle_t *newpool)
-{
-    alloc_handle_t *old = (alloc_handle_t *) root;
-    root = (alloc_root_t *) newpool;
-    return(old);
-}
-
-
-/*
-**  AllocReset()
-**
-**  Reset the current pool for re-use.  No memory is freed,
-**  so this is very fast.
-*/
-
-DLLEXPORT void AllocReset()
-{
-    root->current = root->first;
-    root->current->free = root->current->block;
-}
-
-
-/*
-**  AllocFreePool()
-**
-**  Free the memory used by the current pool.
-**  Don't use where AllocReset() could be used.
-*/
-
-DLLEXPORT void AllocFreePool()
-{
-    alloc_hdr_t  *tmp,
-                 *hdr = root->first;
-
-    while (hdr != NULL)
-    {
-        tmp = hdr->next;
-        free((char *) hdr->block);
-        free((char *) hdr);
-        hdr = tmp;
-    }
-    free((char *) root);
-    root = NULL;
+    return ptr;
 }
