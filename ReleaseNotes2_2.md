@@ -292,6 +292,7 @@ Doxygen files have been created to generate a complete Users Guide for version 2
 (In alphabetical order)
  - Demetrios Eliades
  - Sam Hatchett
+ - Abel Heinsbroek
  - Marios Kyriakou
  - Lewis Rossman
  - Elad Salomons
