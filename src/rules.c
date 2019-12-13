@@ -171,7 +171,7 @@ void freerules(Project *pr)
 //--------------------------------------------------------------
 {
     int i;
- 
+
     // Already freed
     if (pr->network.Rule == NULL)
         return;
@@ -1087,7 +1087,7 @@ int onactionlist(Project *pr, int i, Saction *a)
         // Link appears in list
         if (link == a1->link)
         {
-            // Replace it's action with 'a' if rule i has higher priority
+            // Replace its action with 'a' if rule i has higher priority
             if (net->Rule[i].priority > net->Rule[i1].priority)
             {
                 actionItem->action = a;
@@ -1266,7 +1266,7 @@ void writepremise(Spremise *p, FILE *f, Network *net)
         strcpy(s_id, "");
     }
 
-    // If premise has no value field, use it's status field as a value
+    // If premise has no value field, use its status field as a value
     if (p->value == MISSING) strcpy(s_value, Value[p->status]);
 
     // Otherwise get text of premise's value field

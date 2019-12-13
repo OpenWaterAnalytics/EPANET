@@ -95,7 +95,8 @@ The Energy Usage section of an EPANET binary output file contains the following 
 | Average kW | Float | 4 |
 | Peak kW | Float | 4 |
 | Average Cost per Day | Float | 4 |
-| Peak Energy Usage (kWh) | Float | 4 |
+
+These data are followed by a single 4-byte Float containing the overall Demand Charge for peak energy usage.
 
 @section Output_Results Dynamic Results Section
 
