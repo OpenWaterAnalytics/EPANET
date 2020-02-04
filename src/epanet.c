@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/15/2019
+ Last Updated: 02/01/2020
  ******************************************************************************
 */
 
@@ -3778,6 +3778,12 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
             v = (double)Pump[findpump(&p->network, index)].Epat;
         }
         break;
+        
+    case EN_GPV_CURVE:
+        if (Link[index].Type == GPV)
+        {
+            v = Link[index].Kc;
+        }
 
     default:
         return 251;
@@ -3985,6 +3991,14 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             net->Pump[pumpIndex].Epat = patIndex;
         }
         break;
+        
+    case EN_GPV_CURVE:
+        if (Link[index].Type == GPV)
+        {
+            curveIndex = ROUND(value);
+            if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
+            Link[index].Kc = curveIndex;
+        }
 
     default:
         return 251;
@@ -4086,6 +4100,35 @@ int DLLEXPORT EN_getvertex(EN_Project p, int index, int vertex, double *x, doubl
     if (vertex <= 0 || vertex > vertices->Npts) return 255;
     *x = vertices->X[vertex - 1];
     *y = vertices->Y[vertex - 1];    
+    return 0;
+}
+
+int DLLEXPORT EN_setvertex(EN_Project p, int index, int vertex, double x, double y)
+/*----------------------------------------------------------------
+**  Input:   index = link index
+**           vertex = index of a link vertex point
+**           x = vertex point's X-coordinate
+**           y = vertex point's Y-coordinate
+**  Returns: error code
+**  Purpose: sets the coordinates of a vertex point in a link
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    
+    Slink *Link = net->Link;
+    Pvertices vertices;
+    
+    // Check that link exists
+    if (!p->Openflag) return 102;
+    if (index <= 0 || index > net->Nlinks) return 204;
+    
+    // Check that vertex exists
+    vertices = Link[index].Vertices;
+    if (vertices == NULL) return 255;
+    if (vertex <= 0 || vertex > vertices->Npts) return 255;
+    vertices->X[vertex - 1] = x;
+    vertices->Y[vertex - 1] = y;    
     return 0;
 }
     
@@ -4696,6 +4739,23 @@ int DLLEXPORT EN_getcurvetype(EN_Project p, int index, int *type)
     if (!p->Openflag) return 102;
     if (index < 1 || index > net->Ncurves) return 206;
     *type = net->Curve[index].Type;
+    return 0;
+}
+
+int DLLEXPORT EN_setcurvetype(EN_Project p, int index, int type)
+/*----------------------------------------------------------------
+**  Input:   index = data curve index
+**           type = type of data curve (see EN_CurveType)
+**  Returns: error code
+**  Purpose: sets the type assigned to a data curve
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    if (!p->Openflag) return 102;
+    if (index < 1 || index > net->Ncurves) return 206;
+    if (type < 0 || type > EN_GENERIC_CURVE) return 251;  
+    net->Curve[index].Type = type;
     return 0;
 }
 

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/02/2019
+ Last Updated: 02/01/2020
  ******************************************************************************
 */
 
@@ -522,6 +522,11 @@ int DLLEXPORT ENgetvertex(int index, int vertex, double *x, double *y)
     return EN_getvertex(_defaultProject, index, vertex, x, y);
 }
 
+int DLLEXPORT ENsetvertex(int index, int vertex, double x, double y)
+{
+    return EN_setvertex(_defaultProject, index, vertex, x, y);
+}
+
 int DLLEXPORT ENsetvertices(int index, double *x, double *y, int count)
 {
     return EN_setvertices(_defaultProject, index, x, y, count);
@@ -660,6 +665,11 @@ int DLLEXPORT ENgetcurvelen(int index, int *len)
 int DLLEXPORT ENgetcurvetype(int index, int *type)
 {
     return EN_getcurvetype(_defaultProject, index, type);
+}
+
+int DLLEXPORT ENsetcurvetype(int index, int type)
+{
+    return EN_setcurvetype(_defaultProject, index, type);
 }
 
 int DLLEXPORT ENgetcurvevalue(int curveIndex, int pointIndex, EN_API_FLOAT_TYPE *x,

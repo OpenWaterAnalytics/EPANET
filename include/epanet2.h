@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/29/2019
+ Last Updated: 02/01/2020
  ******************************************************************************
  */
 
@@ -290,6 +290,8 @@ extern "C" {
   
   int DLLEXPORT ENgetvertex(int index, int vertex, double *x, double *y);
   
+  int DLLEXPORT ENsetvertex(int index, int vertex, double x, double y);
+  
   int DLLEXPORT ENsetvertices(int index, double *x, double *y, int count);
 
 /********************************************************************
@@ -349,6 +351,8 @@ extern "C" {
   int DLLEXPORT ENgetcurvelen(int index, int *len);
 
   int DLLEXPORT ENgetcurvetype(int index, int *type);
+  
+  int DLLEXPORT ENsetcurvetype(int index, int type);
 
   int DLLEXPORT ENgetcurvevalue(int curveIndex, int pointIndex,
                 EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);

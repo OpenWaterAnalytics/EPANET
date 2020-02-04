@@ -11,7 +11,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/29/2019
+ Last Updated: 02/01/2020
  ******************************************************************************
  */
 
@@ -1238,7 +1238,7 @@ typedef struct Project *EN_Project;
   int DLLEXPORT EN_getvertexcount(EN_Project ph, int index, int *count);
 
   /**
-  @brief Retrieves the coordinate's of a vertex point assigned to a link.
+  @brief Retrieves the coordinates of a vertex point assigned to a link.
   @param ph an EPANET project handle.
   @param index a link's index (starting from 1).
   @param vertex a vertex point index (starting from 1).
@@ -1247,6 +1247,17 @@ typedef struct Project *EN_Project;
   @return an error code.
   */
   int DLLEXPORT EN_getvertex(EN_Project ph, int index, int vertex, double *x, double *y);
+
+  /**
+  @brief Sets the coordinates of a vertex point assigned to a link.
+  @param ph an EPANET project handle.
+  @param index a link's index (starting from 1).
+  @param vertex a vertex point index (starting from 1).
+  @param x the vertex's X-coordinate value.
+  @param y the vertex's Y-coordinate value.
+  @return an error code.
+  */
+  int DLLEXPORT EN_setvertex(EN_Project ph, int index, int vertex, double x, double y);
 
   /**
   @brief Assigns a set of internal vertex points to a link.
@@ -1474,6 +1485,15 @@ typedef struct Project *EN_Project;
   @return an error code.
   */
   int  DLLEXPORT EN_getcurvetype(EN_Project ph, int index, int *type);
+
+  /**
+  @brief Sets a curve's type.
+  @param ph an EPANET project handle.
+  @param index a curve's index (starting from 1).
+  @param type the curve's type (see @ref EN_CurveType).
+  @return an error code.
+  */
+  int  DLLEXPORT EN_setcurvetype(EN_Project ph, int index, int type);
 
   /**
   @brief Retrieves the value of a single data point for a curve.

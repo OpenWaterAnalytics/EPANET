@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 12/05/2019
+ Last Updated: 02/03/2020
  ******************************************************************************
 */
 
@@ -64,14 +64,7 @@ int  openhyd(Project *pr)
     ERRCODE(allocmatrix(pr));
 
     // Check for unconnected nodes
-    if (!errcode) for (i = 1; i <= pr->network.Njuncs; i++)
-    {
-        if (pr->network.Adjlist[i] == NULL)
-        {
-            errcode = 233;
-            break;
-        }
-    }
+    ERRCODE(unlinked(pr));
 
     // Initialize link flows
     if (!errcode) for (i = 1; i <= pr->network.Nlinks; i++)

@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/06/2019
+ Last Updated: 02/01/2020
  ******************************************************************************
 */
 
@@ -94,7 +94,8 @@ typedef enum {
   EN_PUMP_HCURVE  = 19, //!< Pump head v. flow curve index
   EN_PUMP_ECURVE  = 20, //!< Pump efficiency v. flow curve index
   EN_PUMP_ECOST   = 21, //!< Pump average energy price
-  EN_PUMP_EPAT    = 22  //!< Pump energy price time pattern index
+  EN_PUMP_EPAT    = 22, //!< Pump energy price time pattern index
+  EN_GPV_CURVE    = 23  //!< GPV head loss v. flow curve index
 } EN_LinkProperty;
 
 /// Time parameters

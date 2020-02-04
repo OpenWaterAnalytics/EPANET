@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 11/12/19}
+{Last updated on 02/01/2020}
 
 interface
 
@@ -67,6 +67,7 @@ const
  EN_PUMP_ECURVE = 20;
  EN_PUMP_ECOST  = 21;
  EN_PUMP_EPAT   = 22;
+ EN_GPV_CURVE   = 23;
  
  EN_DURATION     = 0;  { Time parameters }
  EN_HYDSTEP      = 1;
@@ -253,8 +254,12 @@ const
  EN_R_IS_OPEN   = 1;   { Rule-based control link status }
  EN_R_IS_CLOSED = 2;
  EN_R_IS_ACTIVE = 3;
- 
+
+{$ifdef WINDOWS}
  EpanetLib = 'epanet2.dll';
+{$else}
+ EpanetLib = 'libepanet2.so';
+{$endif}
   
 {Project Functions}  
  function  ENepanet(F1: PAnsiChar; F2: PAnsiChar; F3: PAnsiChar; F4: Pointer): Integer; stdcall; external EpanetLib;
@@ -273,8 +278,8 @@ const
  function  ENsaveH: Integer; stdcall; external EpanetLib;
  function  ENopenH: Integer; stdcall; external EpanetLib;
  function  ENinitH(SaveFlag: Integer): Integer; stdcall; external EpanetLib;
- function  ENrunH(var T: LongInt): Integer; stdcall; external EpanetLib;
- function  ENnextH(var Tstep: LongInt): Integer; stdcall; external EpanetLib;
+ function  ENrunH(var T: Integer): Integer; stdcall; external EpanetLib;
+ function  ENnextH(var Tstep: Integer): Integer; stdcall; external EpanetLib;
  function  ENcloseH: Integer; stdcall; external EpanetLib;
  function  ENsavehydfile(F: PAnsiChar): Integer; stdcall; external EpanetLib;
  function  ENusehydfile(F: PAnsiChar): Integer; stdcall; external EpanetLib;
@@ -283,9 +288,9 @@ const
  function  ENsolveQ: Integer; stdcall; external EpanetLib;
  function  ENopenQ: Integer; stdcall; external EpanetLib;
  function  ENinitQ(SaveFlag: Integer): Integer; stdcall; external EpanetLib;
- function  ENrunQ(var T: LongInt): Integer; stdcall; external EpanetLib;
- function  ENnextQ(var Tstep: LongInt): Integer; stdcall; external EpanetLib;
- function  ENstepQ(var Tleft: LongInt): Integer; stdcall; external EpanetLib;
+ function  ENrunQ(var T: Integer): Integer; stdcall; external EpanetLib;
+ function  ENnextQ(var Tstep: Integer): Integer; stdcall; external EpanetLib;
+ function  ENstepQ(var Tleft: Integer): Integer; stdcall; external EpanetLib;
  function  ENcloseQ: Integer; stdcall; external EpanetLib;
 
 {Reporting Functions}
@@ -306,8 +311,8 @@ const
  function  ENsetoption(Code: Integer; Value: Single): Integer; stdcall; external EpanetLib;
  function  ENgetflowunits(var Code: Integer): Integer; stdcall; external EpanetLib;
  function  ENsetflowunits(Code: Integer): Integer; stdcall; external EpanetLib;
- function  ENgettimeparam(Code: Integer; var Value: LongInt): Integer; stdcall; external EpanetLib;
- function  ENsettimeparam(Code: Integer; Value: LongInt): Integer; stdcall; external EpanetLib;
+ function  ENgettimeparam(Code: Integer; var Value: Integer): Integer; stdcall; external EpanetLib;
+ function  ENsettimeparam(Code: Integer; Value: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetqualinfo(var QualType: Integer; ChemName: PAnsiChar; ChemUnits: PAnsiChar; var TraceNode: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetqualtype(var QualCode: Integer; var TraceNode: Integer): Integer; stdcall; external EpanetLib;
  function  ENsetqualtype(QualCode: Integer; ChemName: PAnsiChar; ChemUnits: PAnsiChar; TraceNodeID: PAnsiChar): Integer; stdcall; external EpanetLib;
@@ -356,6 +361,7 @@ const
 
  function  ENgetvertexcount(Index: Integer; var Count: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetvertex(Index: Integer; Vertex: Integer; var X: Double; var Y: Double): Integer; stdcall; external EpanetLib;
+ function  ENsetvertex(Index: Integer; Vertex: Integer; X: Double; Y: Double): Integer; stdcall; external EpanetLib;
  function  ENsetvertices(Index: Integer; var X: Double; var Y: Double; Count: Integer): Integer; stdcall; external EpanetLib;
  
 {Pump Functions}
@@ -383,6 +389,7 @@ const
  function  ENsetcurveid(Index: Integer; ID: PAnsiChar): Integer; stdcall; external EpanetLib;
  function  ENgetcurvelen(Index: Integer; var Len: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetcurvetype(Index: Integer; var CurveType: Integer): Integer; stdcall; external EpanetLib;
+ function  ENsetcurvetype(Index: Integer; CurveType: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetcurvevalue(CurveIndex: Integer; PointIndex: Integer; var X: Single; var Y: Single): Integer; stdcall; external EpanetLib;
  function  ENsetcurvevalue(CurveIndex: Integer; PointIndex: Integer; X: Single; Y: Single): Integer; stdcall; external EpanetLib;
  function  ENgetcurve(Index: Integer; ID: PAnsiChar; var N: Integer; var X: Single; var Y: Single): Integer; stdcall; external EpanetLib;
