@@ -25,8 +25,11 @@ BOOST_FIXTURE_TEST_CASE(test_rprt_anlysstats, FixtureOpenClose)
     std::vector<double> test(5);
     double *array = test.data();
 
-	std::vector<double> ref = {3.0, 7.0799498320679432e-06, 1.6680242187483429e-08,
-        0.0089173150106518495, 0.99999998187144024};
+	std::vector<double> ref =
+//    {3.0, 7.0799498320679432e-06, 1.6680242187483429e-08,    // v2.2
+//        0.0089173150106518495, 0.99999998187144024};
+      {3.0, 8.3792202148e-6, 2.63983750e-8,                    // v2.3_dev
+       0.0112012133155924, 0.9999999807954413};     
 
     error = EN_solveH(ph);
     BOOST_REQUIRE(error == 0);
