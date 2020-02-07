@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/04/2019
+ Last Updated: 02/07/2020
  ******************************************************************************
 */
 
@@ -59,9 +59,9 @@ static void    valvecoeff(Project *pr, int k);
 static void    gpvcoeff(Project *pr, int k);
 static void    pbvcoeff(Project *pr, int k);
 static void    tcvcoeff(Project *pr, int k);
+static void    fcvcoeff(Project *pr, int k);
 static void    prvcoeff(Project *pr, int k, int n1, int n2);
 static void    psvcoeff(Project *pr, int k, int n1, int n2);
-static void    fcvcoeff(Project *pr, int k, int n1, int n2);
 
 
 void  resistcoeff(Project *pr, int k)
@@ -152,6 +152,8 @@ void headlosscoeffs(Project *pr)
             gpvcoeff(pr, k);
             break;
         case FCV:
+            fcvcoeff(pr, k);
+            break;
         case PRV:
         case PSV:
             if (hyd->LinkSetting[k] == MISSING) valvecoeff(pr, k);
@@ -285,8 +287,8 @@ void  valvecoeffs(Project *pr)
 **   Input:   none
 **   Output:  none
 **   Purpose: computes coeffs. of the linearized hydraulic eqns.
-**            contributed by PRVs, PSVs & FCVs whose status is
-**            not fixed to OPEN/CLOSED
+**            contributed by PRVs & PSVs whose status is not
+**            fixed to OPEN/CLOSED
 **--------------------------------------------------------------
 */
 {
@@ -313,19 +315,8 @@ void  valvecoeffs(Project *pr)
         n2 = link->N2;
 
         // Call valve-specific function
-        switch (link->Type)
-        {
-        case PRV:
-            prvcoeff(pr, k, n1, n2);
-            break;
-        case PSV:
-            psvcoeff(pr, k, n1, n2);
-            break;
-        case FCV:
-            fcvcoeff(pr, k, n1, n2);
-            break;
-        default:   continue;
-        }
+        if (link->Type == PRV) prvcoeff(pr, k, n1, n2);
+        if (link->Type == PSV) psvcoeff(pr, k, n1, n2);
     }
 }
 
@@ -701,20 +692,31 @@ void  pumpcoeff(Project *pr, int k)
     }
 
     // Obtain reference to pump object
-    q = ABS(hyd->LinkFlow[k]);
     p = findpump(&pr->network, k);
     pump = &pr->network.Pump[p];
+    
+    // Prevent negative flow
+    q = hyd->LinkFlow[k];
+    if (q < 0.0)
+    {
+        hloss = -(SQR(setting) * pump->Hmax) + CBIG * q;
+        hgrad = CBIG;
+        hyd->P[k] = 1.0 / hgrad;
+        hyd->Y[k] = hloss / hgrad;
+        return;
+    }
 
     // If no pump curve treat pump as an open valve
     if (pump->Ptype == NOCURVE)
     {
         hyd->P[k] = 1.0 / CSMALL;
-        hyd->Y[k] = hyd->LinkFlow[k];
+        hyd->Y[k] = q;
         return;
     }
 
     // Get pump curve coefficients for custom pump curve
     // (Other pump types have pre-determined coeffs.)
+    q = ABS(q);
     if (pump->Ptype == CUSTOM)
     {
         // Find intercept (h0) & slope (r) of pump curve
@@ -1044,12 +1046,10 @@ void  psvcoeff(Project *pr, int k, int n1, int n2)
 }
 
 
-void  fcvcoeff(Project *pr, int k, int n1, int n2)
+void  fcvcoeff(Project *pr, int k)
 /*
 **--------------------------------------------------------------
 **   Input:   k    = link index
-**            n1   = upstream node of valve
-**            n2   = downstream node of valve
 **   Output:  none
 **   Purpose: computes solution matrix coeffs. for flow control
 **            valve
@@ -1059,40 +1059,28 @@ void  fcvcoeff(Project *pr, int k, int n1, int n2)
     Hydraul *hyd = &pr->hydraul;
     Smatrix *sm = &hyd->smatrix;
 
-    int   i, j;                   // Rows in solution matrix
-    double q;                     // Valve flow setting
+    double qset;                  // Valve flow setting
+    double flow;                  // Current valve flow
+    double hloss, hgrad;          // Head loss & gradient
 
-    q = hyd->LinkSetting[k];
-    i = sm->Row[n1];
-    j = sm->Row[n2];
-
-    // If valve active, break network at valve and treat
-    // flow setting as external demand at upstream node
-    // and external supply at downstream node.
-
-    if (hyd->LinkStatus[k] == ACTIVE)
-    {
-        hyd->Xflow[n1] -= q;
-        hyd->Xflow[n2] += q;
-        hyd->Y[k] = hyd->LinkFlow[k] - q;
-        sm->F[i] -= q;
-        sm->F[j] += q;
-        hyd->P[k] = 1.0 / CBIG;
-        sm->Aij[sm->Ndx[k]] -= hyd->P[k];
-        sm->Aii[i] += hyd->P[k];
-        sm->Aii[j] += hyd->P[k];
-    }
-
-    // Otherwise treat valve as an open pipe
-
-    else
+    // Treat as a regular valve if status fixed or flow below setting
+    qset = hyd->LinkSetting[k];
+    flow = hyd->LinkFlow[k];
+    if (qset == MISSING  || hyd->LinkStatus[k] <= CLOSED || flow < qset)
     {
         valvecoeff(pr, k);
-        sm->Aij[sm->Ndx[k]] -= hyd->P[k];
-        sm->Aii[i] += hyd->P[k];
-        sm->Aii[j] += hyd->P[k];
-        sm->F[i] += (hyd->Y[k] - hyd->LinkFlow[k]);
-        sm->F[j] -= (hyd->Y[k] - hyd->LinkFlow[k]);
+    }
+    
+    // Otherwise prevent flow from exceeding the setting
+    else
+    {
+        hyd->LinkFlow[k] = qset;
+        valvecoeff(pr, k);
+        hloss = hyd->Y[k] / hyd->P[k] + CBIG * (flow - qset);
+        hgrad = CBIG;
+        hyd->P[k] = 1.0 / hgrad;
+        hyd->Y[k] = hloss / hgrad;
+        hyd->LinkFlow[k] = flow;
     }
 }
 

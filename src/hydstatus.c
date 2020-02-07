@@ -7,7 +7,7 @@ Description:  updates hydraulic status of network elements
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/15/2019
+Last Updated: 02/07/2020
 ******************************************************************************
 */
 
@@ -140,18 +140,6 @@ int  linkstatus(Project *pr)
         {
             hyd->LinkStatus[k] = cvstatus(pr, hyd->LinkStatus[k], dh,
                                           hyd->LinkFlow[k]);
-        }
-        if (link->Type == PUMP && hyd->LinkStatus[k] >= OPEN &&
-            hyd->LinkSetting[k] > 0.0)
-        {
-            hyd->LinkStatus[k] = pumpstatus(pr, k, -dh);
-        }
-
-        // Check for status changes in non-fixed FCVs
-        if (link->Type == FCV && hyd->LinkSetting[k] != MISSING)
-        {
-            hyd->LinkStatus[k] = fcvstatus(pr, k, status, hyd->NodeHead[n1],
-                                           hyd->NodeHead[n2]);
         }
 
         // Check for flow into (out of) full (empty) tanks
