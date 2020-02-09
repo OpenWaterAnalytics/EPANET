@@ -8,7 +8,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/07/2020
+ Last Updated: 07/15/2019
  ******************************************************************************
 */
 
@@ -111,7 +111,6 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     maxtrials = hyd->MaxIter;
     if (hyd->ExtraIter > 0) maxtrials += hyd->ExtraIter;
     *iter = 1;
-    headlosscoeffs(pr);
     while (*iter <= maxtrials)
     {
         // Compute coefficient matrices A & F and solve A*H = F
@@ -119,6 +118,7 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
         // head loss gradients, & F = flow correction terms.
         // Solution for H is returned in F from call to linsolve().
 
+        headlosscoeffs(pr);
         matrixcoeffs(pr);
         errcode = linsolve(sm, net->Njuncs);
 
@@ -138,9 +138,6 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
         }
         newerr = newflows(pr, &hydbal);             // Update flows
         *relerr = newerr;
-       
-        // Compute head loss coeffs. for new flows
-        headlosscoeffs(pr);
 
         // Write convergence error to status report if called for
         if (rpt->Statflag == FULL)
@@ -246,7 +243,7 @@ int  badvalve(Project *pr, int n)
         if (n == n1 || n == n2)
         {
             t = link->Type;
-            if (t == PRV || t == PSV)
+            if (t == PRV || t == PSV || t == FCV)
             {
                 if (hyd->LinkStatus[k] == ACTIVE)
                 {
@@ -256,7 +253,8 @@ int  badvalve(Project *pr, int n)
                                 clocktime(rpt->Atime, time->Htime), link->ID);
                         writeline(pr, pr->Msg);
                     }
-                    hyd->LinkStatus[k] = XPRESSURE;
+                    if (link->Type == FCV) hyd->LinkStatus[k] = XFCV;
+                    else                   hyd->LinkStatus[k] = XPRESSURE;
                     return 1;
                 }
             }

@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 02/07/2020
+Last Updated: 02/03/2020
 ******************************************************************************
 */
 
@@ -429,14 +429,9 @@ int updatepumpparams(Project *pr, int pumpindex)
             {
                 if (curve->Y[m] >= curve->Y[m - 1]) return 227;
             }
-            pump->Q0 = (curve->X[0] + curve->X[npts-1]) / 2.0;
-            
-            // Extend curve to find Hmax (at 0 flow) and Qmax (at 0 head)
-            b = (curve->Y[1] - curve->Y[0]) / (curve->X[1] - curve->X[0]);
-            pump->Hmax = curve->Y[0] + b * curve->X[0];
-            b = (curve->Y[npts-1] - curve->Y[npts-2]) /
-                (curve->X[npts-1] - curve->X[npts-2]);
-            pump->Qmax = curve->X[npts-1] - curve->Y[npts-1] / b;
+            pump->Qmax = curve->X[npts - 1];
+            pump->Q0 = (curve->X[0] + pump->Qmax) / 2.0;
+            pump->Hmax = curve->Y[0];
         }
 
         // Compute shape factors & limits of power function curves
