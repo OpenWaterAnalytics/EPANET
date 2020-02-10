@@ -3631,7 +3631,8 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         {
             return EN_getlinkvalue(p, index, EN_ROUGHNESS, value);
         }
-        v = Link[index].Kc;
+        if (Link[index].Kc == MISSING) v = 0.0;
+        else v = Link[index].Kc;
         switch (Link[index].Type)
         {
         case PRV:

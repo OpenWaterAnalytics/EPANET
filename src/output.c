@@ -521,6 +521,8 @@ int linkoutput(Project *pr, int j, REAL4 *x, double ucf)
         for (i = 1; i <= net->Nlinks; i++)
         {
             if (hyd->LinkStatus[i] <= CLOSED) x[i] = 0.0f;
+            else if (net->Link[i].Type == PUMP &&
+                     hyd->LinkFlow[i] <= TINY) x[i] = 0.0f;
             else
             {
                 h = hyd->NodeHead[net->Link[i].N1] -
