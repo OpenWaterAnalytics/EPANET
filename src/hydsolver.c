@@ -37,7 +37,7 @@ int  hydsolve(Project *, int *, double *);
 // Imported functions
 extern int  linsolve(Smatrix *, int);  //(see SMATRIX.C)
 extern int  valvestatus(Project *);    //(see HYDSTATUS.C)
-extern int  linkstatus(Project *);     //(see HYDSTATUS.C)
+extern void linkstatus(Project *);     //(see HYDSTATUS.C)
 
 // Local functions
 static int    badvalve(Project *, int);
@@ -64,10 +64,8 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
 **  Purpose: solves network nodal equations for heads and flows
 **           using Todini's Gradient algorithm
 **
-**  Notes:   Status checks on CVs, pumps and pipes to tanks are made
-**           every CheckFreq iteration, up until MaxCheck iterations
-**           are reached. Status checks on control valves are made
-**           every iteration if DampLimit = 0 or only when the
+**  Notes:   Status checks on control valves are made every
+**           iteration if DampLimit = 0 or only when the
 **           convergence error is at or below DampLimit. If DampLimit
 **           is > 0 then future computed flow changes are only 60% of
 **           their full value. A complete status check on all links
@@ -87,16 +85,13 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
 
     int    i;                     // Node index
     int    errcode = 0;           // Node causing solution error
-    int    nextcheck;             // Next status check trial
     int    maxtrials;             // Max. trials for convergence
     double newerr;                // New convergence error
     int    valveChange;           // Valve status change flag
-    int    statChange;            // Non-valve status change flag
     Hydbalance hydbal;            // Hydraulic balance errors
     double fullDemand;            // Full demand for a node (cfs)
 
-    // Initialize status checking & relaxation factor
-    nextcheck = hyd->CheckFreq;
+    // Initialize relaxation factor
     hyd->RelaxFactor = 1.0;
     
     // Initialize convergence criteria and PDA results
@@ -117,9 +112,8 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
         // Compute coefficient matrices A & F and solve A*H = F
         // where H = heads, A = Jacobian coeffs. derived from
         // head loss gradients, & F = flow correction terms.
-        // Solution for H is returned in F from call to linsolve().
+        // Solution for H is returned in sm->F from call to linsolve().
 
-//        headlosscoeffs(pr);
         matrixcoeffs(pr);
         errcode = linsolve(sm, net->Njuncs);
 
@@ -132,7 +126,7 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
         }
 
         // Update current solution.
-        // (Row[i] = row of solution matrix corresponding to node i)
+        // (sm->Row[i] = row of solution matrix corresponding to node i)
         for (i = 1; i <= net->Njuncs; i++)
         {
             hyd->NodeHead[i] = sm->F[sm->Row[i]];   // Update heads
@@ -141,6 +135,7 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
         *relerr = newerr;
        
         // Compute head loss coeffs. for new flows
+        linkstatus(pr);
         headlosscoeffs(pr);
 
         // Write convergence error to status report if called for
@@ -171,23 +166,8 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
             // We have convergence - quit if we are into extra iterations
             if (*iter > hyd->MaxIter) break;
 
-            // Quit if no status changes occur
-            statChange = FALSE;
-            if (valveChange)    statChange = TRUE;
-            if (linkstatus(pr)) statChange = TRUE;
-            if (pswitch(pr))    statChange = TRUE;
-            if (!statChange)    break;
-
-            // We have a status change so continue the iterations
-            nextcheck = *iter + hyd->CheckFreq;
-        }
-
-        // No convergence yet - see if its time for a periodic status
-        // check  on pumps, CV's, and pipes connected to tank
-        else if (*iter <= hyd->MaxCheck && *iter == nextcheck)
-        {
-            linkstatus(pr);
-            nextcheck += hyd->CheckFreq;
+            // Quit if no status change in valves & pressure controlled links
+            if (!valveChange && !pswitch(pr)) break;
         }
         (*iter)++;
     }
@@ -644,6 +624,7 @@ int  hasconverged(Project *pr, double *relerr, Hydbalance *hbal)
     if (hyd->DemandModel == PDA) return pdaconverged(pr);
     return 1;
 }
+
 
 int pdaconverged(Project *pr)
 /*

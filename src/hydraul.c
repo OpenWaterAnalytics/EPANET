@@ -581,7 +581,7 @@ int  controls(Project *pr)
         {
             if ((time->Htime + time->Tstart) % SECperDAY == control->Time)
             {
-            reset = 1;
+                reset = 1;
             }
         }
 

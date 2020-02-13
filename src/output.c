@@ -599,6 +599,7 @@ int linkoutput(Project *pr, int j, REAL4 *x, double ucf)
                         hyd->NodeHead[net->Link[i].N2]);
                 f = 39.725 * h * pow(net->Link[i].Diam, 5) /
                     net->Link[i].Len / SQR(hyd->LinkFlow[i]);
+                if (f > 100.) f = 100.0;
                 x[i] = (REAL4)f;
             }
             else x[i] = 0.0f;

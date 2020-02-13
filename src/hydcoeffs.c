@@ -518,7 +518,13 @@ void  pipecoeff(Project *pr, int k)
             q,         // Abs. value of flow
             r;         // Resistance coeff.
 
-    // For closed pipe use headloss formula: hloss = CBIG*q
+    // check for reverse flow in pipes with check valves
+    if (pr->network.Link[k].Type == CVPIPE)
+    {
+        if (hyd->LinkFlow[k] < 0.0) hyd->LinkStatus[k] = TEMPCLOSED;
+    }
+
+    // Use large resistance head loss function for closed pipe
     if (hyd->LinkStatus[k] <= CLOSED)
     {
         hyd->P[k] = 1.0 / CBIG;
@@ -699,6 +705,7 @@ void  pumpcoeff(Project *pr, int k)
     q = hyd->LinkFlow[k];
     if (q < 0.0)
     {
+        hyd->LinkStatus[k] = XHEAD;
         hloss = -(SQR(setting) * pump->Hmax) + CBIG * q;
         hgrad = CBIG;
         hyd->P[k] = 1.0 / hgrad;
@@ -888,7 +895,9 @@ void  pbvcoeff(Project *pr, int k)
     Slink *link = &pr->network.Link[k];
 
     // If valve fixed OPEN or CLOSED then treat as a pipe
-    if (hyd->LinkSetting[k] == MISSING || hyd->LinkSetting[k] == 0.0)
+    if (hyd->LinkStatus[k] == CLOSED ||
+        hyd->LinkSetting[k] == MISSING ||
+        hyd->LinkSetting[k] == 0.0)
     {
         valvecoeff(pr, k);
     }

@@ -1132,7 +1132,6 @@ int writehydwarn(Project *pr, int iter, double relerr)
         if (hyd->LinkStatus[j] >= OPEN)
         {
             if (hyd->LinkFlow[j] > hyd->LinkSetting[j] * pump->Qmax) s = XFLOW;
-            if (hyd->LinkFlow[j] < 0.0) s = XHEAD;
         }
         if (s == XHEAD || s == XFLOW)
         {
