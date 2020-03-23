@@ -1592,7 +1592,7 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int param, long value)
         break;
 
     case EN_STARTTIME:
-        if (value < 0) return 213;
+        if (value < 0 || value > SECperDAY) return 213;
 	    time->Tstart = value;
         break;
 
