@@ -54,7 +54,6 @@ Public Const EN_SETTING = 12
 Public Const EN_ENERGY = 13
 Public Const EN_LINKQUAL = 14
 Public Const EN_LINKPATTERN = 15
-
 Public Const EN_PUMP_STATE = 16
 Public Const EN_PUMP_EFFIC = 17
 Public Const EN_PUMP_POWER = 18
@@ -78,6 +77,7 @@ Public Const EN_HTIME = 11
 Public Const EN_QTIME = 12
 Public Const EN_HALTFLAG = 13
 Public Const EN_NEXTEVENT = 14
+Public Const EN_NEXTEVENTTANK = 15
 
 Public Const EN_ITERATIONS = 0    ' Run statistics
 Public Const EN_RELATIVEERROR = 1
@@ -115,6 +115,14 @@ Public Const EN_PBV = 5
 Public Const EN_FCV = 6
 Public Const EN_TCV = 7
 Public Const EN_GPV = 8
+
+Public Const EN_CLOSED = 0        ' Link status types
+Public Const EN_OPEN   = 1
+
+Public Const EN_PUMP_XHEAD = 0    ' Pump state types
+Public Const EN_PUMP_CLOSED = 2
+Public Const EN_PUMP_OPEN = 3
+Public Const EN_PUMP_XFLOW = 5
 
 Public Const EN_NONE = 0          ' Quality analysis types
 Public Const EN_CHEM = 1
@@ -173,7 +181,8 @@ Public Const EN_HILEVEL = 1
 Public Const EN_TIMER = 2
 Public Const EN_TIMEOFDAY = 3
 
-Public Const EN_AVERAGE = 1       ' Time statistic types
+Public Const EN_SERIES = 0       ' Time statistic types
+Public Const EN_AVERAGE = 1
 Public Const EN_MINIMUM = 2
 Public Const EN_MAXIMUM = 3
 Public Const EN_RANGE = 4
