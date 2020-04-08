@@ -19,6 +19,9 @@
 # Doxygen output
 doxygen_out/
 
+# Test network
+test-network/
+
 # OS X Finder
 .DS_Store
 
