@@ -313,10 +313,14 @@ int allocdata(Project *pr)
         pr->hydraul.NodeDemand = (double *)calloc(n, sizeof(double));
         pr->hydraul.NodeHead   = (double *)calloc(n, sizeof(double));
         pr->quality.NodeQual   = (double *)calloc(n, sizeof(double));
+        pr->hydraul.DemandFlow  = (double *)calloc(n, sizeof(double));
+        pr->hydraul.EmitterFlow = (double *)calloc(n, sizeof(double));
         ERRCODE(MEMCHECK(pr->network.Node));
         ERRCODE(MEMCHECK(pr->hydraul.NodeDemand));
         ERRCODE(MEMCHECK(pr->hydraul.NodeHead));
         ERRCODE(MEMCHECK(pr->quality.NodeQual));
+        ERRCODE(MEMCHECK(pr->hydraul.DemandFlow));
+        ERRCODE(MEMCHECK(pr->hydraul.EmitterFlow));
     }
 
     // Allocate memory for network links
@@ -388,6 +392,8 @@ void freedata(Project *pr)
     free(pr->hydraul.LinkFlow);
     free(pr->hydraul.LinkSetting);
     free(pr->hydraul.LinkStatus);
+    free(pr->hydraul.DemandFlow);
+    free(pr->hydraul.EmitterFlow);
     free(pr->quality.NodeQual);
 
     // Free memory used for nodal adjacency lists
