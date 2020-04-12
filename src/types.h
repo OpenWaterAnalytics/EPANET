@@ -434,6 +434,7 @@ typedef struct             // Tank Object
 
 typedef struct             // Pump Object
 {
+  int     GroupCount;      // number of identical pumps in a pump group
   int     Link;            // link index of pump
   int     Ptype;           // pump curve type
   double  Q0;              // initial flow
