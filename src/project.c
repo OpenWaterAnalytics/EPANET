@@ -253,6 +253,8 @@ void initpointers(Project *pr)
     pr->hydraul.P = NULL;
     pr->hydraul.Y = NULL;
     pr->hydraul.Xflow = NULL;
+    pr->hydraul.DemandFlow = NULL;
+    pr->hydraul.EmitterFlow = NULL;
 
     pr->quality.NodeQual = NULL;
     pr->quality.PipeRateCoeff = NULL;
