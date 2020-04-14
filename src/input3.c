@@ -412,6 +412,7 @@ int pumpdata(Project *pr)
     pump->Upat = 0;
     pump->Ecost = 0.0;
     pump->Epat = 0;
+    pump->GroupCount = 1;
     if (n < 4) return 0;
 
     // If 4-th token is a number then input follows Version 1.x format
