@@ -3180,6 +3180,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
         size = (net->Npumps + 1) * sizeof(Spump);
         net->Pump = (Spump *)realloc(net->Pump, size);
         pump = &net->Pump[net->Npumps];
+        pump->GroupCount = 1;
         pump->Link = n;
         pump->Ptype = NOCURVE;
         pump->Q0 = 0;
@@ -3784,6 +3785,13 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
             v = (double)Pump[findpump(&p->network, index)].Epat;
         }
         break;
+        
+    case EN_PUMP_GROUPCOUNT:
+    	if (Link[index].Type == PUMP)
+    	{
+    	    v = (double)Pump[findpump(&p->network, index)].GroupCount;
+    	}
+    	break;
 
     default:
         return 251;
@@ -3812,7 +3820,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
     double *LinkSetting = hyd->LinkSetting;
     char s;
     double r;
-    int pumpIndex, patIndex, curveIndex;
+    int pumpIndex, patIndex, curveIndex, pumpGroupCount;
 
     if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Nlinks) return 204;
@@ -3991,7 +3999,17 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             net->Pump[pumpIndex].Epat = patIndex;
         }
         break;
-
+    
+    case EN_PUMP_GROUPCOUNT:
+    	if (Link[index].Type == PUMP)
+    	{
+    	    pumpGroupCount = ROUND(value);
+    	    if (pumpGroupCount < 1) return 211;
+            pumpIndex = findpump(&p->network, index);
+            net->Pump[pumpIndex].GroupCount = pumpGroupCount;    	    
+    	}
+    	break;
+    
     default:
         return 251;
     }
