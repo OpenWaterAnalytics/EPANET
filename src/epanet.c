@@ -1777,6 +1777,8 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
     hyd->NodeDemand = (double *)realloc(hyd->NodeDemand, size);
     qual->NodeQual = (double *)realloc(qual->NodeQual, size);
     hyd->NodeHead = (double *)realloc(hyd->NodeHead, size);
+    hyd->DemandFlow = (double *)realloc(hyd->DemandFlow, size);
+    hyd->EmitterFlow = (double *)realloc(hyd->EmitterFlow, size);
 
     // Actions taken when a new Junction is added
     if (nodeType == EN_JUNCTION)
