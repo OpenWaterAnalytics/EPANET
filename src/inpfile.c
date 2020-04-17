@@ -269,6 +269,13 @@ int saveinpfile(Project *pr, const char *fname)
             sprintf(s1, "  SPEED %.4f", link->Kc);
             strcat(s, s1);
         }
+        
+        // Optional GroupCount setting
+        if (pump->GroupCount > 1)
+        {
+            sprintf(s1, "  GROUPCOUNT %d", pump->GroupCount);
+            strcat(s, s1);
+        }
 
         fprintf(f, "\n%s", s);
         if (link->Comment) fprintf(f, "  ;%s", link->Comment);
