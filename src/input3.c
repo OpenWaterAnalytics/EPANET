@@ -356,7 +356,7 @@ int pumpdata(Project *pr)
 **   id  node1  node2  h0    h1   q1   h2   q2
 **   (Version 2 Format):
 **   id  node1  node2  KEYWORD value {KEYWORD value ...}
-**   where KEYWORD = [POWER,HEAD,PATTERN,SPEED]
+**   where KEYWORD = [POWER,HEAD,PATTERN,SPEED,GROUPCOUNT]
 **--------------------------------------------------------------
 */
 {
@@ -457,6 +457,13 @@ int pumpdata(Project *pr)
             if (!getfloat(parser->Tok[m], &y)) return setError(parser, m, 202);
             if (y < 0.0) return setError(parser, m, 211);
             link->Kc = y;
+        }
+        
+        else if (match(parser->Tok[m - 1], w_GROUPCOUNT)) // Pump group count setting
+        {
+            if (!getfloat(parser->Tok[m], &y)) return setError(parser, m, 202);
+            if (y < 1.0) return setError(parser, m, 211);
+            pump->GroupCount = y;
         }
         else return 201;
         m = m + 2;  // Move to next keyword token
