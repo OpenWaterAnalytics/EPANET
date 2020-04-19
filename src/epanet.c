@@ -2628,8 +2628,8 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     Network *net = &p->network;
 
     int i, j, n, curveIndex = 0;
-    double area, elevation = elev;
     double *Ucf = p->Ucf;
+    double area;
     Stank *Tank = net->Tank;
     Scurve *curve;
 
@@ -2666,11 +2666,11 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     else area = PI * diam * diam / 4.0;
 
     // Assign parameters to tank object
-    net->Node[Tank[j].Node].El = elevation;
+    net->Node[Tank[j].Node].El = elev / Ucf[ELEV];
     Tank[j].A = area / Ucf[ELEV] / Ucf[ELEV];
-    Tank[j].H0 = elevation + initlvl / Ucf[ELEV];
-    Tank[j].Hmin = elevation + minlvl / Ucf[ELEV];
-    Tank[j].Hmax = elevation + maxlvl / Ucf[ELEV];
+    Tank[j].H0 = (elev + initlvl) / Ucf[ELEV];
+    Tank[j].Hmin = (elev + minlvl) / Ucf[ELEV];
+    Tank[j].Hmax = (elev + maxlvl) / Ucf[ELEV];
     Tank[j].Vcurve = curveIndex;
     if (curveIndex == 0)
     {
