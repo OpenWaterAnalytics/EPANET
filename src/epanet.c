@@ -3736,7 +3736,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
             pmp = findpump(net, index);
             if (hyd->LinkStatus[index] >= OPEN)
             {
-                if (hyd->LinkFlow[index] > hyd->LinkSetting[index] * Pump[pmp].Qmax)
+                if (hyd->LinkFlow[index] > hyd->LinkSetting[index] * Pump[pmp].Qmax * Pump[pmp].GroupCount)
                 {
                     v = XFLOW;
                 }
