@@ -718,8 +718,8 @@ void  pumpcoeff(Project *pr, int k)
     if (pump->Ptype == CUSTOM)
     {
         // Find intercept (h0) & slope (r) of pump curve
-        // line segment which contains speed-adjusted flow.
-        curvecoeff(pr, pump->Hcurve, q / setting, &h0, &r);
+        // line segment which contains flow adjusted for speed and number of pumps in a pump group.
+        curvecoeff(pr, pump->Hcurve, q / (setting * pump->GroupCount), &h0, &r);
 
         // Determine head loss coefficients (negative sign
         // converts from pump curve's head gain to head loss)
@@ -727,8 +727,8 @@ void  pumpcoeff(Project *pr, int k)
         pump->R = -r;
         pump->N = 1.0;
 
-        // Compute head loss and its gradient (with speed adjustment)
-        hgrad = pump->R * setting ;
+        // Compute head loss and its gradient (with adjustment for speed and number of pumps in a group)
+        hgrad = pump->R * setting / pump->GroupCount;
         hloss = pump->H0 * SQR(setting) + hgrad * hyd->LinkFlow[k];
     }
     else
@@ -737,13 +737,17 @@ void  pumpcoeff(Project *pr, int k)
         h0 = SQR(setting) * pump->H0;
         n = pump->N;
         if (ABS(n - 1.0) < TINY) n = 1.0;
-        r = pump->R * pow(setting, 2.0 - n);
+        r = pump->R * pow(setting, 2.0 - n) / pump->GroupCount; // is this true for n != 1?
         
         // Constant HP pump
         if (pump->Ptype == CONST_HP)
         {
             // ... compute pump curve's gradient
-            hgrad = -r / q / q;
+            hgrad = -r * pump->GroupCount / q / q ; /* reverts previous division
+                                                     * by pump->GroupCount
+                                                     * as pump power is assumed to be
+                                                     * summative (pumps in series) */
+            
             // ... use linear curve if gradient too large or too small
             if (hgrad > CBIG)
             {
@@ -758,7 +762,8 @@ void  pumpcoeff(Project *pr, int k)
             // ... otherwise compute head loss from pump curve
             else
             {
-                hloss = r / hyd->LinkFlow[k];
+                //hloss = r * pump-> GroupCount / hyd->LinkFlow[k];
+                hloss = -hgrad * pump-> GroupCount * hyd->LinkFlow[k]; //pumps in series
             }
         }            
 
@@ -767,7 +772,7 @@ void  pumpcoeff(Project *pr, int k)
         else if (n != 1.0)
         {
             // ... compute pump curve's gradient
-            hgrad = n * r * pow(q, n - 1.0);
+            hgrad = n * r * pow(q, n - 1.0) / pump->GroupCount; // is this true for n != 1?
             // ... use linear pump curve if gradient too small
             if (hgrad < hyd->RQtol)
             {
@@ -780,7 +785,7 @@ void  pumpcoeff(Project *pr, int k)
         // ... pump curve is linear
         else
         {
-            hgrad = r;
+            hgrad = r / pump->GroupCount;
             hloss = h0 + hgrad * hyd->LinkFlow[k];
         }
     }
