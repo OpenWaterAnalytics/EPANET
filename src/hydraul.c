@@ -365,7 +365,16 @@ void  initlinkflow(Project *pr, int i, char s, double k)
     }
     else if (link->Type == PUMP)
     {
-        hyd->LinkFlow[i] = k * n->Pump[findpump(n,i)].Q0;
+        if(n->Pump[findpump(n,i)].Ptype == CONST_HP)
+        {
+            hyd->LinkFlow[i] = k * (n->Pump[findpump(n,i)].Q0);
+        }
+        else
+        {
+            /* Design flow for a group of pumps is equal to pump speed * pump's design flow * 
+            number of pumps in a group */
+            hyd->LinkFlow[i] = k * (n->Pump[findpump(n,i)].Q0)*(n->Pump[findpump(n,i)].GroupCount);
+        }
     }
     else
     {
