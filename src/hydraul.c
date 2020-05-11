@@ -39,6 +39,8 @@ void    ruletimestep(Project *, long *);
 void    addenergy(Project *, long);
 void    tanklevels(Project *, long);
 void    resetpumpflow(Project *, int);
+void    sortcurvepoints(int, double *, double *);
+double  getefficiency (double, double*);
 
 int  openhyd(Project *pr)
 /*
@@ -962,6 +964,10 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
            e;       // pump efficiency
     double q4eff;   // flow at nominal pump speed of 1.0
     double speed;   // current speed setting
+    
+    double effcurvepars[3]; /* parameters required for an analytical calculation
+                             * or efficiency using a third order polynomial function */
+    
     Scurve *curve;
     Slink  *link = &net->Link[k];
 
@@ -985,10 +991,91 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
         speed = hyd->LinkSetting[k];
         if ((i = net->Pump[j].Ecurve) > 0)
         {
-            q4eff = q / speed * pr->Ucf[FLOW];
+            /* Flow for efficiency calculations is scaled by speed and number of pumps in the group */
+            q4eff = q / speed / net->Pump[j].GroupCount * pr->Ucf[FLOW];
             curve = &net->Curve[i];
-            e = interp(curve->Npts,curve->X, curve->Y, q4eff);
-
+            
+            /* If the curve has two two or three points the use Ulanicki's equations,
+             * otherwise, interpolate in between points */
+            if (curve->Npts <= 3)
+            {
+				// Sort the points in ascending order with respect to X
+				sortcurvepoints(curve->Npts, curve->X, curve->Y);
+				
+				switch(curve->Npts) {
+					
+					case 1  : // If just a single curve point specified
+				    if(curve->X[0] == 0 || curve->Y[0] == 0)
+				    {
+						e = hyd->Epump; // default pump efficiency
+						
+					} else
+					{
+						// Assume that the point describes peak flow and efficiency
+						effcurvepars[0] = curve->X[0];
+						effcurvepars[1] = curve->Y[0];
+						effcurvepars[2] = 2*curve->X[0];
+						// Calculate the efficiency analytically
+						e = getefficiency(q4eff,effcurvepars);
+					}
+				    break;			
+				    
+				    case 2  : // If two curve points specified
+				    if(curve->X[0]==0 && curve->Y[0]==0 && curve->X[1]!=0 && curve->Y[1]!=0)
+				    {
+						// treat the second point as peak efficiency point
+						effcurvepars[0] = curve->X[1];
+						effcurvepars[1] = curve->Y[1];
+						effcurvepars[2] = 2*curve->X[1];
+						// Calculate the efficiency analytically
+						e = getefficiency(q4eff,effcurvepars);
+					} 
+					else if(curve->X[0]!=0 && curve->Y[0]!=0 && curve->Y[1]==0)
+					{
+						/* treat the first point as peak efficiency point
+						 * and the second point as cutoff flow */
+						effcurvepars[0] = curve->X[0];
+						effcurvepars[1] = curve->Y[0];
+						effcurvepars[2] = curve->X[1];
+						// Calculate the efficiency analytically
+						e = getefficiency(q4eff,effcurvepars);
+					} else 
+					// For the rest of combinations (invalid) set e to default
+					{
+						e = hyd->Epump; // default pump efficiency
+					}
+				    break;
+				    
+				    case 3  : // If three curve points specified
+				    if(curve->X[0]!=0)
+				    {   
+						// three points qualify for interpolation
+						e = interp(curve->Npts,curve->X, curve->Y, q4eff);
+					} else if(curve->X[1]!=0 && curve->Y[1]!=0 && curve->Y[2]==0)
+					{
+						/* treat the second point as peak efficiency point
+						 * and the third point as cutoff flow */ 
+						effcurvepars[0] = curve->X[1];
+						effcurvepars[1] = curve->Y[1];
+						effcurvepars[2] = curve->X[2];
+						// Calculate the efficiency analytically
+						e = getefficiency(q4eff,effcurvepars);
+					} else if(curve->X[1]!=0 && curve->Y[1]!=0 && 
+							curve->Y[2]!=0) 
+					{
+						e = interp(curve->Npts,curve->X, curve->Y, q4eff);
+					} else 
+					{
+						e = hyd->Epump; // default pump efficiency
+					}
+				    break;			  
+			    }
+            }
+            else
+            {
+				// interpolate between points if no. of points > 3
+                e = interp(curve->Npts,curve->X, curve->Y, q4eff);
+            }
             // Sarbu and Borza pump speed adjustment
             e = 100.0 - ((100.0-e) * pow(1.0/speed, 0.1));
         }
@@ -1124,3 +1211,60 @@ void resetpumpflow(Project *pr, int i)
         pr->hydraul.LinkFlow[i] = pump->Q0; 
 }
 
+void sortcurvepoints(int N, double *X, double *Y)
+/*
+ **-------------------------------------------------------------------
+ **  Input:   N = no. of points in X and in Y
+ *            X = vector of x coordinates in the curve
+ *            Y = vector of y coordinates in the curve
+ **  Output:  none
+ **  Purpose: sort X,Y in ascending order in X.
+ **-------------------------------------------------------------------
+*/
+{
+	int i,j,tempX, tempY;
+	
+	for (i=0; i<N; i++)
+	{
+		for (j=i+1; j<N; j++)
+		{
+			if(X[i]>X[j]){
+				tempX = X[i];
+				tempY = Y[i];
+				X[i]=X[j];
+				Y[i]=Y[j];
+				X[j]=tempX;
+				Y[j]=tempY;
+			}
+		}
+	}
+}
+
+double getefficiency (double q, double* pars)
+{
+	double q_star, q_cutoff, e_star; // names of the supplied pars
+	double den; // auxiliary variable
+	double a,b,c; // third degree polynomial coefficients (d==0)
+	double eff; // calculated efficiency
+	
+	q_star = pars[0];
+	e_star = pars[1];
+	q_cutoff = pars[2];
+	
+	// validity check
+	if (q_star < 2.0/3.0 * q_cutoff)
+	{
+		den = -pow(q_star,2.0)*pow((q_cutoff-q_star),2.0);
+		a = (e_star * (2*q_star - q_cutoff))/den;
+		b = -e_star * (3*pow(q_star,2.0)-pow(q_cutoff,2.0))/den;
+		c = (e_star * q_star * q_cutoff * (3*q_star - 2*q_cutoff))/den;
+	
+		eff = a*pow(q,3.0)+b*pow(q,2.0)+c*q;
+	} else
+	{
+		// Increase q_cutoff to >3/2 q_star
+		pars[2]=1.55*pars[0];
+		eff = getefficiency (q, pars);
+	}
+	return eff;
+}
