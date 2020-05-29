@@ -2254,6 +2254,10 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
             (hyd->NodeDemand[index] - hyd->EmitterFlow[index])) * Ucf[FLOW];
         break;
         
+    case EN_NODE_INCONTROL:
+        v = (double)incontrols(p, NODE, index);
+        break;
+        
     default:
         return 251;
     }
@@ -3787,6 +3791,10 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         }
         break;
 
+    case EN_LINK_INCONTROL:
+        v = (double)incontrols(p, LINK, index);
+        break;
+        
     default:
         return 251;
     }
