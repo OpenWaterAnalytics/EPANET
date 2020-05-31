@@ -95,7 +95,8 @@ typedef enum {
   EN_PUMP_ECURVE  = 20,   //!< Pump efficiency v. flow curve index
   EN_PUMP_ECOST   = 21,   //!< Pump average energy price
   EN_PUMP_EPAT    = 22,   //!< Pump energy price time pattern index
-  EN_PUMP_GROUPCOUNT = 23 //!<Number of pumps in parallel in the pump object
+  EN_PUMP_GROUPCOUNT = 23, //!<Number of pumps in parallel in the pump object
+  EN_LINK_INCONTROL = 24   //!< Link appears in any simple or rule-based control (= 1) or not (= 0)
 } EN_LinkProperty;
 
 /// Time parameters
