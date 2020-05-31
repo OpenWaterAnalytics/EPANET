@@ -1777,6 +1777,8 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
     hyd->NodeDemand = (double *)realloc(hyd->NodeDemand, size);
     qual->NodeQual = (double *)realloc(qual->NodeQual, size);
     hyd->NodeHead = (double *)realloc(hyd->NodeHead, size);
+    hyd->DemandFlow = (double *)realloc(hyd->DemandFlow, size);
+    hyd->EmitterFlow = (double *)realloc(hyd->EmitterFlow, size);
 
     // Actions taken when a new Junction is added
     if (nodeType == EN_JUNCTION)
@@ -2252,6 +2254,10 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
             (hyd->NodeDemand[index] - hyd->EmitterFlow[index])) * Ucf[FLOW];
         break;
         
+    case EN_NODE_INCONTROL:
+        v = (double)incontrols(p, NODE, index);
+        break;
+        
     default:
         return 251;
     }
@@ -2626,8 +2632,8 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     Network *net = &p->network;
 
     int i, j, n, curveIndex = 0;
-    double area, elevation = elev;
     double *Ucf = p->Ucf;
+    double area;
     Stank *Tank = net->Tank;
     Scurve *curve;
 
@@ -2664,11 +2670,11 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     else area = PI * diam * diam / 4.0;
 
     // Assign parameters to tank object
-    net->Node[Tank[j].Node].El = elevation;
+    net->Node[Tank[j].Node].El = elev / Ucf[ELEV];
     Tank[j].A = area / Ucf[ELEV] / Ucf[ELEV];
-    Tank[j].H0 = elevation + initlvl / Ucf[ELEV];
-    Tank[j].Hmin = elevation + minlvl / Ucf[ELEV];
-    Tank[j].Hmax = elevation + maxlvl / Ucf[ELEV];
+    Tank[j].H0 = (elev + initlvl) / Ucf[ELEV];
+    Tank[j].Hmin = (elev + minlvl) / Ucf[ELEV];
+    Tank[j].Hmax = (elev + maxlvl) / Ucf[ELEV];
     Tank[j].Vcurve = curveIndex;
     if (curveIndex == 0)
     {
@@ -3793,6 +3799,10 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
     	}
     	break;
 
+    case EN_LINK_INCONTROL:
+        v = (double)incontrols(p, LINK, index);
+        break;
+        
     default:
         return 251;
     }

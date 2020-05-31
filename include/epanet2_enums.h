@@ -63,7 +63,8 @@ typedef enum {
   EN_TANKVOLUME   = 24, //!< Current computed tank volume (read only)
   EN_MAXVOLUME    = 25, //!< Tank maximum volume (read only)
   EN_CANOVERFLOW  = 26, //!< Tank can overflow (= 1) or not (= 0)
-  EN_DEMANDDEFICIT = 27 //!< Amount that full demand is reduced under PDA (read only)
+  EN_DEMANDDEFICIT = 27,//!< Amount that full demand is reduced under PDA (read only)
+  EN_NODE_INCONTROL = 28  //!< Is present in any simple or rule-based control (= 1) or not (= 0)
 } EN_NodeProperty;
 
 /// Link properties
@@ -95,8 +96,33 @@ typedef enum {
   EN_PUMP_ECURVE  = 20,   //!< Pump efficiency v. flow curve index
   EN_PUMP_ECOST   = 21,   //!< Pump average energy price
   EN_PUMP_EPAT    = 22,   //!< Pump energy price time pattern index
-  EN_PUMP_GROUPCOUNT = 23, //!<Number of pumps in parallel in the pump object
-  EN_LINK_INCONTROL = 24   //!< Link appears in any simple or rule-based control (= 1) or not (= 0)
+  EN_LINK_INCONTROL = 23, //!< Is present in any simple or rule-based control (= 1) or not (= 0)
+  EN_PUMP_GROUPCOUNT = 24 //!<Number of pumps in parallel in the pump object
+=======
+  EN_DIAMETER     = 0,  //!< Pipe/valve diameter
+  EN_LENGTH       = 1,  //!< Pipe length
+  EN_ROUGHNESS    = 2,  //!< Pipe roughness coefficient
+  EN_MINORLOSS    = 3,  //!< Pipe/valve minor loss coefficient
+  EN_INITSTATUS   = 4,  //!< Initial status (see @ref EN_LinkStatusType)
+  EN_INITSETTING  = 5,  //!< Initial pump speed or valve setting
+  EN_KBULK        = 6,  //!< Bulk chemical reaction coefficient
+  EN_KWALL        = 7,  //!< Pipe wall chemical reaction coefficient
+  EN_FLOW         = 8,  //!< Current computed flow rate (read only)
+  EN_VELOCITY     = 9,  //!< Current computed flow velocity (read only)
+  EN_HEADLOSS     = 10, //!< Current computed head loss (read only)
+  EN_STATUS       = 11, //!< Current link status (see @ref EN_LinkStatusType)
+  EN_SETTING      = 12, //!< Current link setting
+  EN_ENERGY       = 13, //!< Current computed pump energy usage (read only)
+  EN_LINKQUAL     = 14, //!< Current computed link quality (read only)
+  EN_LINKPATTERN  = 15, //!< Pump speed time pattern index
+  EN_PUMP_STATE   = 16, //!< Current computed pump state (read only) (see @ref EN_PumpStateType)
+  EN_PUMP_EFFIC   = 17, //!< Current computed pump efficiency (read only)
+  EN_PUMP_POWER   = 18, //!< Pump constant power rating
+  EN_PUMP_HCURVE  = 19, //!< Pump head v. flow curve index
+  EN_PUMP_ECURVE  = 20, //!< Pump efficiency v. flow curve index
+  EN_PUMP_ECOST   = 21, //!< Pump average energy price
+  EN_PUMP_EPAT    = 22, //!< Pump energy price time pattern index
+  EN_LINK_INCONTROL = 23  //!< Is present in any simple or rule-based control (= 1) or not (= 0)
 } EN_LinkProperty;
 
 /// Time parameters
