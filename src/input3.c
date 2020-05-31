@@ -463,7 +463,7 @@ int pumpdata(Project *pr)
         {
             if (!getfloat(parser->Tok[m], &y)) return setError(parser, m, 202);
             if (y < 1.0) return setError(parser, m, 211);
-            pump->GroupCount = y;
+            pump->GroupCount = ROUND(y);
         }
         else return 201;
         m = m + 2;  // Move to next keyword token
