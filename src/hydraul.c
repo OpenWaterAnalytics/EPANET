@@ -351,9 +351,9 @@ void  initlinkflow(Project *pr, int i, char s, double k)
 */
 {
     Hydraul *hyd = &pr->hydraul;
-    Network *n = &pr->network;
+    Network *net = &pr->network;
 
-    Slink *link = &n->Link[i];
+    Slink *link = &net->Link[i];
     Spump *pump;
 
     if (s == CLOSED)
