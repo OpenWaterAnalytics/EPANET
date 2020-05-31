@@ -25,7 +25,6 @@ Public Const EN_SOURCEMASS = 13
 Public Const EN_INITVOLUME = 14
 Public Const EN_MIXMODEL = 15
 Public Const EN_MIXZONEVOL = 16
-
 Public Const EN_TANKDIAM = 17
 Public Const EN_MINVOLUME = 18
 Public Const EN_VOLCURVE = 19
@@ -37,6 +36,7 @@ Public Const EN_TANKVOLUME = 24
 Public Const EN_MAXVOLUME = 25
 Public Const EN_CANOVERFLOW = 26
 Public Const EN_DEMANDDEFICIT = 27 
+Public Const EN_NODE_INCONTROL = 28
 
 Public Const EN_DIAMETER = 0      ' Link parameters
 Public Const EN_LENGTH = 1
@@ -61,6 +61,7 @@ Public Const EN_PUMP_HCURVE = 19
 Public Const EN_PUMP_ECURVE = 20
 Public Const EN_PUMP_ECOST = 21
 Public Const EN_PUMP_EPAT = 22
+Public Const EN_LINK_INCONTROL = 23
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
