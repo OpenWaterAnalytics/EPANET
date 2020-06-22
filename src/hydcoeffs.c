@@ -400,7 +400,7 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
     // Use linear head loss function for small gradient
     if (*hgrad < hyd->RQtol)
     {
-        *hgrad = hyd->RQtol;
+        *hgrad = hyd->RQtol / hyd->Qexp;
         *hloss = (*hgrad) * q;
     }            
 
@@ -492,7 +492,7 @@ void demandheadloss(Project *pr, int i, double dp, double n,
         // ... use linear function for very small gradient
         if (*hgrad < hyd->RQtol)
         {
-            *hgrad = hyd->RQtol;
+            *hgrad = hyd->RQtol / n;
             *hloss = (*hgrad) * d;
         }
         else *hloss = (*hgrad) * d / n;
@@ -553,7 +553,7 @@ void  pipecoeff(Project *pr, int k)
     // ... use linear function for very small gradient
     if (hgrad < hyd->RQtol)
     {
-        hgrad = hyd->RQtol;
+        hgrad = hyd->RQtol / hyd->Hexp;
         hloss = hgrad * q;
     }
     // ... otherwise use original formula
@@ -771,7 +771,7 @@ void  pumpcoeff(Project *pr, int k)
             // ... use linear pump curve if gradient too small
             if (hgrad < hyd->RQtol)
             {
-                hgrad = hyd->RQtol;
+                hgrad = hyd->RQtol / n;
                 hloss = h0 + hgrad * hyd->LinkFlow[k];
             }
             // ... otherwise compute head loss from pump curve
@@ -1131,7 +1131,7 @@ void valvecoeff(Project *pr, int k)
         // Guard against too small a head loss gradient
         if (hgrad < hyd->RQtol)
         {
-            hgrad = hyd->RQtol;
+            hgrad = hyd->RQtol / 2.0;
             hloss = flow * hgrad;
         }
         else hloss = flow * hgrad / 2.0;        
