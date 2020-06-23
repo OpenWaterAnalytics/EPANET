@@ -151,7 +151,8 @@ BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureAfterStep)
     double *value = test.data();
 
     error = EN_getnodeindex(ph, (char *)"11", &index);
-    std::vector<double> ref = {179.999, 991.574, 122.006, 0.857};
+//    std::vector<double> ref = {179.999, 991.574, 122.006, 0.857};
+    std::vector<double> ref = {180.000, 991.568, 122.004, 0.864};
 
 
     // Ranged for loop iterates over property set
@@ -178,7 +179,8 @@ BOOST_FIXTURE_TEST_CASE(test_tank_props, FixtureAfterStep)
     double *value = test.data();
 
     error = EN_getnodeindex(ph, (char *)"2", &index);
-    std::vector<double> ref = {505.383, 978.138, 55.522, 0.911};
+//    std::vector<double> ref = {505.383, 978.138, 55.522, 0.911};
+    std::vector<double> ref = {505.032, 978.134, 55.520, 0.913};
 
     // Ranged for loop iterates over property set
     for (EN_NodeProperty p : props) {
