@@ -174,8 +174,6 @@ void   matrixcoeffs(Project *pr)
     Hydraul *hyd = &pr->hydraul;
     Smatrix *sm = &hyd->smatrix;
 
-    int i;
-
     // Reset values of all diagonal coeffs. (Aii), off-diagonal
     // coeffs. (Aij), r.h.s. coeffs. (F) and node excess flow (Xflow)
     memset(sm->Aii, 0, (net->Nnodes + 1) * sizeof(double));
@@ -194,10 +192,6 @@ void   matrixcoeffs(Project *pr)
     // Finally, find coeffs. for PRV/PSV/FCV control valves whose
     // status is not fixed to OPEN/CLOSED
     valvecoeffs(pr);
-
-    // Apply a small regularization to the diagonal of A
-    for (i = 1; i <= net->Njuncs; i++)
-        sm->Aii[i] += hyd->RQtol;
 }
 
 
@@ -404,9 +398,9 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
     *hgrad = hyd->Qexp * ke * pow(fabs(q), hyd->Qexp - 1.0);
     
     // Use linear head loss function for small gradient
-    if (*hgrad < hyd->RQtol * hyd->Qexp)
+    if (*hgrad < hyd->RQtol)
     {
-        *hgrad = hyd->RQtol;  // / hyd->Qexp;
+        *hgrad = hyd->RQtol / hyd->Qexp;
         *hloss = (*hgrad) * q;
     }            
 
@@ -496,9 +490,9 @@ void demandheadloss(Project *pr, int i, double dp, double n,
     {
         *hgrad = n * dp * pow(r, n - 1.0) / dfull;
         // ... use linear function for very small gradient
-        if (*hgrad < hyd->RQtol * n)
+        if (*hgrad < hyd->RQtol)
         {
-            *hgrad = hyd->RQtol;  // / n;
+            *hgrad = hyd->RQtol / n;
             *hloss = (*hgrad) * d;
         }
         else *hloss = (*hgrad) * d / n;
@@ -557,9 +551,9 @@ void  pipecoeff(Project *pr, int k)
     
     // Friction head loss:
     // ... use linear function for very small gradient
-    if (hgrad < hyd->RQtol * hyd->Hexp)
+    if (hgrad < hyd->RQtol)
     {
-        hgrad = hyd->RQtol;  // / hyd->Hexp;
+        hgrad = hyd->RQtol / hyd->Hexp;
         hloss = hgrad * q;
     }
     // ... otherwise use original formula
@@ -775,9 +769,9 @@ void  pumpcoeff(Project *pr, int k)
             // ... compute pump curve's gradient
             hgrad = n * r * pow(q, n - 1.0);
             // ... use linear pump curve if gradient too small
-            if (hgrad < hyd->RQtol * n)
+            if (hgrad < hyd->RQtol)
             {
-                hgrad = hyd->RQtol;  // / n;
+                hgrad = hyd->RQtol / n;
                 hloss = h0 + hgrad * hyd->LinkFlow[k];
             }
             // ... otherwise compute head loss from pump curve
@@ -1135,9 +1129,9 @@ void valvecoeff(Project *pr, int k)
         hgrad = 2.0 * link->Km * q;
         
         // Guard against too small a head loss gradient
-        if (hgrad < hyd->RQtol * 2.0)
+        if (hgrad < hyd->RQtol)
         {
-            hgrad = hyd->RQtol;  // / 2.0;
+            hgrad = hyd->RQtol / 2.0;
             hloss = flow * hgrad;
         }
         else hloss = flow * hgrad / 2.0;        

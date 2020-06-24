@@ -32,7 +32,7 @@ Last Updated: 07/08/2019
 #define SPGRAV 1.0    // Default specific gravity
 #define EPUMP 75      // Default pump efficiency
 #define DEFPATID "1"  // Default demand pattern ID
-#define RQTOL 1E-7    // Default low flow resistance tolerance
+#define RQTOL 2.0E-7  // Default low flow resistance tolerance
 #define CHECKFREQ 2   // Default status check frequency
 #define MAXCHECK 10   // Default # iterations for status checks
 #define DAMPLIMIT 0   // Default damping threshold

@@ -78,8 +78,7 @@ BOOST_AUTO_TEST_CASE(test_pda_model)
     BOOST_REQUIRE(error == 0);
     error = EN_getnodevalue(ph, index, EN_DEMANDDEFICIT, &reduction);
     BOOST_REQUIRE(error == 0);
-//    BOOST_REQUIRE(abs(reduction - 413.67) < 0.01);
-    BOOST_REQUIRE(abs(reduction - 413.70) < 0.01);
+    BOOST_REQUIRE(abs(reduction - 413.67) < 0.01);
 
     // Clean up
     error = EN_close(ph);
