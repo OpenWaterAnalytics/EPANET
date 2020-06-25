@@ -3953,7 +3953,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
     case EN_PUMP_POWER:
         if (Link[index].Type == PUMP)
         {
-            if (value < 0.0) return 211;
+            if (value <= 0.0) return 211;
             pumpIndex = findpump(&p->network, index);
             net->Pump[pumpIndex].Ptype = CONST_HP;
             net->Pump[pumpIndex].Hcurve = 0;
