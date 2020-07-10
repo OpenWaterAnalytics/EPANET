@@ -63,7 +63,8 @@ typedef enum {
   EN_TANKVOLUME   = 24, //!< Current computed tank volume (read only)
   EN_MAXVOLUME    = 25, //!< Tank maximum volume (read only)
   EN_CANOVERFLOW  = 26, //!< Tank can overflow (= 1) or not (= 0)
-  EN_DEMANDDEFICIT = 27 //!< Amount that full demand is reduced under PDA (read only)
+  EN_DEMANDDEFICIT = 27,//!< Amount that full demand is reduced under PDA (read only)
+  EN_NODE_INCONTROL = 28  //!< Is present in any simple or rule-based control (= 1) or not (= 0)
 } EN_NodeProperty;
 
 /// Link properties
@@ -95,7 +96,8 @@ typedef enum {
   EN_PUMP_ECURVE  = 20, //!< Pump efficiency v. flow curve index
   EN_PUMP_ECOST   = 21, //!< Pump average energy price
   EN_PUMP_EPAT    = 22, //!< Pump energy price time pattern index
-  EN_GPV_CURVE    = 23  //!< GPV head loss v. flow curve index
+  EN_LINK_INCONTROL = 23,  //!< Is present in any simple or rule-based control (= 1) or not (= 0)
+  EN_GPV_CURVE    = 24  //!< GPV head loss v. flow curve index
 } EN_LinkProperty;
 
 /// Time parameters

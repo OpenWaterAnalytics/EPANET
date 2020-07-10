@@ -298,16 +298,12 @@ int  allocmatrix(Project *pr)
 
     hyd->P   = (double *) calloc(net->Nlinks+1,sizeof(double));
     hyd->Y   = (double *) calloc(net->Nlinks+1,sizeof(double));
-    hyd->DemandFlow = (double *) calloc(net->Nnodes + 1, sizeof(double));
-    hyd->EmitterFlow = (double *) calloc(net->Nnodes+1, sizeof(double));
     hyd->Xflow = (double *) calloc(MAX((net->Nnodes+1), (net->Nlinks+1)),
                                    sizeof(double));
     hyd->OldStatus = (StatusType *) calloc(net->Nlinks+net->Ntanks+1,
                                            sizeof(StatusType));
     ERRCODE(MEMCHECK(hyd->P));
     ERRCODE(MEMCHECK(hyd->Y));
-    ERRCODE(MEMCHECK(hyd->DemandFlow));
-    ERRCODE(MEMCHECK(hyd->EmitterFlow));
     ERRCODE(MEMCHECK(hyd->Xflow));
     ERRCODE(MEMCHECK(hyd->OldStatus));
     return errcode;
@@ -327,8 +323,6 @@ void  freematrix(Project *pr)
 
     free(hyd->P);
     free(hyd->Y);
-    free(hyd->DemandFlow);
-    free(hyd->EmitterFlow);
     free(hyd->Xflow);
     free(hyd->OldStatus);
 }

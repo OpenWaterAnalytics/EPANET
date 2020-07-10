@@ -31,7 +31,6 @@ const
  EN_INITVOLUME = 14;
  EN_MIXMODEL   = 15;
  EN_MIXZONEVOL = 16;
-
  EN_TANKDIAM    = 17;
  EN_MINVOLUME   = 18;
  EN_VOLCURVE    = 19;
@@ -42,7 +41,8 @@ const
  EN_TANKVOLUME  = 24;
  EN_MAXVOLUME   = 25;
  EN_CANOVERFLOW = 26;
- EN_DEMANDDEFICIT = 27;  
+ EN_DEMANDDEFICIT = 27;
+ EN_NODE_INCONTROL = 28;
 
  EN_DIAMETER    = 0;    { Link parameters }
  EN_LENGTH      = 1;
@@ -67,7 +67,8 @@ const
  EN_PUMP_ECURVE = 20;
  EN_PUMP_ECOST  = 21;
  EN_PUMP_EPAT   = 22;
- EN_GPV_CURVE   = 23;
+ EN_LINK_INCONTROL = 23;
+ EN_GPV_CURVE   = 24;
  
  EN_DURATION     = 0;  { Time parameters }
  EN_HYDSTEP      = 1;

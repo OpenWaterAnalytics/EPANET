@@ -48,8 +48,8 @@ static int     paralink(Network *, Smatrix *, int, int, int k);
 static void    xparalinks(Network *);
 static int     reordernodes(Project *);
 static int     factorize(Project *);
-static int     growlist(Project *, int);
-static int     newlink(Project *, Padjlist);
+static int     growlist(Project *, int, int *);
+static int     newlink(Project *, Padjlist, int *);
 static int     linked(Network *, int, int);
 static int     addlink(Network *, int, int, int);
 static int     storesparse(Project *, int);
@@ -443,8 +443,8 @@ int factorize(Project *pr)
     Padjlist alink;
 
     // Find degree of each junction node
-    sm->Degree = (int *)calloc(net->Nnodes + 1, sizeof(int));
-    if (sm->Degree == NULL) return 101;
+    int *degree = (int *)calloc(net->Nnodes + 1, sizeof(int));
+    if (degree == NULL) return 101;
 
     // NOTE: For purposes of node re-ordering, Tanks (nodes with
     //       indexes above Njuncs) have zero degree of adjacency.
@@ -453,7 +453,7 @@ int factorize(Project *pr)
     {
         for (alink = net->Adjlist[k]; alink != NULL; alink = alink->next)
         {
-            if (alink->node > 0) sm->Degree[k]++;
+            if (alink->node > 0) degree[k]++;
         }
     }
 
@@ -463,19 +463,19 @@ int factorize(Project *pr)
     for (k = 1; k <= net->Njuncs; k++)          // Examine each junction
     {
         knode = sm->Order[k];                   // Re-ordered index
-        if (!growlist(pr, knode))               // Augment adjacency list
+        if (!growlist(pr, knode, degree))               // Augment adjacency list
         {
             errcode = 101;
             break;
         }
-        sm->Degree[knode] = 0;                  // In-activate node
+        degree[knode] = 0;                  // In-activate node
     }
-    free(sm->Degree);
+    free(degree);
     return errcode;
 }
 
 
-int  growlist(Project *pr, int knode)
+int  growlist(Project *pr, int knode, int *degree)
 /*
 **--------------------------------------------------------------
 ** Input:   knode = node index
@@ -496,10 +496,10 @@ int  growlist(Project *pr, int knode)
     for (alink = net->Adjlist[knode]; alink != NULL; alink = alink -> next)
     {
         node = alink->node;                   // End node of connecting link
-        if (node > 0 && sm->Degree[node] > 0) // End node is active
+        if (node > 0 && degree[node] > 0) // End node is active
         {
-            sm->Degree[node]--;           // Reduce degree of adjacency
-            if (!newlink(pr, alink))      // Add to adjacency list
+            degree[node]--;           // Reduce degree of adjacency
+            if (!newlink(pr, alink, degree))      // Add to adjacency list
             {
                 return 0;
             }
@@ -509,7 +509,7 @@ int  growlist(Project *pr, int knode)
 }
 
 
-int  newlink(Project *pr, Padjlist alink)
+int  newlink(Project *pr, Padjlist alink, int *degree)
 /*
 **--------------------------------------------------------------
 ** Input:   alink = element of node's adjacency list
@@ -533,7 +533,7 @@ int  newlink(Project *pr, Padjlist alink)
 
         // If jnode still active, and inode not connected to jnode,
         // then add a new connection between inode and jnode.
-        if (jnode > 0 && sm->Degree[jnode] > 0)  // jnode still active
+        if (jnode > 0 && degree[jnode] > 0)  // jnode still active
         {
             if (!linked(net, inode, jnode))      // inode not linked to jnode
             {
@@ -545,8 +545,8 @@ int  newlink(Project *pr, Padjlist alink)
                 // reflect the new connection.
                 if (!addlink(net, inode, jnode, sm->Ncoeffs)) return 0;
                 if (!addlink(net, jnode, inode, sm->Ncoeffs)) return 0;
-                sm->Degree[inode]++;
-                sm->Degree[jnode]++;
+                degree[inode]++;
+                degree[jnode]++;
             }
         }
     }
