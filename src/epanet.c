@@ -3796,6 +3796,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         {
             v = Link[index].Kc;
         }
+        break;
 
     case EN_LINK_INCONTROL:
         v = (double)incontrols(p, LINK, index);
