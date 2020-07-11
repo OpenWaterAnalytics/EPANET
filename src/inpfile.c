@@ -523,7 +523,7 @@ int saveinpfile(Project *pr, const char *fname)
         tank = &net->Tank[i];
         if (tank->A == 0.0) continue;
         fprintf(f, "\n %-31s %-8s %12.4f", net->Node[tank->Node].ID,
-                MixTxt[tank->MixModel], (tank->V1max / tank->Vmax));
+                MixTxt[tank->MixModel], tank->V1frac);
     }
 
     // Write [REACTIONS] section

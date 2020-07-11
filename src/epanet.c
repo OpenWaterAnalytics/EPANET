@@ -1847,7 +1847,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
         tank->Pat = 0;
         tank->Vcurve = 0;
         tank->MixModel = 0;
-        tank->V1max = 10000;
+        tank->V1frac = 1;
         tank->CanOverflow = FALSE;
     }
     net->Nnodes++;
@@ -2164,7 +2164,9 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_MIXZONEVOL:
         v = 0.0;
-        if (index > nJuncs) v = Tank[index - nJuncs].V1max * Ucf[VOLUME];
+        if (index > nJuncs)
+            v = Tank[index - nJuncs].V1frac * Tank[index - nJuncs].Vmax *
+                Ucf[VOLUME];
         break;
 
     case EN_DEMAND:
@@ -2224,9 +2226,9 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_MIXFRACTION:
         v = 1.0;
-        if (index > nJuncs && Tank[index - nJuncs].Vmax > 0.0)
+        if (index > nJuncs)
         {
-            v = Tank[index - nJuncs].V1max / Tank[index - nJuncs].Vmax;
+            v = Tank[index - nJuncs].V1frac;
         }
         break;
 
@@ -2293,7 +2295,6 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     int i, j, n;
     Psource source;
     double hTmp;
-    double vTmp;
 
     if (!p->Openflag) return 102;
     if (index <= 0 || index > nNodes) return 203;
@@ -2418,9 +2419,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         //       shape below Hmin. Vmin can always be changed by setting
         //       EN_MINVOLUME in a subsequent function call.
         Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
-        vTmp = Tank[j].Vmax;                           // old max. volume
         Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
-        Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
         break;
 
     case EN_MINVOLUME:
@@ -2450,9 +2449,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
 
             // Since Vmin changes the other volumes need updating
             Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
-            vTmp = Tank[j].Vmax;                           // old max. volume
             Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
-            Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
         }
         break;
 
@@ -2477,9 +2474,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         Tank[j].Vcurve = i;                            // assign curve to tank
         Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin); // new min. volume
         Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
-        vTmp = Tank[j].Vmax;                           // old max. volume
         Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
-        Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
         Tank[j].A = (curve->Y[n] - curve->Y[0]) /      // nominal area 
             (curve->X[n] - curve->X[0]);
         break;
@@ -2521,9 +2516,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
             if (value > curve->X[n]) return 225;   // new level is off curve
         }
         Tank[j].Hmax = hTmp;                       // new max. head
-        vTmp = Tank[j].Vmax;                       // old max. volume
         Tank[j].Vmax = tankvolume(p, j, hTmp);     // new max. volume
-        Tank[j].V1max *= Tank[j].Vmax / vTmp;      // new mix zone volume
         break;
 
     case EN_MIXMODEL:
@@ -2542,7 +2535,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         j = index - nJuncs;
         if (Tank[j].A > 0.0)
         {
-            Tank[j].V1max = value * Tank[j].Vmax;
+            Tank[j].V1frac = value;
         }
         break;
 

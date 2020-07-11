@@ -588,7 +588,6 @@ void convertunits(Project *pr)
         tank->Kb /= SECperDAY;
         tank->V = tank->V0;
         tank->C = node->C0;
-        tank->V1max *= tank->Vmax;
     }
 
     // Convert hydraulic convergence criteria

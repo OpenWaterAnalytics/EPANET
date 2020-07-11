@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/29/2019
+ Last Updated: 07/11/2020
  ******************************************************************************
 */
 
@@ -428,7 +428,7 @@ typedef struct             // Tank Object
   int     Pat;             // fixed grade time pattern
   int     Vcurve;          // volume v. elev. curve index
   MixType MixModel;        // type of mixing model
-  double  V1max;           // mixing compartment size
+  double  V1frac;          // mixing compartment fraction
   int     CanOverflow;     // tank can overflow or not
 } Stank;
 
