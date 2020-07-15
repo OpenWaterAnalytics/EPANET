@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/15/2019
+ Last Updated: 02/03/2020
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -29,6 +29,8 @@ void    freeadjlists(Network *);
 
 int     incontrols(Project *, int, int);
 int     valvecheck(Project *, int, int, int, int);
+int     unlinked(Project *);
+
 int     findnode(Network *, char *);
 int     findlink(Network *, char *);
 int     findtank(Network *, int);

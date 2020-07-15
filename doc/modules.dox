@@ -197,6 +197,7 @@ These are the toolkit's enumerated types whose members are used as function argu
 @fn int EN_setheadcurveindex(EN_Project ph, int pumpIndex, int curveIndex)
 @fn int EN_getvertexcount(EN_Project ph, int index, int *count)
 @fn int EN_getvertex(EN_Project ph, int index, int vertex, double *x, double *y)
+@fn int EN_setvertex(EN_Project ph, int index, int vertex, double x, double y)
 @fn int EN_setvertices(EN_Project ph, int index, double *x, double *y, int count)
 @}
 */
@@ -227,6 +228,7 @@ These are the toolkit's enumerated types whose members are used as function argu
 @fn int EN_setcurveid(EN_Project ph, int index, char *id)
 @fn int EN_getcurvelen(EN_Project ph, int index, int *len)
 @fn int EN_getcurvetype(EN_Project ph, int index, int *type)
+@fn int EN_setcurvetype(EN_Project ph, int index, int type)
 @fn int EN_getcurvevalue(EN_Project ph, int curveIndex, int pointIndex, double *x, double *y)
 @fn int EN_setcurvevalue(EN_Project ph, int curveIndex, int pointIndex, double x, double y)
 @fn int EN_getcurve(EN_Project ph, int curveIndex, char* id, int *nPoints, double **xValues, double **yValues)

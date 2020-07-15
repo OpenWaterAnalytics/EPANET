@@ -525,7 +525,7 @@ void tankmix2(Project *pr, int i, double vin, double win, double vnet)
     if (mixzone == NULL || stagzone == NULL) return;
 
     // Full mixing zone volume
-    vmz = tank->V1max;
+    vmz = tank->V1frac * tank->Vmax;
 
     // Tank is filling
     vt = 0.0;

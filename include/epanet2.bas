@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 11/04/2019
+'Last updated on 02/01/2020
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -62,6 +62,7 @@ Public Const EN_PUMP_ECURVE = 20
 Public Const EN_PUMP_ECOST = 21
 Public Const EN_PUMP_EPAT = 22
 Public Const EN_LINK_INCONTROL = 23
+Public Const EN_GPV_CURVE = 24
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
@@ -350,6 +351,7 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENsetpipedata Lib "epanet2.dll" (ByVal index As Long, ByVal length As Single, ByVal diam As Single, ByVal rough As Single, ByVal mloss As Single) As Long
  Declare Function ENgetvertexcount Lib "epanet2.dll" (ByVal index As Long, count As Long) As Long
  Declare Function ENgetvertex Lib "epanet2.dll" (ByVal index As Long, ByVal vertex As Long, x As Double, y As Double) As Long
+ Declare Function ENsetvertex Lib "epanet2.dll" (ByVal index As Long, ByVal vertex As Long, ByVal x As Double, ByVal y As Double) As Long
  Declare Function ENsetvertices Lib "epanet2.dll" (ByVal index As Long, xCoords As Any, yCoords As Any, ByVal count As Long) As Long
 
 'Pump Functions
@@ -377,6 +379,7 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENsetcurveid Lib "epanet2.dll" (ByVal index As Long, ByVal newid As String) As Long
  Declare Function ENgetcurvelen Lib "epanet2.dll" (ByVal index As Long, len_ As Long) As Long
  Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal index As Long, type_ As Long) As Long
+ Declare Function ENsetcurvetype Lib "epanet2.dll" (ByVal index As Long, ByVal type_ As Long) As Long
  Declare Function ENgetcurvevalue Lib "epanet2.dll" (ByVal curveIndex As Long, ByVal pointIndex As Long, x As Single, y As Single) As Long
  Declare Function ENsetcurvevalue Lib "epanet2.dll" (ByVal curveIndex As Long, ByVal pointIndex As Long, ByVal x As Single, ByVal y As Single) As Long
  Declare Function ENgetcurve Lib "epanet2.dll" (ByVal index As Long, ByVal id As String, nPoints As Long, xValues As Any, yValues As Any) As Long
