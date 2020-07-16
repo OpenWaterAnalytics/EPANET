@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/15/2019
+ Last Updated: 02/03/2020
  ******************************************************************************
 */
 
@@ -803,6 +803,34 @@ int valvecheck(Project *pr, int index, int type, int j1, int j2)
     return 0;
 }
 
+int unlinked(Project *pr)
+/*
+**--------------------------------------------------------------
+** Input:   none
+** Output:  returns error code if any unlinked junctions found
+** Purpose: checks for unlinked junctions in network
+**
+** NOTE: unlinked tanks have no effect on computations.
+**--------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    int i, count = 0;
+    
+    for (i = 1; i <= net->Njuncs; i++)
+    {
+        if (pr->network.Adjlist[i] == NULL)
+        {
+            count++;
+            sprintf(pr->Msg, "Error 233: %s %s", geterrmsg(233, pr->Msg), net->Node[i].ID);
+            writeline(pr, pr->Msg);
+        }
+        if (count >= 10) break;
+    }
+    if (count > 0) return 233;
+    return 0;
+}    
+
 int findnode(Network *network, char *id)
 /*----------------------------------------------------------------
 **  Input:   id = node ID
@@ -920,8 +948,8 @@ void adjustpattern(int *pat, int index)
 **----------------------------------------------------------------
 */
 {
-	if (*pat == index) *pat = 0;
-	else if (*pat > index) (*pat)--;
+    if (*pat == index) *pat = 0;
+    else if (*pat > index) (*pat)--;
 }
 
 void adjustpatterns(Network *network, int index)

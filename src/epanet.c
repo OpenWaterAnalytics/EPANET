@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/15/2019
+ Last Updated: 02/01/2020
  ******************************************************************************
 */
 
@@ -1847,7 +1847,7 @@ int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
         tank->Pat = 0;
         tank->Vcurve = 0;
         tank->MixModel = 0;
-        tank->V1max = 10000;
+        tank->V1frac = 1;
         tank->CanOverflow = FALSE;
     }
     net->Nnodes++;
@@ -2164,7 +2164,9 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_MIXZONEVOL:
         v = 0.0;
-        if (index > nJuncs) v = Tank[index - nJuncs].V1max * Ucf[VOLUME];
+        if (index > nJuncs)
+            v = Tank[index - nJuncs].V1frac * Tank[index - nJuncs].Vmax *
+                Ucf[VOLUME];
         break;
 
     case EN_DEMAND:
@@ -2224,9 +2226,9 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_MIXFRACTION:
         v = 1.0;
-        if (index > nJuncs && Tank[index - nJuncs].Vmax > 0.0)
+        if (index > nJuncs)
         {
-            v = Tank[index - nJuncs].V1max / Tank[index - nJuncs].Vmax;
+            v = Tank[index - nJuncs].V1frac;
         }
         break;
 
@@ -2293,7 +2295,6 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     int i, j, n;
     Psource source;
     double hTmp;
-    double vTmp;
 
     if (!p->Openflag) return 102;
     if (index <= 0 || index > nNodes) return 203;
@@ -2418,9 +2419,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         //       shape below Hmin. Vmin can always be changed by setting
         //       EN_MINVOLUME in a subsequent function call.
         Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
-        vTmp = Tank[j].Vmax;                           // old max. volume
         Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
-        Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
         break;
 
     case EN_MINVOLUME:
@@ -2450,9 +2449,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
 
             // Since Vmin changes the other volumes need updating
             Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
-            vTmp = Tank[j].Vmax;                           // old max. volume
             Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
-            Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
         }
         break;
 
@@ -2477,9 +2474,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         Tank[j].Vcurve = i;                            // assign curve to tank
         Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin); // new min. volume
         Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
-        vTmp = Tank[j].Vmax;                           // old max. volume
         Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
-        Tank[j].V1max *= Tank[j].Vmax / vTmp;          // new mix zone volume
         Tank[j].A = (curve->Y[n] - curve->Y[0]) /      // nominal area 
             (curve->X[n] - curve->X[0]);
         break;
@@ -2521,9 +2516,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
             if (value > curve->X[n]) return 225;   // new level is off curve
         }
         Tank[j].Hmax = hTmp;                       // new max. head
-        vTmp = Tank[j].Vmax;                       // old max. volume
         Tank[j].Vmax = tankvolume(p, j, hTmp);     // new max. volume
-        Tank[j].V1max *= Tank[j].Vmax / vTmp;      // new mix zone volume
         break;
 
     case EN_MIXMODEL:
@@ -2542,7 +2535,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         j = index - nJuncs;
         if (Tank[j].A > 0.0)
         {
-            Tank[j].V1max = value * Tank[j].Vmax;
+            Tank[j].V1frac = value;
         }
         break;
 
@@ -3799,6 +3792,13 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
     	    v = (double)Pump[findpump(&p->network, index)].GroupCount;
     	}
     	break;
+        
+    case EN_GPV_CURVE:
+        if (Link[index].Type == GPV)
+        {
+            v = Link[index].Kc;
+        }
+        break;
 
     case EN_LINK_INCONTROL:
         v = (double)incontrols(p, LINK, index);
@@ -3871,7 +3871,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
     case EN_MINORLOSS:
         if (Link[index].Type != PUMP)
         {
-            if (value <= 0.0) return 211;
+            if (value < 0.0) return 211;
             Link[index].Km = 0.02517 * value / SQR(Link[index].Diam) /
                              SQR(Link[index].Diam);
         }
@@ -4023,6 +4023,15 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
     	}
     	break;
     
+        
+    case EN_GPV_CURVE:
+        if (Link[index].Type == GPV)
+        {
+            curveIndex = ROUND(value);
+            if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
+            Link[index].Kc = curveIndex;
+        }
+
     default:
         return 251;
     }
@@ -4123,6 +4132,35 @@ int DLLEXPORT EN_getvertex(EN_Project p, int index, int vertex, double *x, doubl
     if (vertex <= 0 || vertex > vertices->Npts) return 255;
     *x = vertices->X[vertex - 1];
     *y = vertices->Y[vertex - 1];    
+    return 0;
+}
+
+int DLLEXPORT EN_setvertex(EN_Project p, int index, int vertex, double x, double y)
+/*----------------------------------------------------------------
+**  Input:   index = link index
+**           vertex = index of a link vertex point
+**           x = vertex point's X-coordinate
+**           y = vertex point's Y-coordinate
+**  Returns: error code
+**  Purpose: sets the coordinates of a vertex point in a link
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    
+    Slink *Link = net->Link;
+    Pvertices vertices;
+    
+    // Check that link exists
+    if (!p->Openflag) return 102;
+    if (index <= 0 || index > net->Nlinks) return 204;
+    
+    // Check that vertex exists
+    vertices = Link[index].Vertices;
+    if (vertices == NULL) return 255;
+    if (vertex <= 0 || vertex > vertices->Npts) return 255;
+    vertices->X[vertex - 1] = x;
+    vertices->Y[vertex - 1] = y;    
     return 0;
 }
     
@@ -4733,6 +4771,23 @@ int DLLEXPORT EN_getcurvetype(EN_Project p, int index, int *type)
     if (!p->Openflag) return 102;
     if (index < 1 || index > net->Ncurves) return 206;
     *type = net->Curve[index].Type;
+    return 0;
+}
+
+int DLLEXPORT EN_setcurvetype(EN_Project p, int index, int type)
+/*----------------------------------------------------------------
+**  Input:   index = data curve index
+**           type = type of data curve (see EN_CurveType)
+**  Returns: error code
+**  Purpose: sets the type assigned to a data curve
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    if (!p->Openflag) return 102;
+    if (index < 1 || index > net->Ncurves) return 206;
+    if (type < 0 || type > EN_GENERIC_CURVE) return 251;  
+    net->Curve[index].Type = type;
     return 0;
 }
 

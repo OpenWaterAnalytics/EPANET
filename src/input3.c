@@ -252,7 +252,7 @@ int tankdata(Project *pr)
 
     tank->Vcurve = curve;
     tank->MixModel = MIX1; // Completely mixed
-    tank->V1max = 1.0;     // Mixing compartment size fraction
+    tank->V1frac = 1.0;    // Mixing compartment size fraction
     return 0;
 }
 
@@ -1298,7 +1298,7 @@ int mixingdata(Project *pr)
     i = j - net->Njuncs;
     if (net->Tank[i].A == 0.0) return 0;
     net->Tank[i].MixModel = (char)m;
-    net->Tank[i].V1max = v;
+    net->Tank[i].V1frac = v;
     return 0;
 }
 

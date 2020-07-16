@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/29/2019
+Last Updated: 02/03/2020
 ******************************************************************************
 */
 
@@ -37,7 +37,6 @@ extern int powercurve(double, double, double, double, double, double *,
 static int  newline(Project *, int, char *);
 static int  addpattern(Network *, char *);
 static int  addcurve(Network *, char *);
-static int  unlinked(Project *);
 static int  getpumpparams(Project *);
 static void inperrmsg(Project *, int, int, char *);
 
@@ -130,11 +129,6 @@ int netsize(Project *pr)
     parser->MaxNodes = parser->MaxJuncs + parser->MaxTanks;
     parser->MaxLinks = parser->MaxPipes + parser->MaxPumps + parser->MaxValves;
     if (parser->MaxPats < 1) parser->MaxPats = 1;
-    if (!errcode)
-    {
-        if (parser->MaxJuncs < 1)       errcode = 223; // Not enough nodes
-        else if (parser->MaxTanks == 0) errcode = 224; // No tanks
-    }
     return errcode;
 }
 
@@ -262,9 +256,6 @@ int readdata(Project *pr)
 
     // Check for errors
     if (errsum > 0) errcode = 200;
-
-    // Check for unlinked nodes
-    if (!errcode) errcode = unlinked(pr);
 
     // Determine pump curve parameters
     if (!errcode) errcode = getpumpparams(pr);
@@ -570,54 +561,6 @@ int addcurve(Network *network, char *id)
     curve->X = NULL;
     curve->Y = NULL;
     return 0;
-}
-
-int unlinked(Project *pr)
-/*
-**--------------------------------------------------------------
-** Input:   none
-** Output:  returns error code if any unlinked junctions found
-** Purpose: checks for unlinked junctions in network
-**
-** NOTE: unlinked tanks have no effect on computations.
-**--------------------------------------------------------------
-*/
-{
-    Network *net = &pr->network;
-    int *marked;
-    int i, err, errcode;
-
-    errcode = 0;
-    err = 0;
-
-    // Create an array to record number of links incident on each node
-    marked = (int *)calloc(net->Nnodes + 1, sizeof(int));
-    ERRCODE(MEMCHECK(marked));
-    if (errcode) return errcode;
-    memset(marked, 0, (net->Nnodes + 1) * sizeof(int));
-
-    // Mark end nodes of each link
-    for (i = 1; i <= net->Nlinks; i++)
-    {
-        marked[net->Link[i].N1]++;
-        marked[net->Link[i].N2]++;
-    }
-
-    // Check each junction
-    for (i = 1; i <= net->Njuncs; i++)
-    {
-        // If not marked then error
-        if (marked[i] == 0)
-        {
-            err++;
-            sprintf(pr->Msg, "Error 233: %s %s", geterrmsg(233, pr->Msg), net->Node[i].ID);
-            writeline(pr, pr->Msg);
-        }
-        if (err >= MAXERRS) break;
-    }
-    if (err > 0) errcode = 200;
-    free(marked);
-    return errcode;
 }
 
 int findmatch(char *line, char *keyword[])

@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/06/2019
+ Last Updated: 02/01/2020
  ******************************************************************************
 */
 
@@ -97,7 +97,8 @@ typedef enum {
   EN_PUMP_ECOST   = 21,   //!< Pump average energy price
   EN_PUMP_EPAT    = 22,   //!< Pump energy price time pattern index
   EN_LINK_INCONTROL = 23, //!< Is present in any simple or rule-based control (= 1) or not (= 0)
-  EN_PUMP_GROUPCOUNT = 24 //!<Number of pumps in parallel in the pump object
+  EN_GPV_CURVE    = 24,   //!< GPV head loss v. flow curve index
+  EN_PUMP_GROUPCOUNT = 25 //!<Number of pumps in parallel in the pump object
 } EN_LinkProperty;
 
 /// Time parameters

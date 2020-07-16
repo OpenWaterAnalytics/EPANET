@@ -612,7 +612,7 @@ void initsegs(Project *pr)
         if (net->Tank[j].MixModel == MIX2)
         {
             // ... mixing zone segment
-            v1 = MAX(0, v - net->Tank[j].V1max);
+            v1 = MAX(0, v - net->Tank[j].V1frac * net->Tank[j].Vmax);
             qual->FirstSeg[k]->v = v1;
 
             // ... stagnant zone segment
