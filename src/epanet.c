@@ -3187,6 +3187,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
         net->Pump = (Spump *)realloc(net->Pump, size);
         pump = &net->Pump[net->Npumps];
         pump->GroupCount = 1;
+        pump->GroupCount0 = 1;
         pump->Link = n;
         pump->Ptype = NOCURVE;
         pump->Q0 = 0;
@@ -4016,7 +4017,9 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
     	    pumpGroupCount = ROUND(value);
     	    if (pumpGroupCount < 1) return 211;
             pumpIndex = findpump(&p->network, index);
-            net->Pump[pumpIndex].GroupCount = pumpGroupCount;    	    
+            net->Pump[pumpIndex].GroupCount = pumpGroupCount;
+            if (!p->hydraul.OpenHflag)
+                net->Pump[pumpIndex].GroupCount0 = pumpGroupCount;
     	}
     	break;
     

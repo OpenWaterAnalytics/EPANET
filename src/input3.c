@@ -413,6 +413,7 @@ int pumpdata(Project *pr)
     pump->Ecost = 0.0;
     pump->Epat = 0;
     pump->GroupCount = 1;
+    pump->GroupCount0 = 1;
     if (n < 4) return 0;
 
     // If 4-th token is a number then input follows Version 1.x format
@@ -464,6 +465,7 @@ int pumpdata(Project *pr)
             if (!getfloat(parser->Tok[m], &y)) return setError(parser, m, 202);
             if (y < 1.0) return setError(parser, m, 211);
             pump->GroupCount = ROUND(y);
+            pump->GroupCount0 = pump->GroupCount;
         }
         else return 201;
         m = m + 2;  // Move to next keyword token

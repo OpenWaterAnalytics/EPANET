@@ -271,9 +271,9 @@ int saveinpfile(Project *pr, const char *fname)
         }
         
         // Optional GroupCount setting
-        if (pump->GroupCount > 1)
+        if (pump->GroupCount0 > 1)
         {
-            sprintf(s1, "  GROUPCOUNT %d", pump->GroupCount);
+            sprintf(s1, "  GROUPCOUNT %d", pump->GroupCount0);
             strcat(s, s1);
         }
 
