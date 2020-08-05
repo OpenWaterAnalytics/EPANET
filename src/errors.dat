@@ -44,6 +44,7 @@ DAT(226,"no head curve or power rating for pump")
 DAT(227,"invalid head curve for pump")
 DAT(230,"nonincreasing x-values for curve")
 DAT(233,"network has unconnected nodes")
+DAT(2331,"network has an unconnected node with ID: ")
 
 // These errors apply only to API functions
 DAT(240,"nonexistent source")
