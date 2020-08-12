@@ -146,6 +146,7 @@ int readdata(Project *pr)
 
     char line[MAXLINE + 1],  // Line from input data file
          wline[MAXLINE + 1]; // Working copy of input line
+	char errmsg[MAXMSG + 1] = "";		 
     int  sect, newsect,      // Data sections
          errcode = 0,        // Error code
          inperr, errsum;     // Error code & total error count
@@ -207,7 +208,7 @@ int readdata(Project *pr)
         // Check if max. line length exceeded
         if (strlen(line) >= MAXLINE)
         {
-            sprintf(pr->Msg, "%s section: %s", geterrmsg(214, pr->Msg), SectTxt[sect]);
+            sprintf(pr->Msg, "%s section: %s", geterrmsg(214, errmsg), SectTxt[sect]);
             writeline(pr, pr->Msg);
             writeline(pr, line);
             errsum++;

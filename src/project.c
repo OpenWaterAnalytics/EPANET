@@ -816,13 +816,14 @@ int unlinked(Project *pr)
 {
     Network *net = &pr->network;
     int i, count = 0;
+	char errmsg[MAXMSG + 1] = "";
     
     for (i = 1; i <= net->Njuncs; i++)
     {
         if (pr->network.Adjlist[i] == NULL)
         {
             count++;
-            sprintf(pr->Msg, "Error 233: %s %s", geterrmsg(233, pr->Msg), net->Node[i].ID);
+            sprintf(pr->Msg, "Error 234: %s %s", geterrmsg(234, errmsg), net->Node[i].ID);
             writeline(pr, pr->Msg);
         }
         if (count >= 10) break;
