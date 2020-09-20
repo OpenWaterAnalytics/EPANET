@@ -355,6 +355,8 @@ typedef struct             // Energy Usage Object
   double KwHrs;            // total kw-hrs consumed
   double MaxKwatts;        // max. kw consumed
   double TotalCost;        // total pumping cost
+  double CurrentPower;     // current pump power (kw)
+  double CurrentEffic;     // current pump efficiency
 } Senergy;
 
 struct Ssource             // Water Quality Source Object
