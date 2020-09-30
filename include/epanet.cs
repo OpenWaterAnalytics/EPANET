@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 //Last updated on 17/09/2020
 
 //Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
-//(EPANET2.DLL) for use with Visual Basic (C#)
+//(EPANET2.DLL) for use with C#
 
 
 namespace EpanetCSharpLibrary
