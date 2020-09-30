@@ -39,6 +39,7 @@ void    ruletimestep(Project *, long *);
 void    addenergy(Project *, long);
 void    tanklevels(Project *, long);
 void    resetpumpflow(Project *, int);
+void    getallpumpsenergy(Project *);
 
 int  openhyd(Project *pr)
 /*
@@ -156,6 +157,8 @@ void inithyd(Project *pr, int initflag)
         pump->Energy.KwHrsPerFlow = 0.0;
         pump->Energy.MaxKwatts = 0.0;
         pump->Energy.TotalCost = 0.0;
+        pump->Energy.CurrentPower = 0.0;
+        pump->Energy.CurrentEffic = 0.0;
     }
 
     // Re-position hydraulics file
@@ -232,6 +235,9 @@ int  nexthyd(Project *pr, long *tstep)
     long  hydstep;         // Actual time step
     int   errcode = 0;     // Error code
 
+    // Compute current power and efficiency of all pumps
+    getallpumpsenergy(pr);
+
     // Save current results to hydraulics file and
     // force end of simulation if Haltflag is active
     if (pr->outfile.Saveflag) errcode = savehyd(pr, &time->Htime);
@@ -243,7 +249,7 @@ int  nexthyd(Project *pr, long *tstep)
     if (time->Htime < time->Dur) hydstep = timestep(pr);
     if (pr->outfile.Saveflag) errcode = savehydstep(pr,&hydstep);
 
-    // Compute pumping energy
+    // Accumulate pumping energy
     if (time->Dur == 0) addenergy(pr,0);
     else if (time->Htime < time->Dur) addenergy(pr,hydstep);
 
@@ -902,11 +908,10 @@ void  addenergy(Project *pr, long hstep)
         }
         else c *= f0;
 
-        // Find pump energy & efficiency
-        getenergy(pr, k, &p, &e);
-        psum += p;
-
         // Update pump's cumulative statistics
+        p = pump->Energy.CurrentPower;
+        e = pump->Energy.CurrentEffic;
+        psum += p;
         pump->Energy.TimeOnLine += dt;
         pump->Energy.Efficiency += e * dt;
         pump->Energy.KwHrsPerFlow += p / q * dt;
@@ -980,6 +985,27 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
     *kw = dh * q * hyd->SpGrav / 8.814 / e * KWperHP;
     *eff = e;
 }
+
+
+void  getallpumpsenergy(Project *pr)
+/*
+**-------------------------------------------------------------
+**  Input:   none
+**  Output:  none
+**  Purpose: finds the current power and efficiency for each pump.
+**-------------------------------------------------------------
+*/
+{
+    int  j;
+    Spump  *pump;
+
+    for (j = 1; j <= pr->network.Npumps; j++)
+    {
+        pump = &(pr->network.Pump[j]);
+        getenergy(pr, pump->Link, &(pump->Energy.CurrentPower),
+            &(pump->Energy.CurrentEffic));
+    }
+}    
 
 
 void  tanklevels(Project *pr, long tstep)
