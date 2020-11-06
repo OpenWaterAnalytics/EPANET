@@ -3886,7 +3886,6 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
 
     case EN_INITSETTING:
     case EN_SETTING:
-        if (value < 0.0) return 211;
         if (Link[index].Type == PIPE || Link[index].Type == CVPIPE)
         {
             return EN_setlinkvalue(p, index, EN_ROUGHNESS, value);
@@ -3896,6 +3895,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             switch (Link[index].Type)
             {
             case PUMP:
+                if (value < 0.0) return 211;
                 break;
             case PRV:
             case PSV:
