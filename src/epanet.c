@@ -1583,11 +1583,6 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int param, long value)
         rpt->Tstatflag = (char)value;
         break;
 
-    case EN_STARTTIME:
-        if (value > 86400) return 213;
-        time->Tstart = value;
-        break;
- 
     case EN_HTIME:
         time->Htime = value;
         break;
@@ -1597,7 +1592,7 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int param, long value)
         break;
 
     case EN_STARTTIME:
-        if (value < 0 || value > SECperDAY) return 213;
+        if (value > SECperDAY) return 213;
 	    time->Tstart = value;
         break;
 
