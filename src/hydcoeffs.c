@@ -486,7 +486,7 @@ void demandheadloss(Project *pr, int i, double dp, double n,
     }
 
     // Use power head loss function for demand less than full
-    else if (r < 1.0)
+    else if (r <= 1.0)                                                         //(2.2.1)
     {
         *hgrad = n * dp * pow(r, n - 1.0) / dfull;
         // ... use linear function for very small gradient

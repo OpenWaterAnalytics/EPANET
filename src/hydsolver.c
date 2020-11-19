@@ -553,6 +553,10 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
         dh = hyd->NodeHead[i] - net->Node[i].El - hyd->Pmin;
         dq = (hloss - dh) / hgrad;
         dq *= hyd->RelaxFactor;
+
+        // Prevent a flow change greater than full demand                      //(2.2.1)
+        if (fabs(dq) > hyd->NodeDemand[i])
+            dq = 0.5 * SGN(dq) * hyd->NodeDemand[i];
         hyd->DemandFlow[i] -= dq;
 
         // Update system flow summation
