@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/01/2020
+ Last Updated: 11/08/2020
  ******************************************************************************
 */
 
@@ -1592,7 +1592,7 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int param, long value)
         break;
 
     case EN_STARTTIME:
-        if (value < 0 || value > SECperDAY) return 213;
+        if (value > SECperDAY) return 213;
 	    time->Tstart = value;
         break;
 

@@ -8,4 +8,6 @@ This document describes the changes and updates that have been made in version 2
  - A `EN_setvertex` function was added to allow API clients to change the coordinates of a single link vertex.
  - The index of a General Purpose Valve's (GPV's) head loss curve was added to the list of editable Link Properties using the symbolic constant name `EN_GPV_CURVE`.
  - The `EN_getlinkvalue` and `EN_setlinkvalue` functions were updated to get and set the value of `EN_GPV_CURVE`.
+ - Negative pressure values for `EN_SETTING` are now permitted in the `EN_setlinkvalue` function. 
+ - The `EN_STARTTIME` parameter was added into the `EN_settimeparam` function.
 
