@@ -895,7 +895,7 @@ void  addenergy(Project *pr, long hstep)
         // Skip closed pumps
         pump = &net->Pump[j];
         k = pump->Link;
-        if (hyd->LinkStatus[k] <= CLOSED) continue;
+        if (pump->Energy.CurrentEffic == 0.0) continue;
         q = MAX(QZERO, ABS(hyd->LinkFlow[k]));
 
         // Find pump-specific energy cost
