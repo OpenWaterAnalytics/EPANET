@@ -413,7 +413,7 @@ void  tankstatus(Project *pr, int k, int n1, int n2)
     Hydraul *hyd = &pr->hydraul;
 
     int   i, n;
-    double h, q;
+    double q;
     Stank *tank;
     Slink *link = &net->Link[k];
 
