@@ -903,7 +903,7 @@ void  pbvcoeff(Project *pr, int k)
         else
         {
             hyd->P[k] = CBIG;
-            hyd->Y[k] = hyd->LinkSetting[k] * CBIG;
+            hyd->Y[k] = SGN(hyd->LinkFlow[k]) * hyd->LinkSetting[k] * CBIG;
         }
     }
 }
