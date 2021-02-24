@@ -263,6 +263,9 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENsettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Long
  Declare Function ENsaveinpfile Lib "epanet2.dll" (ByVal filename As String) As Long
  Declare Function ENclose Lib "epanet2.dll" () As Long
+ Declare Function ENgetcomment Lib "epanet2.dll" (ByVal ObjectType As Long, ByVal index As Long, ByVal comment As String) As Long
+ Declare Function ENsetcomment Lib "epanet2.dll" (ByVal ObjectType As Long, ByVal index As Long, ByVal comment As String) As Long
+
 
 'Hydraulic Analysis Functions
  Declare Function ENsolveH Lib "epanet2.dll" () As Long
