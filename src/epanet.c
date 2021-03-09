@@ -2149,7 +2149,7 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_TANKLEVEL:
         if (index <= nJuncs) return 0;
-        v = (Tank[index - nJuncs].H0 - Node[index].El) * Ucf[ELEV];
+        v = (NodeHead[index] - Node[index].El) * Ucf[ELEV];
         break;
 
     case EN_INITVOLUME:
