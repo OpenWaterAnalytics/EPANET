@@ -413,7 +413,7 @@ void  tankstatus(Project *pr, int k, int n1, int n2)
     Hydraul *hyd = &pr->hydraul;
 
     int   i, n;
-    double h, q;
+    double q;
     Stank *tank;
     Slink *link = &net->Link[k];
 
@@ -437,40 +437,21 @@ void  tankstatus(Project *pr, int k, int n1, int n2)
     tank = &net->Tank[i];
     if (tank->A == 0.0) return;
 
-    // Find head difference across link
-    h = hyd->NodeHead[n1] - hyd->NodeHead[n2];
-
-    // If tank is full, then prevent flow into it
-    if (hyd->NodeHead[n1] >= tank->Hmax - hyd->Htol && !tank->CanOverflow)
+    // Can't add flow to a full tank
+    if (hyd->NodeHead[n1] >= tank->Hmax && !tank->CanOverflow)
     {
-        // Case 1: Link is a pump discharging into tank
-        if (link->Type == PUMP)
-        {
-            if (link->N2 == n1) hyd->LinkStatus[k] = TEMPCLOSED;
-        }
-
-        // Case 2: Downstream head > tank head
-        // (e.g., an open outflow check valve would close)
-        else if (cvstatus(pr, OPEN, h, q) == CLOSED)
-        {
+        if (link->Type == PUMP && link->N2 == n1)
             hyd->LinkStatus[k] = TEMPCLOSED;
-        }
+        else if (q < 0.0)
+            hyd->LinkStatus[k] = TEMPCLOSED;
     }
 
-    // If tank is empty, then prevent flow out of it
-    if (hyd->NodeHead[n1] <= tank->Hmin + hyd->Htol)
+    // Can't remove flow from an empty tank
+    if (hyd->NodeHead[n1] <= tank->Hmin)
     {
-        // Case 1: Link is a pump discharging from tank
-        if (link->Type == PUMP)
-        {
-            if (link->N1 == n1) hyd->LinkStatus[k] = TEMPCLOSED;
-        }
-
-        // Case 2: Tank head > downstream head
-        // (e.g., a closed outflow check valve would open)
-        else if (cvstatus(pr, CLOSED, h, q) == OPEN)
-        {
+        if (link->Type == PUMP && link->N1 == n1)
             hyd->LinkStatus[k] = TEMPCLOSED;
-        }
+        else if (q > 0.0)
+            hyd->LinkStatus[k] = TEMPCLOSED;
     }
 }
