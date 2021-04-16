@@ -691,6 +691,8 @@ void  pumpcoeff(Project *pr, int k)
            hgrad;            // Head loss gradient
     Spump  *pump;
 
+    double qstar;
+
     // Use high resistance pipe if pump closed or cannot deliver head
     setting = hyd->LinkSetting[k];
     if (hyd->LinkStatus[k] <= CLOSED || setting == 0.0)
@@ -748,12 +750,14 @@ void  pumpcoeff(Project *pr, int k)
             if (hgrad > CBIG)
             {
                 hgrad = CBIG;
-                hloss = -hgrad * hyd->LinkFlow[k];
+                qstar = sqrt(-r / hgrad);
+                hloss = (r / qstar) - hgrad * (qstar - q);
             }
             else if (hgrad < hyd->RQtol)
             {
                 hgrad = hyd->RQtol;
-                hloss = -hgrad * hyd->LinkFlow[k];
+                qstar = sqrt(-r / hgrad);
+                hloss = (r / qstar) - hgrad * (qstar - q);
             }
             // ... otherwise compute head loss from pump curve
             else
