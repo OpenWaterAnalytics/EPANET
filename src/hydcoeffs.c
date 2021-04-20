@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 4/20/2021
+ Last Updated: 10/04/2019
  ******************************************************************************
 */
 
@@ -271,31 +271,11 @@ void  nodecoeffs(Project *pr)
 
     // For junction nodes, subtract demand flow from net
     // flow excess & add flow excess to RHS array F
-
-    if (hyd->DemandModel == DDA)                                               //ET-PDA
+    for (i = 1; i <= net->Njuncs; i++)
     {
-        for (i = 1; i <= net->Njuncs; i++)
-        {
-            hyd->Xflow[i] -= hyd->DemandFlow[i];
-            sm->F[sm->Row[i]] += hyd->Xflow[i];
-        }
+        hyd->Xflow[i] -= hyd->DemandFlow[i];
+        sm->F[sm->Row[i]] += hyd->Xflow[i];
     }
-    else
-    {
-        for (i = 1; i <= net->Njuncs; i++)
-        {
-            hyd->DemandFlow[i] = MAX(hyd->DemandFlow[i], 0.0);
-            hyd->DemandFlow[i] = MIN(hyd->DemandFlow[i], hyd->NodeDemand[i]);
-            switch (net->Node[i].demandState)
-            {
-                case NEGATIVE_DEMAND:
-                case FULL_DEMAND:
-                hyd->DemandFlow[i] = hyd->NodeDemand[i];
-                hyd->Xflow[i] -= hyd->NodeDemand[i];
-            }
-            sm->F[sm->Row[i]] += hyd->Xflow[i];
-        }               
-    }       
 }
 
 
@@ -464,20 +444,6 @@ void  demandcoeffs(Project *pr)
     {
         // Skip junctions with non-positive demands
         if (hyd->NodeDemand[i] <= 0.0) continue;
-
-        net->Node[i].demandState = PARTIAL_DEMAND;                             //ET-PDA
-        if (hyd->DemandFlow[i] <= 0 &&
-            hyd->NodeHead[i] <= (net->Node[i].El + hyd->Pmin))
-        {
-            net->Node[i].demandState = ZERO_DEMAND;
-            continue;
-        }
-        else if (MAX(0,hyd->DemandFlow[i]) * hyd->NodeHead[i] >= 
-                 hyd->NodeDemand[i] * (net->Node[i].El + hyd->Preq))
-        {
-            net->Node[i].demandState = FULL_DEMAND;
-            continue;
-        }
         
         // Find head loss for demand outflow at node's elevation
         demandheadloss(pr, i, dp, n, &hloss, &hgrad);
@@ -508,14 +474,10 @@ void demandheadloss(Project *pr, int i, double dp, double n,
 {
     Hydraul *hyd = &pr->hydraul;
    
-    double d = MAX(hyd->DemandFlow[i], 0.0001);                                //ET-PDA
+    double d = hyd->DemandFlow[i];
     double dfull = hyd->NodeDemand[i];
     double r = d / dfull;
-
-    *hgrad = n * dp * pow(r, n - 1.0) / dfull;
-    *hloss = (*hgrad) * d / n;
-
-/*                                                                             //ET-PDA    
+    
     // Use lower barrier function for negative demand
     if (r <= 0)
     {
@@ -524,7 +486,7 @@ void demandheadloss(Project *pr, int i, double dp, double n,
     }
 
     // Use power head loss function for demand less than full
-    else if (r <= 1.0)                                                         //(2.2.1)
+    else if (r <= 1.0)
     {
         *hgrad = n * dp * pow(r, n - 1.0) / dfull;
         // ... use linear function for very small gradient
@@ -542,7 +504,6 @@ void demandheadloss(Project *pr, int i, double dp, double n,
         *hgrad = CBIG;
         *hloss = dp + CBIG * (d - dfull);
     }
-*/
 }
 
 
