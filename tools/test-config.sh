@@ -16,7 +16,6 @@
 #  Suggested Usage:
 #  $ for file in .//*; do  ./test-config.sh $file 1.0 > "${file%.*}.json"; done
 #
-#        "${name}.rpt": "epanet report",
 
 filename="$1"
 name="${filename%.*}"
@@ -38,6 +37,7 @@ cat<<EOF
     ],
     "output_files": {
         "${name}.out": "epanet allclose"
+        "${name}.rpt": "epanet report",
     }
 }
 EOF
