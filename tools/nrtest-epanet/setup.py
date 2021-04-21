@@ -18,7 +18,8 @@ entry_points = {
     'nrtest.compare': [
         'epanet allclose = nrtest_epanet:epanet_allclose_compare',
         #'epanet mincdd = nrtest_epanet:epanet_mincdd_compare',
-        'epanet report = nrtest_epanet:epanet_report_compare',
+        #'epanet report = nrtest_epanet:epanet_report_compare',
+        'epanet report = null',
         # Add entry point for new comparison functions here
     ]
 }
