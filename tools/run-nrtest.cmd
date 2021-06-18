@@ -42,7 +42,7 @@ set TEST_OUTPUT_PATH=benchmark\epanet-%SUT_BUILD_ID%
 set NRTEST_COMPARE_CMD=python %NRTEST_SCRIPT_PATH%\nrtest compare
 set REF_OUTPUT_PATH=benchmark\epanet-%REF_BUILD_ID%
 set RTOL_VALUE=0.01
-set ATOL_VALUE=0.0
+set ATOL_VALUE=0.0001
 
 :: change current directory to test suite
 cd %TEST_SUITE_PATH%
@@ -52,7 +52,7 @@ if exist %TEST_OUTPUT_PATH% (
   rmdir /s /q %TEST_OUTPUT_PATH%
 )
 
-echo INFO: Creating SUT %SUT_BUILD_ID% artifacts
+::echo INFO: Creating SUT %SUT_BUILD_ID% artifacts
 set NRTEST_COMMAND=%NRTEST_EXECUTE_CMD% %TEST_APP_PATH% %TESTS% -o %TEST_OUTPUT_PATH%
 :: if there is an error exit the script with error value 1
 %NRTEST_COMMAND% || exit /B 1
