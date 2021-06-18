@@ -302,7 +302,7 @@ int pipedata(Project *pr)
     if (!getfloat(parser->Tok[4], &diam)) return  setError(parser, 4, 202);
     if (diam <= 0.0) return setError(parser, 4, 211);
     if (!getfloat(parser->Tok[5], &rcoeff)) return setError(parser, 5, 202);
-    if (rcoeff <= 0.0) setError(parser, 5, 211);
+    if (rcoeff <= 0.0) return setError(parser, 5, 211);
 
     // Either a loss coeff. or a status is supplied
     if (n == 7)
