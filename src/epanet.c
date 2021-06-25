@@ -2444,7 +2444,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
             // If the volume supplied by the function is 0 then the tank shape
             // below Hmin is assumed to be cylindrical and a new Vmin value is
             // computed. Otherwise Vmin is set to the supplied value.
-            if (value >= 0.0) Tank[j].Vmin = value / Ucf[VOLUME];
+            if (value > 0.0) Tank[j].Vmin = value / Ucf[VOLUME];
             else Tank[j].Vmin = Tank[j].A * (Tank[j].Hmin - Node[index].El);
 
             // Since Vmin changes the other volumes need updating
@@ -2671,7 +2671,7 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     Tank[j].Vcurve = curveIndex;
     if (curveIndex == 0)
     {
-        if (minvol >= 0.0) Tank[j].Vmin = minvol / Ucf[VOLUME];
+        if (minvol > 0.0) Tank[j].Vmin = minvol / Ucf[VOLUME];
         else Tank[j].Vmin = Tank[j].A * (Tank[j].Hmin - elev / Ucf[ELEV]);
     }
     else Tank[j].Vmin = tankvolume(p, j, Tank[j].Hmin);
