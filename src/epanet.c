@@ -2376,7 +2376,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         break;
 
     case EN_TANKLEVEL:
-        if (index <= nJuncs) return 0;
+        if (index <= nJuncs) return 203;
         j = index - nJuncs;
         if (Tank[j].A == 0.0) /* Tank is a reservoir */
         {
@@ -2400,9 +2400,9 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
 
     case EN_TANKDIAM:
         if (value <= 0.0) return 209;                  // invalid diameter
-        if (index <= nJuncs) return 0;                 // node is not a tank
+        if (index <= nJuncs) return 203;               // node is not a tank
         j = index - nJuncs;                            // tank index
-        if (Tank[j].A == 0.0) return 0;                // tank is a reservoir
+        if (Tank[j].A == 0.0) return 203;              // tank is a reservoir
         value /= Ucf[ELEV];                            // diameter in feet
         Tank[j].A = PI * SQR(value) / 4.0;             // new tank area
         if (Tank[j].Vcurve > 0)                        // tank has a volume curve
@@ -2424,9 +2424,9 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
 
     case EN_MINVOLUME:
         if (value < 0.0) return 209;               // invalid volume
-        if (index <= nJuncs) return 0;             // node is not a tank
+        if (index <= nJuncs) return 203;           // node is not a tank
         j = index - nJuncs;                        // tank index
-        if (Tank[j].A == 0.0) return 0;            // tank is a reservoir
+        if (Tank[j].A == 0.0) return 203;          // tank is a reservoir
         i = Tank[j].Vcurve;                        // volume curve index
         if (i > 0)                                 // tank has a volume curve
         {
@@ -2459,9 +2459,9 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         i = ROUND(value);                          // curve index
         if (i <= 0 ||
             i > net->Ncurves) return 205;          // invalid curve index
-        if (index <= nJuncs) return 0;             // node not a tank
+        if (index <= nJuncs) return 203;           // node not a tank
         j = index - nJuncs;                        // tank index
-        if (Tank[j].A == 0.0) return 0;            // tank is a reservoir
+        if (Tank[j].A == 0.0) return 203;          // tank is a reservoir
         curve = &net->Curve[i];                    // curve object
 
         // Check that tank's min/max levels lie within curve
@@ -2481,9 +2481,9 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
 
     case EN_MINLEVEL:
         if (value < 0.0) return 209;               // invalid water level
-        if (index <= nJuncs) return 0;             // node not a tank
+        if (index <= nJuncs) return 203;           // node not a tank
         j = index - nJuncs;                        // tank index
-        if (Tank[j].A == 0.0) return  0;           // tank is a reservoir
+        if (Tank[j].A == 0.0) return 203;          // tank is a reservoir
         hTmp = value / Ucf[ELEV] + Node[index].El; // convert level to head
         if (hTmp >= Tank[j].Hmax ||
             hTmp > Tank[j].H0) return 225;         // invalid water levels
@@ -2502,9 +2502,9 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
 
     case EN_MAXLEVEL:
         if (value <= 0.0) return 209;              // invalid water level
-        if (index <= nJuncs) return 0;             // node not a tank
+        if (index <= nJuncs) return 203;           // node not a tank
         j = index - nJuncs;                        // tank index
-        if (Tank[j].A == 0.0) return 0;            // tank is a reservoir
+        if (Tank[j].A == 0.0) return 203;          // tank is a reservoir
         hTmp = value / Ucf[ELEV] + Node[index].El; // convert level to head
         if (hTmp < Tank[j].Hmin ||
             hTmp < Tank[j].H0) return 225;         // invalid water levels
@@ -2521,7 +2521,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
 
     case EN_MIXMODEL:
         j = ROUND(value);
-        if (index <= nJuncs) return 0;
+        if (index <= nJuncs) return 203;
         if (j < MIX1 || j > LIFO) return 251;
         if (Tank[index - nJuncs].A > 0.0)
         {
@@ -2530,7 +2530,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         break;
 
     case EN_MIXFRACTION:
-        if (index <= nJuncs) return 0;
+        if (index <= nJuncs) return 203;
         if (value < 0.0 || value > 1.0) return 209;
         j = index - nJuncs;
         if (Tank[j].A > 0.0)
@@ -2540,7 +2540,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         break;
 
     case EN_TANK_KBULK:
-        if (index <= nJuncs) return 0;
+        if (index <= nJuncs) return 203;
         j = index - nJuncs;
         if (Tank[j].A > 0.0)
         {
@@ -2550,7 +2550,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         break;
 
     case EN_CANOVERFLOW:
-        if (Node[index].Type != TANK) return 0;
+        if (Node[index].Type != TANK) return 203;
         Tank[index - nJuncs].CanOverflow = (value != 0.0);
         break;
 
@@ -2634,7 +2634,7 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     if (!p->Openflag) return 102;
     if (index <= net->Njuncs || index > net->Nnodes) return 203;
     j = index - net->Njuncs;
-    if (Tank[j].A == 0) return 0;  // Tank is a Reservoir
+    if (Tank[j].A == 0) return 203;  // Tank is a Reservoir
 
     // Check for valid parameter values
     if (initlvl < 0.0 || minlvl < 0.0 || maxlvl < 0.0) return 209;
