@@ -61,6 +61,7 @@ DAT(259,"attempt to delete a node that still has links connected to it")
 DAT(260,"attempt to delete node assigned as a Trace Node")
 DAT(261,"attempt to delete a node or link contained in a control")
 DAT(262,"attempt to modify network structure while solver is active")
+DAT(263,"node is not a tank")
 
 // File errors
 DAT(301,"identical file names")
