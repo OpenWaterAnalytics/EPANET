@@ -475,7 +475,7 @@ namespace EpanetCSharpLibrary
 
         //Link Functions
         [DllImport(EPANETDLL, EntryPoint = "ENaddlink")]
-        public static extern int ENaddlink(string id, int linkType, string fromNode, string toNode, string index);
+        public static extern int ENaddlink(string id, int linkType, string fromNode, string toNode, ref int index);
 
         [DllImport(EPANETDLL, EntryPoint = "ENdeletelink")]
         public static extern int ENdeletelink(int index, int actionCode);
@@ -517,7 +517,7 @@ namespace EpanetCSharpLibrary
         public static extern int ENgetvertex(int index, int vertex, ref double x, ref double y);
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetvertices")]
-        public static extern int ENsetvertices(int index, ref double x, ref double y, int count);
+        public static extern int ENsetvertices(int index, ref double[] x, ref double[] y, int count);
 
 
         //Pump Functions
@@ -595,7 +595,7 @@ namespace EpanetCSharpLibrary
         public static extern int ENgetcurve(int index, string id, ref int nPoints, ref float xValues, ref float yValues);
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetcurve")]
-        public static extern int ENsetcurve(int index, ref float xValues, ref float yValues, int nPoints);
+        public static extern int ENsetcurve(int index, ref float[] xValues, ref float[] yValues, int nPoints);
 
 
         //Simple Control Functions
