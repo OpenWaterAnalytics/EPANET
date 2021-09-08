@@ -4525,7 +4525,7 @@ int DLLEXPORT EN_getaveragepatternvalue(EN_Project p, int index, double *value)
 
     *value = 0.0;
     if (!p->Openflag) return 102;
-    if (index < 1 || index > net->Npats) return 205;
+    if (index < 0 || index > net->Npats) return 205;
     for (i = 0; i < Pattern[index].Length; i++)
     {
         *value += (double)Pattern[index].F[i];
