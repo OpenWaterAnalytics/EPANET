@@ -3635,8 +3635,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         {
             return EN_getlinkvalue(p, index, EN_ROUGHNESS, value);
         }
-		if (Link[index].Kc == MISSING) v = 0.0;
-        else v = Link[index].Kc;
+        v = Link[index].Kc;
         switch (Link[index].Type)
         {
         case PRV:
@@ -3648,6 +3647,9 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
             v *= Ucf[FLOW];
         default:
             break;
+        }
+        if (Link[index].Kc == MISSING) {
+          v = MISSING;
         }
         break;
 
