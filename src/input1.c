@@ -229,9 +229,6 @@ void adjustdata(Project *pr)
     // Report start time cannot be greater than simulation duration
     if (time->Rstart > time->Dur) time->Rstart = 0;
 
-    // No water quality analysis for single period run
-    if (time->Dur == 0) qual->Qualflag = NONE;
-
     // If no quality timestep, then make it 1/10 of hydraulic timestep
     if (time->Qstep == 0) time->Qstep = time->Hstep / 10;
 
