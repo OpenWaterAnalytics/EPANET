@@ -97,7 +97,6 @@ void setdefaults(Project *pr)
     parser->Unitsflag = US;     // US unit system
     parser->Flowflag = GPM;     // Flow units are gpm
     parser->Pressflag = PSI;    // Pressure units are psi
-    parser->DefPat = 0;         // Default demand pattern index
     out->Hydflag = SCRATCH;     // No external hydraulics file
     rpt->Tstatflag = SERIES;    // Generate time series output
 
@@ -121,6 +120,7 @@ void setdefaults(Project *pr)
     hyd->Epump = EPUMP;         // Default pump efficiency
     hyd->Emax = 0.0;            // Zero peak energy usage
     hyd->Qexp = 2.0;            // Flow exponent for emitters
+    hyd->DefPat = 0;            // Default demand pattern index
     hyd->Dmult = 1.0;           // Demand multiplier
     hyd->RQtol = RQTOL;         // Default hydraulics parameters
     hyd->CheckFreq = CHECKFREQ;
@@ -319,16 +319,10 @@ void adjustdata(Project *pr)
         if (tank->Kb == MISSING) tank->Kb = qual->Kbulk;
     }
  
-    // Use default pattern if none assigned to a demand
-    parser->DefPat = findpattern(net, parser->DefPatID);
-    if (parser->DefPat > 0) for (i = 1; i <= net->Nnodes; i++)
-    {
-        node = &net->Node[i];
-        for (demand = node->D; demand != NULL; demand = demand->next)
-        {
-            if (demand->Pat == 0) demand->Pat = parser->DefPat;
-        }
-    }
+    // Set default pattern index
+    i = findpattern(net, parser->DefPatID);
+    if (i > 0)
+        hyd->DefPat = i;
 
     // Remove QUALITY as a reporting variable if no WQ analysis
     if (qual->Qualflag == NONE) rpt->Field[QUALITY].Enabled = FALSE;

@@ -573,8 +573,7 @@ typedef struct {
     ErrTok,                // Index of error-producing token
     Unitsflag,             // Unit system flag
     Flowflag,              // Flow units flag
-    Pressflag,             // Pressure units flag
-    DefPat;                // Default demand pattern
+    Pressflag;             // Pressure units flag
 
   Spattern *PrevPat;       // Previous pattern processed
   Scurve   *PrevCurve;     // Previous curve processed
@@ -735,6 +734,7 @@ typedef struct {
     *Xflow;                // Inflow - outflow at each node
 
   int
+    DefPat,                // Default demand pattern
     Epat,                  // Energy cost time pattern
     DemandModel,           // Fixed or pressure dependent
     Formflag,              // Head loss formula flag

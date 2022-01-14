@@ -320,7 +320,8 @@ typedef enum {
   EN_BULKORDER      = 19, //!< Bulk water reaction order for pipes
   EN_WALLORDER      = 20, //!< Wall reaction order for pipes (either 0 or 1)
   EN_TANKORDER      = 21, //!< Bulk water reaction order for tanks
-  EN_CONCENLIMIT    = 22  //!< Limiting concentration for growth reactions
+  EN_CONCENLIMIT    = 22, //!< Limiting concentration for growth reactions
+  EN_DEMANDPATTERN  = 23  //!< Name of default demand pattern
 } EN_Option;
 
 /// Simple control types

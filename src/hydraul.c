@@ -485,6 +485,8 @@ void  demands(Project *pr)
         {
             // pattern period (k) = (elapsed periods) modulus (periods per pattern)
             j = demand->Pat;
+            if (j == 0)
+                j = hyd->DefPat;
             k = p % (long)net->Pattern[j].Length;
             djunc = (demand->Base) * net->Pattern[j].F[k] * hyd->Dmult;
             if (djunc > 0.0) hyd->Dsystem += djunc;

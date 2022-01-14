@@ -666,6 +666,8 @@ int saveinpfile(Project *pr, const char *fname)
           break;
     }
 
+    if (hyd->DefPat > 0)
+        fprintf(f, "\n PATTERN             %s", net->Pattern[hyd->DefPat].ID);
     fprintf(f, "\n DEMAND MULTIPLIER   %-.4f", hyd->Dmult);
     fprintf(f, "\n EMITTER EXPONENT    %-.4f", 1.0 / hyd->Qexp);
     fprintf(f, "\n VISCOSITY           %-.6f", hyd->Viscos / VISCOS);
