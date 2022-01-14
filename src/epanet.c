@@ -4387,6 +4387,10 @@ int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
     if (hyd->Epat == index)  hyd->Epat = 0;
     else if (hyd->Epat > index) hyd->Epat--;
 
+    // Modify global default demand pattern
+    if (hyd->DefPat == index) hyd->DefPat = 0;
+    else if (hyd->DefPat > index) hyd->DefPat--;
+
     // Free the pattern's factor array
     FREE(net->Pattern[index].F);
     FREE(net->Pattern[index].Comment);
