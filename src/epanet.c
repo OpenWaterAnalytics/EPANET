@@ -1187,10 +1187,9 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
     case EN_CONCENLIMIT:
         v = qual->Climit * p->Ucf[QUALITY];
         break;
-
     case EN_DEMANDPATTERN:
         v = hyd->DefPat;
-
+        break;
     default:
         return 251;
     }

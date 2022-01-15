@@ -212,9 +212,7 @@ void adjustdata(Project *pr)
 
     int i;
     double ucf;     // Unit conversion factor
-    Pdemand demand; // Pointer to demand record
     Slink *link;
-    Snode *node;
     Stank *tank;
 
     // Use 1 hr pattern & report time step if none specified
