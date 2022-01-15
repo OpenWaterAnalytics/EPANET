@@ -89,7 +89,7 @@ BOOST_FIXTURE_TEST_CASE(test_junc_props, FixtureOpenClose)
     double *value = test.data();
 
     error = EN_getnodeindex(ph, (char *)"11", &index);
-    std::vector<double> ref = {710.0, 150.0, 1.0, 0.0, 0.5};
+    std::vector<double> ref = {710.0, 150.0, 0.0, 0.0, 0.5};
 
 
     // Ranged for loop iterates over property set
