@@ -1187,7 +1187,9 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
     case EN_CONCENLIMIT:
         v = qual->Climit * p->Ucf[QUALITY];
         break;
-
+    case EN_DEMANDPATTERN:
+        v = hyd->DefPat;
+        break;
     default:
         return 251;
     }
@@ -1342,6 +1344,12 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
 
     case EN_CONCENLIMIT:
         qual->Climit = value / p->Ucf[QUALITY];
+        break;
+
+    case EN_DEMANDPATTERN:
+        pat = ROUND(value);
+        if (pat < 0 || pat > net->Npats) return 205;
+        hyd->DefPat = pat;
         break;
 
     default:
@@ -4377,6 +4385,10 @@ int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
     // Modify global energy price pattern
     if (hyd->Epat == index)  hyd->Epat = 0;
     else if (hyd->Epat > index) hyd->Epat--;
+
+    // Modify global default demand pattern
+    if (hyd->DefPat == index) hyd->DefPat = 0;
+    else if (hyd->DefPat > index) hyd->DefPat--;
 
     // Free the pattern's factor array
     FREE(net->Pattern[index].F);
