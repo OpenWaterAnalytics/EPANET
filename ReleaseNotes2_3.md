@@ -10,4 +10,5 @@ This document describes the changes and updates that have been made in version 2
  - The `EN_getlinkvalue` and `EN_setlinkvalue` functions were updated to get and set the value of `EN_GPV_CURVE`.
  - Negative pressure values for `EN_SETTING` are now permitted in the `EN_setlinkvalue` function. 
  - The `EN_STARTTIME` parameter was added into the `EN_settimeparam` function.
+ - The calculated head loss gradient for low flow conditions was corrected.
 
