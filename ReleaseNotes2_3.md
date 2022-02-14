@@ -12,4 +12,6 @@ This document describes the changes and updates that have been made in version 2
  - The `EN_STARTTIME` parameter was added into the `EN_settimeparam` function.
  - The calculation of head loss gradient for low flow conditions was corrected.
  - Improved updating and convergence tests were added to pressure dependent demand analysis.
+ - <to be continued>
+ 
 
