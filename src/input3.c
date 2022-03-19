@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 11/29/2019
+Last Updated: 03/19/2022
 ******************************************************************************
 */
 
@@ -2159,6 +2159,7 @@ void changestatus(Network *net, int j, StatusType status, double y)
             if (y == 0.0) status = CLOSED;
         }
         else if (status == OPEN) link->Kc = 1.0;
+        else if (status == CLOSED) link->Kc = 0.0;
         link->Status = status;
     }
     else if (link->Type >= PRV)

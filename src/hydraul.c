@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/03/2020
+ Last Updated: 03/19/2022
  ******************************************************************************
 */
 
@@ -668,7 +668,7 @@ int  tanktimestep(Project *pr, long *tstep)
     Hydraul *hyd = &pr->hydraul;
 
     int     i, n, tankIdx = 0;
-    double  h, q, v;
+    double  h, q, v, xt;
     long    t;
     Stank   *tank;
 
@@ -691,7 +691,9 @@ int  tanktimestep(Project *pr, long *tstep)
         else continue;
 
         // Find time to fill/drain tank
-        t = (long)ROUND(v / q);
+        xt = v / q;
+        if (ABS(xt) > *tstep + 1) continue;
+        t = (long)ROUND(xt);
         if (t > 0 && t < *tstep)
         {
             *tstep = t;
