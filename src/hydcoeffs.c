@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/04/2019
+ Last Updated: 02/14/2022
  ******************************************************************************
 */
 
@@ -400,7 +400,7 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
     // Use linear head loss function for small gradient
     if (*hgrad < hyd->RQtol)
     {
-        *hgrad = hyd->RQtol;
+        *hgrad = hyd->RQtol / hyd->Qexp;
         *hloss = (*hgrad) * q;
     }            
 
@@ -486,13 +486,13 @@ void demandheadloss(Project *pr, int i, double dp, double n,
     }
 
     // Use power head loss function for demand less than full
-    else if (r < 1.0)
+    else if (r <= 1.0)
     {
         *hgrad = n * dp * pow(r, n - 1.0) / dfull;
         // ... use linear function for very small gradient
         if (*hgrad < hyd->RQtol)
         {
-            *hgrad = hyd->RQtol;
+            *hgrad = hyd->RQtol / n;
             *hloss = (*hgrad) * d;
         }
         else *hloss = (*hgrad) * d / n;
@@ -553,7 +553,7 @@ void  pipecoeff(Project *pr, int k)
     // ... use linear function for very small gradient
     if (hgrad < hyd->RQtol)
     {
-        hgrad = hyd->RQtol;
+        hgrad = hyd->RQtol / hyd->Hexp;
         hloss = hgrad * q;
     }
     // ... otherwise use original formula
@@ -1135,7 +1135,7 @@ void valvecoeff(Project *pr, int k)
         // Guard against too small a head loss gradient
         if (hgrad < hyd->RQtol)
         {
-            hgrad = hyd->RQtol;
+            hgrad = hyd->RQtol / 2.0;
             hloss = flow * hgrad;
         }
         else hloss = flow * hgrad / 2.0;        

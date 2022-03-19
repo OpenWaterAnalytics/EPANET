@@ -8,7 +8,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/15/2019
+ Last Updated: 02/14/2022
  ******************************************************************************
 */
 
@@ -553,6 +553,10 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
         dh = hyd->NodeHead[i] - net->Node[i].El - hyd->Pmin;
         dq = (hloss - dh) / hgrad;
         dq *= hyd->RelaxFactor;
+
+        // Prevent a flow change greater than full demand
+        if (fabs(dq) > 0.4 * hyd->NodeDemand[i])
+            dq = 0.4 * SGN(dq) * hyd->NodeDemand[i];
         hyd->DemandFlow[i] -= dq;
 
         // Update system flow summation
@@ -654,9 +658,11 @@ int pdaconverged(Project *pr)
 {
     Hydraul *hyd = &pr->hydraul;
 
-    const double TOL = 0.001;
+    const double QTOL = 0.0001;  // 0.0001 cfs ~= 0.005 gpm ~= 0.2 lpm)
     int i, converged = 1;
     double totalDemand = 0.0, totalReduction = 0.0;
+    double dp = hyd->Preq - hyd->Pmin;
+    double p, q, r;
     
     hyd->DeficientNodes = 0;
     hyd->DemandReduction = 0.0;
@@ -666,15 +672,25 @@ int pdaconverged(Project *pr)
     {
         // Skip nodes whose required demand is non-positive
         if (hyd->NodeDemand[i] <= 0.0) continue;
+ 
+       // Evaluate demand equation at current pressure solution
+        p = hyd->NodeHead[i] - pr->network.Node[i].El;
+        if (p <= hyd->Pmin)
+            q = 0.0;
+        else if (p >= hyd->Preq)
+            q = hyd->NodeDemand[i];
+        else
+        {
+            r = (p - hyd->Pmin) / dp;
+            q = hyd->NodeDemand[i] * pow(r, hyd->Pexp);
+        }
         
-        // Check for negative demand flow or positive demand flow at negative pressure
-        if (hyd->DemandFlow[i] < -TOL) converged = 0;
-        if (hyd->DemandFlow[i] > TOL &&
-            hyd->NodeHead[i] - pr->network.Node[i].El - hyd->Pmin < -TOL)
-            converged = 0;
+        // Check if demand has not converged
+        if (fabs(q - hyd->DemandFlow[i]) > QTOL)
+           converged = 0;
             
         // Accumulate total required demand and demand deficit
-        if (hyd->DemandFlow[i] + 0.0001 < hyd->NodeDemand[i])
+        if (hyd->DemandFlow[i] + QTOL < hyd->NodeDemand[i])
         {
             hyd->DeficientNodes++;
             totalDemand += hyd->NodeDemand[i];

@@ -29,8 +29,8 @@ sut_output_path="benchmark/epanet-$3"
 
 nrtest_compare_cmd="nrtest compare"
 ref_output_path="benchmark/epanet-$2"
-rtol_value=0.1
-atol_value=0.0
+rtol_value=0.01
+atol_value=0.0001
 
 
 # change current directory to test_suite
