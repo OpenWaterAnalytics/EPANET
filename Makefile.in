@@ -1,0 +1,351 @@
+OBJ = obj/
+SRC = src/
+INC = include/
+BIN = bin/
+CC = @CC@ @GPROF@ @LTO@
+CFLAGS = @ARCH@ @GLIB_CFLAGS@ -I$(INC) -Wall -Wextra -O3 -DFORTIFY_SOURCE=2
+COFLAGS = -c -fPIC $(CFLAGS)
+CPGOFLAGS = -c -fPIC $(CFLAGS) @PGO_GENERATE@
+LIBS = @GLIB_LIBS@ -lm
+PGO = @PGO@
+
+epanet_c = $(SRC)epanet.c
+epanet2_c = $(SRC)epanet2.c
+genmmd_c = $(SRC)genmmd.c
+hash_c = $(SRC)hash.c
+hydcoeffs_c = $(SRC)hydcoeffs.c
+hydraul_c = $(SRC)hydraul.c
+hydsolver_c = $(SRC)hydsolver.c
+hydstatus_c = $(SRC)hydstatus.c
+inpfile_c = $(SRC)inpfile.c
+input1_c = $(SRC)input1.c
+input2_c = $(SRC)input2.c
+input3_c = $(SRC)input3.c
+main_c = run/main.c
+mempool_c = $(SRC)mempool.c
+output_c = $(SRC)output.c
+project_c = $(SRC)project.c
+quality_c = $(SRC)quality.c
+qualreact_c = $(SRC)qualreact.c
+qualroute_c = $(SRC)qualroute.c
+report_c = $(SRC)report.c
+rules_c = $(SRC)rules.c
+smatrix_c = $(SRC)smatrix.c
+
+epanet_h = $(INC)epanet2_2.h $(INC)epanet2_enums.h
+epanet2_h = $(INC)epanet2.h $(INC)epanet2_enums.h
+enumstxt_h = $(SRC)enumstxt.h
+errors_h = $(SRC)errors.dat
+funcs_h = $(SRC)funcs.h
+hash_h = $(SRC)hash.h
+mempool_h = $(SRC)mempool.h
+text_h = $(SRC)text.h
+types_h = $(SRC)types.h
+
+epanet_pgo = $(OBJ)epanet.pgo
+epanet2_pgo = $(OBJ)epanet2.pgo
+genmmd_pgo = $(OBJ)genmmd.pgo
+hash_pgo = $(OBJ)hash.pgo
+hydcoeffs_pgo = $(OBJ)hydcoeffs.pgo
+hydraul_pgo = $(OBJ)hydraul.pgo
+hydsolver_pgo = $(OBJ)hydsolver.pgo
+hydstatus_pgo = $(OBJ)hydstatus.pgo
+inpfile_pgo = $(OBJ)inpfile.pgo
+input1_pgo = $(OBJ)input1.pgo
+input2_pgo = $(OBJ)input2.pgo
+input3_pgo = $(OBJ)input3.pgo
+main_pgo = $(OBJ)main.pgo
+mempool_pgo = $(OBJ)mempool.pgo
+output_pgo = $(OBJ)output.pgo
+project_pgo = $(OBJ)project.pgo
+quality_pgo = $(OBJ)quality.pgo
+qualreact_pgo = $(OBJ)qualreact.pgo
+qualroute_pgo = $(OBJ)qualroute.pgo
+report_pgo = $(OBJ)report.pgo
+rules_pgo = $(OBJ)rules.pgo
+smatrix_pgo = $(OBJ)smatrix.pgo
+
+epanet_o = $(OBJ)epanet.o
+epanet2_o = $(OBJ)epanet2.o
+genmmd_o = $(OBJ)genmmd.o
+hash_o = $(OBJ)hash.o
+hydcoeffs_o = $(OBJ)hydcoeffs.o
+hydraul_o = $(OBJ)hydraul.o
+hydsolver_o = $(OBJ)hydsolver.o
+hydstatus_o = $(OBJ)hydstatus.o
+inpfile_o = $(OBJ)inpfile.o
+input1_o = $(OBJ)input1.o
+input2_o = $(OBJ)input2.o
+input3_o = $(OBJ)input3.o
+main_o = $(OBJ)main.o
+mempool_o = $(OBJ)mempool.o
+output_o = $(OBJ)output.o
+project_o = $(OBJ)project.o
+quality_o = $(OBJ)quality.o
+qualreact_o = $(OBJ)qualreact.o
+qualroute_o = $(OBJ)qualroute.o
+report_o = $(OBJ)report.o
+rules_o = $(OBJ)rules.o
+smatrix_o = $(OBJ)smatrix.o
+
+epanetpgo_lib = -lepanetpgo
+epanetpgo_so = $(BIN)libepanetpgo@SO@
+epanetpgo_exe = $(BIN)epanetpgo@EXE@
+
+epanet_lib = -lepanet
+epanet_so = $(BIN)libepanet@SO@
+epanet_exe = $(BIN)epanet@EXE@
+
+objspgo = $(epanet_pgo) $(epanet2_pgo) $(genmmd_pgo) $(hash_pgo) \
+	$(hydcoeffs_pgo) $(hydraul_pgo) $(hydsolver_pgo) $(hydstatus_pgo) \
+	$(inpfile_pgo) $(input1_pgo) $(input2_pgo) $(input3_pgo) $(mempool_pgo) \
+	$(output_pgo) $(project_pgo) $(quality_pgo) $(qualreact_pgo) \
+	$(qualroute_pgo) $(report_pgo) $(rules_pgo) $(smatrix_pgo)
+
+objs = $(epanet_o) $(epanet2_o) $(genmmd_o) $(hash_o) $(hydcoeffs_o) \
+	$(hydraul_o) $(hydsolver_o) $(hydstatus_o) $(inpfile_o) $(input1_o) \
+	$(input2_o) $(input3_o) $(mempool_o) $(output_o) $(project_o) $(quality_o) \
+	$(qualreact_o) $(qualroute_o) $(report_o) $(rules_o) $(smatrix_o)
+
+epanet_dep_pgo = $(epanet_c) $(epanet_h) $(hash_h) $(types_h) $(funcs_h) \
+	$(text_h) $(enumstxt_h) Makefile
+epanet2_dep_pgo = $(epanet2_c) $(hash_h) $(types_h) $(funcs_h) $(epanet2_h) \
+	$(epanet_h) Makefile
+genmmd_dep_pgo = $(genmmd_c) Makefile
+hash_dep_pgo = $(hash_c) $(hash_h) Makefile
+hydcoeffs_dep_pgo = $(hydcoeffs_c) $(hash_h) $(types_h) $(funcs_h) Makefile
+hydraul_dep_pgo = $(hydraul_c) $(hash_h) $(types_h) $(funcs_h) $(text_h) \
+	Makefile
+hydsolver_dep_pgo = $(hydsolver_c) $(hash_h) $(types_h) $(funcs_h) $(text_h) \
+	Makefile
+hydstatus_dep_pgo = $(hydstatus_c) $(hash_h) $(types_h) $(funcs_h) Makefile
+inpfile_dep_pgo = $(inpfile_c) $(hash_h) $(types_h) $(funcs_h) $(text_h) \
+	Makefile
+input1_dep_pgo = $(input1_c) $(hash_h) $(types_h) $(funcs_h) $(text_h) Makefile
+input2_dep_pgo = $(input2_c) $(hash_h) $(types_h) $(funcs_h) $(text_h) Makefile
+input3_dep_pgo = $(input3_c) $(hash_h) $(types_h) $(funcs_h) $(text_h) Makefile
+main_dep_pgo = $(main_c) $(epanet2_h) Makefile
+mempool_dep_pgo = $(mempool_c) $(mempool_h) Makefile
+output_dep_pgo = $(output_c) $(hash_h) $(types_h) $(funcs_h) $(text_h) Makefile
+project_dep_pgo = $(project_c) $(hash_h) $(types_h) $(funcs_h) $(errors_h) \
+	Makefile
+quality_dep_pgo = $(quality_c) $(mempool_h) $(hash_h) $(types_h) $(funcs_h) \
+	Makefile
+qualreact_dep_pgo = $(qualreact_c) $(hash_h) $(types_h) Makefile
+qualroute_dep_pgo = $(qualroute_c) $(mempool_h) $(hash_h) $(types_h) Makefile
+report_dep_pgo = $(report_c) $(text_h) $(hash_h) $(types_h) $(funcs_h) \
+	$(vars_h) Makefile
+rules_dep_pgo = $(rules_c) $(text_h) $(hash_h) $(types_h) $(funcs_h) $(vars_h) \
+	Makefile
+smatrix_dep_pgo = $(smatrix_c) $(text_h) $(hash_h) $(types_h) $(funcs_h) \
+	$(vars_h) Makefile
+
+ifeq ($(PGO), 1)
+	epanet_dep = $(epanetpgo_exe)
+	epanet2_dep = $(epanetpgo_exe)
+	genmmd_dep = $(epanetpgo_exe)
+	hash_dep = $(epanetpgo_exe)
+	hydcoeffs_dep = $(epanetpgo_exe)
+	hydraul_dep = $(epanetpgo_exe)
+	hydsolver_dep = $(epanetpgo_exe)
+	hydstatus_dep = $(epanetpgo_exe)
+	inpfile_dep = $(epanetpgo_exe)
+	input1_dep = $(epanetpgo_exe)
+	input2_dep = $(epanetpgo_exe)
+	input3_dep = $(epanetpgo_exe)
+	main_dep = $(epanetpgo_exe)
+	mempool_dep = $(epanetpgo_exe)
+	output_dep = $(epanetpgo_exe)
+	project_dep = $(epanetpgo_exe)
+	quality_dep = $(epanetpgo_exe)
+	qualreact_dep = $(epanetpgo_exe)
+	qualroute_dep = $(epanetpgo_exe)
+	report_dep = $(epanetpgo_exe)
+	rules_dep = $(epanetpgo_exe)
+	smatrix_dep = $(epanetpgo_exe)
+	COFLAGS += @PGO_USE@
+else
+	epanet_dep = $(epanet_dep_pgo)
+	epanet2_dep = $(epanet2_dep_pgo)
+	genmmd_dep = $(genmmd_dep_pgo)
+	hash_dep = $(hash_dep_pgo)
+	hydcoeffs_dep = $(hydcoeffs_dep_pgo)
+	hydraul_dep = $(hydraul_dep_pgo)
+	hydsolver_dep = $(hydsolver_dep_pgo)
+	hydstatus_dep = $(hydstatus_dep_pgo)
+	inpfile_dep = $(inpfile_dep_pgo)
+	input1_dep = $(input1_dep_pgo)
+	input2_dep = $(input2_dep_pgo)
+	input3_dep = $(input3_dep_pgo)
+	main_dep = $(main_dep_pgo)
+	mempool_dep = $(mempool_dep_pgo)
+	output_dep = $(output_dep_pgo)
+	project_dep = $(project_dep_pgo)
+	quality_dep = $(quality_dep_pgo)
+	qualreact_dep = $(qualreact_dep_pgo)
+	qualroute_dep = $(qualroute_dep_pgo)
+	report_dep = $(report_dep_pgo)
+	rules_dep = $(rules_dep_pgo)
+	smatrix_dep = $(smatrix_dep_pgo)
+endif
+
+all: $(OBJ) $(BIN) $(epanet_exe)
+
+$(epanet_pgo): $(epanet_dep_pgo) 
+	$(CC) $(CPGOFLAGS) $(epanet_c) -o $(epanet_pgo)
+
+$(epanet2_pgo): $(epanet2_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(epanet2_c) -o $(epanet2_pgo)
+
+$(genmmd_pgo): $(genmmd_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(genmmd_c) -o $(genmmd_pgo)
+
+$(hash_pgo): $(hash_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(hash_c) -o $(hash_pgo)
+
+$(hydcoeffs_pgo): $(hydcoeffs_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(hydcoeffs_c) -o $(hydcoeffs_pgo)
+
+$(hydraul_pgo): $(hydraul_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(hydraul_c) -o $(hydraul_pgo)
+
+$(hydsolver_pgo): $(hydsolver_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(hydsolver_c) -o $(hydsolver_pgo)
+
+$(hydstatus_pgo): $(hydstatus_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(hydstatus_c) -o $(hydstatus_pgo)
+
+$(inpfile_pgo): $(inpfile_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(inpfile_c) -o $(inpfile_pgo)
+
+$(input1_pgo): $(input1_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(input1_c) -o $(input1_pgo)
+
+$(input2_pgo): $(input2_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(input2_c) -o $(input2_pgo)
+
+$(input3_pgo): $(input3_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(input3_c) -o $(input3_pgo)
+
+$(main_pgo): $(main_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(main_c) -o $(main_pgo)
+
+$(mempool_pgo): $(mempool_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(mempool_c) -o $(mempool_pgo)
+
+$(output_pgo): $(output_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(output_c) -o $(output_pgo)
+
+$(project_pgo): $(project_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(project_c) -o $(project_pgo)
+
+$(quality_pgo): $(quality_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(quality_c) -o $(quality_pgo)
+
+$(qualreact_pgo): $(qualreact_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(qualreact_c) -o $(qualreact_pgo)
+
+$(qualroute_pgo): $(qualroute_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(qualroute_c) -o $(qualroute_pgo)
+
+$(report_pgo): $(report_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(report_c) -o $(report_pgo)
+
+$(rules_pgo): $(rules_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(rules_c) -o $(rules_pgo)
+
+$(smatrix_pgo): $(smatrix_dep_pgo)
+	$(CC) $(CPGOFLAGS) $(smatrix_c) -o $(smatrix_pgo)
+
+$(epanetpgo_so): $(objspgo)
+	$(CC) -shared @PGO_GENERATE@ $(objspgo) -o $(epanetpgo_so) $(LIBS)
+
+$(epanetpgo_exe): $(epanetpgo_so) $(main_pgo) $(BIN)script-pgo.sh
+	$(CC) $(main_pgo) @PGO_GENERATE@ -o $(epanetpgo_exe) -L$(BIN) -Wl,-rpath=. \
+		$(epanetpgo_lib) $(LIBS)
+	cd $(BIN); ./script-pgo.sh; @PGO_MERGE@
+
+$(epanet_o): $(epanet_dep)
+	$(CC) $(COFLAGS) $(epanet_c) -o $(epanet_o)
+
+$(epanet2_o): $(epanet2_dep)
+	$(CC) $(COFLAGS) $(epanet2_c) -o $(epanet2_o)
+
+$(genmmd_o): $(genmmd_dep)
+	$(CC) $(COFLAGS) $(genmmd_c) -o $(genmmd_o)
+
+$(hash_o): $(hash_dep)
+	$(CC) $(COFLAGS) $(hash_c) -o $(hash_o)
+
+$(hydcoeffs_o): $(hydcoeffs_dep)
+	$(CC) $(COFLAGS) $(hydcoeffs_c) -o $(hydcoeffs_o)
+
+$(hydraul_o): $(hydraul_dep)
+	$(CC) $(COFLAGS) $(hydraul_c) -o $(hydraul_o)
+
+$(hydsolver_o): $(hydsolver_dep)
+	$(CC) $(COFLAGS) $(hydsolver_c) -o $(hydsolver_o)
+
+$(hydstatus_o): $(hydstatus_dep)
+	$(CC) $(COFLAGS) $(hydstatus_c) -o $(hydstatus_o)
+
+$(inpfile_o): $(inpfile_dep)
+	$(CC) $(COFLAGS) $(inpfile_c) -o $(inpfile_o)
+
+$(input1_o): $(input1_dep)
+	$(CC) $(COFLAGS) $(input1_c) -o $(input1_o)
+
+$(input2_o): $(input2_dep)
+	$(CC) $(COFLAGS) $(input2_c) -o $(input2_o)
+
+$(input3_o): $(input3_dep)
+	$(CC) $(COFLAGS) $(input3_c) -o $(input3_o)
+
+$(main_o): $(main_dep)
+	$(CC) $(COFLAGS) $(main_c) -o $(main_o)
+
+$(mempool_o): $(mempool_dep)
+	$(CC) $(COFLAGS) $(mempool_c) -o $(mempool_o)
+
+$(output_o): $(output_dep)
+	$(CC) $(COFLAGS) $(output_c) -o $(output_o)
+
+$(project_o): $(project_dep)
+	$(CC) $(COFLAGS) $(project_c) -o $(project_o)
+
+$(quality_o): $(quality_dep)
+	$(CC) $(COFLAGS) $(quality_c) -o $(quality_o)
+
+$(qualreact_o): $(qualreact_dep)
+	$(CC) $(COFLAGS) $(qualreact_c) -o $(qualreact_o)
+
+$(qualroute_o): $(qualroute_dep)
+	$(CC) $(COFLAGS) $(qualroute_c) -o $(qualroute_o)
+
+$(report_o): $(report_dep)
+	$(CC) $(COFLAGS) $(report_c) -o $(report_o)
+
+$(rules_o): $(rules_dep)
+	$(CC) $(COFLAGS) $(rules_c) -o $(rules_o)
+
+$(smatrix_o): $(smatrix_dep)
+	$(CC) $(COFLAGS) $(smatrix_c) -o $(smatrix_o)
+
+$(epanet_so): $(objs)
+	$(CC) -shared $(objs) -o $(epanet_so) $(LIBS)
+
+$(epanet_exe): $(epanet_so) $(main_o)
+	$(CC) $(main_o) -o $(epanet_exe) -L$(BIN) -Wl,-rpath=. $(epanet_lib) $(LIBS)
+
+.PHONY: $(OBJ)
+$(OBJ):
+	test -d $(OBJ) || mkdir -p $(OBJ)
+
+.PHONY: $(BIN)
+$(BIN):
+	test -d $(BIN) || mkdir -p $(BIN)
+
+.PHONY: strip
+strip:
+	make
+	strip $(epanet_so) $(epanet_exe)
