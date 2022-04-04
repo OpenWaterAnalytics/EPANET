@@ -487,7 +487,6 @@ int  growlist(Project *pr, int knode, int *degree)
 */
 {
     Network *net = &pr->network;
-    Smatrix *sm = &pr->hydraul.smatrix;
 
     int node;
     Padjlist alink;

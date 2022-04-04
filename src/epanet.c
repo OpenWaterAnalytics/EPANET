@@ -4019,6 +4019,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
             Link[index].Kc = curveIndex;
         }
+        break;
 
     default:
         return 251;

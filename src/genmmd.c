@@ -10,7 +10,7 @@ int genmmd(int* neqns, int* xadj, int* adjncy, int* invp, int* perm,
            int* delta, int* dhead, int* qsize, int* llist, int* marker,
            int*  maxint, int* nofsub);
 
-static int mmdint_(int* neqns, int* xadj, int* adjncy, int* dhead, int* dforw,
+static int mmdint_(int* neqns, int* xadj, int* dhead, int* dforw,
             int* dbakw, int* qsize, int* llist, int* marker);
 static int mmdelm_(int* mdnode, int* xadj, int* adjncy, int* dhead, int* dforw,
             int* dbakw, int* qsize, int* llist, int* marker,
@@ -110,7 +110,7 @@ int genmmd(int* neqns, int* xadj, int* adjncy, int* invp, int* perm,
     *nofsub = 0;
     //mmdint_(neqns, &xadj[1], &adjncy[1], &dhead[1], &invp[1], &perm[1],
     //        &qsize[1], &llist[1], &marker[1]);
-    mmdint_(neqns, xadj, adjncy, dhead, invp, perm, qsize, llist, marker);
+    mmdint_(neqns, xadj, dhead, invp, perm, qsize, llist, marker);
 
 /*        ---------------------------------------------- */
 /*        NUM COUNTS THE NUMBER OF ORDERED NODES PLUS 1. */
@@ -258,7 +258,7 @@ L1000:
 /* *************************************************************** */
 
 
-static int mmdint_(int* neqns, int* xadj, int* adjncy, int* dhead, int* dforw,
+static int mmdint_(int* neqns, int* xadj, int* dhead, int* dforw,
             int* dbakw, int* qsize, int* llist, int* marker)
 {
     /* System generated locals */

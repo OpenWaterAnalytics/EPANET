@@ -810,7 +810,7 @@ int demanddata(Project *pr)
     }
 
     // Otherwise add new demand to junction
-    else if (!adddemand(&net->Node[j], y, p, parser->Comment) > 0) return 101;
+    else if (!adddemand(&net->Node[j], y, p, parser->Comment)) return 101;
     return 0;
 }
 

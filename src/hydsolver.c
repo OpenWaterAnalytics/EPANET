@@ -320,7 +320,7 @@ int  pswitch(Project *pr)
             s = hyd->LinkStatus[k];
             if (link->Type == PIPE)
             {
-                if (s != net->Control[i].Status) change = 1;
+                if (s != (char) net->Control[i].Status) change = 1;
             }
             if (link->Type == PUMP)
             {
@@ -329,7 +329,7 @@ int  pswitch(Project *pr)
             if (link->Type >= PRV)
             {
                 if (hyd->LinkSetting[k] != net->Control[i].Setting) change = 1;
-                else if (hyd->LinkSetting[k] == MISSING && s != net->Control[i].Status)
+                else if (hyd->LinkSetting[k] == MISSING && s != (char) net->Control[i].Status)
                 {
                     change = 1;
                 }
