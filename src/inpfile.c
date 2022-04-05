@@ -425,7 +425,7 @@ int saveinpfile(Project *pr, const char *fname)
         link = &net->Link[j];
 
         // Get text of control's link status/setting
-        if (control->Setting == MISSING)
+        if (control->Setting == MISSING || link->Type == GPV)
         {
             sprintf(s, " LINK %s %s ", link->ID, StatTxt[control->Status]);
         }
