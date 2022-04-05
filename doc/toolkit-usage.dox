@@ -34,7 +34,7 @@ void runHydraulics(EN_Project ph, char *inputFile, char *reportFile)
     ERRCODE(EN_solveH(ph));
     ERRCODE(EN_saveH(ph));
     ERRCODE(EN_report(ph));
-    EN_geterror(ph, errcode, errmsg);
+    EN_geterror(errcode, errmsg, EN_MAXMSG);
     if (errcode) printf("\n%s\n", errmsg);
 }
 \endcode
