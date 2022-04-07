@@ -121,12 +121,12 @@ Functions</h2></td></tr>
 <tr class="memitem:gae6ccfea3b9cd1426042b412262f10c65"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65">EN_initH</a> (<a class="el" href="epanet2__2_8h.html#ac1b7237e65fbaad96c05cc847adc0aeb">EN_Project</a> ph, int initFlag)</td></tr>
 <tr class="memdesc:gae6ccfea3b9cd1426042b412262f10c65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a network prior to running a hydraulic analysis.  <a href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65">More...</a><br /></td></tr>
 <tr class="separator:gae6ccfea3b9cd1426042b412262f10c65"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga385f13159152486e1dd395ee79c688e5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5">EN_runH</a> (<a class="el" href="epanet2__2_8h.html#ac1b7237e65fbaad96c05cc847adc0aeb">EN_Project</a> ph, long *currentTime)</td></tr>
-<tr class="memdesc:ga385f13159152486e1dd395ee79c688e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes a hydraulic solution for the current point in time.  <a href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5">More...</a><br /></td></tr>
-<tr class="separator:ga385f13159152486e1dd395ee79c688e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1f39af5e205692bcd421e929930d6c2e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e">EN_nextH</a> (<a class="el" href="epanet2__2_8h.html#ac1b7237e65fbaad96c05cc847adc0aeb">EN_Project</a> ph, long *tStep)</td></tr>
-<tr class="memdesc:ga1f39af5e205692bcd421e929930d6c2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the length of time until the next hydraulic event occurs in an extended period simulation.  <a href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e">More...</a><br /></td></tr>
-<tr class="separator:ga1f39af5e205692bcd421e929930d6c2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadde79e5008f06c7423687b4769f6d91c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c">EN_runH</a> (<a class="el" href="epanet2__2_8h.html#ac1b7237e65fbaad96c05cc847adc0aeb">EN_Project</a> ph, long *out_currentTime)</td></tr>
+<tr class="memdesc:gadde79e5008f06c7423687b4769f6d91c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes a hydraulic solution for the current point in time.  <a href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c">More...</a><br /></td></tr>
+<tr class="separator:gadde79e5008f06c7423687b4769f6d91c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac9e8a26ef532177fc387db91740b1f1b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b">EN_nextH</a> (<a class="el" href="epanet2__2_8h.html#ac1b7237e65fbaad96c05cc847adc0aeb">EN_Project</a> ph, long *out_tStep)</td></tr>
+<tr class="memdesc:gac9e8a26ef532177fc387db91740b1f1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the length of time until the next hydraulic event occurs in an extended period simulation.  <a href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b">More...</a><br /></td></tr>
+<tr class="separator:gac9e8a26ef532177fc387db91740b1f1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacc3eb4cd1095d6ba2bdf7a874d4c60f5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___hydraulics.html#gacc3eb4cd1095d6ba2bdf7a874d4c60f5">EN_saveH</a> (<a class="el" href="epanet2__2_8h.html#ac1b7237e65fbaad96c05cc847adc0aeb">EN_Project</a> ph)</td></tr>
 <tr class="memdesc:gacc3eb4cd1095d6ba2bdf7a874d4c60f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transfers a project's hydraulics results from its temporary hydraulics file to its binary output file, where results are only reported at uniform reporting intervals.  <a href="group___hydraulics.html#gacc3eb4cd1095d6ba2bdf7a874d4c60f5">More...</a><br /></td></tr>
 <tr class="separator:gacc3eb4cd1095d6ba2bdf7a874d4c60f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -158,7 +158,7 @@ Functions</h2></td></tr>
 
 <p>Closes the hydraulic solver freeing all of its allocated memory. </p>
 <dl class="section return"><dt>Returns</dt><dd>an error code.</dd></dl>
-<p>Call <a class="el" href="group___hydraulics.html#ga34709f5ae4e5984ff1b67b0432884960" title="Closes the hydraulic solver freeing all of its allocated memory.">EN_closeH</a> after all hydraulics analyses have been made using <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> - <a class="el" href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a>. Do not call this function if <a class="el" href="group___hydraulics.html#ga40fd01709eefd8c69f3ba1d9b1c6745c" title="Runs a complete hydraulic simulation with results for all time periods written to a temporary hydraul...">EN_solveH</a> is being used. </p>
+<p>Call <a class="el" href="group___hydraulics.html#ga34709f5ae4e5984ff1b67b0432884960" title="Closes the hydraulic solver freeing all of its allocated memory.">EN_closeH</a> after all hydraulics analyses have been made using <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> - <a class="el" href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a>. Do not call this function if <a class="el" href="group___hydraulics.html#ga40fd01709eefd8c69f3ba1d9b1c6745c" title="Runs a complete hydraulic simulation with results for all time periods written to a temporary hydraul...">EN_solveH</a> is being used. </p>
 
 </div>
 </div>
@@ -199,18 +199,18 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>an error code.</dd></dl>
 <p>This function initializes storage tank levels, link status and settings, and the simulation time clock prior to running a hydraulic analysis.</p>
 <p>The initialization flag is a two digit number where the 1st (left) digit indicates if link flows should be re-initialized (1) or not (0), and the 2nd digit indicates if hydraulic results should be saved to a temporary binary hydraulics file (1) or not (0).</p>
-<p>Be sure to call <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> prior to running a hydraulic analysis using a <a class="el" href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> loop.</p>
+<p>Be sure to call <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> prior to running a hydraulic analysis using a <a class="el" href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> loop.</p>
 <p>Choose to save hydraulics results if you will be:</p><ul>
 <li>making a subsequent water quality run,</li>
 <li>using <a class="el" href="group___reporting.html#ga3ace83a7297869275a039687b65445bf" title="Writes simulation results in a tabular format to a project&#39;s report file.">EN_report</a> to generate a report</li>
 <li>using <a class="el" href="group___hydraulics.html#ga3c91fb9676b13dbe7a5d2012bc5f47ad" title="Saves a project&#39;s temporary hydraulics file to disk.">EN_savehydfile</a> to save the binary hydraulics file.</li>
 </ul>
-<p>There is no need to save hydraulics if you will be writing custom code to process hydraulic results as they are generated using the functions <a class="el" href="group___nodes.html#gac597c867a37e2cde9dff1d8306e9c824" title="Retrieves a property value for a node.">EN_getnodevalue</a> and <a class="el" href="group___links.html#ga700c19fcdecb4e61e1641324d983c3d6" title="Retrieves a property value for a link.">EN_getlinkvalue</a>. </p>
+<p>There is no need to save hydraulics if you will be writing custom code to process hydraulic results as they are generated using the functions <a class="el" href="group___nodes.html#gaa2c1ed2eeda30aee890c1bacb47cbd7e" title="Retrieves a property value for a node.">EN_getnodevalue</a> and <a class="el" href="group___links.html#ga3e4ee90843e7cfae88089b6db65cef6d" title="Retrieves a property value for a link.">EN_getlinkvalue</a>. </p>
 
 </div>
 </div>
-<a id="ga1f39af5e205692bcd421e929930d6c2e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1f39af5e205692bcd421e929930d6c2e">&#9670;&nbsp;</a></span>EN_nextH()</h2>
+<a id="gac9e8a26ef532177fc387db91740b1f1b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac9e8a26ef532177fc387db91740b1f1b">&#9670;&nbsp;</a></span>EN_nextH()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -225,7 +225,7 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">long *&#160;</td>
-          <td class="paramname"><em>tStep</em>&#160;</td>
+          <td class="paramname"><em>out_tStep</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -244,7 +244,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>an error code.</dd></dl>
-<p>This function is used in a loop with <a class="el" href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> to run an extended period hydraulic simulation.</p>
+<p>This function is used in a loop with <a class="el" href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> to run an extended period hydraulic simulation.</p>
 <p>The value of <b>tstep</b> should be treated as a read-only variable. It is automatically computed as the smaller of:</p><ul>
 <li>the time interval until the next hydraulic time step begins</li>
 <li>the time interval until the next reporting time step begins</li>
@@ -256,9 +256,9 @@ Functions</h2></td></tr>
 <div class="line"><a class="code" href="group___hydraulics.html#ga624d426d66753e9869e1ba648ffca0ae">EN_openH</a>(ph);</div>
 <div class="line"><a class="code" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65">EN_initH</a>(ph, <a class="code" href="epanet2__enums_8h.html#ga31619090f36109c92b31c2c3dc66c230a0298460efda9f3c67c6a84f84149f2d4">EN_NOSAVE</a>);</div>
 <div class="line"><span class="keywordflow">do</span> {</div>
-<div class="line">  <a class="code" href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5">EN_runH</a>(ph, &amp;t);</div>
+<div class="line">  <a class="code" href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c">EN_runH</a>(ph, &amp;t);</div>
 <div class="line">  <span class="comment">// Retrieve hydraulic results for time t</span></div>
-<div class="line">  <a class="code" href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e">EN_nextH</a>(ph, &amp;tstep);</div>
+<div class="line">  <a class="code" href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b">EN_nextH</a>(ph, &amp;tstep);</div>
 <div class="line">} <span class="keywordflow">while</span> (tstep &gt; 0);</div>
 <div class="line"><a class="code" href="group___hydraulics.html#ga34709f5ae4e5984ff1b67b0432884960">EN_closeH</a>(ph);</div>
 </div><!-- fragment --> 
@@ -288,13 +288,13 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>an error code.</dd></dl>
-<p>Call <a class="el" href="group___hydraulics.html#ga624d426d66753e9869e1ba648ffca0ae" title="Opens a project&#39;s hydraulic solver.">EN_openH</a> prior to running the first hydraulic analysis using the <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> - <a class="el" href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> sequence. Multiple analyses can be made before calling <a class="el" href="group___hydraulics.html#ga34709f5ae4e5984ff1b67b0432884960" title="Closes the hydraulic solver freeing all of its allocated memory.">EN_closeH</a> to close the hydraulic solver.</p>
+<p>Call <a class="el" href="group___hydraulics.html#ga624d426d66753e9869e1ba648ffca0ae" title="Opens a project&#39;s hydraulic solver.">EN_openH</a> prior to running the first hydraulic analysis using the <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> - <a class="el" href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> sequence. Multiple analyses can be made before calling <a class="el" href="group___hydraulics.html#ga34709f5ae4e5984ff1b67b0432884960" title="Closes the hydraulic solver freeing all of its allocated memory.">EN_closeH</a> to close the hydraulic solver.</p>
 <p>Do not call this function if <a class="el" href="group___hydraulics.html#ga40fd01709eefd8c69f3ba1d9b1c6745c" title="Runs a complete hydraulic simulation with results for all time periods written to a temporary hydraul...">EN_solveH</a> is being used to run a complete hydraulic analysis or if hydraulics are being supplied by a previously saved hydraulics file using <a class="el" href="group___hydraulics.html#ga041ee29b10d7a2d2fd0d40049bf6568b" title="Uses a previously saved binary hydraulics file to supply a project&#39;s hydraulics.">EN_usehydfile</a>. </p>
 
 </div>
 </div>
-<a id="ga385f13159152486e1dd395ee79c688e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga385f13159152486e1dd395ee79c688e5">&#9670;&nbsp;</a></span>EN_runH()</h2>
+<a id="gadde79e5008f06c7423687b4769f6d91c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gadde79e5008f06c7423687b4769f6d91c">&#9670;&nbsp;</a></span>EN_runH()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -309,7 +309,7 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">long *&#160;</td>
-          <td class="paramname"><em>currentTime</em>&#160;</td>
+          <td class="paramname"><em>out_currentTime</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -328,9 +328,9 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>an error or warning code.</dd></dl>
-<p>This function is used in a loop with <a class="el" href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> to run an extended period hydraulic simulation. This process automatically updates the simulation clock time so <b>currentTime</b> should be treated as a read-only variable.</p>
-<p><a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> must have been called prior to running the <a class="el" href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> loop.</p>
-<p>See <a class="el" href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> for an example of using this function. </p>
+<p>This function is used in a loop with <a class="el" href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> to run an extended period hydraulic simulation. This process automatically updates the simulation clock time so <b>currentTime</b> should be treated as a read-only variable.</p>
+<p><a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> must have been called prior to running the <a class="el" href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> loop.</p>
+<p>See <a class="el" href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> for an example of using this function. </p>
 
 </div>
 </div>
@@ -399,7 +399,7 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>an error code.</dd></dl>
 <p>Use this function to save the current set of hydraulics results to a file, either for post-processing or to be used at a later time by calling the <a class="el" href="group___hydraulics.html#ga041ee29b10d7a2d2fd0d40049bf6568b" title="Uses a previously saved binary hydraulics file to supply a project&#39;s hydraulics.">EN_usehydfile</a> function.</p>
 <p>The hydraulics file contains nodal demands and heads and link flows, status, and settings for all hydraulic time steps, even intermediate ones.</p>
-<p>Before calling this function hydraulic results must have been generated and saved by having called <a class="el" href="group___hydraulics.html#ga40fd01709eefd8c69f3ba1d9b1c6745c" title="Runs a complete hydraulic simulation with results for all time periods written to a temporary hydraul...">EN_solveH</a> or the <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> - <a class="el" href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> sequence with the initflag argument of <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> set to <b>EN_SAVE</b> or <b>EN_SAVE_AND_INIT</b>. </p>
+<p>Before calling this function hydraulic results must have been generated and saved by having called <a class="el" href="group___hydraulics.html#ga40fd01709eefd8c69f3ba1d9b1c6745c" title="Runs a complete hydraulic simulation with results for all time periods written to a temporary hydraul...">EN_solveH</a> or the <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> - <a class="el" href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> sequence with the initflag argument of <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> set to <b>EN_SAVE</b> or <b>EN_SAVE_AND_INIT</b>. </p>
 
 </div>
 </div>
@@ -428,7 +428,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>an error code.</dd></dl>
 <p>Use <a class="el" href="group___hydraulics.html#ga40fd01709eefd8c69f3ba1d9b1c6745c" title="Runs a complete hydraulic simulation with results for all time periods written to a temporary hydraul...">EN_solveH</a> to generate a complete hydraulic solution which can stand alone or be used as input to a water quality analysis. This function will not allow one to examine intermediate hydraulic results as they are generated. It can also be followed by calls to <a class="el" href="group___hydraulics.html#gacc3eb4cd1095d6ba2bdf7a874d4c60f5" title="Transfers a project&#39;s hydraulics results from its temporary hydraulics file to its binary output file...">EN_saveH</a> and <a class="el" href="group___reporting.html#ga3ace83a7297869275a039687b65445bf" title="Writes simulation results in a tabular format to a project&#39;s report file.">EN_report</a> to write hydraulic results to the report file.</p>
-<p>The sequence <a class="el" href="group___hydraulics.html#ga624d426d66753e9869e1ba648ffca0ae" title="Opens a project&#39;s hydraulic solver.">EN_openH</a> - <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> - <a class="el" href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> - <a class="el" href="group___hydraulics.html#ga34709f5ae4e5984ff1b67b0432884960" title="Closes the hydraulic solver freeing all of its allocated memory.">EN_closeH</a> can be used instead to gain access to results at intermediate time periods and directly adjust link status and control settings as a simulation proceeds.</p>
+<p>The sequence <a class="el" href="group___hydraulics.html#ga624d426d66753e9869e1ba648ffca0ae" title="Opens a project&#39;s hydraulic solver.">EN_openH</a> - <a class="el" href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65" title="Initializes a network prior to running a hydraulic analysis.">EN_initH</a> - <a class="el" href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c" title="Computes a hydraulic solution for the current point in time.">EN_runH</a> - <a class="el" href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b" title="Determines the length of time until the next hydraulic event occurs in an extended period simulation.">EN_nextH</a> - <a class="el" href="group___hydraulics.html#ga34709f5ae4e5984ff1b67b0432884960" title="Closes the hydraulic solver freeing all of its allocated memory.">EN_closeH</a> can be used instead to gain access to results at intermediate time periods and directly adjust link status and control settings as a simulation proceeds.</p>
 <p><b>Example:</b> </p><div class="fragment"><div class="line"><a class="code" href="epanet2__2_8h.html#ac1b7237e65fbaad96c05cc847adc0aeb">EN_Project</a> ph;</div>
 <div class="line"><a class="code" href="group___project.html#gae76d7818d6486d52e300b03df8d91a3c">EN_createproject</a>(&amp;ph);</div>
 <div class="line"><a class="code" href="group___project.html#ga0b3789dc721a19a595253958dbfe44cc">EN_open</a>(ph, <span class="stringliteral">&quot;net1.inp&quot;</span>, <span class="stringliteral">&quot;net1.rpt&quot;</span>, <span class="stringliteral">&quot;&quot;</span>);</div>
@@ -481,17 +481,17 @@ Functions</h2></td></tr>
 </div>
 </div><!-- contents -->
 </div><!-- doc-content -->
+<div class="ttc" id="agroup___hydraulics_html_gadde79e5008f06c7423687b4769f6d91c"><div class="ttname"><a href="group___hydraulics.html#gadde79e5008f06c7423687b4769f6d91c">EN_runH</a></div><div class="ttdeci">int EN_runH(EN_Project ph, long *out_currentTime)</div><div class="ttdoc">Computes a hydraulic solution for the current point in time.</div></div>
 <div class="ttc" id="agroup___hydraulics_html_ga34709f5ae4e5984ff1b67b0432884960"><div class="ttname"><a href="group___hydraulics.html#ga34709f5ae4e5984ff1b67b0432884960">EN_closeH</a></div><div class="ttdeci">int EN_closeH(EN_Project ph)</div><div class="ttdoc">Closes the hydraulic solver freeing all of its allocated memory.</div></div>
 <div class="ttc" id="agroup___project_html_ga0b3789dc721a19a595253958dbfe44cc"><div class="ttname"><a href="group___project.html#ga0b3789dc721a19a595253958dbfe44cc">EN_open</a></div><div class="ttdeci">int EN_open(EN_Project ph, const char *inpFile, const char *rptFile, const char *outFile)</div><div class="ttdoc">Opens an EPANET input file &amp; reads in network data.</div></div>
 <div class="ttc" id="aepanet2__2_8h_html_ac1b7237e65fbaad96c05cc847adc0aeb"><div class="ttname"><a href="epanet2__2_8h.html#ac1b7237e65fbaad96c05cc847adc0aeb">EN_Project</a></div><div class="ttdeci">struct Project * EN_Project</div><div class="ttdoc">The EPANET Project wrapper object.</div><div class="ttdef"><b>Definition:</b> epanet2_2.h:49</div></div>
 <div class="ttc" id="agroup___hydraulics_html_ga40fd01709eefd8c69f3ba1d9b1c6745c"><div class="ttname"><a href="group___hydraulics.html#ga40fd01709eefd8c69f3ba1d9b1c6745c">EN_solveH</a></div><div class="ttdeci">int EN_solveH(EN_Project ph)</div><div class="ttdoc">Runs a complete hydraulic simulation with results for all time periods written to a temporary hydraul...</div></div>
-<div class="ttc" id="agroup___hydraulics_html_ga1f39af5e205692bcd421e929930d6c2e"><div class="ttname"><a href="group___hydraulics.html#ga1f39af5e205692bcd421e929930d6c2e">EN_nextH</a></div><div class="ttdeci">int EN_nextH(EN_Project ph, long *tStep)</div><div class="ttdoc">Determines the length of time until the next hydraulic event occurs in an extended period simulation.</div></div>
+<div class="ttc" id="agroup___hydraulics_html_gac9e8a26ef532177fc387db91740b1f1b"><div class="ttname"><a href="group___hydraulics.html#gac9e8a26ef532177fc387db91740b1f1b">EN_nextH</a></div><div class="ttdeci">int EN_nextH(EN_Project ph, long *out_tStep)</div><div class="ttdoc">Determines the length of time until the next hydraulic event occurs in an extended period simulation.</div></div>
 <div class="ttc" id="agroup___project_html_gae76d7818d6486d52e300b03df8d91a3c"><div class="ttname"><a href="group___project.html#gae76d7818d6486d52e300b03df8d91a3c">EN_createproject</a></div><div class="ttdeci">int EN_createproject(EN_Project *ph)</div><div class="ttdoc">Creates an EPANET project.</div></div>
 <div class="ttc" id="agroup___quality_html_ga66b73edf4af745b3e58473bc49a59124"><div class="ttname"><a href="group___quality.html#ga66b73edf4af745b3e58473bc49a59124">EN_solveQ</a></div><div class="ttdeci">int EN_solveQ(EN_Project ph)</div><div class="ttdoc">Runs a complete water quality simulation with results at uniform reporting intervals written to the p...</div></div>
 <div class="ttc" id="agroup___hydraulics_html_ga624d426d66753e9869e1ba648ffca0ae"><div class="ttname"><a href="group___hydraulics.html#ga624d426d66753e9869e1ba648ffca0ae">EN_openH</a></div><div class="ttdeci">int EN_openH(EN_Project ph)</div><div class="ttdoc">Opens a project's hydraulic solver.</div></div>
 <div class="ttc" id="agroup___reporting_html_ga3ace83a7297869275a039687b65445bf"><div class="ttname"><a href="group___reporting.html#ga3ace83a7297869275a039687b65445bf">EN_report</a></div><div class="ttdeci">int EN_report(EN_Project ph)</div><div class="ttdoc">Writes simulation results in a tabular format to a project's report file.</div></div>
-<div class="ttc" id="agroup___hydraulics_html_ga385f13159152486e1dd395ee79c688e5"><div class="ttname"><a href="group___hydraulics.html#ga385f13159152486e1dd395ee79c688e5">EN_runH</a></div><div class="ttdeci">int EN_runH(EN_Project ph, long *currentTime)</div><div class="ttdoc">Computes a hydraulic solution for the current point in time.</div></div>
-<div class="ttc" id="aepanet2__enums_8h_html_ga31619090f36109c92b31c2c3dc66c230a0298460efda9f3c67c6a84f84149f2d4"><div class="ttname"><a href="epanet2__enums_8h.html#ga31619090f36109c92b31c2c3dc66c230a0298460efda9f3c67c6a84f84149f2d4">EN_NOSAVE</a></div><div class="ttdoc">Don't save hydraulics; don't re-initialize flows.</div><div class="ttdef"><b>Definition:</b> epanet2_enums.h:369</div></div>
+<div class="ttc" id="aepanet2__enums_8h_html_ga31619090f36109c92b31c2c3dc66c230a0298460efda9f3c67c6a84f84149f2d4"><div class="ttname"><a href="epanet2__enums_8h.html#ga31619090f36109c92b31c2c3dc66c230a0298460efda9f3c67c6a84f84149f2d4">EN_NOSAVE</a></div><div class="ttdoc">Don't save hydraulics; don't re-initialize flows.</div><div class="ttdef"><b>Definition:</b> epanet2_enums.h:373</div></div>
 <div class="ttc" id="agroup___project_html_gacc2a467ed37ac7b7f7c4db42cdfbd4d2"><div class="ttname"><a href="group___project.html#gacc2a467ed37ac7b7f7c4db42cdfbd4d2">EN_deleteproject</a></div><div class="ttdeci">int EN_deleteproject(EN_Project ph)</div><div class="ttdoc">Deletes a currently opened EPANET project.</div></div>
 <div class="ttc" id="agroup___hydraulics_html_gae6ccfea3b9cd1426042b412262f10c65"><div class="ttname"><a href="group___hydraulics.html#gae6ccfea3b9cd1426042b412262f10c65">EN_initH</a></div><div class="ttdeci">int EN_initH(EN_Project ph, int initFlag)</div><div class="ttdoc">Initializes a network prior to running a hydraulic analysis.</div></div>
 <!-- HTML footer for doxygen 1.8.10-->

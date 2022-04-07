@@ -86,7 +86,9 @@ var group___enumerations =
       [ "EN_PUMP_HCURVE", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda443a3df885414831b7e0a1c1821ac1dd", null ],
       [ "EN_PUMP_ECURVE", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda9d9af44e5553eaebacd1157c9ce889bd", null ],
       [ "EN_PUMP_ECOST", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda76f1c6107e788c9ac2ed4068f2bfb93f", null ],
-      [ "EN_PUMP_EPAT", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda5042a7bcee620c73393b1323c8698044", null ]
+      [ "EN_PUMP_EPAT", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda5042a7bcee620c73393b1323c8698044", null ],
+      [ "EN_LINK_INCONTROL", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda3724de42609bbd4d46ce6287191ae10d", null ],
+      [ "EN_GPV_CURVE", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda748fa0cf00aa220fe9ae61f39dd66fd3", null ]
     ] ],
     [ "EN_LinkStatusType", "group___enumerations.html#gac93e311004297ce675318237f62765cd", null ],
     [ "EN_LinkType", "group___enumerations.html#gabf3b15dab651a86d41b4cdffa1714f2b", [
@@ -134,7 +136,8 @@ var group___enumerations =
       [ "EN_TANKVOLUME", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417da1ee2e083cfc5d06066a2896f63544c70", null ],
       [ "EN_MAXVOLUME", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417dab33478f2de092887ee64799ba0e370a9", null ],
       [ "EN_CANOVERFLOW", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417da0e7017b074fb5e9576432927813d9269", null ],
-      [ "EN_DEMANDDEFICIT", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417da03b18222ff8391d88a4402d49452f371", null ]
+      [ "EN_DEMANDDEFICIT", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417da03b18222ff8391d88a4402d49452f371", null ],
+      [ "EN_NODE_INCONTROL", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417daf6a8e5865b9234b91b88ce1a055f1d35", null ]
     ] ],
     [ "EN_NodeType", "group___enumerations.html#ga5be146aaf09fd211d451e0f0de7015e1", [
       [ "EN_JUNCTION", "epanet2__enums_8h.html#ga5be146aaf09fd211d451e0f0de7015e1a4280a9ae6b9135eba19c2cfe2f60b259", null ],
@@ -172,7 +175,8 @@ var group___enumerations =
       [ "EN_BULKORDER", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a3858de4c215eadc6d8a03d6e43012fe7", null ],
       [ "EN_WALLORDER", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a775117a2ddc47f429414647e821e9bb3", null ],
       [ "EN_TANKORDER", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a1352d472ea878b0a3aa3dad885e8c4af", null ],
-      [ "EN_CONCENLIMIT", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a709bf9e5486fb95e2cd07e3e9d1b6358", null ]
+      [ "EN_CONCENLIMIT", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a709bf9e5486fb95e2cd07e3e9d1b6358", null ],
+      [ "EN_DEMANDPATTERN", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a7e56030ff18f3c63bea089080232c329", null ]
     ] ],
     [ "EN_PumpStateType", "group___enumerations.html#ga479372136624b6cf95fac414f823a5d4", [
       [ "EN_PUMP_XHEAD", "epanet2__enums_8h.html#ga479372136624b6cf95fac414f823a5d4a37894107db939a380c626cbddfc746af", null ],

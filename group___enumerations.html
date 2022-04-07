@@ -244,7 +244,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Analysis convergence statistics. </p>
-<p>These statistics report the convergence criteria for the most current hydraulic analysis and the cumulative water quality mass balance error at the current simulation time. They can be retrieved with <a class="el" href="group___reporting.html#ga0bf38a874e49138eeb90bb9004a6ef21">EN_getstatistic</a>. </p>
+<p>These statistics report the convergence criteria for the most current hydraulic analysis and the cumulative water quality mass balance error at the current simulation time. They can be retrieved with <a class="el" href="group___reporting.html#gad1b0247bc8894aec57e6dccdd059976c">EN_getstatistic</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga7fa33fde92d52c48d9ab203170c45171a6db6781f187c8a59e3c53d6c79b0292b"></a>EN_ITERATIONS&#160;</td><td class="fielddoc"><p>Number of hydraulic iterations taken. </p>
 </td></tr>
@@ -277,7 +277,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Simple control types. </p>
-<p>These are the different types of simple (single statement) controls that can be applied to network links. They are used as an argument to <a class="el" href="group___controls.html#ga2379d731510e7bb120138bc2aa77d179">EN_addcontrol</a>,<a class="el" href="group___controls.html#ga8f199bc0855a057ae2f6459411f199bf">EN_getcontrol</a>, and <a class="el" href="group___controls.html#gad0264d5a38be27444a8fcc91fbe0a4b1">EN_setcontrol</a>. </p>
+<p>These are the different types of simple (single statement) controls that can be applied to network links. They are used as an argument to <a class="el" href="group___controls.html#ga147a86ece2695969bd3303942a429fd9">EN_addcontrol</a>,<a class="el" href="group___controls.html#gaee386be138e5049dc683f3a9f091a8fe">EN_getcontrol</a>, and <a class="el" href="group___controls.html#gad0264d5a38be27444a8fcc91fbe0a4b1">EN_setcontrol</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga90a63ccaf18821665a3a374b3d2bb253a8fb2900b3803a1730d75e5cdaab5469c"></a>EN_LOWLEVEL&#160;</td><td class="fielddoc"><p>Act when pressure or tank level drops below a setpoint. </p>
 </td></tr>
@@ -304,7 +304,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Types of objects to count. </p>
-<p>These options tell <a class="el" href="group___project.html#gaf4d1d48562a338b69075d58e5a8506c4">EN_getcount</a> which type of object to count. </p>
+<p>These options tell <a class="el" href="group___project.html#gaa9df3fd0c1284725cb2bda1853c443f5">EN_getcount</a> which type of object to count. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga9fab0d1b11a0670601f9bc4dfa670105a9506750f3b6412c8d871509977417623"></a>EN_NODECOUNT&#160;</td><td class="fielddoc"><p>Number of nodes (junctions + tanks + reservoirs) </p>
 </td></tr>
@@ -337,7 +337,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Types of data curves. </p>
-<p>These are the different types of physical relationships that a data curve can represent as returned by calling <a class="el" href="group___curves.html#gaf225db35d0fc3c1780cc5601f14aeb25">EN_getcurvetype</a>. </p>
+<p>These are the different types of physical relationships that a data curve can represent as returned by calling <a class="el" href="group___curves.html#ga2a19836c1a920c1e487ee7c7d449429b">EN_getcurvetype</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga650978d097f4839703f380ee891abce6a0b4e14cd9f4d788a648e6fe10cc9a81b"></a>EN_VOLUME_CURVE&#160;</td><td class="fielddoc"><p>Tank volume v. depth curve. </p>
 </td></tr>
@@ -366,7 +366,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Demand models. </p>
-<p>These choices for modeling consumer demands are used with <a class="el" href="group___demands.html#gaa1b384f33a727b6518254a94bbd2bb75">EN_getdemandmodel</a> and <a class="el" href="group___demands.html#ga7b031cbc5fa3ca0ea05b441ee4b957bb">EN_setdemandmodel</a>.</p>
+<p>These choices for modeling consumer demands are used with <a class="el" href="group___demands.html#ga09b822fcd4e92239fc90f7d03da942ef">EN_getdemandmodel</a> and <a class="el" href="group___demands.html#ga7b031cbc5fa3ca0ea05b441ee4b957bb">EN_setdemandmodel</a>.</p>
 <p>A demand driven analysis requires that a junction's full demand be supplied in each time period independent of how much pressure is available. A pressure driven analysis makes demand be a power function of pressure, up to the point where the full demand is met. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga3488796eff196c989433f3baa532fd26a8ebf3799a3d25264dc43c0fa5df784e8"></a>EN_DDA&#160;</td><td class="fielddoc"><p>Demand driven analysis. </p>
@@ -390,7 +390,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Flow units. </p>
-<p>These choices for flow units are used with <a class="el" href="group___options.html#ga1ec2cec41284e748794d357da38d30ec">EN_getflowunits</a> and <a class="el" href="group___options.html#gabd15f37061870eb8b488281d05b84402">EN_setflowunits</a>. They are also used for the flow units type argument in <a class="el" href="group___project.html#ga26bc3909ff04514f2c752577cd67ae8d">EN_init</a>. If flow units are expressed in US Customary units ( <b>EN_CFS</b> through <b>EN_AFD</b> ) then all other quantities are in US Customary units. Otherwise they are in metric units. </p>
+<p>These choices for flow units are used with <a class="el" href="group___options.html#ga656b4756658dd72a964285430eba27df">EN_getflowunits</a> and <a class="el" href="group___options.html#gabd15f37061870eb8b488281d05b84402">EN_setflowunits</a>. They are also used for the flow units type argument in <a class="el" href="group___project.html#ga26bc3909ff04514f2c752577cd67ae8d">EN_init</a>. If flow units are expressed in US Customary units ( <b>EN_CFS</b> through <b>EN_AFD</b> ) then all other quantities are in US Customary units. Otherwise they are in metric units. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gaddd06e77a2a965546c5d16568f720e35ad3517f0b4abab69733e386ba3e46a563"></a>EN_CFS&#160;</td><td class="fielddoc"><p>Cubic feet per second. </p>
 </td></tr>
@@ -429,7 +429,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Head loss formulas. </p>
-<p>The available choices for the <b>EN_HEADLOSSFORM</b> option in <a class="el" href="group___options.html#ga9f1afa6ec4a5bf51c897cfd205ab6cd3">EN_getoption</a> and <a class="el" href="group___options.html#ga9e67d27f68e21b25e49d64c633771128">EN_setoption</a>. They are also used for the head loss type argument in <a class="el" href="group___project.html#ga26bc3909ff04514f2c752577cd67ae8d">EN_init</a>. Each head loss formula uses a different type of roughness coefficient ( <b>EN_ROUGHNESS</b> ) that can be set with <a class="el" href="group___links.html#ga99c4bdd58176c0eca1ded46cd8407ef7">EN_setlinkvalue</a>. </p>
+<p>The available choices for the <b>EN_HEADLOSSFORM</b> option in <a class="el" href="group___options.html#ga0e4382c1f2e43a8f6a20a2d13176f0cc">EN_getoption</a> and <a class="el" href="group___options.html#ga9e67d27f68e21b25e49d64c633771128">EN_setoption</a>. They are also used for the head loss type argument in <a class="el" href="group___project.html#ga26bc3909ff04514f2c752577cd67ae8d">EN_init</a>. Each head loss formula uses a different type of roughness coefficient ( <b>EN_ROUGHNESS</b> ) that can be set with <a class="el" href="group___links.html#ga99c4bdd58176c0eca1ded46cd8407ef7">EN_setlinkvalue</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga88e5eaa8af00626ebc9923f05f773e95a2039cc9d732d4c21367c74f22c274d81"></a>EN_HW&#160;</td><td class="fielddoc"><p>Hazen-Williams. </p>
 </td></tr>
@@ -481,7 +481,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Link properties. </p>
-<p>These link properties are used with <a class="el" href="group___links.html#ga700c19fcdecb4e61e1641324d983c3d6">EN_getlinkvalue</a> and <a class="el" href="group___links.html#ga99c4bdd58176c0eca1ded46cd8407ef7">EN_setlinkvalue</a>. Those marked as read only are computed values that can only be retrieved. </p>
+<p>These link properties are used with <a class="el" href="group___links.html#ga3e4ee90843e7cfae88089b6db65cef6d">EN_getlinkvalue</a> and <a class="el" href="group___links.html#ga99c4bdd58176c0eca1ded46cd8407ef7">EN_setlinkvalue</a>. Those marked as read only are computed values that can only be retrieved. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga84af78c42cef7c16a513fbdba3b7f4eda7f5e0564ed5bfa824c730e055bf32efb"></a>EN_DIAMETER&#160;</td><td class="fielddoc"><p>Pipe/valve diameter. </p>
 </td></tr>
@@ -529,6 +529,10 @@ Enumerations</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="ga84af78c42cef7c16a513fbdba3b7f4eda5042a7bcee620c73393b1323c8698044"></a>EN_PUMP_EPAT&#160;</td><td class="fielddoc"><p>Pump energy price time pattern index. </p>
 </td></tr>
+<tr><td class="fieldname"><a id="ga84af78c42cef7c16a513fbdba3b7f4eda3724de42609bbd4d46ce6287191ae10d"></a>EN_LINK_INCONTROL&#160;</td><td class="fielddoc"><p>Is present in any simple or rule-based control (= 1) or not (= 0) </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ga84af78c42cef7c16a513fbdba3b7f4eda748fa0cf00aa220fe9ae61f39dd66fd3"></a>EN_GPV_CURVE&#160;</td><td class="fielddoc"><p>GPV head loss v. flow curve index. </p>
+</td></tr>
 </table>
 
 </div>
@@ -546,7 +550,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Link status. </p>
-<p>One of these values is returned when <a class="el" href="group___links.html#ga700c19fcdecb4e61e1641324d983c3d6">EN_getlinkvalue</a> is used to retrieve a link's initial status ( <b>EN_INITSTATUS</b> ) or its current status ( <b>EN_STATUS</b> ). These options are also used with <a class="el" href="group___links.html#ga99c4bdd58176c0eca1ded46cd8407ef7">EN_setlinkvalue</a> to set values for these same properties. </p>
+<p>One of these values is returned when <a class="el" href="group___links.html#ga3e4ee90843e7cfae88089b6db65cef6d">EN_getlinkvalue</a> is used to retrieve a link's initial status ( <b>EN_INITSTATUS</b> ) or its current status ( <b>EN_STATUS</b> ). These options are also used with <a class="el" href="group___links.html#ga99c4bdd58176c0eca1ded46cd8407ef7">EN_setlinkvalue</a> to set values for these same properties. </p>
 
 </div>
 </div>
@@ -563,7 +567,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Link types. </p>
-<p>These are the different types of links that can be returned by calling <a class="el" href="group___links.html#ga84acee2e57af2e783cc8e1a610af4acc">EN_getlinktype</a>. </p>
+<p>These are the different types of links that can be returned by calling <a class="el" href="group___links.html#gabb12b6dc3aa485ae868e9dba2e8ac4a1">EN_getlinktype</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gabf3b15dab651a86d41b4cdffa1714f2ba562b28072fdfd8981ad276dd366e543c"></a>EN_CVPIPE&#160;</td><td class="fielddoc"><p>Pipe with check valve. </p>
 </td></tr>
@@ -600,7 +604,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Tank mixing models. </p>
-<p>These are the different types of models that describe water quality mixing in storage tanks. The choice of model is accessed with the <b>EN_MIXMODEL</b> property of a Tank node using <a class="el" href="group___nodes.html#gac597c867a37e2cde9dff1d8306e9c824">EN_getnodevalue</a> and <a class="el" href="group___nodes.html#ga198a2c196811a6c1fbdfd7af48fa5229">EN_setnodevalue</a>. </p>
+<p>These are the different types of models that describe water quality mixing in storage tanks. The choice of model is accessed with the <b>EN_MIXMODEL</b> property of a Tank node using <a class="el" href="group___nodes.html#gaa2c1ed2eeda30aee890c1bacb47cbd7e">EN_getnodevalue</a> and <a class="el" href="group___nodes.html#ga198a2c196811a6c1fbdfd7af48fa5229">EN_setnodevalue</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga06ecaf7f8c05ec539a6597cea27f57e8a8a576e0c2593f23c712ab7da5156afa0"></a>EN_MIX1&#160;</td><td class="fielddoc"><p>Complete mix model. </p>
 </td></tr>
@@ -627,7 +631,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Node properties. </p>
-<p>These node properties are used with <a class="el" href="group___nodes.html#gac597c867a37e2cde9dff1d8306e9c824">EN_getnodevalue</a> and <a class="el" href="group___nodes.html#ga198a2c196811a6c1fbdfd7af48fa5229">EN_setnodevalue</a>. Those marked as read only are computed values that can only be retrieved. </p>
+<p>These node properties are used with <a class="el" href="group___nodes.html#gaa2c1ed2eeda30aee890c1bacb47cbd7e">EN_getnodevalue</a> and <a class="el" href="group___nodes.html#ga198a2c196811a6c1fbdfd7af48fa5229">EN_setnodevalue</a>. Those marked as read only are computed values that can only be retrieved. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gae538c7e564d9bd7c5a1f841b107c417daf63a13b72a3ad840fea7e586954d181a"></a>EN_ELEVATION&#160;</td><td class="fielddoc"><p>Elevation. </p>
 </td></tr>
@@ -685,6 +689,8 @@ Enumerations</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="gae538c7e564d9bd7c5a1f841b107c417da03b18222ff8391d88a4402d49452f371"></a>EN_DEMANDDEFICIT&#160;</td><td class="fielddoc"><p>Amount that full demand is reduced under PDA (read only) </p>
 </td></tr>
+<tr><td class="fieldname"><a id="gae538c7e564d9bd7c5a1f841b107c417daf6a8e5865b9234b91b88ce1a055f1d35"></a>EN_NODE_INCONTROL&#160;</td><td class="fielddoc"><p>Is present in any simple or rule-based control (= 1) or not (= 0) </p>
+</td></tr>
 </table>
 
 </div>
@@ -702,7 +708,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Node Types. </p>
-<p>These are the different types of nodes that can be returned by calling <a class="el" href="group___nodes.html#ga61fe5c9f34e365f2e47419a54beab2aa">EN_getnodetype</a>. </p>
+<p>These are the different types of nodes that can be returned by calling <a class="el" href="group___nodes.html#ga9e47a7ffb6f696f73e2f388e22196c03">EN_getnodetype</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga5be146aaf09fd211d451e0f0de7015e1a4280a9ae6b9135eba19c2cfe2f60b259"></a>EN_JUNCTION&#160;</td><td class="fielddoc"><p>Junction node. </p>
 </td></tr>
@@ -758,7 +764,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Simulation options. </p>
-<p>These constants identify the hydraulic and water quality simulation options that are applied on a network-wide basis. They are accessed using the <a class="el" href="group___options.html#ga9f1afa6ec4a5bf51c897cfd205ab6cd3">EN_getoption</a> and <a class="el" href="group___options.html#ga9e67d27f68e21b25e49d64c633771128">EN_setoption</a> functions. </p>
+<p>These constants identify the hydraulic and water quality simulation options that are applied on a network-wide basis. They are accessed using the <a class="el" href="group___options.html#ga0e4382c1f2e43a8f6a20a2d13176f0cc">EN_getoption</a> and <a class="el" href="group___options.html#ga9e67d27f68e21b25e49d64c633771128">EN_setoption</a> functions. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gaedba9e624549e5c519756ec0619c5c79a98d895a86383ff96b3778ee3797de104"></a>EN_TRIALS&#160;</td><td class="fielddoc"><p>Maximum trials allowed for hydraulic convergence. </p>
 </td></tr>
@@ -806,6 +812,8 @@ Enumerations</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="gaedba9e624549e5c519756ec0619c5c79a709bf9e5486fb95e2cd07e3e9d1b6358"></a>EN_CONCENLIMIT&#160;</td><td class="fielddoc"><p>Limiting concentration for growth reactions. </p>
 </td></tr>
+<tr><td class="fieldname"><a id="gaedba9e624549e5c519756ec0619c5c79a7e56030ff18f3c63bea089080232c329"></a>EN_DEMANDPATTERN&#160;</td><td class="fielddoc"><p>Name of default demand pattern. </p>
+</td></tr>
 </table>
 
 </div>
@@ -823,7 +831,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Pump states. </p>
-<p>One of these codes is returned when <a class="el" href="group___links.html#ga700c19fcdecb4e61e1641324d983c3d6">EN_getlinkvalue</a> is used to retrieve a pump's current operating state ( <b>EN_PUMP_STATE</b> ). <b>EN_PUMP_XHEAD</b> indicates that the pump has been shut down because it is being asked to deliver more than its shutoff head. <b>EN_PUMP_XFLOW</b> indicates that the pump is being asked to deliver more than its maximum flow. </p>
+<p>One of these codes is returned when <a class="el" href="group___links.html#ga3e4ee90843e7cfae88089b6db65cef6d">EN_getlinkvalue</a> is used to retrieve a pump's current operating state ( <b>EN_PUMP_STATE</b> ). <b>EN_PUMP_XHEAD</b> indicates that the pump has been shut down because it is being asked to deliver more than its shutoff head. <b>EN_PUMP_XFLOW</b> indicates that the pump is being asked to deliver more than its maximum flow. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga479372136624b6cf95fac414f823a5d4a37894107db939a380c626cbddfc746af"></a>EN_PUMP_XHEAD&#160;</td><td class="fielddoc"><p>Pump closed - cannot supply head. </p>
 </td></tr>
@@ -850,7 +858,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Types of pump curves. </p>
-<p><a class="el" href="group___links.html#ga89b3057deac69f5857efbfbe06296d25">EN_getpumptype</a> returns one of these values when it is called. </p>
+<p><a class="el" href="group___links.html#ga73f63b0c9f5dade1820d83abff2c735a">EN_getpumptype</a> returns one of these values when it is called. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga2d863b035f5377de9aed3d89f1232003a2509210e3376d4bac6b4d56e917d75b4"></a>EN_CONST_HP&#160;</td><td class="fielddoc"><p>Constant horsepower. </p>
 </td></tr>
@@ -877,7 +885,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Types of water quality analyses. </p>
-<p>These are the different types of water quality analyses that EPANET can run. They are used with <a class="el" href="group___options.html#ga5a047fb2665ea88fb5f6484c13fb847f">EN_getqualinfo</a>, <a class="el" href="group___options.html#ga278cd628e6026bb51b6850d13e49c25f">EN_getqualtype</a>, and <a class="el" href="group___options.html#ga7c669042b0688f880ba6b11cdd0a4142">EN_setqualtype</a>. </p>
+<p>These are the different types of water quality analyses that EPANET can run. They are used with <a class="el" href="group___options.html#gac699a5c5f74fad6d8216dccccfee5678">EN_getqualinfo</a>, <a class="el" href="group___options.html#gabff5503136af7f45f6e36d551905e798">EN_getqualtype</a>, and <a class="el" href="group___options.html#ga7c669042b0688f880ba6b11cdd0a4142">EN_setqualtype</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga7b8b382d79f8829962c5fe3172ac4d13a83c903c974a834229069064281063f8a"></a>EN_NONE&#160;</td><td class="fielddoc"><p>No quality analysis. </p>
 </td></tr>
@@ -1057,7 +1065,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Water quality source types. </p>
-<p>These are the different types of external water quality sources that can be assigned to a node's <b>EN_SOURCETYPE</b> property as used by <a class="el" href="group___nodes.html#gac597c867a37e2cde9dff1d8306e9c824">EN_getnodevalue</a> and <a class="el" href="group___nodes.html#ga198a2c196811a6c1fbdfd7af48fa5229">EN_setnodevalue</a>. </p>
+<p>These are the different types of external water quality sources that can be assigned to a node's <b>EN_SOURCETYPE</b> property as used by <a class="el" href="group___nodes.html#gaa2c1ed2eeda30aee890c1bacb47cbd7e">EN_getnodevalue</a> and <a class="el" href="group___nodes.html#ga198a2c196811a6c1fbdfd7af48fa5229">EN_setnodevalue</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ga5f3fa815a38f4df22ad8ead5b10a1725a9a12bec77869fa7bf71c9ec37986a3f0"></a>EN_CONCEN&#160;</td><td class="fielddoc"><p>Sets the concentration of external inflow entering a node. </p>
 </td></tr>
@@ -1138,7 +1146,7 @@ Enumerations</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Time parameters. </p>
-<p>These time-related options are used with <a class="el" href="group___options.html#ga7ba82e107bc3f5cbd2e8919384669972">EN_gettimeparam</a> and<a class="el" href="group___options.html#ga6f0185dc2f7f2a1f483bb41a87bb77f3">EN_settimeparam</a>. All times are expressed in seconds The parameters marked as read only are computed values that can only be retrieved. </p>
+<p>These time-related options are used with <a class="el" href="group___options.html#gaa3dde381ac9dc4236f982539d02ddb49">EN_gettimeparam</a> and<a class="el" href="group___options.html#ga6f0185dc2f7f2a1f483bb41a87bb77f3">EN_settimeparam</a>. All times are expressed in seconds The parameters marked as read only are computed values that can only be retrieved. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gad4dff8507f96acf515824b4252f1836aae724fd36546373587caaf78935a3d0d7"></a>EN_DURATION&#160;</td><td class="fielddoc"><p>Total simulation duration. </p>
 </td></tr>
