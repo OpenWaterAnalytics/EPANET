@@ -64,7 +64,8 @@ typedef enum {
   EN_MAXVOLUME    = 25, //!< Tank maximum volume (read only)
   EN_CANOVERFLOW  = 26, //!< Tank can overflow (= 1) or not (= 0)
   EN_DEMANDDEFICIT = 27,//!< Amount that full demand is reduced under PDA (read only)
-  EN_NODE_INCONTROL = 28  //!< Is present in any simple or rule-based control (= 1) or not (= 0)
+  EN_NODE_INCONTROL = 28 , //!< Is present in any simple or rule-based control (= 1) or not (= 0)
+  EN_INLETQUALITY = 29
 } EN_NodeProperty;
 
 /// Link properties
@@ -124,6 +125,14 @@ typedef enum {
   EN_NEXTEVENT    = 14, //!< Shortest time until a tank becomes empty or full (read only)
   EN_NEXTEVENTTANK = 15  //!< Index of tank with shortest time to become empty or full (read only)
 } EN_TimeParameter;
+
+typedef enum {
+  EN_STEP_REPORT       = 0,
+  EN_STEP_HYD          = 1,
+  EN_STEP_WQ           = 2,
+  EN_STEP_TANKEVENT    = 3,
+  EN_STEP_CONTROLEVENT = 4
+} EN_TimestepEvent;
 
 /// Analysis convergence statistics
 /**
@@ -467,6 +476,68 @@ typedef enum {
   EN_R_IS_ACTIVE = 3    //!< Control valve is active
 } EN_RuleStatus;
 
+typedef enum {
+  EN_DISABLE = 0,
+  EN_ENABLE  = 1
+} EN_EnableStatus;
+
+typedef enum {
+  EN_OK                             = 0,
+  EN_ERR_INSUFFICIENT_MEMORY        = 101,
+  EN_ERR_NO_DATA                    = 102,
+  EN_ERR_HYDRAULICS_NOT_INITIALIZED = 103,
+  EN_ERR_NO_HYDRAULICS              = 104,
+  EN_ERR_WQ_NOT_INITIALIZED         = 105,
+  EN_ERR_NO_RESULTS_SAVED           = 106,
+  EN_ERR_HYDRUAULICS_EXT_FILE       = 107,
+  EN_ERR_CANT_USE_EXT_FILE          = 108,
+  EN_ERR_CANT_CHANGE_TIME_PARAM     = 109,
+  EN_ERR_CANT_SOLVE_HYD             = 110,
+  EN_ERR_CANT_SOLVE_WQ              = 120,
+
+  EN_ERR_INPUT_FILE_ERROR           = 200,
+  EN_ERR_SYNTAX                     = 201,
+  EN_ERR_ILLEGAL_NUMERIC_VALUE      = 202,
+  EN_ERR_UNDEF_NODE                 = 203,
+  EN_ERR_UNDEF_LINK                 = 204,
+  EN_ERR_UNDEF_TIME_PAT             = 205,
+  EN_ERR_UNDEF_CURVE                = 206,
+  EN_ERR_CONTROL_CV                 = 207,
+
+  EN_ERR_SPEC_UNDEF_NODE            = 208,
+  EN_ERR_ILLEGAL_VAL_NODE           = 209,
+  EN_ERR_SPEC_UNDEF_LINK            = 210,
+  EN_ERR_ILLEGAL_VAL_LINK           = 211,
+  EN_ERR_UNDEF_TRACE_NODE           = 212,
+  EN_ERR_ILLEGAL_OPTION             = 213,
+  EN_ERR_TOO_MANY_CHARACTERS        = 214,
+  EN_ERR_DUPLICATE_ID               = 215,
+  EN_ERR_DATA_UNDEF_PUMP            = 216,
+  EN_ERR_DATA_INVALID_PUMP          = 217,
+  EN_ERR_ILLEGAL_TANK_CONN          = 219,
+  EN_ERR_ILLEGAL_VALVE_CONN         = 220,
+  EN_ERR_SAME_START_END_NODES       = 222,
+
+  EN_ERR_NOT_ENOUGH_NODES          = 223,
+  EN_ERR_NO_TANKS                  = 224,
+  EN_ERR_INVALID_TANK_LEVELS       = 225,
+  EN_ERR_NO_HEAD_CURVE             = 226,
+  EN_ERR_INV_HEAD_CURVE            = 227,
+  EN_ERR_CURVE_NONINCREASE         = 230,
+  EN_ERR_NODE_UNCONNECTED          = 233,
+  EN_ERR_UNDEF_SOURCE              = 240,
+  EN_ERR_UNDEF_CONTROL             = 241,
+  EN_ERR_FN_INVALID_FORMAT         = 250,
+  EN_ERR_FN_INVALID_CODE           = 251,
+  EN_ERR_NO_EFF_CURVE              = 268,
+
+  EN_ERR_FILE_IDENTICAL            = 301,
+  EN_ERR_FILE_CANT_OPEN_INP        = 302,
+  EN_ERR_FILE_CANT_OPEN_RPT        = 303,
+  EN_ERR_FILE_CANT_OPEN_BIN        = 304
+} EN_ErrorCode;
+
 #define EN_MISSING -1.E10  //!< Missing value indicator
+#define EN_OK 0
 
 #endif //EPANET2_ENUMS_H

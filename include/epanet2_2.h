@@ -638,6 +638,7 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_getstatistic(EN_Project ph, int type, double* out_value);
 
+  int  DLLEXPORT EN_timeToNextEvent(EN_Project ph, EN_TimestepEvent *eventType, long *duration, int *elementIndex);
   /**
   @brief Retrieves the order in which a node or link appears in an @ref OutFile "output file".
   @param ph an EPANET project handle.
@@ -854,6 +855,24 @@ typedef struct Project *EN_Project;
   Values are in units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_setnodevalue(EN_Project ph, int index, int property, double value);
+
+  /**
+  @brief Retrieves a commen value for a node.
+  @param ph an EPANET project handle.
+  @param index a node's index.
+  @param[out] comment the current comment.
+  @return an error code.
+  */
+  int  DLLEXPORT EN_getnodecomment(EN_Project ph, int nIndex, char *out_comment);
+
+  /**
+  @brief Sets a comment for a node.
+  @param ph an EPANET project handle.
+  @param index a node's index (starting from 1).
+  @param value the new comment for the node.
+  @return an error code.
+  */
+  int  DLLEXPORT EN_setnodecomment(EN_Project ph, int nIndex, const char *comment);
 
   /**
   @brief Sets a group of properties for a junction node.
@@ -1212,6 +1231,25 @@ typedef struct Project *EN_Project;
   Values are in units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_setlinkvalue(EN_Project ph, int index, int property, double value);
+
+
+  /**
+  @brief Gets a comment for a link.
+  @param ph an EPANET project handle.
+  @param index a link's index.
+  @param[out] comment the current comment.
+  @return an error code.
+  */
+  int  DLLEXPORT EN_getlinkcomment(EN_Project ph, int linkIndex, char *comment);
+
+  /**
+  @brief Sets a comment for a link.
+  @param ph an EPANET project handle.
+  @param index a link's index.
+  @param comment value of the new comment.
+  @return an error code.
+  */
+  int  DLLEXPORT EN_setlinkcomment(EN_Project ph, int linkIndex, const char *comment);
 
   /**
   @brief Sets a group of properties for a pipe link.
@@ -1576,6 +1614,22 @@ typedef struct Project *EN_Project;
                  double setting, int nodeIndex, double level, int *out_index);
 
   /**
+  @brief Adds a new simple control to a project for setting link status.
+  @param ph an EPANET project handle.
+  @param type the type of control to add (see @ref EN_ControlType).
+  @param linkIndex the index of a link to control (starting from 1).
+  @param setting control setting applied to the link.
+  @param nodeIndex index of the node used to control the link
+  (0 for \b EN_TIMER and \b EN_TIMEOFDAY controls).
+  @param level action level (tank level, junction pressure, or time in seconds)
+  that triggers the control.
+  @param[out] index index of the new control.
+  @return an error code.
+  */
+  int  DLLEXPORT EN_addstatuscontrol(EN_Project ph, int type,
+                 int linkIndex, double setting, int nodeIndex,
+                 double level, int *out_index);
+  /**
   @brief Deletes an existing simple control.
   @param ph an EPANET project handle.
   @param index the index of the control to delete (starting from 1).
@@ -1614,6 +1668,33 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_setcontrol(EN_Project ph, int index, int type, int linkIndex,
                  double setting, int nodeIndex, double level);
+
+
+   /**
+   @brief Sets the properties of an existing simple control for setting link status.
+   @param ph an EPANET project handle.
+   @param index the control's index (starting from 1).
+   @param type the type of control (see @ref EN_ControlType).
+   @param linkIndex the index of the link being controlled.
+   @param setting the control setting applied to the link.
+   @param nodeIndex the index of the node used to trigger the control
+   (0 for \b EN_TIMER and \b EN_TIMEOFDAY controls).
+   @param level the action level (tank level, junction pressure, or time in seconds)
+   that triggers the control.
+   @return an error code.
+   */
+  int  DLLEXPORT EN_setstatuscontrol(EN_Project ph, int index, int type,
+                 int linkIndex, double setting, int nodeIndex, double level);
+
+   /**
+   @brief Sets the properties of an existing simple control.
+   @param ph an EPANET project handle.
+   @param index the control's index (starting from 1).
+   @param enable the value of enabled status
+   (0 for \b EN_DISABLE and 1 \b EN_ENABLE).
+   @return an error code.
+   */
+  int  DLLEXPORT EN_setControlEnabled(EN_Project ph, int controlIndex, int enable);
 
 
   /********************************************************************
@@ -1664,6 +1745,15 @@ typedef struct Project *EN_Project;
   The ID name must be sized to hold at least @ref EN_SizeLimits "EN_MAXID" characters.
   */
   int  DLLEXPORT EN_getruleID(EN_Project ph, int index, char *out_id);
+
+  /**
+  @brief Disables or enables a rule-based control given its index.
+  @param ph an EPANET project handle.
+  @param index the rule's index (starting from 1).
+  @param enable enabled or disabled.
+  @return Error code.
+  */
+  int  DLLEXPORT EN_setRuleEnabled(EN_Project ph, int index, int enable);
 
   /**
   @brief Gets the properties of a premise in a rule-based control.

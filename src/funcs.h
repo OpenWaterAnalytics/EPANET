@@ -155,6 +155,7 @@ void    closehyd(Project *);
 void    setlinkstatus(Project *, int, char, StatusType *, double *);
 void    setlinksetting(Project *, int, double, StatusType *, double *);
 int     tanktimestep(Project *, long *);
+int     controltimestep(Project *, long *);          /* Time till control action   */
 void    getenergy(Project *, int, double *, double *);
 double  tankvolume(Project *, int, double);
 double  tankgrade(Project *, int, double);
@@ -164,7 +165,7 @@ double  tankgrade(Project *, int, double);
 void    resistcoeff(Project *, int);
 void    headlosscoeffs(Project *);
 void    matrixcoeffs(Project *);
-void    emitterheadloss(Project *, int, double *, double *);           
+void    emitterheadloss(Project *, int, double *, double *);
 void    demandheadloss(Project *, int, double, double, double *, double *);
 
 // ------- QUALITY.C --------------------
