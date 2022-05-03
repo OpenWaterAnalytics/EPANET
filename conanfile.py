@@ -19,7 +19,7 @@ class EpanetConan(ConanFile):
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
-            
+
     def layout(self):
         cmake_layout(self)
 
@@ -35,7 +35,9 @@ class EpanetConan(ConanFile):
     def package(self):
         self.copy("lib/libepanet2.dylib", "lib", keep_path=False)
         self.copy("lib/libepanet-output.dylib", "lib", keep_path=False)
-        self.copy("include/*.h", "include", "")
+        self.copy("*.h", "include", "include", keep_path=False)
+        self.copy("types.h", "include", "src", keep_path=False)
+        self.copy("hash.h", "include", "src", keep_path=False)
 
     def package_info(self):
         self.cpp_info.libdirs = ["lib"]
