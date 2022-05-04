@@ -517,6 +517,10 @@ typedef struct Project *EN_Project;
 
   ********************************************************************/
 
+  int  DLLEXPORT EN_setReportCallback(EN_Project ph, void (*callback)(void *userData, EN_Project,char*)); /**< set a callback function for logging. by default EN_writeline */
+
+  int  DLLEXPORT EN_setReportCallbackUserData(EN_Project ph, void *userData);
+
   /**
   @brief Writes a line of text to a project's report file.
   @param ph an EPANET project handle.
@@ -1685,6 +1689,16 @@ typedef struct Project *EN_Project;
    */
   int  DLLEXPORT EN_setstatuscontrol(EN_Project ph, int index, int type,
                  int linkIndex, double setting, int nodeIndex, double level);
+
+
+  /**
+  @brief Test for whether a control is enabled
+  @param ph an EPANET project handle.
+  @param controlIndex The index of the control in question
+  @return EN_DISABLE if the control is disabled or could not be found, EN_ENABLE
+  if the control is enabled.
+  */
+  int  DLLEXPORT EN_controlEnabled(EN_Project ph, int controlIndex);
 
    /**
    @brief Sets the properties of an existing simple control.

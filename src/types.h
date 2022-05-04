@@ -633,6 +633,9 @@ typedef struct {
 
   SField   Field[MAXVAR];  // Output reporting fields
 
+  void (*reportCallback)(void *userData, EN_Project, char*);
+  void *reportCallbackUserData;
+
 } Report;
 
 // Output File Wrapper

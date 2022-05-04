@@ -841,6 +841,19 @@ int DLLEXPORT EN_closeQ(EN_Project p)
 
  ********************************************************************/
 
+int  DLLEXPORT EN_setReportCallback(EN_Project p, void (*callback)(void*,EN_Project,char*))
+{
+  p->report.reportCallback = callback;
+  //  m->reportCallbackUserData = userData;
+  return EN_OK;
+}
+
+int DLLEXPORT EN_setReportCallbackUserData(EN_Project p, void *userData)
+{
+  p->report.reportCallbackUserData = userData;
+  return EN_OK;
+}
+
 int DLLEXPORT EN_writeline(EN_Project p, char *line)
 /*----------------------------------------------------------------
 **  Input:   line = line of text
@@ -5483,6 +5496,22 @@ int DLLEXPORT EN_setcontrol(EN_Project p, int index, int type, int linkIndex,
     control->Grade = lvl;
     control->Time = t;
     return 0;
+}
+
+int DLLEXPORT EN_controlEnabled(EN_Project ph, int controlIndex)
+/*----------------------------------------------------------------
+**  Input:   index  = index of the control
+**  Output:  none
+**  Returns: EN_DISABLE or EN_ENABLE
+**  Purpose: Test for whether a control is enabled
+**----------------------------------------------------------------
+*/
+{
+  if (controlIndex < 1 || controlIndex > ph->network.Ncontrols) {
+    return EN_DISABLE; // of course it's not enabled. it's not even a control.
+  }
+
+  return ph->network.Control[controlIndex].isEnabled;
 }
 
 int DLLEXPORT EN_setControlEnabled(EN_Project ph, int controlIndex, int enable)
