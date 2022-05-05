@@ -2614,30 +2614,6 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     return 0;
 }
 
-int  DLLEXPORT EN_getnodecomment(EN_Project p, int nIndex, char *comment)
-{
-  if (!p->Openflag)
-    return (102);
-  if (nIndex <= 0 || nIndex > p->network.Nnodes)
-    return (203);
-
-  strncpy(comment, p->network.Node[nIndex].Comment, MAXMSG);
-  comment[MAXMSG-1] = '\0';
-  return 0;
-}
-
-int  DLLEXPORT EN_setnodecomment(EN_Project p, int nIndex, const char *comment)
-{
-  if (!p->Openflag)
-    return (102);
-  if (nIndex <= 0 || nIndex > p->network.Nnodes)
-    return (203);
-
-  strncpy(p->network.Node[nIndex].Comment, comment, MAXMSG);
-  p->network.Node[nIndex].Comment[MAXMSG-1] = '\0';
-  return 0;
-}
-
 int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
                              double dmnd, char *dmndpat)
 /*----------------------------------------------------------------
@@ -4094,29 +4070,6 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         return 251;
     }
     return 0;
-}
-
-int  DLLEXPORT EN_getlinkcomment(EN_Project p, int linkIndex, char *comment)
-{
-  if (!p->Openflag)
-    return (102);
-  if (linkIndex <= 0 || linkIndex > p->network.Nlinks)
-    return (203);
-
-  strncpy(comment, p->network.Link[linkIndex].Comment, MAXMSG);
-  return 0;
-}
-
-int  DLLEXPORT EN_setlinkcomment(EN_Project p, int linkIndex, const char *comment)
-{
-  if (!p->Openflag)
-    return (102);
-  if (linkIndex <= 0 || linkIndex > p->network.Nlinks)
-    return (203);
-
-  strncpy(p->network.Link[linkIndex].Comment, comment, MAXMSG);
-  p->network.Link[linkIndex].Comment[MAXMSG-1] = '\0';
-  return 0;
 }
 
 int DLLEXPORT EN_setpipedata(EN_Project p, int index, double length,

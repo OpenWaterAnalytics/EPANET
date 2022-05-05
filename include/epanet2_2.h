@@ -861,24 +861,6 @@ typedef struct Project *EN_Project;
   int  DLLEXPORT EN_setnodevalue(EN_Project ph, int index, int property, double value);
 
   /**
-  @brief Retrieves a commen value for a node.
-  @param ph an EPANET project handle.
-  @param index a node's index.
-  @param[out] comment the current comment.
-  @return an error code.
-  */
-  int  DLLEXPORT EN_getnodecomment(EN_Project ph, int nIndex, char *out_comment);
-
-  /**
-  @brief Sets a comment for a node.
-  @param ph an EPANET project handle.
-  @param index a node's index (starting from 1).
-  @param value the new comment for the node.
-  @return an error code.
-  */
-  int  DLLEXPORT EN_setnodecomment(EN_Project ph, int nIndex, const char *comment);
-
-  /**
   @brief Sets a group of properties for a junction node.
   @param ph an EPANET project handle.
   @param index a junction node's index (starting from 1).
@@ -1235,25 +1217,6 @@ typedef struct Project *EN_Project;
   Values are in units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_setlinkvalue(EN_Project ph, int index, int property, double value);
-
-
-  /**
-  @brief Gets a comment for a link.
-  @param ph an EPANET project handle.
-  @param index a link's index.
-  @param[out] comment the current comment.
-  @return an error code.
-  */
-  int  DLLEXPORT EN_getlinkcomment(EN_Project ph, int linkIndex, char *comment);
-
-  /**
-  @brief Sets a comment for a link.
-  @param ph an EPANET project handle.
-  @param index a link's index.
-  @param comment value of the new comment.
-  @return an error code.
-  */
-  int  DLLEXPORT EN_setlinkcomment(EN_Project ph, int linkIndex, const char *comment);
 
   /**
   @brief Sets a group of properties for a pipe link.
