@@ -1581,22 +1581,6 @@ typedef struct Project *EN_Project;
                  double setting, int nodeIndex, double level, int *out_index);
 
   /**
-  @brief Adds a new simple control to a project for setting link status.
-  @param ph an EPANET project handle.
-  @param type the type of control to add (see @ref EN_ControlType).
-  @param linkIndex the index of a link to control (starting from 1).
-  @param setting control setting applied to the link.
-  @param nodeIndex index of the node used to control the link
-  (0 for \b EN_TIMER and \b EN_TIMEOFDAY controls).
-  @param level action level (tank level, junction pressure, or time in seconds)
-  that triggers the control.
-  @param[out] index index of the new control.
-  @return an error code.
-  */
-  int  DLLEXPORT EN_addstatuscontrol(EN_Project ph, int type,
-                 int linkIndex, double setting, int nodeIndex,
-                 double level, int *out_index);
-  /**
   @brief Deletes an existing simple control.
   @param ph an EPANET project handle.
   @param index the index of the control to delete (starting from 1).
@@ -1635,24 +1619,6 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_setcontrol(EN_Project ph, int index, int type, int linkIndex,
                  double setting, int nodeIndex, double level);
-
-
-   /**
-   @brief Sets the properties of an existing simple control for setting link status.
-   @param ph an EPANET project handle.
-   @param index the control's index (starting from 1).
-   @param type the type of control (see @ref EN_ControlType).
-   @param linkIndex the index of the link being controlled.
-   @param setting the control setting applied to the link.
-   @param nodeIndex the index of the node used to trigger the control
-   (0 for \b EN_TIMER and \b EN_TIMEOFDAY controls).
-   @param level the action level (tank level, junction pressure, or time in seconds)
-   that triggers the control.
-   @return an error code.
-   */
-  int  DLLEXPORT EN_setstatuscontrol(EN_Project ph, int index, int type,
-                 int linkIndex, double setting, int nodeIndex, double level);
-
 
   /**
   @brief Test for whether a control is enabled
