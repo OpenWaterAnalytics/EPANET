@@ -135,6 +135,7 @@ void    writesummary(Project *);
 void    writehydstat(Project *, int, double);
 void    writeheader(Project *, int,int);
 void    writeline(Project *, char *);
+void    writeReportFileLine(Project *, char *);
 void    writerelerr(Project *, int, double);
 void    writestatchange(Project *, int,char,char);
 void    writecontrolaction(Project *, int, int);
