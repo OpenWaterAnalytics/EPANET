@@ -58,7 +58,7 @@ IF NOT DEFINED PLATFORM (
 
 :: hack to determine latest tag in epanet-example-networks repo
 set "LATEST_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/latest"
-FOR /F delims^=^"^ tokens^=2 %%g IN ('curl --silent %LATEST_URL%') DO ( set "LATEST_TAG=%%~nxg" )
+FOR /F delims^=^"^ tokens^=2 %%g IN ('curl -L --silent %LATEST_URL%') DO ( set "LATEST_TAG=%%~nxg" )
 
 IF defined LATEST_TAG (
   set "TESTFILES_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/%LATEST_TAG%.zip"
