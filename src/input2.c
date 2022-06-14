@@ -630,7 +630,7 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
  */
 {
     int  n;
-    size_t len, m;
+    int len, m;
     char *c, *c2;
 
     // clear comment
@@ -648,10 +648,10 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
         if (c2)
         {
             // there is a comment here, after the semi-colon.
-            len = strlen(c2);
+            len = (int)strlen(c2);
             if (len > 0)
             {
-                len = strcspn(c2, "\n\r");
+                len = (int)strcspn(c2, "\n\r");
                 len = MIN(len, MAXMSG);
                 strncpy(comment, c2, len);
                 comment[MIN(len,MAXMSG)] = '\0';
