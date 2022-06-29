@@ -10,8 +10,18 @@ This document describes the changes and updates that have been made in version 2
  - The `EN_getlinkvalue` and `EN_setlinkvalue` functions were updated to get and set the value of `EN_GPV_CURVE`.
  - Negative pressure values for `EN_SETTING` are now permitted in the `EN_setlinkvalue` function. 
  - The `EN_STARTTIME` parameter was added into the `EN_settimeparam` function.
+ - A `EN_DEMANDPATTERN` parameter was added as the index of the default time pattern used by demands with no specific pattern assigned. It can be set or retrieved with the `EN_setoption` and `EN_getoption` functions, respectively, and is saved to file when the `EN_saveinpfile` function is called.
+ - The `EN_getaveragepatternvalue` function will now accept a pattern index of 0 which represents the constant pattern assigned to junction demands by default.
+ - The adjustment of a tank's minimum volume (`Vmin`) when its parameters are changed using `EN_setnodevalue` or `EN_settankdata` has been corrected. 
+ - A pump whose status is set to CLOSED in the input file now also has its speed setting set to 0 which fixes having a simple pressure control activate the pump correctly.
+ - A failure to raise an error condition for a pipe roughness <= 0 in the input file has been fixed.
  - The calculation of head loss gradient for low flow conditions was corrected.
  - Improved updating and convergence tests were added to pressure dependent demand analysis.
- - <more>
+ - Improved checks to prevent outflow from empty tanks or inflow to full (non-overflow) tanks. *(Still needs more work).*
+ - The CI regression test protocol was modified by:
+   - changing the absolute tolerance used to compare the closeness of test results to benchmark values from 0 to 0.0001
+   - dropping the "correct decimal digits" test 
+   - dropping the check for identical status report content since it prevents accepting code changes that produce more accurate solutions in fewer iterations.
+ 
  
 
