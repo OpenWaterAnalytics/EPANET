@@ -885,6 +885,12 @@ void writeline(Project *pr, char *s)
 **--------------------------------------------------------------
 */
 {
+    if (pr->report.reportCallback != NULL)
+    {
+        pr->report.reportCallback(pr->report.reportCallbackUserData, pr, s);
+        return;
+    }
+
     Report *rpt = &pr->report;
 
     if (rpt->RptFile == NULL) return;

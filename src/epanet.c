@@ -841,6 +841,19 @@ int DLLEXPORT EN_closeQ(EN_Project p)
 
  ********************************************************************/
 
+
+ int  DLLEXPORT EN_setReportCallback(EN_Project p, void (*callback)(void*,void*,char*))
+ {
+   p->report.reportCallback = callback;
+   return 0;
+ }
+
+ int DLLEXPORT EN_setReportCallbackUserData(EN_Project p, void *userData)
+ {
+   p->report.reportCallbackUserData = userData;
+   return 0;
+ }
+
 int DLLEXPORT EN_writeline(EN_Project p, char *line)
 /*----------------------------------------------------------------
 **  Input:   line = line of text
