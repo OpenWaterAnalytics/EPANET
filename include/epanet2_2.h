@@ -638,6 +638,16 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_getstatistic(EN_Project ph, int type, double* out_value);
 
+
+  /**
+  @brief Get information about upcoming time step events, and what causes them.
+  @param ph an EPANET project handle.
+  @param[out] eventType the type of event that will occur.
+  @param[out] duration the amount of time in the future this event will occur
+  @param[out] elementIndex the index of the element causing the event.
+  **/
+  int DLLEXPORT EN_timeToNextEvent(EN_Project ph, EN_TimestepEvent *eventType, long *duration, int *elementIndex);
+
   /**
   @brief Retrieves the order in which a node or link appears in an @ref OutFile "output file".
   @param ph an EPANET project handle.
