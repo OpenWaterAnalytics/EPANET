@@ -62,6 +62,7 @@ static void    tcvcoeff(Project *pr, int k);
 static void    prvcoeff(Project *pr, int k, int n1, int n2);
 static void    psvcoeff(Project *pr, int k, int n1, int n2);
 static void    fcvcoeff(Project *pr, int k, int n1, int n2);
+static void    valveconnectcoeffs(Project *pr, int k, int n1, int n2);
 
 
 void  resistcoeff(Project *pr, int k)
@@ -317,9 +318,11 @@ void  valvecoeffs(Project *pr)
         {
         case PRV:
             prvcoeff(pr, k, n1, n2);
+            valveconnectcoeffs(pr, k, n1, n2);
             break;
         case PSV:
             psvcoeff(pr, k, n1, n2);
+            valveconnectcoeffs(pr, k, n1, n2);
             break;
         case FCV:
             fcvcoeff(pr, k, n1, n2);
@@ -328,6 +331,25 @@ void  valvecoeffs(Project *pr)
         }
     }
 }
+
+void valveconnectcoeffs(Project *pr, int k, int n1, int n2)
+/*
+**--------------------------------------------------------------
+**   Input:   k    = valve's link index
+**            n1   = upstream node of valve
+**            n2   = downstream node of valve
+**   Output:  none
+**   Purpose: insures that the off-diagonals in the rows for a
+**            PRV/PSV are non-zero to preserve connectivity.
+**--------------------------------------------------------------
+*/
+{
+    Smatrix *sm =  &pr->hydraul.smatrix;
+    double p = 1.0 / CBIG;
+    sm->Aij[sm->Ndx[k]] -= p;
+    sm->Aii[sm->Row[n1]] += p;
+    sm->Aii[sm->Row[n2]] += p;
+}    
 
 
 void  emittercoeffs(Project *pr)
