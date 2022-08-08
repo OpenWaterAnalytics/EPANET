@@ -526,8 +526,8 @@ typedef struct Project *EN_Project;
            use the userData parameter to pass any client context necessary (a context pointer or wrapper object perhaps).
            Leave un-set or set the report callback to NULL to revert to EPANET's default behavior.
   **/
-  int DLLEXPORT EN_setReportCallback(EN_Project ph, void (*callback)(void *userData, void *EN_projectHandle, char*));
-  int DLLEXPORT EN_setReportCallbackUserData(EN_Project ph, void *userData);
+  int DLLEXPORT EN_setreportcallback(EN_Project ph, void (*callback)(void *userData, void *EN_projectHandle, char*));
+  int DLLEXPORT EN_setreportcallbackuserdata(EN_Project ph, void *userData);
 
   /**
   @brief Writes a line of text to a project's report file.
