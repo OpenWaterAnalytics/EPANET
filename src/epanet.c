@@ -1612,7 +1612,7 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int param, long value)
 
 
 /// get the time to next event, and give a reason for the time step truncation
-int  DLLEXPORT EN_timeToNextEvent(EN_Project p, EN_TimestepEvent *eventType, long *duration, int *elementIndex)
+int  DLLEXPORT EN_timetonextevent(EN_Project p, EN_TimestepEvent *eventType, long *duration, int *elementIndex)
 {
   Times  *time = &p->times;
   long hydStep, tankStep, controlStep;

@@ -646,7 +646,7 @@ typedef struct Project *EN_Project;
   @param[out] duration the amount of time in the future this event will occur
   @param[out] elementIndex the index of the element causing the event.
   **/
-  int DLLEXPORT EN_timeToNextEvent(EN_Project ph, EN_TimestepEvent *eventType, long *duration, int *elementIndex);
+  int DLLEXPORT EN_timetonextevent(EN_Project ph, EN_TimestepEvent *eventType, long *duration, int *elementIndex);
 
   /**
   @brief Retrieves the order in which a node or link appears in an @ref OutFile "output file".
