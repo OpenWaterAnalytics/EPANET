@@ -7,7 +7,7 @@ Description:  updates hydraulic status of network elements
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/15/2019
+Last Updated: 08/08/2022
 ******************************************************************************
 */
 
@@ -394,6 +394,15 @@ StatusType  fcvstatus(Project *pr, int k, StatusType s, double h1, double h2)
     {
         status = ACTIVE;
     }
+
+    // Active valve's loss coeff. can't be < fully open loss coeff.
+    else if (status == ACTIVE)
+    {
+        if ((h1 - h2) / SQR(hyd->LinkFlow[k] < pr->network.Link[k].Km)
+        {
+            status = XFCV;
+        }
+    }        
     return status;
 }
 
