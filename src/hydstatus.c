@@ -398,7 +398,7 @@ StatusType  fcvstatus(Project *pr, int k, StatusType s, double h1, double h2)
     // Active valve's loss coeff. can't be < fully open loss coeff.
     else if (status == ACTIVE)
     {
-        if ((h1 - h2) / SQR(hyd->LinkFlow[k] < pr->network.Link[k].Km)
+        if ((h1 - h2) / SQR(hyd->LinkFlow[k]) < pr->network.Link[k].Km)
         {
             status = XFCV;
         }
