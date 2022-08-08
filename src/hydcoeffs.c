@@ -1035,6 +1035,8 @@ void  psvcoeff(Project *pr, int k, int n1, int n2)
         {
             sm->F[j] += hyd->Xflow[n1];
         }
+        sm->Aij[sm->Ndx[k]] -= 1.0 / CBIG;             // Preserve connectivity
+        sm->Aii[j] += 1.0 / CBIG;
         return;
     }
 
