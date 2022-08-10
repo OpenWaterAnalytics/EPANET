@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: linux
 
 on: [push]
 
@@ -17,3 +17,7 @@ jobs:
     - name: make
       working-directory: ./buildproducts
       run: make
+    - uses: actions/upload-artifact@v2
+      with:
+        name: libepanet-output
+        path: /home/runner/work/EPANET/EPANET/buildproducts/

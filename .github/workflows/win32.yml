@@ -1,0 +1,22 @@
+name: epanet2-win32
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+          
+      - name: setup_build_dir
+        run: mkdir buildproducts
+      - name: cmake
+        working-directory: ./buildproducts
+        run: cmake .. -A Win32 && cmake --build . --config Release
+          
+      - uses: actions/upload-artifact@v2
+        with:
+          name: epanet2-win32
+          path: D:\a\EPANET\EPANET\buildproducts\bin\Release\
