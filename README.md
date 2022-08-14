@@ -6,6 +6,10 @@ OWA-EPANET
 
 [![codecov](https://codecov.io/gh/OpenWaterAnalytics/EPANET/branch/master/graph/badge.svg)](https://codecov.io/gh/OpenWaterAnalytics/EPANET)
 
+[![linux](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/ccpp.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/ccpp.yml)
+[![epanet2-win32](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win32.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win32.yml)
+[![epanet2-win64](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win64.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win64.yml)
+
 ## DESCRIPTION
 
 **EPANET** is an industry-standard program for modeling the hydraulic and water quality behavior of water distribution system pipe networks. The EPANET Programmer's Toolkit is a library of functions (or API) written in C that allow programmers to customize the use of EPANET's solution engine for their own applications. Both EPANET and its toolkit were originally developed by the U.S. Environmental Protection Agency (USEPA). If you are interested in using/extending the EPANET engine and its API for academic, personal, or commercial use, then you've come to the right place. [Read more about EPANET on Wikipedia](https://en.wikipedia.org/wiki/EPANET). (Please note that this project covers only the EPANET hydraulic and water quality solver engine, not the graphical user interface.)
