@@ -3,7 +3,6 @@ OWA-EPANET
 
 ## Build Status
 [![Build status](https://ci.appveyor.com/api/projects/status/19wpg4g2cmj3oihl?svg=true)](https://ci.appveyor.com/project/OpenWaterAnalytics/epanet)
-[![Build Status](https://travis-ci.org/OpenWaterAnalytics/EPANET.svg)](https://travis-ci.org/OpenWaterAnalytics/EPANET)
 
 [![codecov](https://codecov.io/gh/OpenWaterAnalytics/EPANET/branch/master/graph/badge.svg)](https://codecov.io/gh/OpenWaterAnalytics/EPANET)
 
