@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 02/01/2020
+'Last updated on 07/28/2022
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -63,6 +63,7 @@ Public Const EN_PUMP_ECOST = 21
 Public Const EN_PUMP_EPAT = 22
 Public Const EN_LINK_INCONTROL = 23
 Public Const EN_GPV_CURVE = 24
+Public Const EN_PCV_CURVE= 25
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
@@ -117,6 +118,7 @@ Public Const EN_PBV = 5
 Public Const EN_FCV = 6
 Public Const EN_TCV = 7
 Public Const EN_GPV = 8
+Public Const EN_PCV = 9
 
 Public Const EN_CLOSED = 0        ' Link status types
 Public Const EN_OPEN   = 1
@@ -209,6 +211,7 @@ Public Const EN_PUMP_CURVE = 1    ' Pump curve
 Public Const EN_EFFIC_CURVE = 2   ' Efficiency curve
 Public Const EN_HLOSS_CURVE = 3   ' Head loss curve
 Public Const EN_GENERIC_CURVE = 4 ' Generic curve
+Public Const EN_VALVE_CURVE = 5   ' Valve position curve
 
 Public Const EN_UNCONDITIONAL = 0 ' Unconditional object deletion
 Public Const EN_CONDITIONAL = 1   ' Conditional object deletion

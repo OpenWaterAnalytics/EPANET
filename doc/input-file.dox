@@ -1045,8 +1045,9 @@ __Remarks:__
 |<B>GPV</B> (general purpose valve) | ID of head loss curve |
 2. Shutoff valves and check valves are considered to be part of a pipe, not a separate control valve component (see @ref PipesPage).
 3. The loss coefficient setting for a TCV should not be less than its fully open loss coefficient.
-4. The characteristic curve for a PCV relates the valve's fraction of fully open flow to the fraction open.
-5. The head loss curve for a GPV relates head loss across the valve to the flow rate through it.
+4. The characteristic curve for a PCV relates the valve's fraction of fully open flow to the fraction open. If not supplied then a linear curve is assumed.
+5. The partially opened loss coefficient for a PCV is the inverse of the squared value from its characteristic curve times the fully open loss coefficient.
+6. The head loss curve for a GPV relates head loss across the valve to the flow rate through it.
 */
 
 /**
