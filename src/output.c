@@ -7,7 +7,7 @@ Description:  binary file read/write routines
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/13/2019
+Last Updated: 08/13/2022
 ******************************************************************************
 */
 
@@ -567,6 +567,7 @@ int linkoutput(Project *pr, int j, REAL4 *x, double ucf)
               case FCV:
                 x[i] = (REAL4)(setting * pr->Ucf[FLOW]); break;
               case TCV:
+              case PCV:
                 x[i] = (REAL4)setting; break;
               default: x[i] = 0.0f;
             }

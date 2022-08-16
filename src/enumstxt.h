@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/20/2019
+ Last Updated: 08/13/2022
  ******************************************************************************
 */
 
@@ -27,7 +27,8 @@ char *LinkTxt[]         = {w_CV,
                            w_PBV,
                            w_FCV,
                            w_TCV,
-                           w_GPV};
+                           w_GPV,
+                           w_PCV};
 
 char *StatTxt[]         = {t_XHEAD,
                            t_TEMPCLOSED,

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/08/2020
+ Last Updated: 08/13/2022
  ******************************************************************************
 */
 
@@ -3149,7 +3149,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
     if (EN_getlinkindex(p, id, &i) == 0) return 215;
 
     // Check for valid link type
-    if (linkType < CVPIPE || linkType > GPV) return 251;
+    if (linkType < CVPIPE || linkType > PCV) return 251;
 
     // Lookup the link's from and to nodes
     n1 = hashtable_find(net->NodeHashTable, fromNode);
@@ -3209,6 +3209,7 @@ int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
         size = (net->Nvalves + 1) * sizeof(Svalve);
         net->Valve = (Svalve *)realloc(net->Valve, size);
         net->Valve[net->Nvalves].Link = n;
+        net->Valve[net->Nvalves].Curve = 0;
     }
 
     link->Type = linkType;
@@ -3468,7 +3469,7 @@ int DLLEXPORT EN_setlinktype(EN_Project p, int *index, int linkType, int actionC
     if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
 
     // Check for valid input parameters
-    if (linkType < 0 || linkType > GPV || actionCode < EN_UNCONDITIONAL ||
+    if (linkType < 0 || linkType > PCV || actionCode < EN_UNCONDITIONAL ||
         actionCode > EN_CONDITIONAL)
     {
         return 251;
@@ -3794,6 +3795,13 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         }
         break;
         
+    case EN_PCV_CURVE:
+        if (Link[index].Type == PCV)
+        {
+            v = net->Valve[findvalve(&p->network, index)].Curve;
+        }
+        break;
+            
     case EN_GPV_CURVE:
         if (Link[index].Type == GPV)
         {
@@ -3916,6 +3924,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
                 value /= Ucf[FLOW];
                 break;
             case TCV:
+            case PCV:
                 break;
             case GPV:
                 return 207; // Cannot modify setting for GPV
@@ -4009,6 +4018,15 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             if (patIndex < 0 || patIndex > net->Npats) return 205;
             pumpIndex = findpump(&p->network, index);
             net->Pump[pumpIndex].Epat = patIndex;
+        }
+        break;
+        
+    case EN_PCV_CURVE:
+        if (Link[index].Type == PCV)
+        {
+            curveIndex = ROUND(value);
+            if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
+            net->Valve[findvalve(&p->network, index)].Curve = curveIndex;
         }
         break;
         

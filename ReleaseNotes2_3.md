@@ -24,6 +24,7 @@ This document describes the changes and updates that have been made in version 2
    - dropping the check for identical status report content since it prevents accepting code changes that produce more accurate solutions in fewer iterations.
  - A possible loss of network connectivity when evaluating a Pressure Sustaining Valve was prevented.
  - Having the implied loss coefficient for an active Flow Control Valve be less than its fully opened value was prevented.
+ - A new type of valve, a Positional Control Valve (PCV), was added that uses a valve characteristic curve to relate its loss coefficient to its fraction open setting. 
  
  
 
