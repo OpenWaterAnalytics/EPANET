@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/15/2019
+ Last Updated: 08/13/2022
  ******************************************************************************
 */
 
@@ -40,6 +40,7 @@
 #define   w_FCV         "FCV"
 #define   w_TCV         "TCV"
 #define   w_GPV         "GPV"
+#define   w_PCV         "PCV"
 
 #define   w_OPEN        "OPEN"
 #define   w_CLOSED      "CLOSED"

@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 02/01/2020}
+{Last updated on 07/28/2022}
 
 interface
 
@@ -69,6 +69,7 @@ const
  EN_PUMP_EPAT   = 22;
  EN_LINK_INCONTROL = 23;
  EN_GPV_CURVE   = 24;
+ EN_PCV_CURVE   = 25;
  
  EN_DURATION     = 0;  { Time parameters }
  EN_HYDSTEP      = 1;
@@ -123,6 +124,7 @@ const
  EN_FCV        = 6;
  EN_TCV        = 7;
  EN_GPV        = 8;
+ EN_PCV        = 9;
  
  EN_CLOSED     = 0;   { Link status types }
  EN_OPEN       = 1;
@@ -214,7 +216,8 @@ const
  EN_PUMP_CURVE    = 1;
  EN_EFFIC_CURVE   = 2;
  EN_HLOSS_CURVE   = 3;
- EN_GENERIC_CURVE = 4; 
+ EN_GENERIC_CURVE = 4;
+ EN_VALVE_CURVE   = 5; 
  
  EN_UNCONDITIONAL = 0; { Deletion action codes }
  EN_CONDITIONAL   = 1; 

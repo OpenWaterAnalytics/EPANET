@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/30/2022
+ Last Updated: 08/13/2022
  ******************************************************************************
 */
 
@@ -36,6 +36,7 @@ const double CBIG   = 1.e8;
 
 // Exported functions
 //void   resistcoeff(Project *, int );
+//double pcvlosscoeff(Project *, int, double);
 //void   headlosscoeffs(Project *);
 //void   matrixcoeffs(Project *);
 //void   emitterheadloss(Project *, int, double *, double *);
@@ -59,6 +60,7 @@ static void    valvecoeff(Project *pr, int k);
 static void    gpvcoeff(Project *pr, int k);
 static void    pbvcoeff(Project *pr, int k);
 static void    tcvcoeff(Project *pr, int k);
+static void    pcvcoeff(Project *pr, int k);
 static void    prvcoeff(Project *pr, int k, int n1, int n2);
 static void    psvcoeff(Project *pr, int k, int n1, int n2);
 static void    fcvcoeff(Project *pr, int k, int n1, int n2);
@@ -107,6 +109,10 @@ void  resistcoeff(Project *pr, int k)
     case PUMP:
         link->R = CBIG;
         break;
+        
+    case PCV:
+        link->R = pcvlosscoeff(pr, k, link->Kc);
+        break;
 
     // ... For all other links (e.g. valves) use a small resistance
     default:
@@ -114,6 +120,86 @@ void  resistcoeff(Project *pr, int k)
         break;
     }
 }
+
+
+double pcvlosscoeff(Project* pr, int k, double s)
+/*
+**--------------------------------------------------------------
+**   Input:   k = link index
+**            s = valve fraction open setting
+**   Output:  returns a valve loss coefficient
+**   Purpose: finds a Positional Control Valve's loss
+**            coefficient from its fraction open setting.
+**--------------------------------------------------------------
+*/
+{
+    Network* net = &pr->network;
+    
+    int v = findvalve(net, k);         // valve index
+    int c = net->Valve[v].Curve;       // Kv curve index
+    double d;                          // valve diameter
+    double kmo;                        // fully open loss coeff.
+    double km;                         // partly open loss coeff.
+    double kvr;                        // Kv / Kvo (Kvo = Kv at fully open)
+    double *x, *y;                     // points on kvr v. frac. open curve
+    int k1, k2, npts;
+    Scurve *curve;
+
+    // Valve has no setting so return 0
+    if (s == MISSING) return 0.0;
+    
+    // Valve is completely open so return its Km value
+    d = net->Link[k].Diam;
+    kmo = net->Link[k].Km;
+    if (s >= 1.0) return kmo;
+    
+    // Valve is completely closed so return a large coeff.
+    if (s <= 0.0) return CBIG;
+    
+    // Valve has no assigned curve so assume a linear one
+    if (c == 0) kvr = s;
+
+    else
+    {        
+        // Valve curve data
+        curve = &net->Curve[c];
+        npts = curve->Npts;
+        x = curve->X;            // x = frac. open
+        y = curve->Y;            // y = Kv / Kvo
+    
+        // s lies below first point of curve
+        if (s < x[0])
+            kvr = s / x[0] * y[0];
+    
+        // s lies above last point of curve
+        else if (s > x[npts-1])
+        {
+            k2 = npts - 1;
+            kvr = (s - x[k2]) / (1. -  x[k2]) * (1. - y[k2]) + y[k2];
+        }
+    
+        // Otherwise interpolate over curve segment that brackets s
+        else 
+        {
+            k2 = 0;
+            while (k2 < npts && x[k2] < s) k2++;
+            if (k2 == 0) k2++;
+            else if (k2 == npts)  k2--;
+            k1 = k2 - 1;
+            kvr = (y[k2] - y[k1]) / (x[k2] - x[k1]);
+            kvr = y[k1] + kvr * (s - x[k1]);
+        }
+    }
+
+    // kvr can't be > 1 or <= 0    
+    kvr = MIN(kvr, 1.0);
+    kvr = MAX(kvr, CSMALL);
+    
+    // Convert from Kv ratio to minor loss coeff.
+    km = kmo / (kvr * kvr);
+    km = MIN(km, CBIG);
+    return km;
+}    
 
 
 void headlosscoeffs(Project *pr)
@@ -147,6 +233,9 @@ void headlosscoeffs(Project *pr)
             break;
         case TCV:
             tcvcoeff(pr, k);
+            break;
+        case PCV:
+            pcvcoeff(pr, k);
             break;
         case GPV:
             gpvcoeff(pr, k);
@@ -935,6 +1024,36 @@ void  tcvcoeff(Project *pr, int k)
     if (hyd->LinkSetting[k] != MISSING)
     {
         link->Km = 0.02517 * hyd->LinkSetting[k] / (SQR(link->Diam)*SQR(link->Diam));
+    }
+
+    // Then apply usual valve formula
+    valvecoeff(pr, k);
+
+    // Restore original loss coeff.
+    link->Km = km;
+}
+
+
+void  pcvcoeff(Project *pr, int k)
+/*
+**--------------------------------------------------------------
+**   Input:   k = link index
+**   Output:  none
+**   Purpose: computes P & Y coeffs. for positional control valve
+**--------------------------------------------------------------
+*/
+{
+    double km;
+    Hydraul *hyd = &pr->hydraul;
+    Slink *link = &pr->network.Link[k];
+
+    // Save original loss coeff. for open valve
+    km = link->Km;
+
+    // If valve not fixed OPEN or CLOSED, compute its loss coeff.
+    if (hyd->LinkSetting[k] != MISSING)
+    {
+        link->Km = link->R;
     }
 
     // Then apply usual valve formula

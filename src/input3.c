@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 03/20/2022
+Last Updated: 08/13/2022
 ******************************************************************************
 */
 
@@ -471,7 +471,7 @@ int valvedata(Project *pr)
 **  Purpose: processes valve data
 **  Format:
 **     [VALVE]
-**        id  node1  node2  diam  type  setting (lcoeff)
+**        id  node1  node2  diam  type  setting (lcoeff  lcurve)
 **--------------------------------------------------------------
 */
 {
@@ -488,7 +488,8 @@ int valvedata(Project *pr)
            setting,            // Valve setting
            lcoeff = 0.0;       // Minor loss coeff.
     Slink *link;
-    int err = 0;
+    int err = 0,
+        losscurve = 0;          // Loss coeff. curve
 
     // Add new valve to data base
     n = parser->Ntokens;
@@ -521,6 +522,8 @@ int valvedata(Project *pr)
       type = TCV;
     else if (match(parser->Tok[4], w_GPV))
       type = GPV;
+    else if (match(parser->Tok[4], w_PCV))
+      type = PCV;
     else
       return setError(parser, 4, 213);
 
@@ -538,6 +541,16 @@ int valvedata(Project *pr)
     }
     else if (!getfloat(parser->Tok[5], &setting)) return setError(parser, 5, 202);
     if (n >= 7 && !getfloat(parser->Tok[6], &lcoeff)) return setError(parser, 6, 202);
+    
+    // Find loss coeff. curve for PCV
+    if (type == PCV && n >= 8)
+    {
+        c = findcurve(net, parser->Tok[7]);
+        if (c == 0) return setError(parser, 7, 206);
+        losscurve = c;
+        net->Curve[c].Type = VALVE_CURVE;
+        if (setting > 1.0) setting = 1.0;
+    }        
 
     // Check for illegal connections
     if (valvecheck(pr, net->Nlinks, type, j1, j2))
@@ -563,6 +576,7 @@ int valvedata(Project *pr)
     link->ResultIndex = 0;
     link->Comment = xstrcpy(&link->Comment, parser->Comment, MAXMSG);
     net->Valve[net->Nvalves].Link = net->Nlinks;
+    net->Valve[net->Nvalves].Curve = losscurve;
     return 0;
 }
 

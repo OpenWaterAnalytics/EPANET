@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/03/2020
+ Last Updated: 08/13/2022
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -166,6 +166,7 @@ void    headlosscoeffs(Project *);
 void    matrixcoeffs(Project *);
 void    emitterheadloss(Project *, int, double *, double *);           
 void    demandheadloss(Project *, int, double, double, double *, double *);
+double  pcvlosscoeff(Project *, int, double);
 
 // ------- QUALITY.C --------------------
 

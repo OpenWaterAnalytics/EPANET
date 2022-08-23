@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/11/2020
+ Last Updated: 08/13/2022
  ******************************************************************************
 */
 
@@ -145,7 +145,8 @@ typedef enum {
   PBV,           // pressure breaker valve
   FCV,           // flow control valve
   TCV,           // throttle control valve
-  GPV            // general purpose valve
+  GPV,           // general purpose valve
+  PCV            // positional control valve
 } LinkType;
 
 typedef enum {
@@ -166,7 +167,8 @@ typedef enum {
   PUMP_CURVE,    // pump curve
   EFFIC_CURVE,   // efficiency curve
   HLOSS_CURVE,   // head loss curve
-  GENERIC_CURVE  // generic curve
+  GENERIC_CURVE, // generic curve
+  VALVE_CURVE    // positional valve loss curve
 } CurveType;
 
 typedef enum {
@@ -455,6 +457,7 @@ typedef struct             // Pump Object
 typedef struct             // Valve Object
 {
   int Link;                // link index of valve
+  int Curve;               // positional loss coeff. curve
 } Svalve;
 
 typedef struct             // Control Statement
