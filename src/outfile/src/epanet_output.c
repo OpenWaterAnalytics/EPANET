@@ -744,7 +744,7 @@ int EXPORT_OUT_API ENR_getNodeResult(ENR_Handle p_handle, int periodIndex,
     else
     {
         for (j = 0; j < NNODERESULTS; j++)
-            temp[j] = getNodeValue(p_handle, periodIndex, nodeIndex, j);
+            temp[j] = getNodeValue(p_handle, periodIndex, nodeIndex, j + 1);
 
         *outValueArray = temp;
         *length = NNODERESULTS;
@@ -772,7 +772,7 @@ int EXPORT_OUT_API ENR_getLinkResult(ENR_Handle p_handle, int periodIndex,
     else
     {
         for (j = 0; j < NLINKRESULTS; j++)
-            temp[j] = getLinkValue(p_handle, periodIndex, linkIndex, j);
+            temp[j] = getLinkValue(p_handle, periodIndex, linkIndex, j + 1);
 
         *outValueArray = temp;
         *length = NLINKRESULTS;
