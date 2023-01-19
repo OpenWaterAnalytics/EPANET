@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/29/2019
+Last Updated: 08/13/2022
 ******************************************************************************
 */
 
@@ -311,6 +311,11 @@ int saveinpfile(Project *pr, const char *fname)
         if (link->Type == GPV && (j = ROUND(link->Kc)) > 0)
         {
             sprintf(s1, "%-31s %12.4f", net->Curve[j].ID, km);
+        }
+        // For PCV add loss curve if present
+        else if (link->Type == PCV && (j = net->Valve[i].Curve) > 0)
+        {
+            sprintf(s1, "%12.4f %12.4f %-31s", kc, km, net->Curve[j].ID);
         }
         else sprintf(s1, "%12.4f %12.4f", kc, km);
         fprintf(f, "\n%s %s", s, s1);

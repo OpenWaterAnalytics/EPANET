@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/19/2022
+ Last Updated: 08/13/2022
  ******************************************************************************
 */
 
@@ -450,6 +450,7 @@ void  setlinksetting(Project *pr, int index, double value, StatusType *s,
     else
     {
         if (*k == MISSING && *s <= CLOSED) *s = OPEN;
+        if (t == PCV) link->R = pcvlosscoeff(pr, index, link->Kc);
         *k = value;
     }
 }
@@ -605,6 +606,7 @@ int  controls(Project *pr)
             {
                 hyd->LinkStatus[k] = s2;
                 hyd->LinkSetting[k] = k2;
+                if (link->Type == PCV) link->R = pcvlosscoeff(pr, k, k2);
                 if (pr->report.Statflag) writecontrolaction(pr,k,i);
                 setsum++;
             }

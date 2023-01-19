@@ -3,9 +3,12 @@ OWA-EPANET
 
 ## Build Status
 [![Build status](https://ci.appveyor.com/api/projects/status/19wpg4g2cmj3oihl?svg=true)](https://ci.appveyor.com/project/OpenWaterAnalytics/epanet)
-[![Build Status](https://travis-ci.org/OpenWaterAnalytics/EPANET.svg)](https://travis-ci.org/OpenWaterAnalytics/EPANET)
 
 [![codecov](https://codecov.io/gh/OpenWaterAnalytics/EPANET/branch/master/graph/badge.svg)](https://codecov.io/gh/OpenWaterAnalytics/EPANET)
+
+[![linux](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/ccpp.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/ccpp.yml)
+[![epanet2-win32](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win32.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win32.yml)
+[![epanet2-win64](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win64.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win64.yml)
 
 ## DESCRIPTION
 

@@ -73,6 +73,9 @@ namespace EpanetCSharpLibrary
         public const int EN_PUMP_ECURVE = 20;
         public const int EN_PUMP_ECOST = 21;
         public const int EN_PUMP_EPAT = 22;
+        public const int EN_LINK_INCONTROL = 23;
+        public const int EN_GPV_CURVE = 24;
+        public const int EN_PCV_CURVE = 25;
 
         public const int EN_DURATION = 0;      //Time parameters
         public const int EN_HYDSTEP = 1;
@@ -126,6 +129,7 @@ namespace EpanetCSharpLibrary
         public const int EN_FCV = 6;
         public const int EN_TCV = 7;
         public const int EN_GPV = 8;
+        public const int EN_PCV = 9;
 
         public const int EN_NONE = 0;          //Quality analysis types
         public const int EN_CHEM = 1;
@@ -209,6 +213,7 @@ namespace EpanetCSharpLibrary
         public const int EN_EFFIC_CURVE = 2;   //Efficiency curve
         public const int EN_HLOSS_CURVE = 3;   //Head loss curve
         public const int EN_GENERIC_CURVE = 4; //Generic curve
+        public const int EN_VALVE_CURVE = 5;   //Valve position curve
 
         public const int EN_UNCONDITIONAL = 0; //Unconditional object deletion
         public const int EN_CONDITIONAL   = 1; //Conditional object deletion

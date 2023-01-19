@@ -92,9 +92,10 @@ __Remarks:__
    - Head v. Flow for pumps
    - Efficiency v. Flow for pumps
    - Volume v. Depth for tanks
+   - Fraction of fully open flow v. fraction open for Positional Control Valves
    - Head Loss v. Flow for General Purpose Valves
 2. The points of a curve must be entered in order of increasing X-values (lower to higher).
-3. If the input file will be used with the Windows version of EPANET, then adding a comment which contains the curve type and description, separated by a colon, directly above the first entry for a curve will ensure that these items appear correctly in EPANET's Curve Editor. Curve types include <B>PUMP, EFFICIENCY, VOLUME</B>, and <B>HEADLOSS</B>. See the examples below.
+3. If the input file will be used with the Windows version of EPANET, then adding a comment which contains the curve type and description, separated by a colon, directly above the first entry for a curve will ensure that these items appear correctly in EPANET's Curve Editor. Curve types include <B>PUMP, EFFICIENCY, VOLUME, VALVE</B>, and <B>HEADLOSS</B>. See the examples below.
 
 __Example:__
 ```
@@ -1028,7 +1029,8 @@ One line for each valve containing:
 - Diameter, inches (mm)
 - Valve type
 - Valve setting
-- Minor loss coefficient
+- Minor loss coefficient when fully open
+- ID of valve characteristic curve (PCVs only)
 
 __Remarks:__
 1. Valve types and settings include:
@@ -1038,9 +1040,14 @@ __Remarks:__
 |<B>PSV</B> (pressure sustaining valve) | Pressure, psi (m) |
 |<B>PBV</B> (pressure breaker valve) | Pressure, psi (m) |
 |<B>FCV</B> (flow control valve) | Flow (flow units) |
-|<B>TCV</B> (throttle control valve) | Loss Coefficient |
+|<B>TCV</B> (throttle control valve) | Partially open loss coefficient |
+|<B>PCV</B> (positional control valve) | Fraction open |
 |<B>GPV</B> (general purpose valve) | ID of head loss curve |
 2. Shutoff valves and check valves are considered to be part of a pipe, not a separate control valve component (see @ref PipesPage).
+3. The loss coefficient setting for a TCV should not be less than its fully open loss coefficient.
+4. The characteristic curve for a PCV relates the valve's fraction of fully open flow to the fraction open. If not supplied then a linear curve is assumed.
+5. The partially opened loss coefficient for a PCV is the inverse of the squared value from its characteristic curve times the fully open loss coefficient.
+6. The head loss curve for a GPV relates head loss across the valve to the flow rate through it.
 */
 
 /**
