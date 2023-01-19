@@ -281,6 +281,8 @@ void initpointers(Project *pr)
     pr->hydraul.smatrix.NZSUB = NULL;
     pr->hydraul.smatrix.LNZ = NULL;
 
+    pr->report.reportCallback = NULL;
+
     initrules(pr);
 }
 

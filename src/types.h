@@ -632,7 +632,10 @@ typedef struct {
     Rpt2Fname[MAXFNAME+1], // Secondary report file name
     DateStamp[26];         // Current date & time
 
-  SField   Field[MAXVAR];  // Output reporting fields
+    SField   Field[MAXVAR];  // Output reporting fields
+
+    void (*reportCallback)(void*,void*,char*); // user-supplied reporting callback
+    void *reportCallbackUserData;  // user-supplied reporting context
 
 } Report;
 

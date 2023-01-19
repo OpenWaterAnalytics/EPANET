@@ -72,9 +72,9 @@ extern "C" {
 
   int  DLLEXPORT ENopen(const char *inpFile, const char *rptFile,
                  const char *outFile);
-  
+
   int  DLLEXPORT ENgettitle(char *line1, char *line2, char *line3);
-  
+
   int  DLLEXPORT ENsettitle(char *line1, char *line2, char *line3);
 
   int  DLLEXPORT ENgetcomment(int object, int index, char *comment);
@@ -156,8 +156,12 @@ extern "C" {
   int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen);
 
   int  DLLEXPORT ENgetstatistic(int type, EN_API_FLOAT_TYPE* value);
-  
+
   int  DLLEXPORT ENgetresultindex(int type, int index, int *value);
+
+  int DLLEXPORT ENsetreportcallback(void (*callback)(void *userData, void *EN_projectHandle, char*));
+  int DLLEXPORT ENsetreportcallbackuserdata(void *userData);
+
 
 /********************************************************************
 
@@ -235,7 +239,7 @@ extern "C" {
                 char *demandPattern, char *demandName);
 
   int DLLEXPORT ENdeletedemand(int nodeIndex, int demandIndex);
-  
+
   int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
 
   int DLLEXPORT ENgetdemandindex(int nodeIndex, char *demandName, int *demandIndex);
@@ -285,13 +289,13 @@ extern "C" {
   int DLLEXPORT ENsetpipedata(int index, EN_API_FLOAT_TYPE length,
                 EN_API_FLOAT_TYPE diam, EN_API_FLOAT_TYPE rough,
                 EN_API_FLOAT_TYPE mloss);
-                
+
   int DLLEXPORT ENgetvertexcount(int index, int *count);
-  
+
   int DLLEXPORT ENgetvertex(int index, int vertex, double *x, double *y);
-  
+
   int DLLEXPORT ENsetvertex(int index, int vertex, double x, double y);
-  
+
   int DLLEXPORT ENsetvertices(int index, double *x, double *y, int count);
 
 /********************************************************************
@@ -351,7 +355,7 @@ extern "C" {
   int DLLEXPORT ENgetcurvelen(int index, int *len);
 
   int DLLEXPORT ENgetcurvetype(int index, int *type);
-  
+
   int DLLEXPORT ENsetcurvetype(int index, int type);
 
   int DLLEXPORT ENgetcurvevalue(int curveIndex, int pointIndex,
@@ -425,7 +429,7 @@ extern "C" {
 
   int DLLEXPORT ENsetelseaction(int ruleIndex, int actionIndex, int linkIndex,
                 int status, EN_API_FLOAT_TYPE setting);
-  
+
   int DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
 
   #if defined(__cplusplus)
