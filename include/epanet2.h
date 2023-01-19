@@ -159,7 +159,7 @@ extern "C" {
 
   int  DLLEXPORT ENgetresultindex(int type, int index, int *value);
 
-  int  DLLEXPORT ENtimetonextevent(EN_TimestepEvent *eventType, long *duration, int *elementIndex);
+  int  DLLEXPORT ENtimetonextevent(int *eventType, long *duration, int *elementIndex);
 
 /********************************************************************
 
