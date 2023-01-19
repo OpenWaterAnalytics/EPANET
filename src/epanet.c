@@ -1629,13 +1629,14 @@ int  DLLEXPORT EN_timetonextevent(EN_Project p, int *eventType, long *duration, 
 {
   Times  *time = &p->times;
   long hydStep, tankStep, controlStep;
-
+  int iTank, iControl;
+  
   hydStep = time->Hstep;
   tankStep = hydStep;
   controlStep = hydStep;
 
-  int iTank = tanktimestep(p, &tankStep);
-  int iControl = controltimestep(p, &controlStep);
+  iTank = tanktimestep(p, &tankStep);
+  iControl = controltimestep(p, &controlStep);
 
   // return the lesser of the three step lengths
   if (controlStep < tankStep) {
