@@ -161,6 +161,10 @@ extern "C" {
 
   int  DLLEXPORT ENtimetonextevent(int *eventType, long *duration, int *elementIndex);
 
+  int DLLEXPORT ENsetreportcallback(void (*callback)(void *userData, void *EN_projectHandle, char*));
+  int DLLEXPORT ENsetreportcallbackuserdata(void *userData);
+
+
 /********************************************************************
 
     Analysis Options Functions

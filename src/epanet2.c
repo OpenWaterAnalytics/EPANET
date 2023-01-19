@@ -212,6 +212,16 @@ int DLLEXPORT ENsetstatusreport(int level)
     return EN_setstatusreport(_defaultProject, level);
 }
 
+int DLLEXPORT ENsetreportcallback(void (*callback)(void *userData, void *EN_projectHandle, char*))
+{
+  return EN_setreportcallback(_defaultProject, callback);
+}
+
+int DLLEXPORT ENsetreportcallbackuserdata(void *userData)
+{
+  return EN_setreportcallbackuserdata(_defaultProject, userData);
+}
+
 int DLLEXPORT ENgetversion(int *version) { return EN_getversion(version); }
 
 int DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen)

@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/01/2020
+ Last Updated: 08/13/2022
  ******************************************************************************
 */
 
@@ -97,7 +97,8 @@ typedef enum {
   EN_PUMP_ECOST   = 21, //!< Pump average energy price
   EN_PUMP_EPAT    = 22, //!< Pump energy price time pattern index
   EN_LINK_INCONTROL = 23,  //!< Is present in any simple or rule-based control (= 1) or not (= 0)
-  EN_GPV_CURVE    = 24  //!< GPV head loss v. flow curve index
+  EN_GPV_CURVE    = 24, //!< GPV head loss v. flow curve index
+  EN_PCV_CURVE    = 25  //!< PCV loss coeff. curve index
 } EN_LinkProperty;
 
 /// Time parameters
@@ -203,7 +204,8 @@ typedef enum {
   EN_PBV          = 5,  //!< Pressure breaker valve
   EN_FCV          = 6,  //!< Flow control valve
   EN_TCV          = 7,  //!< Throttle control valve
-  EN_GPV          = 8   //!< General purpose valve
+  EN_GPV          = 8,  //!< General purpose valve
+  EN_PCV          = 9   //!< Positional control valve
 } EN_LinkType;
 
 /// Link status
@@ -409,7 +411,8 @@ typedef enum {
   EN_PUMP_CURVE    = 1,   //!< Pump head v. flow curve
   EN_EFFIC_CURVE   = 2,   //!< Pump efficiency v. flow curve
   EN_HLOSS_CURVE   = 3,   //!< Valve head loss v. flow curve
-  EN_GENERIC_CURVE = 4    //!< Generic curve
+  EN_GENERIC_CURVE = 4,   //!< Generic curve
+  EN_VALVE_CURVE   = 5    //!< Valve loss coeff. v. frac. open
 } EN_CurveType;
 
 /// Deletion action codes

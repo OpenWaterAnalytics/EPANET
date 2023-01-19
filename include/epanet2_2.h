@@ -518,6 +518,18 @@ typedef struct Project *EN_Project;
   ********************************************************************/
 
   /**
+  @brief Set a user-supplied callback function for reporting
+  @param ph an EPANET project handle.
+  @param callback a function pointer with declared signature, which gets called by EPANET for reporting.
+  @return an error code.
+  @details The report callback function must have the signature specified - void(void* userData, EN_Project, char*) -
+           use the userData parameter to pass any client context necessary (a context pointer or wrapper object perhaps).
+           Leave un-set or set the report callback to NULL to revert to EPANET's default behavior.
+  **/
+  int DLLEXPORT EN_setreportcallback(EN_Project ph, void (*callback)(void *userData, void *EN_projectHandle, char*));
+  int DLLEXPORT EN_setreportcallbackuserdata(EN_Project ph, void *userData);
+
+  /**
   @brief Writes a line of text to a project's report file.
   @param ph an EPANET project handle.
   @param line a text string to write.
