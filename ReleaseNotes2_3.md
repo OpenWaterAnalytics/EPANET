@@ -25,6 +25,7 @@ This document describes the changes and updates that have been made in version 2
  - A possible loss of network connectivity when evaluating a Pressure Sustaining Valve was prevented.
  - Having the implied loss coefficient for an active Flow Control Valve be less than its fully opened value was prevented.
  - A new type of valve, a Positional Control Valve (PCV), was added that uses a valve characteristic curve to relate its loss coefficient to its fraction open setting. 
- 
+ - A new set of functions have been added to get information about upcoming time step events. Users will now see what type of event is going to cause the end of a time step to occur. See ENtimetonextevent and EN_timetonextevent.
+ - A new set of functions have been added to allow users to set a reporting callback function. The user-supplied function will recieve all output normally directed to the report file.
  
 

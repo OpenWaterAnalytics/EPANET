@@ -126,6 +126,18 @@ typedef enum {
   EN_NEXTEVENTTANK = 15  //!< Index of tank with shortest time to become empty or full (read only)
 } EN_TimeParameter;
 
+
+/**
+These are the types of events that can cause a timestep to end.
+**/
+typedef enum {
+  EN_STEP_REPORT       = 0,
+  EN_STEP_HYD          = 1,
+  EN_STEP_WQ           = 2,
+  EN_STEP_TANKEVENT    = 3,
+  EN_STEP_CONTROLEVENT = 4
+} EN_TimestepEvent;
+
 /// Analysis convergence statistics
 /**
 These statistics report the convergence criteria for the most current hydraulic analysis

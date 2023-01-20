@@ -253,6 +253,12 @@ Public Const EN_R_IS_OPEN = 1     ' Rule status types
 Public Const EN_R_IS_CLOSED = 2
 Public Const EN_R_IS_ACTIVE = 3
 
+Public Const EN_STEP_REPORT = 0   ' Types of events that can cause a timestep to end
+Public Const EN_STEP_HYD = 1
+Public Const EN_STEP_WQ = 2
+Public Const EN_STEP_TANKEVENT = 3
+Public Const EN_STEP_CONTROLEVENT = 4
+
 Public Const EN_MISSING As Double = -1.0E10
 
 'These are the external functions that comprise the DLL
@@ -302,6 +308,7 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal errcode As Long, ByVal errmsg As String, ByVal maxLen As Long) As Long
  Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal type_ As Long, ByRef value As Single) As Long
  Declare Function ENgetresultindex Lib "epanet2.dll" (ByVal type_ As Long, ByVal index As Long, ByRef value As Long) As Long
+ Declare Function ENtimetonextevent Lib "epanet2.dll" (eventType As Long, duration As Long, elementIndex As Long) As Long
 
 'Analysis Options Functions
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal option_ As Long, value As Single) As Long

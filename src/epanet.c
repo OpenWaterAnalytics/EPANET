@@ -1623,6 +1623,42 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int param, long value)
     return 0;
 }
 
+
+/// get the time to next event, and give a reason for the time step truncation
+int  DLLEXPORT EN_timetonextevent(EN_Project p, int *eventType, long *duration, int *elementIndex)
+{
+  Times  *time = &p->times;
+  long hydStep, tankStep, controlStep;
+  int iTank, iControl;
+  
+  hydStep = time->Hstep;
+  tankStep = hydStep;
+  controlStep = hydStep;
+
+  iTank = tanktimestep(p, &tankStep);
+  iControl = controltimestep(p, &controlStep);
+
+  // return the lesser of the three step lengths
+  if (controlStep < tankStep) {
+    *eventType = (int)EN_STEP_CONTROLEVENT;
+    *duration = controlStep;
+    *elementIndex = iControl;
+  }
+  else if (tankStep < hydStep) {
+    *eventType = (int)EN_STEP_TANKEVENT;
+    *duration = tankStep;
+    *elementIndex = iTank;
+  }
+  else {
+    *eventType = (int)EN_STEP_HYD;
+    *duration = hydStep;
+    *elementIndex = 0;
+  }
+
+  return 0;
+}
+
+
 int DLLEXPORT EN_getqualinfo(EN_Project p, int *qualType, char *chemName,
                              char *chemUnits, int *traceNode)
 /*----------------------------------------------------------------

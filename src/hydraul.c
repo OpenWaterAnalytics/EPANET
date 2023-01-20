@@ -34,7 +34,6 @@ void    initlinkflow(Project *, int, char, double);
 void    demands(Project *);
 int     controls(Project *);
 long    timestep(Project *);
-void    controltimestep(Project *, long *);
 void    ruletimestep(Project *, long *);
 void    addenergy(Project *, long);
 void    tanklevels(Project *, long);
@@ -192,7 +191,7 @@ int   runhyd(Project *pr, long *t)
     int   iter;          // Iteration count
     int   errcode;       // Error code
     double relerr;       // Solution accuracy
-    
+
     // Find new demands & control actions
     *t = time->Htime;
     demands(pr);
@@ -390,7 +389,7 @@ void  setlinkstatus(Project *pr, int index, char value, StatusType *s, double *k
         if (t == PUMP)
         {
             *k = 1.0;
-            // Check if a re-opened pump needs its flow reset            
+            // Check if a re-opened pump needs its flow reset
             if (*s == CLOSED) resetpumpflow(pr, index);
         }
         if (t > PUMP &&  t != GPV) *k = MISSING;
@@ -597,11 +596,11 @@ int  controls(Project *pr)
             k1 = hyd->LinkSetting[k];
             k2 = k1;
             if (link->Type > PIPE) k2 = control->Setting;
-            
+
             // Check if a re-opened pump needs its flow reset
             if (link->Type == PUMP && s1 == CLOSED && s2 == OPEN)
                 resetpumpflow(pr, k);
-                
+
             if (s1 != s2 || k1 != k2)
             {
                 hyd->LinkStatus[k] = s2;
@@ -706,7 +705,7 @@ int  tanktimestep(Project *pr, long *tstep)
 }
 
 
-void  controltimestep(Project *pr, long *tstep)
+int  controltimestep(Project *pr, long *tstep)
 /*
 **------------------------------------------------------------------
 **  Input:   *tstep = current time step
@@ -719,7 +718,7 @@ void  controltimestep(Project *pr, long *tstep)
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
 
-    int    i, j, k, n;
+    int    i, j, k, n, controlIndex;
     double h, q, v;
     long   t, t1, t2;
     Slink  *link;
@@ -776,9 +775,14 @@ void  controltimestep(Project *pr, long *tstep)
             k = control->Link;
             link = &net->Link[k];
             if ( (link->Type > PIPE && hyd->LinkSetting[k] != control->Setting)
-            ||   (hyd->LinkStatus[k] != control->Status) ) *tstep = t;
+              || (hyd->LinkStatus[k] != control->Status) )
+            {
+              *tstep = t;
+              controlIndex = i;
+            }
         }
     }
+    return controlIndex;
 }
 
 
@@ -1011,7 +1015,7 @@ void  getallpumpsenergy(Project *pr)
         getenergy(pr, pump->Link, &(pump->Energy.CurrentPower),
             &(pump->Energy.CurrentEffic));
     }
-}    
+}
 
 
 void  tanklevels(Project *pr, long tstep)
@@ -1131,6 +1135,5 @@ void resetpumpflow(Project *pr, int i)
     Network *net = &pr->network;
     Spump *pump = &net->Pump[findpump(net, i)];
     if (pump->Ptype == CONST_HP)
-        pr->hydraul.LinkFlow[i] = pump->Q0; 
+        pr->hydraul.LinkFlow[i] = pump->Q0;
 }
-

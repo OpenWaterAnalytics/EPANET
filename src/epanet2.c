@@ -242,6 +242,10 @@ int DLLEXPORT ENgetresultindex(int type, int index, int *value)
     return EN_getresultindex(_defaultProject, type, index, value);
 }
 
+int  DLLEXPORT ENtimetonextevent(int *eventType, long *duration, int *elementIndex)
+{
+    return EN_timetonextevent(_defaultProject, eventType, duration, elementIndex);
+}
 
 /********************************************************************
 
