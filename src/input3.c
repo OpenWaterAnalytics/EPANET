@@ -700,11 +700,14 @@ int coordata(Project *pr)
 /*
  **--------------------------------------------------------------
  **  Input:   none
- **  Output:  returns error code
- **  Purpose: processes coordinate data
+ **  Output:  returns 0
+ **  Purpose: processes node coordinate data
  **  Format:
  **    [COORD]
  **      id  x  y
+ **
+ **  Note: since node coords. are not used in any computations,
+ **        invalid data are simply ignored.
  **--------------------------------------------------------------
  */
 {
@@ -716,12 +719,12 @@ int coordata(Project *pr)
     Snode *node;
 
     // Check for valid node ID
-    if (parser->Ntokens < 3) return 201;
-    if ((j = findnode(net, parser->Tok[0])) == 0) return setError(parser, 0, 203);
+    if (parser->Ntokens < 3) return 0;
+    if ((j = findnode(net, parser->Tok[0])) == 0) return 0;
 
     // Check for valid data
-    if (!getfloat(parser->Tok[1], &x)) return setError(parser, 1, 202);
-    if (!getfloat(parser->Tok[2], &y)) return setError(parser, 2, 202);
+    if (!getfloat(parser->Tok[1], &x)) return 0;
+    if (!getfloat(parser->Tok[2], &y)) return 0;
 
     // Save coord data
     node = &net->Node[j];
@@ -734,11 +737,14 @@ int vertexdata(Project *pr)
 /*
  **--------------------------------------------------------------
  **  Input:   none
- **  Output:  returns error code
+ **  Output:  returns 0
  **  Purpose: processes link vertex data
  **  Format:
  **    [VERTICES]
  **      id  x  y
+ **
+ **  Note: since vertex coords. are not used in any computations,
+ **        invalid data are simply ignored.
  **--------------------------------------------------------------
  */
 {
@@ -749,12 +755,12 @@ int vertexdata(Project *pr)
     double x, y;
     
     // Check for valid link ID
-    if (parser->Ntokens < 3) return 201;
-    if ((j = findlink(net, parser->Tok[0])) == 0) return setError(parser, 0, 204);
+    if (parser->Ntokens < 3) return 0;
+    if ((j = findlink(net, parser->Tok[0])) == 0) return 0;
 
     // Check for valid coordinate data
-    if (!getfloat(parser->Tok[1], &x)) return setError(parser, 1, 202);
-    if (!getfloat(parser->Tok[2], &y)) return setError(parser, 2, 202);
+    if (!getfloat(parser->Tok[1], &x)) return 0;
+    if (!getfloat(parser->Tok[2], &y)) return 0;
 
     // Add to link's list of vertex points
     return addlinkvertex(&net->Link[j], x, y);

@@ -332,6 +332,7 @@ int saveinpfile(Project *pr, const char *fname)
         node = &net->Node[i];
         for (demand = node->D; demand != NULL; demand = demand->next)
         {
+            if (demand->Base == 0.0) continue;
             sprintf(s, " %-31s %14.6f", node->ID, ucf * demand->Base);
             if ((j = demand->Pat) > 0) sprintf(s1, " %-31s", net->Pattern[j].ID);
             else strcpy(s1, " ");
