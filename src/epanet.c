@@ -251,7 +251,8 @@ int DLLEXPORT EN_gettitle(EN_Project p, char *line1, char *line2, char *line3)
     return 0;
 }
 
-int DLLEXPORT EN_settitle(EN_Project p, char *line1, char *line2, char *line3)
+int DLLEXPORT EN_settitle(EN_Project p, const char *line1, 
+    const char *line2, const char *line3)
 /*----------------------------------------------------------------
 **  Input:  line1, line2, line3 = project's title lines
 **  Returns: error code
@@ -279,7 +280,8 @@ int DLLEXPORT EN_getcomment(EN_Project p, int object, int index, char *comment)
     return getcomment(&p->network, object, index, comment);
 }
 
-int  DLLEXPORT EN_setcomment(EN_Project p, int object, int index, char *comment)
+int  DLLEXPORT EN_setcomment(EN_Project p, int object, int index,
+    const char *comment)
 /*----------------------------------------------------------------
 **  Input:   object = a type of object (see EN_ObjectType)
 **           index = the object's index
@@ -842,7 +844,7 @@ int DLLEXPORT EN_closeQ(EN_Project p)
  ********************************************************************/
 
 
- int  DLLEXPORT EN_setreportcallback(EN_Project p, void (*callback)(void*,void*,char*))
+ int  DLLEXPORT EN_setreportcallback(EN_Project p, void (*callback)(void*,void*,const char*))
  {
    p->report.reportCallback = callback;
    return 0;
@@ -854,7 +856,7 @@ int DLLEXPORT EN_closeQ(EN_Project p)
    return 0;
  }
 
-int DLLEXPORT EN_writeline(EN_Project p, char *line)
+int DLLEXPORT EN_writeline(EN_Project p, const char *line)
 /*----------------------------------------------------------------
 **  Input:   line = line of text
 **  Output:  none
@@ -890,7 +892,7 @@ int DLLEXPORT EN_report(EN_Project p)
     return errcode;
 }
 
-int  DLLEXPORT EN_copyreport(EN_Project p, char *filename)
+int  DLLEXPORT EN_copyreport(EN_Project p, const char *filename)
 /*----------------------------------------------------------------
 **  Input:   filename = name of file to receive copy of report
 **  Output:  none
@@ -939,7 +941,7 @@ int DLLEXPORT EN_resetreport(EN_Project p)
     return 0;
 }
 
-int DLLEXPORT EN_setreport(EN_Project p, char *format)
+int DLLEXPORT EN_setreport(EN_Project p, const char *format)
 /*----------------------------------------------------------------
 **  Input:   format = a report formatting command
 **  Output:  none
@@ -1714,8 +1716,8 @@ int DLLEXPORT EN_getqualtype(EN_Project p, int *qualType, int *traceNode)
     return 0;
 }
 
-int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
-                             char *chemUnits, char *traceNode)
+int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
+                             const char *chemUnits, const char *traceNode)
 /*----------------------------------------------------------------
 **  Input:   qualType = type of quality analysis to run (see EN_QualityType)
 **           chemname = name of chemical constituent
@@ -1794,7 +1796,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, char *chemName,
 
 ********************************************************************/
 
-int DLLEXPORT EN_addnode(EN_Project p, char *id, int nodeType, int *index)
+int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = node ID name
 **           nodeType = type of node (see EN_NodeType)
@@ -2043,7 +2045,7 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
     return 0;
 }
 
-int DLLEXPORT EN_getnodeindex(EN_Project p, char *id, int *index)
+int DLLEXPORT EN_getnodeindex(EN_Project p, const char *id, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = node ID name
 **  Output:  index = node index
@@ -2075,7 +2077,7 @@ int DLLEXPORT EN_getnodeid(EN_Project p, int index, char *id)
     return 0;
 }
 
-int DLLEXPORT EN_setnodeid(EN_Project p, int index, char *newid)
+int DLLEXPORT EN_setnodeid(EN_Project p, int index, const char *newid)
 /*----------------------------------------------------------------
 **  Input:   index = node index
 **           newid = new node ID name
@@ -2618,7 +2620,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
 }
 
 int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
-                             double dmnd, char *dmndpat)
+                             double dmnd, const char *dmndpat)
 /*----------------------------------------------------------------
 **  Input:   index = junction node index
 **           elev = junction elevation
@@ -2663,7 +2665,7 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
 int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
                              double initlvl, double minlvl,
                              double maxlvl, double diam,
-                             double minvol, char *volcurve)
+                             double minvol, const char *volcurve)
 /*----------------------------------------------------------------
 **  Input:   index = tank node index
 **           elev = tank bottom elevation
@@ -2839,7 +2841,7 @@ int DLLEXPORT EN_setdemandmodel(EN_Project p, int model, double pmin,
 }
 
 int  DLLEXPORT EN_adddemand(EN_Project p, int nodeIndex, double baseDemand,
-                            char *demandPattern, char *demandName)
+                            const char *demandPattern, const char *demandName)
 /*----------------------------------------------------------------
 **  Input:   nodeIndex = node index
 **           baseDemand = baseline demand value
@@ -2926,7 +2928,7 @@ int DLLEXPORT EN_deletedemand(EN_Project p, int nodeIndex, int demandIndex)
     return 0;
 }
 
-int DLLEXPORT EN_getdemandindex(EN_Project p, int nodeIndex, char *demandName,
+int DLLEXPORT EN_getdemandindex(EN_Project p, int nodeIndex, const char *demandName,
                                 int *demandIndex)
 /*----------------------------------------------------------------
 **  Input:   nodeIndex = node index
@@ -3075,7 +3077,7 @@ int DLLEXPORT EN_getdemandname(EN_Project p, int nodeIndex, int demandIndex,
 }
 
 int DLLEXPORT EN_setdemandname(EN_Project p, int nodeIndex, int demandIndex,
-                               char *demandName)
+                               const char *demandName)
 /*----------------------------------------------------------------
 **  Input:   nodeIndex = node index
 **           demandIndex = demand category index
@@ -3165,8 +3167,8 @@ int  DLLEXPORT EN_setdemandpattern(EN_Project p, int nodeIndex, int demandIndex,
 
 ********************************************************************/
 
-int DLLEXPORT EN_addlink(EN_Project p, char *id, int linkType,
-                         char *fromNode, char *toNode, int *index)
+int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
+                         const char *fromNode, const char *toNode, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = link ID name
 **           type = link type (see EN_LinkType)
@@ -3416,7 +3418,7 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
     return 0;
 }
 
-int DLLEXPORT EN_getlinkindex(EN_Project p, char *id, int *index)
+int DLLEXPORT EN_getlinkindex(EN_Project p, const char *id, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = link ID name
 **  Output:  index = link index
@@ -3448,7 +3450,7 @@ int DLLEXPORT EN_getlinkid(EN_Project p, int index, char *id)
     return 0;
 }
 
-int DLLEXPORT EN_setlinkid(EN_Project p, int index, char *newid)
+int DLLEXPORT EN_setlinkid(EN_Project p, int index, const char *newid)
 /*----------------------------------------------------------------
 **  Input:   index = link index
 **           id = link ID name
@@ -4376,7 +4378,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
 
 ********************************************************************/
 
-int DLLEXPORT EN_addpattern(EN_Project p, char *id)
+int DLLEXPORT EN_addpattern(EN_Project p, const char *id)
 /*----------------------------------------------------------------
 **  Input:   id = time pattern ID name
 **  Output:  none
@@ -4468,7 +4470,7 @@ int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
     return 0;
 }
 
-int DLLEXPORT EN_getpatternindex(EN_Project p, char *id, int *index)
+int DLLEXPORT EN_getpatternindex(EN_Project p, const char *id, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = time pattern name
 **  Output:  index = time pattern index
@@ -4509,7 +4511,7 @@ int DLLEXPORT EN_getpatternid(EN_Project p, int index, char *id)
     return 0;
 }
 
-int DLLEXPORT EN_setpatternid(EN_Project p, int index, char *id)
+int DLLEXPORT EN_setpatternid(EN_Project p, int index, const char *id)
 /*----------------------------------------------------------------
 **  Input:   index = time pattern index
 **           id = time pattern ID name
@@ -4653,7 +4655,7 @@ int DLLEXPORT EN_setpattern(EN_Project p, int index, double *values, int len)
 
 ********************************************************************/
 
-int DLLEXPORT EN_addcurve(EN_Project p, char *id)
+int DLLEXPORT EN_addcurve(EN_Project p, const char *id)
 /*----------------------------------------------------------------
 **  Input:   id = data curve ID name
 **  Output:  none
@@ -4745,7 +4747,7 @@ int  DLLEXPORT EN_deletecurve(EN_Project p, int index)
     return 0;
 }
 
-int DLLEXPORT EN_getcurveindex(EN_Project p, char *id, int *index)
+int DLLEXPORT EN_getcurveindex(EN_Project p, const char *id, int *index)
 /*----------------------------------------------------------------
 **  Input:   id = data curve name
 **  Output:  index = data curve index
@@ -4777,7 +4779,7 @@ int DLLEXPORT EN_getcurveid(EN_Project p, int index, char *id)
     return 0;
 }
 
-int DLLEXPORT EN_setcurveid(EN_Project p, int index, char *id)
+int DLLEXPORT EN_setcurveid(EN_Project p, int index, const char *id)
 /*----------------------------------------------------------------
 **  Input:   index = data curve index
 **           id = data curve ID name

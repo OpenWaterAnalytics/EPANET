@@ -634,7 +634,7 @@ typedef struct {
 
     SField   Field[MAXVAR];  // Output reporting fields
 
-    void (*reportCallback)(void*,void*,char*); // user-supplied reporting callback
+    void (*reportCallback)(void*,void*,const char*); // user-supplied reporting callback
     void *reportCallbackUserData;  // user-supplied reporting context
 
 } Report;
