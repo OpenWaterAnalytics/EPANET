@@ -31,16 +31,16 @@ int     incontrols(Project *, int, int);
 int     valvecheck(Project *, int, int, int, int);
 int     unlinked(Project *);
 
-int     findnode(Network *, char *);
-int     findlink(Network *, char *);
+int     findnode(Network *, const char *);
+int     findlink(Network *, const char *);
 int     findtank(Network *, int);
 int     findvalve(Network *, int);
 int     findpump(Network *, int);
-int     findpattern(Network *, char *);
-int     findcurve(Network *, char *);
+int     findpattern(Network *, const char *);
+int     findcurve(Network *, const char *);
 
 Pdemand finddemand(Pdemand, int);
-int     adddemand(Snode *, double, int, char *);
+int     adddemand(Snode *, double, int, const char *);
 void    freedemands(Snode *);
 
 int     addlinkvertex(Slink *, double, double);
@@ -128,13 +128,13 @@ int     checkrules(Project *, long);
 // ------- REPORT.C -----------------
 
 int     clearreport(Project *);
-int     copyreport(Project *, char *);
+int     copyreport(Project *, const char *);
 int     writereport(Project *);
 void    writelogo(Project *);
 void    writesummary(Project *);
 void    writehydstat(Project *, int, double);
 void    writeheader(Project *, int,int);
-void    writeline(Project *, char *);
+void    writeline(Project *, const char *);
 void    writerelerr(Project *, int, double);
 void    writestatchange(Project *, int,char,char);
 void    writecontrolaction(Project *, int, int);

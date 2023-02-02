@@ -26,7 +26,7 @@ typedef struct DataEntryStruct
 } DataEntry;
 
 // Hash a string to an integer
-unsigned int gethash(char *str)
+unsigned int gethash(const char *str)
 {
     unsigned int hash = 5381;
     unsigned int retHash;
@@ -61,7 +61,7 @@ HashTable *hashtable_create()
 }
 
 // Insert an entry into the hash table
-int hashtable_insert(HashTable *ht, char *key, int data)
+int hashtable_insert(HashTable *ht, const char *key, int data)
 {
     unsigned int i = gethash(key);
     DataEntry *entry;
@@ -76,7 +76,7 @@ int hashtable_insert(HashTable *ht, char *key, int data)
 }
 
 // Change the hash table's data entry for a particular key
-int hashtable_update(HashTable *ht, char *key, int new_data)
+int hashtable_update(HashTable *ht, const char *key, int new_data)
 {
     unsigned int i = gethash(key);
     DataEntry *entry;
@@ -96,7 +96,7 @@ int hashtable_update(HashTable *ht, char *key, int new_data)
 }
 
 // Delete an entry in the hash table
-int hashtable_delete(HashTable *ht, char *key)
+int hashtable_delete(HashTable *ht, const char *key)
 {
     unsigned int i = gethash(key);
     DataEntry *entry, *preventry;
@@ -122,7 +122,7 @@ int hashtable_delete(HashTable *ht, char *key)
 }
 
 // Find the data for a particular key
-int hashtable_find(HashTable *ht, char *key)
+int hashtable_find(HashTable *ht, const char *key)
 {
     unsigned int i = gethash(key);
     DataEntry *entry;
@@ -141,7 +141,7 @@ int hashtable_find(HashTable *ht, char *key)
 }
 
 // Find a particular key in the hash table
-char *hashtable_findkey(HashTable *ht, char *key)
+char *hashtable_findkey(HashTable *ht, const char *key)
 {
     unsigned int i = gethash(key);
     DataEntry *entry;

@@ -75,11 +75,11 @@ extern "C" {
 
   int  DLLEXPORT ENgettitle(char *line1, char *line2, char *line3);
 
-  int  DLLEXPORT ENsettitle(char *line1, char *line2, char *line3);
+  int  DLLEXPORT ENsettitle(const char *line1, const char *line2, const char *line3);
 
   int  DLLEXPORT ENgetcomment(int object, int index, char *comment);
 
-  int  DLLEXPORT ENsetcomment(int object, int index, char *comment);
+  int  DLLEXPORT ENsetcomment(int object, int index, const char *comment);
 
   int  DLLEXPORT ENgetcount(int object, int *count);
 
@@ -107,9 +107,9 @@ extern "C" {
 
   int  DLLEXPORT ENcloseH();
 
-  int  DLLEXPORT ENsavehydfile(char *filename);
+  int  DLLEXPORT ENsavehydfile(const char *filename);
 
-  int  DLLEXPORT ENusehydfile(char *filename);
+  int  DLLEXPORT ENusehydfile(const char *filename);
 
 /********************************************************************
 
@@ -137,17 +137,17 @@ extern "C" {
 
 ********************************************************************/
 
-  int  DLLEXPORT ENwriteline(char *line);
+  int  DLLEXPORT ENwriteline(const char *line);
 
   int  DLLEXPORT ENreport();
 
-  int  DLLEXPORT ENcopyreport(char *filename);
+  int  DLLEXPORT ENcopyreport(const char *filename);
 
   int  DLLEXPORT ENclearreport();
 
   int  DLLEXPORT ENresetreport();
 
-  int  DLLEXPORT ENsetreport(char *format);
+  int  DLLEXPORT ENsetreport(const char *format);
 
   int  DLLEXPORT ENsetstatusreport(int level);
 
@@ -161,7 +161,7 @@ extern "C" {
 
   int  DLLEXPORT ENtimetonextevent(int *eventType, long *duration, int *elementIndex);
 
-  int DLLEXPORT ENsetreportcallback(void (*callback)(void *userData, void *EN_projectHandle, char*));
+  int DLLEXPORT ENsetreportcallback(void (*callback)(void *userData, void *EN_projectHandle, const char*));
   int DLLEXPORT ENsetreportcallbackuserdata(void *userData);
 
 
@@ -188,8 +188,8 @@ extern "C" {
 
   int  DLLEXPORT ENgetqualtype(int *qualType, int *traceNode);
 
-  int  DLLEXPORT ENsetqualtype(int qualType, char *chemName, char *chemUnits,
-                 char *traceNode);
+  int  DLLEXPORT ENsetqualtype(int qualType, const char *chemName,
+                 const char *chemUnits, const char *traceNode);
 
 /********************************************************************
 
@@ -197,15 +197,15 @@ extern "C" {
 
 ********************************************************************/
 
-   int DLLEXPORT ENaddnode(char *id, int nodeType, int *index);
+   int DLLEXPORT ENaddnode(const char *id, int nodeType, int *index);
 
    int DLLEXPORT ENdeletenode(int index, int actionCode);
 
-   int DLLEXPORT ENgetnodeindex(char *id, int *index);
+   int DLLEXPORT ENgetnodeindex(const char *id, int *index);
 
    int DLLEXPORT ENgetnodeid(int index, char *id);
 
-   int DLLEXPORT ENsetnodeid(int index, char *newid);
+   int DLLEXPORT ENsetnodeid(int index, const char *newid);
 
    int DLLEXPORT ENgetnodetype(int index, int *nodeType);
 
@@ -214,12 +214,12 @@ extern "C" {
    int DLLEXPORT ENsetnodevalue(int index, int property, EN_API_FLOAT_TYPE value);
 
    int DLLEXPORT ENsetjuncdata(int index, EN_API_FLOAT_TYPE elev,
-                 EN_API_FLOAT_TYPE dmnd, char *dmndpat);
+                 EN_API_FLOAT_TYPE dmnd, const char *dmndpat);
 
   int  DLLEXPORT ENsettankdata(int index, EN_API_FLOAT_TYPE elev,
                  EN_API_FLOAT_TYPE initlvl, EN_API_FLOAT_TYPE minlvl,
                  EN_API_FLOAT_TYPE maxlvl, EN_API_FLOAT_TYPE diam,
-                 EN_API_FLOAT_TYPE minvol, char *volcurve);
+                 EN_API_FLOAT_TYPE minvol, const char *volcurve);
 
   int  DLLEXPORT ENgetcoord(int index, double *x, double *y);
 
@@ -238,13 +238,14 @@ extern "C" {
                 EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
 
   int DLLEXPORT ENadddemand(int nodeIndex, EN_API_FLOAT_TYPE baseDemand,
-                char *demandPattern, char *demandName);
+                const char *demandPattern, const char *demandName);
 
   int DLLEXPORT ENdeletedemand(int nodeIndex, int demandIndex);
 
   int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
 
-  int DLLEXPORT ENgetdemandindex(int nodeIndex, char *demandName, int *demandIndex);
+  int DLLEXPORT ENgetdemandindex(int nodeIndex, const char *demandName,
+                int *demandIndex);
 
   int DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex,
                 EN_API_FLOAT_TYPE *baseDemand);
@@ -258,7 +259,7 @@ extern "C" {
 
   int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIndex, char *demandName);
 
-  int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, char *demandName);
+  int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, const char *demandName);
 
 /********************************************************************
 
@@ -266,15 +267,16 @@ extern "C" {
 
 ********************************************************************/
 
-  int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode, int *index);
+  int DLLEXPORT ENaddlink(const char *id, int linkType, const char *fromNode,
+                const char *toNode, int *index);
 
   int DLLEXPORT ENdeletelink(int index, int actionCode);
 
-  int DLLEXPORT ENgetlinkindex(char *id, int *index);
+  int DLLEXPORT ENgetlinkindex(const char *id, int *index);
 
   int DLLEXPORT ENgetlinkid(int index, char *id);
 
-  int DLLEXPORT ENsetlinkid(int index, char *newid);
+  int DLLEXPORT ENsetlinkid(int index, const char *newid);
 
   int DLLEXPORT ENgetlinktype(int index, int *linkType);
 
@@ -318,15 +320,15 @@ extern "C" {
 
 ********************************************************************/
 
-  int DLLEXPORT ENaddpattern(char *id);
+  int DLLEXPORT ENaddpattern(const char *id);
 
   int DLLEXPORT ENdeletepattern(int index);
 
-  int DLLEXPORT ENgetpatternindex(char *id, int *index);
+  int DLLEXPORT ENgetpatternindex(const char *id, int *index);
 
   int DLLEXPORT ENgetpatternid(int index, char *id);
 
-  int DLLEXPORT ENsetpatternid(int index, char *id);
+  int DLLEXPORT ENsetpatternid(int index, const char *id);
 
   int DLLEXPORT ENgetpatternlen(int index, int *len);
 
@@ -344,15 +346,15 @@ extern "C" {
 
 ********************************************************************/
 
-  int DLLEXPORT ENaddcurve(char *id);
+  int DLLEXPORT ENaddcurve(const char *id);
 
   int DLLEXPORT ENdeletecurve(int index);
 
-  int DLLEXPORT ENgetcurveindex(char *id, int *index);
+  int DLLEXPORT ENgetcurveindex(const char *id, int *index);
 
   int DLLEXPORT ENgetcurveid(int index, char *id);
 
-  int DLLEXPORT ENsetcurveid(int index, char *id);
+  int DLLEXPORT ENsetcurveid(int index, const char *id);
 
   int DLLEXPORT ENgetcurvelen(int index, int *len);
 

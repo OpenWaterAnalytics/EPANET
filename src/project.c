@@ -492,7 +492,7 @@ Pdemand finddemand(Pdemand d, int index)
     return d;
 }
 
-int adddemand(Snode *node, double dbase, int dpat, char *dname)
+int adddemand(Snode *node, double dbase, int dpat, const char *dname)
 /*----------------------------------------------------------------
 **  Input:   node = a network junction node
 **           dbase = base demand value
@@ -834,7 +834,7 @@ int unlinked(Project *pr)
     return 0;
 }    
 
-int findnode(Network *network, char *id)
+int findnode(Network *network, const char *id)
 /*----------------------------------------------------------------
 **  Input:   id = node ID
 **  Output:  none
@@ -846,7 +846,7 @@ int findnode(Network *network, char *id)
     return (hashtable_find(network->NodeHashTable, id));
 }
 
-int findlink(Network *network, char *id)
+int findlink(Network *network, const char *id)
 /*----------------------------------------------------------------
 **  Input:   id = link ID
 **  Output:  none
@@ -909,7 +909,7 @@ int findvalve(Network *network, int index)
     return NOTFOUND;
 }
 
-int findpattern(Network *network, char *id)
+int findpattern(Network *network, const char *id)
 /*----------------------------------------------------------------
 **  Input:   id = time pattern ID
 **  Output:  none
@@ -928,7 +928,7 @@ int findpattern(Network *network, char *id)
     return -1;
 }
 
-int findcurve(Network *network, char *id)
+int findcurve(Network *network, const char *id)
 /*----------------------------------------------------------------
 **  Input:   id = data curve ID
 **  Output:  none
