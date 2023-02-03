@@ -7,7 +7,7 @@ Description:  updates hydraulic status of network elements
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 08/08/2022
+Last Updated: 02/03/2023
 ******************************************************************************
 */
 
@@ -27,7 +27,7 @@ static StatusType pumpstatus(Project *, int, double);
 static StatusType prvstatus(Project *, int, StatusType, double, double, double);
 static StatusType psvstatus(Project *, int, StatusType, double, double, double);
 static StatusType fcvstatus(Project *, int, StatusType, double, double);
-static void       tankstatus(Project *, int, int, int);
+static void       tankstatus(Project *, int, int, double);
 
 
 int  valvestatus(Project *pr)
@@ -155,10 +155,8 @@ int  linkstatus(Project *pr)
         }
 
         // Check for flow into (out of) full (empty) tanks
-        if (n1 > net->Njuncs || n2 > net->Njuncs)
-        {
-            tankstatus(pr, k, n1, n2);
-        }
+        if (n1 > net->Njuncs) tankstatus(pr, k, n1, hyd->LinkFlow[k]);
+        if (n2 > net->Njuncs) tankstatus(pr, k, n2, -hyd->LinkFlow[k]);
 
         // Note any change in link status; do not revise link flow
         if (status != hyd->LinkStatus[k])
@@ -224,6 +222,7 @@ StatusType  pumpstatus(Project *pr, int k, double dh)
     {
         // Use huge value for constant HP pump
         hmax = BIG;
+        if (hyd->LinkFlow[k] < TINY) return TEMPCLOSED;
     }
     else
     {
@@ -407,12 +406,12 @@ StatusType  fcvstatus(Project *pr, int k, StatusType s, double h1, double h2)
 }
 
 
-void  tankstatus(Project *pr, int k, int n1, int n2)
+void  tankstatus(Project *pr, int k, int n, double q)
 /*
 **----------------------------------------------------------------
-**  Input:   k  = link index
-**           n1 = start node of link
-**           n2 = end node of link
+**  Input:   k = link index
+**           n = tank node index
+**           q = link flow rate out of (+) or into (-) tank
 **  Output:  none
 **  Purpose: closes link flowing into full or out of empty tank
 **----------------------------------------------------------------
@@ -421,46 +420,23 @@ void  tankstatus(Project *pr, int k, int n1, int n2)
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
 
-    int   i, n;
-    double q;
+    int   i;
     Stank *tank;
     Slink *link = &net->Link[k];
 
     // Return if link is closed
     if (hyd->LinkStatus[k] <= CLOSED) return;
 
-    // Make node n1 be the tank, reversing flow (q) if need be
-    q = hyd->LinkFlow[k];
-    i = n1 - net->Njuncs;
-    if (i <= 0)
-    {
-        i = n2 - net->Njuncs;
-        if (i <= 0) return;
-        n = n1;
-        n1 = n2;
-        n2 = n;
-        q = -q;
-    }
-
     // Ignore reservoirs
+    i = n - net->Njuncs;
     tank = &net->Tank[i];
     if (tank->A == 0.0) return;
-
+    
     // Can't add flow to a full tank
-    if (hyd->NodeHead[n1] >= tank->Hmax && !tank->CanOverflow)
-    {
-        if (link->Type == PUMP && link->N2 == n1)
-            hyd->LinkStatus[k] = TEMPCLOSED;
-        else if (q < 0.0)
-            hyd->LinkStatus[k] = TEMPCLOSED;
-    }
-
+    if (hyd->NodeHead[n] >= tank->Hmax && !tank->CanOverflow && q < TINY)
+        hyd->LinkStatus[k] = TEMPCLOSED;
+ 
     // Can't remove flow from an empty tank
-    if (hyd->NodeHead[n1] <= tank->Hmin)
-    {
-        if (link->Type == PUMP && link->N1 == n1)
-            hyd->LinkStatus[k] = TEMPCLOSED;
-        else if (q > 0.0)
-            hyd->LinkStatus[k] = TEMPCLOSED;
-    }
+    else if (hyd->NodeHead[n] <= tank->Hmin && q > -TINY)
+        hyd->LinkStatus[k] = TEMPCLOSED;
 }
