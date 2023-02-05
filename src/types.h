@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 08/13/2022
+ Last Updated: 02/05/2023
  ******************************************************************************
 */
 
@@ -744,6 +744,7 @@ typedef struct {
     Epat,                  // Energy cost time pattern
     DemandModel,           // Fixed or pressure dependent
     Formflag,              // Head loss formula flag
+    EmitBackFlag,          // Emitter backflow flag
     Iterations,            // Number of hydraulic trials taken
     MaxIter,               // Max. hydraulic trials allowed
     ExtraIter,             // Extra hydraulic trials

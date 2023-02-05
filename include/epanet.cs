@@ -182,6 +182,8 @@ namespace EpanetCSharpLibrary
         public const int EN_WALLORDER = 20;
         public const int EN_TANKORDER = 21;
         public const int EN_CONCENLIMIT = 22;
+        public const int EN_DEMANDPATTERN = 23;
+        public const int EN_EMITBACKFLOW = 24;
 
         public const int EN_LOWLEVEL = 0;      //Control types
         public const int EN_HILEVEL = 1;

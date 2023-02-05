@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 08/13/2022
+ Last Updated: 02/05/2023
  ******************************************************************************
 */
 
@@ -335,7 +335,8 @@ typedef enum {
   EN_WALLORDER      = 20, //!< Wall reaction order for pipes (either 0 or 1)
   EN_TANKORDER      = 21, //!< Bulk water reaction order for tanks
   EN_CONCENLIMIT    = 22, //!< Limiting concentration for growth reactions
-  EN_DEMANDPATTERN  = 23  //!< Name of default demand pattern
+  EN_DEMANDPATTERN  = 23, //!< Name of default demand pattern
+  EN_EMITBACKFLOW   = 24  //!< 1 if emitters can backflow, 0 if not
 } EN_Option;
 
 /// Simple control types
