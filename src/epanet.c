@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 08/13/2022
+ Last Updated: 02/05/2023
  ******************************************************************************
 */
 
@@ -1205,6 +1205,9 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
     case EN_DEMANDPATTERN:
         v = hyd->DefPat;
         break;
+    case EN_EMITBACKFLOW:
+        v = hyd->EmitBackFlag;
+        break;
     default:
         return 251;
     }
@@ -1365,6 +1368,11 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         pat = ROUND(value);
         if (pat < 0 || pat > net->Npats) return 205;
         hyd->DefPat = pat;
+        break;
+
+    case EN_EMITBACKFLOW:
+        if (value == 0.0 || value == 1.0) hyd->EmitBackFlag = (int)value;
+        else return 213;
         break;
 
     default:

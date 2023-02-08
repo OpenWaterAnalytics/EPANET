@@ -7,7 +7,7 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 07/08/2019
+Last Updated: 02/05/2023
 ******************************************************************************
 */
 
@@ -120,6 +120,7 @@ void setdefaults(Project *pr)
     hyd->Epump = EPUMP;         // Default pump efficiency
     hyd->Emax = 0.0;            // Zero peak energy usage
     hyd->Qexp = 2.0;            // Flow exponent for emitters
+    hyd->EmitBackFlag = 1;      // Allow emitter backflow
     hyd->DefPat = 0;            // Default demand pattern index
     hyd->Dmult = 1.0;           // Demand multiplier
     hyd->RQtol = RQTOL;         // Default hydraulics parameters

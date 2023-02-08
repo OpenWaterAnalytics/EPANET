@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 08/13/2022
+ Last Updated: 02/05/2023
  ******************************************************************************
 */
 
@@ -495,6 +495,13 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
 
     // Otherwise use normal emitter head loss function
     else *hloss = (*hgrad) * q / hyd->Qexp;
+    
+    // Prevent negative flow if backflow not allowed
+    if (hyd->EmitBackFlag == 0 && q <= 0.0)
+    {
+        *hgrad += CBIG;
+        *hloss += CBIG * q;
+    }
 }
 
 

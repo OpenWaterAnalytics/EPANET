@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 08/13/2022
+Last Updated: 02/05/2023
 ******************************************************************************
 */
 
@@ -33,6 +33,7 @@ extern char *MixTxt[];
 extern char *TstatTxt[];
 extern char *RptFlagTxt[];
 extern char *SectTxt[];
+extern char *BackflowTxt[];
 
 void saveauxdata(Project *pr, FILE *f)
 /*
@@ -676,6 +677,7 @@ int saveinpfile(Project *pr, const char *fname)
         fprintf(f, "\n PATTERN             %s", net->Pattern[hyd->DefPat].ID);
     fprintf(f, "\n DEMAND MULTIPLIER   %-.4f", hyd->Dmult);
     fprintf(f, "\n EMITTER EXPONENT    %-.4f", 1.0 / hyd->Qexp);
+    fprintf(f, "\n EMITTER BACKFLOW    %s", BackflowTxt[hyd->EmitBackFlag]);
     fprintf(f, "\n VISCOSITY           %-.6f", hyd->Viscos / VISCOS);
     fprintf(f, "\n DIFFUSIVITY         %-.6f", qual->Diffus / DIFFUS);
     fprintf(f, "\n SPECIFIC GRAVITY    %-.6f", hyd->SpGrav);

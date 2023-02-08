@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 08/13/2022
+ Last Updated: 02/05/2023
  ******************************************************************************
 */
 
@@ -111,6 +111,10 @@ char *MixTxt[]          = {w_MIXED,
 char *RptFlagTxt[]      = {w_NO,
                            w_YES,
                            w_FULL};
+                           
+char *BackflowTxt[]     = {w_NO,
+                           w_YES,
+                           NULL};
 
 char *SectTxt[]         = {s_TITLE,     s_JUNCTIONS, s_RESERVOIRS,
                            s_TANKS,     s_PIPES,     s_PUMPS,

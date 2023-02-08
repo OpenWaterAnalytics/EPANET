@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 08/13/2022
+Last Updated: 02/05/2023
 ******************************************************************************
 */
 
@@ -25,6 +25,7 @@ Last Updated: 08/13/2022
 extern char *MixTxt[];
 extern char *Fldname[];
 extern char *DemandModelTxt[];
+extern char *BackflowTxt[];
 
 // Exported functions
 int powercurve(double, double, double, double, double, double *, double *,
@@ -1759,6 +1760,7 @@ int optionchoice(Project *pr, int n)
 **    UNBALANCED          STOP/CONTINUE {Niter}
 **    PATTERN             id
 **    DEMAND MODEL        DDA/PDA
+**    EMITTER BACKFLOW    YES/NO
 **--------------------------------------------------------------
 */
 {
@@ -1895,6 +1897,16 @@ int optionchoice(Project *pr, int n)
         choice = findmatch(parser->Tok[2], DemandModelTxt);
         if (choice < 0) return setError(parser, 2, 213);
         hyd->DemandModel = choice;
+    }
+    
+    // EMITTER BACKFLOW
+    else if (match(parser->Tok[0], w_EMITTER))
+    {
+        if (n < 2) return 0;
+        if (!match(parser->Tok[1], w_BACKFLOW)) return -1;
+        choice = findmatch(parser->Tok[2], BackflowTxt);
+        if (choice < 0) return setError(parser, 2, 213);
+        hyd->EmitBackFlag = choice;
     }
 
     // Return -1 if keyword did not match any option

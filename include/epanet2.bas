@@ -179,6 +179,8 @@ Public Const EN_BULKORDER = 19
 Public Const EN_WALLORDER = 20
 Public Const EN_TANKORDER = 21
 Public Const EN_CONCENLIMIT = 22
+Public Const EN_DEMANDPATTERN = 23
+Public Const EN_EMITBACKFLOW = 24
 
 Public Const EN_LOWLEVEL = 0      ' Control types
 Public Const EN_HILEVEL = 1

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 08/13/2022
+ Last Updated: 02/05/2023
  ******************************************************************************
 */
 
@@ -131,6 +131,7 @@
 #define   w_SEGMENTS    "SEGM"
 #define   w_TOLERANCE   "TOLER"
 #define   w_EMITTER     "EMIT"
+#define   w_BACKFLOW    "BACK"
 
 #define   w_PRICE       "PRICE"
 #define   w_DMNDCHARGE  "DEMAN"
