@@ -298,6 +298,7 @@ __Formats:__
 <tr><td><B>PATTERN</B></td><td><I>id</I></td></tr>
 <tr><td><B>DEMAND MULTIPLIER</B></td><td><I>value</I></td></tr>
 <tr><td><B>EMITTER EXPONENT</B></td><td><I>value</I></td></tr>
+<tr><td><B>EMITTER BACKFLOW</B></td><td><B>YES / NO</B></td></tr>
 <tr><td><B>QUALITY</B></td><td><B>NONE / CHEMICAL / AGE / TRACE&nbsp;&nbsp; </B><I>nodeID</I></td></tr>
 <tr><td><B>DIFFUSIVITY</B></td><td><I>value</I></td></tr>
 <tr><td><B>TOLERANCE</B></td><td><I>value</I></td></tr>
@@ -356,6 +357,8 @@ The \b HYDRAULICS option allows you to either <B>SAVE</B> the current hydraulics
 The <b>DEMAND MULTIPLIER</b> is used to adjust the values of baseline demands for all junctions and all demand categories. For example, a value of 2 doubles all baseline demands, while a value of 0.5 would halve them. The default value is 1.0.
 
 <b>EMITTER EXPONENT</b> specifies the power to which the pressure at a junction is raised when computing the flow issuing from an emitter. The default is 0.5.
+
+<b>EMITTER BACKFLOW</b> specifies if back flow through an emitter (i.e., flow into the network) is allowed. The default is <b>YES</b>.
 
 \b QUALITY selects the type of water quality analysis to perform. The choices are <b>NONE, CHEMICAL, AGE</b>, and \b TRACE. In place of \b CHEMICAL the actual name of the chemical can be used followed by its concentration units (e.g., <b>CHLORINE mg/L</b>). If \b TRACE is selected it must be followed by the ID label of the node being traced. The default selection is \b NONE (no water quality analysis).
 

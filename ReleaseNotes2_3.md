@@ -1,4 +1,4 @@
-﻿>
+>
 ## Release Notes for EPANET 2.3
 
 This document describes the changes and updates that have been made in version 2.3 of EPANET.
@@ -17,7 +17,7 @@ This document describes the changes and updates that have been made in version 2
  - A failure to raise an error condition for a pipe roughness <= 0 in the input file has been fixed.
  - The calculation of head loss gradient for low flow conditions was corrected.
  - Improved updating and convergence tests were added to pressure dependent demand analysis.
- - Improved checks to prevent outflow from empty tanks or inflow to full (non-overflow) tanks. *(Still needs more work).*
+ - Improved checks to prevent outflow from empty tanks or inflow to full (non-overflow) tanks, including the case where a link is connected to a pair of tanks.
  - The CI regression test protocol was modified by:
    - changing the absolute tolerance used to compare the closeness of test results to benchmark values from 0 to 0.0001
    - dropping the "correct decimal digits" test 
@@ -27,5 +27,6 @@ This document describes the changes and updates that have been made in version 2
  - A new type of valve, a Positional Control Valve (PCV), was added that uses a valve characteristic curve to relate its loss coefficient to its fraction open setting. 
  - A new set of functions have been added to get information about upcoming time step events. Users will now see what type of event is going to cause the end of a time step to occur. See ENtimetonextevent and EN_timetonextevent.
  - A new set of functions have been added to allow users to set a reporting callback function. The user-supplied function will recieve all output normally directed to the report file.
+ - A `EN_EMITBACKFLOW` option was added that either allows emitters to have reverse flow through them (the default) or not.
  
 
