@@ -922,7 +922,7 @@ int controldata(Project *pr)
         case TIMER:
         case TIMEOFDAY:
           if (n == 6) time = hour(parser->Tok[5], "");
-          if (n == 7) time = hour(parser->Tok[5], parser->Tok[6]);
+          if (n >= 7) time = hour(parser->Tok[5], parser->Tok[6]);
           if (time < 0.0) return setError(parser, 5, 213);
           break;
         case LOWLEVEL:
