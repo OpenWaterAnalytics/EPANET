@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(test_cms_unit)
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
 
-    int error = EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_CMS+1, EN_HW);
+    error = EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_CMS+1, EN_HW);
     BOOST_REQUIRE(error == 251);
 
     EN_deleteproject(ph);
