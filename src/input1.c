@@ -254,6 +254,7 @@ void adjustdata(Project *pr)
       case MLD: // megaliters/day
       case CMH: // cubic meters/hr
       case CMD: // cubic meters/day
+      case CMS: // cubic meters/second
         parser->Unitsflag = SI;
         break;
       default:
@@ -436,6 +437,7 @@ void initunits(Project *pr)
         if (parser->Flowflag == MLD) qcf = MLDperCFS;
         if (parser->Flowflag == CMH) qcf = CMHperCFS;
         if (parser->Flowflag == CMD) qcf = CMDperCFS;
+        if (parser->Flowflag == CMS) qcf = CMSperCFS;
 
         hcf = MperFT;
         if (parser->Pressflag == METERS) pcf = MperFT * hyd->SpGrav;

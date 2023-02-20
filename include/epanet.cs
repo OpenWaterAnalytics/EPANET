@@ -155,6 +155,7 @@ namespace EpanetCSharpLibrary
         public const int EN_MLD = 7;
         public const int EN_CMH = 8;
         public const int EN_CMD = 9;
+        public const int EN_CMS = 10;
 
         public const int EN_DDA = 0;           //Demand driven analysis
         public const int EN_PDA = 1;           //Pressure driven analysis

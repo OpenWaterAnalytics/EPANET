@@ -17,8 +17,9 @@ The toolkit can use data expressed in either US Customary of SI Metric units. A 
 |Flow            | CFS (cubic feet / sec)  | LPS (liters / sec)        |
 |                | GPM (gallons / min)     | LPM (liters / min)        |
 |                | MGD (million gal / day) | MLD (megaliters / day)    |
-|                | IMGD (Imperial MGD)     | CMH (cubic meters / hr)   |
-|                | AFD (acre-feet / day)   | CMD (cubic meters / day)  |
+|                | IMGD (Imperial MGD)     | CMS (cubic meters / sec)  |
+|                | AFD (acre-feet / day)   | CMH (cubic meters / hr)   |
+|                |                         | CMD (cubic meters / day)  |
 |Friction Factor | unitless                | unitless                  |
 |Head            | feet                    | meters                    |
 |Length          | feet                    | meters                    |

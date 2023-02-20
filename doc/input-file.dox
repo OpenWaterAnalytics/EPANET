@@ -278,7 +278,7 @@ Defines various simulation options.
 __Formats:__
 <table style = "border: 0px solid black">
 <tr><td><B>UNITS</B></td><td><B>CFS / GPM / MGD / IMGD / AFD /</B></td></tr>
-<tr><td>  </td><td><B>LPS / LPM / MLD / CMH / CMD</B></td></tr>
+<tr><td>  </td><td><B>LPS / LPM / MLD / CMS / CMH / CMD</B></td></tr>
 <tr><td><B>HEADLOSS</B></td><td><B>H-W / D-W / C-M</B></td></tr>
 <tr><td><B>HYDRAULICS</B></td><td><B>USE / SAVE </B><I>&nbsp;filename</I></td></tr>
 <tr><td><B>VISCOSITY</B></td><td><I>value</I></td></tr>
@@ -315,6 +315,7 @@ __Definitions:__
 - \b LPS = liters per second
 - \b LPM = liters per minute
 - \b MLD = million liters per day
+- \b CMS = cubic meters per second
 - \b CMH = cubic meters per hour
 - \b CMD = cubic meters per day
 
