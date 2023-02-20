@@ -295,6 +295,7 @@ int EXPORT_OUT_API ENR_getUnits(ENR_Handle p_handle, ENR_Units code, int* unitFl
  **  7 = megaliters/day
  **  8 = cubic meters/hour
  **  9 = cubic meters/day
+ **  10 = cubic meters/sec
  **-------------------------------------------------------------------------
  */
 {

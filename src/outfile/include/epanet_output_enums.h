@@ -33,7 +33,8 @@ typedef enum {
     ENR_LPM         = 6,
     ENR_MLD         = 7,
     ENR_CMH         = 8,
-    ENR_CMD         = 9
+    ENR_CMD         = 9,
+    ENR_CMS         = 10
 } ENR_FlowUnits;
 
 typedef enum {
