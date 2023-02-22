@@ -152,6 +152,7 @@ Public Const EN_LPM = 6
 Public Const EN_MLD = 7
 Public Const EN_CMH = 8
 Public Const EN_CMD = 9
+Public Const EN_CMS = 10
 
 Public Const EN_DDA = 0           ' Demand driven analysis
 Public Const EN_PDA = 1           ' Pressure driven analysis

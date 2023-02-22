@@ -158,6 +158,7 @@ const
  EN_MLD        = 7;
  EN_CMH        = 8;
  EN_CMD        = 9;
+ EN_CMS        = 10;
 
  EN_DDA        = 0;   { Demand model types }
  EN_PDA        = 1;  

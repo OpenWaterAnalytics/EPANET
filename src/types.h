@@ -71,6 +71,7 @@ typedef  int          INT4;
 #define   IMGDperCFS  0.5382
 #define   LPSperCFS   28.317
 #define   LPMperCFS   1699.0
+#define   CMSperCFS   0.028317
 #define   CMHperCFS   101.94
 #define   CMDperCFS   2446.6
 #define   MLDperCFS   2.4466
@@ -227,7 +228,8 @@ typedef enum {
   LPM,           // liters per minute
   MLD,           // megaliters per day
   CMH,           // cubic meters per hour
-  CMD            // cubic meters per day
+  CMD,           // cubic meters per day
+  CMS            // cubic meters per second
 } FlowUnitsType;
 
 typedef enum {

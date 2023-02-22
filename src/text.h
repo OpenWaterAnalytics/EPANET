@@ -87,6 +87,7 @@
 #define   w_MLD         "MLD"
 #define   w_CMH         "CMH"
 #define   w_CMD         "CMD"
+#define   w_CMS         "CMS"
 #define   w_SI          "SI"
 
 #define   w_PSI         "PSI"
@@ -236,6 +237,7 @@
 #define   u_IMGD        "Imgd"
 #define   u_LPS         "L/s"
 #define   u_LPM         "Lpm"
+#define   u_CMS         "m3/s"
 #define   u_CMH         "m3/h"
 #define   u_CMD         "m3/d"
 #define   u_MLD         "ML/d"

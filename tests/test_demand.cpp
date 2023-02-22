@@ -122,5 +122,31 @@ BOOST_FIXTURE_TEST_CASE(test_adddemand, FixtureSingleNode)
     BOOST_CHECK(nD1 - nD2 == 1);
 }
 
+BOOST_AUTO_TEST_CASE(test_cms_unit)
+{
+    int flowType;
+
+    EN_Project ph = NULL;
+    EN_createproject(&ph);
+
+    int error = EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_CMS, EN_HW);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_setflowunits(ph, EN_CMS);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getflowunits(ph, &flowType );
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(flowType == EN_CMS);
+
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_CMS+1, EN_HW);
+    BOOST_REQUIRE(error == 251);
+
+    EN_deleteproject(ph);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

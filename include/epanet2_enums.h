@@ -287,7 +287,8 @@ typedef enum {
   EN_LPM         = 6,   //!< Liters per minute
   EN_MLD         = 7,   //!< Million liters per day
   EN_CMH         = 8,   //!< Cubic meters per hour
-  EN_CMD         = 9    //!< Cubic meters per day
+  EN_CMD         = 9,   //!< Cubic meters per day
+  EN_CMS         = 10   //!< Cubic meters per second
 } EN_FlowUnits;
 
 /// Demand models

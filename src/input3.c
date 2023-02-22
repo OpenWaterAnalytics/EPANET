@@ -1750,7 +1750,7 @@ int optionchoice(Project *pr, int n)
 **           those listed below, or -1 otherwise
 **  Purpose: processes fixed choice [OPTIONS] data
 **  Formats:
-**    UNITS               CFS/GPM/MGD/IMGD/AFD/LPS/LPM/MLD/CMH/CMD/SI
+**    UNITS               CFS/GPM/MGD/IMGD/AFD/LPS/LPM/MLD/CMH/CMD/CMS/SI
 **    PRESSURE            PSI/KPA/M
 **    HEADLOSS            H-W/D-W/C-M
 **    HYDRAULICS          USE/SAVE  filename
@@ -1790,6 +1790,7 @@ int optionchoice(Project *pr, int n)
         else if (match(parser->Tok[1], w_CMH))  parser->Flowflag = CMH;
         else if (match(parser->Tok[1], w_CMD))  parser->Flowflag = CMD;
         else if (match(parser->Tok[1], w_MLD))  parser->Flowflag = MLD;
+        else if (match(parser->Tok[1], w_CMS))  parser->Flowflag = CMS;
         else if (match(parser->Tok[1], w_SI))   parser->Flowflag = LPS;
         else return setError(parser, 1, 213);
     }

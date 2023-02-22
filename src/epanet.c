@@ -143,7 +143,7 @@ int DLLEXPORT EN_init(EN_Project p, const char *rptFile, const char *outFile,
     p->report.Rptflag = 1;
 
     // Check for valid arguments
-    if (unitsType < 0 || unitsType > CMD) return 251;
+    if (unitsType < 0 || unitsType > CMS) return 251;
     if (headLossType < 0 || headLossType > CM) return 251;
 
     // Open files
@@ -1427,6 +1427,7 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
     case MLD:
     case CMH:
     case CMD:
+    case CMS:
         p->parser.Unitsflag = SI;
         break;
     default:

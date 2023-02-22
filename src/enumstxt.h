@@ -59,7 +59,8 @@ char *RptFlowUnitsTxt[] = {u_CFS,
                            u_LPM,
                            u_MLD,
                            u_CMH,
-                           u_CMD};
+                           u_CMD,
+                           u_CMS};
 
 char *FlowUnitsTxt[]    = {w_CFS,
                            w_GPM, 
@@ -70,7 +71,8 @@ char *FlowUnitsTxt[]    = {w_CFS,
                            w_LPM, 
                            w_MLD, 
                            w_CMH,
-                           w_CMD};
+                           w_CMD,
+                           w_CMS};
 
 char *PressUnitsTxt[]   = {w_PSI,
                            w_KPA,
