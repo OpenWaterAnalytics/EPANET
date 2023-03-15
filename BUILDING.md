@@ -22,13 +22,15 @@ In addition, two Windows one-click-build scripts are included in the `win_build`
 
 These two scripts build EPANET binaries for both the 32 and 64 bit Windows platforms, placing them in the `win_build\32bit` and `win_build\64bit` directories, respectively.
 
+A tutorial on [building OWA EPANET from source on Windows](tools/BuildAndTest.md), including running unit tests and performing regression testing, is also avaiable.
+
 # Testing
 
-Unit tests have been written using the Boost Unit Testing Framework and other Boost libraries. The tests are compiled into invidual excutables that automatically perform checks on the EPANET toolkit and output libaries.
+Unit tests have been written using the Boost Unit Testing Framework and other Boost libraries. The tests are compiled into individual executables that automatically perform checks on the EPANET toolkit and output libraries.
 
 The CMake build system has been configured with a build option for building tests. When enabled (`-DBUILD_TESTS=ON`) the test executables are built and registered with the CTest test runner, the default value for the test build option is off. The location of Boost can also be defined with `-DBOOST_ROOT="%BOOST_ROOT%"` if required.
 
-To build the test excuitables for the EPANET library, first open a console window and navigate to the project's root directory. Then enter the following commands:
+To build the test executables for the EPANET library, first open a console window and navigate to the project's root directory. Then enter the following commands:
 
 ```
 mkdir build
