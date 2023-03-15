@@ -28,5 +28,17 @@ This document describes the changes and updates that have been made in version 2
  - A new set of functions have been added to get information about upcoming time step events. Users will now see what type of event is going to cause the end of a time step to occur. See ENtimetonextevent and EN_timetonextevent.
  - A new set of functions have been added to allow users to set a reporting callback function. The user-supplied function will recieve all output normally directed to the report file.
  - A `EN_EMITBACKFLOW` option was added that either allows emitters to have reverse flow through them (the default) or not.
- 
-
+ - Elevation was not set correctly when using `EN_settankdata` with SI units, this has been fixed.
+ - The `EN_INITSETTING` option in function `EN_getlinkvalue` will return 0 if the setting equals MISSING due to a fixed `OPEN/CLOSED` status.
+ - The functions `EN_getnodevalue` and `EN_getlinkvalue` now includes options `EN_NODE_INCONTROL` and `EN_LINK_INCONTROL` to determine whether a node or link participates in a simple or rule-based control.
+ - Setting a minor loss of zero with `EN_setlinkvalue(ph, index, EN_MINORLOSS, 0)` would raise an error, this has been fixed.
+ - The reporting of unconnected nodes was not displaying correctly, this has been fixed.
+ - A header file for C# has been added.
+ - A new error code `263 - node is not a tank` is returned for when passing a non-tank node index to `EN_settankdata` or `EN_setnodevalue` with option `EN_TANKLEVEL`, `EN_TANKDIAM`, `EN_MINVOLUME`, `EN_VOLCURVE`, `EN_MINLEVEL`, `EN_MAXLEVEL`, `EN_MIXMODEL`, `EN_MIXFRACTION`, `EN_TANK_KBULK` or `EN_CANOVERFLOW`.
+ - The function `EN_saveinpfile` was incorrectly setting simple controls using GPV with the index of their head loss curve instead of their status, this has been fixed.
+ - Added support for Conan dependency manager.
+ - Fix silent Qualflag reset when QUALITY is not NONE and simulation duration is 0 in EPANET input file.
+ - Added support for cubic meters per second flow units.
+ - A simple control with more than 9 input tokens would set the incorrect hour, this has been fixed.
+ - When reading an EPANET inp file, errors in node and link vertex coordinates are ignored.
+ - Non-zero demands are now not included in `[DEMANDS]` when running `EN_saveinpfile`.
