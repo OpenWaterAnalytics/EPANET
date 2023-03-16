@@ -1208,6 +1208,9 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
     case EN_EMITBACKFLOW:
         v = hyd->EmitBackFlag;
         break;
+    case EN_PRESS_UNITS:
+        v = (double)p->parser.Pressflag;
+        break;
     default:
         return 251;
     }
@@ -1231,7 +1234,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
 
     int Njuncs = net->Njuncs;
     double *Ucf = p->Ucf;
-    int i, j, pat;
+    int i, j, pat, unit;
     double Ke, n, ucf;
 
     if (!p->Openflag) return 102;
@@ -1373,6 +1376,14 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     case EN_EMITBACKFLOW:
         if (value == 0.0 || value == 1.0) hyd->EmitBackFlag = (int)value;
         else return 213;
+        break;
+
+    case EN_PRESS_UNITS:
+        unit = ROUND(value);
+        if (unit < 0 || unit > METERS) return 205;
+        if (p->parser.Unitsflag == US && unit > PSI) return 0;
+        p->parser.Pressflag = unit;
+        initunits(p);
         break;
 
     default:
