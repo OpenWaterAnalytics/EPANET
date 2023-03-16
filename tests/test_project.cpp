@@ -183,6 +183,13 @@ BOOST_FIXTURE_TEST_CASE(test_pressure_units, FixtureInitClose)
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(abs(p - 298.76035) < 1.e-5);
 
+    // Set pressure to PSI and check that it remains in kPa
+    error = EN_setoption(ph, EN_PRESS_UNITS, EN_PSI);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getoption(ph, EN_PRESS_UNITS, &units);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(units == EN_KPA);
+
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
  

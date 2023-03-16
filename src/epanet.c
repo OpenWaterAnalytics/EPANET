@@ -1382,6 +1382,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         unit = ROUND(value);
         if (unit < 0 || unit > METERS) return 205;
         if (p->parser.Unitsflag == US && unit > PSI) return 0;
+        if (p->parser.Unitsflag == SI && unit == PSI) return 0;
         p->parser.Pressflag = unit;
         initunits(p);
         break;
