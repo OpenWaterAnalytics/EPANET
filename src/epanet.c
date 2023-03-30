@@ -1237,6 +1237,9 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     int i, j, pat, unit;
     double Ke, n, ucf;
 
+    double qfactor, hfactor, pfactor, dfactor;
+    double dcf, pcf, hcf, qcf;
+
     if (!p->Openflag) return 102;
 
     // The EN_UNBALANCED option can be < 0 indicating that the simulation
@@ -1384,7 +1387,19 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         if (p->parser.Unitsflag == US && unit > PSI) return 0;
         if (p->parser.Unitsflag == SI && unit == PSI) return 0;
         p->parser.Pressflag = unit;
+
+        dfactor = Ucf[DEMAND];
+        pfactor = Ucf[PRESSURE];
+        hfactor = Ucf[HEAD];
+        qfactor = Ucf[FLOW];
         initunits(p);
+
+        // Update units in rules
+        dcf =  Ucf[DEMAND] / dfactor;
+        pcf =  Ucf[PRESSURE] / pfactor;
+        hcf =  Ucf[HEAD] / hfactor;
+        qcf =  Ucf[FLOW] / qfactor;
+        updateruleunits(p, dcf, pcf, hcf, qcf);
         break;
 
     default:
@@ -1420,7 +1435,8 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
     Network *net = &p->network;
 
     int i, j;
-    double qfactor, vfactor, hfactor, efactor, xfactor, yfactor;
+    double qfactor, vfactor, hfactor, efactor, pfactor, dfactor, xfactor, yfactor;
+    double dcf, pcf, hcf, qcf;
     double *Ucf = p->Ucf;
 
     if (!p->Openflag) return 102;
@@ -1430,6 +1446,8 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
     vfactor = Ucf[VOLUME];
     hfactor = Ucf[HEAD];
     efactor = Ucf[ELEV];
+    pfactor = Ucf[PRESSURE];
+    dfactor = Ucf[DEMAND];
 
     p->parser.Flowflag = units;
     switch (units)
@@ -1451,6 +1469,13 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
     if (p->parser.Unitsflag != SI) p->parser.Pressflag = PSI;
     else if (p->parser.Pressflag == PSI) p->parser.Pressflag = METERS;
     initunits(p);
+
+    // Update pressure units in rules
+    dcf =  Ucf[DEMAND] / dfactor;
+    pcf =  Ucf[PRESSURE] / pfactor;
+    hcf =  Ucf[HEAD] / hfactor;
+    qcf =  Ucf[FLOW] / qfactor;
+    updateruleunits(p, dcf, pcf, hcf, qcf);
 
     //update curves
     for (i = 1; i <= net->Ncurves; i++)
