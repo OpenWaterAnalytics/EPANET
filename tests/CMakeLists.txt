@@ -40,6 +40,7 @@ set(toolkit_test_srcs
      test_overflow.cpp
      test_pda.cpp
      test_valve.cpp
+     test_units.cpp
 )
 
 add_executable(test_toolkit ${toolkit_test_srcs})

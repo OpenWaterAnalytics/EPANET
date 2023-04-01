@@ -157,6 +157,10 @@ namespace EpanetCSharpLibrary
         public const int EN_CMD = 9;
         public const int EN_CMS = 10;
 
+        public const int EN_PSI = 0;           //Pressure units types
+        public const int EN_KPA = 1;
+        public const int EN_METERS = 2;
+
         public const int EN_DDA = 0;           //Demand driven analysis
         public const int EN_PDA = 1;           //Pressure driven analysis
 
@@ -185,6 +189,7 @@ namespace EpanetCSharpLibrary
         public const int EN_CONCENLIMIT = 22;
         public const int EN_DEMANDPATTERN = 23;
         public const int EN_EMITBACKFLOW = 24;
+        public const int EN_PRESS_UNITS = 25;
 
         public const int EN_LOWLEVEL = 0;      //Control types
         public const int EN_HILEVEL = 1;

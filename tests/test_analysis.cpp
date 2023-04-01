@@ -23,11 +23,11 @@ BOOST_FIXTURE_TEST_CASE(test_anlys_getoption, FixtureOpenClose)
 {
     int i;
 
-    std::vector<double> test(23);
+    std::vector<double> test(26);
     double  *array = test.data();
 
 	std::vector<double> ref = {40.0, 0.001, 0.01, 0.5, 1.0, 0.0, 0.0, 0.0, 75.0, 0.0, 0.0, 0.0,
-                               1.0, 1.0, 10.0, 2.0, 10.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0};
+                               1.0, 1.0, 10.0, 2.0, 10.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0};
 
     error = EN_solveH(ph);
     BOOST_REQUIRE(error == 0);
@@ -36,7 +36,7 @@ BOOST_FIXTURE_TEST_CASE(test_anlys_getoption, FixtureOpenClose)
     BOOST_REQUIRE(error == 0);
 
 
-    for (i=EN_TRIALS; i<=EN_CONCENLIMIT; i++) {
+    for (i=EN_TRIALS; i<=EN_PRESS_UNITS; i++) {
         error = EN_getoption(ph, i, array++);
         BOOST_REQUIRE(error == 0);
     }
@@ -44,7 +44,7 @@ BOOST_FIXTURE_TEST_CASE(test_anlys_getoption, FixtureOpenClose)
     BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
 
     double temp;
-    error = EN_getoption(ph, 25, &temp);
+    error = EN_getoption(ph, 26, &temp);
     BOOST_CHECK(error == 251);
 }
 

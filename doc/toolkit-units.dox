@@ -25,7 +25,7 @@ The toolkit can use data expressed in either US Customary of SI Metric units. A 
 |Length          | feet                    | meters                    |
 |Minor Loss Coeff. | unitless              | unitless                  |
 |Power             | horsepower            | kwatts                    |
-|Pressure          | psi                   | meters                    |
+|Pressure          | psi                   | meters or kPa             |
 |Reaction Coeff. (Bulk) | 1/day (1st-order)| 1/day (1st-order)         |
 |Reaction Coeff. (Wall) | mass/sq-ft/day (0-order) | mass/sq-m/day (0-order) |
 |                       | ft/day (1st-order)       | meters/day (1st-order)  |

@@ -289,6 +289,7 @@ These are the toolkit's enumerated types whose members are used as function argu
 \enum EN_TimeParameter
 \enum EN_Option
 \enum EN_FlowUnits
+\enum EN_PressUnits
 \enum EN_DemandModel
 \enum EN_MixingModel
 \enum EN_StatisticType

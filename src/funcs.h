@@ -124,6 +124,7 @@ Spremise *getpremise(Spremise *, int);
 Saction  *getaction(Saction *, int);
 int     writerule(Project *, FILE *, int);
 int     checkrules(Project *, long);
+void    updateruleunits(Project *pr, double dcf, double pcf, double hcf, double qcf);
 
 // ------- REPORT.C -----------------
 

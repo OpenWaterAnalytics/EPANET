@@ -118,7 +118,6 @@ BOOST_AUTO_TEST_CASE(test_run)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-
 BOOST_AUTO_TEST_SUITE(test_proj_fixture)
 
 BOOST_FIXTURE_TEST_CASE(test_title, FixtureOpenClose)
