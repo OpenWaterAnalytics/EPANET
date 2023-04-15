@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/05/2023
+ Last Updated: 03/29/2023
  ******************************************************************************
 */
 
@@ -64,6 +64,41 @@ static void    pcvcoeff(Project *pr, int k);
 static void    prvcoeff(Project *pr, int k, int n1, int n2);
 static void    psvcoeff(Project *pr, int k, int n1, int n2);
 static void    fcvcoeff(Project *pr, int k, int n1, int n2);
+
+
+void addlowerbarrier(double dq, double* hloss, double* hgrad)
+/*
+**--------------------------------------------------------------------
+**  Input:   dq = difference between current flow and lower flow limit
+**  Output:  hloss = updated head loss value
+**           hgrad = updated head loss gradient value
+**  Purpose: adds a head loss barrier to prevent flow from falling
+**           below a given lower limit.
+**--------------------------------------------------------------------
+*/
+{
+    double a = 1.e9 * dq;
+    double b = sqrt(a*a + 1.e-6);
+    *hloss += (a - b) / 2.;
+    *hgrad += (1.e9 / 2.) * ( 1.0 - a / b);
+}
+
+void addupperbarrier(double dq, double* hloss, double* hgrad)
+/*
+**--------------------------------------------------------------------
+**  Input:   dq = difference between current flow and upper flow limit
+**  Output:  hloss = updated head loss value
+**           hgrad = updated head loss gradient value
+**  Purpose: adds a head loss barrier to prevent flow from exceeding
+**           a given upper limit.
+**--------------------------------------------------------------------
+*/
+{
+    double a = 1.e9 * dq;
+    double b = sqrt(a*a + 1.e-6);
+    *hloss += (a + b) / 2.;
+    *hgrad += (1.e9 / 2.) * ( 1.0 + a / b);
+}
 
 
 void  resistcoeff(Project *pr, int k)
@@ -497,10 +532,9 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
     else *hloss = (*hgrad) * q / hyd->Qexp;
     
     // Prevent negative flow if backflow not allowed
-    if (hyd->EmitBackFlag == 0 && q <= 0.0)
+    if (hyd->EmitBackFlag == 0)
     {
-        *hgrad += CBIG;
-        *hloss += CBIG * q;
+        addlowerbarrier(q, hloss, hgrad);
     }
 }
 
@@ -574,32 +608,14 @@ void demandheadloss(Project *pr, int i, double dp, double n,
     double dfull = hyd->NodeDemand[i];
     double r = d / dfull;
     
-    // Use lower barrier function for negative demand
-    if (r <= 0)
-    {
-        *hgrad = CBIG;
-        *hloss = CBIG * d;
-    }
-
-    // Use power head loss function for demand less than full
-    else if (r <= 1.0)
-    {
-        *hgrad = n * dp * pow(r, n - 1.0) / dfull;
-        // ... use linear function for very small gradient
-        if (*hgrad < hyd->RQtol)
-        {
-            *hgrad = hyd->RQtol / n;
-            *hloss = (*hgrad) * d;
-        }
-        else *hloss = (*hgrad) * d / n;
-    }
+    // Evaluate inverted demand function
+    r = fabs(d) / dfull;
+    *hgrad = n * dp * pow(r, n - 1.0) / dfull;
+    *hloss = (*hgrad) * d / n;
     
-    // Use upper barrier function for demand above full value
-    else
-    {
-        *hgrad = CBIG;
-        *hloss = dp + CBIG * (d - dfull);
-    }
+    // Add barrier functions
+    addlowerbarrier(d, hloss, hgrad);
+    addupperbarrier(d-dfull, hloss, hgrad);
 }
 
 
