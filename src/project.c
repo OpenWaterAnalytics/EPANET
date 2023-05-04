@@ -1074,7 +1074,7 @@ int adjustpumpparams(Project *pr, int curveIndex)
         {
             // Update its head curve parameters
             pump->Ptype = NOCURVE;
-            err = updatepumpparams(pr, curveIndex);
+            err = updatepumpparams(pr, j);
             if (err > 0) break;
             
             // Convert parameters to internal units
