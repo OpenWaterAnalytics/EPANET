@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/05/2023
+ Last Updated: 04/29/2023
  ******************************************************************************
 */
 
@@ -5069,84 +5069,30 @@ int DLLEXPORT EN_addcontrol(EN_Project p, int type, int linkIndex, double settin
 */
 {
     Network *net = &p->network;
-    Parser *parser = &p->parser;
 
-    char status = ACTIVE;
-    int  n;
-    long t = 0;
-    double s = setting, lvl = level;
-    double *Ucf = p->Ucf;
-    Scontrol *control;
-
+    int  err, n;
+    Scontrol ctrl;
 
     // Check that project exists
     if (!p->Openflag) return 102;
 
     // Check that controlled link exists
     if (linkIndex <= 0 || linkIndex > net->Nlinks) return 204;
-
-    // Cannot control check valve
-    if (net->Link[linkIndex].Type == CVPIPE) return 207;
-
-    // Check for valid parameters
-    if (type < 0 || type > EN_TIMEOFDAY) return 251;
-    if (type == EN_LOWLEVEL || type == EN_HILEVEL)
-    {
-        if (nodeIndex < 1 || nodeIndex > net->Nnodes) return 203;
-    }
-    else nodeIndex = 0;
-    if (s < 0.0 || lvl < 0.0) return 202;
-
-    // Adjust units of control parameters
-    switch (net->Link[linkIndex].Type)
-    {
-    case PRV:
-    case PSV:
-    case PBV:
-        s /= Ucf[PRESSURE];
-        break;
-    case FCV:
-        s /= Ucf[FLOW];
-        break;
-    case GPV:
-        if (s == 0.0) status = CLOSED;
-        else if (s == 1.0) status = OPEN;
-        else return 202;
-        s = net->Link[linkIndex].Kc;
-        break;
-    case PIPE:
-    case PUMP:
-        status = OPEN;
-        if (s == 0.0) status = CLOSED;
-    default:
-        break;
-    }
-
-    if (type == LOWLEVEL || type == HILEVEL)
-    {
-        if (nodeIndex > net->Njuncs) lvl = net->Node[nodeIndex].El + level / Ucf[ELEV];
-        else lvl = net->Node[nodeIndex].El + level / Ucf[PRESSURE];
-    }
-    if (type == TIMER) t = (long)ROUND(lvl);
-    if (type == TIMEOFDAY) t = (long)ROUND(lvl) % SECperDAY;
+    
+    // Insert control properties into a temporary struct
+    err = setcontrol(p, type, linkIndex, setting, nodeIndex, level, &ctrl);
+    if (err > 0) return err;
 
     // Expand project's array of controls
     n = net->Ncontrols + 1;
     net->Control = (Scontrol *)realloc(net->Control, (n + 1) * sizeof(Scontrol));
 
     // Set properties of the new control
-    control = &net->Control[n];
-    control->Type = (char)type;
-    control->Link = linkIndex;
-    control->Node = nodeIndex;
-    control->Status = status;
-    control->Setting = s;
-    control->Grade = lvl;
-    control->Time = t;
+    net->Control[n] = ctrl;
 
     // Update number of controls
     net->Ncontrols = n;
-    parser->MaxControls = n;
+    p->parser.MaxControls = n;
 
     // Replace the control's index
     *index = n;
@@ -5229,8 +5175,8 @@ int DLLEXPORT EN_getcontrol(EN_Project p, int index, int *type, int *linkIndex,
             break;
         }
     }
-    else if (control->Status == OPEN) s = 1.0;
-    else s = 0.0;
+    else if (control->Status == OPEN) s = SET_OPEN;
+    else s = SET_CLOSED;
 
     // Retrieve level value for a node level control
     *nodeIndex = control->Node;
@@ -5252,8 +5198,8 @@ int DLLEXPORT EN_getcontrol(EN_Project p, int index, int *type, int *linkIndex,
     {
         lvl = (double)control->Time;
     }
-    *setting = (double)s;
-    *level = (double)lvl;
+    *setting = s;
+    *level = lvl;
     return 0;
 }
 
@@ -5275,81 +5221,27 @@ int DLLEXPORT EN_setcontrol(EN_Project p, int index, int type, int linkIndex,
 {
     Network *net = &p->network;
 
-    char status = ACTIVE;
-    long t = 0;
-    double s = setting, lvl = level;
-    double *Ucf = p->Ucf;
-    Slink *link;
-    Scontrol *control;
+    int err;
+    Scontrol ctrl;
 
     // Check that project exists
     if (!p->Openflag) return 102;
 
     // Check that control exists
     if (index <= 0 || index > net->Ncontrols) return 241;
-    control = &net->Control[index];
 
     // Check that controlled link exists (0 index de-activates the control)
     if (linkIndex == 0)
     {
-        control->Link = 0;
+        net->Control[index].Link = 0;
         return 0;
     }
     if (linkIndex < 0 || linkIndex > net->Nlinks) return 204;
 
-    // Cannot control check valve
-    if (net->Link[linkIndex].Type == CVPIPE) return 207;
-
-    // Check for valid control properties
-    if (type < 0 || type > EN_TIMEOFDAY) return 251;
-    if (type == EN_LOWLEVEL || type == EN_HILEVEL)
-    {
-        if (nodeIndex < 1 || nodeIndex > net->Nnodes) return 203;
-    }
-    else nodeIndex = 0;
-    if (s < 0.0 || lvl < 0.0) return 202;
-
-    // Adjust units of control's properties
-    link = &net->Link[linkIndex];
-    switch (link->Type)
-    {
-    case PRV:
-    case PSV:
-    case PBV:
-        s /= Ucf[PRESSURE];
-        break;
-    case FCV:
-        s /= Ucf[FLOW];
-        break;
-    case GPV:
-        if (s == 0.0)  status = CLOSED;
-        else if (s == 1.0) status = OPEN;
-        else return 202;
-        s = link->Kc;
-        break;
-    case PIPE:
-    case PUMP:
-        status = OPEN;
-        if (s == 0.0) status = CLOSED;
-    default:
-        break;
-    }
-    if (type == LOWLEVEL || type == HILEVEL)
-    {
-        if (nodeIndex > net->Njuncs) lvl = net->Node[nodeIndex].El + level / Ucf[ELEV];
-        else lvl = net->Node[nodeIndex].El + level / Ucf[PRESSURE];
-    }
-    if (type == TIMER) t = (long)ROUND(lvl);
-    if (type == TIMEOFDAY) t = (long)ROUND(lvl) % SECperDAY;
-
-    /* Reset control's parameters */
-    control->Type = (char)type;
-    control->Link = linkIndex;
-    control->Node = nodeIndex;
-    control->Status = status;
-    control->Setting = s;
-    control->Grade = lvl;
-    control->Time = t;
+    // Assign new set of properties to control
+    err = setcontrol(p, type, linkIndex, setting, nodeIndex, level, &ctrl);
+    if (err > 0) return err;
+    net->Control[index] = ctrl;
     return 0;
 }
 

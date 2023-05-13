@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 07/28/2022
+'Last updated on 05/13/2023
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -268,6 +268,8 @@ Public Const EN_STEP_TANKEVENT = 3
 Public Const EN_STEP_CONTROLEVENT = 4
 
 Public Const EN_MISSING As Double = -1.0E10
+Public Const EN_SET_CLOSED As Double = -1.0E10
+Public Const EN_SET_OPEN As Double = 1.0E10
 
 'These are the external functions that comprise the DLL
 

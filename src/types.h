@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/05/2023
+ Last Updated: 04/29/2023
  ******************************************************************************
 */
 
@@ -48,6 +48,9 @@ typedef  int          INT4;
 #define   BIG       1.E10
 #define   TINY      1.E-6
 #define   MISSING   -1.E10     // Missing value indicator
+#define   SET_CLOSED -1.E10    // Link set closed indicator
+#define   SET_OPEN    1.E10    // Link set open indicator
+
 #define   DIFFUS    1.3E-8     // Diffusivity of chlorine
                                // @ 20 deg C (sq ft/sec)
 #define   VISCOS    1.1E-5     // Kinematic viscosity of water

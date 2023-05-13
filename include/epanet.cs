@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 //epanet2.cs[By Oscar Vegas]
-//Last updated on 17/09/2020
+//Last updated on 05/13/2023
 
 //Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 //(EPANET2.DLL) for use with C#
@@ -264,6 +264,8 @@ namespace EpanetCSharpLibrary
         public const int EN_R_IS_ACTIVE = 3;
 
         public const double EN_MISSING = -1.0E10;
+        public const double EN_SET_CLOSED = -1.0E10
+        public const double EN_SET_OPEN = 1.0E10
 
 
         #region Epanet Imports

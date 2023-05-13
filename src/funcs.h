@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 08/13/2022
+ Last Updated: 04/29/2023
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -50,6 +50,7 @@ void    adjustpatterns(Network *, int);
 void    adjustcurves(Network *, int);
 int     adjustpumpparams(Project *, int);
 int     resizecurve(Scurve *, int);
+int     setcontrol(Project *, int, int, double, int, double, Scontrol *);
 
 int     getcomment(Network *, int, int, char *);
 int     setcomment(Network *, int, int, const char *);
