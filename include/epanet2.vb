@@ -4,7 +4,7 @@
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL) for use with VB.Net.
 
-'Last updated on 07/28/2022
+'Last updated on 05/13/2023
 
 Imports System.Runtime.InteropServices
 Imports System.Text
@@ -256,6 +256,8 @@ Public Const EN_R_IS_CLOSED = 2
 Public Const EN_R_IS_ACTIVE = 3
 
 Public Const EN_MISSING As Double = -1.0E10
+Public Const EN_SET_CLOSED As Double = -1.0E10
+Public Const EN_SET_OPEN As Double = 1.0E10
 
 'These are the external functions that comprise the DLL
 

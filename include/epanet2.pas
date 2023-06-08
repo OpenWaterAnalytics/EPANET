@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 07/28/2022}
+{Last updated on 05/13/2023}
 
 interface
 
@@ -13,6 +13,8 @@ const
  EN_MAXID = 31;        { Max. # characters in ID name }
  EN_MAXMSG = 255;      { Max. # characters in strings }
  EN_MISSING = -1.E10;
+ EN_SET_CLOSED = -1.E10;
+ EN_SET_OPEN = 1.E10;
 
  EN_ELEVATION  = 0;    { Node parameters }
  EN_BASEDEMAND = 1;

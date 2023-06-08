@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 02/05/2023
+Last Updated: 04/30/2023
 ******************************************************************************
 */
 
@@ -432,7 +432,12 @@ int saveinpfile(Project *pr, const char *fname)
         link = &net->Link[j];
 
         // Get text of control's link status/setting
-        if (control->Setting == MISSING || link->Type == GPV)
+        if (control->Setting == MISSING || link->Type == GPV || link->Type == PIPE)
+        {
+            sprintf(s, " LINK %s %s ", link->ID, StatTxt[control->Status]);
+        }
+        else if (link->Type == PUMP && 
+            (control->Setting == 0.0 || control->Setting == 1.0))
         {
             sprintf(s, " LINK %s %s ", link->ID, StatTxt[control->Status]);
         }

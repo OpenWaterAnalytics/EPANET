@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/05/2023
+ Last Updated: 04/28/2023
  ******************************************************************************
 */
 
@@ -498,6 +498,8 @@ typedef enum {
   EN_R_IS_ACTIVE = 3    //!< Control valve is active
 } EN_RuleStatus;
 
-#define EN_MISSING -1.E10  //!< Missing value indicator
+#define EN_MISSING    -1.E10  //!< Missing value indicator
+#define EN_SET_CLOSED -1.E10  //!< Link set closed indicator
+#define EN_SET_OPEN    1.E10  //!< Link set open indicator
 
 #endif //EPANET2_ENUMS_H

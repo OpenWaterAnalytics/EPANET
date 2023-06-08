@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 08/13/2022
+ Last Updated: 04/29/2023
  ******************************************************************************
 */
 
@@ -1120,6 +1120,111 @@ int resizecurve(Scurve *curve, int size)
     }
     return 0;
 }
+
+
+int setcontrol(EN_Project p, int type, int linkIndex, double setting,
+        int nodeIndex, double level, Scontrol *control)
+/*----------------------------------------------------------------
+**  Input:   type = type of control (see EN_ControlType)
+**           linkIndex = index of link being controlled
+**           setting = link control setting (e.g., pump speed)
+**           nodeIndex = index of node controlling a link (for level controls)
+**           level = control activation level (pressure for junction nodes,
+**                   water level for tank nodes or time value for time-based
+**                   control)
+**  Output:  control = control struct whose properties are being set
+**  Returns: error code
+**  Purpose: assigns properties to a control struct.
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    Parser *parser = &p->parser;
+    
+    long t = 0;
+    double lvl = 0.0, s = MISSING;
+    double *Ucf = p->Ucf;
+    LinkType linktype;
+    StatusType status = ACTIVE;
+   
+    // Cannot control check valve
+    linktype = net->Link[linkIndex].Type;
+    if (linktype == CVPIPE)  return 207;
+
+    // Check for valid control type and node index
+    if (type < 0 || type > TIMEOFDAY) return 251;
+    if (type == LOWLEVEL || type == HILEVEL)
+    {
+        if (nodeIndex < 1 || nodeIndex > net->Nnodes) return 203;
+    }
+    else nodeIndex = 0;
+
+    // Check if control setting is a status level
+    if (setting == SET_OPEN)
+    {
+        status = OPEN;
+        if (linktype == PUMP) s = 1.0;
+        if (linktype == GPV)  s = net->Link[linkIndex].Kc;
+    }
+    else if (setting == SET_CLOSED)
+    {
+        status = CLOSED;
+        if (linktype == PUMP) s = 0.0;
+        if (linktype == GPV)  s = net->Link[linkIndex].Kc;
+    }
+    
+    // Convert units of control setting
+    else
+    {
+        s = setting;
+        switch (linktype)
+        {
+            case PIPE:
+            case PUMP:
+                if (s < 0.0)       return 202;
+                else if (s == 0.0) status = CLOSED;
+                else               status = OPEN;
+                break;
+            case PRV:
+            case PSV:
+            case PBV:
+                s /= Ucf[PRESSURE];
+                break;
+            case FCV:
+                s /= Ucf[FLOW];
+                break;
+            case GPV:
+                if (s == 0.0) status = CLOSED;
+                else if (s == 1.0) status = OPEN;
+                else return 202;
+                s = net->Link[linkIndex].Kc;
+                break;
+        }
+    }
+    
+    // Determine if control level is a pressure, tank level or time value 
+    if (type == LOWLEVEL || type == HILEVEL)
+    {
+        if (nodeIndex > net->Njuncs) lvl = net->Node[nodeIndex].El + level / Ucf[ELEV];
+        else lvl = net->Node[nodeIndex].El + level / Ucf[PRESSURE];
+    }
+    else if (type == TIMER || type == TIMEOFDAY)
+    {
+        t = (long)level;
+        if (t < 0) return 202;
+    }
+    
+    // Assign values to control struct
+    control->Link = linkIndex;
+    control->Node = nodeIndex;
+    control->Type = type;
+    control->Status = status;
+    control->Setting = s;
+    control->Time = t;
+    control->Grade = lvl;
+    return 0;
+}
+
 
 int  getcomment(Network *network, int object, int index, char *comment)
 //----------------------------------------------------------------
