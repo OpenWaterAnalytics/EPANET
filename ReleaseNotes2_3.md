@@ -42,3 +42,4 @@ This document describes the changes and updates that have been made in version 2
  - A simple control with more than 9 input tokens would set the incorrect hour, this has been fixed.
  - When reading an EPANET inp file, errors in node and link vertex coordinates are ignored.
  - Non-zero demands are now not included in `[DEMANDS]` when running `EN_saveinpfile`.
+ - `EN_SET_CLOSED` and `EN_SET_OPEN` constants were added that can be used with `EN_setcontrol` to fix the status of pipes and valves to completely closed or completely open.
