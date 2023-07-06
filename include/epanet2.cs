@@ -48,6 +48,8 @@ namespace EpanetCSharpLibrary
         public const int EN_MAXVOLUME = 25;
         public const int EN_CANOVERFLOW = 26;
         public const int EN_DEMANDDEFICIT = 27;
+        public const int EN_NODE_INCONTROL = 28;
+        public const int EN_EMITTERFLOW = 29;
 
         public const int EN_DIAMETER = 0;      //Link parameters
         public const int EN_LENGTH = 1;

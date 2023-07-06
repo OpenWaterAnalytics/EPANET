@@ -2365,6 +2365,10 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         v = (double)incontrols(p, NODE, index);
         break;
 
+    case EN_EMITTERFLOW:
+        v = hyd->EmitterFlow[index] * Ucf[FLOW];
+        break;
+        
     default:
         return 251;
     }

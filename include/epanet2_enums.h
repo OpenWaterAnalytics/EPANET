@@ -64,7 +64,8 @@ typedef enum {
   EN_MAXVOLUME    = 25, //!< Tank maximum volume (read only)
   EN_CANOVERFLOW  = 26, //!< Tank can overflow (= 1) or not (= 0)
   EN_DEMANDDEFICIT = 27,//!< Amount that full demand is reduced under PDA (read only)
-  EN_NODE_INCONTROL = 28  //!< Is present in any simple or rule-based control (= 1) or not (= 0)
+  EN_NODE_INCONTROL = 28, //!< Is present in any simple or rule-based control (= 1) or not (= 0)
+  EN_EMITTERFLOW    = 29  //!< Current emitter flow (read only)
 } EN_NodeProperty;
 
 /// Link properties
