@@ -11,13 +11,13 @@ This document describes the changes and updates that have been made in version 2
  - Negative pressure values for `EN_SETTING` are now permitted in the `EN_setlinkvalue` function. 
  - The `EN_STARTTIME` parameter was added into the `EN_settimeparam` function.
  - A `EN_DEMANDPATTERN` parameter was added as the index of the default time pattern used by demands with no specific pattern assigned. It can be set or retrieved with the `EN_setoption` and `EN_getoption` functions, respectively, and is saved to file when the `EN_saveinpfile` function is called.
- - The `EN_getaveragepatternvalue` function will now accept a pattern index of 0 which represents the constant pattern assigned to junction demands by default.
+ - The `EN_getaveragepatternvalue` function will now accept a pattern index of zero which represents the constant pattern assigned to junction demands by default.
  - The adjustment of a tank's minimum volume (`Vmin`) when its parameters are changed using `EN_setnodevalue` or `EN_settankdata` has been corrected. 
- - A pump whose status is set to CLOSED in the input file now also has its speed setting set to 0 which fixes having a simple pressure control activate the pump correctly.
- - A failure to raise an error condition for a pipe roughness <= 0 in the input file has been fixed.
+ - A pump whose status is set to CLOSED in the input file now also has its speed setting set to zero which allows a simple pressure control activate the pump correctly.
+ - A failure to raise an error condition for a non-positve pipe roughness in the input file has been fixed.
  - The calculation of head loss gradient for low flow conditions was corrected.
  - Improved updating and convergence tests were added to pressure dependent demand analysis.
- - Improved checks to prevent outflow from empty tanks or inflow to full (non-overflow) tanks, including the case where a link is connected to a pair of tanks.
+ - Improved checks to prevent outflow from empty tanks or inflow to full (non-overflow) tanks, including the case where a link is connected to a pair of tanks, were added.
  - The CI regression test protocol was modified by:
    - changing the absolute tolerance used to compare the closeness of test results to benchmark values from 0 to 0.0001
    - dropping the "correct decimal digits" test 
@@ -25,21 +25,22 @@ This document describes the changes and updates that have been made in version 2
  - A possible loss of network connectivity when evaluating a Pressure Sustaining Valve was prevented.
  - Having the implied loss coefficient for an active Flow Control Valve be less than its fully opened value was prevented.
  - A new type of valve, a Positional Control Valve (PCV), was added that uses a valve characteristic curve to relate its loss coefficient to its fraction open setting. 
- - A new set of functions have been added to get information about upcoming time step events. Users will now see what type of event is going to cause the end of a time step to occur. See ENtimetonextevent and EN_timetonextevent.
+ - A new set of functions have been added to get information about upcoming time step events. Users will now see what type of event is going to cause the end of a time step to occur. See `ENtimetonextevent` and `EN_timetonextevent`.
  - A new set of functions have been added to allow users to set a reporting callback function. The user-supplied function will recieve all output normally directed to the report file.
  - A `EN_EMITBACKFLOW` option was added that either allows emitters to have reverse flow through them (the default) or not.
- - Elevation was not set correctly when using `EN_settankdata` with SI units, this has been fixed.
- - The `EN_INITSETTING` option in function `EN_getlinkvalue` will return 0 if the setting equals MISSING due to a fixed `OPEN/CLOSED` status.
- - The functions `EN_getnodevalue` and `EN_getlinkvalue` now includes options `EN_NODE_INCONTROL` and `EN_LINK_INCONTROL` to determine whether a node or link participates in a simple or rule-based control.
- - Setting a minor loss of zero with `EN_setlinkvalue(ph, index, EN_MINORLOSS, 0)` would raise an error, this has been fixed.
- - The reporting of unconnected nodes was not displaying correctly, this has been fixed.
- - A header file for C# has been added.
- - A new error code `263 - node is not a tank` is returned for when passing a non-tank node index to `EN_settankdata` or `EN_setnodevalue` with option `EN_TANKLEVEL`, `EN_TANKDIAM`, `EN_MINVOLUME`, `EN_VOLCURVE`, `EN_MINLEVEL`, `EN_MAXLEVEL`, `EN_MIXMODEL`, `EN_MIXFRACTION`, `EN_TANK_KBULK` or `EN_CANOVERFLOW`.
- - The function `EN_saveinpfile` was incorrectly setting simple controls using GPV with the index of their head loss curve instead of their status, this has been fixed.
- - Added support for Conan dependency manager.
- - Fix silent Qualflag reset when QUALITY is not NONE and simulation duration is 0 in EPANET input file.
- - Added support for cubic meters per second flow units.
- - A simple control with more than 9 input tokens would set the incorrect hour, this has been fixed.
- - When reading an EPANET inp file, errors in node and link vertex coordinates are ignored.
- - Non-zero demands are now not included in `[DEMANDS]` when running `EN_saveinpfile`.
+ - An incorrect tank elevation value set using `EN_settankdata` with SI units has been fixed.
+ - The `EN_INITSETTING` option in function `EN_getlinkvalue` will now return `EN_MISSING` for a valve whose initial status is fixed to `EN_OPEN` or `EN_CLOSED`.
+ - The functions `EN_getnodevalue` and `EN_getlinkvalue` now include the options `EN_NODE_INCONTROL` and `EN_LINK_INCONTROL` to determine whether a node or link appears in any simple or rule-based control.
+ - An error is no longer raised when a minor loss coefficient of zero is assigned in `EN_setlinkvalue(ph, index, EN_MINORLOSS, 0)`.
+ - The incorrect display of unconnected nodes has been fixed.
+ - A header file for binding C# to the Toolkit has been added.
+ - A new error code `263 - node is not a tank` is returned when `EN_settankdata` or `EN_setnodevalue` attempts to set a tank-only parameter for a non-tank node.
+ - The function `EN_saveinpfile` was corrected for simple controls on GPV's by saving their status instead of the index of their head loss curve.
+ - Support was added for Conan dependency manager.
+ - The internal Qualflag variable is now adjusted when an EPANET input file has a QUALITY option not equal to NONE and simulation duration of zero.
+ - Support was added for cubic meters per second (`EN_CMS`) flow units.
+ - An EPANET input file with a simple timer control that has more than 9 input tokens no longer results in an incorrect hour setting.
+ - Errors in node and link vertex coordinates are now ignored when reading an EPANET input file.
+ - Only non-zero demands are now included in the `[DEMANDS]` section of the input file produced by `EN_saveinpfile`.
  - `EN_SET_CLOSED` and `EN_SET_OPEN` constants were added that can be used with `EN_setcontrol` to fix the status of pipes and valves to completely closed or completely open.
+ - `EN_EMITTERFLOW` can now be used with `EN_getnodevalue` to retrieve a node's emitter flow rate.

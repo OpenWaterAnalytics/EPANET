@@ -37,6 +37,7 @@ Public Const EN_MAXVOLUME = 25
 Public Const EN_CANOVERFLOW = 26
 Public Const EN_DEMANDDEFICIT = 27 
 Public Const EN_NODE_INCONTROL = 28
+Public Const EN_EMITTERFLOW = 29
 
 Public Const EN_DIAMETER = 0      ' Link parameters
 Public Const EN_LENGTH = 1

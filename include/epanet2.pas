@@ -45,6 +45,7 @@ const
  EN_CANOVERFLOW = 26;
  EN_DEMANDDEFICIT = 27;
  EN_NODE_INCONTROL = 28;
+ EN_EMITTERFLOW = 29;
 
  EN_DIAMETER    = 0;    { Link parameters }
  EN_LENGTH      = 1;
