@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 //epanet2.cs[By Oscar Vegas]
-//Last updated on 05/13/2023
+//Last updated on 07/18/2023
 
 //Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 //(EPANET2.DLL) for use with C#
@@ -192,6 +192,7 @@ namespace EpanetCSharpLibrary
         public const int EN_DEMANDPATTERN = 23;
         public const int EN_EMITBACKFLOW = 24;
         public const int EN_PRESS_UNITS = 25;
+        public const int EN_STATUS_REPORT = 26;
 
         public const int EN_LOWLEVEL = 0;      //Control types
         public const int EN_HILEVEL = 1;
