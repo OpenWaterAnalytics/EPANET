@@ -44,7 +44,7 @@ BOOST_FIXTURE_TEST_CASE(test_anlys_getoption, FixtureOpenClose)
     BOOST_CHECK_EQUAL_COLLECTIONS(ref.begin(), ref.end(), test.begin(), test.end());
 
     double temp;
-    error = EN_getoption(ph, 26, &temp);
+    error = EN_getoption(ph, 27, &temp);
     BOOST_CHECK(error == 251);
 }
 
