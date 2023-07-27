@@ -3,13 +3,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       epanet2_enums.h
  Description:  enumerations of symbolic constants used by the API functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/28/2023
+ Last Updated: 07/17/2023
  ******************************************************************************
 */
 
@@ -352,7 +352,8 @@ typedef enum {
   EN_CONCENLIMIT    = 22, //!< Limiting concentration for growth reactions
   EN_DEMANDPATTERN  = 23, //!< Name of default demand pattern
   EN_EMITBACKFLOW   = 24, //!< 1 if emitters can backflow, 0 if not
-  EN_PRESS_UNITS    = 25  //!< Pressure units (see @ref EN_PressUnits)
+  EN_PRESS_UNITS    = 25, //!< Pressure units (see @ref EN_PressUnits)
+  EN_STATUS_REPORT  = 26  //!< Type of status report to produce (see @ref EN_StatusReport)
 } EN_Option;
 
 /// Simple control types
@@ -446,7 +447,8 @@ typedef enum {
 /// Status reporting levels
 /**
 These choices specify the level of status reporting written to a project's report
-file during a hydraulic analysis. The level is set using the @ref EN_setstatusreport function.
+file during a hydraulic analysis. The level is set using the @ref EN_setstatusreport
+or the @ref EN_setoption functions.
 */
 typedef enum {
   EN_NO_REPORT = 0,     //!< No status reporting

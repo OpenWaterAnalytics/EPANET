@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       epanet.c
  Description:  implementation of EPANET's API functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/29/2023
+ Last Updated: 07/17/2023
  ******************************************************************************
 */
 
@@ -1211,6 +1211,9 @@ int DLLEXPORT EN_getoption(EN_Project p, int option, double *value)
     case EN_PRESS_UNITS:
         v = (double)p->parser.Pressflag;
         break;
+    case EN_STATUS_REPORT:
+        v = (double)( p->report.Statflag);
+        break;        
     default:
         return 251;
     }
@@ -1400,6 +1403,12 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         hcf =  Ucf[HEAD] / hfactor;
         qcf =  Ucf[FLOW] / qfactor;
         updateruleunits(p, dcf, pcf, hcf, qcf);
+        break;
+        
+    case EN_STATUS_REPORT:
+        i = ROUND(value);
+        if (i < EN_NO_REPORT || i > EN_FULL_REPORT) return 213;
+        p->report.Statflag = i;
         break;
 
     default:
