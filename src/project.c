@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/29/2023
+ Last Updated: 08/02/2023
  ******************************************************************************
 */
 
@@ -1373,10 +1373,10 @@ char *xstrcpy(char **s1, const char *s2, const size_t n)
 //           s1 points to a valid memory location or is NULL. E.g.,
 //           the following code will likely cause a segment fault:
 //             char *s;
-//             s = xstrcpy(s, "Some text");
+//             s = xstrcpy(&s, "Some text");
 //           while this would work correctly:
 //             char *s = NULL;
-//             s = xstrcpy(s, "Some text");
+//             s = xstrcpy(&s, "Some text");
 //----------------------------------------------------------------
 {
     size_t n1 = 0, n2 = 0;
@@ -1398,7 +1398,7 @@ char *xstrcpy(char **s1, const char *s2, const size_t n)
     if (n2 > n1) *s1 = realloc(*s1, (n2 + 1) * sizeof(char));
 
     // Copy the source string into the destination string
-    strncpy(*s1, s2, n2+1);
+    if (*s1) strncpy(*s1, s2, n2+1);
     return *s1;
 }
 

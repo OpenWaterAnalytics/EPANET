@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/01/2019
+ Last Updated: 08/02/2023
  ******************************************************************************
 */
 
@@ -41,6 +41,7 @@ file_handle_t *create_file_manager() {
 
     file_handle_t *file_handle;
     file_handle = (file_handle_t *)calloc(1, sizeof(file_handle_t));
+    if (file_handle == NULL) return NULL;
 
 	file_handle->filename = NULL;
 	file_handle->file = NULL;
