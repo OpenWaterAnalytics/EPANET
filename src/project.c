@@ -560,31 +560,41 @@ int  addlinkvertex(Slink *link, double x, double y)
 */
 {
     static int CHUNKSIZE = 5;
-    int n;
+    int n, newCapacity;
     Pvertices vertices;
-    if (link->Vertices == NULL)
+    double *newX, *newY;
+
+    vertices = link->Vertices;
+    if (vertices == NULL)
     {
         vertices = (struct Svertices *) malloc(sizeof(struct Svertices));
         if (vertices == NULL) return 101;
         vertices->Npts = 0;
-        vertices->Capacity = CHUNKSIZE;
-        vertices->X = (double *) calloc(vertices->Capacity, sizeof(double));
-        vertices->Y = (double *) calloc(vertices->Capacity, sizeof(double));
+        vertices->Capacity = 0;
+        vertices->X = NULL;
+        vertices->Y = NULL;
         link->Vertices = vertices;
     }
-    vertices = link->Vertices;
     if (vertices->Npts >= vertices->Capacity)
     {
-        vertices->Capacity += CHUNKSIZE;
-        vertices->X = realloc(vertices->X, vertices->Capacity * sizeof(double));
-        vertices->Y = realloc(vertices->Y, vertices->Capacity * sizeof(double));
+        newCapacity = vertices->Capacity + CHUNKSIZE;
+        newX = realloc(vertices->X, newCapacity * sizeof(double));
+        newY = realloc(vertices->Y, newCapacity * sizeof(double));
+        if (newX == NULL || newY == NULL)
+        {
+            free(newX);
+            free(newY);
+            return 101;
+        }
+        vertices->Capacity = newCapacity;
+        vertices->X = newX;
+        vertices->Y = newY;
     }
-    if (vertices->X == NULL || vertices->Y == NULL) return 101;
     n = vertices->Npts;
     vertices->X[n] = x;
     vertices->Y[n] = y;
     vertices->Npts++;
-    return 0;    
+    return 0;
 }
 
 void freelinkvertices(Slink *link)
