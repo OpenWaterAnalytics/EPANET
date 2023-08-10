@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/15/2019
+ Last Updated: 08/02/2023
 
  This module is based code by Steve Hill in Graphics Gems III,
  David Kirk (ed.), Academic Press, Boston, MA, 1992
@@ -72,7 +72,11 @@ struct Mempool * mempool_create()
     if (mempool == NULL) return NULL;
     mempool->first = createMemBlock();
     mempool->current = mempool->first;
-    if (mempool->first == NULL) return NULL;
+    if (mempool->first == NULL)
+    {
+        free(mempool);
+        return NULL;
+    }
     return mempool;
 }
 

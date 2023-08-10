@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/02/2019
+ Last Updated: 08/02/2023
  ******************************************************************************
 */
 
@@ -36,6 +36,7 @@ error_handle_t *create_error_manager(void (*p_error_message)(int, char*, int))
 {
 	error_handle_t *error_handle;
 	error_handle = (error_handle_t*)calloc(1, sizeof(error_handle_t));
+	if (error_handle == NULL) return NULL;
 
 	error_handle->p_msg_lookup = p_error_message;
 

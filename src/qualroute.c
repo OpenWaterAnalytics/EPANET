@@ -7,7 +7,7 @@ Description:  computes water quality transport over a single time step
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/15/2019
+Last Updated: 08/02/2023
 ******************************************************************************
 */
 
@@ -609,7 +609,7 @@ void initsegs(Project *pr)
         addseg(pr, k, v, c);
 
         // Create a 2nd segment for the 2-compartment tank model
-        if (net->Tank[j].MixModel == MIX2)
+        if (!qual->OutOfMemory && net->Tank[j].MixModel == MIX2)
         {
             // ... mixing zone segment
             v1 = MAX(0, v - net->Tank[j].V1frac * net->Tank[j].Vmax);

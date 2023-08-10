@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/21/2019
+ Last Updated: 08/02/2023
  ******************************************************************************
 */
 
@@ -27,7 +27,9 @@ BOOST_AUTO_TEST_CASE(test_categories_save)
     EN_Project ph = NULL;
 
     error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
     error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
+    BOOST_REQUIRE(error == 0);
 
     error = EN_getnodeindex(ph, (char *)"12", &Nindex);
     BOOST_REQUIRE(error == 0);

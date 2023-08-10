@@ -3,7 +3,8 @@
 //   epanet_output.c -- API for reading results from EPANET binary output file
 //
 //   Version:    0.40
-//   Date        04/02/2019
+//   Date        08/02/2023
+//               04/02/2019
 //               09/06/2017
 //               06/17/2016
 //               08/05/2014
@@ -252,12 +253,15 @@ int EXPORT_OUT_API ENR_getNetSize(ENR_Handle p_handle, int** elementCount, int* 
  */
 {
     int errorcode = 0;
-    int* temp = newIntArray(NELEMENTTYPES);
+    int* temp;
     data_t* p_data;
 
     p_data = (data_t*)p_handle;
 
     if (p_data == NULL) return -1;
+    // Check memory for count values
+    else if MEMCHECK(temp = newIntArray(NELEMENTTYPES)) errorcode = 411;
+    
     else
     {
         temp[0] = p_data->nodeCount;
@@ -459,6 +463,7 @@ int EXPORT_OUT_API ENR_getElementName(ENR_Handle p_handle, ENR_ElementType type,
             *name = temp;
             *length = MAXID_P1;
         }
+        else free(temp);
     }
 
     return set_error(p_data->error_handle, errorcode);

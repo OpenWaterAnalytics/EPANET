@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/16/2019
+ Last Updated: 08/02/2023
  ******************************************************************************
 */
 
@@ -32,7 +32,9 @@ BOOST_AUTO_TEST_CASE(test_tank_overflow)
     EN_Project ph = NULL;
 
     error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
     error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
 
     // Get index of the tank and its inlet/outlet pipe
     error = EN_getnodeindex(ph, (char *)"2", &Nindex);

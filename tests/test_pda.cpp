@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/20/2019
+ Last Updated: 08/02/2023
  ******************************************************************************
 */
 
@@ -30,7 +30,9 @@ BOOST_AUTO_TEST_CASE(test_pda_model)
 
     EN_Project ph = NULL;
     error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
     error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
 
     // Set Demand Multiplier to 10 to cause negative pressures
     error = EN_setoption(ph, EN_DEMANDMULT, 10);
