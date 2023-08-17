@@ -550,7 +550,7 @@ int valvedata(Project *pr)
         if (c == 0) return setError(parser, 7, 206);
         losscurve = c;
         net->Curve[c].Type = VALVE_CURVE;
-        if (setting > 1.0) setting = 1.0;
+        if (setting > 100.0) setting = 100.0;
     }        
 
     // Check for illegal connections

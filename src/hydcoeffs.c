@@ -161,10 +161,10 @@ double pcvlosscoeff(Project* pr, int k, double s)
 /*
 **--------------------------------------------------------------
 **   Input:   k = link index
-**            s = valve fraction open setting
+**            s = valve percent open setting
 **   Output:  returns a valve loss coefficient
 **   Purpose: finds a Positional Control Valve's loss
-**            coefficient from its fraction open setting.
+**            coefficient from its percent open setting.
 **--------------------------------------------------------------
 */
 {
@@ -176,7 +176,7 @@ double pcvlosscoeff(Project* pr, int k, double s)
     double kmo;                        // fully open loss coeff.
     double km;                         // partly open loss coeff.
     double kvr;                        // Kv / Kvo (Kvo = Kv at fully open)
-    double *x, *y;                     // points on kvr v. frac. open curve
+    double *x, *y;                     // points on kvr v. percent open curve
     int k1, k2, npts;
     Scurve *curve;
 
@@ -186,7 +186,7 @@ double pcvlosscoeff(Project* pr, int k, double s)
     // Valve is completely open so return its Km value
     d = net->Link[k].Diam;
     kmo = net->Link[k].Km;
-    if (s >= 1.0) return kmo;
+    if (s >= 100.0) return kmo;
     
     // Valve is completely closed so return a large coeff.
     if (s <= 0.0) return CBIG;
@@ -199,8 +199,8 @@ double pcvlosscoeff(Project* pr, int k, double s)
         // Valve curve data
         curve = &net->Curve[c];
         npts = curve->Npts;
-        x = curve->X;            // x = frac. open
-        y = curve->Y;            // y = Kv / Kvo
+        x = curve->X;            // x = % open
+        y = curve->Y;            // y = Kv / Kvo as a %
     
         // s lies below first point of curve
         if (s < x[0])
@@ -226,7 +226,8 @@ double pcvlosscoeff(Project* pr, int k, double s)
         }
     }
 
-    // kvr can't be > 1 or <= 0    
+    // Convert kvr from % to fraction
+    kvr /= 100.;    
     kvr = MIN(kvr, 1.0);
     kvr = MAX(kvr, CSMALL);
     
