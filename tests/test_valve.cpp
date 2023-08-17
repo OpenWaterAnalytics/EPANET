@@ -26,7 +26,7 @@ BOOST_FIXTURE_TEST_CASE(test_PCV_valve, FixtureOpenClose)
 {
     int npts = 5;
     double x[] = { 0.0, 25., 50., 75., 100. };
-    double y[] = {0.0, 0.89, 18.4, 40.6, 100.0};
+    double y[] = {0.0, 8.9, 18.4, 40.6, 100.0};
     double v;
     int linkIndex, curveIndex;
 
@@ -64,10 +64,10 @@ BOOST_FIXTURE_TEST_CASE(test_PCV_valve, FixtureOpenClose)
     // The PCV interpolated relative flow coeff. at 35% open is 0.127.
     // This translates to a minor loss coeff. of 0.19 / 0.127^2 = 11.78.
     // If the PCV were replaced with a TCV at that setting the resulting
-    // head loss would be 0.02545 ft which should equal the PCV result. 
+    // head loss would be 0.0255 ft which should equal the PCV result. 
     error = EN_getlinkvalue(ph, linkIndex, EN_HEADLOSS, &v);
     BOOST_REQUIRE(error == 0);
-    BOOST_REQUIRE(abs(v - 0.02545) < 0.001);
+    BOOST_REQUIRE(abs(v - 0.0255) < 0.001);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
