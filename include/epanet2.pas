@@ -163,6 +163,10 @@ const
  EN_CMD        = 9;
  EN_CMS        = 10;
 
+ EN_PSI        = 0;   { Pressure units types }
+ EN_KPA        = 1;
+ EN_METERS     = 2;
+
  EN_DDA        = 0;   { Demand model types }
  EN_PDA        = 1;  
  
