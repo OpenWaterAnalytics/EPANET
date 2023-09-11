@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 05/13/2023}
+{Last updated on 09/11/2023}
 
 interface
 
@@ -12,9 +12,9 @@ const
 { These are codes used by the DLL functions }
  EN_MAXID = 31;        { Max. # characters in ID name }
  EN_MAXMSG = 255;      { Max. # characters in strings }
- EN_MISSING = -1.E10;
- EN_SET_CLOSED = -1.E10;
- EN_SET_OPEN = 1.E10;
+ EN_MISSING = -1.0E10;
+ EN_SET_CLOSED = -1.0E10;
+ EN_SET_OPEN = 1.0E10;
 
  EN_ELEVATION  = 0;    { Node parameters }
  EN_BASEDEMAND = 1;
@@ -271,8 +271,8 @@ const
  EN_R_IS_CLOSED = 2;
  EN_R_IS_ACTIVE = 3;
 
-{$ifdef WINDOWS}
- EpanetLib = 'epanet2.dll';
+{$ifdef MSWINDOWS}
+ EpanetLib = 'epanet2.dll'; 
 {$else}
  EpanetLib = 'libepanet2.so';
 {$endif}
