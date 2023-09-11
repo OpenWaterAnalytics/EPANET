@@ -45,3 +45,4 @@ This document describes the changes and updates that have been made in version 2
  - `EN_SET_CLOSED` and `EN_SET_OPEN` constants were added that can be used with `EN_setcontrol` to fix the status of pipes and valves to completely closed or completely open.
  - `EN_EMITTERFLOW` can now be used with `EN_getnodevalue` to retrieve a node's emitter flow rate.
  - `EN_STATUS_REPORT` can now be used with `EN_getoption` and `EN_setoption` to get or set the type of status report that EPANET will generate (`EN_NO_REPORT`, `EN_NORMAL_REPORT` or `EN_FULL_REPORT`).  
+ - A possible parser error that could result in a Trace Node ID in an input file not being recognized was fixed.
