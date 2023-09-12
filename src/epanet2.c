@@ -786,6 +786,17 @@ int DLLEXPORT ENsetcontrol(int index, int type, int linkIndex,
                          nodeIndex, level);
 }
 
+
+int DLLEXPORT ENgetcontrolenabled(int index, int *out_enabled)
+{
+    return EN_getcontrolenabled(_defaultProject, index, out_enabled);
+}
+
+int DLLEXPORT ENsetcontrolenabled(int index, int enabled)
+{
+    return EN_setcontrolenabled(_defaultProject, index, enabled);
+}
+
 /********************************************************************
 
     Rule-Based Controls Functions
@@ -887,4 +898,15 @@ int DLLEXPORT ENsetelseaction(int ruleIndex, int actionIndex, int linkIndex,
 int DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority)
 {
     return EN_setrulepriority(_defaultProject, index, priority);
+}
+
+
+int DLLEXPORT ENgetruleenabled(int index, int *out_enabled)
+{
+    return EN_getruleenabled(_defaultProject, index, out_enabled);
+}
+
+int DLLEXPORT ENsetruleenabled(int index, int enabled)
+{
+    return EN_setruleenabled(_defaultProject, index, enabled);
 }

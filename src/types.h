@@ -197,6 +197,11 @@ typedef enum {
 } ControlType;
 
 typedef enum {
+  DISABLED,
+  ENABLED
+} EnabledType;
+
+typedef enum {
   XHEAD,         // pump cannot deliver head (closed)
   TEMPCLOSED,    // temporarily closed
   CLOSED,        // closed
@@ -474,6 +479,7 @@ typedef struct             // Control Statement
     double      Setting;   // new link setting
     StatusType  Status;    // new link status
     ControlType Type;      // control type
+    EnabledType isEnabled;   // control enabled?
 } Scontrol;
 
 typedef struct             // Field Object of Report Table
@@ -525,6 +531,7 @@ typedef struct                 // Control Rule Structure
 {
     char     label[MAXID+1];   // rule label
     double   priority;         // priority level
+    EnabledType isEnabled;     // is the rule enabled?
     Spremise *Premises;        // list of premises
     Saction  *ThenActions;     // list of THEN actions
     Saction  *ElseActions;     // list of ELSE actions
