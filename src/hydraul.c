@@ -557,7 +557,7 @@ int  controls(Project *pr)
     {
         // Make sure that link is defined
         control = &net->Control[i];
-        if (control->isEnabled == DISABLED)
+        if (!control->isEnabled)
         {
             continue;
         }
@@ -733,7 +733,7 @@ int  controltimestep(Project *pr, long *tstep)
     {
         t = 0;
         control = &net->Control[i];
-        if (control->isEnabled == DISABLED)
+        if (!control->isEnabled)
         {
             continue;
         }

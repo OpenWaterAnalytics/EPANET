@@ -505,4 +505,7 @@ typedef enum {
 #define EN_SET_CLOSED -1.E10  //!< Link set closed indicator
 #define EN_SET_OPEN    1.E10  //!< Link set open indicator
 
+#define EN_FALSE 0  // boolean false
+#define EN_TRUE 1   // boolean true
+
 #endif //EPANET2_ENUMS_H

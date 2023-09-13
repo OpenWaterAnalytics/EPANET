@@ -5283,7 +5283,7 @@ int  DLLEXPORT EN_setcontrolenabled(EN_Project p, int index, int enabled)
     Scontrol *control;
     
     // Check for valid arguments
-    if (enabled != ENABLED && enabled != DISABLED)
+    if (enabled != TRUE && enabled != FALSE)
         return 202; // illegal numeric value
     if (!p->Openflag) 
         return 102;
@@ -5742,7 +5742,7 @@ int  DLLEXPORT EN_setruleenabled(EN_Project p, int index, int enabled)
     Srule *rule;
     
     // Check for valid arguments
-    if (enabled != ENABLED && enabled != DISABLED)
+    if (enabled != TRUE && enabled != FALSE)
         return 202; // illegal numeric value
     if (!p->Openflag) 
         return 102;

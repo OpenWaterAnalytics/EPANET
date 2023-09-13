@@ -943,7 +943,7 @@ int controldata(Project *pr)
     control->Time = (long)(3600.0 * time);
     if (ctltype == TIMEOFDAY) control->Time %= SECperDAY;
     control->Grade = level;
-    control->isEnabled = ENABLED;
+    control->isEnabled = TRUE;
     return 0;
 }
 

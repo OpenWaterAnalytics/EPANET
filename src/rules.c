@@ -528,7 +528,7 @@ int checkrules(Project *pr, long dt)
     for (i = 1; i <= net->Nrules; i++)
     {
         // skip if the rule is disabled
-        if (net->Rule[i].isEnabled == DISABLED)
+        if (!net->Rule[i].isEnabled)
         {
             continue;
         }
@@ -689,7 +689,7 @@ void newrule(Project *pr)
     rule->ThenActions = NULL;
     rule->ElseActions = NULL;
     rule->priority = 0.0;
-    rule->isEnabled = ENABLED;
+    rule->isEnabled = TRUE;
     pr->rules.LastPremise = NULL;
     pr->rules.LastThenAction = NULL;
     pr->rules.LastElseAction = NULL;
