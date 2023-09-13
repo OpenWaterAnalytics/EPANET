@@ -1644,7 +1644,7 @@ typedef struct Project *EN_Project;
   @brief Gets the enabled status of a simple control.
   @param ph an EPANET project handle.
   @param index the control's index (starting from 1).
-  @param out_enabled the control will be either enabled or disabled.
+  @param out_enabled the control will be either EN_TRUE=enabled or EN_FALSE=disabled.
   @return an error code.
   */
   int  DLLEXPORT EN_getcontrolenabled(EN_Project ph, int index, int *out_enabled);
@@ -1653,7 +1653,7 @@ typedef struct Project *EN_Project;
   @brief Sets the enabled status of a simple control.
   @param ph an EPANET project handle.
   @param index the control's index (starting from 1).
-  @param enabled set the control to either enabled or disabled.
+  @param enabled set the control to either EN_TRUE=enabled or EN_FALSE=disabled.
   @return an error code.
   */
   int  DLLEXPORT EN_setcontrolenabled(EN_Project ph, int index, int enabled);
@@ -1845,7 +1845,7 @@ typedef struct Project *EN_Project;
   @brief Gets the enabled status of a rule-based control.
   @param ph an EPANET project handle.
   @param index the rule's index (starting from 1).
-  @param out_enabled the rule will be either enabled or disabled.
+  @param out_enabled the rule will be either EN_TRUE=enabled or EN_FALSE=disabled.
   @return an error code.
   */
   int  DLLEXPORT EN_getruleenabled(EN_Project ph, int index, int *out_enabled);
@@ -1854,7 +1854,7 @@ typedef struct Project *EN_Project;
   @brief Sets the enabled status of a rule-based control.
   @param ph an EPANET project handle.
   @param index the rule's index (starting from 1).
-  @param enabled set the rule to either enabled or disabled.
+  @param enabled set the rule to either EN_TRUE=enabled or EN_FALSE=disabled.
   @return an error code.
   */
   int  DLLEXPORT EN_setruleenabled(EN_Project ph, int index, int enabled);
