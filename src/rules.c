@@ -527,6 +527,11 @@ int checkrules(Project *pr, long dt)
     rules->ActionList = NULL;
     for (i = 1; i <= net->Nrules; i++)
     {
+        // skip if the rule is disabled
+        if (!net->Rule[i].isEnabled)
+        {
+            continue;
+        }
         // If premises true, add THEN clauses to action list
         if (evalpremises(pr, i) == TRUE)
         {
@@ -684,6 +689,7 @@ void newrule(Project *pr)
     rule->ThenActions = NULL;
     rule->ElseActions = NULL;
     rule->priority = 0.0;
+    rule->isEnabled = TRUE;
     pr->rules.LastPremise = NULL;
     pr->rules.LastThenAction = NULL;
     pr->rules.LastElseAction = NULL;

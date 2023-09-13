@@ -557,6 +557,10 @@ int  controls(Project *pr)
     {
         // Make sure that link is defined
         control = &net->Control[i];
+        if (!control->isEnabled)
+        {
+            continue;
+        }
         reset = 0;
         if ( (k = control->Link) <= 0) continue;
         link = &net->Link[k];
@@ -729,7 +733,10 @@ int  controltimestep(Project *pr, long *tstep)
     {
         t = 0;
         control = &net->Control[i];
-
+        if (!control->isEnabled)
+        {
+            continue;
+        }
         // Control depends on a tank level
         if ( (n = control->Node) > 0)
         {

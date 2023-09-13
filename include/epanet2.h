@@ -391,6 +391,9 @@ extern "C" {
   int DLLEXPORT ENsetcontrol(int index, int type, int linkIndex,
                 EN_API_FLOAT_TYPE setting, int nodeIndex, EN_API_FLOAT_TYPE level);
 
+  int DLLEXPORT ENgetcontrolenabled(int index, int *out_enabled);
+
+  int DLLEXPORT ENsetcontrolenabled(int index, int enabled);
 
 /********************************************************************
 
@@ -435,6 +438,10 @@ extern "C" {
                 int status, EN_API_FLOAT_TYPE setting);
 
   int DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
+
+  int DLLEXPORT ENgetruleenabled(int index, int *out_enabled);
+
+  int DLLEXPORT ENsetruleenabled(int index, int enabled);
 
   #if defined(__cplusplus)
   }
