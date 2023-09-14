@@ -47,4 +47,5 @@ This document describes the changes and updates that have been made in version 2
  - `EN_STATUS_REPORT` can now be used with `EN_getoption` and `EN_setoption` to get or set the type of status report that EPANET will generate (`EN_NO_REPORT`, `EN_NORMAL_REPORT` or `EN_FULL_REPORT`).  
  - A possible parser error that could result in a Trace Node ID in an input file not being recognized was fixed.
  - Additional API functions for enabling/disabling controls and rules were added.
+ - Updated the internal function `getclosedlink` in report.c to use a loop instead of recursion to prevent a stack overflow during the analysis of very large disconnections.
  
