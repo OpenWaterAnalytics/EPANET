@@ -4907,7 +4907,7 @@ int DLLEXPORT EN_setcurvetype(EN_Project p, int index, int type)
     Network *net = &p->network;
     if (!p->Openflag) return 102;
     if (index < 1 || index > net->Ncurves) return 206;
-    if (type < 0 || type > EN_GENERIC_CURVE) return 251;
+    if (type < 0 || type > EN_VALVE_CURVE) return 251;
     net->Curve[index].Type = type;
     return 0;
 }
