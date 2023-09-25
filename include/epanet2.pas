@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 09/11/2023}
+{Last updated on 09/14/2023}
 
 interface
 
@@ -270,6 +270,10 @@ const
  EN_R_IS_OPEN   = 1;   { Rule-based control link status }
  EN_R_IS_CLOSED = 2;
  EN_R_IS_ACTIVE = 3;
+ 
+ EN_FALSE       = 0;   { boolean false }
+ EN_TRUE        = 1;   { boolean true }
+
 
 {$ifdef MSWINDOWS}
  EpanetLib = 'epanet2.dll'; 
@@ -416,6 +420,8 @@ const
  function  ENdeletecontrol(Index: Integer): Integer; stdcall; external EpanetLib;
  function  ENgetcontrol(Index: Integer; var Ctype: Integer; var Link: Integer; var Setting: Single; var Node: Integer; var Level: Single): Integer; stdcall; external EpanetLib;
  function  ENsetcontrol(Index: Integer; Ctype: Integer; Link: Integer; Setting: Single; Node: Integer; Level: Single): Integer; stdcall; external EpanetLib;
+ function  ENgetcontrolenabled(Index: Integer; out_enabled: Integer): Integer; stdcall; external EpanetLib;
+ function  ENsetcontrolenabled(Index: Integer; var enabled: Integer): Integer; stdcall; external EpanetLib;
 
  {Rule-Based Control Functions}
  function ENaddrule(Rule: PAnsiChar): Integer; stdcall; external EpanetLib;
@@ -440,6 +446,8 @@ const
           var Status: Integer; var Setting: Single): Integer; stdcall; external EpanetLib;
  function ENsetelseaction(RuleIndex: Integer; ActionIndex: Integer; LinkIndex: Integer;
           Status: Integer; Setting: Single): Integer; stdcall; external EpanetLib;
+ function  ENgetruleenabled(Index: Integer; out_enabled: Integer): Integer; stdcall; external EpanetLib;
+ function  ENsetruleenabled(Index: Integer; var enabled: Integer): Integer; stdcall; external EpanetLib;
 
 implementation
 
