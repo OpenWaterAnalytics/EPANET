@@ -6,8 +6,8 @@ This document describes the changes and updates that have been made in version 2
  - The check for at least two nodes, one tank/reservoir and no unconnected junction nodes was moved from `EN_open` to `EN_openH` and `EN_openQ` so that partial network data files could be opened by the toolkit.
  - A `EN_setcurvetype` function was added to allow API clients to set a curve's type (e.g., `EN_PUMP_CURVE,` `EN_VOLUME_CURVE,` etc.).
  - A `EN_setvertex` function was added to allow API clients to change the coordinates of a single link vertex.
- - The index of a General Purpose Valve's (GPV's) head loss curve was added to the list of editable Link Properties using the symbolic constant name `EN_GPV_CURVE`.
- - The `EN_getlinkvalue` and `EN_setlinkvalue` functions were updated to get and set the value of `EN_GPV_CURVE`.
+ - The indices of a General Purpose Valve (GPV) and a Positional Control Valve (PCV) were added to the list of editable Link Properties using the symbolic constant names `EN_GPV_CURVE` and `EN_PCV_CURVE`, respectively.
+ - The `EN_getlinkvalue` and `EN_setlinkvalue` functions were updated to get and set the values of `EN_GPV_CURVE` and `EN_PCV_CURVE`.
  - Negative pressure values for `EN_SETTING` are now permitted in the `EN_setlinkvalue` function. 
  - The `EN_STARTTIME` parameter was added into the `EN_settimeparam` function.
  - A `EN_DEMANDPATTERN` parameter was added as the index of the default time pattern used by demands with no specific pattern assigned. It can be set or retrieved with the `EN_setoption` and `EN_getoption` functions, respectively, and is saved to the file when the `EN_saveinpfile` function is called.
@@ -24,11 +24,9 @@ This document describes the changes and updates that have been made in version 2
    - dropping the check for identical status report content since it prevents accepting code changes that produce more accurate solutions in fewer iterations.
  - A possible loss of network connectivity when evaluating a Pressure Sustaining Valve was prevented.
  - Having the implied loss coefficient for an active Flow Control Valve be less than its fully opened value was prevented.
- - A new type of valve, a Positional Control Valve (PCV), was added that uses a valve characteristic curve to relate its loss coefficient to its fraction open setting (`EN_PCV`).
+ - A new type of valve, a Positional Control Valve (PCV), was added. It uses a valve characteristic curve to relate its loss coefficient to a percentage open setting (parameter - `EN_PCV`).
  - `EN_VALVE_CURVE` can now be used with the `EN_getcurvetype` and `EN_setcurvetype` to get or set the valve position curve.
- - The index of a Positional Control Valve (PCV) was added to the list of editable Link Properties using the symbolic constant name `EN_PCV_CURVE`.
- - `EN_PCV_CURVE` can now be used with the `EN_getlinkvalue` and `EN_setlinkvalue` to get or set a PCV's curve. 
- - A new set of functions has been added to get information about upcoming time step events. Users will now see what type of event is going to cause the end of a time step to occur. See `ENtimetonextevent` and `EN_timetonextevent`.
+ - A new set of functions has been added to get information about upcoming time step events. Users will now see what type of event is going to cause the end of a time step to occur. See `EN_timetonextevent`.
  - A new set of functions has been added to allow users to set a reporting callback function. The user-supplied function will receive all output normally directed to the report file.
  - A `EN_EMITBACKFLOW` option was added that either allows emitters to have reverse flow through them (the default) or not.
  - An incorrect tank elevation value set using `EN_settankdata` with SI units has been fixed.
