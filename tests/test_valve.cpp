@@ -28,7 +28,7 @@ BOOST_FIXTURE_TEST_CASE(test_PCV_valve, FixtureOpenClose)
     double x[] = { 0.0, 25., 50., 75., 100. };
     double y[] = {0.0, 8.9, 18.4, 40.6, 100.0};
     double v;
-    int linkIndex, curveIndex;
+    int linkIndex, curveIndex, curveType;
 
     // Make steady state run
     error = EN_settimeparam(ph, EN_DURATION, 0);
@@ -50,6 +50,11 @@ BOOST_FIXTURE_TEST_CASE(test_PCV_valve, FixtureOpenClose)
     BOOST_REQUIRE(error == 0);
     error = EN_setcurve(ph, curveIndex, x, y, npts);
     BOOST_REQUIRE(error == 0);
+    error = EN_setcurvetype(ph, curveIndex, EN_VALVE_CURVE);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcurvetype(ph, curveIndex, &curveType);
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(curveType == EN_VALVE_CURVE);
 
     // Assign curve & initial setting to PCV
     error = EN_setlinkvalue(ph, linkIndex, EN_PCV_CURVE, curveIndex);
