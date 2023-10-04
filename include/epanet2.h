@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/01/2020
+ Last Updated: 09/28/2023
  ******************************************************************************
  */
 
@@ -71,6 +71,9 @@ extern "C" {
                  int unitsType, int headlossType);
 
   int  DLLEXPORT ENopen(const char *inpFile, const char *rptFile,
+                 const char *outFile);
+
+  int  DLLEXPORT ENopenX(const char *inpFile, const char *rptFile,
                  const char *outFile);
 
   int  DLLEXPORT ENgettitle(char *line1, char *line2, char *line3);

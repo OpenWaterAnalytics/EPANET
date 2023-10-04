@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 07/18/2023
+'Last updated on 09/28/2023
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -280,6 +280,7 @@ Public Const EN_SET_OPEN As Double = 1.0E10
  Declare Function ENepanet Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String, ByVal pviewprog As Any) As Long
  Declare Function ENinit Lib "epanet2.dll" (ByVal rptFile As String, ByVal outFile As String, ByVal unitsType As Long, ByVal headlossType As Long) As Long
  Declare Function ENopen Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String) As Long
+ Declare Function ENopenX Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String) As Long
  Declare Function ENgettitle Lib "epanet2.dll" (ByVal line1 As String, ByVal line2 As String, ByVal line3 As String) As Long
  Declare Function ENsettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Long
  Declare Function ENsaveinpfile Lib "epanet2.dll" (ByVal filename As String) As Long

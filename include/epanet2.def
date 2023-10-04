@@ -132,3 +132,4 @@ EXPORTS
     ENusehydfile                  = _ENusehydfile@4
     ENwriteline                   = _ENwriteline@4
     ENtimetonextevent             = _ENtimetonextevent@12
+    ENopenX                       = _ENopenX@12                          

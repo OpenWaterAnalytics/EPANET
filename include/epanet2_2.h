@@ -11,7 +11,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/01/2020
+ Last Updated: 09/28/2023
  ******************************************************************************
  */
 
@@ -113,7 +113,7 @@ typedef struct Project *EN_Project;
                 int unitsType, int headLossType);
 
   /**
-  @brief Opens an EPANET input file & reads in network data.
+  @brief Reads an EPANET input file with no errors allowed.
   @param ph an EPANET project handle.
   @param inpFile the name of an existing EPANET-formatted input file.
   @param rptFile the name of a report file to be created (or "" if not needed).
@@ -121,9 +121,25 @@ typedef struct Project *EN_Project;
   @return an error code.
 
   This function should be called immediately after ::EN_createproject if an EPANET-formatted
-  input file will be used to supply network data.
+  input file will be used to supply network data. If errors are detected then the project is
+  not opened and will not accept toolkit function calls.
   */
   int DLLEXPORT EN_open(EN_Project ph, const char *inpFile, const char *rptFile,
+                const char *outFile);
+
+  /**
+  @brief Reads an EPANET input file with errors allowed.
+  @param ph an EPANET project handle.
+  @param inpFile the name of an existing EPANET-formatted input file.
+  @param rptFile the name of a report file to be created (or "" if not needed).
+  @param outFile the name of a binary output file to be created (or "" if not needed).
+  @return an error code.
+
+  This function should be called immediately after ::EN_createproject if an EPANET-formatted
+  input file will be used to supply network data. If formatting errors are detected (error
+  code = 200) then the project remains open and will accept toolkit function calls.
+  */
+  int DLLEXPORT EN_openX(EN_Project ph, const char *inpFile, const char *rptFile,
                 const char *outFile);
 
   /**

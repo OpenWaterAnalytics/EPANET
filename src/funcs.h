@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/29/2023
+ Last Updated: 09/28/2023
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -19,6 +19,7 @@ void    initpointers(Project *);
 int     allocdata(Project *);
 void    freedata(Project *);
 
+int     openproject(Project *, const char *, const char *, const char *, int);
 int     openfiles(Project *, const char *, const char *,const char *);
 int     openhydfile(Project *);
 int     openoutfile(Project *);
@@ -48,7 +49,6 @@ void    freelinkvertices(Slink *);
 
 void    adjustpatterns(Network *, int);
 void    adjustcurves(Network *, int);
-int     adjustpumpparams(Project *, int);
 int     resizecurve(Scurve *, int);
 int     setcontrol(Project *, int, int, double, int, double, Scontrol *);
 
@@ -70,7 +70,7 @@ int     getdata(Project *);
 void    setdefaults(Project *);
 void    initreport(Report *);
 void    adjustdata(Project *);
-int     inittanks(Project *);
+void    inittanks(Project *);
 void    initunits(Project *);
 void    convertunits(Project *);
 
@@ -78,7 +78,6 @@ void    convertunits(Project *);
 
 int     netsize(Project *);
 int     readdata(Project *);
-int     updatepumpparams(Project *, int);
 int     findmatch(char *, char *[]);
 int     match(const char *, const char *);
 int     gettokens(char *, char **, int, char *);
@@ -120,7 +119,7 @@ void    freerules(Project *);
 int     ruledata(Project *);
 void    ruleerrmsg(Project *);
 void    adjustrules(Project *, int, int);
-void    adjusttankrules(Project *);
+void    adjusttankrules(Project *, int);
 Spremise *getpremise(Spremise *, int);
 Saction  *getaction(Saction *, int);
 int     writerule(Project *, FILE *, int);

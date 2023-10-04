@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 //epanet2.cs[By Oscar Vegas]
-//Last updated on 07/18/2023
+//Last updated on 09/28/2023
 
 //Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 //(EPANET2.DLL) for use with C#
@@ -285,6 +285,9 @@ namespace EpanetCSharpLibrary
 
         [DllImport(EPANETDLL, EntryPoint = "ENopen")]
         public static extern int ENopen(string inpFile, string rptFile, string outFile);
+
+        [DllImport(EPANETDLL, EntryPoint = "ENopenX")]
+        public static extern int ENopenX(string inpFile, string rptFile, string outFile);
 
         [DllImport(EPANETDLL, EntryPoint = "ENgettitle")]
         public static extern int ENgettitle(string titleline1, string titleline2, string titleline3);

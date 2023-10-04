@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/17/2023
+ Last Updated: 09/28/2023
  ******************************************************************************
 */
 
@@ -179,61 +179,30 @@ int DLLEXPORT EN_open(EN_Project p, const char *inpFile, const char *rptFile,
  **           outFile = name of binary output file
  **  Output:  none
  **  Returns: error code
- **  Purpose: opens an EPANET input file & reads in network data
+ **  Purpose: reads an EPANET input file with no errors allowed.
+ **----------------------------------------------------------------
+ */
+ {
+   writewin(p->viewprog, FMT100);
+   return openproject(p, inpFile, rptFile, outFile, FALSE);
+ }     
+
+int DLLEXPORT EN_openX(EN_Project p, const char *inpFile,
+    const char *rptFile, const char *outFile)
+/*----------------------------------------------------------------
+ **  Input:   inpFile = name of input file
+ **           rptFile = name of report file
+ **           outFile = name of binary output file
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: reads an EPANET input file with errors allowed.
  **----------------------------------------------------------------
  */
 {
-  int errcode = 0;
+    writewin(p->viewprog, FMT100);
+    return openproject(p, inpFile, rptFile, outFile, TRUE);
+}    
 
-  // Set system flags
-  p->Openflag = FALSE;
-  p->hydraul.OpenHflag = FALSE;
-  p->quality.OpenQflag = FALSE;
-  p->outfile.SaveHflag = FALSE;
-  p->outfile.SaveQflag = FALSE;
-  p->Warnflag = FALSE;
-  p->report.Messageflag = TRUE;
-  p->report.Rptflag = 1;
-
-  // Initialize data arrays to NULL
-  initpointers(p);
-
-  // Open input & report files
-  ERRCODE(openfiles(p, inpFile, rptFile, outFile));
-  if (errcode > 0)
-  {
-    errmsg(p, errcode);
-    return errcode;
-  }
-
-  // Allocate memory for project's data arrays
-  writewin(p->viewprog, FMT100);
-  ERRCODE(netsize(p));
-  ERRCODE(allocdata(p));
-
-  // Read input data
-  ERRCODE(getdata(p));
-
-  // Close input file
-  if (p->parser.InFile != NULL)
-  {
-      fclose(p->parser.InFile);
-      p->parser.InFile = NULL;
-  }
-
-  // If using previously saved hydraulics file then open it
-  if (p->outfile.Hydflag == USE) ERRCODE(openhydfile(p));
-
-  // Write input summary to report file
-  if (!errcode)
-  {
-    if (p->report.Summaryflag) writesummary(p);
-    writetime(p, FMT104);
-    p->Openflag = TRUE;
-  }
-  else errmsg(p, errcode);
-  return errcode;
-}
 
 int DLLEXPORT EN_gettitle(EN_Project p, char *line1, char *line2, char *line3)
 /*----------------------------------------------------------------
@@ -359,7 +328,6 @@ int DLLEXPORT EN_close(EN_Project p)
  */
 {
     // Free all project data
-    if (p->Openflag) writetime(p, FMT105);
     freedata(p);
 
     // Close output file
@@ -495,7 +463,11 @@ int DLLEXPORT EN_openH(EN_Project p)
 
     // Open hydraulics solver
     ERRCODE(openhyd(p));
-    if (!errcode) p->hydraul.OpenHflag = TRUE;
+    if (!errcode)
+    {
+        p->hydraul.OpenHflag = TRUE;
+        writetime(p, FMT104);
+    }    
     else errmsg(p, errcode);
     return errcode;
 }
@@ -834,6 +806,7 @@ int DLLEXPORT EN_closeQ(EN_Project p)
     closequal(p);
     p->quality.OpenQflag = FALSE;
     closeoutfile(p);
+    writetime(p, FMT105);
     return 0;
 }
 
@@ -1929,7 +1902,7 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
             if (control->Node > net->Njuncs - 1) control->Node += 1;
         }
         // adjust indices of tanks/reservoirs in Rule premises (see RULES.C)
-        adjusttankrules(p);
+        adjusttankrules(p, 1);
     }
 
     // Actions taken when a new Tank/Reservoir is added
@@ -4086,12 +4059,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             pumpIndex = findpump(&p->network, index);
             net->Pump[pumpIndex].Ptype = CONST_HP;
             net->Pump[pumpIndex].Hcurve = 0;
-            net->Link[index].Km = value;
-            updatepumpparams(p, pumpIndex);
-            net->Pump[pumpIndex].R /= Ucf[POWER];
-            net->Pump[pumpIndex].Q0 /= Ucf[FLOW];
-            net->Pump[pumpIndex].Qmax /= Ucf[FLOW];
-            net->Pump[pumpIndex].Hmax /= Ucf[HEAD];
+            net->Link[index].Km = value / Ucf[POWER];
         }
         break;
 
@@ -4380,10 +4348,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
 {
     Network *net = &p->network;
 
-    double *Ucf = p->Ucf;
     int pumpIndex;
-    int oldCurveIndex;
-    int newCurveType;
     int err = 0;
     Spump *pump;
 
@@ -4393,43 +4358,12 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
     if (PUMP != net->Link[linkIndex].Type) return 0;
     if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
 
-    // Save values that need to be restored in case new curve is invalid
-    pumpIndex = findpump(net, linkIndex);
-    pump = &p->network.Pump[pumpIndex];
-    oldCurveIndex = pump->Hcurve;
-    newCurveType = p->network.Curve[curveIndex].Type;
-
     // Assign the new curve to the pump
-    pump->Ptype = NOCURVE;
+    pumpIndex = findpump(net, linkIndex);
+    pump = &net->Pump[pumpIndex];
     pump->Hcurve = curveIndex;
-    if (curveIndex == 0) return 0;
-
-    // Update the pump's head curve parameters (which also changes
-    // the new curve's Type to PUMP_CURVE)
-    err = updatepumpparams(p, pumpIndex);
-
-    // If the parameter updating failed (new curve was not a valid pump curve)
-    // restore the pump's original curve and its parameters
-    if (err > 0)
-    {
-        p->network.Curve[curveIndex].Type = newCurveType;
-        pump->Ptype = NOCURVE;
-        pump->Hcurve = oldCurveIndex;
-        if (oldCurveIndex == 0) return err;
-        updatepumpparams(p, pumpIndex);
-    }
-
-    // Convert the units of the updated pump parameters to feet and cfs
-    if (pump->Ptype == POWER_FUNC)
-    {
-        pump->H0 /= Ucf[HEAD];
-        pump->R *= (pow(Ucf[FLOW], pump->N) / Ucf[HEAD]);
-    }
-    pump->Q0 /= Ucf[FLOW];
-    pump->Qmax /= Ucf[FLOW];
-    pump->Hmax /= Ucf[HEAD];
-
-    return err;
+    net->Link[linkIndex].Km = 0.0;
+    return 0;
 }
 
 /********************************************************************
@@ -4907,7 +4841,7 @@ int DLLEXPORT EN_setcurvetype(EN_Project p, int index, int type)
     Network *net = &p->network;
     if (!p->Openflag) return 102;
     if (index < 1 || index > net->Ncurves) return 206;
-    if (type < 0 || type > EN_GENERIC_CURVE) return 251;
+    if (type < 0 || type > EN_VALVE_CURVE) return 251;
     net->Curve[index].Type = type;
     return 0;
 }
@@ -4981,9 +4915,7 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
     // Insert new point into curve
     curve->X[n] = x;
     curve->Y[n] = y;
-
-    // Adjust parameters for pumps using curve as a head curve
-    return adjustpumpparams(p, curveIndex);
+    return 0;
 }
 
 int DLLEXPORT EN_getcurve(EN_Project p, int index, char *id, int *nPoints,
@@ -5055,9 +4987,7 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
         curve->X[j] = xValues[j];
         curve->Y[j] = yValues[j];
     }
-
-    // Adjust parameters for pumps using curve as a head curve
-    return adjustpumpparams(p, index);
+    return 0;
 }
 
 /********************************************************************
