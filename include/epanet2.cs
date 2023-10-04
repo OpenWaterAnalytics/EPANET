@@ -269,7 +269,9 @@ namespace EpanetCSharpLibrary
         public const double EN_MISSING = -1.0E10;
         public const double EN_SET_CLOSED = -1.0E10
         public const double EN_SET_OPEN = 1.0E10
-
+        
+        public const int EN_FALSE = 0   // boolean false
+        public const int EN_TRUE  = 1   // boolean true
 
         #region Epanet Imports
 
@@ -632,6 +634,12 @@ namespace EpanetCSharpLibrary
         [DllImport(EPANETDLL, EntryPoint = "ENsetcontrol")]
         public static extern int ENsetcontrol(int index, int type, int linkIndex, float setting, int nodeIndex, float level);
 
+        [DllImport(EPANETDLL, EntryPoint = "ENgetcontrolenabled")]
+        public static extern int ENgetcontrolenabled(int index, int out_enabled);
+
+        [DllImport(EPANETDLL, EntryPoint = "ENsetcontrolenabled")]
+        public static extern int ENsetcontrolenabled(int index, int enabled);
+
 
         //Rule-Based Control Functions
         [DllImport(EPANETDLL, EntryPoint = "ENaddrule")]
@@ -676,6 +684,11 @@ namespace EpanetCSharpLibrary
         [DllImport(EPANETDLL, EntryPoint = "ENsetelseaction")]
         public static extern int ENsetelseaction(int ruleIndex, int actionIndex, int linkIndex, int status, float setting);
 
+        [DllImport(EPANETDLL, EntryPoint = "ENgetruleenabled")]
+        public static extern int ENgetruleenabled(int index, int out_enabled);
+
+        [DllImport(EPANETDLL, EntryPoint = "ENsetruleenabled")]
+        public static extern int ENsetruleenabled(int index, int enabled);
 
         #endregion
     }

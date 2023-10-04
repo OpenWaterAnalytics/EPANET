@@ -261,6 +261,9 @@ Public Const EN_MISSING As Double = -1.0E10
 Public Const EN_SET_CLOSED As Double = -1.0E10
 Public Const EN_SET_OPEN As Double = 1.0E10
 
+Public Const EN_FALSE = 0   ' boolean false
+Public Const EN_TRUE  = 1   ' boolean true
+
 'These are the external functions that comprise the DLL
 
 'Project Functions
@@ -400,6 +403,8 @@ Public Const EN_SET_OPEN As Double = 1.0E10
  Declare Function ENdeletecontrol Lib "epanet2.dll" (ByVal index As Int32) As Int32
  Declare Function ENgetcontrol Lib "epanet2.dll" (ByVal index As Int32, type_ As Int32, linkIndex As Int32, setting As Single, nodeIndex As Int32, level As Single) As Int32
  Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal index As Int32, ByVal type_ As Int32, ByVal linkIndex As Int32, ByVal setting As Single, ByVal nodeIndex As Int32, ByVal level As Single) As Int32
+ Declare Function ENgetcontrolenabled Lib "epanet2.dll" (ByVal index As Int32, out_enabled As Int32) As Int32
+ Declare Function ENsetcontrolenabled Lib "epanet2.dll" (ByVal index As Int32, ByVal enabled As Int32) As Int32
 
 'Rule-Based Control Functions
  Declare Function ENaddrule Lib "epanet2.dll" (ByVal rule As String) As Int32
@@ -416,5 +421,7 @@ Public Const EN_SET_OPEN As Double = 1.0E10
  Declare Function ENsetthenaction Lib "epanet2.dll" (ByVal ruleIndex As Int32, ByVal actionIndex As Int32, ByVal linkIndex As Int32, ByVal status As Int32, ByVal setting As Single) As Int32
  Declare Function ENgetelseaction Lib "epanet2.dll" (ByVal ruleIndex As Int32, ByVal actionIndex As Int32, linkIndex As Int32, status As Int32, setting As Single) As Int32
  Declare Function ENsetelseaction Lib "epanet2.dll" (ByVal ruleIndex As Int32, ByVal actionIndex As Int32, ByVal linkIndex As Int32, ByVal status As Int32, ByVal setting As Single) As Int32
+ Declare Function ENgetruleenabled Lib "epanet2.dll" (ByVal index As Int32, out_enabled As Int32) As Int32
+ Declare Function ENsetruleenabled Lib "epanet2.dll" (ByVal index As Int32, ByVal enabled As Int32) As Int32
 
 End Module

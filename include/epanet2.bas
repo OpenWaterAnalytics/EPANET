@@ -35,7 +35,7 @@ Public Const EN_TANK_KBULK = 23
 Public Const EN_TANKVOLUME = 24
 Public Const EN_MAXVOLUME = 25
 Public Const EN_CANOVERFLOW = 26
-Public Const EN_DEMANDDEFICIT = 27 
+Public Const EN_DEMANDDEFICIT = 27
 Public Const EN_NODE_INCONTROL = 28
 Public Const EN_EMITTERFLOW = 29
 
@@ -64,7 +64,7 @@ Public Const EN_PUMP_ECOST = 21
 Public Const EN_PUMP_EPAT = 22
 Public Const EN_LINK_INCONTROL = 23
 Public Const EN_GPV_CURVE = 24
-Public Const EN_PCV_CURVE= 25
+Public Const EN_PCV_CURVE = 25
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
@@ -96,7 +96,7 @@ Public Const EN_LINK = 1
 Public Const EN_TIMEPAT = 2
 Public Const EN_CURVE = 3
 Public Const EN_CONTROL = 4
-Public Const EN_RULE = 5 
+Public Const EN_RULE = 5
 
 Public Const EN_NODECOUNT = 0     ' Component counts
 Public Const EN_TANKCOUNT = 1
@@ -122,7 +122,7 @@ Public Const EN_GPV = 8
 Public Const EN_PCV = 9
 
 Public Const EN_CLOSED = 0        ' Link status types
-Public Const EN_OPEN   = 1
+Public Const EN_OPEN = 1
 
 Public Const EN_PUMP_XHEAD = 0    ' Pump state types
 Public Const EN_PUMP_CLOSED = 2
@@ -175,7 +175,7 @@ Public Const EN_GLOBALPRICE = 9
 Public Const EN_GLOBALPATTERN = 10
 Public Const EN_DEMANDCHARGE = 11
 Public Const EN_SP_GRAVITY = 12
-Public Const EN_SP_VISCOS  = 13
+Public Const EN_SP_VISCOS = 13
 Public Const EN_UNBALANCED = 14
 Public Const EN_CHECKFREQ = 15
 Public Const EN_MAXCHECK = 16
@@ -269,9 +269,12 @@ Public Const EN_STEP_WQ = 2
 Public Const EN_STEP_TANKEVENT = 3
 Public Const EN_STEP_CONTROLEVENT = 4
 
-Public Const EN_MISSING As Double = -1.0E10
-Public Const EN_SET_CLOSED As Double = -1.0E10
-Public Const EN_SET_OPEN As Double = 1.0E10
+Public Const EN_MISSING As Double = -10000000000#
+Public Const EN_SET_CLOSED As Double = -10000000000#
+Public Const EN_SET_OPEN As Double = 10000000000#
+
+Public Const EN_FALSE = 0   ' boolean false
+Public Const EN_TRUE = 1    ' boolean true
 
 'These are the external functions that comprise the DLL
 
@@ -356,7 +359,7 @@ Public Const EN_SET_OPEN As Double = 1.0E10
  Declare Function ENgetdemandindex Lib "epanet2.dll" (ByVal nodeIndex As Long, ByVal demandName As String, demandIndex As Long) As Long
  Declare Function ENgetnumdemands Lib "epanet2.dll" (ByVal nodeIndex As Long, numDemands As Long) As Long
  Declare Function ENgetbasedemand Lib "epanet2.dll" (ByVal nodeIndex As Long, ByVal demandIndex As Long, value As Single) As Long
- Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal nodeIndex As Long, ByVal demandIndex As Long, ByVal BaseDemand As Single) As Long
+ Declare Function ENsetbasedemand Lib "epanet2.dll" (ByVal nodeIndex As Long, ByVal demandIndex As Long, ByVal baseDemand As Single) As Long
  Declare Function ENgetdemandpattern Lib "epanet2.dll" (ByVal nodeIndex As Long, ByVal demandIndex As Long, patIndex As Long) As Long
  Declare Function ENsetdemandpattern Lib "epanet2.dll" (ByVal nodeIndex As Long, ByVal demandIndex As Long, ByVal patIndex As Long) As Long
  Declare Function ENgetdemandname Lib "epanet2.dll" (ByVal nodeIndex As Long, ByVal demandIndex As Long, ByVal demandName As String) As Long
@@ -416,7 +419,9 @@ Public Const EN_SET_OPEN As Double = 1.0E10
  Declare Function ENdeletecontrol Lib "epanet2.dll" (ByVal index As Long) As Long
  Declare Function ENgetcontrol Lib "epanet2.dll" (ByVal index As Long, type_ As Long, linkIndex As Long, setting As Single, nodeIndex As Long, level As Single) As Long
  Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal index As Long, ByVal type_ As Long, ByVal linkIndex As Long, ByVal setting As Single, ByVal nodeIndex As Long, ByVal level As Single) As Long
-
+ Declare Function ENgetcontrolenabled Lib "epanet2.dll" (ByVal index As Long, out_enabled As Long) As Long
+ Declare Function ENsetcontrolenabled Lib "epanet2.dll" (ByVal index As Long, ByVal enabled As Long) As Long
+ 
 'Rule-Based Control Functions
  Declare Function ENaddrule Lib "epanet2.dll" (ByVal rule As String) As Long
  Declare Function ENdeleterule Lib "epanet2.dll" (ByVal index As Long) As Long
@@ -432,3 +437,6 @@ Public Const EN_SET_OPEN As Double = 1.0E10
  Declare Function ENsetthenaction Lib "epanet2.dll" (ByVal ruleIndex As Long, ByVal actionIndex As Long, ByVal linkIndex As Long, ByVal status As Long, ByVal setting As Single) As Long
  Declare Function ENgetelseaction Lib "epanet2.dll" (ByVal ruleIndex As Long, ByVal actionIndex As Long, linkIndex As Long, status As Long, setting As Single) As Long
  Declare Function ENsetelseaction Lib "epanet2.dll" (ByVal ruleIndex As Long, ByVal actionIndex As Long, ByVal linkIndex As Long, ByVal status As Long, ByVal setting As Single) As Long
+ Declare Function ENgetruleenabled Lib "epanet2.dll" (ByVal index As Long, out_enabled As Long) As Long
+ Declare Function ENsetruleenabled Lib "epanet2.dll" (ByVal index As Long, ByVal enabled As Long) As Long
+
