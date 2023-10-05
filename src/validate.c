@@ -200,8 +200,9 @@ int customcurvepump(Project *pr, Spump *pump, Scurve *curve)
             return 227;
         }
     }
-    pump->Qmax = curve->X[npts - 1] / pr->Ucf[FLOW];
+    pump->Qmax = curve->X[npts - 1];
     pump->Q0 = (curve->X[0] + pump->Qmax) / 2.0 / pr->Ucf[FLOW];
+    pump->Qmax /= pr->Ucf[FLOW];
     pump->Hmax = curve->Y[0] / pr->Ucf[HEAD];
     return 0;
 }
