@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       input2.c
 Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
@@ -33,7 +33,6 @@ int getheadlossoption(Project *, char *);
 static int  newline(Project *, int, char *);
 static int  addpattern(Network *, char *);
 static int  addcurve(Network *, char *);
-static int  getpumpparams(Project *);
 static void inperrmsg(Project *, int, int, char *);
 
 

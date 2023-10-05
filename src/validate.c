@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       validate.c
  Description:  validates project data
  Authors:      see AUTHORS
@@ -21,8 +21,8 @@
 #include "text.h"
 
 // Exported functions
-int  validateproject(Project *pr);
-void reindextanks(Project *pr);
+int  validateproject(Project *);
+void reindextanks(Project *);
 
 int validatetanks(Project *pr)
 /*
@@ -149,8 +149,8 @@ int validatecurves(Project *pr)
     return result;
 }
 
-int powercurve(double h0, double h1, double h2, double q1, double q2,
-               double *a, double *b, double *c)
+int powerfuncpump(double h0, double h1, double h2, double q1, double q2,
+                  double *a, double *b, double *c)
 /*
 **---------------------------------------------------------
 **  Input:   h0 = shutoff head
@@ -160,7 +160,7 @@ int powercurve(double h0, double h1, double h2, double q1, double q2,
 **           q2 = max. flow
 **  Output:  *a, *b, *c = pump curve coeffs. (H = a-bQ^c),
 **           Returns 1 if sucessful, 0 otherwise.
-**  Purpose: computes coeffs. for pump curve
+**  Purpose: computes coeffs. for a power function pump curve
 **----------------------------------------------------------
 */
 {
@@ -179,114 +179,105 @@ int powercurve(double h0, double h1, double h2, double q1, double q2,
     return 1;
 }
 
-int findpumpparams(Project *pr, int pumpindex)
+int customcurvepump(Project *pr, Spump *pump, Scurve *curve)
 /*
-**-------------------------------------------------------------
-**  Input:   pumpindex = index of a pump
-**  Output:  returns error code
-**  Purpose: computes & checks a pump's head curve coefficients
-**--------------------------------------------------------------
+**-------------------------------------------------------------------
+**  Input:   pump = a pump object
+**           curve = a data curve object
+**  Output:  returns an error code
+**  Purpose: computes properties for a pump with a custom pump curve.
+**-------------------------------------------------------------------
 */
 {
-    Network *net = &pr->network;
-    Spump  *pump;
-    Scurve *curve;
+    int m, npts = curve->Npts;
+    pump->Ptype = CUSTOM;
+    for (m = 1; m < npts; m++)
+    {
+        // Curve must have continuously decreasing head (the Y value)
+        if (curve->Y[m] >= curve->Y[m - 1])
+        {
+            pump->Ptype = NOCURVE;
+            return 227;
+        }
+    }
+    pump->Qmax = curve->X[npts - 1] / pr->Ucf[FLOW];
+    pump->Q0 = (curve->X[0] + pump->Qmax) / 2.0 / pr->Ucf[FLOW];
+    pump->Hmax = curve->Y[0] / pr->Ucf[HEAD];
+    return 0;
+}
 
-    int m;
-    int curveindex;
-    int npts = 0;
-    int errcode = 0;
+int pumpcurvepump(Project *pr, Spump *pump, Scurve *curve)
+/*
+**-------------------------------------------------------------------
+**  Input:   pump = a pump object
+**           curve = a data curve object
+**  Output:  returns an error code
+**  Purpose: computes properties for a pump assigned a pump curve.
+**-------------------------------------------------------------------
+*/
+{
     double a, b, c, h0 = 0.0, h1 = 0.0, h2 = 0.0, q1 = 0.0, q2 = 0.0;
+    int npts = curve->Npts;
 
-    pump = &net->Pump[pumpindex];
-    if (pump->Ptype == CONST_HP)  // Constant Hp pump
+    curve->Type = PUMP_CURVE;
+
+    // Generic power function curve
+    if (npts == 1)
     {
-        pump->H0 = 0.0;
-        pump->R = -8.814 * net->Link[pump->Link].Km;
-        pump->N = -1.0;
-        pump->Hmax = BIG; // No head limit
-        pump->Qmax = BIG; // No flow limit
-        pump->Q0 = 1.0;   // Init. flow = 1 cfs
-        return 0;
+        pump->Ptype = POWER_FUNC;
+        q1 = curve->X[0];
+        h1 = curve->Y[0];
+        h0 = 1.33334 * h1;
+        q2 = 2.0 * q1;
+        h2 = 0.0;
     }
 
-    else if (pump->Ptype == NOCURVE) // Pump curve specified
+    // 3 point curve with shutoff head
+    else if (npts == 3 && curve->X[0] == 0.0)
     {
-        curveindex = pump->Hcurve;
-        if (curveindex == 0) return 226;
-        curve = &net->Curve[curveindex];
-        curve->Type = PUMP_CURVE;
-        npts = curve->Npts;
-
-        // Generic power function curve
-        if (npts == 1)
-        {
-            pump->Ptype = POWER_FUNC;
-            q1 = curve->X[0];
-            h1 = curve->Y[0];
-            h0 = 1.33334 * h1;
-            q2 = 2.0 * q1;
-            h2 = 0.0;
-        }
-
-        // 3 point curve with shutoff head
-        else if (npts == 3 && curve->X[0] == 0.0)
-        {
-            pump->Ptype = POWER_FUNC;
-            h0 = curve->Y[0];
-            q1 = curve->X[1];
-            h1 = curve->Y[1];
-            q2 = curve->X[2];
-            h2 = curve->Y[2];
-        }
-
-        // Custom pump curve
-        else
-        {
-            pump->Ptype = CUSTOM;
-            for (m = 1; m < npts; m++)
-            {
-                if (curve->Y[m] >= curve->Y[m - 1])
-                {
-                    pump->Ptype = NOCURVE;
-                    return 227;
-                }
-            }
-            pump->Qmax = curve->X[npts - 1];
-            pump->Q0 = (curve->X[0] + pump->Qmax) / 2.0;
-            pump->Hmax = curve->Y[0];
-        }
-
-        // Compute shape factors & limits of power function curves
-        if (pump->Ptype == POWER_FUNC)
-        {
-            if (!powercurve(h0, h1, h2, q1, q2, &a, &b, &c))
-            {
-                pump->Ptype = NOCURVE;
-                return 227;
-            }
-            else
-            {
-                pump->H0 = -a;
-                pump->R = -b;
-                pump->N = c;
-                pump->Q0 = q1;
-                pump->Qmax = pow((-a / b), (1.0 / c));
-                pump->Hmax = h0;
-            }
-        }
-
-        // Convert units of pump coefficients        
-        if (pump->Ptype == POWER_FUNC)
-        {
-            pump->H0 /= pr->Ucf[HEAD];
-            pump->R *= (pow(pr->Ucf[FLOW], pump->N) / pr->Ucf[HEAD]);
-        }
-        pump->R /= pr->Ucf[POWER];
-        pump->Q0 /= pr->Ucf[FLOW];
-        pump->Qmax /= pr->Ucf[FLOW];
-        pump->Hmax /= pr->Ucf[HEAD];
+        pump->Ptype = POWER_FUNC;
+        h0 = curve->Y[0];
+        q1 = curve->X[1];
+        h1 = curve->Y[1];
+        q2 = curve->X[2];
+        h2 = curve->Y[2];
     }
+    else return customcurvepump(pr, pump, curve);
+
+    // Compute shape factors & limits of power function curves
+    if (!powerfuncpump(h0, h1, h2, q1, q2, &a, &b, &c))
+    {
+        pump->Ptype = NOCURVE;
+        return 227;
+    }
+    else
+    {
+        pump->H0 = -a / pr->Ucf[HEAD];
+        pump->R = -b * (pow(pr->Ucf[FLOW], c) / pr->Ucf[HEAD]);
+        pump->N = c;
+        pump->Q0 = q1 / pr->Ucf[FLOW];
+        pump->Qmax = pow((-a / b), (1.0 / c)) / pr->Ucf[FLOW];
+        pump->Hmax = h0 / pr->Ucf[HEAD];
+    }
+    return 0;
+}
+   
+int constpowerpump(Project *pr, Spump *pump)
+/*
+**-------------------------------------------------------------------
+**  Input:   pump = a pump object
+**  Output:  returns an error code
+**  Purpose: computes properties for a constant power pump.
+**-------------------------------------------------------------------
+*/
+{
+    pump->Ptype = CONST_HP;
+    pump->H0 = 0.0;
+    pump->R = -8.814 * pr->network.Link[pump->Link].Km / pr->Ucf[POWER];
+    pump->N = -1.0;
+    pump->Hmax = BIG; // No head limit
+    pump->Qmax = BIG; // No flow limit
+    pump->Q0 = 1.0;   // Init. flow = 1 cfs
     return 0;
 }
  
@@ -295,44 +286,44 @@ int validatepumps(Project *pr)
 **-------------------------------------------------------------------
 **  Input:   none
 **  Output:  returns 1 if successful, 0 if not
-**  Purpose: checks if pumps assigned pump curves.
+**  Purpose: checks if pumps are assigned valid pump curve data.
 **-------------------------------------------------------------------
 */
 {
     Network *net = &pr->network;
-    int i, k, errcode, result = 1;
+    int i, errcode, result = 1;
     char errmsg[MAXMSG+1] = "";
     Spump  *pump;
     
     for (i = 1; i <= net->Npumps; i++)
     {
-        // Check if pump has neither a head curve nor power setting
+        // Pump has a designated pump curve
         pump = &net->Pump[i];
-        k = pump->Link;
-        if (net->Link[k].Km == 0.0 && pump->Hcurve <= 0)
+        if (pump->Hcurve > 0)
+            errcode = pumpcurvepump(pr, pump, &net->Curve[pump->Hcurve]);
+        
+        // Pump has a constant power setting
+        else if (net->Link[pump->Link].Km > 0.0)
+            errcode = constpowerpump(pr, pump);
+        
+        // Pump has no pump curve info assigned
+        else
         {
-            sprintf(pr->Msg, "Error 226: %s %s",
-                geterrmsg(226, errmsg), net->Link[k].ID);
+            pump->Ptype = NOCURVE;
+            errcode = 226;
+        }
+        
+        if (errcode)
+        {
+            sprintf(pr->Msg, "Error %d: %s %s",
+                errcode, geterrmsg(errcode, errmsg), net->Link[pump->Link].ID);
             writeline(pr, pr->Msg);
             result = 0;
         }
-        
-        // Compute & check pump's head curve coefficients
-        else
-        {
-            errcode = findpumpparams(pr, i);
-            if (errcode)
-            {
-                sprintf(pr->Msg, "Error %d: %s %s",
-                    errcode, geterrmsg(errcode, errmsg), net->Link[k].ID);
-                writeline(pr, pr->Msg);
-                result = 0;
-            }
-        }
     }
     return result;
-}    
-
+}
+        
 int validateproject(Project *pr)
 /*
  *--------------------------------------------------------------

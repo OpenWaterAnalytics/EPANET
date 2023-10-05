@@ -4059,7 +4059,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             pumpIndex = findpump(&p->network, index);
             net->Pump[pumpIndex].Ptype = CONST_HP;
             net->Pump[pumpIndex].Hcurve = 0;
-            net->Link[index].Km = value / Ucf[POWER];
+            net->Link[index].Km = value;
         }
         break;
 
