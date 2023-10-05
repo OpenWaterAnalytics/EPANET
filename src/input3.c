@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       input3.c
 Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
