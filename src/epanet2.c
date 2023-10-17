@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/01/2020
+ Last Updated: 09/28/2023
  ******************************************************************************
 */
 
@@ -96,6 +96,14 @@ int DLLEXPORT ENopen(const char *inpFile, const char *rptFile, const char *outFi
     int errcode = 0;
     createtmpfiles();
     errcode = EN_open(_defaultProject, inpFile, rptFile, outFile);
+    return errcode;
+}
+
+int DLLEXPORT ENopenX(const char *inpFile, const char *rptFile, const char *outFile)
+{
+    int errcode = 0;
+    createtmpfiles();
+    errcode = EN_openX(_defaultProject, inpFile, rptFile, outFile);
     return errcode;
 }
 

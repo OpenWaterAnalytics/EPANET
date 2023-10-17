@@ -7,7 +7,7 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 02/05/2023
+Last Updated: 09/28/2023
 ******************************************************************************
 */
 
@@ -40,6 +40,8 @@ Last Updated: 02/05/2023
 // Defined in ENUMSTXT.H
 extern char *Fldname[];
 extern char *RptFlowUnitsTxt[];
+extern void reindextanks(Project *pr);
+
 
 int getdata(Project *pr)
 /*
@@ -58,13 +60,18 @@ int getdata(Project *pr)
 
     // Read in network data
     rewind(pr->parser.InFile);
-    ERRCODE(readdata(pr));
-
+    errcode = readdata(pr);
+    
     // Adjust data and convert it to internal units
-    if (!errcode) adjustdata(pr);
-    if (!errcode) initunits(pr);
-    ERRCODE(inittanks(pr));
-    if (!errcode) convertunits(pr);
+    // (error code 200 means there are non-fatal errors in input file)
+    if (errcode == 0 || errcode == 200)
+    {
+        reindextanks(pr);
+        adjustdata(pr);
+        inittanks(pr);
+        initunits(pr);
+        convertunits(pr);
+    }
     return errcode;
 }
 
@@ -328,11 +335,11 @@ void adjustdata(Project *pr)
     if (qual->Qualflag == NONE) rpt->Field[QUALITY].Enabled = FALSE;
 }
 
-int inittanks(Project *pr)
+void inittanks(Project *pr)
 /*
 **---------------------------------------------------------------
 **  Input:   none
-**  Output:  returns error code
+**  Output:  none
 **  Purpose: initializes volumes in non-cylindrical tanks
 **---------------------------------------------------------------
 */
@@ -341,7 +348,7 @@ int inittanks(Project *pr)
 
     int i, j, n = 0;
     double a;
-    int errcode = 0, levelerr;
+    int errcode = 0;
     char errmsg[MAXMSG+1] = "";
     Stank *tank;
     Scurve *curve;
@@ -351,47 +358,23 @@ int inittanks(Project *pr)
         tank = &net->Tank[j];
         if (tank->A == 0.0) continue;  // Skip reservoirs
 
-        // Check for valid lower/upper tank levels
-        levelerr = 0;
-        if (tank->H0 > tank->Hmax ||
-            tank->Hmin > tank->Hmax ||
-            tank->H0 < tank->Hmin
-           ) levelerr = 1;
-
-        // Check that tank heights are within volume curve
+        // See if tank has a volume curve
         i = tank->Vcurve;
         if (i > 0)
         {
             curve = &net->Curve[i];
             n = curve->Npts - 1;
-            if (tank->Hmin < curve->X[0] || tank->Hmax > curve->X[n])
-            {
-                levelerr = 1;
-            }
 
-            else
-            {
-                // Find min., max., and initial volumes from curve
-                tank->Vmin = interp(curve->Npts, curve->X, curve->Y, tank->Hmin);
-                tank->Vmax = interp(curve->Npts, curve->X, curve->Y, tank->Hmax);
-                tank->V0 = interp(curve->Npts, curve->X, curve->Y, tank->H0);
+            // Find min., max., and initial volumes from curve
+            tank->Vmin = interp(curve->Npts, curve->X, curve->Y, tank->Hmin);
+            tank->Vmax = interp(curve->Npts, curve->X, curve->Y, tank->Hmax);
+            tank->V0 = interp(curve->Npts, curve->X, curve->Y, tank->H0);
 
-                // Find a "nominal" diameter for tank
-                a = (curve->Y[n] - curve->Y[0]) / (curve->X[n] - curve->X[0]);
-                tank->A = sqrt(4.0 * a / PI);
-            }
-        }
-
-        // Report error in levels if found
-        if (levelerr)
-        {
-            sprintf(pr->Msg, "Error 225: %s node %s", geterrmsg(225, errmsg),
-                    net->Node[tank->Node].ID);
-            writeline(pr, pr->Msg);
-            errcode = 200;
+            // Find a "nominal" diameter for tank
+            a = (curve->Y[n] - curve->Y[0]) / (curve->X[n] - curve->X[0]);
+            tank->A = sqrt(4.0 * a / PI);
         }
     }
-    return errcode;
 }
 
 void initunits(Project *pr)
@@ -530,7 +513,6 @@ void convertunits(Project *pr)
     Snode *node;
     Stank *tank;
     Slink *link;
-    Spump *pump;
     Scontrol *control;
 
     // Convert nodal elevations & initial WQ
@@ -615,29 +597,9 @@ void convertunits(Project *pr)
 
         else if (link->Type == PUMP)
         {
-            // Convert units for pump curve parameters
-            i = findpump(net, k);
-            pump = &net->Pump[i];
-            if (pump->Ptype == CONST_HP)
-            {
-                // For constant hp pump, convert kw to hp
-                if (parser->Unitsflag == SI) pump->R /= pr->Ucf[POWER];
-            }
-            else
-            {
-                // For power curve pumps, convert shutoff head and flow coeff.
-                if (pump->Ptype == POWER_FUNC)
-                {
-                    pump->H0 /= pr->Ucf[HEAD];
-                    pump->R *= (pow(pr->Ucf[FLOW], pump->N) / pr->Ucf[HEAD]);
-                }
-
-                // Convert flow range & max. head units
-                pump->Q0 /= pr->Ucf[FLOW];
-                pump->Qmax /= pr->Ucf[FLOW];
-                pump->Hmax /= pr->Ucf[HEAD];
-            }
+            link->Km /= pr->Ucf[POWER];
         }
+        
         else
         {
             // For flow control valves, convert flow setting

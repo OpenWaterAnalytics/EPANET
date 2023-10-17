@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 08/02/2023
+ Last Updated: 09/28/2023
  ******************************************************************************
 */
 
@@ -23,6 +23,7 @@
 const double QZERO = 1.e-6;  // Equivalent to zero flow in cfs
 
 // Imported functions
+extern int  validateproject(Project *);
 extern int  createsparse(Project *);
 extern void freesparse(Project *);
 extern int  hydsolve(Project *, int *, double *);
@@ -52,10 +53,10 @@ int  openhyd(Project *pr)
     int  i;
     int  errcode = 0;
     Slink *link;
-
-    // Check for too few nodes & no fixed grade nodes
-    if (pr->network.Nnodes < 2) errcode = 223;
-    else if (pr->network.Ntanks == 0) errcode = 224;
+    
+    // Check for valid project data (see VALIDATE.C)
+    errcode = validateproject(pr);
+    if (errcode > 0) return errcode;
 
     // Allocate memory for sparse matrix structures (see SMATRIX.C)
     ERRCODE(createsparse(pr));
@@ -72,6 +73,7 @@ int  openhyd(Project *pr)
         link = &pr->network.Link[i];
         initlinkflow(pr, i, link->Status, link->Kc);
     }
+    else closehyd(pr);        
     return errcode;
 }
 
@@ -1144,3 +1146,4 @@ void resetpumpflow(Project *pr, int i)
     if (pump->Ptype == CONST_HP)
         pr->hydraul.LinkFlow[i] = pump->Q0;
 }
+

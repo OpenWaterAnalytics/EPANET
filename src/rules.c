@@ -404,7 +404,7 @@ void adjustrules(Project *pr, int objtype, int index)
     }
 }
 
-void adjusttankrules(Project *pr)
+void adjusttankrules(Project *pr, int ndiff)
 //-----------------------------------------------------------
 //    Adjusts tank indices in rule premises.
 //-----------------------------------------------------------
@@ -420,7 +420,8 @@ void adjusttankrules(Project *pr)
         p = net->Rule[i].Premises;
         while (p != NULL)
         {
-            if (p->object == r_NODE && p->index > njuncs) p->index++;
+            if (p->object == r_NODE && p->index > njuncs)
+                p->index += ndiff;
             p = p->next;
         }
     }
@@ -472,7 +473,7 @@ int writerule(Project *pr, FILE *f, int ruleIndex)
     Srule      *rule = &net->Rule[ruleIndex];
     Spremise   *p;
     Saction    *a;
-
+    
     // Write each premise clause to the file
     p = rule->Premises;
     fprintf(f, "\nIF   ");

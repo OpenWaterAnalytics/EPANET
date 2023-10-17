@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 08/02/2023
+ Last Updated: 09/28/2023
  ******************************************************************************
 */
 
@@ -24,6 +24,81 @@
 #include "types.h"
 #include "funcs.h"
 
+int openproject(Project *pr, const char *inpFile, const char *rptFile,
+                      const char *outFile, int allowerrors)
+/*----------------------------------------------------------------
+ **  Input:   inpFile = name of input file
+ **           rptFile = name of report file
+ **           outFile = name of binary output file
+ **           allowerrors = TRUE if project can be opened with errors
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: opens an EPANET input file & reads in network data
+ **----------------------------------------------------------------
+ */
+{
+    int errcode = 0;
+    int hyderrcode = 0;
+    int projectopened;
+
+    // Set system flags
+    pr->Openflag = FALSE;
+    pr->hydraul.OpenHflag = FALSE;
+    pr->quality.OpenQflag = FALSE;
+    pr->outfile.SaveHflag = FALSE;
+    pr->outfile.SaveQflag = FALSE;
+    pr->Warnflag = FALSE;
+    pr->report.Messageflag = TRUE;
+    pr->report.Rptflag = 1;
+
+    // Initialize data arrays to NULL
+    initpointers(pr);
+
+    // Open input & report files
+    ERRCODE(openfiles(pr, inpFile, rptFile, outFile));
+    if (errcode > 0)
+    {
+        errmsg(pr, errcode);
+        return errcode;
+    }
+
+    // Allocate memory for project's data arrays
+    ERRCODE(netsize(pr));
+    ERRCODE(allocdata(pr));
+
+    // Read input data
+    ERRCODE(getdata(pr));
+
+    // Close input file
+    if (pr->parser.InFile != NULL)
+    {
+        fclose(pr->parser.InFile);
+        pr->parser.InFile = NULL;
+    }
+    
+    // Input file read with no fatal errors
+    if (allowerrors) projectopened = (errcode == 0 || errcode == 200);
+    else projectopened = (errcode == 0);
+    if (projectopened)
+    {
+        // If using previously saved hydraulics file then open it
+        if (pr->outfile.Hydflag == USE)
+        {
+            hyderrcode = openhydfile(pr);
+            if (hyderrcode > 0)
+            {
+                errmsg(pr, hyderrcode);
+                pr->outfile.Hydflag = SCRATCH;
+            }
+        }            
+
+        // Write input summary to report file
+        if (pr->report.Summaryflag) writesummary(pr);
+        pr->Openflag = TRUE;
+    }
+    errmsg(pr, errcode);
+    return errcode;
+}
 
 int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
 /*----------------------------------------------------------------
@@ -1060,47 +1135,6 @@ void adjustcurves(Network *network, int index)
     }
 }
 
-int adjustpumpparams(Project *pr, int curveIndex)
-/*----------------------------------------------------------------
-**  Input:   curveIndex = index of a data curve
-**  Output:  returns an error code
-**  Purpose: updates head curve parameters for pumps using a 
-**           curve whose data have been modified.
-**----------------------------------------------------------------
-*/
-{
-    Network *network = &pr->network;
-
-    double *Ucf = pr->Ucf;
-    int j, err = 0;
-    Spump *pump;
-    
-    // Check each pump
-    for (j = 1; j <= network->Npumps; j++)
-    {
-        // Pump uses curve as head curve
-        pump = &network->Pump[j];
-        if ( curveIndex == pump->Hcurve)
-        {
-            // Update its head curve parameters
-            pump->Ptype = NOCURVE;
-            err = updatepumpparams(pr, j);
-            if (err > 0) break;
-            
-            // Convert parameters to internal units
-            if (pump->Ptype == POWER_FUNC)
-            {
-                pump->H0 /= Ucf[HEAD];
-                pump->R *= (pow(Ucf[FLOW], pump->N) / Ucf[HEAD]);
-            }
-            pump->Q0 /= Ucf[FLOW];
-            pump->Qmax /= Ucf[FLOW];
-            pump->Hmax /= Ucf[HEAD];
-        }
-    }
-    return err;
-}
-        
 
 int resizecurve(Scurve *curve, int size)
 /*----------------------------------------------------------------
@@ -1448,6 +1482,7 @@ double interp(int n, double x[], double y[], double xx)
     int k, m;
     double dx, dy;
 
+    if (n == 0) return 0.0;
     m = n - 1;                        // Highest data index
     if (xx <= x[0]) return (y[0]);    // xx off low end of curve
     for (k = 1; k <= m; k++)          // Bracket xx on curve

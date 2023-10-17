@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 09/14/2023}
+{Last updated on 09/28/2023}
 
 interface
 
@@ -285,6 +285,7 @@ const
  function  ENepanet(F1: PAnsiChar; F2: PAnsiChar; F3: PAnsiChar; F4: Pointer): Integer; stdcall; external EpanetLib;
  function  ENinit(F2: PAnsiChar; F3: PAnsiChar; UnitsType: Integer; HeadlossType: Integer): Integer; stdcall; external EpanetLib;
  function  ENopen(F1: PAnsiChar; F2: PAnsiChar; F3: PAnsiChar): Integer; stdcall; external EpanetLib;
+ function  ENopenX(F1: PAnsiChar; F2: PAnsiChar; F3: PAnsiChar): Integer; stdcall; external EpanetLib;
  function  ENgetcount(Code: Integer; var Count: Integer): Integer; stdcall; external EpanetLib;
  function  ENgettitle(Line1: PAnsiChar; Line2: PAnsiChar; Line3: PAnsiChar): Integer; stdcall; external EpanetLib;
  function  ENsettitle(Line1: PAnsiChar; Line2: PAnsiChar; Line3: PAnsiChar): Integer; stdcall; external EpanetLib;

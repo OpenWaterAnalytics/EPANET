@@ -132,6 +132,7 @@ EXPORTS
     ENusehydfile                  = _ENusehydfile@4
     ENwriteline                   = _ENwriteline@4
     ENtimetonextevent             = _ENtimetonextevent@12
+    ENopenX                       = _ENopenX@12                          
     ENgetcontrolenabled           = _ENgetcontrolenabled@8
     ENsetcontrolenabled           = _ENsetcontrolenabled@8
     ENgetruleenabled              = _ENgetruleenabled@8

@@ -4,7 +4,7 @@
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL) for use with VB.Net.
 
-'Last updated on 09/14/2023
+'Last updated on 09/28/2023
 
 Imports System.Runtime.InteropServices
 Imports System.Text
@@ -271,6 +271,7 @@ Public Const EN_TRUE  = 1   ' boolean true
  Declare Function ENepanet Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String, ByVal pviewprog As Any) As Int32
  Declare Function ENinit Lib "epanet2.dll" (ByVal rptFile As String, ByVal outFile As String, ByVal unitsType As Int32, ByVal headlossType As Int32) As Int32
  Declare Function ENopen Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String) As Int32
+ Declare Function ENopenX Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String) As Int32
  Declare Function ENgettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Int32
  Declare Function ENsettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Int32
  Declare Function ENsaveinpfile Lib "epanet2.dll" (ByVal filename As String) As Int32
