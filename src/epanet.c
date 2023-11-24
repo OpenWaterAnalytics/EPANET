@@ -27,6 +27,8 @@
 #define snprintf _snprintf
 #endif
 
+const int DELTA_CAPACITY = 50;
+
 /********************************************************************
 
     Project Functions
@@ -1858,15 +1860,19 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
     if (nodeType < EN_JUNCTION || nodeType > EN_TANK) return 251;
 
     // Grow node-related arrays to accomodate the new node
-    size = (net->Nnodes + 2) * sizeof(Snode);
-    net->Node = (Snode *)realloc(net->Node, size);
-    size = (net->Nnodes + 2) * sizeof(double);
-    hyd->NodeDemand = (double *)realloc(hyd->NodeDemand, size);
-    qual->NodeQual = (double *)realloc(qual->NodeQual, size);
-    hyd->NodeHead = (double *)realloc(hyd->NodeHead, size);
-    hyd->DemandFlow = (double *)realloc(hyd->DemandFlow, size);
-    hyd->EmitterFlow = (double *)realloc(hyd->EmitterFlow, size);
-
+    if (net->Nnodes == net->NodeCapacity)
+    {
+        net->NodeCapacity += DELTA_CAPACITY;
+        size = (net->NodeCapacity + 1) * sizeof(Snode);
+        net->Node = (Snode *)realloc(net->Node, size);
+        size = (net->NodeCapacity + 1) * sizeof(double);
+        hyd->NodeDemand = (double *)realloc(hyd->NodeDemand, size);
+        qual->NodeQual = (double *)realloc(qual->NodeQual, size);
+        hyd->NodeHead = (double *)realloc(hyd->NodeHead, size);
+        hyd->DemandFlow = (double *)realloc(hyd->DemandFlow, size);
+        hyd->EmitterFlow = (double *)realloc(hyd->EmitterFlow, size);
+    }
+    
     // Actions taken when a new Junction is added
     if (nodeType == EN_JUNCTION)
     {
@@ -3247,16 +3253,20 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     }
 
     // Grow link-related arrays to accomodate the new link
+    if (net->Nlinks == net->LinkCapacity)
+    {
+        net->LinkCapacity += DELTA_CAPACITY;
+        size = (net->LinkCapacity + 1) * sizeof(Slink);
+        net->Link = (Slink *)realloc(net->Link, size);
+        size = (net->LinkCapacity + 1) * sizeof(double);
+        hyd->LinkFlow = (double *)realloc(hyd->LinkFlow, size);
+        hyd->LinkSetting = (double *)realloc(hyd->LinkSetting, size);
+        size = (net->LinkCapacity + 1) * sizeof(StatusType);
+        hyd->LinkStatus = (StatusType *)realloc(hyd->LinkStatus, size);
+    }    
     net->Nlinks++;
     p->parser.MaxLinks = net->Nlinks;
     n = net->Nlinks;
-    size = (n + 1) * sizeof(Slink);
-    net->Link = (Slink *)realloc(net->Link, size);
-    size = (n + 1) * sizeof(double);
-    hyd->LinkFlow = (double *)realloc(hyd->LinkFlow, size);
-    hyd->LinkSetting = (double *)realloc(hyd->LinkSetting, size);
-    size = (n + 1) * sizeof(StatusType);
-    hyd->LinkStatus = (StatusType *)realloc(hyd->LinkStatus, size);
 
     // Set properties for the new link
     link = &net->Link[n];

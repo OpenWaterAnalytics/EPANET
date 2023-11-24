@@ -318,6 +318,9 @@ void initpointers(Project *pr)
     nw->Nrules = 0;
     nw->Npats = 0;
     nw->Ncurves = 0;
+    
+    nw->NodeCapacity = 0;
+    nw->LinkCapacity = 0;
 
     pr->hydraul.NodeDemand = NULL;
     pr->hydraul.NodeHead = NULL;
@@ -387,6 +390,7 @@ int allocdata(Project *pr)
     //*************************************************************
     if (!errcode)
     {
+        pr->network.NodeCapacity = pr->parser.MaxNodes;
         n = pr->parser.MaxNodes + 1;
         pr->network.Node       = (Snode *)calloc(n, sizeof(Snode));
         pr->hydraul.NodeDemand = (double *)calloc(n, sizeof(double));
@@ -405,6 +409,7 @@ int allocdata(Project *pr)
     // Allocate memory for network links
     if (!errcode)
     {
+        pr->network.LinkCapacity = pr->parser.MaxLinks;
         n = pr->parser.MaxLinks + 1;
         pr->network.Link        = (Slink *)calloc(n, sizeof(Slink));
         pr->hydraul.LinkFlow    = (double *)calloc(n, sizeof(double));
@@ -489,6 +494,7 @@ void freedata(Project *pr)
             free(pr->network.Node[j].Comment);
         }
         free(pr->network.Node);
+        pr->network.NodeCapacity = 0;
     }
 
     // Free memory for link data
@@ -499,14 +505,15 @@ void freedata(Project *pr)
             freelinkvertices(&pr->network.Link[j]);
             free(pr->network.Link[j].Comment);
         }
+        free(pr->network.Link);
+        pr->network.LinkCapacity = 0;        
     }
-    free(pr->network.Link);
 
     // Free memory for other network objects
-    free(pr->network.Tank);
-    free(pr->network.Pump);
-    free(pr->network.Valve);
-    free(pr->network.Control);
+    if (pr->network.Tank != NULL) free(pr->network.Tank);
+    if (pr->network.Pump != NULL) free(pr->network.Pump);
+    if (pr->network.Valve != NULL) free(pr->network.Valve);
+    if (pr->network.Control != NULL) free(pr->network.Control);
 
     // Free memory for time patterns
     if (pr->network.Pattern != NULL)

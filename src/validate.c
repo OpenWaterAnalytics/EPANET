@@ -359,7 +359,7 @@ void reindextanks(Project *pr)
     Parser  *parser = &pr->parser;
     Quality *qual   = &pr->quality;
     Scontrol *control;
-    int i, j, ndiff, n1, n2, size;
+    int i, j, ndiff, n1, n2;
     
     // ndiff = # unused entries in Node array before first tank node
     ndiff = parser->MaxJuncs - net->Njuncs;
@@ -395,11 +395,8 @@ void reindextanks(Project *pr)
             if (qual->TraceNode == n1) qual->TraceNode = n2;
         }
         
-        // Reallocate the Node array (shouldn't fail as new size < old size)
         parser->MaxJuncs = net->Njuncs;
         parser->MaxNodes = net->Njuncs + net->Ntanks;
-        size = (net->Nnodes + 2) * sizeof(Snode);
-        net->Node = (Snode *)realloc(net->Node, size);
     }
 }    
     
