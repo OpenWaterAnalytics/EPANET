@@ -49,3 +49,6 @@ This document describes the changes and updates that have been made in version 2
  - A possible parser error that could result in a Trace Node ID in an input file not being recognized was fixed.
  - Additional API functions for enabling/disabling controls and rules were added (`EN_getcontrolenabled`, `EN_setcontrolenabled`, `EN_getruleenabled`, `EN_setruleenabled`).
  - Updated the internal function `getclosedlink` in report.c to use a loop instead of recursion to prevent a stack overflow during the analysis of very large disconnections.
+- Setting the demand multiplier within the `[DEMANDS]` section of INP has been depreciated, please use `DEMAND MULTIPLIER` inside `[OPTIONS]` instead.
+- `EN_PRESS_UNITS` can now be used with `EN_getoption` and `EN_setoption` to get or set the pressure unit used in EPANET.
+- Continuous barrier functions were added to constrain emitter flows to allowable values.
