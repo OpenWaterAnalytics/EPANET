@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 09/28/2023
+ Last Updated: 01/25/2024
  ******************************************************************************
 */
 
@@ -38,6 +38,7 @@ int validatetanks(Project *pr)
     char errmsg[MAXMSG+1] = "";
     Stank *tank;
     Scurve *curve;
+    double elev;
     
     for (j = 1; j <= net->Ntanks; j++)
     {
@@ -52,13 +53,14 @@ int validatetanks(Project *pr)
         ) levelerr = 1;
 
         // Check that tank heights are within volume curve
+        elev = net->Node[tank->Node].El;
         i = tank->Vcurve;
         if (i > 0)
         {
             curve = &net->Curve[i];
             n = curve->Npts - 1;
-            if (tank->Hmin * pr->Ucf[ELEV] < curve->X[0] ||
-                tank->Hmax * pr->Ucf[ELEV]> curve->X[n])
+            if ((tank->Hmin - elev) * pr->Ucf[ELEV] < curve->X[0] ||
+                (tank->Hmax - elev) * pr->Ucf[ELEV]> curve->X[n])
             {
                 levelerr = 1;
             }
