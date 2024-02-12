@@ -24,6 +24,15 @@ These two scripts build EPANET binaries for both the 32 and 64 bit Windows platf
 
 A tutorial on [building OWA EPANET from source on Windows](tools/BuildAndTest.md), including running unit tests and performing regression testing, is also avaiable.
 
+## Alternative build with Conan
+Conan is an increasingly popular C/C++ package management suite. To build EPANET using Conan, use the following commands as a starting point:
+
+```
+conan build . -s build_type=Release
+conan export-pkg . -s build_type=Release
+```
+
+
 # Testing
 
 Unit tests have been written using the Boost Unit Testing Framework and other Boost libraries. The tests are compiled into individual executables that automatically perform checks on the EPANET toolkit and output libraries.

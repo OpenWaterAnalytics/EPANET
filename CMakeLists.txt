@@ -32,10 +32,10 @@ project(EPANET)
 # Append local dir to module search path
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 option(BUILD_TESTS "Build tests (requires Boost)" OFF)
 option(BUILD_PY_LIB "Build library for Python wrapper" OFF)
 option(BUILD_COVERAGE "Build library for coverage" OFF)
-
 
 IF (NOT BUILD_PY_LIB)
   add_subdirectory(run)
@@ -96,7 +96,14 @@ IF(MSVC AND "${CMAKE_VS_PLATFORM_NAME}" MATCHES "(Win32)")
   add_library(epanet2 SHARED ${EPANET_LIB_ALL} ${PROJECT_SOURCE_DIR}/include/epanet2.def)
   set_source_files_properties(${PROJECT_SOURCE_DIR}/include/epanet2.def PROPERTIES_HEADER_FILE_ONLY TRUE)
 ELSE(TRUE)
-  add_library(epanet2 SHARED ${EPANET_LIB_ALL})
+  add_library(epanet2 ${EPANET_LIB_ALL})
 ENDIF(MSVC AND "${CMAKE_VS_PLATFORM_NAME}" MATCHES "(Win32)")
 
 target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
+
+install(TARGETS epanet2 DESTINATION lib)
+install(FILES ./include/epanet2.h DESTINATION include)
+install(FILES ./include/epanet2_2.h DESTINATION include)
+install(DIRECTORY ./src/ DESTINATION include FILES_MATCHING PATTERN "*.h")
+
+
