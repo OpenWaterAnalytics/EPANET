@@ -237,3 +237,4 @@ buildprod*/
 
 #VS junk folder
 .vs/
+CMakeSettings.json
