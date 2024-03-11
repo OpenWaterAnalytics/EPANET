@@ -26,6 +26,9 @@
 Project __defaultProject;
 Project *_defaultProject = &__defaultProject;
 
+typedef struct Project* EN_Project;
+
+
 // Functions for creating and removing default temporary files
 void createtmpfiles()
 {
@@ -41,6 +44,33 @@ void removetmpfiles()
     remove(_defaultProject->TmpStatFname);
 }
 
+/*|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||      FUNCIONES PARA DESARROLLO, INTERFAZ Y TESTS           ||
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||*/
+__declspec(dllexport) void* get_defaultProject() {
+    /*------------------------------------------------------------------------
+         **   Input:   none
+         **   Output:  pointer _defaultproject
+         **
+         * *  This function returns the _defaultproject pointer so that i
+         **   can use it from poutside C (from Julia being more precise).
+         **-------------------------------------------------------------------------
+         */
+
+    return (void*)_defaultProject;
+}
+
+__declspec(dllexport) void consultar_campos(EN_Project p) {
+    // Esta función solo la quiero para consultar campos del projecto
+    int nnodes = p->network.Nnodes;
+    printf("Numero de nodos: %d \n", nnodes);
+}
+
+__declspec(dllexport) int numero_nodos(EN_Project p) {
+    // Esta función solo la quiero para consultar campos del projecto
+    int nnodes = p->network.Nnodes;
+    return nnodes;
+}
 
 /********************************************************************
 
@@ -48,7 +78,8 @@ void removetmpfiles()
 
 ********************************************************************/
 
-int DLLEXPORT ENepanet(const char *inpFile, const char *rptFile,
+int DLLEXPORT 
+ENepanet(const char *inpFile, const char *rptFile,
               const char *outFile,  void (*pviewprog)(char *))
 {
 /*------------------------------------------------------------------------

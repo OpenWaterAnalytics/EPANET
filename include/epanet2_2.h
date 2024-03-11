@@ -48,11 +48,21 @@ extern "C" {
 */
 typedef struct Project *EN_Project;
 
+
+
+
+
 /********************************************************************
 
     Project Functions
 
 ********************************************************************/
+/*|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ ||      FUNCIONES PARA DESARROLLO, INTERFAZ Y TESTS           ||
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||*/
+__declspec(dllexport) void* get_defaultProject();
+__declspec(dllexport) void consultar_campos(EN_Project p);
+__declspec(dllexport) int numero_nodos(EN_Project p);
 
   /**
   @brief Creates an EPANET project.
