@@ -52,9 +52,6 @@
 #define   w_IS          "IS"
 #define   w_NOT         "NOT"
 
-#define   w_ADD         "ADD"
-#define   w_MULTIPLY    "MULT"
-
 #define   w_LIMITING    "LIMIT"
 #define   w_ORDER       "ORDER"
 #define   w_GLOBAL      "GLOB"
