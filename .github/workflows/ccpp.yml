@@ -8,20 +8,29 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
-    - name: setup_build_dir
+    - uses: actions/checkout@v2
+    
+    - name: Setup build directory
       run: mkdir buildproducts
-    - name: cmake
+      
+    - name: CMake
       working-directory: ./buildproducts
       run: cmake ..
-    - name: make
+      
+    - name: Make
       working-directory: ./buildproducts
       run: make
+      
+    - name: Copy header files to build directory
+      run: |
+        cp include/epanet2.h buildproducts/
+        cp include/epanet2_2.h buildproducts/
+        cp include/epanet2_enums.h buildproducts/
+        
     - uses: actions/upload-artifact@v2
       with:
         name: libepanet-output
-        path: /home/runner/work/EPANET/EPANET/buildproducts/
+        path: buildproducts/

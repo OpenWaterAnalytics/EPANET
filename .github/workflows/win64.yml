@@ -14,13 +14,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
           
-      - name: setup_build_dir
+      - name: Setup build directory
         run: mkdir buildproducts
-      - name: cmake
+        
+      - name: CMake
         working-directory: ./buildproducts
         run: cmake .. -A x64 && cmake --build . --config Release
-          
+      
+      - name: Copy header files to build directory
+        run: |
+          copy include\epanet2.h buildproducts\bin\Release
+          copy include\epanet2_2.h buildproducts\bin\Release
+          copy include\epanet2_enums.h buildproducts\bin\Release
+        shell: cmd
+
       - uses: actions/upload-artifact@v2
         with:
           name: epanet2-win64
-          path: D:\a\EPANET\EPANET\buildproducts\bin\Release\
+          path: buildproducts\bin\Release
