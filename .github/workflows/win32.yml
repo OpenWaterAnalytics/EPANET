@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
           
       - name: Setup build directory
         run: mkdir buildproducts
@@ -28,7 +28,7 @@ jobs:
           copy include\epanet2_enums.h buildproducts\bin\Release
         shell: cmd
         
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: epanet2-win32
           path: buildproducts\bin\Release
