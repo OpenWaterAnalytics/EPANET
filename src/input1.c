@@ -72,6 +72,7 @@ int getdata(Project *pr)
         initunits(pr);
         convertunits(pr);
     }
+
     return errcode;
 }
 
@@ -375,6 +376,21 @@ void inittanks(Project *pr)
             tank->A = sqrt(4.0 * a / PI);
         }
     }
+}
+
+void initsTime(Stime *t)
+/*
+**--------------------------------------------------------------
+**  Input:   pointer to a Stime struct
+**  Output:  none
+**  Purpose: initializes fields in *t to zero.
+**--------------------------------------------------------------
+*/
+{
+    t->month = 0;
+    t->day = 0;
+    t->hour = 0;
+    t->min = 0;
 }
 
 void initunits(Project *pr)

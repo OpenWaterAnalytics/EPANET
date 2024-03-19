@@ -226,7 +226,18 @@
 #define   s_LABELS      "[LABELS]"
 #define   s_BACKDROP    "[BACKDROP]"
 #define   s_TAGS        "[TAGS]"
-#define   s_END         "[END]"
+#define   s_PRESSUREMETERS  "[PRESSUREMETERS]"
+#define   s_FLOWMETERS      "[FLOWMETERS]"
+#define   s_WATERLEVELMETERS    "[WATERLEVELMETERS]"
+#define   s_UNCERTAINTIES   "[UNCERTAINTIES]"
+#define   s_END             "[END]"
+
+//------- Type of pseudomeasurement uncertainties:
+#define   err_DEMANDS           "Demands"
+#define   err_TANKLEVELS        "Tank level"
+#define   err_RESERVOIRLEVELS   "Reservoir level"
+#define   UNCERTAINTIES_header  "Element"
+#define   DEFAULT_value         "Default"
 
 //------- Units -------------------------------------------
 

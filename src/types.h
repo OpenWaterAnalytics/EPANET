@@ -42,6 +42,7 @@ typedef  int          INT4;
 #define   MAXLINE   1024     // Max. # characters read from input line
 #define   MAXFNAME  259      // Max. # characters in file name
 #define   MAXTOKS   40       // Max. items per line of input
+#define   NUM_MEASUREMENTS 5 // Number of past measurements of each sensor to keep savec
 #define   TRUE      1
 #define   FALSE     0
 #define   FULL      2
@@ -158,6 +159,20 @@ typedef enum {
   SAVE,          // save hydraulics file after current run
   SCRATCH        // use temporary hydraulics file
 } HydFiletype;
+
+typedef enum {
+    PRESSUREMETER,
+    FLOWMETER,
+    WATERLEVELMETER
+} SensorType;
+
+typedef enum {
+    DEMANDS,
+    TANKLEVEL,
+    RESERVOIRLEVEL,
+    HEADER,
+    DEFAULTucnt
+} UncertaintyType;
 
 typedef enum {
   NONE,          // no quality analysis
@@ -294,7 +309,9 @@ typedef enum {
   _VALVES, _CONTROLS, _RULES, _DEMANDS, _SOURCES, _EMITTERS,
   _PATTERNS, _CURVES, _QUALITY, _STATUS, _ROUGHNESS, _ENERGY,
   _REACTIONS, _MIXING, _REPORT, _TIMES, _OPTIONS,
-    _COORDS, _VERTICES, _LABELS, _BACKDROP, _TAGS, _END
+  _COORDS, _VERTICES, _LABELS, _BACKDROP, _TAGS, 
+  _PRESSUREMETERS, _FLOWMETERS, _WATERLEVELMETERS, 
+  _UNCERTAINTIES, _END
 } SectionType;
 
 typedef enum {
@@ -326,6 +343,14 @@ struct IDstring            // Holds component ID label
   char ID[MAXID+1];
 };
 
+typedef struct          // Time (day and hour) object
+{
+    int month;
+    int day;
+    int hour;
+    int min;
+} Stime;
+
 typedef struct             // Time Pattern Object
 {
   char   ID[MAXID+1];      // pattern ID
@@ -349,6 +374,7 @@ struct Sdemand             // Demand List Item
 {
   double Base;             // baseline demand
   int    Pat;              // pattern index
+  double Error;            // Uncertainty of the estimation (CV)
   char   *Name;            // demand category name
   struct Sdemand *next;    // next demand list item
 };
@@ -421,6 +447,20 @@ typedef struct             // Link Object
   char     *Comment;       // link comment
 } Slink;
 
+typedef struct
+{
+    char ID[MAXID + 1];                     // Sensor ID
+    char elID[MAXID + 1];                   // Measured element ID
+    int sIndex;                             // Index of the sensor in the sensor list
+    int elIndex;                            // Index of the measured element in the corresponding list
+    SensorType Type;                        // Type of sensor
+    Stime mTime[NUM_MEASUREMENTS + 1];      // Time of each measurement
+    double mValue[NUM_MEASUREMENTS + 1];    // Value of each measurement
+    double error;                           // Uncertainty of sensor measurements
+    int newMpos;                            // Position in mValue and mTime of most recent measurement
+    char* Comment;                          // sensor comment
+} Ssensor;
+
 typedef struct             // Tank Object
 {
   int     Node;            // node index of tank
@@ -439,6 +479,7 @@ typedef struct             // Tank Object
   MixType MixModel;        // type of mixing model
   double  V1frac;          // mixing compartment fraction
   int     CanOverflow;     // tank can overflow or not
+  double  Error;           // water levell pseudomeasurement uncertainty
 } Stank;
 
 typedef struct             // Pump Object
@@ -578,12 +619,14 @@ typedef struct {
     MaxRules,              // Rule count    "   "     "
     MaxPats,               // Pattern count "   "     "
     MaxCurves,             // Curve count   "   "     "
+    MaxSensors,            // Sensor count "  "   "
     Ntokens,               // Number of tokens in line of input
     Ntitle,                // Number of title lines
     ErrTok,                // Index of error-producing token
     Unitsflag,             // Unit system flag
     Flowflag,              // Flow units flag
-    Pressflag;             // Pressure units flag
+    ErrType,               // Type of uncertainty currently reading.
+    Pressflag;             // Pressure units flag.
 
   Spattern *PrevPat;       // Previous pattern processed
   Scurve   *PrevCurve;     // Previous curve processed
@@ -838,7 +881,15 @@ typedef struct {
     Ncontrols,             // Number of simple controls
     Nrules,                // Number of control rules
     Npats,                 // Number of time patterns
-    Ncurves;               // Number of data curves
+    Ncurves,               // Number of data curves
+    Npressuremeters,       // Number of pressure meters
+    Nflowmeters,           // Number of flow meters
+    Nwaterlevelmeters,     // Number of water level meters 
+    Nsensors;              // Total number of sensors
+
+  double defDemError,       // Default demand pseudomeasurement error
+         defTankLevError,   // Default tank level pseudomeasurement error
+         defResLevError;    // Default reservoir level pseudomeasurement error
 
   Snode    *Node;          // Node array
   Slink    *Link;          // Link array
@@ -849,6 +900,7 @@ typedef struct {
   Scurve   *Curve;         // Data curve array
   Scontrol *Control;       // Simple controls array
   Srule    *Rule;          // Rule-based controls array
+  Ssensor  *Sensor;        // Sensor array
   HashTable
     *NodeHashTable,        // Hash table for Node ID names
     *LinkHashTable;        // Hash table for Link ID names

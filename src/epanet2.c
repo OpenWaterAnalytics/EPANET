@@ -47,6 +47,22 @@ void removetmpfiles()
 /*|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ||      FUNCIONES PARA DESARROLLO, INTERFAZ Y TESTS           ||
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||*/
+void appendToFile(const char* content) {
+    // Open the file in append mode ("a+").
+    FILE* file = fopen("MENSAJES.txt", "a+");
+
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    // Write content to the end of the file.
+    fprintf(file, "%s\n", content);
+
+    // Close the file.
+    fclose(file);
+}
+
 __declspec(dllexport) void* get_defaultProject() {
     /*------------------------------------------------------------------------
          **   Input:   none
@@ -56,6 +72,8 @@ __declspec(dllexport) void* get_defaultProject() {
          **   can use it from poutside C (from Julia being more precise).
          **-------------------------------------------------------------------------
          */
+    const char *mensaje = "Hiii hayy hellooo :)";
+    appendToFile(mensaje);
 
     return (void*)_defaultProject;
 }
@@ -71,6 +89,78 @@ __declspec(dllexport) int numero_nodos(EN_Project p) {
     int nnodes = p->network.Nnodes;
     return nnodes;
 }
+
+__declspec(dllexport) int numero_sensores(EN_Project p) {
+    // Esta función solo la quiero para consultar campos del projecto
+    int ns = p->network.Nflowmeters;
+    return ns;
+}
+__declspec(dllexport) void print_sensordata_infile(EN_Project p) {
+    // Function for checking if sensor data input has been successfull.
+    // Prints sensor information in the MENSAJES.txt file
+    Network* net = &p->network;
+    Ssensor* sens;
+    int n = net->Nsensors;
+    int sIndex,
+        elIndex;
+    char tipo[20],
+         sID[MAXID+1],
+         elID[MAXID + 1];
+    double error,
+           defDemerr,
+           defTankerr,
+           defReserr;
+    char buffer[100];
+
+    sprintf(buffer,"Sensor\tSensor ID\tEl. Index\tEl. ID\tType\tError");
+    const char* linea;
+    linea = buffer;
+    appendToFile(linea);
+
+    for (int i = 1; i <= n; i++)
+    {
+        sens = &net->Sensor[i];
+        strcpy(sID, sens->ID);
+        strcpy(elID, sens->elID);
+        sIndex = sens->sIndex;
+        elIndex = sens->elIndex;
+        error = sens->error;
+
+        switch (sens->Type)
+        {
+        case PRESSUREMETER:     strcpy(tipo, "PMETER");    break;
+        case FLOWMETER:         strcpy(tipo, "FMETER");    break;
+        case WATERLEVELMETER:   strcpy(tipo, "WMETER");    break;
+        default:
+            strcpy(tipo, "error");
+            break;
+        }
+        sprintf(buffer, "%d\t%s\t\t%d\t\t%s\t%s\t%f", sIndex, sID, elIndex, elID, tipo, error);
+        linea = buffer;
+        appendToFile(linea);
+
+    }
+    sprintf(buffer, "\nDefault pseudomeasurement uncertainties");
+    linea = buffer;
+    appendToFile(linea);
+
+    defDemerr = net->defDemError;
+    defTankerr = net->defTankLevError;
+    defReserr = net->defResLevError;
+
+    sprintf(buffer, "\nDemand:\t\t\tCV = %f LPS", defDemerr);
+    linea = buffer;
+    appendToFile(linea);
+    sprintf(buffer, "\nTank water level:\tCV = %f m", defTankerr);
+    linea = buffer;
+    appendToFile(linea);
+    sprintf(buffer, "\nTank water level:\tCV = %f m", defReserr);
+    linea = buffer;
+    appendToFile(linea);
+
+    
+}
+
 
 /********************************************************************
 
@@ -105,6 +195,7 @@ ENepanet(const char *inpFile, const char *rptFile,
     // Run the project and record any warning
     createtmpfiles();
     errcode = EN_runproject(_defaultProject, inpFile, rptFile, outFile, pviewprog);
+
     if (errcode < 100) warncode = errcode;
     removetmpfiles();
 

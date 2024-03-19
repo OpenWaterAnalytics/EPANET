@@ -15,6 +15,7 @@ DAT(120,"cannot solve water quality transport equations")
 DAT(200,"one or more errors in input file")
 DAT(201,"syntax error")
 DAT(299,"invalid section keyword")
+DAT(298,"invalid default uncertainty definition in input file")
 
 // These errors apply to both an input file and to API functions
 DAT(202,"illegal numeric value")
@@ -65,6 +66,9 @@ DAT(260,"attempt to delete node assigned as a Trace Node")
 DAT(261,"attempt to delete a node or link contained in a control")
 DAT(262,"attempt to modify network structure while solver is active")
 DAT(263,"node is not a tank")
+
+// Test error codes
+DAT(264, "Section other than _PRESSUREMETERS, _FLOWMETERS or _WATERLEVELMETERS managed to enter sensordata()")
 
 // File errors
 DAT(301,"identical file names")

@@ -127,8 +127,16 @@ char *SectTxt[]         = {s_TITLE,     s_JUNCTIONS, s_RESERVOIRS,
                            s_REACTIONS, s_MIXING,    s_REPORT,
                            s_TIMES,     s_OPTIONS,   s_COORDS,
                            s_VERTICES,  s_LABELS,    s_BACKDROP,
-                           s_TAGS,      s_END,
+                           s_TAGS,      s_PRESSUREMETERS, s_FLOWMETERS, 
+                           s_WATERLEVELMETERS, s_UNCERTAINTIES,  s_END,
                            NULL};
+
+// Take into account that these elements must be in the same order that the 
+// UncertaintyType enum in types.h (the first three i mean)
+char *ErrSectTxt[] = {  err_DEMANDS, err_TANKLEVELS,
+                        err_RESERVOIRLEVELS, UNCERTAINTIES_header, 
+                        DEFAULT_value, 
+                        NULL };
 
 char *Fldname[]         = {t_ELEV,      t_DEMAND,    t_HEAD,
                            t_PRESSURE,  t_QUALITY,   t_LENGTH,

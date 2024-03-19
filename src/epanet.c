@@ -42,12 +42,16 @@ int DLLEXPORT EN_createproject(EN_Project *p)
 **----------------------------------------------------------------
 */
 {
+    const char* mensaje = "Terminamos en createproject.";
     struct Project *project = (struct Project *)calloc(1, sizeof(struct Project));
     if (project == NULL) return -1;
     getTmpName(project->TmpHydFname);
     getTmpName(project->TmpOutFname);
     getTmpName(project->TmpStatFname);
     *p = project;
+
+    appendToFile(mensaje);
+
     return 0;
 }
 

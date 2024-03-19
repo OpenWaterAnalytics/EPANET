@@ -37,9 +37,14 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
  **----------------------------------------------------------------
  */
 {
+    const char *mensaje1 = "Entramos en openproject.";
     int errcode = 0;
     int hyderrcode = 0;
     int projectopened;
+
+
+    appendToFile(mensaje1);
+
 
     // Set system flags
     pr->Openflag = FALSE;
@@ -56,6 +61,7 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
 
     // Open input & report files
     ERRCODE(openfiles(pr, inpFile, rptFile, outFile));
+
     if (errcode > 0)
     {
         errmsg(pr, errcode);
@@ -64,6 +70,8 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
 
     // Allocate memory for project's data arrays
     ERRCODE(netsize(pr));
+
+
     ERRCODE(allocdata(pr));
 
     // Read input data
@@ -136,6 +144,7 @@ int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
     // Attempt to open input and report files
     if (strlen(f1) > 0)
     {
+        printf("Input file name %s", f1);
         if ((pr->parser.InFile = fopen(f1, "rt")) == NULL) return 302;
     }
     if (strlen(f2) == 0) pr->report.RptFile = stdout;
@@ -318,6 +327,13 @@ void initpointers(Project *pr)
     nw->Nrules = 0;
     nw->Npats = 0;
     nw->Ncurves = 0;
+    nw->Npressuremeters = 0;
+    nw->Nflowmeters = 0;
+    nw->Nwaterlevelmeters = 0;
+
+    nw->defDemError = 0.0;
+    nw->defTankLevError = 0.0;
+    nw->defResLevError = 0.0;
 
     pr->hydraul.NodeDemand = NULL;
     pr->hydraul.NodeHead = NULL;
@@ -336,6 +352,7 @@ void initpointers(Project *pr)
 
     pr->network.Node = NULL;
     pr->network.Link = NULL;
+    pr->network.Sensor = NULL;
     pr->network.Tank = NULL;
     pr->network.Pump = NULL;
     pr->network.Valve = NULL;
@@ -414,6 +431,14 @@ int allocdata(Project *pr)
         ERRCODE(MEMCHECK(pr->hydraul.LinkFlow));
         ERRCODE(MEMCHECK(pr->hydraul.LinkSetting));
         ERRCODE(MEMCHECK(pr->hydraul.LinkStatus));
+    }
+
+    // Allocate memory for network sensors
+    if (!errcode)
+    {
+        n = pr->parser.MaxSensors + 1;
+        pr->network.Sensor = (Ssensor *)calloc(n, sizeof(Ssensor));
+        ERRCODE(MEMCHECK(pr->network.Sensor));
     }
 
     // Allocate memory for tanks, sources, pumps, valves, and controls
@@ -992,6 +1017,25 @@ int findvalve(Network *network, int index)
         if (network->Valve[i].Link == index) return i;
     }
     return NOTFOUND;
+}
+
+int findsensor(Network* network, const char* id)
+/*----------------------------------------------------------------
+**  Input:   id = sensor ID
+**  Output:  none
+**  Returns: sensor index, or -1 if pattern not found
+**  Purpose: finds index of sensor given its ID
+**----------------------------------------------------------------
+*/
+{
+    int i;
+
+    // Don't forget to include the "dummy" pattern 0 in the search
+    for (i = 0; i <= network->Nsensors; i++)
+    {
+        if (strcmp(id, network->Sensor[i].ID) == 0) return i;
+    }
+    return -1;
 }
 
 int findpattern(Network *network, const char *id)

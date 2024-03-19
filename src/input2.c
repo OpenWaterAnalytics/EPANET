@@ -1,4 +1,4 @@
-/*
+/*  
 ******************************************************************************
 Project:      OWA EPANET
 Version:      2.3
@@ -21,13 +21,15 @@ Last Updated: 09/28/2023
 #include "hash.h"
 #include "text.h"
 
-extern char *SectTxt[]; // Input section keywords (see ENUMSTXT.H)
+extern char *SectTxt[];     // Input section keywords (see ENUMSTXT.H)
+extern char *ErrSectTxt[]; // Uncertainties section keywords (see ENUMSTXT.H)
 
 // Exported functions
 int addnodeID(Network *, int, char *);
 int addlinkID(Network *, int, char *);
 int getunitsoption(Project *, char *);
 int getheadlossoption(Project *, char *);
+int readdefaulterrors(Project *, char *);
 
 // Local functions
 static int  newline(Project *, int, char *);
@@ -47,7 +49,8 @@ int netsize(Project *pr)
 {
     Parser *parser = &pr->parser;
 
-    char line[MAXLINE + 1]; // Line from input data file
+    char line[MAXLINE + 1], // Line from input data file
+         fullline[MAXLINE + 1];
     char *tok;              // First token of line
     int sect, newsect;      // Input data sections
     int errcode = 0;        // Error code
@@ -62,7 +65,16 @@ int netsize(Project *pr)
     parser->MaxControls = 0;
     parser->MaxRules = 0;
     parser->MaxCurves = 0;
+    parser->MaxSensors = 0;
+    parser->ErrType = -1;
     sect = -1;
+
+    char buffer[100];
+    const char* linea;
+
+    sprintf(buffer, "   Entramos a netsize");
+    linea = buffer;
+    appendToFile(linea);
 
 
     // Add a "dummy" time pattern with index of 0 and a single multiplier
@@ -80,10 +92,17 @@ int netsize(Project *pr)
     if (parser->InFile == NULL) return 0;
     while (fgets(line, MAXLINE, parser->InFile) != NULL)
     {
+        strcpy(fullline, line);
+
         // Skip blank lines & those beginning with a comment
         tok = strtok(line, SEPSTR);
         if (tok == NULL) continue;
-        if (*tok == ';') continue;
+        // If the section is UNCERTAINTIES I don't want 
+        // to skip lines beginning with a comment:
+        if (sect != _UNCERTAINTIES)
+        {
+            if (*tok == ';') continue;
+        }
 
         // Check if line begins with a new section heading
         if (tok[0] == '[')
@@ -126,6 +145,13 @@ int netsize(Project *pr)
                     getunitsoption(pr, strtok(line, SEPSTR));
                 else if (match(tok, w_HEADLOSS))
                     getheadlossoption(pr, strtok(line, SEPSTR));
+                break;
+            case _PRESSUREMETERS:
+            case _FLOWMETERS:
+            case _WATERLEVELMETERS: parser->MaxSensors++;    break;
+            case _UNCERTAINTIES: 
+                errcode = readdefaulterrors(pr, fullline);
+
                 break;
         }
         if (errcode) break;
@@ -172,6 +198,10 @@ int readdata(Project *pr)
     net->Nvalves = 0;
     net->Ncontrols = 0;
     net->Nrules = 0;
+    net->Npressuremeters = 0;
+    net->Nflowmeters = 0;
+    net->Nwaterlevelmeters = 0;
+    net->Nsensors = 0;
 
     // Patterns & Curves were created previously in netsize()
     parser->MaxPats = net->Npats;
@@ -238,7 +268,6 @@ int readdata(Project *pr)
                 continue;
             }
         }
-
         // Otherwise process next line of input in current section
         else
         {
@@ -321,6 +350,9 @@ int newline(Project *pr, int sect, char *line)
         case _OPTIONS:     return (optiondata(pr));
         case _COORDS:      return (coordata(pr));
         case _VERTICES:    return (vertexdata(pr));
+        case _PRESSUREMETERS:
+        case _FLOWMETERS:
+        case _WATERLEVELMETERS: return(sensordata(pr,sect));
 
         // Data in these sections are not used for any computations
         case _LABELS:
@@ -366,6 +398,49 @@ int addlinkID(Network *net, int n, char *id)
       return 252; // invalid formt (too long);
     strncpy(net->Link[n].ID, id, MAXID);
     hashtable_insert(net->LinkHashTable, net->Link[n].ID, n);
+    return 0;
+}
+
+int addsensorID(Network *network, int n, char *id)
+/*
+**-------------------------------------------------------------
+**  Input:  n -> Sensor index
+**              id -> Sensor id
+**  Output:    error code (doesn't really matter wether the 
+**                  ID is repeated or not because I don't plan on 
+**                  needing the sensor ID for anything)
+**  Purpose:   add a new sensor to the database
+**--------------------------------------------------------------
+*/
+{
+    Ssensor* sensor;
+
+
+    // Check if sensor was already created
+    if (n > 0)
+    {
+        if (strcmp(id, network->Sensor[n].ID) == 0) return 0;
+        if (findsensor(network, id) > 0) return 0;
+    }
+    if (strlen(id) > MAXID) return 252;
+
+    // Add one to the sensor count:
+ 
+    network->Nsensors++;
+
+    // Initialize the sensor:
+    sensor = &network->Sensor[network->Nsensors];
+    strncpy(sensor->ID, id, MAXID);
+    sensor->sIndex = n;
+    sensor->elIndex = 0;
+    sensor->Comment = NULL;
+    // EPANET would't do this this way, but i want to 
+    // initialize my measurements and times vectors:
+    for (int i = 0; i < NUM_MEASUREMENTS + 1 ; i++)
+    {
+        sensor->mValue[i] = 0.0;
+        initsTime(&sensor->mTime[i]);
+    }
     return 0;
 }
 
@@ -486,6 +561,26 @@ int getheadlossoption(Project *pr, char *formula)
     return 1;
 }
 
+//int findmatch(char *line, char *keyword[])
+/*
+**--------------------------------------------------------------
+**  Input:   *line      = line from input file
+**           *keyword[] = list of NULL terminated keywords
+**  Output:  returns index of matching keyword or
+**           -1 if no match found
+**  Purpose: determines which keyword appears on input line
+**--------------------------------------------------------------
+*/
+//{
+//    int i = 0;
+//    while (keyword[i] != NULL)
+//    {
+//       if (match(line, keyword[i])) return i;
+//        i++;
+//    }
+//    return -1;
+//}
+
 int findmatch(char *line, char *keyword[])
 /*
 **--------------------------------------------------------------
@@ -498,9 +593,10 @@ int findmatch(char *line, char *keyword[])
 */
 {
     int i = 0;
+
     while (keyword[i] != NULL)
     {
-        if (match(line, keyword[i])) return i;
+        if (strstr(line, keyword[i]) != NULL) return i;
         i++;
     }
     return -1;
@@ -731,4 +827,94 @@ void inperrmsg(Project *pr, int err, int sect, char *line)
 
     // Echo input line
     writeline(pr, line);
+}
+
+int readdefaulterrors(Project* pr, char* line)
+/*
+**-------------------------------------------------------------
+**  Input:   s -> Line read from input file
+**  Output:  none
+**  Purpose: reads the default uncertainties (if present) 
+**  of demand and tank/reservoir level pseudomeasurement.
+**-------------------------------------------------------------
+*/
+{
+    // I need these variables for reading the default uncertainties:
+    Network* net = &pr->network;
+    Parser* parser = &pr->parser;
+    char wline[MAXLINE + 1],
+        *Tokens[MAXTOKS],
+         Comment[MAXMSG + 1];
+    int Ntokens,pos;
+    double x;
+
+    strcpy(wline, line);
+    
+    pos = findmatch(line, ErrSectTxt);
+
+    switch (pos)
+    {
+        case HEADER: break;
+        case DEMANDS: 
+        case TANKLEVEL:
+        case RESERVOIRLEVEL:
+            parser->ErrType = pos; 
+            break;
+        case DEFAULTucnt:
+            Ntokens = gettokens(wline, Tokens, MAXTOKS, Comment);
+            if (Ntokens>0)
+            {
+                switch (parser->ErrType)
+                {
+                case DEMANDS: 
+                    if (getfloat(Tokens[0], &x))
+                    {
+                        net->defDemError = x;
+                        return 0;
+                        break;
+                    }
+                    else
+                    {
+                        return 298;
+                        break;
+                    }
+                case TANKLEVEL:
+                    if (getfloat(Tokens[0], &x))
+                    {
+                        net->defTankLevError = x;
+                        return 0;
+                        break;
+                    }
+                    else
+                    {
+                        return 298;
+                        break;
+                    }
+                case RESERVOIRLEVEL:
+                    if (getfloat(Tokens[0], &x))
+                    {
+                        net->defResLevError = x;
+                        return 0;
+                        break;
+                    }
+                    else
+                    {
+                        return 298;
+                        break;
+                    }
+                default:
+                    return 298;
+                    break;
+                }
+            }
+            else
+            {
+                return 298;
+                break;
+            }
+    default:
+        return 0;
+        break;
+    }
+    return 0;
 }

@@ -10,11 +10,13 @@
  Last Updated: 09/28/2023
  ******************************************************************************
 */
+#include "types.h"
 #ifndef FUNCS_H
 #define FUNCS_H
 
 // ------- PROJECT.C ------------
 
+void	appendToFile(const char*);
 void    initpointers(Project *);
 int     allocdata(Project *);
 void    freedata(Project *);
@@ -37,6 +39,7 @@ int     findlink(Network *, const char *);
 int     findtank(Network *, int);
 int     findvalve(Network *, int);
 int     findpump(Network *, int);
+int		findsensor(Network*, const char*);
 int     findpattern(Network *, const char *);
 int     findcurve(Network *, const char *);
 
@@ -71,6 +74,7 @@ void    setdefaults(Project *);
 void    initreport(Report *);
 void    adjustdata(Project *);
 void    inittanks(Project *);
+void	initsTime(Stime* t);
 void    initunits(Project *);
 void    convertunits(Project *);
 
@@ -89,6 +93,7 @@ int     setreport(Project *, char *);
 
 int     juncdata(Project *);
 int     tankdata(Project *);
+int		sensordata(Project *, int);
 int     pipedata(Project *);
 int     pumpdata(Project *);
 int     valvedata(Project *);

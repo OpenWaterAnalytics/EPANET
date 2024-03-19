@@ -30,6 +30,7 @@ extern char *BackflowTxt[];
 // Imported Functions
 extern int addnodeID(Network *, int, char *);
 extern int addlinkID(Network *, int, char *);
+extern int addsensorID(Network *, int, char *);
 extern int getunitsoption(Project *, char *);
 extern int getheadlossoption(Project *, char *);
 
@@ -76,7 +77,10 @@ int juncdata(Project *pr)
 
     int p = 0;                  // time pattern index
     int n;                      // number of tokens
-    int njuncs;                 // number of network junction nodes
+    int njuncs;                 // number of network 
+    
+    
+   
     double el = 0.0,            // elevation
            d = 0.0,             // base demand
            x;
@@ -174,7 +178,8 @@ int tankdata(Project *pr)
            maxlevel = 0.0,  // Maximum level
            minvol = 0.0,    // Minimum volume
            diam = 0.0,      // Diameter
-           area;            // X-sect. area
+           area,            // X-sect. area
+           err = 0.0;       // Uncertainty
     Snode *node;
     Stank *tank;
 
@@ -278,6 +283,7 @@ int tankdata(Project *pr)
     tank->Pat = pattern;
     tank->Kb = MISSING;
     tank->CanOverflow = overflow;
+    tank->Error = err;
 
     //*******************************************************************
     // NOTE: The min, max, & initial volumes set here are based on a
@@ -324,6 +330,91 @@ double gettokvalue(Project *pr, double x, int itok, int *errcode, int *errtok)
     }
     return result;
 }    
+
+int sensordata(Project *pr, int sect)
+/*
+**--------------------------------------------------------------
+** Input: sect (section of the inp file, it can be any of the
+**            three sensor sections)
+** Output: returns error code
+**  Purpose: processes sensor data
+**  Format:
+**    [-METERS]
+**      sensorID  elementID  Error[%]
+**--------------------------------------------------------------
+*/
+{
+    Network* net = &pr->network;
+    Parser* parser = &pr->parser;
+    Ssensor* sens;
+
+    int el,         // Measured element index
+        n,
+        errtok,        
+        errcode;
+    double  x,
+            merror = 0.0;  // Measurement error of the sensor.
+
+    // Check that measured element exists:
+    if (sect == _PRESSUREMETERS || sect == _WATERLEVELMETERS)
+    {
+        if ((el = findnode(net, parser->Tok[1])) == 0) return setError(parser, 1, 203);
+    }
+    else if (sect == _FLOWMETERS)
+    {
+        if ((el = findlink(net, parser->Tok[1])) == 0) return setError(parser, 1, 203);
+    }
+    else
+    {
+        errcode = 264;
+        return errcode;
+    }
+
+    // No error, measured element exists. Add new sensor to database:
+    errcode = addsensorID(net, net->Nsensors + 1, parser->Tok[0]);
+
+
+    // Put data into the object:
+    n = parser->Ntokens;
+    if (n < 3) errcode = 201;
+    if (!errcode && !getfloat(parser->Tok[2], &x))
+    {
+        errcode = 202;
+        errtok = 1;
+    }
+    else
+    {
+        sens = &net->Sensor[net->Nsensors];
+        strncpy(sens->elID, parser->Tok[1], MAXID);
+        sens->Comment = xstrcpy(&sens->Comment, parser->Comment, MAXMSG);
+        sens->elIndex = el;
+        merror = gettokvalue(pr, merror, 2, &errcode, &errtok);
+    }
+    if (!errcode)
+    {
+        sens->error = merror;
+        switch (sect)
+        {
+        case _PRESSUREMETERS:   {
+            sens->Type = PRESSUREMETER;
+            net->Npressuremeters++;
+            break;
+        }
+        case _FLOWMETERS: {
+            sens->Type = FLOWMETER;
+            net->Nflowmeters++;
+            break;
+        }
+        case _WATERLEVELMETERS: {
+            sens->Type = WATERLEVELMETER;
+            net->Nwaterlevelmeters++;
+            break;
+        }
+        }
+    }
+    else return 1;
+    return 0;
+}
 
 int pipedata(Project *pr)
 /*

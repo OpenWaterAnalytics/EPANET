@@ -63,6 +63,8 @@ typedef struct Project *EN_Project;
 __declspec(dllexport) void* get_defaultProject();
 __declspec(dllexport) void consultar_campos(EN_Project p);
 __declspec(dllexport) int numero_nodos(EN_Project p);
+__declspec(dllexport) int numero_sensores(EN_Project p);
+__declspec(dllexport) void print_sensordata_infile(EN_Project p);
 
   /**
   @brief Creates an EPANET project.
