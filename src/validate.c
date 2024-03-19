@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/25/2024
+ Last Updated: 03/18/2024
  ******************************************************************************
 */
 
@@ -59,12 +59,13 @@ int validatetanks(Project *pr)
         {
             curve = &net->Curve[i];
             n = curve->Npts - 1;
-            if ((tank->Hmin - elev) * pr->Ucf[ELEV] < curve->X[0] ||
-                (tank->Hmax - elev) * pr->Ucf[ELEV]> curve->X[n])
+            if ((tank->Hmin - elev) * pr->Ucf[ELEV] < curve->X[0] - TINY ||
+                (tank->Hmax - elev) * pr->Ucf[ELEV] > curve->X[n] + TINY)
             {
                 levelerr = 1;
             }
         }
+        
         // Report error in levels if found
         if (levelerr)
         {
