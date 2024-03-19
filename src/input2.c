@@ -561,26 +561,6 @@ int getheadlossoption(Project *pr, char *formula)
     return 1;
 }
 
-//int findmatch(char *line, char *keyword[])
-/*
-**--------------------------------------------------------------
-**  Input:   *line      = line from input file
-**           *keyword[] = list of NULL terminated keywords
-**  Output:  returns index of matching keyword or
-**           -1 if no match found
-**  Purpose: determines which keyword appears on input line
-**--------------------------------------------------------------
-*/
-//{
-//    int i = 0;
-//    while (keyword[i] != NULL)
-//    {
-//       if (match(line, keyword[i])) return i;
-//        i++;
-//    }
-//    return -1;
-//}
-
 int findmatch(char *line, char *keyword[])
 /*
 **--------------------------------------------------------------

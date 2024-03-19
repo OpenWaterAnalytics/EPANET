@@ -151,12 +151,27 @@ __declspec(dllexport) void print_sensordata_infile(EN_Project p) {
     sprintf(buffer, "\nDemand:\t\t\tCV = %f LPS", defDemerr);
     linea = buffer;
     appendToFile(linea);
-    sprintf(buffer, "\nTank water level:\tCV = %f m", defTankerr);
+    sprintf(buffer, "Tank water level:\tCV = %f m", defTankerr);
     linea = buffer;
     appendToFile(linea);
-    sprintf(buffer, "\nTank water level:\tCV = %f m", defReserr);
+    sprintf(buffer, "Tank water level:\tCV = %f m", defReserr);
     linea = buffer;
     appendToFile(linea);
+
+    sprintf(buffer, "\nSome errors:");
+    linea = buffer;
+    appendToFile(linea);
+
+    sprintf(buffer, "\tTank %s: \tCV = %f", net->Node[net->Tank[3].Node].ID, net->Tank[3].Error);
+    linea = buffer;
+    appendToFile(linea);
+    sprintf(buffer, "\tReservoir %s: \tCV = %f", net->Node[net->Tank[1].Node].ID, net->Tank[1].Error);
+    linea = buffer;
+    appendToFile(linea);
+    sprintf(buffer, "\tDemand %d: \tCV = %f", 6, net->Node[6].D->Error);
+    linea = buffer;
+    appendToFile(linea);
+
 
     
 }

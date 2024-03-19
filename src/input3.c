@@ -141,7 +141,7 @@ int juncdata(Project *pr)
 
     // Create a demand for the junction and use NodeDemand as an indicator
     // to be used when processing demands from the [DEMANDS] section
-    if (!adddemand(node, d, p, NULL)) return 101;
+    if (!adddemand(pr, node, d, p, NULL)) return 101;
     hyd->NodeDemand[njuncs] = d;
     
     // Return error code
@@ -219,6 +219,8 @@ int tankdata(Project *pr)
                 errtok = 2;
             }
         }
+        // Default reservoir uncertainty:
+        err = net->defResLevError;
     }
     
     // Node is a storage tank
@@ -261,6 +263,8 @@ int tankdata(Project *pr)
                 }
             }
         }
+        // Default tank uncertainty:
+        err = net->defTankLevError;
     }
     node = &net->Node[i];
     tank = &net->Tank[net->Ntanks];
@@ -993,7 +997,7 @@ int demanddata(Project *pr)
     }
 
     // Otherwise add new demand to junction
-    else if (!adddemand(&net->Node[j], y, p, parser->Comment) > 0) return 101;
+    else if (!adddemand(pr, &net->Node[j], y, p, parser->Comment) > 0) return 101;
     return 0;
 }
 

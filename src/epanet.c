@@ -1886,7 +1886,7 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
         nIdx = net->Njuncs;
         node = &net->Node[nIdx];
         node->D = NULL;
-        adddemand(node, 0.0, 0, NULL);
+        adddemand(p, node, 0.0, 0, NULL);
 
         // shift indices of Tank array
         for (i = 1; i <= net->Ntanks; i++)
@@ -2691,7 +2691,7 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
         (node->D)->Pat = patIndex;
     }
     // No demand categories exist -- create a new one
-    else if (!adddemand(node, dmnd, patIndex, NULL)) return 101;
+    else if (!adddemand(p, node, dmnd, patIndex, NULL)) return 101;
 
     // Assign new elevation value to junction
     node->El = elev / p->Ucf[ELEV];
@@ -2904,7 +2904,7 @@ int  DLLEXPORT EN_adddemand(EN_Project p, int nodeIndex, double baseDemand,
 
     // Add the new demand to the node's demands list
     node = &(p->network.Node[nodeIndex]);
-    if (!adddemand(node, baseDemand / p->Ucf[FLOW], patIndex, demandName)) return 101;
+    if (!adddemand(p, node, baseDemand / p->Ucf[FLOW], patIndex, demandName)) return 101;
     return 0;
 }
 

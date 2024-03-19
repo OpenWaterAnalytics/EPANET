@@ -592,7 +592,7 @@ Pdemand finddemand(Pdemand d, int index)
     return d;
 }
 
-int adddemand(Snode *node, double dbase, int dpat, const char *dname)
+int adddemand(Project* pr, Snode *node, double dbase, int dpat, const char *dname)
 /*----------------------------------------------------------------
 **  Input:   node = a network junction node
 **           dbase = base demand value
@@ -604,6 +604,7 @@ int adddemand(Snode *node, double dbase, int dpat, const char *dname)
 */
 {
     Pdemand demand, lastdemand;
+    Network *net = &pr->network;
 
     // Create a new demand struct
     demand = (struct Sdemand *)malloc(sizeof(struct Sdemand));
@@ -613,6 +614,7 @@ int adddemand(Snode *node, double dbase, int dpat, const char *dname)
     demand->Base = dbase;
     demand->Pat = dpat;
     demand->Name = NULL;
+    demand->Error = net->defDemError;
     if (dname && strlen(dname) > 0) xstrcpy(&demand->Name, dname, MAXID);
     demand->next = NULL;
 
