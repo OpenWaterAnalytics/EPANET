@@ -1,0 +1,35 @@
+name: macOS
+
+on: 
+  push:
+  pull_request: 
+  schedule: 
+    - cron: '0 0 1 * *'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup build directory
+      run: mkdir buildproducts
+      
+    - name: CMake
+      working-directory: ./buildproducts
+      run: cmake ..
+      
+    - name: Make
+      working-directory: ./buildproducts
+      run: make
+      
+    - name: Copy header files to build directory
+      run: |
+        cp include/epanet2.h buildproducts/
+        cp include/epanet2_2.h buildproducts/
+        cp include/epanet2_enums.h buildproducts/
+        
+    - uses: actions/upload-artifact@v4
+      with:
+        name: libepanet-output
+        path: buildproducts/
