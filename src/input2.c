@@ -180,7 +180,11 @@ int readdata(Project *pr)
 	char errmsg[MAXMSG + 1] = "";		 
     int  sect, newsect,      // Data sections
          errcode = 0,        // Error code
-         inperr, errsum;     // Error code & total error count
+         inperr, errsum,     // Error code & total error count
+         pos;     
+
+    char buffer[100];
+    const char* linea;
 
     // Allocate input buffer
     parser->X = (double *)calloc(MAXTOKS, sizeof(double));
@@ -202,6 +206,8 @@ int readdata(Project *pr)
     net->Nflowmeters = 0;
     net->Nwaterlevelmeters = 0;
     net->Nsensors = 0;
+    //Initialize ErrType
+    parser->ErrType = -1;
 
     // Patterns & Curves were created previously in netsize()
     parser->MaxPats = net->Npats;
@@ -229,6 +235,21 @@ int readdata(Project *pr)
             if (sect == _PATTERNS || sect == _CURVES)
             {
                 strncpy(parser->LineComment, parser->Comment, MAXMSG);
+            }
+
+            if (sect == _UNCERTAINTIES)
+            {
+                pos = findmatch(line, ErrSectTxt);
+                switch (pos)
+                {
+                    case DEMANDS: parser->ErrType = DEMANDS; break;
+                    case TANKLEVEL: parser->ErrType = TANKLEVEL; break;
+                    case RESERVOIRLEVEL: parser->ErrType = RESERVOIRLEVEL; break;
+                    case HEADER:
+                    case DEFAULTucnt: break;
+                default:
+                    break;
+                }
             }
             continue;
         }
@@ -306,6 +327,8 @@ int newline(Project *pr, int sect, char *line)
 {
     Parser *parser = &pr->parser;
     int n;
+    char buffer[100];
+    const char* linea;
 
     switch (sect)
     {
@@ -353,6 +376,15 @@ int newline(Project *pr, int sect, char *line)
         case _PRESSUREMETERS:
         case _FLOWMETERS:
         case _WATERLEVELMETERS: return(sensordata(pr,sect));
+        case _UNCERTAINTIES:
+            if (parser->Ntokens>1)
+            {
+                sprintf(buffer, "       Llegamos a newline para [UNCERTAINTIES]");
+                linea = buffer;
+                appendToFile(linea);
+                return updateuncertainties(pr);
+            }
+            return 0;
 
         // Data in these sections are not used for any computations
         case _LABELS:

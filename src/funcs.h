@@ -94,6 +94,7 @@ int     setreport(Project *, char *);
 int     juncdata(Project *);
 int     tankdata(Project *);
 int		sensordata(Project *, int);
+int		updateuncertainties(Project *);
 int     pipedata(Project *);
 int     pumpdata(Project *);
 int     valvedata(Project *);

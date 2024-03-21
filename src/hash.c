@@ -127,6 +127,7 @@ int hashtable_find(HashTable *ht, const char *key)
     unsigned int i = gethash(key);
     DataEntry *entry;
 
+
     if ( i >= HASHTABLEMAXSIZE ) return NOTFOUND;
     entry = ht[i];
     while (entry != NULL)

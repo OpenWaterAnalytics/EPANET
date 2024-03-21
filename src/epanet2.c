@@ -172,6 +172,43 @@ __declspec(dllexport) void print_sensordata_infile(EN_Project p) {
     linea = buffer;
     appendToFile(linea);
 
+    sprintf(buffer, "Not default uncertainties:");
+    linea = buffer;
+    appendToFile(linea);
+
+    // Demandas no por defecto
+    strcpy(sID, "7");
+    sIndex = hashtable_find(net->NodeHashTable, sID);
+    sprintf(buffer, "\tDemand %d: \tCV = %f", sIndex, net->Node[sIndex].D->Error);
+    linea = buffer;
+    appendToFile(linea);
+
+    strcpy(sID, "8");
+    sIndex = hashtable_find(net->NodeHashTable, sID);
+    sprintf(buffer, "\tDemand %d: \tCV = %f", sIndex, net->Node[sIndex].D->Error);
+    linea = buffer;
+    appendToFile(linea);
+
+    strcpy(sID, "17");
+    sIndex = hashtable_find(net->NodeHashTable, sID);
+    sprintf(buffer, "\tDemand %d: \tCV = %f", sIndex, net->Node[sIndex].D->Error);
+    linea = buffer;
+    appendToFile(linea);
+
+    // errores tanques y embalses no por defecto
+    strcpy(sID, "11");
+    sIndex = hashtable_find(net->NodeHashTable, sID);
+    elIndex = findtank(net, sIndex);
+    sprintf(buffer, "\tWater Level %d: \tCV = %f", elIndex, net->Tank[elIndex].Error);
+    linea = buffer;
+    appendToFile(linea);
+
+    strcpy(sID, "1");
+    sIndex = hashtable_find(net->NodeHashTable, sID);
+    elIndex = findtank(net, sIndex);
+    sprintf(buffer, "\tWater Level %d: \tCV = %f", elIndex, net->Tank[elIndex].Error);
+    linea = buffer;
+    appendToFile(linea);
 
     
 }

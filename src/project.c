@@ -38,6 +38,9 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
  */
 {
     const char *mensaje1 = "Entramos en openproject.";
+    const char* mensaje2 = "Salimos de netsize.";
+    const char* mensaje3 = "Salimos de allocdata.";
+    const char* mensaje4 = "Salimos de getdata.";
     int errcode = 0;
     int hyderrcode = 0;
     int projectopened;
@@ -70,12 +73,15 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
 
     // Allocate memory for project's data arrays
     ERRCODE(netsize(pr));
+    appendToFile(mensaje2);
 
 
     ERRCODE(allocdata(pr));
+    appendToFile(mensaje3);
 
     // Read input data
     ERRCODE(getdata(pr));
+    appendToFile(mensaje4);
 
     // Close input file
     if (pr->parser.InFile != NULL)

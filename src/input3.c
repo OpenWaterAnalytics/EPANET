@@ -26,6 +26,7 @@ extern char *MixTxt[];
 extern char *Fldname[];
 extern char *DemandModelTxt[];
 extern char *BackflowTxt[];
+extern char* ErrSectTxt[]; // Uncertainties section keywords (see ENUMSTXT.H)
 
 // Imported Functions
 extern int addnodeID(Network *, int, char *);
@@ -417,6 +418,102 @@ int sensordata(Project *pr, int sect)
         }
     }
     else return 1;
+    return 0;
+}
+
+int updateuncertainties(Project* pr)
+/*
+**--------------------------------------------------------------
+**  Input:   none
+**  Output:  errcode = an error code or 0 if successful
+**  Purpose: Updates non-default uncertainties.
+**--------------------------------------------------------------
+*/
+{
+    Network* net = &pr->network;
+    Parser* parser = &pr->parser;
+    int pos = -1,
+        errcode = 0,
+        index = -1,
+        tankindex = -1;
+    char ID[MAXID + 1];
+    double uncnty;   // Pseudomeasurement uncertainty
+
+    char buffer[100];
+    const char* linea;
+
+    sprintf(buffer, "       Entramos a updateuncertainties con Tok[0]: <%s>", parser->Tok[0]);
+    linea = buffer;
+    appendToFile(linea);
+
+    sprintf(buffer, "       Estamos con medidas de tipo: <%d>", parser->ErrType);
+    linea = buffer;
+    appendToFile(linea);
+
+    switch (parser->ErrType)
+            {
+            case DEMANDS:
+                sprintf(buffer, "           Entramos en demandas. Linea: <%s>", parser->Tok[1]
+                
+                
+                
+                
+             
+                
+              
+                );
+                linea = buffer;
+                appendToFile(linea);
+                strcpy(ID, parser->Tok[0]);
+
+                errcode = getfloat(parser->Tok[1], &uncnty);
+                sprintf(buffer, "           No falla el getfloat??");
+                linea = buffer;
+                appendToFile(linea);
+                
+
+                if (!errcode) { return 202; }
+
+                index = findnode(net, ID); //ID
+                sprintf(buffer, "           hash index: <%d>", index);
+                linea = buffer;
+                appendToFile(linea);
+
+                if (index == NOTFOUND) { return 252; }
+
+                net->Node[index].D->Error = uncnty;
+                break;
+
+            case TANKLEVEL:
+                strcpy(ID, parser->Tok[0]);
+                errcode = getfloat(parser->Tok[1], &uncnty);
+                if (!errcode) { return 202; }
+
+                index = findnode(net, ID);
+                if (index == NOTFOUND) { return 252; }
+                tankindex = findtank(net, index);
+                if (tankindex == NOTFOUND) { return 252;}
+
+                net->Tank[tankindex].Error = uncnty;
+                break;
+
+            case RESERVOIRLEVEL:
+                strcpy(ID, parser->Tok[0]);
+                errcode = getfloat(parser->Tok[1], &uncnty);
+                if (!errcode) { return 202; }
+
+                index = findnode(net, ID);
+                if (index == NOTFOUND) { return 252; }
+                tankindex = findtank(net, index);
+                if (tankindex == NOTFOUND) { return 252; }
+
+                net->Tank[tankindex].Error = uncnty;
+                break;
+
+            default:
+                break;
+            }
+
     return 0;
 }
 
