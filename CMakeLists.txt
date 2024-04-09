@@ -104,6 +104,7 @@ target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
 install(TARGETS epanet2 DESTINATION lib)
 install(FILES ./include/epanet2.h DESTINATION include)
 install(FILES ./include/epanet2_2.h DESTINATION include)
+install(FILES ./include/epanet2_enums.h DESTINATION include)
 install(DIRECTORY ./src/ DESTINATION include FILES_MATCHING PATTERN "*.h")
 
 

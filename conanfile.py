@@ -38,5 +38,5 @@ class EpanetConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libdirs = ["lib"]
-        self.cpp_info.libs = ["epanet2", "epanet-output"]
+        self.cpp_info.libs = ["epanet2"]
         self.cpp_info.includedirs = ["include"]
