@@ -1,4 +1,4 @@
-from conans import ConanFile
+from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout
 
 class EpanetConan(ConanFile):
@@ -33,13 +33,10 @@ class EpanetConan(ConanFile):
         cmake.build()
 
     def package(self):
-        self.copy("lib/libepanet2.dylib", "lib", keep_path=False)
-        self.copy("lib/libepanet-output.dylib", "lib", keep_path=False)
-        self.copy("*.h", "include", "include", keep_path=False)
-        self.copy("types.h", "include", "src", keep_path=False)
-        self.copy("hash.h", "include", "src", keep_path=False)
+        cmake = CMake(self)
+        cmake.install()
 
     def package_info(self):
         self.cpp_info.libdirs = ["lib"]
-        self.cpp_info.libs = ["epanet2", "epanet-output"]
+        self.cpp_info.libs = ["epanet2"]
         self.cpp_info.includedirs = ["include"]
