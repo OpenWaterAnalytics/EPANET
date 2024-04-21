@@ -7,6 +7,8 @@ OWA-EPANET
 [![codecov](https://codecov.io/gh/OpenWaterAnalytics/EPANET/branch/master/graph/badge.svg)](https://codecov.io/gh/OpenWaterAnalytics/EPANET)
 
 [![linux](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/ccpp.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/ccpp.yml)
+[![macos](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/macos.yml/badge.svg)](https://github.
+com/OpenWaterAnalytics/EPANET/actions/workflows/macos.yml)
 [![epanet2-win32](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win32.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win32.yml)
 [![epanet2-win64](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win64.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win64.yml)
 
