@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
 
     steps:
       - name: Checkout repository
@@ -19,7 +21,21 @@ jobs:
         
       - name: CMake
         working-directory: ./buildproducts
-        run: cmake .. -A Win32 && cmake --build . --config Release
+        shell: pwsh
+        run: |
+          $retryCount = 0
+          $maxRetries = 3
+          do {
+            cmake .. -A Win32 && cmake --build . --config Release
+            if ($LASTEXITCODE -eq 0) { break }
+            Write-Host "Retry $($retryCount + 1)/$maxRetries..."
+            Start-Sleep -Seconds 10
+            $retryCount++
+          } while ($retryCount -lt $maxRetries)
+          if ($retryCount -eq $maxRetries) {
+            Write-Host "CMake build failed after $maxRetries attempts."
+            exit 1
+          }
 
       - name: Copy header files to build directory
         run: |
