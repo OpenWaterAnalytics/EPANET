@@ -53,3 +53,4 @@ This document describes the changes and updates that have been made in version 2
 - `EN_PRESS_UNITS` can now be used with `EN_getoption` and `EN_setoption` to get or set the pressure unit used in EPANET.
 - Continuous barrier functions were added to constrain emitter flows to allowable values.
 - The `EN_openx` function has been added to enable the opening of input files with formatting errors through the API. This allows users to continue using toolkit functions even when such errors are present.
+- The `EN_getnodesvalues` and `EN_getlinksvalues` were added to retrieve a property value for all nodes or links in the network.
