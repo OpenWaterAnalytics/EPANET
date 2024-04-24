@@ -2358,7 +2358,7 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
     return 0;
 }
 
-int DLLEXPORT EN_getnodesvalues(EN_Project p, int property, double *values)
+int DLLEXPORT EN_getnodevalues(EN_Project p, int property, double *values)
 /*----------------------------------------------------------------
 **  Input:   property = node property code (see EN_NodeProperty)
 **  Output:  values = array of node property values
@@ -3923,7 +3923,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
     return 0;
 }
 
-int DLLEXPORT EN_getlinksvalues(EN_Project p, int property, double *values)
+int DLLEXPORT EN_getlinkvalues(EN_Project p, int property, double *values)
 /*----------------------------------------------------------------
 **  Input:   property = link property code (see EN_LinkProperty)
 **  Output:  values = array of link property values

@@ -293,7 +293,7 @@ extern "C" {
 
   int DLLEXPORT ENgetlinkvalue(int index, int property, EN_API_FLOAT_TYPE *value);
 
-  int DLLEXPORT ENgetlinksvalues(int property, EN_API_FLOAT_TYPE *value);
+  int DLLEXPORT ENgetlinkvalues(int property, EN_API_FLOAT_TYPE *value);
 
   int DLLEXPORT ENsetlinkvalue(int index, int property, EN_API_FLOAT_TYPE value);
 

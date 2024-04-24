@@ -882,7 +882,7 @@ typedef struct Project *EN_Project;
   (see @ref Units).
   */
 
-  int  DLLEXPORT EN_getnodesvalues(EN_Project ph, int property, double *out_values);
+  int  DLLEXPORT EN_getnodevalues(EN_Project ph, int property, double *out_values);
 
   /**
   @brief Retrieves an array of property values for all nodes.
@@ -1265,7 +1265,7 @@ typedef struct Project *EN_Project;
 
   Values are returned in units that depend on the units used for flow rate (see @ref Units).
   */
-  int  DLLEXPORT EN_getlinksvalues(EN_Project ph, int property, double *out_values);
+  int  DLLEXPORT EN_getlinkvalues(EN_Project ph, int property, double *out_values);
 
   /**
   @brief Sets a property value for a link.
