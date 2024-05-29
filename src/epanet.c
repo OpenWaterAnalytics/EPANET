@@ -2429,6 +2429,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         if (value < 0.0) return 209;
         if (value > 0.0) value = pow((Ucf[FLOW] / value), hyd->Qexp) / Ucf[PRESSURE];
         Node[index].Ke = value;
+        if (hyd->EmitterFlow[index] == 0.0) hyd->EmitterFlow[index] = 1.0;
         break;
 
     case EN_INITQUAL:
