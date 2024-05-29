@@ -3408,6 +3408,12 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
         if (net->Valve[i].Link > index) net->Valve[i].Link -= 1;
     }
 
+    // Reduce the number of pipes count by one if it is a pipe.
+    if (linkType == PIPE)
+    {
+        net->Npipes--;
+    }
+
     // Delete any pump associated with the deleted link
     if (linkType == PUMP)
     {
