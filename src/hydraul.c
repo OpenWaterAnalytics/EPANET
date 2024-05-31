@@ -286,6 +286,7 @@ void  closehyd(Project *pr)
 {
     freesparse(pr);
     freematrix(pr);
+    freeadjlists(pr);
 }
 
 

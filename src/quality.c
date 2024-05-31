@@ -410,6 +410,7 @@ int closequal(Project *pr)
         FREE(qual->FlowDir);
         FREE(qual->SortedNodes);
     }
+    freeadjlists(pr);
     return errcode;
 }
 

@@ -54,3 +54,4 @@ This document describes the changes and updates that have been made in version 2
 - Continuous barrier functions were added to constrain emitter flows to allowable values.
 - The `EN_openx` function has been added to enable the opening of input files with formatting errors through the API. This allows users to continue using toolkit functions even when such errors are present.
 - The `EN_getnodesvalues` and `EN_getlinksvalues` were added to retrieve a property value for all nodes or links in the network.
+- Fixed a bug in EN_setnodevalue with EN_EMITTER option that could cause NaN results.

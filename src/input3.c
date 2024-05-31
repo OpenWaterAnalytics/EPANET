@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 09/28/2023
+Last Updated: 05/11/2024
 ******************************************************************************
 */
 
@@ -1832,7 +1832,7 @@ int optionchoice(Project *pr, int n)
 **    UNBALANCED          STOP/CONTINUE {Niter}
 **    PATTERN             id
 **    DEMAND MODEL        DDA/PDA
-**    EMITTER BACKFLOW    YES/NO
+**    BACKFLOW ALLOWED    YES/NO
 **--------------------------------------------------------------
 */
 {
@@ -1956,11 +1956,11 @@ int optionchoice(Project *pr, int n)
         hyd->DemandModel = choice;
     }
     
-    // EMITTER BACKFLOW
-    else if (match(parser->Tok[0], w_EMITTER))
+    // Emitter BACKFLOW ALLOWED
+    else if (match(parser->Tok[0], w_BACKFLOW))
     {
         if (n < 2) return 0;
-        if (!match(parser->Tok[1], w_BACKFLOW)) return -1;
+        if (!match(parser->Tok[1], w_ALLOWED)) return -1;
         choice = findmatch(parser->Tok[2], BackflowTxt);
         if (choice < 0) return setError(parser, 2, 213);
         hyd->EmitBackFlag = choice;

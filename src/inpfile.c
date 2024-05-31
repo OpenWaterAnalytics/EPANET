@@ -1,13 +1,13 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       inpfile.c
 Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 04/30/2023
+Last Updated: 05/11/2024
 ******************************************************************************
 */
 
@@ -682,7 +682,7 @@ int saveinpfile(Project *pr, const char *fname)
         fprintf(f, "\n PATTERN             %s", net->Pattern[hyd->DefPat].ID);
     fprintf(f, "\n DEMAND MULTIPLIER   %-.4f", hyd->Dmult);
     fprintf(f, "\n EMITTER EXPONENT    %-.4f", 1.0 / hyd->Qexp);
-    fprintf(f, "\n EMITTER BACKFLOW    %s", BackflowTxt[hyd->EmitBackFlag]);
+    fprintf(f, "\n BACKFLOW ALLOWED    %s", BackflowTxt[hyd->EmitBackFlag]);
     fprintf(f, "\n VISCOSITY           %-.6f", hyd->Viscos / VISCOS);
     fprintf(f, "\n DIFFUSIVITY         %-.6f", qual->Diffus / DIFFUS);
     fprintf(f, "\n SPECIFIC GRAVITY    %-.6f", hyd->SpGrav);

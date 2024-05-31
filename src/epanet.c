@@ -2449,6 +2449,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         if (value < 0.0) return 209;
         if (value > 0.0) value = pow((Ucf[FLOW] / value), hyd->Qexp) / Ucf[PRESSURE];
         Node[index].Ke = value;
+        if (hyd->EmitterFlow[index] == 0.0) hyd->EmitterFlow[index] = 1.0;
         break;
 
     case EN_INITQUAL:
@@ -3426,6 +3427,12 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
     for (i = 1; i <= net->Nvalves; i++)
     {
         if (net->Valve[i].Link > index) net->Valve[i].Link -= 1;
+    }
+
+    // Reduce the number of pipes count by one if it is a pipe.
+    if (linkType == PIPE)
+    {
+        net->Npipes--;
     }
 
     // Delete any pump associated with the deleted link
