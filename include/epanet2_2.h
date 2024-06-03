@@ -881,6 +881,20 @@ typedef struct Project *EN_Project;
   Values are returned in units that depend on the units used for flow rate
   (see @ref Units).
   */
+
+  int  DLLEXPORT EN_getnodevalues(EN_Project ph, int property, double *out_values);
+
+  /**
+  @brief Retrieves an array of property values for all nodes.
+  @param ph an EPANET project handle.
+  @param property the property to retrieve (see @ref EN_NodeProperty).
+  @param[out] values an array of values for all nodes.
+  @return an error code.
+
+  Values are returned in units that depend on the units used for flow rate
+  (see @ref Units).
+  */
+
   int  DLLEXPORT EN_getnodevalue(EN_Project ph, int index, int property, double *out_value);
 
   /**
@@ -1241,6 +1255,17 @@ typedef struct Project *EN_Project;
   Values are returned in units that depend on the units used for flow rate (see @ref Units).
   */
   int  DLLEXPORT EN_getlinkvalue(EN_Project ph, int index, int property, double *out_value);
+
+  /**
+  @brief Retrieves an array of property values for all links.
+  @param ph an EPANET project handle.
+  @param property the property to retrieve (see @ref EN_LinkProperty).
+  @param[out] values an array of values for all links.
+  @return an error code.
+
+  Values are returned in units that depend on the units used for flow rate (see @ref Units).
+  */
+  int  DLLEXPORT EN_getlinkvalues(EN_Project ph, int property, double *out_values);
 
   /**
   @brief Sets a property value for a link.
