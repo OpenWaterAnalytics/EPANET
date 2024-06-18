@@ -291,7 +291,7 @@ void writesummary(Project *pr)
   if (qual->Qualflag == NONE || time->Dur == 0.0) sprintf(s, FMT29);
   else if (qual->Qualflag == CHEM)  sprintf(s, FMT30, qual->ChemName);
   else if (qual->Qualflag == TRACE) sprintf(s, FMT31, net->Node[qual->TraceNode].ID);
-  else if (qual->Qualflag == AGE)   printf(s, FMT32);
+  else if (qual->Qualflag == AGE)   sprintf(s, FMT32);
   writeline(pr, s);
   if (qual->Qualflag != NONE && time->Dur > 0)
   {
