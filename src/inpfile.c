@@ -152,7 +152,7 @@ int saveinpfile(Project *pr, const char *fname)
     // (Leave demands for [DEMANDS] section)
     fprintf(f, "\n\n");
     fprintf(f, s_JUNCTIONS);
-    fprintf(f, "\n;%-31s\t%-12s\t%-12s\t%-31s",
+    fprintf(f, "\n;;%-31s\t%-12s\t%-12s\t%-31s",
         "ID", "Elev", "Demand", "Pattern");
     for (i = 1; i <= net->Njuncs; i++)
     {
@@ -164,7 +164,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [RESERVOIRS] section
     fprintf(f, "\n\n");
     fprintf(f, s_RESERVOIRS);
-    fprintf(f, "\n;%-31s\t%-12s\t%-31s",
+    fprintf(f, "\n;;%-31s\t%-12s\t%-31s",
         "ID", "Head", "Pattern");
     for (i = 1; i <= net->Ntanks; i++)
     {
@@ -183,7 +183,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [TANKS] section
     fprintf(f, "\n\n");
     fprintf(f, s_TANKS);
-    fprintf(f, "\n;%-31s\t%-12s\t%-12s\t%-12s\t%-12s\t%-12s\t%-12s\t%-31s\t%-12s",
+    fprintf(f, "\n;;%-31s\t%-12s\t%-12s\t%-12s\t%-12s\t%-12s\t%-12s\t%-31s\t%-12s",
         "ID", "Elevation", "InitLevel", "MinLevel", "MaxLevel", "Diameter", "MinVol", "VolCurve", "Overflow");
     for (i = 1; i <= net->Ntanks; i++)
     {
@@ -210,7 +210,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [PIPES] section
     fprintf(f, "\n\n");
     fprintf(f, s_PIPES);
-    fprintf(f, "\n;%-31s\t%-31s\t%-31s\t%-12s\t%-12s\t%-12s\t%-12s\t%-6s",
+    fprintf(f, "\n;;%-31s\t%-31s\t%-31s\t%-12s\t%-12s\t%-12s\t%-12s\t%-6s",
         "ID", "Node1", "Node2", "Length", "Diameter", "Roughness", "MinorLoss", "Status");
     for (i = 1; i <= net->Nlinks; i++)
     {
@@ -237,7 +237,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [PUMPS] section
     fprintf(f, "\n\n");
     fprintf(f, s_PUMPS);
-    fprintf(f, "\n;%-31s\t%-31s\t%-31s\t%-12s",
+    fprintf(f, "\n;;%-31s\t%-31s\t%-31s\t%-12s",
         "ID", "Node1", "Node2", "Parameters");
     for (i = 1; i <= net->Npumps; i++)
     {
@@ -288,7 +288,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [VALVES] section
     fprintf(f, "\n\n");
     fprintf(f, s_VALVES);
-    fprintf(f, "\n;%-31s\t%-31s\t%-31s\t%-12s\t%-6s\t%-12s\t%-12s",
+    fprintf(f, "\n;;%-31s\t%-31s\t%-31s\t%-12s\t%-6s\t%-12s\t%-12s",
         "ID", "Node1", "Node2", "Diameter", "Type", "Setting", "MinorLoss");
     for (i = 1; i <= net->Nvalves; i++)
     {
@@ -338,7 +338,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [DEMANDS] section
     fprintf(f, "\n\n");
     fprintf(f, s_DEMANDS);
-    fprintf(f, "\n;%-31s\t%-14s\t%-31s\t%-31s",
+    fprintf(f, "\n;;%-31s\t%-14s\t%-31s\t%-31s",
         "Junction", "Demand", "Pattern", "Category");
     ucf = pr->Ucf[DEMAND];
     for (i = 1; i <= net->Njuncs; i++)
@@ -359,7 +359,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [EMITTERS] section
     fprintf(f, "\n\n");
     fprintf(f, s_EMITTERS);
-    fprintf(f, "\n;%-31s\t%-14s",
+    fprintf(f, "\n;;%-31s\t%-14s",
         "Junction", "Coefficient");
     for (i = 1; i <= net->Njuncs; i++)
     {
@@ -372,7 +372,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [STATUS] section
     fprintf(f, "\n\n");
     fprintf(f, s_STATUS);
-    fprintf(f, "\n;%-31s\t%-12s",
+    fprintf(f, "\n;;%-31s\t%-12s",
         "ID", "Status/Setting");
     for (i = 1; i <= net->Nlinks; i++)
     {
@@ -415,7 +415,7 @@ int saveinpfile(Project *pr, const char *fname)
     // (Use 6 pattern factors per line)
     fprintf(f, "\n\n");
     fprintf(f, s_PATTERNS);
-    fprintf(f, "\n;%-31s\t%-12s",
+    fprintf(f, "\n;;%-31s\t%-12s",
         "ID", "Multipliers");
     for (i = 1; i <= net->Npats; i++)
     {
@@ -430,7 +430,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [CURVES] section
     fprintf(f, "\n\n");
     fprintf(f, s_CURVES);
-    fprintf(f, "\n;%-31s\t%-12s\t%-12s",
+    fprintf(f, "\n;;%-31s\t%-12s\t%-12s",
         "ID", "X-Value", "Y-Value");
     for (i = 1; i <= net->Ncurves; i++)
     {
@@ -523,7 +523,7 @@ int saveinpfile(Project *pr, const char *fname)
     // (Skip nodes with default quality of 0)
     fprintf(f, "\n\n");
     fprintf(f, s_QUALITY);
-    fprintf(f, "\n;%-31s\t%-14s", "ID", "InitQual");
+    fprintf(f, "\n;;%-31s\t%-14s", "ID", "InitQual");
     for (i = 1; i <= net->Nnodes; i++)
     {
         node = &net->Node[i];
@@ -534,7 +534,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [SOURCES] section
     fprintf(f, "\n\n");
     fprintf(f, s_SOURCES);
-    fprintf(f, "\n;%-31s\t%-9s\t%-14s\t%-31s", "ID", "Type", "Quality", "Pattern");
+    fprintf(f, "\n;;%-31s\t%-9s\t%-14s\t%-31s", "ID", "Type", "Quality", "Pattern");
     for (i = 1; i <= net->Nnodes; i++)
     {
         node = &net->Node[i];
@@ -553,7 +553,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [MIXING] section
     fprintf(f, "\n\n");
     fprintf(f, s_MIXING);
-    fprintf(f, "\n;%-31s\t%-8s", "ID", "Model");
+    fprintf(f, "\n;;%-31s\t%-8s", "ID", "Model");
     for (i = 1; i <= net->Ntanks; i++)
     {
         tank = &net->Tank[i];
@@ -584,7 +584,7 @@ int saveinpfile(Project *pr, const char *fname)
 
     fprintf(f, "\n\n");
     fprintf(f, s_REACTIONS);
-    fprintf(f, "\n;%-9s\t%-31s\t%-12s", "Type", "Pipe/Tank", "Coefficient");
+    fprintf(f, "\n;;%-9s\t%-31s\t%-12s", "Type", "Pipe/Tank", "Coefficient");
 
     // Pipe-specific parameters
     for (i = 1; i <= net->Nlinks; i++)
@@ -821,7 +821,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [COORDINATES] section
     fprintf(f, "\n\n");
     fprintf(f, s_COORDS);
-    fprintf(f, "\n;%-31s\t%-14s\t%-14s", "ID", "X-Coord", "Y-Coord");
+    fprintf(f, "\n;;%-31s\t%-14s\t%-14s", "ID", "X-Coord", "Y-Coord");
     for (i = 1; i <= net->Nnodes; i++)
     {
         node = &net->Node[i];
@@ -832,7 +832,7 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [VERTICES] section
     fprintf(f, "\n\n");
     fprintf(f, s_VERTICES);
-    fprintf(f, "\n;%-31s\t%-14s\t%-14s", "ID", "X-Coord", "Y-Coord");
+    fprintf(f, "\n;;%-31s\t%-14s\t%-14s", "ID", "X-Coord", "Y-Coord");
     for (i = 1; i <= net->Nlinks; i++)
     {
         link = &net->Link[i];
