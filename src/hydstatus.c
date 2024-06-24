@@ -433,10 +433,10 @@ void  tankstatus(Project *pr, int k, int n, double q)
     if (tank->A == 0.0) return;
     
     // Can't add flow to a full tank
-    if (hyd->NodeHead[n] >= tank->Hmax && !tank->CanOverflow && q < TINY)
+    if (hyd->NodeHead[n] >= tank->Hmax && !tank->CanOverflow && q < 0.0)
         hyd->LinkStatus[k] = TEMPCLOSED;
  
     // Can't remove flow from an empty tank
-    else if (hyd->NodeHead[n] <= tank->Hmin && q > -TINY)
+    else if (hyd->NodeHead[n] <= tank->Hmin && q > 0.0)
         hyd->LinkStatus[k] = TEMPCLOSED;
 }
