@@ -1044,6 +1044,9 @@ int DLLEXPORT EN_getstatistic(EN_Project p, int type, double *value)
     case EN_DEMANDREDUCTION:
         *value = p->hydraul.DemandReduction;
         break;
+    case EN_LEAKAGELOSS:    
+        *value = p->hydraul.LeakageLoss;
+        break;
     case EN_MASSBALANCE:
         *value = p->quality.MassBalance.ratio;
         break;
@@ -1864,7 +1867,7 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
     hyd->NodeDemand = (double *)realloc(hyd->NodeDemand, size);
     qual->NodeQual = (double *)realloc(qual->NodeQual, size);
     hyd->NodeHead = (double *)realloc(hyd->NodeHead, size);
-    hyd->DemandFlow = (double *)realloc(hyd->DemandFlow, size);
+    hyd->FullDemand = (double *)realloc(hyd->FullDemand, size);
     hyd->EmitterFlow = (double *)realloc(hyd->EmitterFlow, size);
 
     // Actions taken when a new Junction is added
@@ -2256,7 +2259,7 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
                 Ucf[VOLUME];
         break;
 
-    case EN_DEMAND:
+    case EN_DEMAND: // Consumer Demand + Emitter Flow + Leakage Flow
         v = hyd->NodeDemand[index] * Ucf[FLOW];
         break;
 
@@ -2336,11 +2339,13 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_DEMANDDEFICIT:
         if (index > nJuncs) return 0;
-        // After an analysis, DemandFlow contains node's required demand
-        // while NodeDemand contains delivered demand + emitter flow
-        if (hyd->DemandFlow[index] < 0.0) return 0;
-        v = (hyd->DemandFlow[index] -
-            (hyd->NodeDemand[index] - hyd->EmitterFlow[index])) * Ucf[FLOW];
+        // FullDemand contains node's required consumer demand
+        // while DemandFlow contains delivered consumer demand
+        if (hyd->FullDemand[index] <= 0.0) return 0;
+        v = (hyd->FullDemand[index] - hyd->DemandFlow[index]) /
+             hyd->FullDemand[index];
+        if (v < TINY) v = 0.0;
+        v *= 100.0;
         break;
 
     case EN_NODE_INCONTROL:
@@ -2349,6 +2354,18 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
 
     case EN_EMITTERFLOW:
         v = hyd->EmitterFlow[index] * Ucf[FLOW];
+        break;
+
+    case EN_LEAKAGEFLOW:
+        v =  hyd->LeakageFlow[index] * Ucf[FLOW];
+        break;
+
+    case EN_DEMANDFLOW:  // Consumer demand delivered
+        v = hyd->DemandFlow[index] * Ucf[FLOW];
+        break;
+        
+    case EN_FULLDEMAND:  // Consumer demand requested
+        v = hyd->FullDemand[index] * Ucf[FLOW];
         break;
         
     default:
@@ -2367,9 +2384,9 @@ int DLLEXPORT EN_getnodevalues(EN_Project p, int property, double *values)
 **----------------------------------------------------------------
 */
 {
-    int status = 0, i = 0;
+    int status = 0;
 
-    for (i = 1; i <= p->network.Nnodes; i++)
+    for (int i = 1; i <= p->network.Nnodes; i++)
     {
         status = EN_getnodevalue(p, i, property, &values[i - 1]);
         // if status is not 0, return the error code
@@ -3352,6 +3369,8 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     }
     link->Kb = 0;
     link->Kw = 0;
+    link->LeakArea = 0;
+    link->LeakExpan = 0;
     link->R = 0;
     link->Rc = 0;
     link->Rpt = 0;
@@ -3923,6 +3942,18 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         v = (double)incontrols(p, LINK, index);
         break;
 
+    case EN_LEAK_AREA:
+        v = Link[index].LeakArea * Ucf[LENGTH];
+        break;
+
+    case EN_LEAK_EXPAN:
+        v = Link[index].LeakExpan * Ucf[LENGTH];
+        break;
+
+    case EN_LINK_LEAKAGE:
+        v = leakage_getlinkleakage(p, index) * Ucf[FLOW];
+        break;
+
     default:
         return 251;
     }
@@ -3939,8 +3970,8 @@ int DLLEXPORT EN_getlinkvalues(EN_Project p, int property, double *values)
 **----------------------------------------------------------------
 */
 {
-    int status = 0, i = 0;
-    for(i = 1; i <= p->network.Nlinks; i++)
+    int status = 0;
+    for(int i = 1; i <= p->network.Nlinks; i++)
     {
         status = EN_getlinkvalue(p, i, property, &values[i-1]);
         // If an error occurs, return the error code
@@ -4161,6 +4192,16 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
             Link[index].Kc = curveIndex;
         }
+        break;
+
+    case EN_LEAK_AREA:  // leak area in sq mm per 100 pipe length units
+        if (value < 0.0) return 211;
+        Link[index].LeakArea = value / Ucf[LENGTH];
+        break;
+
+    case EN_LEAK_EXPAN:  // leak area expansion slope (sq mm per unit of head)
+        if (value < 0.0) return 211;
+        Link[index].LeakExpan = value / Ucf[LENGTH];
         break;
 
     default:
