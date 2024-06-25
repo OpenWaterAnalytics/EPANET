@@ -75,12 +75,12 @@ BOOST_AUTO_TEST_CASE(test_pda_model)
     BOOST_REQUIRE(error == 0);
     BOOST_REQUIRE(abs(reduction) < 0.01);
 
-    // Check that Junction 21 had a demand deficit of 413.67    
+    // Check that Junction 21 had a demand deficit of 27.58%    
     error = EN_getnodeindex(ph, (char *)"21", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_getnodevalue(ph, index, EN_DEMANDDEFICIT, &reduction);
     BOOST_REQUIRE(error == 0);
-    BOOST_REQUIRE(abs(reduction - 413.67) < 0.01);
+    BOOST_REQUIRE(abs(reduction - 27.58) < 0.01);
 
     // Clean up
     error = EN_close(ph);
