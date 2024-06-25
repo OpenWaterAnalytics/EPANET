@@ -387,6 +387,8 @@ int pipedata(Project *pr)
     link->Km = 0.0;
     link->Kb = MISSING;
     link->Kw = MISSING;
+    link->LeakArea = 0.0;
+    link->LeakExpan = 0.0;
     link->Type = PIPE;
     link->Status = OPEN;
     link->Rpt = 0;
@@ -494,6 +496,8 @@ int pumpdata(Project *pr)
     link->Km = 0.0;
     link->Kb = 0.0;
     link->Kw = 0.0;
+    link->LeakArea = 0.0;
+    link->LeakExpan = 0.0;
     link->Type = PUMP;
     link->Status = OPEN;
     link->Rpt = 0;
@@ -613,6 +617,8 @@ int valvedata(Project *pr)
     link->Km = 0.0;
     link->Kb = 0.0;
     link->Kw = 0.0;
+    link->LeakArea = 0.0;
+    link->LeakExpan = 0.0;
     link->Type = type;
     link->Status = ACTIVE;
     link->Rpt = 0;
@@ -1115,6 +1121,41 @@ int emitterdata(Project *pr)
     if (!getfloat(parser->Tok[1], &k)) return setError(parser, 1, 202);
     if (k < 0.0) return setError(parser, 1, 209);
     net->Node[j].Ke = k;
+    return 0;
+}
+
+int leakagedata(Project *pr)
+/*
+**--------------------------------------------------------------
+**  Input:   none
+**  Output:  returns error code
+**  Purpose: processes link leakage data
+**  Format:
+**     [LEAKAGE]
+**        link   C1    C2
+**--------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    Parser  *parser = &pr->parser;
+
+    int j,              // Link index
+        n;              // # data items
+    double c1, c2;      // Flow coeff.
+
+    // Check that link exists & is a pipe
+    n = parser->Ntokens;
+    if (n < 3) return 201;
+    if ((j = findlink(net, parser->Tok[0])) == 0) return setError(parser, 0, 203);
+    if (net->Link[j].Type > PIPE) return 0;
+
+    // Parse leakage coeffs.
+    if (!getfloat(parser->Tok[1], &c1)) return setError(parser, 1, 202);
+    if (c1 < 0.0) return setError(parser, 1, 209);
+    if (!getfloat(parser->Tok[2], &c2)) return setError(parser, 2, 202);
+    if (c2 < 0.0) return setError(parser, 1, 209);
+    net->Link[j].LeakArea = c1;
+    net->Link[j].LeakExpan = c2;
     return 0;
 }
 

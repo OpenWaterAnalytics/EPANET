@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/17/2023
+ Last Updated: 06/15/2024
  ******************************************************************************
 */
 
@@ -294,7 +294,7 @@ typedef enum {
   _VALVES, _CONTROLS, _RULES, _DEMANDS, _SOURCES, _EMITTERS,
   _PATTERNS, _CURVES, _QUALITY, _STATUS, _ROUGHNESS, _ENERGY,
   _REACTIONS, _MIXING, _REPORT, _TIMES, _OPTIONS,
-    _COORDS, _VERTICES, _LABELS, _BACKDROP, _TAGS, _END
+    _COORDS, _VERTICES, _LABELS, _BACKDROP, _TAGS, _LEAKAGE, _END
 } SectionType;
 
 typedef enum {
@@ -413,6 +413,8 @@ typedef struct             // Link Object
   double   Kw;             // wall react. coef.
   double   R;              // flow resistance
   double   Rc;             // reaction coeff.
+  double   LeakArea;       // leak area (sq mm per 100 pipe length units
+  double   LeakExpan;      // leak expansion (sq mm per unit of head)
   LinkType Type;           // link type
   StatusType Status;       // initial status
   Pvertices  Vertices;     // internal vertex coordinates
@@ -548,6 +550,26 @@ typedef struct                 // Mass Balance Components
     double    final;           // final mass in system
     double    ratio;           // ratio of mass added to mass lost
 } SmassBalance;
+
+typedef struct
+{
+    double    totalInflow;
+    double    totalOutflow;
+    double    consumerDemand;
+    double    emitterDemand;
+    double    leakageDemand;
+    double    deficitDemand;
+    double    storageDemand;
+    double    ratio;
+} SflowBalance;    
+
+typedef struct                 // Node Leakage Object
+{
+  double qfa;                  // fixed area leakage flow
+  double qva;                  // variable area leakage flow
+  double cfa;                  // fixed area leakage coeff.
+  double cva;                  // variable area leakage coeff.
+} Sleakage;
 
 /*
 ------------------------------------------------------
@@ -712,9 +734,11 @@ typedef struct {
 
   double
     *NodeHead,             // Node hydraulic heads
-    *NodeDemand,           // Node demand + emitter flows
-    *DemandFlow,           // Work array of demand flows
-    *EmitterFlow,          // Emitter outflows
+    *NodeDemand,           // Node total demand (consumer + emitter + leakage)
+    *FullDemand,           // Required consumer demand
+    *DemandFlow,           // Demand flow from nodes
+    *EmitterFlow,          // Emitter flow from nodes
+    *LeakageFlow,          // Leakage flow from nodes
     *LinkFlow,             // Link flows
     *LinkSetting,          // Link settings
     Htol,                  // Hydraulic head tolerance
@@ -741,6 +765,7 @@ typedef struct {
     MaxHeadError,          // Max. error for link head loss
     MaxFlowChange,         // Max. change in link flow
     DemandReduction,       // % demand reduction at pressure deficient nodes
+    LeakageLoss,           // % system leakage loss
     RelaxFactor,           // Relaxation factor for flow updating
     *P,                    // Inverse of head loss derivatives
     *Y,                    // Flow correction factors
@@ -759,11 +784,17 @@ typedef struct {
     MaxCheck,              // Hydraulic trials limit on status checks
     OpenHflag,             // Hydraulic system opened flag
     Haltflag,              // Flag to halt simulation
-    DeficientNodes;        // Number of pressure deficient nodes
+    DeficientNodes,        // Number of pressure deficient nodes
+    HasLeakage;            // TRUE if project has non-zero leakage parameters
+    
+  Sleakage *Leakage;       // Array of node leakage parameters
 
   StatusType
     *LinkStatus,           // Link status
     *OldStatus;            // Previous link/tank status
+
+  SflowBalance
+    FlowBalance;           // Flow balance components
 
   Smatrix smatrix;         // Sparse matrix storage
 

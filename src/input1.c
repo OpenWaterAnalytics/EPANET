@@ -7,7 +7,7 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 09/28/2023
+Last Updated: 06/15/2024
 ******************************************************************************
 */
 
@@ -593,6 +593,10 @@ void convertunits(Project *pr)
             // Convert units on reaction coeffs.
             link->Kb /= SECperDAY;
             link->Kw /= SECperDAY;
+
+            // Convert leakage parameters
+            link->LeakArea /= pr->Ucf[LENGTH];
+            link->LeakExpan /= pr->Ucf[LENGTH];
         }
 
         else if (link->Type == PUMP)

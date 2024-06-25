@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 09/28/2023
+'Last updated on 06/23/2024
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -38,6 +38,9 @@ Public Const EN_CANOVERFLOW = 26
 Public Const EN_DEMANDDEFICIT = 27
 Public Const EN_NODE_INCONTROL = 28
 Public Const EN_EMITTERFLOW = 29
+Public Const EN_LEAKAGEFLOW = 30
+Public Const EN_DEMANDFLOW = 31
+Public Const EN_FULLDEMAND = 32
 
 Public Const EN_DIAMETER = 0      ' Link parameters
 Public Const EN_LENGTH = 1
@@ -65,6 +68,9 @@ Public Const EN_PUMP_EPAT = 22
 Public Const EN_LINK_INCONTROL = 23
 Public Const EN_GPV_CURVE = 24
 Public Const EN_PCV_CURVE = 25
+Public Const EN_LEAK_AREA = 26
+Public Const EN_LEAK_EXPAN = 27
+Public Const EN_LINK_LEAKAGE = 28
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
@@ -90,6 +96,7 @@ Public Const EN_MAXFLOWCHANGE = 3
 Public Const EN_MASSBALANCE = 4
 Public Const EN_DEFICIENTNODES = 5
 Public Const EN_DEMANDREDUCTION = 6
+Public Const EN_LEAKAGELOSS = 7
 
 Public Const EN_NODE = 0          ' Component types
 Public Const EN_LINK = 1
@@ -350,6 +357,7 @@ Public Const EN_TRUE = 1    ' boolean true
  Declare Function ENsettankdata Lib "epanet2.dll" (ByVal index As Long, ByVal elev As Single, ByVal initlvl As Single, ByVal minlvl As Single, ByVal maxlvl As Single, ByVal diam As Single, ByVal minvol As Single, ByVal volcurve As String) As Long
  Declare Function ENgetcoord Lib "epanet2.dll" (ByVal index As Long, x As Double, y As Double) As Long
  Declare Function ENsetcoord Lib "epanet2.dll" (ByVal index As Long, ByVal x As Double, ByVal y As Double) As Long
+ Declare Function ENgetnodevalues Lib "epanet2.dll" (ByVal property as Long, values as Any) As Long
  
 'Nodal Demand Functions
  Declare Function ENgetdemandmodel Lib "epanet2.dll" (type_ As Long, pmin As Single, preq As Single, pexp As Single) As Long
@@ -382,6 +390,7 @@ Public Const EN_TRUE = 1    ' boolean true
  Declare Function ENgetvertex Lib "epanet2.dll" (ByVal index As Long, ByVal vertex As Long, x As Double, y As Double) As Long
  Declare Function ENsetvertex Lib "epanet2.dll" (ByVal index As Long, ByVal vertex As Long, ByVal x As Double, ByVal y As Double) As Long
  Declare Function ENsetvertices Lib "epanet2.dll" (ByVal index As Long, xCoords As Any, yCoords As Any, ByVal count As Long) As Long
+ Declare Function ENgetlinkvalues Lib "epanet2.dll" (ByVal property as Long, values as Any) As Long
 
 'Pump Functions
  Declare Function ENgetheadcurveindex Lib "epanet2.dll" (ByVal linkIndex As Long, curveIndex As Long) As Long

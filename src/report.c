@@ -422,6 +422,44 @@ void writehydstat(Project *pr, int iter, double relerr)
   writeline(pr, " ");
 }
 
+void writeflowbalance(Project *pr)
+/*
+**-------------------------------------------------------------
+**   Input:   none
+**   Output:  none
+**   Purpose: writes hydraulic flow balance ratio to report file.
+**-------------------------------------------------------------
+*/
+{
+    Hydraul *hyd = &pr->hydraul;
+    Report  *rpt = &pr->report;
+    char s1[MAXMSG+1];
+    double ucf = pr->Ucf[FLOW];
+
+    snprintf(s1, MAXMSG, "Hydraulic Flow Balance (%s)", rpt->Field[DEMAND].Units);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "================================");
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Total Inflow:      %12.3f", hyd->FlowBalance.totalInflow*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Consumer Demand:   %12.3f", hyd->FlowBalance.consumerDemand*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Demand Deficit:    %12.3f", hyd->FlowBalance.deficitDemand*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Emitter Flow:      %12.3f", hyd->FlowBalance.emitterDemand*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Leakage Flow:      %12.3f", hyd->FlowBalance.leakageDemand*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Total Outflow:     %12.3f", hyd->FlowBalance.totalOutflow*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Storage Flow:      %12.3f", hyd->FlowBalance.storageDemand*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Flow Ratio:        %12.3f", hyd->FlowBalance.ratio);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "================================\n");
+    writeline(pr, s1);
+}
+    
 void writemassbalance(Project *pr)
 /*
 **-------------------------------------------------------------
