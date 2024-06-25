@@ -1869,6 +1869,8 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
     hyd->NodeHead = (double *)realloc(hyd->NodeHead, size);
     hyd->FullDemand = (double *)realloc(hyd->FullDemand, size);
     hyd->EmitterFlow = (double *)realloc(hyd->EmitterFlow, size);
+    hyd->LeakageFlow = (double *)realloc(hyd->LeakageFlow, size);
+    hyd->DemandFlow = (double *)realloc(hyd->DemandFlow, size);
 
     // Actions taken when a new Junction is added
     if (nodeType == EN_JUNCTION)
@@ -2384,9 +2386,9 @@ int DLLEXPORT EN_getnodevalues(EN_Project p, int property, double *values)
 **----------------------------------------------------------------
 */
 {
-    int status = 0;
+    int i, status = 0;
 
-    for (int i = 1; i <= p->network.Nnodes; i++)
+    for (i = 1; i <= p->network.Nnodes; i++)
     {
         status = EN_getnodevalue(p, i, property, &values[i - 1]);
         // if status is not 0, return the error code
@@ -3970,8 +3972,8 @@ int DLLEXPORT EN_getlinkvalues(EN_Project p, int property, double *values)
 **----------------------------------------------------------------
 */
 {
-    int status = 0;
-    for(int i = 1; i <= p->network.Nlinks; i++)
+    int i, status = 0;
+    for(i = 1; i <= p->network.Nlinks; i++)
     {
         status = EN_getlinkvalue(p, i, property, &values[i-1]);
         // If an error occurs, return the error code
