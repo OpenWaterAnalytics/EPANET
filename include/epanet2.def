@@ -25,6 +25,7 @@ EXPORTS
     ENgetbasedemand               = _ENgetbasedemand@12
     ENgetcomment                  = _ENgetcomment@12
     ENgetcontrol                  = _ENgetcontrol@24                    
+    ENgetcontrolenabled           = _ENgetcontrolenabled@8
     ENgetcoord                    = _ENgetcoord@12
     ENgetcount                    = _ENgetcount@8                       
     ENgetcurve                    = _ENgetcurve@20
@@ -44,13 +45,14 @@ EXPORTS
     ENgetlinkid                   = _ENgetlinkid@8                      
     ENgetlinkindex                = _ENgetlinkindex@8                   
     ENgetlinknodes                = _ENgetlinknodes@12                  
-    ENsetlinknodes                = _ENsetlinknodes@12                  
     ENgetlinktype                 = _ENgetlinktype@8                    
     ENgetlinkvalue                = _ENgetlinkvalue@12
+    ENgetlinkvalues               = _ENgetlinkvalues@8
     ENgetnodeid                   = _ENgetnodeid@8                      
     ENgetnodeindex                = _ENgetnodeindex@8                   
     ENgetnodetype                 = _ENgetnodetype@8                    
-    ENgetnodevalue                = _ENgetnodevalue@12                  
+    ENgetnodevalue                = _ENgetnodevalue@12
+    ENgetnodevalues               = _ENgetnodevalues@8
     ENgetnumdemands               = _ENgetnumdemands@8
     ENgetoption                   = _ENgetoption@8                      
     ENgetpatternid                = _ENgetpatternid@8                   
@@ -63,6 +65,7 @@ EXPORTS
     ENgetqualtype                 = _ENgetqualtype@8
     ENgetresultindex              = _ENgetresultindex@12    
     ENgetrule                     = _ENgetrule@20
+    ENgetruleenabled              = _ENgetruleenabled@8
     ENgetruleID                   = _ENgetruleID@8
     ENgetstatistic                = _ENgetstatistic@8
     ENgetthenaction               = _ENgetthenaction@20
@@ -79,6 +82,7 @@ EXPORTS
     ENopen                        = _ENopen@12                          
     ENopenH                       = _ENopenH@0                          
     ENopenQ                       = _ENopenQ@0
+    ENopenX                       = _ENopenX@12
     ENreport                      = _ENreport@0                         
     ENresetreport                 = _ENresetreport@0                    
     ENrunH                        = _ENrunH@4                           
@@ -89,6 +93,7 @@ EXPORTS
     ENsetbasedemand               = _ENsetbasedemand@12
     ENsetcomment                  = _ENsetcomment@12
     ENsetcontrol                  = _ENsetcontrol@24                    
+    ENsetcontrolenabled           = _ENsetcontrolenabled@8
     ENsetcoord                    = _ENsetcoord@20
     ENsetcurve                    = _ENsetcurve@16
     ENsetcurveid                  = _ENsetcurveid@8
@@ -118,6 +123,7 @@ EXPORTS
     ENsetpremisevalue             = _ENsetpremisevalue@12
     ENsetqualtype                 = _ENsetqualtype@16                   
     ENsetreport                   = _ENsetreport@4                      
+    ENsetruleenabled              = _ENsetruleenabled@8
     ENsetrulepriority             = _ENsetrulepriority@8
     ENsetstatusreport             = _ENsetstatusreport@4
     ENsettankdata                 = _ENsettankdata@32
@@ -129,11 +135,6 @@ EXPORTS
     ENsolveH                      = _ENsolveH@0                         
     ENsolveQ                      = _ENsolveQ@0                         
     ENstepQ                       = _ENstepQ@4
+    ENtimetonextevent             = _ENtimetonextevent@12
     ENusehydfile                  = _ENusehydfile@4
     ENwriteline                   = _ENwriteline@4
-    ENtimetonextevent             = _ENtimetonextevent@12
-    ENopenX                       = _ENopenX@12                          
-    ENgetcontrolenabled           = _ENgetcontrolenabled@8
-    ENsetcontrolenabled           = _ENsetcontrolenabled@8
-    ENgetruleenabled              = _ENgetruleenabled@8
-    ENsetruleenabled              = _ENsetruleenabled@8
