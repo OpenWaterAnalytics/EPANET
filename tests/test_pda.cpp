@@ -79,6 +79,9 @@ BOOST_AUTO_TEST_CASE(test_pda_model)
     error = EN_getnodeindex(ph, (char *)"21", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_getnodevalue(ph, index, EN_DEMANDDEFICIT, &reduction);
+
+    printf("\nreduction = %f", reduction);
+
     BOOST_REQUIRE(error == 0);
     BOOST_REQUIRE(abs(reduction - 413.67) < 0.01);
 
