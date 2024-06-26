@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 09/28/2023
+ Last Updated: 06/24/2024
  ******************************************************************************
 */
 
@@ -328,8 +328,11 @@ void initpointers(Project *pr)
     pr->hydraul.P = NULL;
     pr->hydraul.Y = NULL;
     pr->hydraul.Xflow = NULL;
+    pr->hydraul.FullDemand = NULL;
     pr->hydraul.DemandFlow = NULL;
     pr->hydraul.EmitterFlow = NULL;
+    pr->hydraul.LeakageFlow = NULL;
+    pr->hydraul.Leakage = NULL;
 
     pr->quality.NodeQual = NULL;
     pr->quality.PipeRateCoeff = NULL;
@@ -392,14 +395,18 @@ int allocdata(Project *pr)
         pr->hydraul.NodeDemand = (double *)calloc(n, sizeof(double));
         pr->hydraul.NodeHead   = (double *)calloc(n, sizeof(double));
         pr->quality.NodeQual   = (double *)calloc(n, sizeof(double));
+        pr->hydraul.FullDemand  = (double *)calloc(n, sizeof(double));
         pr->hydraul.DemandFlow  = (double *)calloc(n, sizeof(double));
         pr->hydraul.EmitterFlow = (double *)calloc(n, sizeof(double));
+        pr->hydraul.LeakageFlow = (double *)calloc(n, sizeof(double));
         ERRCODE(MEMCHECK(pr->network.Node));
         ERRCODE(MEMCHECK(pr->hydraul.NodeDemand));
         ERRCODE(MEMCHECK(pr->hydraul.NodeHead));
         ERRCODE(MEMCHECK(pr->quality.NodeQual));
+        ERRCODE(MEMCHECK(pr->hydraul.FullDemand));
         ERRCODE(MEMCHECK(pr->hydraul.DemandFlow));
         ERRCODE(MEMCHECK(pr->hydraul.EmitterFlow));
+        ERRCODE(MEMCHECK(pr->hydraul.LeakageFlow));
     }
 
     // Allocate memory for network links
@@ -471,8 +478,10 @@ void freedata(Project *pr)
     free(pr->hydraul.LinkFlow);
     free(pr->hydraul.LinkSetting);
     free(pr->hydraul.LinkStatus);
+    free(pr->hydraul.FullDemand);
     free(pr->hydraul.DemandFlow);
     free(pr->hydraul.EmitterFlow);
+    free(pr->hydraul.LeakageFlow);
     free(pr->quality.NodeQual);
 
     // Free memory used for nodal adjacency lists

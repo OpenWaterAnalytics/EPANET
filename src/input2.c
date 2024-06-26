@@ -310,6 +310,7 @@ int newline(Project *pr, int sect, char *line)
           else return 0;
         case _SOURCES:     return (sourcedata(pr));
         case _EMITTERS:    return (emitterdata(pr));
+        case _LEAKAGE:     return (leakagedata(pr));
         case _QUALITY:     return (qualdata(pr));
         case _STATUS:      return (statusdata(pr));
         case _ROUGHNESS:   return (0);

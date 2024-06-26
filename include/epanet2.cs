@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 //epanet2.cs[By Oscar Vegas]
-//Last updated on 09/28/2023
+//Last updated on 06/23/2024
 
 //Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 //(EPANET2.DLL) for use with C#
@@ -50,6 +50,9 @@ namespace EpanetCSharpLibrary
         public const int EN_DEMANDDEFICIT = 27;
         public const int EN_NODE_INCONTROL = 28;
         public const int EN_EMITTERFLOW = 29;
+        public const int EN_LEAKAGEFLOW = 30;
+        public const int EN_DEMANDFLOW = 31;
+        public const int EN_FULLDEMAND = 32;
 
         public const int EN_DIAMETER = 0;      //Link parameters
         public const int EN_LENGTH = 1;
@@ -78,6 +81,9 @@ namespace EpanetCSharpLibrary
         public const int EN_LINK_INCONTROL = 23;
         public const int EN_GPV_CURVE = 24;
         public const int EN_PCV_CURVE = 25;
+        public const int EN_LEAK_AREA = 26;
+        public const int EN_LEAK_EXPAN = 27;
+        public const int EN_LINK_LEAKAGE = 28;
 
         public const int EN_DURATION = 0;      //Time parameters
         public const int EN_HYDSTEP = 1;
@@ -102,6 +108,7 @@ namespace EpanetCSharpLibrary
         public const int EN_MASSBALANCE = 4;
         public const int EN_DEFICIENTNODES = 5;
         public const int EN_DEMANDREDUCTION = 6;
+        public const int EN_LEAKAGELOSS = 7;
 
         public const int EN_NODE = 0;          //Component types
         public const int EN_LINK = 1;
@@ -390,6 +397,9 @@ namespace EpanetCSharpLibrary
         [DllImport(EPANETDLL, EntryPoint = "ENgetresultindex")]
         public static extern int ENgetresultindex(int type, int index, ref int value);
 
+        [DllImport(EPANETDLL, EntryPoint = "ENtimetonextevent")]
+        public static extern int ENtimetonextevent(ref int eventType, ref long duration, ref int elementIndex);
+
 
         //Analysis Options Functions
         [DllImport(EPANETDLL, EntryPoint = "ENgetoption")]
@@ -440,10 +450,10 @@ namespace EpanetCSharpLibrary
         public static extern int ENgetnodetype(int index, ref int nodeType);
 
         [DllImport(EPANETDLL, EntryPoint = "ENgetnodevalue")]
-        public static extern int ENgetnodevalue(int index, int paramcode, ref float value);
+        public static extern int ENgetnodevalue(int index, int param, ref float value);
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetnodevalue")]
-        public static extern int ENsetnodevalue(int index, int code, float value);
+        public static extern int ENsetnodevalue(int index, int param, float value);
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetjuncdata")]
         public static extern int ENsetjuncdata(int index, float elev, float dmnd, string dmndpat);
@@ -457,6 +467,8 @@ namespace EpanetCSharpLibrary
         [DllImport(EPANETDLL, EntryPoint = "ENsetcoord")]
         public static extern int ENsetcoord(int index, double x, double y);
 
+        [DllImport(EPANETDLL, EntryPoint = "ENgetnodevalues")]
+        public static extern int ENgetnodevalues(int param, ref float values);
 
         //Nodal Demand Functions
         [DllImport(EPANETDLL, EntryPoint = "ENgetdemandmodel")]
@@ -525,10 +537,10 @@ namespace EpanetCSharpLibrary
         public static extern int ENsetlinknodes(int index, int node1, int node2);
 
         [DllImport(EPANETDLL, EntryPoint = "ENgetlinkvalue")]
-        public static extern int ENgetlinkvalue(int index, int code, ref float value);
+        public static extern int ENgetlinkvalue(int index, int param, ref float value);
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetlinkvalue")]
-        public static extern int ENsetlinkvalue(int index, int code, float value);
+        public static extern int ENsetlinkvalue(int index, int param, float value);
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetpipedata")]
         public static extern int ENsetpipedata(int index, float length, float diam, float rough, float mloss);
@@ -541,6 +553,9 @@ namespace EpanetCSharpLibrary
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetvertices")]
         public static extern int ENsetvertices(int index, ref double[] x, ref double[] y, int count);
+
+        [DllImport(EPANETDLL, EntryPoint = "ENgetlinkvalues")]
+        public static extern int ENgetlinkvalues(int param, ref float values);
 
 
         //Pump Functions

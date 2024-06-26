@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/11/2024
+Last Updated: 06/18/2024
 ******************************************************************************
 */
 
@@ -369,6 +369,19 @@ int saveinpfile(Project *pr, const char *fname)
         fprintf(f, "\n %-31s\t%-14.6f", node->ID, ke);
     }
 
+    // Write [LEAKAGE] section
+    fprintf(f, "\n\n");
+    fprintf(f, s_LEAKAGE);
+    fprintf(f, "\n;;%-31s\t%-14s\t%-14s",
+        "Pipe", "Leak Area", "Leak Expansion");
+    for (i = 1; i <= net->Nlinks; i++)
+    {
+        link = &net->Link[i];
+        if (link->LeakArea == 0.0 && link->LeakExpan == 0.0) continue;
+        fprintf(f, "\n %-31s %14.6f %14.6f", link->ID,
+        link->LeakArea * pr->Ucf[LENGTH], link->LeakExpan * pr->Ucf[LENGTH]);
+    }
+
     // Write [STATUS] section
     fprintf(f, "\n\n");
     fprintf(f, s_STATUS);
@@ -584,7 +597,7 @@ int saveinpfile(Project *pr, const char *fname)
 
     fprintf(f, "\n\n");
     fprintf(f, s_REACTIONS);
-    fprintf(f, "\n;;%-9s\t%-31s\t%-12s", "Type", "Pipe/Tank", "Coefficient");
+    fprintf(f, "\n;%-9s\t%-31s\t%-12s", "Type", "Pipe/Tank", "Coefficient");
 
     // Pipe-specific parameters
     for (i = 1; i <= net->Nlinks; i++)

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/11/2024
+ Last Updated: 06/15/2024
  ******************************************************************************
 */
 
@@ -151,6 +151,9 @@
 #define   w_REQUIRED    "REQ"
 #define   w_EXPONENT    "EXP"
 
+#define   w_AREA        "AREA"
+#define   w_EXPAN       "EXPAN"
+
 #define   w_SECONDS     "SEC"
 #define   w_MINUTES     "MIN"
 #define   w_HOURS       "HOU"
@@ -208,6 +211,7 @@
 #define   s_DEMANDS     "[DEMANDS]"
 #define   s_SOURCES     "[SOURCES]"
 #define   s_EMITTERS    "[EMITTERS]"
+#define   s_LEAKAGE     "[LEAKAGE]"
 #define   s_PATTERNS    "[PATTERNS]"
 #define   s_CURVES      "[CURVES]"
 #define   s_QUALITY     "[QUALITY]"

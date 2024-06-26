@@ -4,7 +4,7 @@
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL) for use with VB.Net.
 
-'Last updated on 09/28/2023
+'Last updated on 06/23/2024
 
 Imports System.Runtime.InteropServices
 Imports System.Text
@@ -42,6 +42,9 @@ Public Const EN_CANOVERFLOW = 26
 Public Const EN_DEMANDDEFICIT = 27
 Public Const EN_NODE_INCONTROL = 28
 Public Const EN_EMITTERFLOW = 29
+Public Const EN_LEAKAGEFLOW = 30
+Public Const EN_DEMANDFLOW = 31
+Public Const EN_FULLDEMAND = 32
 
 Public Const EN_DIAMETER = 0      ' Link parameters
 Public Const EN_LENGTH = 1
@@ -69,6 +72,9 @@ Public Const EN_PUMP_EPAT = 22
 Public Const EN_LINK_INCONTROL = 23
 Public Const EN_GPV_CURVE = 24
 Public Const EN_PCV_CURVE = 25
+Public Const EN_LEAK_AREA = 26
+Public Const EN_LEAK_EXPAN = 27
+Public Const EN_LINK_LEAKAGE = 28
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
@@ -93,6 +99,7 @@ Public Const EN_MAXFLOWCHANGE = 3
 Public Const EN_MASSBALANCE = 4
 Public Const EN_DEFICIENTNODES = 5
 Public Const EN_DEMANDREDUCTION = 6
+Public Const EN_LEAKAGELOSS = 7
 
 Public Const EN_NODE = 0          ' Component types
 Public Const EN_LINK = 1
@@ -309,6 +316,7 @@ Public Const EN_TRUE  = 1   ' boolean true
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal errcode As Int32, ByVal errmsg As String, ByVal maxLen As Int32) As Int32
  Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal type_ As Int32, ByRef value As Single) As Int32
  Declare Function ENgetresultindex Lib "epanet2.dll" (ByVal type_ As Int32, ByVal index As Int32, ByRef value As Int32) As Int32
+ Declare Function ENtimetonextevent Lib "epanet2.dll" (eventType As Int32, duration As Int32, elementIndex As Int32) As Int32
 
 'Analysis Options Functions
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal option As Int32, value As Single) As Int32
@@ -334,7 +342,8 @@ Public Const EN_TRUE  = 1   ' boolean true
  Declare Function ENsettankdata Lib "epanet2.dll" (ByVal index As Int32, ByVal elev As Single, ByVal initlvl As Single, ByVal minlvl As Single, ByVal maxlvl As Single, ByVal diam As Single, ByVal minvol As Single, ByVal volcurve As String) As Int32
  Declare Function ENgetcoord Lib "epanet2.dll" (ByVal index As Int32, x As Double, y As Double) As Int32
  Declare Function ENsetcoord Lib "epanet2.dll" (ByVal index As Int32, ByVal x As Double, ByVal y As Double) As Int32
- 
+ Declare Function ENgetnodevalues Lib "epanet2.dll" (ByVal property as Int32, values as Any) As Int32
+
 'Nodal Demand Functions
  Declare Function ENgetdemandmodel Lib "epanet2.dll" (type_ As Int32, pmin As Single, preq As Single, pexp As Single) As Int32
  Declare Function ENsetdemandmodel Lib "epanet2.dll" (ByVal type_ As Int32, ByVal pmin As Single, ByVal preq As Single, ByVal pexp As Single) As Int32
@@ -366,6 +375,7 @@ Public Const EN_TRUE  = 1   ' boolean true
  Declare Function ENgetvertex Lib "epanet2.dll" (ByVal index As Int32, ByVal vertex As Int32, x As Double, y As Double) As Int32
  Declare Function ENsetvertex Lib "epanet2.dll" (ByVal index As Int32, ByVal vertex As Int32, ByVal x As Double, ByVal y As Double) As Int32
  Declare Function ENsetvertices Lib "epanet2.dll" (ByVal index As Int32, xCoords As Any, yCoords As Any, ByVal count As Int32) As Int32
+ Declare Function ENgetlinkvalues Lib "epanet2.dll" (ByVal property as Int32, values as Any) As Int32
 
 'Pump Functions
  Declare Function ENgetheadcurveindex Lib "epanet2.dll" (ByVal linkIndex As Int32, curveIndex As Int32) As Int32
