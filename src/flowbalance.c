@@ -73,9 +73,7 @@ void updateflowbalance(Project *pr, long hstep)
     flowBalance.storageDemand = 0.0;
     fullDemand = 0.0;
     
-    // Initialize demand deficiency & leakage loss
-    hyd->DeficientNodes = 0;
-    hyd->DemandReduction = 0.0;
+    // Initialize leakage loss
     hyd->LeakageLoss = 0.0;
 
     // Examine each junction node
@@ -104,11 +102,8 @@ void updateflowbalance(Project *pr, long hstep)
         if (hyd->DemandModel == PDA && hyd->FullDemand[i] > 0.0)
         {
             deficit = hyd->FullDemand[i] - hyd->DemandFlow[i];
-            if (deficit > TINY)
-            {
-                hyd->DeficientNodes++;
+            if (deficit > 0.0)
                 flowBalance.deficitDemand += deficit;
-            }
         }
     }
     
@@ -118,8 +113,8 @@ void updateflowbalance(Project *pr, long hstep)
         i = net->Tank[j].Node;
         v = hyd->NodeDemand[i];
 
-        // For a snapshot analysis or a reservoir node
-        if (time->Dur == 0 || net->Tank[j].A == 0.0)
+        // For a reservoir node
+        if (net->Tank[j].A == 0.0)
         {
             if (v >= 0.0)
                 flowBalance.totalOutflow += v;
@@ -127,16 +122,16 @@ void updateflowbalance(Project *pr, long hstep)
                 flowBalance.totalInflow += (-v);
         }
         
-        // For tank under extended period analysis
+        // For tank
         else
             flowBalance.storageDemand += v;
     }
     
-    // Find % demand reduction & % leakage for current period
-    if (fullDemand > 0.0)
-        hyd->DemandReduction = flowBalance.deficitDemand / fullDemand * 100.0;
-    if (flowBalance.totalInflow > 0.0)
-        hyd->LeakageLoss = flowBalance.leakageDemand / flowBalance.totalInflow * 100.0;
+    // Find % leakage for current period
+    v = flowBalance.totalInflow;
+    if (flowBalance.storageDemand < 0.0) v += (-flowBalance.storageDemand);
+    if (v > 0.0)
+        hyd->LeakageLoss = flowBalance.leakageDemand / v * 100.0;
 
     // Update flow balance for entire run
     hyd->FlowBalance.totalInflow += flowBalance.totalInflow * dt;

@@ -8,7 +8,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/15/2024
+ Last Updated: 06/26/2024
  ******************************************************************************
 */
 
@@ -703,10 +703,15 @@ int pdaconverged(Project *pr)
     Hydraul *hyd = &pr->hydraul;
 
     const double QTOL = 0.0001;  // 0.0001 cfs ~= 0.005 gpm ~= 0.2 lpm)
-    int i;
+    int i, converged = 1;
+
+    double totalDemand = 0.0, totalReduction = 0.0;
     double dp = hyd->Preq - hyd->Pmin;
     double p, q, r;
-    
+
+    hyd->DeficientNodes = 0;
+    hyd->DemandReduction = 0.0;
+       
     // Examine each network junction
     for (i = 1; i <= pr->network.Njuncs; i++)
     {
@@ -726,9 +731,20 @@ int pdaconverged(Project *pr)
         }
         
         // Check if demand has not converged
-        if (fabs(q - hyd->DemandFlow[i]) > QTOL) return 0;
+        if (fabs(q - hyd->DemandFlow[i]) > QTOL)
+            converged = 0;
+
+        // Accumulate demand deficient node count and demand deficit
+        if (hyd->DemandFlow[i] + QTOL < hyd->FullDemand[i])
+        {
+            hyd->DeficientNodes++;
+            totalDemand += hyd->FullDemand[i];
+            totalReduction += hyd->FullDemand[i] - hyd->DemandFlow[i];
+        }
     }            
-    return 1;
+    if (totalDemand > 0.0)
+        hyd->DemandReduction = totalReduction / totalDemand * 100.0;
+    return converged;
 }
 
 
