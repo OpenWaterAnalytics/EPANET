@@ -575,7 +575,7 @@ void  demandcoeffs(Project *pr)
     for (i = 1; i <= net->Njuncs; i++)
     {
         // Skip junctions with non-positive demands
-        if (hyd->NodeDemand[i] <= 0.0) continue;
+        if (hyd->FullDemand[i] <= 0.0) continue;
         
         // Find head loss for demand outflow at node's elevation
         demandheadloss(pr, i, dp, n, &hloss, &hgrad);

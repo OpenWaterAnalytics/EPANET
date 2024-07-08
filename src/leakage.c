@@ -16,7 +16,7 @@ leaky pipes:
   
   Q = Co * L * (Ao + m * H) * sqrt(H)
   
-where Q = leak flow rate, Co = an orifice coefficient (= 0.6*sqrt(2g)),
+where Q = pipe leak flow rate, Co = an orifice coefficient (= 0.6*sqrt(2g)),
 L = pipe length, Ao = initial area of leak per unit of pipe length,
 m = change in leak area per unit of pressure head, and H = pressure head.
 
@@ -26,7 +26,7 @@ a pipe's end node using a pair of equivalent emitters as follows:
   H = Cfa * Qfa^2
   H = Cva * Qva^(2/3)
   
-where Qfa = fixed area leakage rate, Qva = variable area leakage rate,
+where Qfa = fixed area node leakage rate, Qva = variable area node leakage rate,
 Cfa = 1 / SUM(Co*(L/2)*Ao)^2, Cva = 1 / SUM(Co*(L/2)*m)^2/3, and
 SUM(x) is the summation of x over all pipes connected to the node.
 
@@ -56,9 +56,9 @@ static void  convert_pipe_to_node_leakage(Project *pr);
 static void  init_node_leakage(Project *pr);
 static int   leakage_headloss(Project* pr, int i, double *hfa,
              double *gfa, double *hva, double *gva);
-static void  eval_node_leakage(double RQtol, double q, double c,
-             double n, double *h, double *g);
-static void  add_lower_barrier(double q, double* h, double* g);
+static void  eval_leak_headloss(double RQtol, double q, double c,
+             double n, double *hloss, double *hgrad);
+static void  add_lower_barrier(double q, double *hloss, double *hgrad);
 
 
 int openleakage(Project *pr)
@@ -116,7 +116,7 @@ int create_leakage_objects(Project *pr)
 /*-------------------------------------------------------------
 **   Input:   none
 **   Output:  returns an error code
-**   Purpose: allocates an array of Leakage objects.
+**   Purpose: allocates an array of node leakage objects.
 **-------------------------------------------------------------
 */
 {    
@@ -153,9 +153,11 @@ void convert_pipe_to_node_leakage(Project *pr)
     Slink *link;
     Snode *node1;
     Snode *node2;
+
+    // Orifice coeff. with conversion from sq. mm to sq. m
+    c_orif = 4.8149866 * 1.e-6;
     
     // Examine each link
-    c_orif = 4.8149866 * 1.e-6;
     for (i = 1; i <= net->Nlinks; i++)
     {
         // Only pipes have leakage
@@ -371,8 +373,8 @@ double leakageflowchange(Project *pr, int i)
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
 
-    double  hfa, gfa, hva, gva,  // same as defined in leakage_solvercoeffs()
-            dh, dqfa, dqva;
+    double  hfa, gfa, hva, gva;  // same as defined in leakage_solvercoeffs()
+    double  h, dqfa, dqva;       // pressure head, change in leakage flows
     
     // Find the head loss and gradient of the inverted leakage
     // equation for both fixed and variable area leakage at the
@@ -380,13 +382,13 @@ double leakageflowchange(Project *pr, int i)
     if (!leakage_headloss(pr, i, &hfa, &gfa, &hva, &gva)) return 0.0;
     
     // Pressure head using latest head solution
-    dh = hyd->NodeHead[i] - net->Node[i].El;
+    h = hyd->NodeHead[i] - net->Node[i].El;
 
     // GGA flow update formula for fixed area leakage
     dqfa = 0.0;
     if (gfa > 0.0)
     {
-        dqfa = (hfa - dh) / gfa * hyd->RelaxFactor;
+        dqfa = (hfa - h) / gfa * hyd->RelaxFactor;
         hyd->Leakage[i].qfa -= dqfa;
     }
 
@@ -394,7 +396,7 @@ double leakageflowchange(Project *pr, int i)
     dqva = 0.0;
     if (gva > 0.0)
     {
-        dqva = (hva - dh) / gva * hyd->RelaxFactor;
+        dqva = (hva - h) / gva * hyd->RelaxFactor;
         hyd->Leakage[i].qva -= dqva;
     }
 
@@ -415,10 +417,10 @@ int leakagehasconverged(Project *pr)
 {
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
+    
     int i;
     double h, qref, qtest;
-    const double ABSTOL = 0.0001;  // 0.0001 cfs ~= 0.005 gpm ~= 0.2 lpm)
-    const double RELTOL = 0.001;
+    const double QTOL = 0.0001;  // 0.0001 cfs ~= 0.005 gpm ~= 0.2 lpm)
 
     for (i = 1; i <= net->Njuncs; i++)
     {
@@ -439,7 +441,7 @@ int leakagehasconverged(Project *pr)
         
         // Compare reference leakage to solution leakage
         qtest = hyd->Leakage[i].qfa + hyd->Leakage[i].qva;
-        if (fabs(qref - qtest) > ABSTOL + RELTOL * qref) return FALSE;
+        if (fabs(qref - qtest) > QTOL) return FALSE;
     }
     return TRUE;
 }
@@ -460,6 +462,7 @@ int leakage_headloss(Project* pr, int i, double *hfa, double *gfa,
 */
 {     
     Hydraul *hyd = &pr->hydraul;
+    
     if (hyd->Leakage[i].cfa == 0.0 && hyd->Leakage[i].cva == 0.0) return FALSE;
     if (hyd->Leakage[i].cfa == 0.0)
     {
@@ -467,58 +470,62 @@ int leakage_headloss(Project* pr, int i, double *hfa, double *gfa,
         *gfa = 0.0;
     }
     else
-        eval_node_leakage(hyd->RQtol, hyd->Leakage[i].qfa, hyd->Leakage[i].cfa,
-                        0.5, hfa, gfa);
+        eval_leak_headloss(hyd->RQtol, hyd->Leakage[i].qfa, hyd->Leakage[i].cfa,
+                           0.5, hfa, gfa);
     if (hyd->Leakage[i].cva == 0.0)
     {
         *hva = 0.0;
         *gva = 0.0;
     }
     else
-        eval_node_leakage(hyd->RQtol, hyd->Leakage[i].qva, hyd->Leakage[i].cva,
-                        1.5, hva, gva);
+        eval_leak_headloss(hyd->RQtol, hyd->Leakage[i].qva, hyd->Leakage[i].cva,
+                           1.5, hva, gva);
     return TRUE;
 }
 
-void eval_node_leakage(double RQtol, double q, double c, double n,
-    double *h, double *g)
+void eval_leak_headloss(double RQtol, double q, double c, double n,
+    double *hloss, double *hgrad)
 /*
 **--------------------------------------------------------------
 **   Input:   RQtol = low gradient tolerance (ft/cfs)
 **            q = leakage flow rate (cfs)
 **            c = leakage head loss coefficient
 **            n = leakage head loss exponent
-**   Output:  h = leakage head loss (ft)
-**            g = gradient of leakage head loss (ft/cfs)
+**   Output:  hloss = leakage head loss (ft)
+**            hgrad = gradient of leakage head loss (ft/cfs)
 **   Purpose: evaluates inverted form of leakage equation to
 **            compute head loss and its gradient as a function
 **            flow.
+**
+**   Note:  Inverted leakage equation is:
+**            hloss = c * q ^ (1/n)
 **--------------------------------------------------------------
 */
 {
     n = 1.0 / n;
-    *g = n * c * pow(fabs(q), n - 1.0);
+    *hgrad = n * c * pow(fabs(q), n - 1.0);
     
     // Use linear head loss function for small gradient
-    if (*g < RQtol)
+/*    if (*hgrad < RQtol)
     {
-        *g = RQtol / n;
-        *h = (*g) * q;
+        *hgrad = RQtol / n;
+        *hloss = (*hgrad) * q;
     }            
 
     // Otherwise use normal leakage head loss function
-    else *h = (*g) * q / n;
+    else  */
+        *hloss = (*hgrad) * q / n;
     
     // Prevent leakage from going negative
-    add_lower_barrier(q, h, g);
+    add_lower_barrier(q, hloss, hgrad);
 }
 
-void add_lower_barrier(double q, double* h, double* g)
+void add_lower_barrier(double q, double* hloss, double* hgrad)
 /*
 **--------------------------------------------------------------------
 **  Input:   q = current flow rate
-**  Output:  h = head loss value
-**           g = head loss gradient value
+**  Output:  hloss = head loss value
+**           hgrad = head loss gradient value
 **  Purpose: adds a head loss barrier to prevent flow from falling
 **           below 0.
 **--------------------------------------------------------------------
@@ -526,6 +533,6 @@ void add_lower_barrier(double q, double* h, double* g)
 {
     double a = 1.e9 * q;
     double b = sqrt(a*a + 1.e-6);
-    *h += (a - b) / 2.;
-    *g += (1.e9 / 2.) * ( 1.0 - a / b);
+    *hloss += (a - b) / 2.;
+    *hgrad += (1.e9 / 2.) * ( 1.0 - a / b);
 }
