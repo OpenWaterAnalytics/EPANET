@@ -4,6 +4,7 @@
 This document describes the changes and updates that have been made in version 2.3 of EPANET.
 
  - The check for at least two nodes, one tank/reservoir and no unconnected junction nodes was moved from `EN_open` to `EN_openH` and `EN_openQ` so that partial network data files could be opened by the toolkit.
+ 
  - A `EN_setcurvetype` function was added to allow API clients to set a curve's type (e.g., `EN_PUMP_CURVE,` `EN_VOLUME_CURVE,` etc.).
  - A `EN_setvertex` function was added to allow API clients to change the coordinates of a single link vertex.
  - The indices of a General Purpose Valve (GPV) and a Positional Control Valve (PCV) were added to the list of editable Link Properties using the symbolic constant names `EN_GPV_CURVE` and `EN_PCV_CURVE`, respectively.
@@ -52,6 +53,20 @@ This document describes the changes and updates that have been made in version 2
 - Setting the demand multiplier within the `[DEMANDS]` section of INP has been depreciated, please use `DEMAND MULTIPLIER` inside `[OPTIONS]` instead.
 - `EN_PRESS_UNITS` can now be used with `EN_getoption` and `EN_setoption` to get or set the pressure unit used in EPANET.
 - Continuous barrier functions were added to constrain emitter flows to allowable values.
-- The `EN_openx` function has been added to enable the opening of input files with formatting errors through the API. This allows users to continue using toolkit functions even when such errors are present.
+- The `EN_openX` function has been added to enable the opening of input files with formatting errors through the API. This allows users to continue using toolkit functions even when such errors are present.
 - The `EN_getnodesvalues` and `EN_getlinksvalues` were added to retrieve a property value for all nodes or links in the network.
 - Fixed a bug in EN_setnodevalue with EN_EMITTER option that could cause NaN results.
+- Support has been added for FAVAD (Fixed And Variable Area Discharge) modeling of pipe leaks:
+   - A new `[LEAKAGE]` section has been added to the input file format where each line contains the ID name of a pipe, its leak area in sq. mm per 100 length units, and its leak expansion rate in sq. mm per unit of pressure head.
+   - `EN_LEAK_AREA` and `EN_LEAK_EXPAN` can be used with the functions `EN_getlinkvalue` and `EN_setlinkvalue` to retrieve and assign values for a pipe's leak area and expansion properties.
+   - `EN_LINK_LEAKAGE` can be used with `EN_getlinkvalue` to retrieve a pipe's leakage rate at a given point in time.
+   - `EN_LEAKAGEFLOW` can be used with `EN_getnodevalue` to retrieve the leakage demand generated at a node from all its connecting pipes at a given point in time.
+   - `EN_LEAKAGELOSS` can be used with `EN_getstatistic` to retrieve the the total leakage loss in the system at a given point in time as a percentage of total flow entering the system.
+- A new Flow Balance Report has been added to end of a simulation run's Status Report that lists the various components of the system's total inflow and outflow over the simulation period. It also displays the ratio of outflow to inflow as a check on flow continuity.
+- The following constants can be used with EN_getnodevalue to retrieve the components of a node's total demand at a given point in time:
+   - `EN_FULLDEMAND` - the consumer demand requested
+   - `EN_DEMANDFLOW` - the consumer demand delivered
+   - `EN_DEMANDDEFICIT` - the difference between the consumer demand requested and delivered
+   - `EN_EMITTERFLOW` - the node's emitter flow
+   - `EN_LEAKAGEFLOW` - the node's leakage flow
+   - `EN_DEMAND` - the sum of the node's consumer demand, emitter flow, and leakage flow

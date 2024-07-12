@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/29/2023
+ Last Updated: 06/15/2024
  ******************************************************************************
 */
 
@@ -310,6 +310,7 @@ void   matrixcoeffs(Project *pr)
     linkcoeffs(pr);
     emittercoeffs(pr);
     demandcoeffs(pr);
+    if (hyd->HasLeakage) leakagecoeffs(pr);
 
     // Update nodal flow balances with demands and add onto r.h.s. coeffs.
     nodecoeffs(pr);
@@ -574,7 +575,7 @@ void  demandcoeffs(Project *pr)
     for (i = 1; i <= net->Njuncs; i++)
     {
         // Skip junctions with non-positive demands
-        if (hyd->NodeDemand[i] <= 0.0) continue;
+        if (hyd->FullDemand[i] <= 0.0) continue;
         
         // Find head loss for demand outflow at node's elevation
         demandheadloss(pr, i, dp, n, &hloss, &hgrad);
@@ -606,7 +607,7 @@ void demandheadloss(Project *pr, int i, double dp, double n,
     Hydraul *hyd = &pr->hydraul;
    
     double d = hyd->DemandFlow[i];
-    double dfull = hyd->NodeDemand[i];
+    double dfull = hyd->FullDemand[i];
     double r = d / dfull;
     
     // Evaluate inverted demand function

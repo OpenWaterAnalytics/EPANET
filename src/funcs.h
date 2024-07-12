@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 09/28/2023
+ Last Updated: 06/26/2024
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -100,6 +100,7 @@ int     controldata(Project *);
 int     energydata(Project *);
 int     sourcedata(Project *);
 int     emitterdata(Project *);
+int     leakagedata(Project *);
 int     qualdata(Project *);
 int     reactdata(Project *);
 int     mixingdata(Project *);
@@ -142,6 +143,7 @@ void    writecontrolaction(Project *, int, int);
 void    writeruleaction(Project *, int, char *);
 int     writehydwarn(Project *, int,double);
 void    writehyderr(Project *, int);
+void    writeflowbalance(Project *);
 void    writemassbalance(Project *);
 void    writetime(Project *, char *);
 char    *clocktime(char *, long);
@@ -194,5 +196,20 @@ int     savefinaloutput(Project *);
 // ------- INPFILE.C --------------------
 
 int     saveinpfile(Project *, const char *);
+
+// ------- LEAKAGE.C --------------------
+
+int     openleakage(Project *);
+void    closeleakage(Project *);
+double  findlinkleakage(Project *, int);
+void    leakagecoeffs(Project *);
+double  leakageflowchange(Project *, int);
+int     leakagehasconverged(Project *);
+
+// ------- FLOWBALANCE.C-----------------
+
+void    startflowbalance(Project *);
+void    updateflowbalance(Project *, long);
+void    endflowbalance(Project *);
 
 #endif

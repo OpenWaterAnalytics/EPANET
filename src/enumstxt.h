@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/05/2023
+ Last Updated: 06/24/2024
  ******************************************************************************
 */
 
@@ -127,7 +127,7 @@ char *SectTxt[]         = {s_TITLE,     s_JUNCTIONS, s_RESERVOIRS,
                            s_REACTIONS, s_MIXING,    s_REPORT,
                            s_TIMES,     s_OPTIONS,   s_COORDS,
                            s_VERTICES,  s_LABELS,    s_BACKDROP,
-                           s_TAGS,      s_END,
+                           s_TAGS,      s_LEAKAGE,   s_END,
                            NULL};
 
 char *Fldname[]         = {t_ELEV,      t_DEMAND,    t_HEAD,

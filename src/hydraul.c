@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 09/28/2023
+ Last Updated: 06/26/2024
  ******************************************************************************
 */
 
@@ -63,7 +63,7 @@ int  openhyd(Project *pr)
 
     // Allocate memory for hydraulic variables
     ERRCODE(allocmatrix(pr));
-
+    
     // Check for unconnected nodes
     ERRCODE(unlinked(pr));
 
@@ -107,8 +107,10 @@ void inithyd(Project *pr, int initflag)
         hyd->OldStatus[net->Nlinks+i] = TEMPCLOSED;
     }
 
-    // Initialize emitter flows
+    // Initialize node outflows
+    memset(hyd->DemandFlow,0,(net->Nnodes+1)*sizeof(double));
     memset(hyd->EmitterFlow,0,(net->Nnodes+1)*sizeof(double));
+    memset(hyd->LeakageFlow,0,(net->Nnodes+1)*sizeof(double));
     for (i = 1; i <= net->Nnodes; i++)
     {
         net->Node[i].ResultIndex = i;
@@ -161,6 +163,9 @@ void inithyd(Project *pr, int initflag)
         pump->Energy.CurrentPower = 0.0;
         pump->Energy.CurrentEffic = 0.0;
     }
+    
+    // Initialize flow balance
+    startflowbalance(pr);
 
     // Re-position hydraulics file
     if (pr->outfile.Saveflag)
@@ -253,6 +258,9 @@ int  nexthyd(Project *pr, long *tstep)
     // Accumulate pumping energy
     if (time->Dur == 0) addenergy(pr,0);
     else if (time->Htime < time->Dur) addenergy(pr,hydstep);
+    
+    // Update flow balance
+    updateflowbalance(pr, hydstep);
 
     // More time remains - update current time
     if (time->Htime < time->Dur)
@@ -267,6 +275,8 @@ int  nexthyd(Project *pr, long *tstep)
     // No more time remains - force completion of analysis
     else
     {
+        endflowbalance(pr);
+        if (pr->report.Statflag) writeflowbalance(pr);
         time->Htime++;
         if (pr->quality.OpenQflag) time->Qtime++;
     }
@@ -495,7 +505,7 @@ void  demands(Project *pr)
             if (djunc > 0.0) hyd->Dsystem += djunc;
             sum += djunc;
         }
-        hyd->NodeDemand[i] = sum;
+        hyd->FullDemand[i] = sum;
 
         // Initialize pressure dependent demand
         hyd->DemandFlow[i] = sum;
@@ -1147,4 +1157,3 @@ void resetpumpflow(Project *pr, int i)
     if (pump->Ptype == CONST_HP)
         pr->hydraul.LinkFlow[i] = pump->Q0;
 }
-
