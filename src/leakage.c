@@ -56,7 +56,7 @@ static void  convert_pipe_to_node_leakage(Project *pr);
 static void  init_node_leakage(Project *pr);
 static int   leakage_headloss(Project* pr, int i, double *hfa,
              double *gfa, double *hva, double *gva);
-static void  eval_leak_headloss(double RQtol, double q, double c,
+static void  eval_leak_headloss(double q, double c,
              double n, double *hloss, double *hgrad);
 static void  add_lower_barrier(double q, double *hloss, double *hgrad);
 
@@ -470,7 +470,7 @@ int leakage_headloss(Project* pr, int i, double *hfa, double *gfa,
         *gfa = 0.0;
     }
     else
-        eval_leak_headloss(hyd->RQtol, hyd->Leakage[i].qfa, hyd->Leakage[i].cfa,
+        eval_leak_headloss(hyd->Leakage[i].qfa, hyd->Leakage[i].cfa,
                            0.5, hfa, gfa);
     if (hyd->Leakage[i].cva == 0.0)
     {
@@ -478,17 +478,16 @@ int leakage_headloss(Project* pr, int i, double *hfa, double *gfa,
         *gva = 0.0;
     }
     else
-        eval_leak_headloss(hyd->RQtol, hyd->Leakage[i].qva, hyd->Leakage[i].cva,
+        eval_leak_headloss(hyd->Leakage[i].qva, hyd->Leakage[i].cva,
                            1.5, hva, gva);
     return TRUE;
 }
 
-void eval_leak_headloss(double RQtol, double q, double c, double n,
+void eval_leak_headloss(double q, double c, double n,
     double *hloss, double *hgrad)
 /*
 **--------------------------------------------------------------
-**   Input:   RQtol = low gradient tolerance (ft/cfs)
-**            q = leakage flow rate (cfs)
+**   Input:   q = leakage flow rate (cfs)
 **            c = leakage head loss coefficient
 **            n = leakage head loss exponent
 **   Output:  hloss = leakage head loss (ft)
@@ -504,17 +503,7 @@ void eval_leak_headloss(double RQtol, double q, double c, double n,
 {
     n = 1.0 / n;
     *hgrad = n * c * pow(fabs(q), n - 1.0);
-    
-    // Use linear head loss function for small gradient
-/*    if (*hgrad < RQtol)
-    {
-        *hgrad = RQtol / n;
-        *hloss = (*hgrad) * q;
-    }            
-
-    // Otherwise use normal leakage head loss function
-    else  */
-        *hloss = (*hgrad) * q / n;
+    *hloss = (*hgrad) * q / n;
     
     // Prevent leakage from going negative
     add_lower_barrier(q, hloss, hgrad);
