@@ -1478,6 +1478,15 @@ typedef struct Project *EN_Project;
   use @ref EN_setpatternvalue to revise pattern factors one at a time.
   */
   int  DLLEXPORT EN_setpattern(EN_Project ph, int index, double *values, int len);
+  
+  /**
+  @brief Loads time patterns from a file into a project under a specific pattern ID.
+  @param ph an EPANET project handle.
+  @param filename the name of the file containing pattern data.
+  @param id the ID name of the new pattern to load.
+  @return an error code.
+  */ 
+  int  DLLEXPORT EN_loadpatternfile(EN_Project p, const char *filename, const char *id);
 
   /********************************************************************
 

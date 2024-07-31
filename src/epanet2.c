@@ -676,6 +676,11 @@ int DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *values, int len)
     return errcode;
 }
 
+int DLLEXPORT ENloadpatternfile(const char *filename, const char *id)
+{
+    return EN_loadpatternfile(_defaultProject, filename, id);
+}
+
 /********************************************************************
 
     Data Curve Functions

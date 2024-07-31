@@ -328,7 +328,7 @@ extern "C" {
 ********************************************************************/
 
   int DLLEXPORT ENaddpattern(const char *id);
-
+  
   int DLLEXPORT ENdeletepattern(int index);
 
   int DLLEXPORT ENgetpatternindex(const char *id, int *index);
@@ -346,6 +346,8 @@ extern "C" {
   int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value);
 
   int DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *values, int len);
+  
+  int DLLEXPORT ENloadpatternfile(const char *filename, const char *id);
 
 /********************************************************************
 

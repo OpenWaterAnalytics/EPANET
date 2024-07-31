@@ -4514,6 +4514,69 @@ int DLLEXPORT EN_addpattern(EN_Project p, const char *id)
     return 0;
 }
 
+int DLLEXPORT EN_loadpatternfile(EN_Project p, const char *filename, const char *id)
+/*----------------------------------------------------------------
+**  Input:   filename =  name of the file containing pattern data
+**           id = ID for the new pattern
+**  Output:  none
+**  Returns: error code
+**  Purpose: loads time patterns from a file into a project under a specific pattern ID
+**----------------------------------------------------------------
+*/
+{
+    FILE *file;
+    char line[1024];
+    int err = 0;
+    int i;
+    double value;
+    Spattern *pat;
+
+    if (!p->Openflag) return 102;
+
+    file = fopen(filename, "r");
+    if (file == NULL) return 102; // Update with new error code
+
+    // Add the new pattern
+    if ((err = EN_addpattern(p, id)) != 0) {
+        fclose(file);
+        return err;
+    }
+
+    // Get the index of the newly added pattern
+    if ((err = EN_getpatternindex(p, id, &i)) != 0) {
+        fclose(file);
+        return err;
+    }
+
+    pat = &p->network.Pattern[i];
+	// Free the initial allocation
+    free(pat->F);  
+    pat->F = NULL;
+    pat->Length = 0;
+
+    // Read pattern values
+    while (fgets(line, sizeof(line), file) != NULL) {
+		// Skip comments and empty lines
+        if (line[0] == ';' || line[0] == '\n') continue; 
+
+        // Convert line to a double value
+        value = atof(line);
+        if (value == 0 && line[0] != '0') continue; // Skip invalid lines
+
+        pat->Length++;
+        pat->F = (double *)realloc(pat->F, pat->Length * sizeof(double));
+		// Abort if memory allocation error
+        if (pat->F == NULL) {
+            fclose(file);
+            return 101; 
+        }
+        pat->F[pat->Length - 1] = value;
+    }
+
+    fclose(file);
+    return 0;
+}
+
 int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
 /*----------------------------------------------------------------
 **  Input:   index  = index of the pattern to delete
