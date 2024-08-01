@@ -4554,7 +4554,7 @@ int DLLEXPORT EN_loadpatternfile(EN_Project p, const char *filename, const char 
     while (fgets(line, sizeof(line), file) != NULL) {
     
         // Skip lines that don't contain valid numbers
-        if (!getfloat(line, &value) continue;
+        if (!getfloat(line, &value)) continue;
         
         // Resize multiplier array if it's full
         if (len % CHUNK == 0) {
