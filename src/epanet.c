@@ -4538,16 +4538,14 @@ int DLLEXPORT EN_loadpatternfile(EN_Project p, const char *filename, const char 
     file = fopen(filename, "r");
     if (file == NULL) return 302;
 
-    // Add the new pattern
-    if ((err = EN_addpattern(p, id)) != 0) {
-        fclose(file);
-        return err;
-    }
-
-    // Get the index of the newly added pattern
-    if ((err = EN_getpatternindex(p, id, &i)) != 0) {
-        fclose(file);
-        return err;
+    // Add a new pattern or use an existing pattern.
+    err = EN_getpatternindex(p, id, &i);
+    if (err == 205) {
+        if ((err = EN_addpattern(p, id)) != 0) {
+            fclose(file);
+            return err;
+        }
+        i = p->network.Npats;
     }
 
     // Read pattern values
