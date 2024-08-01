@@ -4525,16 +4525,18 @@ int DLLEXPORT EN_loadpatternfile(EN_Project p, const char *filename, const char 
 */
 {
     FILE *file;
-    char line[1024];
+    char line[MAXLINE+1];
     int err = 0;
     int i;
+    int len = 0;
     double value;
-    Spattern *pat;
+    double *values = NULL;
+    int CHUNK = 50;
 
     if (!p->Openflag) return 102;
 
     file = fopen(filename, "r");
-    if (file == NULL) return 102; // Update with new error code
+    if (file == NULL) return 302;
 
     // Add the new pattern
     if ((err = EN_addpattern(p, id)) != 0) {
@@ -4548,33 +4550,31 @@ int DLLEXPORT EN_loadpatternfile(EN_Project p, const char *filename, const char 
         return err;
     }
 
-    pat = &p->network.Pattern[i];
-	// Free the initial allocation
-    free(pat->F);  
-    pat->F = NULL;
-    pat->Length = 0;
-
     // Read pattern values
     while (fgets(line, sizeof(line), file) != NULL) {
-		// Skip comments and empty lines
-        if (line[0] == ';' || line[0] == '\n') continue; 
+    
+        // Skip lines that don't contain valid numbers
+        if (!getfloat(line, &value) continue;
+        
+        // Resize multiplier array if it's full
+        if (len % CHUNK == 0) {
+            values = (double *) realloc(values, (len + CHUNK) * sizeof(double));
 
-        // Convert line to a double value
-        value = atof(line);
-        if (value == 0 && line[0] != '0') continue; // Skip invalid lines
-
-        pat->Length++;
-        pat->F = (double *)realloc(pat->F, pat->Length * sizeof(double));
-		// Abort if memory allocation error
-        if (pat->F == NULL) {
-            fclose(file);
-            return 101; 
+            // Abort if memory allocation error
+            if (values == NULL) {
+                fclose(file);
+                return 101; 
+            }
         }
-        pat->F[pat->Length - 1] = value;
+        values[len] = value;
+        len++;
     }
-
     fclose(file);
-    return 0;
+    
+    // Transfer multipliers to pattern
+    err = EN_setpattern(p, i, values, len);
+    free(values);    
+    return err;
 }
 
 int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
