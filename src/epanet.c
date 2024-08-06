@@ -4514,6 +4514,70 @@ int DLLEXPORT EN_addpattern(EN_Project p, const char *id)
     return 0;
 }
 
+int DLLEXPORT EN_loadpatternfile(EN_Project p, const char *filename, const char *id)
+/*----------------------------------------------------------------
+**  Input:   filename =  name of the file containing pattern data
+**           id = ID for the new pattern
+**  Output:  none
+**  Returns: error code
+**  Purpose: loads time patterns from a file into a project under a specific pattern ID
+**----------------------------------------------------------------
+*/
+{
+    FILE *file;
+    char line[MAXLINE+1];
+	char *tok;
+    int err = 0;
+    int i;
+    int len = 0;
+    double value;
+    double *values = NULL;
+    int CHUNK = 50;
+
+    if (!p->Openflag) return 102;
+
+    file = fopen(filename, "r");
+    if (file == NULL) return 302;
+
+    // Add a new pattern or use an existing pattern.
+    err = EN_getpatternindex(p, id, &i);
+    if (err == 205) {
+        if ((err = EN_addpattern(p, id)) != 0) {
+            fclose(file);
+            return err;
+        }
+        i = p->network.Npats;
+    }
+
+    // Read pattern values
+    while (fgets(line, sizeof(line), file) != NULL) {
+    
+        // Skip lines that don't contain valid numbers
+        tok = strtok(line, SEPSTR);
+        if (tok == NULL) continue;
+        if (!getfloat(tok, &value)) continue;
+        
+        // Resize multiplier array if it's full
+        if (len % CHUNK == 0) {
+            values = (double *) realloc(values, (len + CHUNK) * sizeof(double));
+
+            // Abort if memory allocation error
+            if (values == NULL) {
+                fclose(file);
+                return 101; 
+            }
+        }
+        values[len] = value;
+        len++;
+    }
+    fclose(file);
+    
+    // Transfer multipliers to pattern
+    err = EN_setpattern(p, i, values, len);
+    free(values);    
+    return err;
+}
+
 int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
 /*----------------------------------------------------------------
 **  Input:   index  = index of the pattern to delete
