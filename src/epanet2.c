@@ -603,6 +603,16 @@ int DLLEXPORT ENsetheadcurveindex(int linkIndex, int curveIndex)
     return EN_setheadcurveindex(_defaultProject, linkIndex, curveIndex);
 }
 
+int DLLEXPORT ENgetefficiencycurveindex(int linkIndex, int *curveIndex)
+{
+    return EN_getefficiencycurveindex(_defaultProject, linkIndex, curveIndex);
+}
+
+int DLLEXPORT ENsetefficiencycurveindex(int linkIndex, int curveIndex)
+{
+    return EN_setefficiencycurveindex(_defaultProject, linkIndex, curveIndex);
+}
+
 /********************************************************************
 
     Time Pattern Functions

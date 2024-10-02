@@ -167,6 +167,25 @@ BOOST_AUTO_TEST_CASE(test_add_set)
     BOOST_REQUIRE(x == x3[0]);
     BOOST_REQUIRE(y == y3[0]);
 
+    // Add an efficiency curve to the pump
+    double xe[] = {0.0, 1.0};
+    double ye[] = {100.0, 30.0};
+    char eCurve[] = "ECurve";
+    EN_addcurve(ph, eCurve);
+    EN_setcurve(ph, 3, xe, ye, 2);
+    EN_getcurveindex(ph, eCurve, &curveIdx);
+    EN_setefficiencycurveindex(ph, pumpIdx, curveIdx);
+
+    // Check that pump's efficiency curve is eCurve
+    EN_getefficiencycurveindex(ph, pumpIdx, &curveIdx);
+    EN_getcurveid(ph, curveIdx, curveID);
+    BOOST_REQUIRE(strcmp(curveID, eCurve) == 0);
+
+    // And that it contains the correct data
+    EN_getcurvevalue(ph, curveIdx, 1, &x, &y);
+    BOOST_REQUIRE(x == xe[0]);
+    BOOST_REQUIRE(y == ye[0]);
+
     EN_close(ph);
     EN_deleteproject(ph);
 }

@@ -1371,6 +1371,24 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_setheadcurveindex(EN_Project ph, int linkIndex, int curveIndex);
 
+  /**
+  @brief Retrieves the curve assigned to a pump's efficiency curve.
+  @param ph an EPANET project handle.
+  @param linkIndex the index of a pump link (starting from 1).
+  @param[out] curveIndex the index of the curve assigned to the pump's efficiency curve.
+  @return an error code.
+  */
+  int  DLLEXPORT EN_getefficiencycurveindex(EN_Project ph, int linkIndex, int *out_curveIndex);
+
+  /**
+  @brief Assigns a curve to a pump's efficiency curve.
+  @param ph an EPANET project handle.
+  @param linkIndex the index of a pump link (starting from 1).
+  @param curveIndex the index of a curve to be assigned as the pump's efficiency curve.
+  @return an error code.
+  */
+  int  DLLEXPORT EN_setefficiencycurveindex(EN_Project ph, int linkIndex, int curveIndex);
+
   /********************************************************************
 
   Time Pattern Functions

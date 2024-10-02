@@ -4460,6 +4460,59 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
     return 0;
 }
 
+int DLLEXPORT EN_getefficiencycurveindex(EN_Project p, int linkIndex, int *curveIndex)
+/*----------------------------------------------------------------
+**  Input:   linkIndex = index of a pump link
+**  Output:  curveIndex = index of a pump's efficiency curve
+**  Returns: error code
+**  Purpose: retrieves the index of a pump's efficiency curve
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+
+    Slink *Link = net->Link;
+    Spump *Pump = net->Pump;
+    const int Nlinks = net->Nlinks;
+
+    *curveIndex = 0;
+    if (!p->Openflag) return 102;
+    if (linkIndex < 1 || linkIndex > Nlinks) return 204;
+    if (PUMP != Link[linkIndex].Type) return 216;
+    *curveIndex = Pump[findpump(net, linkIndex)].Ecurve;
+    return 0;
+}
+
+int DLLEXPORT EN_setefficiencycurveindex(EN_Project p, int linkIndex, int curveIndex)
+/*----------------------------------------------------------------
+**  Input:   linkIndex = index of a pump link
+**           curveIndex = index of a curve
+**  Output:  none
+**  Returns: error code
+**  Purpose: assigns a new efficiency curve to a pump
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+
+    int pumpIndex;
+    int err = 0;
+    Spump *pump;
+
+    // Check for valid parameters
+    if (!p->Openflag) return 102;
+    if (linkIndex < 1 || linkIndex > net->Nlinks) return 204;
+    if (PUMP != net->Link[linkIndex].Type) return 0;
+    if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
+
+    // Assign the new curve to the pump
+    pumpIndex = findpump(net, linkIndex);
+    pump = &net->Pump[pumpIndex];
+    pump->Ecurve = curveIndex;
+    net->Link[linkIndex].Km = 0.0;
+    return 0;
+}
+
 /********************************************************************
 
     Time Pattern Functions

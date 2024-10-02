@@ -320,6 +320,10 @@ extern "C" {
   int DLLEXPORT ENgetheadcurveindex(int linkIndex, int *curveIndex);
 
   int DLLEXPORT ENsetheadcurveindex(int linkIndex, int curveIndex);
+  
+  int DLLEXPORT ENgetefficiencycurveindex(int linkIndex, int *curveIndex);
+
+  int DLLEXPORT ENsetefficiencycurveindex(int linkIndex, int curveIndex);
 
 /********************************************************************
 
