@@ -7,7 +7,7 @@ Description:  computes water quality reactions within pipes and tanks
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 03/12/2024
+Last Updated: 12/16/2024
 ******************************************************************************
 */
 
@@ -566,10 +566,10 @@ void tankmix2(Project *pr, int i, double vin, double win, double vnet)
     // Update segment volumes
     if (vt > 0.0)
     {
-        mixzone->v = vmz;
         if (vnet > 0.0)
         {
-            stagzone->v += vt;
+           mixzone->v = vmz;
+           stagzone->v += vt;
             
             // Account for mass lost in overflow from stagnant zone
             vsz = (tank->Vmax) - vmz;
@@ -579,14 +579,18 @@ void tankmix2(Project *pr, int i, double vin, double win, double vnet)
                 stagzone->v = vsz;
             }
         }
-        else stagzone->v = MAX(0.0, ((stagzone->v) - vt));
+        else
+        {
+            stagzone->v = MAX(0.0, ((stagzone->v) - vt));
+            mixzone->v = vmz + vt + vnet;
+        }
     }
     else
     {
         mixzone->v += vnet;
         mixzone->v = MIN(mixzone->v, vmz);
         mixzone->v = MAX(0.0, mixzone->v);
-        stagzone->v = 0.0;
+        if (vmz - mixzone->v > 0.0) stagzone->v = 0.0;
     }
 
     // Use quality of mixing zone to represent quality of
