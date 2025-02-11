@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/15/2024
+ Last Updated: 02/11/2025
  ******************************************************************************
 */
 
@@ -196,6 +196,7 @@
 #define   w_THEN        "THEN"
 #define   w_ELSE        "ELSE"
 #define   w_PRIORITY    "PRIO"
+#define   w_DISABLED    "DISABLED"
 
 // ------ Input File Section Names ------------------------
 
