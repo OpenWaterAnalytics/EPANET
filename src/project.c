@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/24/2024
+ Last Updated: 02/08/2025
  ******************************************************************************
 */
 
@@ -168,10 +168,9 @@ int openhydfile(Project *pr)
     INT4 version;
     int errcode = 0;
 
-    // If HydFile currently open, then close it if its not a scratch file
+    // If HydFile currently open, then close it
     if (pr->outfile.HydFile != NULL)
     {
-        if (pr->outfile.Hydflag == SCRATCH) return 0;
         fclose(pr->outfile.HydFile);
         pr->outfile.HydFile = NULL;
     }
