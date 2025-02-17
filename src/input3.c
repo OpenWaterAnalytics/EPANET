@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/11/2024
+Last Updated: 02/11/2025
 ******************************************************************************
 */
 
@@ -920,10 +920,10 @@ int controldata(Project *pr)
 **  Purpose: processes simple controls
 **  Formats:
 **  [CONTROLS]
-**  LINK  linkID  setting IF NODE      nodeID {BELOW/ABOVE}  level
-**  LINK  linkID  setting AT TIME      value  (units)
-**  LINK  linkID  setting AT CLOCKTIME value  (units)
-**   (0)   (1)      (2)   (3) (4)       (5)     (6)          (7)
+**  LINK  linkID  setting IF NODE      nodeID {BELOW/ABOVE}  level (DISABLED)
+**  LINK  linkID  setting AT TIME      value  (units)  (DISABLED)
+**  LINK  linkID  setting AT CLOCKTIME value  (units)  (DISABLED)
+**   (0)   (1)      (2)   (3) (4)       (5)     (6)          (7)  (8)
 **--------------------------------------------------------------
 */
 {
@@ -932,7 +932,8 @@ int controldata(Project *pr)
 
     int          i = 0,                // Node index
                  k,                    // Link index
-                 n;                    // # data items
+                 n,                    // # data items
+                 isEnabled = TRUE;     // Control enabled
     double       setting = MISSING,    // Link setting
                  time = 0.0,           // Simulation time
                  level = 0.0;          // Pressure or tank level
@@ -944,6 +945,13 @@ int controldata(Project *pr)
     // Check for sufficient number of input tokens
     n = parser->Ntokens;
     if (n < 6) return 201;
+    
+    // Check if last token is "DISABLED"
+    if (match(parser->Tok[n-1], w_DISABLED))
+    {
+        isEnabled = FALSE;
+        n = n - 1;
+    }
 
     // Check that controlled link exists
     k = findlink(net, parser->Tok[1]);
@@ -1020,7 +1028,7 @@ int controldata(Project *pr)
     control->Time = (long)(3600.0 * time);
     if (ctltype == TIMEOFDAY) control->Time %= SECperDAY;
     control->Grade = level;
-    control->isEnabled = TRUE;
+    control->isEnabled = isEnabled;
     return 0;
 }
 

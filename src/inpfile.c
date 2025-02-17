@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 06/18/2024
+Last Updated: 02/11/2025
 ******************************************************************************
 */
 
@@ -519,7 +519,10 @@ int saveinpfile(Project *pr, const char *fname)
             fprintf(f, "\n%s AT %s %s", s, ControlTxt[TIMEOFDAY],
                     clocktime(rpt->Atime, control->Time));
             break;
+            
+          default: continue;
         }
+        if (control->isEnabled == FALSE) fprintf(f, "  DISABLED");
     }
 
     // Write [RULES] section
@@ -529,6 +532,7 @@ int saveinpfile(Project *pr, const char *fname)
     {
         fprintf(f, "\nRULE %s", pr->network.Rule[i].label);
         writerule(pr, f, i);  // see RULES.C
+        if (pr->network.Rule[i].isEnabled == FALSE) fprintf(f, "\nDISABLED");
         fprintf(f, "\n");
     }
 

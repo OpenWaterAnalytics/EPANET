@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       rules.c
  Description:  implements rule-based controls
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/15/2019
+ Last Updated: 02/11/2025
  ******************************************************************************
 */
 
@@ -32,10 +32,11 @@ enum Rulewords {
   r_THEN,
   r_ELSE,
   r_PRIORITY,
+  r_DISABLED,
   r_ERROR
 };
 char *Ruleword[] = {w_RULE, w_IF,   w_AND,      w_OR,
-                    w_THEN, w_ELSE, w_PRIORITY, NULL};
+                    w_THEN, w_ELSE, w_PRIORITY, w_DISABLED, NULL};
 
 enum Varwords {
   r_DEMAND,
@@ -271,6 +272,16 @@ int ruledata(Project *pr)
           }
           rules->RuleState = r_PRIORITY;
           err = newpriority(pr);
+          break;
+
+        case r_DISABLED:
+          if (rules->RuleState != r_THEN && rules->RuleState != r_ELSE &&
+              rules->RuleState != r_PRIORITY)
+          {
+              err = 221; 
+              break;
+          }
+          net->Rule[net->Nrules].isEnabled = FALSE;
           break;
 
         default:
