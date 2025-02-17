@@ -1996,6 +1996,7 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
 */
 {
     Network *net = &p->network;
+    Quality  *qual = &p->quality;
 
     int i, nodeType, tankindex;
     Snode *node;
@@ -2041,6 +2042,9 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
         // ... update node's entry in the hash table
         hashtable_update(net->NodeHashTable, net->Node[i].ID, i);
     }
+    
+    // Adjust index of water quality trace node
+    if (qual->TraceNode > index) qual->TraceNode -= 1;
 
     // If deleted node is a tank, remove it from the Tank array
     if (nodeType != EN_JUNCTION)
