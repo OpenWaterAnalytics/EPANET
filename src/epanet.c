@@ -1790,6 +1790,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
     qual->Ctol *= Ucf[QUALITY];
     if (qual->Qualflag == CHEM) // Chemical analysis
     {
+        qual->TraceNode = 0;
         strncpy(qual->ChemName, chemName, MAXID);
         strncpy(qual->ChemUnits, chemUnits, MAXID);
         strncpy(rpt->Field[QUALITY].Units, qual->ChemUnits, MAXID);
@@ -1807,9 +1808,15 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
     }
     if (qual->Qualflag == AGE) // Water age analysis
     {
+        qual->TraceNode = 0;
         strncpy(qual->ChemName, w_AGE, MAXID);
         strncpy(qual->ChemUnits, u_HOURS, MAXID);
         strcpy(rpt->Field[QUALITY].Units, u_HOURS);
+    }
+    if (qual->Qualflag == NONE)
+    {
+        qual->TraceNode = 0;
+        strcpy(qual->ChemName, "");
     }
 
     // When changing from CHEM to AGE or TRACE, nodes initial quality
@@ -1916,6 +1923,8 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
         }
         // adjust indices of tanks/reservoirs in Rule premises (see RULES.C)
         adjusttankrules(p, 1);
+         // adjust index of trace node
+         if (qual->TraceNode > net->Njuncs - 1) qual->TraceNode += 1;
     }
 
     // Actions taken when a new Tank/Reservoir is added
@@ -1987,6 +1996,7 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
 */
 {
     Network *net = &p->network;
+    Quality  *qual = &p->quality;
 
     int i, nodeType, tankindex;
     Snode *node;
@@ -2032,6 +2042,9 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
         // ... update node's entry in the hash table
         hashtable_update(net->NodeHashTable, net->Node[i].ID, i);
     }
+    
+    // Adjust index of water quality trace node
+    if (qual->TraceNode > index) qual->TraceNode -= 1;
 
     // If deleted node is a tank, remove it from the Tank array
     if (nodeType != EN_JUNCTION)
