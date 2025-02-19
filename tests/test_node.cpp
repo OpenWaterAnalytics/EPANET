@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       test_node.cpp
  Description:  Tests EPANET toolkit api functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/21/2019
+ Last Updated: 02/14/2025
  ******************************************************************************
 */
 
@@ -255,16 +255,21 @@ BOOST_FIXTURE_TEST_CASE(test_node_comments, FixtureOpenClose)
 {
     int index;
     char comment[EN_MAXMSG + 1];
+    char tag[EN_MAXMSG + 1];
 
     // Add comments to selected objects
     error = EN_getnodeindex(ph, (char *)"11", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_setcomment(ph, EN_NODE, index, (char *)"J11");
     BOOST_REQUIRE(error == 0);
+    error = EN_settag(ph, EN_NODE, index, (char *)"J11_Tag");
+    BOOST_REQUIRE(error == 0);
 
     error = EN_getnodeindex(ph, (char *)"23", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_setcomment(ph, EN_NODE, index, (char *)"Junc23");
+    BOOST_REQUIRE(error == 0);
+    error = EN_settag(ph, EN_NODE, index, (char *)"Junc23_Tag");
     BOOST_REQUIRE(error == 0);
 
     // Check comments
@@ -273,18 +278,25 @@ BOOST_FIXTURE_TEST_CASE(test_node_comments, FixtureOpenClose)
     error = EN_getcomment(ph, EN_NODE, index, comment);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(check_string(comment, (char *)"J11"));
+    error = EN_gettag(ph, EN_NODE, index, tag);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(tag, (char *)"J11_Tag"));
 
     error = EN_getnodeindex(ph, (char *)"23", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_getcomment(ph, EN_NODE, index, comment);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(check_string(comment, (char *)"Junc23"));
+    error = EN_gettag(ph, EN_NODE, index, tag);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(tag, (char *)"Junc23_Tag"));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_replace_comment, FixtureOpenClose)
 {
     int index;
     char comment[EN_MAXMSG + 1];
+    char tag[EN_MAXMSG + 1];
 
     // Replace short comment with longer one and vice versa
     error = EN_getnodeindex(ph, (char *)"11", &index);
@@ -295,11 +307,23 @@ BOOST_FIXTURE_TEST_CASE(test_replace_comment, FixtureOpenClose)
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(check_string(comment, (char *)"Junction11"));
 
+    error = EN_settag(ph, EN_NODE, index, (char *)"Junction11_Tag");
+    BOOST_REQUIRE(error == 0);
+    error = EN_gettag(ph, EN_NODE, index, tag);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(tag, (char *)"Junction11_Tag"));
+
     error = EN_setcomment(ph, EN_NODE, index, (char *)"J11");
     BOOST_REQUIRE(error == 0);
     error = EN_getcomment(ph, EN_NODE, index, comment);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(check_string(comment, (char *)"J11"));
+
+    error = EN_settag(ph, EN_NODE, index, (char *)"J11_Tag");
+    BOOST_REQUIRE(error == 0);
+    error = EN_gettag(ph, EN_NODE, index, tag);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(tag, (char *)"J11_Tag"));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_save_comment, FixtureOpenClose)
@@ -311,10 +335,14 @@ BOOST_FIXTURE_TEST_CASE(test_save_comment, FixtureOpenClose)
     BOOST_REQUIRE(error == 0);
     error = EN_setcomment(ph, EN_NODE, index, (char *)"J11");
     BOOST_REQUIRE(error == 0);
+    error = EN_settag(ph, EN_NODE, index, (char *)"J11_Tag");
+    BOOST_REQUIRE(error == 0);
 
     error = EN_getnodeindex(ph, (char *)"23", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_setcomment(ph, EN_NODE, index, (char *)"Junc23");
+    BOOST_REQUIRE(error == 0);
+    error = EN_settag(ph, EN_NODE, index, (char *)"Junc23_Tag");
     BOOST_REQUIRE(error == 0);
 
     error = EN_saveinpfile(ph, DATA_PATH_TMP);
@@ -325,6 +353,7 @@ BOOST_AUTO_TEST_CASE(test_reopen_comment, * boost::unit_test::depends_on("node_c
 {
     int error, index;
     char comment[EN_MAXMSG + 1];
+    char tag[EN_MAXMSG + 1];
 
     // Create & load a project
     EN_Project ph = NULL;
@@ -340,12 +369,18 @@ BOOST_AUTO_TEST_CASE(test_reopen_comment, * boost::unit_test::depends_on("node_c
     error = EN_getcomment(ph, EN_NODE, index, comment);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(check_string(comment, (char *)"J11"));
+    error = EN_gettag(ph, EN_NODE, index, tag);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(tag, (char *)"J11_Tag"));
 
     error = EN_getnodeindex(ph, (char *)"23", &index);
     BOOST_REQUIRE(error == 0);
     error = EN_getcomment(ph, EN_NODE, index, comment);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(check_string(comment, (char *)"Junc23"));
+    error = EN_gettag(ph, EN_NODE, index, tag);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(check_string(tag, (char *)"Junc23_Tag"));
 
     // Close project
     EN_close(ph);
