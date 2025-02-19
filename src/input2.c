@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 02/14/2025
+Last Updated: 02/19/2025
 ******************************************************************************
 */
 
@@ -326,7 +326,6 @@ int newline(Project *pr, int sect, char *line)
 
         // Data in these sections are not used for any computations
         case _LABELS:
-        case _TAGS:
         case _BACKDROP:
           return (0);
     }
