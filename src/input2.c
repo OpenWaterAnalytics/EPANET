@@ -320,7 +320,7 @@ int newline(Project *pr, int sect, char *line)
         case _REPORT:      return (reportdata(pr));
         case _TIMES:       return (timedata(pr));
         case _OPTIONS:     return (optiondata(pr));
-        case _TAGS:        return (tagdata(pr));                                                
+        case _TAGS:        return (tagdata(pr));
         case _COORDS:      return (coordata(pr));
         case _VERTICES:    return (vertexdata(pr));
 

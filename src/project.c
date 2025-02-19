@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/14/2025
+ Last Updated: 02/19/2025
  ******************************************************************************
 */
 
@@ -1360,6 +1360,10 @@ int setcomment(Network *network, int object, int index, const char *newcomment)
         comment = network->Curve[index].Comment;
         network->Curve[index].Comment = xstrcpy(&comment, newcomment, MAXMSG);
         return 0;
+
+    default: return 251;
+    }
+}
 
 
 int  gettag(Network *network, int object, int index, char *tag)
