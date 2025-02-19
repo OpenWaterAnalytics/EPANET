@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 06/06/2024}
+{Last updated on 02/14/2025}
 
 interface
 
@@ -314,6 +314,8 @@ const
  function  ENsettitle(Line1: PAnsiChar; Line2: PAnsiChar; Line3: PAnsiChar): Integer; cdecl; external EpanetLib;
  function  ENgetcomment(ObjType: Integer; Index: Integer; Comment: PAnsiChar): Integer; cdecl; external EpanetLib;
  function  ENsetcomment(ObjType: Integer; Index: Integer; Comment: PAnsiChar): Integer; cdecl; external EpanetLib;
+ function  ENgettag(ObjType: Integer; Index: Integer; Tag: PAnsiChar): Integer; cdecl; external EpanetLib;
+ function  ENsettag(ObjType: Integer; Index: Integer; Tag: PAnsiChar): Integer; cdecl; external EpanetLib;
  function  ENsaveinpfile(F: PAnsiChar): Integer; cdecl; external EpanetLib;
  function  ENclose: Integer; cdecl; external EpanetLib;
 
@@ -473,8 +475,8 @@ const
           var Status: Integer; var Setting: Single): Integer; cdecl; external EpanetLib;
  function ENsetelseaction(RuleIndex: Integer; ActionIndex: Integer; LinkIndex: Integer;
           Status: Integer; Setting: Single): Integer; cdecl; external EpanetLib;
- function  ENgetruleenabled(Index: Integer; out_enabled: Integer): Integer; cdecl; external EpanetLib;
- function  ENsetruleenabled(Index: Integer; var enabled: Integer): Integer; cdecl; external EpanetLib;
+ function  ENgetruleenabled(Index: Integer; var enabled: Integer): Integer; cdecl; external EpanetLib;
+ function  ENsetruleenabled(Index: Integer; enabled: Integer): Integer; cdecl; external EpanetLib;
 
 implementation
 

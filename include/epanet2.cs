@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 //epanet2.cs[By Oscar Vegas]
-//Last updated on 06/23/2024
+//Last updated on 02/14/2025
 
 //Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 //(EPANET2.DLL) for use with C#
@@ -303,7 +303,18 @@ namespace EpanetCSharpLibrary
 
         [DllImport(EPANETDLL, EntryPoint = "ENsettitle")]
         public static extern int ENsettitle(string titleline1, string titleline2, string titleline3);
+        
+        [DllImport(EPANETDLL, EntryPoint = "ENgetcomment")]
+        public static extern int ENgetcomment(int type, int index, string comment); 
 
+        [DllImport(EPANETDLL, EntryPoint = "ENsetcomment")]
+        public static extern int ENsetcomment(int type, int index, string comment); 
+
+        [DllImport(EPANETDLL, EntryPoint = "ENgettag")]
+        public static extern int ENgettag(int type, int index, string tag); 
+
+        [DllImport(EPANETDLL, EntryPoint = "ENsettag")]
+        public static extern int ENsettag(int type, int index, string tag); 
         [DllImport(EPANETDLL, EntryPoint = "ENsaveinpfile")]
         public static extern int ENsaveinpfile(string filename);
 
@@ -599,6 +610,9 @@ namespace EpanetCSharpLibrary
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetpattern")]
         public static extern int ENsetpattern(int index, ref float[] values, int len);
+
+        [DllImport(EPANETDLL, EntryPoint = "ENloadpatternfile")]
+        public static extern int ENdeletepattern(string filename, string id);
 
 
         //Data Curve Functions

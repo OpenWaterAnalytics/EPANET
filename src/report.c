@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       report.c
  Description:  procedures for writing formatted text to a report file
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/22/2019
+ Last Updated: 02/14/2025
  ******************************************************************************
 */
 
@@ -501,6 +501,8 @@ void writemassbalance(Project *pr)
     writeline(pr, s1);
     snprintf(s1, MAXMSG, "Mass Ratio:         %-.5f", qual->MassBalance.ratio);
     writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Total Segments:     %d", qual->MassBalance.segCount);
+    writeline(pr, s1);                          
     snprintf(s1, MAXMSG, "================================\n");
     writeline(pr, s1);
 }

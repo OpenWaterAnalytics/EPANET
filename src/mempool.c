@@ -9,7 +9,7 @@
  License:      see LICENSE
  Last Updated: 08/02/2023
 
- This module is based code by Steve Hill in Graphics Gems III,
+ This module is based on code by Steve Hill in Graphics Gems III,
  David Kirk (ed.), Academic Press, Boston, MA, 1992
  ******************************************************************************
 */

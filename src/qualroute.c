@@ -1,13 +1,13 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       qualroute.c
 Description:  computes water quality transport over a single time step
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 08/02/2023
+Last Updated: 02/14/2025
 ******************************************************************************
 */
 
@@ -183,6 +183,7 @@ void  evalnodeinflow(Project *pr, int k, long tstep, double *volin,
             // ... recycle the used up segment
             seg->prev = qual->FreeSeg;
             qual->FreeSeg = seg;
+            qual->MassBalance.segCount--;                                         
         }
 
         // ... otherwise just reduce this segment's volume
@@ -691,4 +692,5 @@ void addseg(Project *pr, int k, double v, double c)
     if (qual->FirstSeg[k] == NULL) qual->FirstSeg[k] = seg;
     if (qual->LastSeg[k] != NULL)  qual->LastSeg[k]->prev = seg;
     qual->LastSeg[k] = seg;
+    qual->MassBalance.segCount++;                                     
 }

@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 06/23/2024
+'Last updated on 02/14/2025
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -297,8 +297,8 @@ Public Const EN_TRUE = 1    ' boolean true
  Declare Function ENclose Lib "epanet2.dll" () As Long
  Declare Function ENgetcomment Lib "epanet2.dll" (ByVal ObjectType As Long, ByVal index As Long, ByVal comment As String) As Long
  Declare Function ENsetcomment Lib "epanet2.dll" (ByVal ObjectType As Long, ByVal index As Long, ByVal comment As String) As Long
-
-
+ Declare Function ENgettag Lib "epanet2.dll" (ByVal ObjectType As Long, ByVal index As Long, ByVal tag As String) As Long
+  Declare Function ENsettag Lib "epanet2.dll" (ByVal ObjectType As Long, ByVal index As Long, ByVal tag As String) As Long
 'Hydraulic Analysis Functions
  Declare Function ENsolveH Lib "epanet2.dll" () As Long
  Declare Function ENsaveH Lib "epanet2.dll" () As Long
@@ -408,6 +408,7 @@ Public Const EN_TRUE = 1    ' boolean true
  Declare Function ENsetpatternvalue Lib "epanet2.dll" (ByVal index As Long, ByVal period As Long, ByVal value As Single) As Long
  Declare Function ENgetaveragepatternvalue Lib "epanet2.dll" (ByVal index As Long, value As Single) As Long
  Declare Function ENsetpattern Lib "epanet2.dll" (ByVal index As Long, values As Any, ByVal len_ As Long) As Long
+ Declare Function ENloadpatternfile Lib "epanet2.dll" (ByVal filename As String, ByVal id As String) As Long
 
 'Data Curve Functions
  Declare Function ENaddcurve Lib "epanet2.dll" (ByVal id As String) As Long
