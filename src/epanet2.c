@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       epanet2.c
  Description:  implementation of the legacy EPANET API functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 09/28/2023
+ Last Updated: 02/14/2025
  ******************************************************************************
 */
 
@@ -127,6 +127,15 @@ int  DLLEXPORT ENsetcomment(int object, int index, const char *comment)
     return EN_setcomment(_defaultProject, object, index, comment);
 }
 
+int DLLEXPORT ENgettag(int object, int index, char *tag)
+{
+    return EN_gettag(_defaultProject, object, index, tag);
+}
+
+int  DLLEXPORT ENsettag(int object, int index, const char *tag)
+{
+    return EN_settag(_defaultProject, object, index, tag);
+}
 int DLLEXPORT ENgetcount(int object, int *count)
 {
     return EN_getcount(_defaultProject, object, count);

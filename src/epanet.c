@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/26/2024
+ Last Updated: 02/14/2025
  ******************************************************************************
 */
 
@@ -203,7 +203,6 @@ int DLLEXPORT EN_openX(EN_Project p, const char *inpFile,
     return openproject(p, inpFile, rptFile, outFile, TRUE);
 }    
 
-
 int DLLEXPORT EN_gettitle(EN_Project p, char *line1, char *line2, char *line3)
 /*----------------------------------------------------------------
 **  Input:   None
@@ -263,6 +262,32 @@ int  DLLEXPORT EN_setcomment(EN_Project p, int object, int index,
     return setcomment(&p->network, object, index, comment);
 }
 
+int DLLEXPORT EN_gettag(EN_Project p, int object, int index, char *tag)
+/*----------------------------------------------------------------
+**  Input:   object = either EN_NODE or EN_LINK
+**           index = the object's index
+**  Output:  tag = the tag string assigned to the object
+**  Returns: error code
+**  Purpose: Retrieves an object's tag string
+**----------------------------------------------------------------
+*/
+{
+    return gettag(&p->network, object, index, tag);
+}
+
+int  DLLEXPORT EN_settag(EN_Project p, int object, int index,
+    const char *tag)
+/*----------------------------------------------------------------
+**  Input:   object = either EN_NODE or EN_LINK
+**           index = the object's index
+**           tag =  a descriptive comment to assign
+**  Returns: error code
+**  Purpose: Assigns a tag string to an object
+**----------------------------------------------------------------
+*/
+{
+    return settag(&p->network, object, index, tag);
+}
 int DLLEXPORT EN_getcount(EN_Project p, int object, int *count)
 /*----------------------------------------------------------------
 **  Input:   object = type of object to count (see EN_CountType)
@@ -1790,7 +1815,6 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
     qual->Ctol *= Ucf[QUALITY];
     if (qual->Qualflag == CHEM) // Chemical analysis
     {
-        qual->TraceNode = 0;
         strncpy(qual->ChemName, chemName, MAXID);
         strncpy(qual->ChemUnits, chemUnits, MAXID);
         strncpy(rpt->Field[QUALITY].Units, qual->ChemUnits, MAXID);
@@ -1808,15 +1832,9 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
     }
     if (qual->Qualflag == AGE) // Water age analysis
     {
-        qual->TraceNode = 0;
         strncpy(qual->ChemName, w_AGE, MAXID);
         strncpy(qual->ChemUnits, u_HOURS, MAXID);
         strcpy(rpt->Field[QUALITY].Units, u_HOURS);
-    }
-    if (qual->Qualflag == NONE)
-    {
-        qual->TraceNode = 0;
-        strcpy(qual->ChemName, "");
     }
 
     // When changing from CHEM to AGE or TRACE, nodes initial quality
@@ -1923,8 +1941,6 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
         }
         // adjust indices of tanks/reservoirs in Rule premises (see RULES.C)
         adjusttankrules(p, 1);
-         // adjust index of trace node
-         if (qual->TraceNode > net->Njuncs - 1) qual->TraceNode += 1;
     }
 
     // Actions taken when a new Tank/Reservoir is added
@@ -1974,6 +1990,7 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
     node->X = MISSING;
     node->Y = MISSING;
     node->Comment = NULL;
+    node->Tag = NULL;                     
 
     // Insert new node into hash table
     hashtable_insert(net->NodeHashTable, node->ID, nIdx);
@@ -1996,7 +2013,6 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
 */
 {
     Network *net = &p->network;
-    Quality  *qual = &p->quality;
 
     int i, nodeType, tankindex;
     Snode *node;
@@ -2034,6 +2050,7 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
     freedemands(node);
     free(node->S);
     free(node->Comment);
+    free(node->Tag);                    
 
     // Shift position of higher entries in Node & Coord arrays down one
     for (i = index; i <= net->Nnodes - 1; i++)
@@ -2042,9 +2059,6 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
         // ... update node's entry in the hash table
         hashtable_update(net->NodeHashTable, net->Node[i].ID, i);
     }
-    
-    // Adjust index of water quality trace node
-    if (qual->TraceNode > index) qual->TraceNode -= 1;
 
     // If deleted node is a tank, remove it from the Tank array
     if (nodeType != EN_JUNCTION)
@@ -3396,6 +3410,7 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     link->Rpt = 0;
     link->ResultIndex = 0;
     link->Comment = NULL;
+    link->Tag = NULL;                     
     link->Vertices = NULL;
 
     hashtable_insert(net->LinkHashTable, link->ID, n);
@@ -3448,6 +3463,7 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
 
     // Remove link's comment and vertices
     free(link->Comment);
+    free(link->Tag);                    
     freelinkvertices(link);
 
     // Shift position of higher entries in Link array down one

@@ -5,13 +5,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       epanet2.h
  Description:  API function declarations
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 09/28/2023
+ Last Updated: 02/14/2025
  ******************************************************************************
  */
 
@@ -183,6 +183,27 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_setcomment(EN_Project ph, int object, int index,
       const char *comment);
+
+  /**
+  @brief Retrieves a tag string assigned to a Node or Link.
+  @param ph an EPANET project handle.
+  @param object a type of object (either EN_NODE or EN_LINK)
+  @param index the object's index starting from 1
+  @param[out] out_tag the tag string assigned to the object
+  @return an error code
+  */
+  int  DLLEXPORT EN_gettag(EN_Project ph, int object, int index, char *out_tag);
+
+  /**
+  @brief Assigns a tag string to a Node or Link.
+  @param ph an EPANET project handle.
+  @param object a type of object (either EN_NODE or EN_LINK)
+  @param index the object's index starting from 1
+  @param tag the tag string assigned to the object
+  @return an error code
+  */
+  int  DLLEXPORT EN_settag(EN_Project ph, int object, int index,
+      const char *tag);
 
   /**
   @brief Retrieves the number of objects of a given type in a project.

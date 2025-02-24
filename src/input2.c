@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 09/28/2023
+Last Updated: 02/19/2025
 ******************************************************************************
 */
 
@@ -320,12 +320,12 @@ int newline(Project *pr, int sect, char *line)
         case _REPORT:      return (reportdata(pr));
         case _TIMES:       return (timedata(pr));
         case _OPTIONS:     return (optiondata(pr));
+        case _TAGS:        return (tagdata(pr));
         case _COORDS:      return (coordata(pr));
         case _VERTICES:    return (vertexdata(pr));
 
         // Data in these sections are not used for any computations
         case _LABELS:
-        case _TAGS:
         case _BACKDROP:
           return (0);
     }

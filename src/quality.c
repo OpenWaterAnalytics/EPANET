@@ -1,13 +1,13 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       quality.c
 Description:  implements EPANET's water quality engine
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 02/03/2020
+Last Updated: 02/14/2025
 ******************************************************************************
 */
 
@@ -183,6 +183,7 @@ int initqual(Project *pr)
     qual->MassBalance.reacted = 0.0;
     qual->MassBalance.final = 0.0;
     qual->MassBalance.ratio = 0.0;
+    qual->MassBalance.segCount = 0;
     return errcode;
 }
 

@@ -68,6 +68,7 @@ EXPORTS
     ENgetruleenabled              = _ENgetruleenabled@8
     ENgetruleID                   = _ENgetruleID@8
     ENgetstatistic                = _ENgetstatistic@8
+    ENgettag                      = _ENgettag@12                                                
     ENgetthenaction               = _ENgetthenaction@20
     ENgettimeparam                = _ENgettimeparam@8
     ENgettitle                    = _ENgettitle@12    
@@ -76,7 +77,8 @@ EXPORTS
     ENgetvertexcount              = _ENgetvertexcount@8    
     ENinit                        = _ENinit@16
     ENinitH                       = _ENinitH@4                          
-    ENinitQ                       = _ENinitQ@4                          
+    ENinitQ                       = _ENinitQ@4
+    ENloadpatternfile             = _ENloadpatternfile@8    
     ENnextH                       = _ENnextH@4                          
     ENnextQ                       = _ENnextQ@4
     ENopen                        = _ENopen@12                          
@@ -126,6 +128,7 @@ EXPORTS
     ENsetruleenabled              = _ENsetruleenabled@8
     ENsetrulepriority             = _ENsetrulepriority@8
     ENsetstatusreport             = _ENsetstatusreport@4
+    ENsettag                      = _ENsettag@12                                                
     ENsettankdata                 = _ENsettankdata@32
     ENsetthenaction               = _ENsetthenaction@20
     ENsettimeparam                = _ENsettimeparam@8

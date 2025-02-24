@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/15/2024
+ Last Updated: 02/14/2025
  ******************************************************************************
 */
 
@@ -398,6 +398,7 @@ typedef struct             // Node Object
   int      ResultIndex;    // saved result index
   NodeType Type;           // node type
   char     *Comment;       // node comment
+  char     *Tag;           // optional category tag                                                   
 } Snode;
 
 typedef struct             // Link Object
@@ -421,6 +422,7 @@ typedef struct             // Link Object
   int      Rpt;            // reporting flag
   int      ResultIndex;    // saved result index
   char     *Comment;       // link comment
+  char     *Tag;           // optional category tag                                                   
 } Slink;
 
 typedef struct             // Tank Object
@@ -549,6 +551,7 @@ typedef struct                 // Mass Balance Components
     double    reacted;         // mass reacted in system
     double    final;           // final mass in system
     double    ratio;           // ratio of mass added to mass lost
+    int       segCount;        // total number of pipe segments used                       
 } SmassBalance;
 
 typedef struct

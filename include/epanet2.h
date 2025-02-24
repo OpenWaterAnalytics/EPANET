@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       epanet2.h
  Description:  declarations of the legacy style EPANET 2 API functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 09/28/2023
+ Last Updated: 02/14/2025
  ******************************************************************************
  */
 
@@ -83,6 +83,10 @@ extern "C" {
   int  DLLEXPORT ENgetcomment(int object, int index, char *comment);
 
   int  DLLEXPORT ENsetcomment(int object, int index, const char *comment);
+
+  int  DLLEXPORT ENgettag(int object, int index, char *tag);
+
+  int  DLLEXPORT ENsettag(int object, int index, const char *tag);
 
   int  DLLEXPORT ENgetcount(int object, int *count);
 
@@ -328,7 +332,7 @@ extern "C" {
 ********************************************************************/
 
   int DLLEXPORT ENaddpattern(const char *id);
-  
+
   int DLLEXPORT ENdeletepattern(int index);
 
   int DLLEXPORT ENgetpatternindex(const char *id, int *index);
@@ -346,7 +350,7 @@ extern "C" {
   int DLLEXPORT ENgetaveragepatternvalue(int index, EN_API_FLOAT_TYPE *value);
 
   int DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *values, int len);
-  
+
   int DLLEXPORT ENloadpatternfile(const char *filename, const char *id);
 
 /********************************************************************
