@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 02/14/2025
+Last Updated: 03/11/2025
 ******************************************************************************
 */
 
@@ -34,6 +34,7 @@ extern char *TstatTxt[];
 extern char *RptFlagTxt[];
 extern char *SectTxt[];
 extern char *BackflowTxt[];
+extern char *CurveTypeTxt[];
 
 void saveauxdata(Project *pr, FILE *f)
 /*
@@ -434,15 +435,20 @@ int saveinpfile(Project *pr, const char *fname)
     // Write [CURVES] section
     fprintf(f, "\n\n");
     fprintf(f, s_CURVES);
-    fprintf(f, "\n;;%-31s\t%-12s\t%-12s",
-        "ID", "X-Value", "Y-Value");
+    fprintf(f, "\n;;%-31s\t%-12s\t%-12s", "ID", "X-Value", "Y-Value");
     for (i = 1; i <= net->Ncurves; i++)
     {
-        if (net->Curve[i].Comment) fprintf(f, "\n;%s", net->Curve[i].Comment);
-        for (j = 0; j < net->Curve[i].Npts; j++)
+        curve = &net->Curve[i];
+        if (curve->Comment) fprintf(f, "\n;%s", curve->Comment);
+        if (curve->Npts > 0)
         {
-            curve = &net->Curve[i];
-            fprintf(f, "\n %-31s\t%-12.4f\t%-12.4f", curve->ID, curve->X[j], curve->Y[j]);
+            fprintf(f, "\n %-31s\t%-12.4f\t%-12.4f\t%s", curve->ID,
+                curve->X[0], curve->Y[0], CurveTypeTxt[curve->Type]);
+            for (j = 1; j < curve->Npts; j++)
+            {
+                fprintf(f, "\n %-31s\t%-12.4f\t%-12.4f", curve->ID,
+                    curve->X[j], curve->Y[j]);
+            }
         }
     }
 

@@ -1,13 +1,13 @@
 /*
  *****************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       enumstxt.h
  Description:  text strings for enumerated data types
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/24/2024
+ Last Updated: 03/10/2025
  ******************************************************************************
 */
 
@@ -117,6 +117,14 @@ char *RptFlagTxt[]      = {w_NO,
 char *BackflowTxt[]     = {w_NO,
                            w_YES,
                            NULL};
+                           
+char *CurveTypeTxt[]    = {c_VOLUME,
+                           c_PUMP,
+                           c_EFFIC,
+                           c_HEADLOSS,
+                           c_GENERIC,
+                           c_VALVE,
+                           NULL};                           
 
 char *SectTxt[]         = {s_TITLE,     s_JUNCTIONS, s_RESERVOIRS,
                            s_TANKS,     s_PIPES,     s_PUMPS,

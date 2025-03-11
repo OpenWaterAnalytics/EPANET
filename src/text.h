@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/11/2025
+ Last Updated: 03/10/2025
  ******************************************************************************
 */
 
@@ -270,6 +270,8 @@
 #define   c_PUMP        "PUMP"
 #define   c_EFFIC       "EFFIC"
 #define   c_VOLUME      "VOLUME"
+#define   c_VALVE       "VALVE"
+#define   c_GENERIC     "GENERIC"
 
 //------- Text Phrases ------------------------------------
 

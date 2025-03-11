@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 02/14/2025
+Last Updated: 03/10/2025
 ******************************************************************************
 */
 
@@ -26,6 +26,7 @@ extern char *MixTxt[];
 extern char *Fldname[];
 extern char *DemandModelTxt[];
 extern char *BackflowTxt[];
+extern char *CurveTypeTxt[];
 
 // Imported Functions
 extern int addnodeID(Network *, int, char *);
@@ -740,7 +741,7 @@ int curvedata(Project *pr)
     Network *net = &pr->network;
     Parser  *parser = &pr->parser;
 
-    int i;
+    int i, ctype;
     double x, y;
     Scurve *curve;
 
@@ -748,6 +749,11 @@ int curvedata(Project *pr)
     if (parser->Ntokens < 3) return 201;
     if (!getfloat(parser->Tok[1], &x)) return setError(parser, 1, 202);
     if (!getfloat(parser->Tok[2], &y)) return setError(parser, 2, 202);
+    ctype = -1;
+    if (parser->Ntokens > 3)
+    {
+        ctype = findmatch(parser->Tok[3], CurveTypeTxt);
+    }        
 
     // Check if previous input line was for the same curve
     if (parser->PrevCurve && strcmp(parser->Tok[0], parser->PrevCurve->ID) == 0)
@@ -777,6 +783,7 @@ int curvedata(Project *pr)
     curve->X[curve->Npts] = x;
     curve->Y[curve->Npts] = y;
     curve->Npts++;
+    if (ctype >= 0) curve->Type = (CurveType)ctype;
 
     // Save a reference to this curve for processing additional curve data
     parser->PrevCurve = curve;
