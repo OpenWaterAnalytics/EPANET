@@ -702,7 +702,7 @@ int pdaconverged(Project *pr)
 {
     Hydraul *hyd = &pr->hydraul;
 
-    const double QTOL = 0.0001;  // 0.0001 cfs ~= 0.005 gpm ~= 0.2 lpm)
+    const double QTOL = 0.0001;  // 0.0001 cfs ~= 0.05 gpm ~= 0.2 lpm)
     int i, converged = 1;
 
     double totalDemand = 0.0, totalReduction = 0.0;
