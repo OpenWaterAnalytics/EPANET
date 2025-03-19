@@ -2380,6 +2380,7 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         // while DemandFlow contains delivered consumer demand
         if (hyd->FullDemand[index] <= 0.0) return 0;
         v = (hyd->FullDemand[index] - hyd->DemandFlow[index]) * Ucf[FLOW];
+        if (v < 0.0) v = 0.0;
         break;
 
     case EN_NODE_INCONTROL:
