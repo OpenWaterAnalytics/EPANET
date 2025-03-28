@@ -157,7 +157,8 @@ Developers need to issue an include directive for either `epanet2.h` or `epanet2
 Several additional function declaration files that provide bindings for other programming languages are included with the Toolkit package: 
 - <b>`epanet2.bas`</b> for Visual Basic for Applications and Visual Basic 6
 - <b>`epanet2.vb`</b> for Visual Basic .NET
-- <b>`epanet2.pas`</b> for Delphi Pascal, Free Pascal or Lazarus. 
+- <b>`epanet2.pas`</b> for Delphi Pascal, Free Pascal or Lazarus.
+- <b>`epanet2.cs`</b> for C# 
 
 These bindings only support the single-threaded version of the Toolkit.
 */

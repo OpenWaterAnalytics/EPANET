@@ -47,7 +47,6 @@ Below is a schematic of the network to be built.
 <table style = "border: 0px solid black">
 <tr><td>
 @image html Example2.png
-@image latex Example2.eps
 </td></tr>
 </table>
 

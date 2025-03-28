@@ -1691,7 +1691,19 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int param, long value)
 
 
 /// get the time to next event, and give a reason for the time step truncation
-int  DLLEXPORT EN_timetonextevent(EN_Project p, int *eventType, long *duration, int *elementIndex)
+int  DLLEXPORT EN_timetonextevent(EN_Project p, int *eventType,
+                                  long *duration, int *elementIndex)
+/*----------------------------------------------------------------
+**  Input:   none
+**  Output:  eventType = event causing a new time step
+**                       to occur (see EN_TimestepEvent)
+**           duration  = seconds until next time step occurs
+**           elementIndex = index of tank node or simple control
+**                          that triggers a new time step
+**  Returns: error code
+**  Purpose: Get information about when the next hydraulic time step occurs
+**----------------------------------------------------------------
+*/
 {
   Times  *time = &p->times;
   long hydStep, tankStep, controlStep;
