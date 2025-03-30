@@ -218,14 +218,14 @@ typedef struct Project *EN_Project;
   @brief Saves a project's data to an EPANET-formatted text file.
   @param ph an EPANET project handle.
   @param filename the name of the file to create.
-  @return Error code
+  @return an error code
   */
   int DLLEXPORT EN_saveinpfile(EN_Project ph, const char *filename);
 
   /**
   @brief Closes a project and frees all of its memory.
   @param ph an EPANET project handle.
-  @return Error code
+  @return an error code
 
   This function clears all existing data from a project but does not delete the
   project, so it can be re-used with another set of network data. Use ::EN_deleteproject
@@ -331,7 +331,7 @@ typedef struct Project *EN_Project;
   @return an error or warning code.
 
   This function is used in a loop with ::EN_nextH to run an extended period hydraulic
-  simulation. This process automatically updates the simulation clock time so \b currentTime
+  simulation. This process automatically updates the simulation clock time so `currentTime`
   should be treated as a read-only variable.
 
   ::EN_initH must have been called prior to running the ::EN_runH - ::EN_nextH loop.
@@ -351,7 +351,7 @@ typedef struct Project *EN_Project;
   This function is used in a loop with ::EN_runH to run an extended period hydraulic
   simulation.
 
-  The value of \b tstep should be treated as a read-only variable. It is automatically
+  The value of `out_tstep` should be treated as a read-only variable. It is automatically
   computed as the smaller of:
     - the time interval until the next hydraulic time step begins
     - the time interval until the next reporting time step begins
@@ -400,7 +400,7 @@ typedef struct Project *EN_Project;
 
   Before calling this function hydraulic results must have been generated and saved by having
   called ::EN_solveH or the ::EN_initH - ::EN_runH - ::EN_nextH sequence with the initflag
-  argument of ::EN_initH set to \b EN_SAVE or \b EN_SAVE_AND_INIT.
+  argument of ::EN_initH set to `EN_SAVE` or `EN_SAVE_AND_INIT`.
   */
   int DLLEXPORT EN_savehydfile(EN_Project ph, const char *filename);
 
@@ -456,8 +456,8 @@ typedef struct Project *EN_Project;
   /**
   @brief Initializes a network prior to running a water quality analysis.
   @param ph an EPANET project handle.
-  @param saveFlag set to \b EN_SAVE (1) if results are to be saved to the project's
-  binary output file, or to \b EN_NOSAVE (0) if not.
+  @param saveFlag set to `EN_SAVE` (1) if results are to be saved to the project's
+  binary output file, or to `EN_NOSAVE` (0) if not.
   @return an error code.
 
   Call ::EN_initQ prior to running a water quality analysis using ::EN_runQ in
@@ -484,9 +484,9 @@ typedef struct Project *EN_Project;
   ::EN_initQ must have been called prior to running an ::EN_runQ - ::EN_nextQ
   (or ::EN_stepQ) loop.
 
-  The current time of the simulation is determined from information saved with the
-  hydraulic analysis that preceded the water quality analysis. Treat it as a read-only
-  variable.
+  The current time of the simulation, `out_currentTime`, is determined from information
+  saved with the hydraulic analysis that preceded the water quality analysis. Treat it
+  as a read-only variable.
   */
   int DLLEXPORT EN_runQ(EN_Project ph, long *out_currentTime);
 
@@ -502,7 +502,7 @@ typedef struct Project *EN_Project;
   time step determined by when the next hydraulic event occurs. Use ::EN_stepQ instead
   if you wish to generate results over each water quality time step.
 
-  The value of \b tStep is determined from information produced by the hydraulic analysis
+  The value of `tStep` is determined from information produced by the hydraulic analysis
   that preceded the water quality analysis. Treat it as a read-only variable.
 
  <b>Example:</b>
@@ -533,8 +533,8 @@ typedef struct Project *EN_Project;
   quality time step of the simulation, rather than over each hydraulic event period
   as with ::EN_nextQ.
 
-  Use the argument \b timeLeft to determine when no more calls to ::EN_runQ are needed
-  because the end of the simulation period has been reached (i.e., when \b timeLeft = 0).
+  Use the argument `timeLeft` to determine when no more calls to ::EN_runQ are needed
+  because the end of the simulation period has been reached (i.e., when `timeLeft` = 0).
   */
   int DLLEXPORT EN_stepQ(EN_Project ph, long *out_timeLeft);
 
@@ -557,15 +557,35 @@ typedef struct Project *EN_Project;
 ===================================================================*/
 
   /**
-  @brief Set a user-supplied callback function for reporting
+  @brief Sets a user-supplied callback function for reporting
   @param ph an EPANET project handle.
-  @param callback a function pointer with declared signature, which gets called by EPANET for reporting.
+  @param callback a function pointer used for reporting.
   @return an error code.
-  @details The report callback function must have the signature specified - void(void* userData, EN_Project, char*) -
-           use the userData parameter to pass any client context necessary (a context pointer or wrapper object perhaps).
-           Leave un-set or set the report callback to NULL to revert to EPANET's default behavior.
-  **/
-  int DLLEXPORT EN_setreportcallback(EN_Project ph, void (*callback)(void *userData, void *EN_projectHandle, const char*));
+  
+  The callback function replaces the project's report file as
+  the destination for all output written by ::EN_writeline. It must have
+  the following signature:
+  
+  `void(void *userData, void *EN_projectHandle p, const char* s)`
+  
+  The `userData` parameter is a pointer to a client-side data object.
+  It can be changed using the ::EN_setreportcallbackuserdata function.
+  The parameter `s` is a placeholder for the EPANET-generated string
+  that was passed into ::EN_writeline. Setting the callback function to
+  NULL reverts to having ::EN_writeline use the project's report file.
+  */
+  int DLLEXPORT EN_setreportcallback(EN_Project ph, void(*callback)(void *userData, void *EN_projectHandle, const char*));
+  
+  /**
+  @brief Sets a pointer to a client-side data object 
+  @param ph an EPANET project handle.
+  @param userData a pointer to a client-side data object.
+  @return an error code.
+  
+  The data pointer supplied by this function is passed into the callback
+  function declared in ::EN_setreportcallback that replaces a project's
+  report file as the destination for output written with ::EN_writeline.
+  */
   int DLLEXPORT EN_setreportcallbackuserdata(EN_Project ph, void *userData);
 
   /**
@@ -573,6 +593,9 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param line a text string to write.
   @return an error code.
+  
+  ::EN_setreportcallback can be used to assign an alternative destination
+  to write `line` to in place of the project's report file.
   */
   int  DLLEXPORT EN_writeline(EN_Project ph, const char *line);
 
@@ -647,15 +670,15 @@ typedef struct Project *EN_Project;
 
   Status reporting writes changes in the hydraulics status of network elements to a
   project's  report file as a hydraulic simulation unfolds. There are three levels
-  of reporting: \b EN_NO_REPORT (no status reporting), \b EN_NORMAL_REPORT (normal
-  reporting) \b EN_FULL_REPORT (full status reporting).
+  of reporting: `EN_NO_REPORT` (no status reporting), `EN_NORMAL_REPORT` (normal
+  reporting) `EN_FULL_REPORT` (full status reporting).
 
   The full status report contains information at each trial of the solution to the
   system hydraulic equations at each time step of a simulation. It is useful mainly
   for debugging purposes.
 
   If many hydraulic analyses will be run in the application it is recommended that
-  status reporting be turned off (<b>level = EN_NO_REPORT</b>).
+  status reporting be turned off (`level` = `EN_NO_REPORT`).
   */
   int  DLLEXPORT EN_setstatusreport(EN_Project ph, int level);
 
@@ -796,7 +819,7 @@ typedef struct Project *EN_Project;
   @brief Retrieves the type of water quality analysis to be run.
   @param ph an EPANET project handle.
   @param[out] out_qualType the type of analysis to run (see @ref EN_QualityType).
-  @param[out] out_traceNode the index of node being traced, if <b>qualType = EN_TRACE</b>.
+  @param[out] out_traceNode the index of node being traced if `out_qualType` = `EN_TRACE`.
   @return an error code.
   */
   int  DLLEXPORT EN_getqualtype(EN_Project ph, int *out_qualType, int *out_traceNode);
@@ -807,7 +830,7 @@ typedef struct Project *EN_Project;
   @param qualType the type of analysis to run (see @ref EN_QualityType).
   @param chemName the name of the quality constituent.
   @param chemUnits the concentration units of the constituent.
-  @param traceNode the ID name of the node being traced if <b>qualType = EN_TRACE</b>.
+  @param traceNode the ID name of the node being traced if `qualType` = `EN_TRACE`.
   @return an error code.
 
   Chemical name and units can be an empty string if the analysis is not for a chemical.
@@ -843,9 +866,9 @@ typedef struct Project *EN_Project;
   @param actionCode the action taken if any control contains the node and its links.
   @return an error code.
 
-  If \b actionCode is \b EN_UNCONDITIONAL then the node, its incident links and all
+  If `actionCode` is `EN_UNCONDITIONAL` then the node, its incident links and all
   simple and rule-based controls that contain them are deleted. If set to
-  \b EN_CONDITIONAL then the node is not deleted if it or its incident links appear
+  `EN_CONDITIONAL` then the node is not deleted if it or its incident links appear
   in any controls and error code 261 is returned.
 
   */
@@ -997,7 +1020,7 @@ typedef struct Project *EN_Project;
   @param[out] out_pexp  Pressure exponent in demand function.
   @return an error code.
 
-  Parameters <b>pmin, preq,</b> and \b pexp are only used when the demand model is \b EN_PDA.
+  Parameters `pmin`, `preq`, and `pexp` are only used when the demand model is `EN_PDA`.
   */
   int DLLEXPORT EN_getdemandmodel(EN_Project ph, int *out_type, double *out_pmin,
                 double *out_preq, double *out_pexp);
@@ -1011,15 +1034,13 @@ typedef struct Project *EN_Project;
   @param pexp  Pressure exponent in demand function.
   @return an error code.
 
-  Set \b type to \b EN_DDA for a traditional demand driven analysis (in which case the
-  remaining three parameter values are ignored) or to \b EN_PDA for a pressure driven
-  analysis. In the latter case a node's demand is computed as:
-  >  `Dfull * [ (P - pmin) / (preq - pmin) ] ^ pexp`
+  Set `type` to `EN_DDA` for a traditional demand driven analysis (in which case the
+  remaining three parameter values are ignored) or to `EN_PDA` for a pressure driven
+  analysis. In the latter case a node's demand is computed as:\n 
+  `Dfull * [ (P - pmin) / (preq - pmin) ] ^ pexp`\n 
   where `Dfull` is the full demand and `P` is the current pressure.
 
-  Setting \b preq equal to \b pmin will result in a solution with the smallest amount of
-  demand reductions needed to insure that no node delivers positive demand at a pressure
-  below \b pmin.
+  A valid value for `preq` must be at least 0.1 pressure units larger than `pmin`.
   */
   int DLLEXPORT EN_setdemandmodel(EN_Project ph, int type, double pmin,
                 double preq, double pexp);
@@ -1126,7 +1147,7 @@ typedef struct Project *EN_Project;
   @param[out] out_demandName The name of the selected category.
   @return an error code.
 
-  \b demandName must be sized to contain at least @ref EN_SizeLimits "EN_MAXID+1" characters.
+  `demandName` must be sized to contain at least @ref EN_SizeLimits "EN_MAXID+1" characters.
   */
   int DLLEXPORT EN_getdemandname(EN_Project ph, int nodeIndex, int demandIndex, char *out_demandName);
 
@@ -1136,7 +1157,7 @@ typedef struct Project *EN_Project;
   @param nodeIndex a node's index (starting from 1).
   @param demandIdx the index of one of the node's demand categories (starting from 1).
   @param demandName the new name assigned to the category.
-  @return Error code.
+  @return an error code.
 
   The category name must contain no more than @ref EN_SizeLimits "EN_MAXID" characters.
   */
@@ -1167,7 +1188,7 @@ typedef struct Project *EN_Project;
 
   All other pipe properties are set to 0.
 
-  A new pump has a status of \b EN_OPEN, a speed setting of 1, and has no pump
+  A new pump has a status of `EN_OPEN`, a speed setting of 1, and has no pump
   curve or power rating assigned to it.
 
   A new valve has a diameter of 10 inches (254 mm) and all other properties set to 0.
@@ -1184,8 +1205,8 @@ typedef struct Project *EN_Project;
   @param actionCode The action taken if any control contains the link.
   @return an error code.
 
-  If \b actionCode is \b EN_UNCONDITIONAL then the link and all simple and rule-based
-  controls that contain it are deleted. If set to \b EN_CONDITIONAL then the link
+  If `actionCode` is `EN_UNCONDITIONAL` then the link and all simple and rule-based
+  controls that contain it are deleted. If set to `EN_CONDITIONAL` then the link
   is not deleted if it appears in any control and error 261 is returned.
   */
   int DLLEXPORT EN_deletelink(EN_Project ph, int index, int actionCode);
@@ -1215,7 +1236,7 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param index a link's index (starting from 1).
   @param newid the new ID name for the link.
-  @return Error code.
+  @return an error code.
 
   The ID name must not be longer than @ref EN_SizeLimits "EN_MAXID" characters.
   */
@@ -1238,9 +1259,9 @@ typedef struct Project *EN_Project;
   @param actionCode the action taken if any controls contain the link.
   @return an error code.
 
-  If \b actionCode is \b EN_UNCONDITIONAL then all simple and rule-based controls that
+  If `actionCode` is `EN_UNCONDITIONAL` then all simple and rule-based controls that
   contain the link are deleted when the link's type is changed. If set to
-  \b EN_CONDITIONAL then the type change is cancelled if the link appears in any
+  `EN_CONDITIONAL` then the type change is cancelled if the link appears in any
   control and error 261 is returned.
   */
   int  DLLEXPORT EN_setlinktype(EN_Project ph, int *inout_index, int linkType, int actionCode);
@@ -1493,7 +1514,7 @@ typedef struct Project *EN_Project;
   @param len the number of factor values supplied.
   @return an error code.
 
-  \b values is a zero-based array that contains \b len elements.
+  `values` is a zero-based array that contains `len` elements.
 
   Use this function to redefine (and resize) a time pattern all at once;
   use @ref EN_setpatternvalue to revise pattern factors one at a time.
@@ -1641,7 +1662,7 @@ typedef struct Project *EN_Project;
   @param nPoints the new number of data points for the curve.
   @return an error code.
 
-  \b xValues and \b yValues are zero-based arrays that contains \b nPoints elements.
+  `xValues` and `yValues` are zero-based arrays that contains `nPoints` elements.
 
   Use this function to redefine (and resize) a curve all at once;
   use @ref EN_setcurvevalue to revise a curve's data points one at a time.
@@ -1662,7 +1683,7 @@ typedef struct Project *EN_Project;
   @param linkIndex the index of a link to control (starting from 1).
   @param setting control setting applied to the link.
   @param nodeIndex index of the node used to control the link
-  (0 for \b EN_TIMER and \b EN_TIMEOFDAY controls).
+  (0 for `EN_TIMER` and `EN_TIMEOFDAY` controls).
   @param level action level (tank level, junction pressure, or time in seconds)
   that triggers the control.
   @param[out] out_index index of the new control.
@@ -1687,7 +1708,7 @@ typedef struct Project *EN_Project;
   @param[out] out_linkIndex the index of the link being controlled.
   @param[out] out_setting the control setting applied to the link.
   @param[out] out_nodeIndex the index of the node used to trigger the control
-  (0 for \b EN_TIMER and  \b EN_TIMEOFDAY controls).
+  (0 for `EN_TIMER` and  `EN_TIMEOFDAY` controls).
   @param[out] out_level the action level (tank level, junction pressure, or time in seconds)
   that triggers the control.
   @return an error code.
@@ -1703,7 +1724,7 @@ typedef struct Project *EN_Project;
   @param linkIndex the index of the link being controlled.
   @param setting the control setting applied to the link.
   @param nodeIndex the index of the node used to trigger the control
-  (0 for \b EN_TIMER and \b EN_TIMEOFDAY controls).
+  (0 for `EN_TIMER` and `EN_TIMEOFDAY` controls).
   @param level the action level (tank level, junction pressure, or time in seconds)
   that triggers the control.
   @return an error code.
@@ -1772,7 +1793,7 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param index the rule's index (starting from 1).
   @param[out] out_id the rule's ID name.
-  @return Error code.
+  @return an error code.
 
   The ID name must be sized to hold at least @ref EN_SizeLimits "EN_MAXID+1" characters.
   */
@@ -1784,7 +1805,7 @@ typedef struct Project *EN_Project;
   @param ruleIndex the rule's index (starting from 1).
   @param premiseIndex the position of the premise in the rule's list of premises
   (starting from 1).
-  @param[out] out_logop the premise's logical operator ( \b IF = 1, \b AND = 2, \b OR = 3 ).
+  @param[out] out_logop the premise's logical operator (`IF` = 1, `AND` = 2, `OR` = 3` ).
   @param[out] out_object the type of object the premise refers to (see @ref EN_RuleObject).
   @param[out] out_objIndex the index of the object (e.g. the index of a tank).
   @param[out] out_variable the object's variable being compared (see @ref EN_RuleVariable).
@@ -1803,7 +1824,7 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param ruleIndex the rule's index (starting from 1).
   @param premiseIndex the position of the premise in the rule's list of premises.
-  @param logop the premise's logical operator ( \b IF = 1, \b AND = 2, \b OR = 3 ).
+  @param logop the premise's logical operator (`IF` = 1, `AND` = 2, `OR` = 3 ).
   @param object the type of object the premise refers to (see @ref EN_RuleObject).
   @param objIndex the index of the object (e.g. the index of a tank).
   @param variable the object's variable being compared (see @ref EN_RuleVariable).

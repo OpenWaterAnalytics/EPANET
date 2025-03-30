@@ -127,7 +127,8 @@ These are the toolkit's enumerated types whose members are used as function argu
 @fn int EN_getstatistic(EN_Project ph, int type, double* value)
 @fn int EN_getresultindex(EN_Project ph, int type, int index, int *value)
 @fn int EN_timetonextevent(EN_Project ph, int *eventType, long *duration, int *elementIndex);
-
+@fn int EN_setreportcallback(EN_Project ph, void (*callback)(void *userData, void *EN_projectHandle, const char*))
+@fn int EN_setreportcallbackuserdata(EN_Project ph, void *userData)
 @}
 */
 
