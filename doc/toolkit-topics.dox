@@ -71,9 +71,14 @@ These are the toolkit's enumerated types whose members are used as function argu
 @fn int EN_runproject(EN_Project ph, const char *f1, const char *f2, const char *f3, void (*pviewprog)(char *))
 @fn int EN_init(EN_Project ph, const char *rptFile, const char *outFile, int unitsType, int headLossType)
 @fn int EN_open(EN_Project ph, const char *inpFile, const char *rptFile, const char *binOutFile)
+@fn int EN_openX(EN_Project ph, const char *inpFile, const char *rptFile, const char *binOutFile)
 @fn int EN_getcount(EN_Project ph, int code, int *count)
 @fn int EN_gettitle(EN_Project ph, char *line1, char *line2, char *line3)
-@fn int EN_settitle(EN_Project ph, char *line1, char *line2, char *line3)
+@fn int EN_settitle(EN_Project ph, const char *line1, const char *line2, const char *line3)
+@fn int EN_getcomment(EN_Project ph, int object, int index, char *comment)
+@fn int EN_setcomment(EN_Project ph, int object, int index, const char *comment)
+@fn int EN_gettag(EN_Project ph, int object, int index, char *tag)
+@fn int EN_settag(EN_Project ph, int object, int index, const char *tag)
 @fn int EN_saveinpfile(EN_Project ph, const char *filename)
 @fn int EN_close(EN_Project ph)
 @}
@@ -110,25 +115,27 @@ These are the toolkit's enumerated types whose members are used as function argu
 /**
 @addtogroup Reporting
 @{
-@fn int EN_writeline(EN_Project ph, char *line)
+@fn int EN_writeline(EN_Project ph, const char *line)
 @fn int EN_report(EN_Project ph)
-@fn int EN_copyreport(EN_Project ph, char *filename)
+@fn int EN_copyreport(EN_Project ph, const char *filename)
 @fn int EN_clearreport(EN_Project ph)
 @fn int EN_resetreport(EN_Project ph)
-@fn int EN_setreport(EN_Project ph, char *reportFormat)
+@fn int EN_setreport(EN_Project ph, const char *reportFormat)
 @fn int EN_setstatusreport(EN_Project ph, int code)
 @fn int EN_getversion(int *version)
 @fn int EN_geterror(int errcode, char *errmsg, int maxLen)
 @fn int EN_getstatistic(EN_Project ph, int type, double* value)
 @fn int EN_getresultindex(EN_Project ph, int type, int index, int *value)
-
+@fn int EN_timetonextevent(EN_Project ph, int *eventType, long *duration, int *elementIndex);
+@fn int EN_setreportcallback(EN_Project ph, void (*callback)(void *userData, void *EN_projectHandle, const char*))
+@fn int EN_setreportcallbackuserdata(EN_Project ph, void *userData)
 @}
 */
 
 /**
 @addtogroup Options
 @{
-@fn int EN_getoption(EN_Project ph, int option, double *value)
+@fn int EN_getoption(EN_Project ph, int option, double *out_value)
 @fn int EN_setoption(EN_Project ph, int option, double value)
 @fn int EN_getflowunits(EN_Project ph, int *units)
 @fn int EN_setflowunits(EN_Project ph, int units)
@@ -136,67 +143,66 @@ These are the toolkit's enumerated types whose members are used as function argu
 @fn int EN_settimeparam(EN_Project ph, int param, long value)
 @fn int EN_getqualinfo(EN_Project ph, int *qualType, char *chemName, char *chemUnits, int *traceNode)
 @fn int EN_getqualtype(EN_Project ph, int *qualType, int *traceNode)
-@fn int EN_setqualtype(EN_Project ph, int qualType, char *chemName, char *chemUnits, char *traceNode)
+@fn int EN_setqualtype(EN_Project ph, int qualType, const char *chemName, const char *chemUnits, const char *traceNode)
 @}
 */
 
-/**
-@addtogroup Nodes
+/** \addtogroup Nodes
 @{
-@fn int EN_addnode(EN_Project ph, char *id, int nodeType, int *index)
+@fn int EN_addnode(EN_Project ph, const char *id, int nodeType, int *out_index)
 @fn int EN_deletenode(EN_Project ph, int index, int actionCode)
-@fn int EN_getnodeindex(EN_Project ph, char *id, int *index)
-@fn int EN_getnodeid(EN_Project ph, int index, char *id)
-@fn int EN_setnodeid(EN_Project ph, int index, char *newid)
-@fn int EN_getnodetype(EN_Project ph, int index, int *code)
-@fn int EN_getnodevalue(EN_Project ph, int index, int code, double *value)
-@fn int EN_setnodevalue(EN_Project ph, int index, int code, double v)
-@fn int EN_setjuncdata(EN_Project ph, int index, double elev, double dmnd, char *dmndpat)
-@fn int EN_settankdata(EN_Project ph, int index, double elev, double initlvl,
-        double minlvl, double maxlvl, double diam, double minvol, char *volcurve)
-@fn int EN_getcoord(EN_Project ph, int index, double *x, double *y)
+@fn int EN_getnodeindex(EN_Project ph, const char *id, int *out_index)
+@fn int EN_getnodeid(EN_Project ph, int index, char *out_id)
+@fn int EN_setnodeid(EN_Project ph, int index, const char *newid)
+@fn int EN_getnodetype(EN_Project ph, int index, int *out_nodeType)
+@fn int EN_getnodevalue(EN_Project ph, int index, int property, double *out_value)
+@fn int EN_getnodevalues(EN_Project ph, int property, double *out_values)
+@fn int EN_setnodevalue(EN_Project ph, int index, int property, double value)
+@fn int EN_setjuncdata(EN_Project ph, int index, double elev, double dmnd, const char *dmndpat)
+@fn int EN_settankdata(EN_Project ph, int index, double elev, double initlvl, double minlvl, double maxlvl, double diam, double minvol, const char *volcurve)
+@fn int EN_getcoord(EN_Project ph, int index, double *out_x, double *out_y)
 @fn int EN_setcoord(EN_Project ph, int index, double x, double y)
-@}
-*/
+@}*/
 
 /**
 @addtogroup Demands
 @{
 @fn int EN_getdemandmodel(EN_Project ph, int *type, double *pmin, double *preq, double *pexp)
 @fn int EN_setdemandmodel(EN_Project ph, int type, double pmin, double preq, double pexp)
-@fn int EN_adddemand(EN_Project ph, int nodeIndex, double baseDemand, char *demandPattern, char *demandName)
+@fn int EN_adddemand(EN_Project ph, int nodeIndex, double baseDemand, const char *demandPattern, const char *demandName)
 @fn int EN_deletedemand(EN_Project ph, int nodeIndex, int demandIndex)
-@fn int EN_getdemandindex(EN_Project p, int nodeIndex, char *demandName, int *demandIndex)
+@fn int EN_getdemandindex(EN_Project p, int nodeIndex, const char *demandName, int *demandIndex)
 @fn int EN_getnumdemands(EN_Project ph, int nodeIndex, int *numDemands)
 @fn int EN_getbasedemand(EN_Project ph, int nodeIndex, int demandIndex, double *baseDemand)
 @fn int EN_setbasedemand(EN_Project ph, int nodeIndex, int demandIndex, double baseDemand)
 @fn int EN_getdemandpattern(EN_Project ph, int nodeIndex, int demandIndex, int *pattIndex)
 @fn int EN_setdemandpattern(EN_Project ph, int nodeIndex, int demandIndex, int patIndex)
 @fn int EN_getdemandname(EN_Project ph, int nodeIndex, int demandIdx, char *demandName)
-@fn int EN_setdemandname(EN_Project ph, int nodeIndex, int demandIdx, char *demandName)
+@fn int EN_setdemandname(EN_Project ph, int nodeIndex, int demandIdx, const char *demandName)
 @}
 */
 
 /**
 @addtogroup Links
 @{
-@fn int EN_addlink(EN_Project ph, char *id, int linkType, char *fromNode, char *toNode, int *index)
+@fn int EN_addlink(EN_Project ph, char *id, int linkType, const char *fromNode, const char *toNode, int *out_index)
 @fn int EN_deletelink(EN_Project ph, int index, int actionCode)
-@fn int EN_getlinkindex(EN_Project ph, char *id, int *index)
+@fn int EN_getlinkindex(EN_Project ph, const char *id, int *out_index)
 @fn int EN_getlinkid(EN_Project ph, int index, char *id)
-@fn int EN_setlinkid(EN_Project ph, int index, char *newid)
-@fn int EN_getlinktype(EN_Project ph, int index, int *linkType)
+@fn int EN_setlinkid(EN_Project ph, int index, const char *newid)
+@fn int EN_getlinktype(EN_Project ph, int index, int *out_linkType)
 @fn int EN_setlinktype(EN_Project ph, int *index, int linkType, int actionCode)
-@fn int EN_getlinknodes(EN_Project ph, int index, int *node1, int *node2)
+@fn int EN_getlinknodes(EN_Project ph, int index, int *out_node1, int *out_node2)
 @fn int EN_setlinknodes(EN_Project ph, int index, int node1, int node2)
-@fn int EN_getlinkvalue(EN_Project ph, int index, int property, double *value)
+@fn int EN_getlinkvalue(EN_Project ph, int index, int property, double *out_value)
+@fn int EN_getlinkvalues(EN_Project ph, int property, double *out_values)
 @fn int EN_setlinkvalue(EN_Project ph, int index, int property, double value)
 @fn int EN_setpipedata(EN_Project ph, int index, double length, double diam, double rough,  double mloss)
-@fn int EN_getpumptype(EN_Project ph, int linkIndex, int *pumpType)
-@fn int EN_getheadcurveindex(EN_Project ph, int pumpIndex, int *curveIndex)
+@fn int EN_getpumptype(EN_Project ph, int linkIndex, int *out_pumpType)
+@fn int EN_getheadcurveindex(EN_Project ph, int pumpIndex, int *out_curveIndex)
 @fn int EN_setheadcurveindex(EN_Project ph, int pumpIndex, int curveIndex)
-@fn int EN_getvertexcount(EN_Project ph, int index, int *count)
-@fn int EN_getvertex(EN_Project ph, int index, int vertex, double *x, double *y)
+@fn int EN_getvertexcount(EN_Project ph, int index, int *out_count)
+@fn int EN_getvertex(EN_Project ph, int index, int vertex, double *out_x, double *out_y)
 @fn int EN_setvertex(EN_Project ph, int index, int vertex, double x, double y)
 @fn int EN_setvertices(EN_Project ph, int index, double *x, double *y, int count)
 @}
@@ -205,33 +211,34 @@ These are the toolkit's enumerated types whose members are used as function argu
 /**
 @addtogroup Patterns
 @{
-@fn int EN_addpattern(EN_Project ph, char *id)
+@fn int EN_addpattern(EN_Project ph, const char *id)
 @fn int EN_deletepattern(EN_Project ph, int index)
-@fn int EN_getpatternindex(EN_Project ph, char *id, int *index)
+@fn int EN_getpatternindex(EN_Project ph, char *id, int *out_index)
 @fn int EN_getpatternid(EN_Project ph, int index, char *id)
-@fn int EN_setpatternid(EN_Project ph, int index, char *id)
-@fn int EN_getpatternlen(EN_Project ph, int index, int *len)
-@fn int EN_getpatternvalue(EN_Project ph, int index, int period, double *value)
+@fn int EN_setpatternid(EN_Project ph, int index, const char *id)
+@fn int EN_getpatternlen(EN_Project ph, int index, int *out_len)
+@fn int EN_getpatternvalue(EN_Project ph, int index, int period, double *out_value)
 @fn int EN_setpatternvalue(EN_Project ph, int index, int period, double value)
-@fn int EN_getaveragepatternvalue(EN_Project ph, int index, double *value)
+@fn int EN_getaveragepatternvalue(EN_Project ph, int index, double *out_value)
 @fn int EN_setpattern(EN_Project ph, int index, double *f, int len)
+@fn int EN_loadpatternfile(EN_Project ph, const char *filename, const char *id)
 @}
 */
 
 /**
 @addtogroup Curves
 @{
-@fn int EN_addcurve(EN_Project ph, char *id)
+@fn int EN_addcurve(EN_Project ph, const char *id)
 @fn int EN_deletecurve(EN_Project ph, int index)
-@fn int EN_getcurveindex(EN_Project ph, char *id, int *index)
-@fn int EN_getcurveid(EN_Project ph, int index, char *id)
-@fn int EN_setcurveid(EN_Project ph, int index, char *id)
-@fn int EN_getcurvelen(EN_Project ph, int index, int *len)
-@fn int EN_getcurvetype(EN_Project ph, int index, int *type)
+@fn int EN_getcurveindex(EN_Project ph, const char *id, int *out_index)
+@fn int EN_getcurveid(EN_Project ph, int index, char *out_id)
+@fn int EN_setcurveid(EN_Project ph, int index, const char *id)
+@fn int EN_getcurvelen(EN_Project ph, int index, int *out_len)
+@fn int EN_getcurvetype(EN_Project ph, int index, int *out_type)
 @fn int EN_setcurvetype(EN_Project ph, int index, int type)
-@fn int EN_getcurvevalue(EN_Project ph, int curveIndex, int pointIndex, double *x, double *y)
+@fn int EN_getcurvevalue(EN_Project ph, int curveIndex, int pointIndex, double *out_x, double *out_y)
 @fn int EN_setcurvevalue(EN_Project ph, int curveIndex, int pointIndex, double x, double y)
-@fn int EN_getcurve(EN_Project ph, int curveIndex, char* id, int *nPoints, double **xValues, double **yValues)
+@fn int EN_getcurve(EN_Project ph, int index, char *out_id, int *out_nPoints, double *out_xValues, double *out_yValues)
 @fn int EN_setcurve(EN_Project ph, int index, double *xValues, double *yValues, int nPoints)
 @}
 */
@@ -239,10 +246,12 @@ These are the toolkit's enumerated types whose members are used as function argu
 /**
 @addtogroup Controls
 @{
-@fn int EN_addcontrol(EN_Project ph, int type, int linkIndex, double setting, int nodeIndex, double level, int *index)
+@fn int EN_addcontrol(EN_Project ph, int type, int linkIndex, double setting, int nodeIndex, double level, int *out_index)
 @fn int EN_deletecontrol(EN_Project ph, int index)
-@fn int EN_getcontrol(EN_Project ph, int index, int *type, int *linkIndex, double *setting, int *nodeIndex, double *level)
+@fn int EN_getcontrol(EN_Project ph, int index, int *out_type, int *out_linkIndex, double *out_setting, int *out_nodeIndex, double *out_level)
 @fn int EN_setcontrol(EN_Project ph, int index, int type, int linkIndex, double setting, int nodeIndex, double level)
+@fn int EN_getcontrolenabled(EN_Project ph, int index, int *out_enabled)
+@fn int EN_setcontrolenabled(EN_Project ph, int index, int enabled)
 @}
 */
 
@@ -265,43 +274,50 @@ These are the toolkit's enumerated types whose members are used as function argu
 @fn int EN_getelseaction(EN_Project ph, int ruleIndex, int actionIndex, int *linkIndex, int *status, double *setting)
 @fn int EN_setelseaction(EN_Project ph, int ruleIndex, int actionIndex, int linkIndex, int status, double setting)
 @fn int EN_setrulepriority(EN_Project ph, int index, double priority)
+@fn int EN_getruleenabled(EN_Project ph, int index, int *out_enabled)
+@fn int EN_setruleenabled(EN_Project ph, int index, int enabled)
 @}
 */
 
 /**
 @addtogroup Enumerations
 @{
-\enum EN_SizeLimits
-\enum EN_ObjectType
-\enum EN_CountType
-\enum EN_NodeType
-\enum EN_LinkType
-\enum EN_PumpType
-\enum EN_PumpStateType
-\enum EN_CurveType
-\enum EN_QualityType
-\enum EN_SourceType
-\enum EN_ControlType
-\enum EN_HeadLossType
-\enum EN_NodeProperty
-\enum EN_LinkProperty
-\enum EN_LinkStatusType
-\enum EN_TimeParameter
-\enum EN_Option
-\enum EN_FlowUnits
-\enum EN_PressUnits
-\enum EN_DemandModel
-\enum EN_MixingModel
-\enum EN_StatisticType
-\enum EN_InitHydOption
-\enum EN_ActionCodeType
-\enum EN_AnalysisStatistic
-\enum EN_StatusReport
-\enum EN_RuleObject
-\enum EN_RuleVariable
-\enum EN_RuleOperator
-\enum EN_RuleStatus
+\typedef EN_SizeLimits
+\typedef EN_ObjectType
+\typedef EN_CountType
+\typedef EN_NodeType
+\typedef EN_LinkType
+\typedef EN_PumpType
+\typedef EN_PumpStateType
+\typedef EN_CurveType
+\typedef EN_QualityType
+\typedef EN_SourceType
+\typedef EN_ControlType
+\typedef EN_HeadLossType
+\typedef EN_NodeProperty
+\typedef EN_LinkProperty
+\typedef EN_LinkStatusType
+\typedef EN_TimeParameter
+\typedef EN_TimestepEvent
+\typedef EN_Option
+\typedef EN_FlowUnits
+\typedef EN_PressUnits
+\typedef EN_DemandModel
+\typedef EN_MixingModel
+\typedef EN_StatisticType
+\typedef EN_InitHydOption
+\typedef EN_ActionCodeType
+\typedef EN_AnalysisStatistic
+\typedef EN_StatusReport
+\typedef EN_RuleObject
+\typedef EN_RuleVariable
+\typedef EN_RuleOperator
+\typedef EN_RuleStatus
 \def EN_MISSING
+\def EN_SET_CLOSED
+\def EN_SET_OPEN
+\def EN_FALSE
+\def EN_TRUE
 @}
 */
 
@@ -349,19 +365,25 @@ These are the toolkit's enumerated types whose members are used as function argu
 | 226  | No head curve or power rating for pump |
 | 227  | Invalid head curve for pump |
 | 230  | Nonincreasing x-values for curve |
-| 233  | Network has unconnected node |
+| 231  | No data provided for a curve |
+| 232  | No data provided for a pattern |
+| 233  | Network has unconnected nodes |
 | 240  | Function call refers to nonexistent water quality source |
 | 241  | Function call refers to nonexistent control |
 | 250  | Function call contains invalid format (e.g. too long an ID name) |
 | 251  | Function call contains invalid parameter code |
+| 252  | Function call rferes to an invalid ID name |
 | 253  | Function call refers to nonexistent demand category |
 | 254  | Function call refers to node with no coordinates |
+| 255  | Function call refers to link with no vertices |
 | 257  | Function call refers to nonexistent rule |
 | 258  | Function call refers to nonexistent rule clause |
 | 259  | Function call attempts to delete a node that still has links connected to it |
 | 260  | Function call attempts to delete node assigned as a Trace Node |
 | 261  | Function call attempts to delete a node or link contained in a control |
 | 262  | Function call attempts to modify network structure while a solver is open |
+| 263  | Function call refers to node that is not a tank |
+| 299  | An invalid section keyword was detected in an input file |
 |  ||
 | 301  | Identical file names used for different types of files |
 | 302  | Cannot open input file |

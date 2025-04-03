@@ -1,4 +1,4 @@
-# CMakeLists.txt - CMake configuration file for EPANET 2.0
+# CMakeLists.txt - CMake configuration file for EPANET 2.3
 #
 # CMake is a cross-platform build tool. CMake generates platform native
 # build systems that can be used with your compiler of choice. CMake uses a
@@ -25,7 +25,7 @@
 #   CMake is available at https://cmake.org/download/
 #
 
-cmake_minimum_required (VERSION 3.5.2)
+cmake_minimum_required (VERSION 3.8.0)
 
 project(EPANET)
 
@@ -34,12 +34,12 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 option(BUILD_TESTS "Build tests (requires Boost)" OFF)
-option(BUILD_PY_LIB "Build library for Python wrapper" OFF)
+#option(BUILD_PY_LIB "Build library for Python wrapper" OFF)
 option(BUILD_COVERAGE "Build library for coverage" OFF)
 
-IF (NOT BUILD_PY_LIB)
+#IF (NOT BUILD_PY_LIB)
   add_subdirectory(run)
-ENDIF (NOT BUILD_PY_LIB)
+#ENDIF (NOT BUILD_PY_LIB)
 add_subdirectory(src/outfile)
 
 IF (BUILD_TESTS)
@@ -60,16 +60,13 @@ IF (BUILD_TESTS)
     add_subdirectory(tests/util)
 ENDIF (BUILD_TESTS)
 
-
 # Sets the output directory for executables and libraries.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-
 # Sets the position independent code property for all targets
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
 
 IF (APPLE)
   set(INSTALL_NAME_DIR @executable_path/../lib)
@@ -84,8 +81,6 @@ ENDIF (MSVC)
 # configure file groups
 file(GLOB EPANET_SOURCES RELATIVE ${PROJECT_SOURCE_DIR} src/*.c src/util/*.c)
 file(GLOB EPANET_LIB_ALL RELATIVE ${PROJECT_SOURCE_DIR} src/* src/util/*)
-# exclude epanet python API from the default build
-list(REMOVE_ITEM EPANET_LIB_ALL "src/epanet_py.c")
 source_group("Library" FILES ${EPANET_LIB_ALL})
 
 # the shared library
@@ -101,10 +96,8 @@ ENDIF(MSVC AND "${CMAKE_VS_PLATFORM_NAME}" MATCHES "(Win32)")
 
 target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
-install(TARGETS epanet2 DESTINATION lib)
-install(FILES ./include/epanet2.h DESTINATION include)
-install(FILES ./include/epanet2_2.h DESTINATION include)
-install(FILES ./include/epanet2_enums.h DESTINATION include)
-install(DIRECTORY ./src/ DESTINATION include FILES_MATCHING PATTERN "*.h")
-
-
+install(TARGETS epanet2 DESTINATION .)
+install(TARGETS runepanet DESTINATION .)
+install(FILES ./include/epanet2.h DESTINATION .)
+install(FILES ./include/epanet2_2.h DESTINATION .)
+install(FILES ./include/epanet2_enums.h DESTINATION .)

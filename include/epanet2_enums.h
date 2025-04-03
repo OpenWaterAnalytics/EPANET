@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/14/2025
+ Last Updated: 03/22/2025
  ******************************************************************************
 */
 
@@ -17,13 +17,11 @@
 #ifndef EPANET2_ENUMS_H
 #define EPANET2_ENUMS_H
 
-
 // --- Define the EPANET toolkit constants
-
-/// Size Limts
-/**
-Limits on the size of character arrays used to store ID names
-and text messages.
+/// Character array size limits
+/*! \enum EN_SizeLimits
+ * Limits on the size of character arrays used to store ID names
+ * and text messages.
 */
 typedef enum {
   EN_MAXID   = 31,     //!< Max. # characters in ID name
@@ -31,11 +29,11 @@ typedef enum {
 } EN_SizeLimits;
 
 /// Node properties
-/**
-These node properties are used with @ref EN_getnodevalue and @ref EN_setnodevalue.
-Those marked as read only are computed values that can only be retrieved.
+/*! \enum EN_NodeProperty
+ * These node properties are used with @ref EN_getnodevalue and @ref EN_setnodevalue.
+ * Those marked as read only are computed values that can only be retrieved.
 */
-typedef enum {
+typedef enum {    
   EN_ELEVATION    = 0, //!< Elevation
   EN_BASEDEMAND   = 1, //!< Primary demand baseline value
   EN_PATTERN      = 2, //!< Primary demand time pattern index
@@ -133,16 +131,16 @@ typedef enum {
   EN_NEXTEVENTTANK = 15  //!< Index of tank with shortest time to become empty or full (read only)
 } EN_TimeParameter;
 
-
+/// Time step events
 /**
-These are the types of events that can cause a timestep to end.
+These are the types of events that can cause a new time step to be taken.
 **/
 typedef enum {
-  EN_STEP_REPORT       = 0,
-  EN_STEP_HYD          = 1,
-  EN_STEP_WQ           = 2,
-  EN_STEP_TANKEVENT    = 3,
-  EN_STEP_CONTROLEVENT = 4
+  EN_STEP_REPORT       = 0,  //!< A reporting time step has ended 
+  EN_STEP_HYD          = 1,  //!< A hydraulic time step has ended
+  EN_STEP_WQ           = 2,  //!< A water quality time step has ended
+  EN_STEP_TANKEVENT    = 3,  //!< A tank has become empty or full
+  EN_STEP_CONTROLEVENT = 4   //!< A link control needs to be activated
 } EN_TimestepEvent;
 
 /// Analysis convergence statistics
@@ -219,7 +217,7 @@ typedef enum {
 /// Link status
 /**
 One of these values is returned when @ref EN_getlinkvalue is used to retrieve a link's
-initial status ( \b EN_INITSTATUS ) or its current status ( \b EN_STATUS ). These options are
+initial status (`EN_INITSTATUS`) or its current status (`EN_STATUS`). These options are
 also used with @ref EN_setlinkvalue to set values for these same properties.
 */
 typedef enum {
@@ -230,8 +228,8 @@ typedef enum {
 /// Pump states
 /**
 One of these codes is returned when @ref EN_getlinkvalue is used to retrieve a pump's
-current operating state ( \b EN_PUMP_STATE ). \b EN_PUMP_XHEAD indicates that the pump has been
-shut down because it is being asked to deliver more than its shutoff head. \b EN_PUMP_XFLOW
+current operating state (`EN_PUMP_STATE`). `EN_PUMP_XHEAD` indicates that the pump has been
+shut down because it is being asked to deliver more than its shutoff head. `EN_PUMP_XFLOW`
 indicates that the pump is being asked to deliver more than its maximum flow.
 */
 typedef enum {
@@ -256,7 +254,7 @@ typedef enum {
 /// Water quality source types
 /**
 These are the different types of external water quality sources that can be assigned
-to a node's \b EN_SOURCETYPE property as used by @ref EN_getnodevalue and @ref EN_setnodevalue.
+to a node's `EN_SOURCETYPE` property as used by @ref EN_getnodevalue and @ref EN_setnodevalue.
 */
 typedef enum {
   EN_CONCEN      = 0,   //!< Sets the concentration of external inflow entering a node
@@ -267,9 +265,9 @@ typedef enum {
 
 /// Head loss formulas
 /**
-The available choices for the \b EN_HEADLOSSFORM option in @ref EN_getoption and
+The available choices for the `EN_HEADLOSSFORM` option in @ref EN_getoption and
 @ref EN_setoption. They are also used for the head loss type argument in @ref EN_init.
-Each head loss formula uses a different type of roughness coefficient ( \b EN_ROUGHNESS )
+Each head loss formula uses a different type of roughness coefficient (`EN_ROUGHNESS`)
 that can be set with @ref EN_setlinkvalue.
 */
 typedef enum {
@@ -282,7 +280,7 @@ typedef enum {
 /**
 These choices for flow units are used with @ref EN_getflowunits and @ref EN_setflowunits.
 They are also used for the flow units type argument in @ref EN_init. If flow units are
-expressed in US Customary units ( \b EN_CFS through \b EN_AFD ) then all other quantities are
+expressed in US Customary units (`EN_CFS` through `EN_AFD`) then all other quantities are
 in US Customary units. Otherwise they are in metric units.
 */
 typedef enum {
@@ -301,10 +299,10 @@ typedef enum {
 
 /// Pressure units
 /**
-The available choices for pressure units for the \b EN_PRESS_UNITS option in @ref EN_getoption
-and @ref EN_setoption. For networks using US Customary units for flow ( \b EN_CFS through
-\b EN_AFD ) pressure units can only be set as PSI. For network using metric units, you can
-select either \b EN_METERS or \b EN_KPA.
+The available choices for pressure units for the `EN_PRESS_UNITS` option in @ref EN_getoption
+and @ref EN_setoption. For networks using US Customary units for flow (`EN_CFS` through
+`EN_AFD`) pressure units can only be set as PSI. For network using metric units, you can
+select either `EN_METERS` or `EN_KPA`.
 */
 typedef enum {
   EN_PSI          = 0,  //!< Pounds per square inch
@@ -379,9 +377,10 @@ typedef enum {
 /// Reporting statistic choices
 /**
 These options determine what kind of statistical post-processing should be done on
-the time series of simulation results generated before they are reported using
-@ref EN_report. An option can be chosen by using \b STATISTIC _option_ as the argument
-to @ref EN_setreport.
+the time series of simulation results before they are reported using @ref EN_report
+or saved to the project's binary output file. These options are used in the
+@ref EN_gettimeparam and @ref EN_settimeparam functions when `EN_STATISTIC` is the
+time parameter being set or retrieved.
 */
 typedef enum {
   EN_SERIES      = 0,   //!< Report all time series points
@@ -394,7 +393,7 @@ typedef enum {
 /// Tank mixing models
 /**
 These are the different types of models that describe water quality mixing in storage tanks.
-The choice of model is accessed with the \b EN_MIXMODEL property of a Tank node using
+The choice of model is accessed with the `EN_MIXMODEL` property of a Tank node using
 @ref EN_getnodevalue and @ref EN_setnodevalue.
 */
 typedef enum {
@@ -437,7 +436,7 @@ typedef enum {
   EN_EFFIC_CURVE   = 2,   //!< Pump efficiency v. flow curve
   EN_HLOSS_CURVE   = 3,   //!< Valve head loss v. flow curve
   EN_GENERIC_CURVE = 4,   //!< Generic curve
-  EN_VALVE_CURVE   = 5    //!< Valve loss coeff. v. frac. open
+  EN_VALVE_CURVE   = 5    //!< % of fully open flow v. % open
 } EN_CurveType;
 
 /// Deletion action codes
@@ -512,7 +511,7 @@ typedef enum {
 #define EN_SET_CLOSED -1.E10  //!< Link set closed indicator
 #define EN_SET_OPEN    1.E10  //!< Link set open indicator
 
-#define EN_FALSE 0  // boolean false
-#define EN_TRUE 1   // boolean true
+#define EN_FALSE 0  //!< boolean false
+#define EN_TRUE 1   //!< boolean true
 
 #endif //EPANET2_ENUMS_H

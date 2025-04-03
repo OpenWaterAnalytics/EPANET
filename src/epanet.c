@@ -851,13 +851,28 @@ int DLLEXPORT EN_closeQ(EN_Project p)
 
 
  int  DLLEXPORT EN_setreportcallback(EN_Project p, void (*callback)(void*,void*,const char*))
- {
+ /*----------------------------------------------------------------
+**  Input:   callback = a pointer to a reporting function
+**  Output:  none
+**  Returns: error code
+**  Purpose: replaces EPANET's normal use of a designated report file
+**----------------------------------------------------------------
+*/
+{
    p->report.reportCallback = callback;
    return 0;
  }
 
  int DLLEXPORT EN_setreportcallbackuserdata(EN_Project p, void *userData)
- {
+/*----------------------------------------------------------------
+**  Input:   userData = a pointer to a client-side data object
+**  Output:  none
+**  Returns: error code
+**  Purpose: sets the client-side data object used in conjunction with
+**           the callback function in EN_setreportcallback
+**----------------------------------------------------------------
+*/
+{
    p->report.reportCallbackUserData = userData;
    return 0;
  }
@@ -1691,7 +1706,19 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int param, long value)
 
 
 /// get the time to next event, and give a reason for the time step truncation
-int  DLLEXPORT EN_timetonextevent(EN_Project p, int *eventType, long *duration, int *elementIndex)
+int  DLLEXPORT EN_timetonextevent(EN_Project p, int *eventType,
+                                  long *duration, int *elementIndex)
+/*----------------------------------------------------------------
+**  Input:   none
+**  Output:  eventType = event causing a new time step
+**                       to occur (see EN_TimestepEvent)
+**           duration  = seconds until next time step occurs
+**           elementIndex = index of tank node or simple control
+**                          that triggers a new time step
+**  Returns: error code
+**  Purpose: Get information about when the next hydraulic time step occurs
+**----------------------------------------------------------------
+*/
 {
   Times  *time = &p->times;
   long hydStep, tankStep, controlStep;

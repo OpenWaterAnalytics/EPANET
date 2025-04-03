@@ -57,7 +57,7 @@ EN_deleteproject(ph);
 
 After an input file has been loaded in this fashion the resulting network can have objects added or deleted, and their properties set using the various Toolkit functions .
 
-The second method for supplying network data to a project is to use the Toolkit's functions to add objects and to set their properties via code. In this case the @ref EN_init function should be called immediately after creating a project, passing in the names of a report and binary output files (both optional) as well as the choices of flow units and head loss formulas to use. After that the various \b EN_add functions, such as @ref EN_addnode, @ref EN_addlink, @ref EN_addpattern, @ref EN_addcontrol, etc., can be called to add new objects to the network. Here is a partial example of constructing a network from code:
+The second method for supplying network data to a project is to use the Toolkit's functions to add objects and to set their properties via code. In this case the @ref EN_init function should be called immediately after creating a project, passing in the names of a report and binary output files (both optional) as well as the choices of flow units and head loss formulas to use. After that the various \b EN_add functions, such as @ref EN_addnode , @ref EN_addlink , @ref EN_addpattern , @ref EN_addcontrol , etc., can be called to add new objects to the network. Here is a partial example of constructing a network from code:
 
 \code {.c}
 int index;
@@ -76,7 +76,7 @@ See the @ref Example2 for a more complete example. The labels used to name objec
 
 The Toolkit contains several functions for retrieving and setting the properties of a network's objects and its analysis options. The names of retrieval functions all begin with \b EN_get (e.g., @ref EN_getnodevalue, @ref EN_getoption, etc.) while the functions used for setting parameter values begin with \b EN_set (e.g., @ref EN_setnodevalue, @ref EN_setoption, etc.).
 
-Most of these functions use an index number to refer to a specific network component (such as a node, link, time pattern or data curve). This number is simply the position of the component in the list of all components of similar type (e.g., node 10 is the tenth node, starting from 1, in the network) and is not the same as the ID label assigned to the component. A series of functions exist to determine a component's index number given its ID label (see @ref EN_getnodeindex, @ref EN_getlinkindex, @ref  EN_getpatternindex, and @ref EN_getcurveindex). Likewise, functions exist to retrieve a component's ID label given its index number (see @ref EN_getlinkid, @ref EN_getnodeid, @ref EN_getpatternid, and @ref EN_getcurveid). The @ref EN_getcount function can be used to determine the number of different components in the network. Be aware that a component's index can change as elements are added or deleted from the network. The @ref EN_addnode and @ref EN_addlink functions return the index of the newly added node or link as a convenience for immediately setting their properties.
+Most of these functions use an index number to refer to a specific network component (such as a node, link, time pattern or data curve). This number is simply the position of the component in the list of all components of similar type (e.g., node 10 is the tenth node, starting from 1, in the network) and is not the same as the ID label assigned to the component. A series of functions exist to determine a component's index number given its ID label (see @ref EN_getnodeindex , @ref EN_getlinkindex , @ref  EN_getpatternindex , and @ref EN_getcurveindex ). Likewise, functions exist to retrieve a component's ID label given its index number (see @ref EN_getlinkid , @ref EN_getnodeid , @ref EN_getpatternid , and @ref EN_getcurveid ). The @ref EN_getcount function can be used to determine the number of different components in the network. Be aware that a component's index can change as elements are added or deleted from the network. The @ref EN_addnode and @ref EN_addlink functions return the index of the newly added node or link as a convenience for immediately setting their properties.
 
 The code below is an example of using the property retrieval and setting functions. It changes all links with diameter of 10 inches to 12 inches.
 
@@ -177,16 +177,24 @@ int runConcurrentQuality(EN_Project ph)
 @section results Retrieving Computed Results
 
 The @ref EN_getnodevalue and @ref EN_getlinkvalue functions can also be used to retrieve the results of hydraulic and water quality simulations. The computed parameters (and their Toolkit codes) that can be retrieved are as follows:
-|For Nodes:                          | For Links:                                |
-|----------------------------------- | ----------------------------------------- |
-|\b EN_DEMAND (demand)                |\b EN_FLOW (flow rate)                      |
-|\b EN_DEMANDDEFICIT (demand deficit) |\b EN_VELOCITY (flow velocity)              |
-|\b EN_HEAD (hydraulic head)          |\b EN_HEADLOSS (head loss)                  |
-|\b EN_PRESSURE (pressure)            |\b EN_STATUS (link status)                  |
-|\b EN_TANKLEVEL (tank water level)   |\b EN_SETTING (pump speed or valve setting) |
-|\b EN_TANKVOLUME (tank water volume) |\b EN_ENERGY (pump energy usage)            |
-|\b EN_QUALITY (water quality)        |\b EN_PUMP_EFFIC (pump efficiency)          |
-|\b EN_SOURCEMASS (source mass inflow)| |
+|For Nodes:                           | For Links:                                |
+|------------------------------------ | ----------------------------------------- |
+|\b EN_DEMAND (total node outflow     |\b EN_FLOW (flow rate)                     |
+|\b EN_HEAD (hydraulic head)          |\b EN_VELOCITY (flow velocity)             |
+|\b EN_PRESSURE (pressure)            |\b EN_HEADLOSS (head loss)                 |
+|\b EN_TANKLEVEL (tank water level)   |\b EN_STATUS (link status)                 |
+|\b EN_TANKVOLUME (tank water volume) |\b EN_SETTING (pump speed or valve setting)|
+|\b EN_QUALITY (water quality)        |\b EN_ENERGY (pump energy usage)           |
+|\b EN_SOURCEMASS (source mass inflow)|\b EN_PUMP_EFFIC (pump efficiency)         |
+|                                     |\b EN_LINK_LEAKAGE (pipe leakage flow rate |
+
+In addition, the following quantities related to a node's outflow can be retrieved:
+-# EN_FULLDEMAND (consumer demand requested)
+-# EN_DEMANDFLOW (consumer demand delivered)
+-# EN_DEMANDDEFICIT (difference between consumer demand requested and delivered)
+-# EN_EMITTERFLOW (outflow through a node's emitter)
+-# EN_LEAKAGEFLOW (outflow due to leakage in a node's connecting pipes)
+where `EN_DEMAND` is the sum of `EN_DEMANDFLOW`, `EN_EMITTERFLOW`, and `EN_LEAKAGEFLOW`.
 
 The following code shows how to retrieve the pressure at each node of a network after each time step of a hydraulic analysis (`writetofile` is a user-defined function that will write a record to a file):
 \code {.c}

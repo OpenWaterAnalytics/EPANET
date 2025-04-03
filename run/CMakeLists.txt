@@ -1,5 +1,5 @@
 # EPANET COMMAND LINE EXECUTABLE
-cmake_minimum_required (VERSION 2.8.8)
+cmake_minimum_required (VERSION 3.8.0)
 
 
 # Sets for output directory for executables and libraries.
@@ -31,3 +31,4 @@ if(NOT WIN32)
 else(NOT WIN32)
     target_link_libraries(runepanet LINK_PUBLIC epanet2)
 endif(NOT WIN32)
+

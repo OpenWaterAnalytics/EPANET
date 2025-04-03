@@ -9,11 +9,12 @@ The file is organized by sections where each section begins with a keyword enclo
 |@subpage TitlePage "[Title]"    |@subpage CurvesPage "[Curves]"  |@subpage QualPage "[Quality]"    |@subpage OptionsPage "[Options]"|@subpage BackdropPage "[Backdrop]"  |
 |@subpage JuncsPage "[Junctions]"|@subpage PatsPage "[Patterns]"  |@subpage ReactsPage "[Reactions]"|@subpage TimesPage "[Times]"    |@subpage CoordsPage "[Coordinates]" |
 |@subpage ResvPage "[Reservoirs]"|@subpage EnergyPage "[Energy]"  |@subpage SourcesPage "[Sources]" |@subpage ReportPage "[Report]"  |@subpage VertexPage "[Vertices]"    |
-|@subpage TanksPage "[Tanks]"    |@subpage StatusPage "[Status]"  |@subpage MixingPage "[Mixing]"   |                                |@subpage LabelsPage "[Labels]"      |
+|@subpage TanksPage "[Tanks]"    |@subpage StatusPage "[Status]"  |@subpage MixingPage "[Mixing]"   |@subpage TagsPage "[Tags]"      |@subpage LabelsPage "[Labels]"      |
 |@subpage PipesPage "[Pipes]"    |@subpage CtrlsPage "[Controls]" |                                 |                                |                                    |
 |@subpage PumpsPage "[Pumps]"    |@subpage RulesPage "[Rules]"    |                                 |                                |                                    |
 |@subpage ValvesPage "[Valves]"  |@subpage DmndsPage "[Demands]"  |                                 |                                |                                    |
-|@subpage EmitsPage "[Emitters]" |                                |                                 |                                |                                    |
+|@subpage EmitsPage "[Emitters]" |@subpage LeaksPage "[Leakage]"  |                                 |                                |                                    |
+
     
 The order of sections is not important. However, whenever a node or link is referred to in a section it must have already been defined in the [JUNCTIONS], [RESERVOIRS], [TANKS], [PIPES], [PUMPS], or [VALVES] sections. Thus it is recommended that these sections be placed first.
 
@@ -40,7 +41,7 @@ One line for each control which can be of the form:
 
 <b>&nbsp;&nbsp; LINK</b> _linkID_ &nbsp; _status_ &nbsp;<b> AT TIME&nbsp;</b> _time_
 
-<b>&nbsp;&nbsp; LINK</b> _linkID_ &nbsp; _status_ &nbsp;<b> AT CLOCKTIME</b> _clocktime_ &nbsp;<b> AM / PM</b>
+<b>&nbsp;&nbsp; LINK</b> _linkID_ &nbsp; _status_ &nbsp;<b> AT CLOCKTIME</b> _clocktime_
 
 where:
 <table style = "border: 0px solid black">
@@ -54,7 +55,8 @@ where:
 
 __Remarks:__
 1. Simple controls are used to change link status or settings based on tank water level, junction pressure, time into the simulation or time of day.  
-2. See the notes for the @ref StatusPage section for conventions used in specifying link status and setting, particularly for control valves.  
+2. See the notes for the @ref StatusPage section for conventions used in specifying link status and setting, particularly for control valves.
+3. Adding the keyword <b>DISABLED</b> at the end of a control statement will indicate that the control is disabled and will not be applied.
 
 __Examples:__ 
 
@@ -65,8 +67,8 @@ LINK 12 CLOSED IF NODE 23 ABOVE 20
 ;Open Link 12 if the pressure at Node 130 is under 30 psi<br>
 LINK 12 OPEN IF NODE 130 BELOW 30
 
-;Pump PUMP02's speed is set to 1.5 at 16 hours into the simulation<br>
-LINK PUMP02 1.5 AT TIME 16
+;Disable setting Pump PUMP02's speed to 1.5 at 16 hours into the simulation<br>
+LINK PUMP02 1.5 AT TIME 16 DISABLED
 
 ;Link 12 is closed at 10 am and opened at 8 pm throughout the simulation<br>
 LINK 12 CLOSED AT CLOCKTIME 10 AM<br>
@@ -233,6 +235,26 @@ J1    100      50       Pat1
 J2    120      10              ;Uses default demand pattern
 J3    115                      ;No demand at this junction
 ```
+*/
+
+/**
+@page LeaksPage [LEAKAGE]
+
+__Purpose:__
+
+Assigns leakage parameters to individual pipes.
+
+__Format:__
+
+A line for each pipe subject to leaking that contains:
+- Pipe ID label
+- the area of cracks that leak in sq. mm per 100 units of pipe length (ft or m)
+- the rate at which cracks expand in sq. mm per unit of pressure head (ft or m)
+
+__Remarks__
+1. This section is optional.
+2. Leak area is the total area of all cracks assumed to exist per 100 feet (or meters) of pipe.
+3. Experimental values of expansion range between 0 and 0.001 (sq mm)/m depending on pipe material and crack size.
 */
 
 /**
@@ -905,6 +927,38 @@ __Example:__
 */
 
 /**
+@page TagsPage [TAGS]
+
+__Purpose:__
+
+Associates category labels (tags) with specific nodes and links.
+
+__Format:__
+
+One line for each node and link with a tag containing:
+- the keyword <b>NODE</b> or <b>LINK</b>
+- the node or link ID label
+- the text of the tag label (with no spaces)
+
+__Remarks:__
+1. Tags can be useful for assigning nodes to different pressure zones or for classifying pipes by material or age.
+2. If a node or link’s tag is not identified in this section then it is assumed to be blank.
+3. The [TAGS] section is optional and has no effect on the hydraulic or water quality calculations.
+
+__Example:__
+@code
+[TAGS]
+;Object ID      Tag
+;------------------------------
+NODE    1001    Zone_A
+NODE    1002    Zone_A
+NODE    45      Zone_B
+LINK    201     UNCI-1960
+LINK    202     PVC-1985
+@endcode
+*/
+
+/**
 @page TanksPage [TANKS]
 
 __Purpose:__
@@ -1048,11 +1102,11 @@ __Remarks:__
 |<B>PBV</B> (pressure breaker valve) | Pressure, psi (m) |
 |<B>FCV</B> (flow control valve) | Flow (flow units) |
 |<B>TCV</B> (throttle control valve) | Partially open loss coefficient |
-|<B>PCV</B> (positional control valve) | Fraction open |
+|<B>PCV</B> (positional control valve) | Percent open |
 |<B>GPV</B> (general purpose valve) | ID of head loss curve |
 2. Shutoff valves and check valves are considered to be part of a pipe, not a separate control valve component (see @ref PipesPage).
 3. The loss coefficient setting for a TCV should not be less than its fully open loss coefficient.
-4. The characteristic curve for a PCV relates the valve's fraction of fully open flow to the fraction open. If not supplied then a linear curve is assumed.
+4. The characteristic curve for a PCV relates the valve's percent of fully open flow to the percent open. If not supplied then a linear curve is assumed.
 5. The partially opened loss coefficient for a PCV is the inverse of the squared value from its characteristic curve times the fully open loss coefficient.
 6. The head loss curve for a GPV relates head loss across the valve to the flow rate through it.
 */
