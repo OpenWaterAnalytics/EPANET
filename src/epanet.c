@@ -2446,13 +2446,12 @@ int DLLEXPORT EN_getnodevalues(EN_Project p, int property, double *values)
 **----------------------------------------------------------------
 */
 {
-    int status = 0, i = 0;
+    int errcode = 0, i = 0;
 
     for (i = 1; i <= p->network.Nnodes; i++)
     {
-        status = EN_getnodevalue(p, i, property, &values[i - 1]);
-        // if status is not 0, return the error code
-        if (status != 0) { return status; }
+        errcode = EN_getnodevalue(p, i, property, &values[i - 1]);
+        if (errcode != 0) { return errcode; }
     }
     return 0;
 }
@@ -4034,12 +4033,11 @@ int DLLEXPORT EN_getlinkvalues(EN_Project p, int property, double *values)
 **----------------------------------------------------------------
 */
 {
-    int status = 0, i = 0;
+    int errcode = 0, i = 0;
     for(i = 1; i <= p->network.Nlinks; i++)
     {
-        status = EN_getlinkvalue(p, i, property, &values[i-1]);
-        // If an error occurs, return the error code
-        if(status != 0) { return status; }
+        errcode = EN_getlinkvalue(p, i, property, &values[i-1]);
+        if(errcode != 0) { return errcode; }
     }
     return 0;
 }
