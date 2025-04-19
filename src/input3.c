@@ -2248,6 +2248,8 @@ void changestatus(Network *net, int j, StatusType status, double y)
             status = OPEN;
             if (y == 0.0) status = CLOSED;
         }
+        else if (status == OPEN) link->Kc = 1.0;
+        else if (status == CLOSED) link->Kc = 0.0;
         link->InitStatus = status;
         link->InitSetting = link->Kc;
     }
