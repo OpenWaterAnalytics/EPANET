@@ -128,7 +128,11 @@ void inithyd(Project *pr, int initflag)
         hyd->LinkSetting[i] = link->InitSetting;
         
         // Set runtime setting of non-ACTIVE valves to "MISSING"
-        if (link->Type >= PRV && link->InitStatus != ACTIVE) link->Kc = MISSING;
+        if (link->Type >= PRV && link->InitStatus != ACTIVE)
+        {
+            link->Kc = MISSING;
+            hyd->LinkSetting[i] = MISSING;
+        }
         
         // Compute flow resistance
         resistcoeff(pr, i);
