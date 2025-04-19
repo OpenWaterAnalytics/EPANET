@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/14/2025
+ Last Updated: 04/19/2025
  ******************************************************************************
 */
 
@@ -3397,7 +3397,7 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     link->Type = linkType;
     link->N1 = n1;
     link->N2 = n2;
-    link->Status = OPEN;
+    link->InitStatus = OPEN;
 
     if (linkType == PUMP)
     {
@@ -3426,12 +3426,13 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
         link->Kc = 0.0; // Valve setting.
         link->Km = 0.0; // Loss coeff
         link->Len = 0.0;
-        link->Status = ACTIVE;
+        link->InitStatus = ACTIVE;
     }
     link->Kb = 0;
     link->Kw = 0;
     link->LeakArea = 0;
     link->LeakExpan = 0;
+    link->InitSetting = link->Kc;
     link->R = 0;
     link->Rc = 0;
     link->Rpt = 0;
@@ -3685,7 +3686,7 @@ int DLLEXPORT EN_setlinktype(EN_Project p, int *index, int linkType, int actionC
     if (oldType <= PIPE && linkType <= PIPE)
     {
         net->Link[i].Type = linkType;
-        if (linkType == CVPIPE) net->Link[i].Status = OPEN;
+        if (linkType == CVPIPE) net->Link[i].InitStatus = OPEN;
         return 0;
     }
 
@@ -3788,8 +3789,6 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
     Slink *Link = net->Link;
     Spump *Pump = net->Pump;
     double *Ucf = p->Ucf;
-    double *LinkFlow = hyd->LinkFlow;
-    double *LinkSetting = hyd->LinkSetting;
 
     // Check for valid arguments
     *value = 0.0;
@@ -3827,18 +3826,19 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         break;
 
     case EN_INITSTATUS:
-        if (Link[index].Status <= CLOSED) v = 0.0;
+        if (Link[index].InitStatus <= CLOSED) v = 0.0;
         else v = 1.0;
+        if (Link[index].Type > PUMP && Link[index].InitStatus > OPEN) v = 2.0;
         break;
 
     case EN_INITSETTING:
-        if (Link[index].Type == PIPE || Link[index].Type == CVPIPE)
-        {
-            return EN_getlinkvalue(p, index, EN_ROUGHNESS, value);
-        }
-        v = Link[index].Kc;
+        v = Link[index].InitSetting;
         switch (Link[index].Type)
         {
+        case CVPIPE:
+        case PIPE:
+            if (hyd->Formflag == DW) v = v * (1000.0 * Ucf[ELEV]);
+            break;
         case PRV:
         case PSV:
         case PBV:
@@ -3848,9 +3848,6 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
             v *= Ucf[FLOW];
         default:
             break;
-        }
-        if (Link[index].Kc == MISSING) {
-          v = MISSING;
         }
         break;
 
@@ -3864,7 +3861,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
 
     case EN_FLOW:
         if (hyd->LinkStatus[index] <= CLOSED) v = 0.0;
-        else v = LinkFlow[index] * Ucf[FLOW];
+        else v = hyd->LinkFlow[index] * Ucf[FLOW];
         break;
 
     case EN_VELOCITY:
@@ -3872,7 +3869,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         else if (hyd->LinkStatus[index] <= CLOSED) v = 0.0;
         else
         {
-            q = ABS(LinkFlow[index]);
+            q = ABS(hyd->LinkFlow[index]);
             a = PI * SQR(Link[index].Diam) / 4.0;
             v = q / a * Ucf[VELOCITY];
         }
@@ -3891,6 +3888,8 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
     case EN_STATUS:
         if (hyd->LinkStatus[index] <= CLOSED) v = 0.0;
         else v = 1.0;
+        if (Link[index].Type > PUMP &&
+            hyd->LinkStatus[index] > OPEN) v = 2.0;
         break;
 
     case EN_SETTING:
@@ -3898,8 +3897,8 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         {
             return EN_getlinkvalue(p, index, EN_ROUGHNESS, value);
         }
-        if (LinkSetting[index] == MISSING) v = 0.0;
-        else v = LinkSetting[index];
+        if (hyd->LinkSetting[index] == MISSING) v = 0.0;
+        else v = hyd->LinkSetting[index];
         switch (Link[index].Type)
         {
         case PRV:
@@ -4059,7 +4058,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
 
     Slink *Link = net->Link;
     double *Ucf = p->Ucf;
-    double *LinkSetting = hyd->LinkSetting;
+//  double *LinkSetting = hyd->LinkSetting;
     char s;
     double r;
     int pumpIndex, patIndex, curveIndex;
@@ -4095,7 +4094,8 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             if (value <= 0.0) return 211;
             Link[index].Kc = value;
             if (hyd->Formflag == DW) Link[index].Kc /= (1000.0 * Ucf[ELEV]);
-            resistcoeff(p, index);
+            if (p->hydraul.OpenHflag) resistcoeff(p, index);
+            else Link[index].InitSetting = Link[index].Kc;
         }
         break;
 
@@ -4113,14 +4113,15 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         // Cannot set status for a check valve
         if (Link[index].Type == CVPIPE) return 207;
         s = (char)ROUND(value);
-        if (s < 0 || s > 1) return 211;
+        if (s < 0 || s > 2) return 211;
+        s = s + CLOSED;
         if (property == EN_INITSTATUS)
         {
-            setlinkstatus(p, index, s, &Link[index].Status, &Link[index].Kc);
+            Link[index].InitStatus = s;
         }
         else
         {
-            setlinkstatus(p, index, s, &hyd->LinkStatus[index], &LinkSetting[index]);
+            setlinkstatus(p, index, s, &hyd->LinkStatus[index], &hyd->LinkSetting[index]);
         }
         break;
 
@@ -4128,7 +4129,8 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
     case EN_SETTING:
         if (Link[index].Type == PIPE || Link[index].Type == CVPIPE)
         {
-            return EN_setlinkvalue(p, index, EN_ROUGHNESS, value);
+            EN_setlinkvalue(p, index, EN_ROUGHNESS, value);
+            if (property == EN_INITSETTING) Link[index].InitSetting = Link[index].Kc;
         }
         else
         {
@@ -4155,12 +4157,13 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             }
             if (property == EN_INITSETTING)
             {
-                setlinksetting(p, index, value, &Link[index].Status, &Link[index].Kc);
+                Link[index].Kc = value;
+                Link[index].InitSetting = value;
             }
             else
             {
                 setlinksetting(p, index, value, &hyd->LinkStatus[index],
-                               &LinkSetting[index]);
+                               &hyd->LinkSetting[index]);
             }
         }
         break;

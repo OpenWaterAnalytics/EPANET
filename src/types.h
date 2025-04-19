@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/14/2025
+ Last Updated: 04/19/2025
  ******************************************************************************
 */
 
@@ -408,7 +408,7 @@ typedef struct             // Link Object
   int      N2;             // end node index
   double   Diam;           // diameter
   double   Len;            // length
-  double   Kc;             // roughness
+  double   Kc;             // pipe roughness, pump speed, valve setting
   double   Km;             // minor loss coeff.
   double   Kb;             // bulk react. coeff.
   double   Kw;             // wall react. coef.
@@ -417,7 +417,8 @@ typedef struct             // Link Object
   double   LeakArea;       // leak area (sq mm per 100 pipe length units
   double   LeakExpan;      // leak expansion (sq mm per unit of head)
   LinkType Type;           // link type
-  StatusType Status;       // initial status
+  StatusType InitStatus;   // initial status
+  double     InitSetting;  // initial setting
   Pvertices  Vertices;     // internal vertex coordinates
   int      Rpt;            // reporting flag
   int      ResultIndex;    // saved result index

@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       hydraul.c
  Description:  implements EPANET's hydraulic engine
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/26/2024
+ Last Updated: 04/19/2025
  ******************************************************************************
 */
 
@@ -71,7 +71,7 @@ int  openhyd(Project *pr)
     if (!errcode) for (i = 1; i <= pr->network.Nlinks; i++)
     {
         link = &pr->network.Link[i];
-        initlinkflow(pr, i, link->Status, link->Kc);
+        initlinkflow(pr, i, link->InitStatus, link->Kc);
     }
     else closehyd(pr);        
     return errcode;
@@ -124,9 +124,12 @@ void inithyd(Project *pr, int initflag)
         link->ResultIndex = i;
 
         // Initialize status and setting
-        hyd->LinkStatus[i] = link->Status;
-        hyd->LinkSetting[i] = link->Kc;
-
+        hyd->LinkStatus[i] = link->InitStatus;
+        hyd->LinkSetting[i] = link->InitSetting;
+        
+        // Set runtime setting of non-ACTIVE valves to "MISSING"
+        if (link->Type >= PRV && link->InitStatus != ACTIVE) link->Kc = MISSING;
+        
         // Compute flow resistance
         resistcoeff(pr, i);
 

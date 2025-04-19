@@ -1,13 +1,13 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       input1.c
 Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 06/15/2024
+Last Updated: 04/19/2025
 ******************************************************************************
 */
 
@@ -624,6 +624,7 @@ void convertunits(Project *pr)
                   break;
             }
         }
+        link->InitSetting = link->Kc;
     }
 
     // Convert units on control settings

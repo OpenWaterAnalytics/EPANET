@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 03/11/2025
+Last Updated: 04/19/2025
 ******************************************************************************
 */
 
@@ -210,7 +210,7 @@ int saveinpfile(Project *pr, const char *fname)
         if (link->Type <= PIPE)
         {
             d = link->Diam;
-            kc = link->Kc;
+            kc = link->InitSetting;
             if (hyd->Formflag == DW)  kc = kc * pr->Ucf[ELEV] * 1000.0;
             km = link->Km * SQR(d) * SQR(d) / 0.02517;
 
@@ -219,7 +219,7 @@ int saveinpfile(Project *pr, const char *fname)
                     link->Len * pr->Ucf[LENGTH], d * pr->Ucf[DIAM], kc, km);
 
             if (link->Type == CVPIPE) sprintf(s2, "CV");
-            else if (link->Status == CLOSED) sprintf(s2, "CLOSED");
+            else if (link->InitStatus == CLOSED) sprintf(s2, "CLOSED");
             else strcpy(s2, " ");
             fprintf(f, "\n%s\t%-6s", s, s2);
             if (link->Comment) fprintf(f, "\t;%s", link->Comment);
@@ -267,9 +267,9 @@ int saveinpfile(Project *pr, const char *fname)
         }
 
         // Optional speed setting
-        if (link->Kc != 1.0)
+        if (link->InitSetting != 1.0)
         {
-            sprintf(s1, "\tSPEED %.4f", link->Kc);
+            sprintf(s1, "\tSPEED %.4f", link->InitSetting);
             strcat(s, s1);
         }
 
@@ -289,8 +289,7 @@ int saveinpfile(Project *pr, const char *fname)
         d = link->Diam;
 
         // Valve setting
-        kc = link->Kc;
-        if (kc == MISSING) kc = 0.0;
+        kc = link->InitSetting;
         switch (link->Type)
         {
           case FCV:
@@ -312,7 +311,7 @@ int saveinpfile(Project *pr, const char *fname)
                 LinkTxt[link->Type]);
 
         // For GPV, setting = head curve index
-        if (link->Type == GPV && (j = ROUND(link->Kc)) > 0)
+        if (link->Type == GPV && (j = ROUND(kc)) > 0)
         {
             sprintf(s1, "%-31s\t%-12.4f", net->Curve[j].ID, km);
         }
@@ -384,7 +383,7 @@ int saveinpfile(Project *pr, const char *fname)
         link = &net->Link[i];
         if (link->Type <= PUMP)
         {
-            if (link->Status == CLOSED)
+            if (link->InitStatus == CLOSED)
             {
                 fprintf(f, "\n %-31s\t%s", link->ID, StatTxt[CLOSED]);
             }
@@ -395,21 +394,21 @@ int saveinpfile(Project *pr, const char *fname)
                 n = findpump(net, i);
                 pump = &net->Pump[n];
                 if (pump->Hcurve == 0 && pump->Ptype != CONST_HP &&
-                    link->Kc != 1.0)
+                    link->InitSetting != 1.0)
                 {
-                    fprintf(f, "\n %-31s\t%-.4f", link->ID, link->Kc);
+                    fprintf(f, "\n %-31s\t%-.4f", link->ID, link->InitSetting);
                 }
             }
         }
 
-        // Write fixed-status PRVs & PSVs (setting = MISSING)
-        else if (link->Kc == MISSING)
+        // Write fixed-status valves 
+        else
         {
-            if (link->Status == OPEN)
+            if (link->InitStatus == OPEN)
             {
                 fprintf(f, "\n %-31s\t%s", link->ID, StatTxt[OPEN]);
             }
-            if (link->Status == CLOSED)
+            if (link->InitStatus == CLOSED)
             {
                 fprintf(f, "\n%-31s\t%s", link->ID, StatTxt[CLOSED]);
             }
