@@ -4058,7 +4058,6 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
 
     Slink *Link = net->Link;
     double *Ucf = p->Ucf;
-//  double *LinkSetting = hyd->LinkSetting;
     char s;
     double r;
     int pumpIndex, patIndex, curveIndex;
@@ -4256,6 +4255,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             curveIndex = ROUND(value);
             if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
             Link[index].Kc = curveIndex;
+            if (hyd->OpenHflag == FALSE) Link[index].InitSetting = curveIndex;
         }
         break;
 
