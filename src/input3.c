@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 03/10/2025
+Last Updated: 04/19/2025
 ******************************************************************************
 */
 
@@ -391,7 +391,8 @@ int pipedata(Project *pr)
     link->LeakArea = 0.0;
     link->LeakExpan = 0.0;
     link->Type = PIPE;
-    link->Status = OPEN;
+    link->InitStatus = OPEN;
+    link->InitSetting = link->Kc;
     link->Rpt = 0;
     link->ResultIndex = 0;
     link->Comment = xstrcpy(&link->Comment, parser->Comment, MAXMSG);
@@ -420,8 +421,8 @@ int pipedata(Project *pr)
     if (n > 6)
     {
         if (match(parser->Tok[6], w_CV)) link->Type = CVPIPE;
-        else if (match(parser->Tok[6], w_CLOSED)) link->Status = CLOSED;
-        else if (match(parser->Tok[6], w_OPEN))   link->Status = OPEN;
+        else if (match(parser->Tok[6], w_CLOSED)) link->InitStatus = CLOSED;
+        else if (match(parser->Tok[6], w_OPEN))   link->InitStatus = OPEN;
         else
         {
             if (!getfloat(parser->Tok[6], &x) || x < 0.0)
@@ -437,8 +438,8 @@ int pipedata(Project *pr)
             return setError(parser, 6, 202);
         link->Km = x;
         if (match(parser->Tok[7], w_CV))  link->Type = CVPIPE;
-        else if (match(parser->Tok[7], w_CLOSED)) link->Status = CLOSED;
-        else if (match(parser->Tok[7], w_OPEN))   link->Status = OPEN;
+        else if (match(parser->Tok[7], w_CLOSED)) link->InitStatus = CLOSED;
+        else if (match(parser->Tok[7], w_OPEN))   link->InitStatus = OPEN;
         else return setError(parser, 7, 213);
     }
     return 0;
@@ -500,7 +501,8 @@ int pumpdata(Project *pr)
     link->LeakArea = 0.0;
     link->LeakExpan = 0.0;
     link->Type = PUMP;
-    link->Status = OPEN;
+    link->InitStatus = OPEN;
+    link->InitSetting = 1.0;
     link->Rpt = 0;
     link->ResultIndex = 0;
     link->Comment = xstrcpy(&link->Comment, parser->Comment, MAXMSG);
@@ -545,6 +547,7 @@ int pumpdata(Project *pr)
         else return setError(parser, m-1, 201);;
         m = m + 2;  // Move to next keyword token
     }
+    link->InitSetting = link->Kc;
     return 0;
 }
 
@@ -621,7 +624,8 @@ int valvedata(Project *pr)
     link->LeakArea = 0.0;
     link->LeakExpan = 0.0;
     link->Type = type;
-    link->Status = ACTIVE;
+    link->InitStatus = ACTIVE;
+    link->InitSetting = 0.0;
     link->Rpt = 0;
     link->ResultIndex = 0;
     link->Comment = xstrcpy(&link->Comment, parser->Comment, MAXMSG);
@@ -641,7 +645,7 @@ int valvedata(Project *pr)
             if (c == 0) return setError(parser, 5, 206);
             link->Kc = c;
             net->Curve[c].Type = HLOSS_CURVE;
-            link->Status = OPEN;
+            link->InitStatus = OPEN;
         }
         else
         {
@@ -663,7 +667,8 @@ int valvedata(Project *pr)
         net->Valve[net->Nvalves].Curve = c;
         net->Curve[c].Type = VALVE_CURVE;
         if (link->Kc > 100.0) link->Kc = 100.0;
-    }        
+    }
+    link->InitSetting = link->Kc;
     return 0;
 }
 
@@ -2212,7 +2217,8 @@ int  tagdata(Project *pr)
         xstrcpy(&net->Link[j].Tag, parser->Tok[2], MAXMSG);
     } 
     return 0;   
-}    
+}
+    
 void changestatus(Network *net, int j, StatusType status, double y)
 /*
 **--------------------------------------------------------------
@@ -2221,11 +2227,10 @@ void changestatus(Network *net, int j, StatusType status, double y)
 **           y      = numerical setting (pump speed, valve
 **                    setting)
 **  Output:  none
-**  Purpose: changes status or setting of a link
+**  Purpose: changes initial status or setting of a link
 **
 **  NOTE: If status = ACTIVE, then a numerical setting (y) was
-**        supplied. If status = OPEN/CLOSED, then numerical
-**        setting is 0.
+**        supplied.
 **--------------------------------------------------------------
 */
 {
@@ -2233,7 +2238,7 @@ void changestatus(Network *net, int j, StatusType status, double y)
 
     if (link->Type == PIPE || link->Type == GPV)
     {
-        if (status != ACTIVE) link->Status = status;
+        if (status != ACTIVE) link->InitStatus = status;
     }
     else if (link->Type == PUMP)
     {
@@ -2245,12 +2250,13 @@ void changestatus(Network *net, int j, StatusType status, double y)
         }
         else if (status == OPEN) link->Kc = 1.0;
         else if (status == CLOSED) link->Kc = 0.0;
-        link->Status = status;
+        link->InitStatus = status;
+        link->InitSetting = link->Kc;
     }
     else if (link->Type >= PRV)
     {
-        link->Kc = y;
-        link->Status = status;
-        if (status != ACTIVE) link->Kc = MISSING;
+        if (status == ACTIVE) link->Kc = y;
+        link->InitStatus = status;
+        link->InitSetting = link->Kc;
     }
 }
