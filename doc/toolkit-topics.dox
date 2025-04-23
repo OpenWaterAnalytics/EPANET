@@ -383,6 +383,7 @@ These are the toolkit's enumerated types whose members are used as function argu
 | 261  | Function call attempts to delete a node or link contained in a control |
 | 262  | Function call attempts to modify network structure while a solver is open |
 | 263  | Function call refers to node that is not a tank |
+| 264  | Function call refers to a link that is not a valve |
 | 299  | An invalid section keyword was detected in an input file |
 |  ||
 | 301  | Identical file names used for different types of files |
