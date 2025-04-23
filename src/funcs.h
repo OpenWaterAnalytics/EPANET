@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/14/2025
+ Last Updated: 04/23/2025
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -29,6 +29,7 @@ int     buildadjlists(Network *);
 void    freeadjlists(Network *);
 
 int     incontrols(Project *, int, int);
+int     changevalvetype(Project *, int, int);
 int     valvecheck(Project *, int, int, int, int);
 int     unlinked(Project *);
 

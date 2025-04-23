@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/22/2025
+ Last Updated: 04/23/2025
  ******************************************************************************
 */
 
@@ -103,7 +103,8 @@ typedef enum {
   EN_PCV_CURVE    = 25, //!< PCV loss coeff. curve index
   EN_LEAK_AREA    = 26, //!< Pipe leak area (sq mm per 100 length units)
   EN_LEAK_EXPAN   = 27, //!< Leak expansion rate (sq mm per unit of pressure head)
-  EN_LINK_LEAKAGE = 28  //!< Current leakage rate (read only)
+  EN_LINK_LEAKAGE = 28, //!< Current leakage rate (read only)
+  EN_VALVE_TYPE   = 29  //!< Type of valve (see @ref EN_LinkType)
 } EN_LinkProperty;
 
 /// Time parameters

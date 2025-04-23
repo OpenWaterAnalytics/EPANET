@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/19/2025
+ Last Updated: 04/23/2025
  ******************************************************************************
 */
 
@@ -754,7 +754,6 @@ int  buildadjlists(Network *net)
     return errcode;
 }
 
-
 void  freeadjlists(Network *net)
 /*
 **--------------------------------------------------------------
@@ -841,6 +840,61 @@ int incontrols(Project *pr, int objType, int index)
     return 0;
 }
 
+int changevalvetype(Project *pr, int index, int type)
+/*
+**--------------------------------------------------------------
+**  Input:   index = link index
+**           type = new valve type
+**  Output:  returns an error code
+**  Purpose: changes a valve's type
+**--------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    Slink *link;
+    int errcode;
+    double setting;
+
+    // Check that new valve type has legal connections
+    link = &net->Link[index];
+    if (link->Type <= PUMP) return 264;
+    errcode = valvecheck(pr, index, type, link->N1, link->N2);
+    if (errcode) return errcode;
+    
+    // Preserve new type's setting in solver units
+    setting = link->InitSetting;
+    switch (link->Type)
+    {
+        case FCV:
+            setting *= pr->Ucf[FLOW];
+            break;
+        case PRV:
+        case PSV:
+        case PBV:
+            setting *= pr->Ucf[PRESSURE];
+            break;
+    }
+    switch (type)
+    {
+        case FCV:
+            setting /= pr->Ucf[FLOW];
+            break;
+        case PRV:
+        case PSV:
+        case PBV:
+            setting /= pr->Ucf[PRESSURE];
+            break;
+    }
+    
+    // If converting to a GPV set its head loss curve to 0 (i.e., none)
+    if (type == GPV) setting = 0.0;
+    link->InitSetting = setting;
+    
+    // Change valve link's type
+    link->Type = type;    
+    return 0;
+}
+    
 int valvecheck(Project *pr, int index, int type, int j1, int j2)
 /*
 **--------------------------------------------------------------
@@ -1364,7 +1418,6 @@ int setcomment(Network *network, int object, int index, const char *newcomment)
     default: return 251;
     }
 }
-
 
 int  gettag(Network *network, int object, int index, char *tag)
 //----------------------------------------------------------------

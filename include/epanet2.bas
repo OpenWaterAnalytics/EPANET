@@ -5,7 +5,7 @@ Attribute VB_Name = "Module1"
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL)
 
-'Last updated on 02/14/2025
+'Last updated on 04/23/2025
 
 ' These are codes used by the DLL functions
 Public Const EN_ELEVATION = 0     ' Node parameters
@@ -71,6 +71,7 @@ Public Const EN_PCV_CURVE = 25
 Public Const EN_LEAK_AREA = 26
 Public Const EN_LEAK_EXPAN = 27
 Public Const EN_LINK_LEAKAGE = 28
+Public Const EN_VALVE_TYPE = 29
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1

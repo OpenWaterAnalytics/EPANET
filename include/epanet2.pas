@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 02/14/2025}
+{Last updated on 04/23/2025}
 
 interface
 
@@ -79,6 +79,7 @@ const
  EN_LEAK_AREA      = 26;
  EN_LEAK_EXPAN     = 27;
  EN_LINK_LEAKAGE   = 28;
+ EN_VALVE_TYPE     = 29;
  
  EN_DURATION     = 0;  { Time parameters }
  EN_HYDSTEP      = 1;
