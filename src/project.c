@@ -873,6 +873,9 @@ int changevalvetype(Project *pr, int index, int type)
         case PBV:
             setting *= pr->Ucf[PRESSURE];
             break;
+        case GPV:
+            setting = 0.0;
+            break;
     }
     switch (type)
     {
@@ -886,8 +889,10 @@ int changevalvetype(Project *pr, int index, int type)
             break;
     }
     
-    // If converting to a GPV set its head loss curve to 0 (i.e., none)
+    // Save setting
     if (type == GPV) setting = 0.0;
+    if (type == PCV) setting = MIN(setting, 100.0);
+    link->Kc = setting;
     link->InitSetting = setting;
     
     // Change valve link's type
