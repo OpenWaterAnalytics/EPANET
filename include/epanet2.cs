@@ -665,7 +665,7 @@ namespace EpanetCSharpLibrary
         public static extern int ENsetcontrol(int index, int type, int linkIndex, float setting, int nodeIndex, float level);
 
         [DllImport(EPANETDLL, EntryPoint = "ENgetcontrolenabled")]
-        public static extern int ENgetcontrolenabled(int index, int out_enabled);
+        public static extern int ENgetcontrolenabled(int index, ref int out_enabled);
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetcontrolenabled")]
         public static extern int ENsetcontrolenabled(int index, int enabled);
@@ -715,7 +715,7 @@ namespace EpanetCSharpLibrary
         public static extern int ENsetelseaction(int ruleIndex, int actionIndex, int linkIndex, int status, float setting);
 
         [DllImport(EPANETDLL, EntryPoint = "ENgetruleenabled")]
-        public static extern int ENgetruleenabled(int index, int out_enabled);
+        public static extern int ENgetruleenabled(int index, ref int out_enabled);
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetruleenabled")]
         public static extern int ENsetruleenabled(int index, int enabled);
