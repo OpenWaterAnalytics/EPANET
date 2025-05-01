@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/19/2025
+ Last Updated: 04/23/2025
  ******************************************************************************
 */
 
@@ -4015,6 +4015,10 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
     case EN_LINK_LEAKAGE:
         v = findlinkleakage(p, index) * Ucf[FLOW];
         break;
+        
+    case EN_VALVE_TYPE:
+        if (Link[index].Type > PUMP) v = Link[index].Type;
+        break;
 
     default:
         return 251;
@@ -4060,7 +4064,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
     double *Ucf = p->Ucf;
     char s;
     double r;
-    int pumpIndex, patIndex, curveIndex;
+    int pumpIndex, patIndex, curveIndex, valveType;
 
     if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Nlinks) return 204;
@@ -4268,6 +4272,14 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         if (value < 0.0) return 211;
         Link[index].LeakExpan = value / Ucf[LENGTH];
         break;
+        
+    case EN_VALVE_TYPE:
+        if (hyd->OpenHflag || qual->OpenQflag) return 262;  //Solver is running
+        if (Link[index].Type <= PUMP) return 264;           //Link not a valve
+        valveType = ROUND(value);
+        if (valveType < PRV || valveType > PCV) return 213; //Invalid valve type
+        if (valveType == Link[index].Type) return 0;        //No type change
+        return changevalvetype(p, index, valveType);        //See project.c
 
     default:
         return 251;

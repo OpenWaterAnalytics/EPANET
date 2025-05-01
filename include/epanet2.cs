@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 //epanet2.cs[By Oscar Vegas]
-//Last updated on 02/14/2025
+//Last updated on 04/23/2025
 
 //Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 //(EPANET2.DLL) for use with C#
@@ -84,6 +84,7 @@ namespace EpanetCSharpLibrary
         public const int EN_LEAK_AREA = 26;
         public const int EN_LEAK_EXPAN = 27;
         public const int EN_LINK_LEAKAGE = 28;
+        public const int EN_VALVE_TYPE = 29;
 
         public const int EN_DURATION = 0;      //Time parameters
         public const int EN_HYDSTEP = 1;
@@ -664,7 +665,7 @@ namespace EpanetCSharpLibrary
         public static extern int ENsetcontrol(int index, int type, int linkIndex, float setting, int nodeIndex, float level);
 
         [DllImport(EPANETDLL, EntryPoint = "ENgetcontrolenabled")]
-        public static extern int ENgetcontrolenabled(int index, int out_enabled);
+        public static extern int ENgetcontrolenabled(int index, ref int out_enabled);
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetcontrolenabled")]
         public static extern int ENsetcontrolenabled(int index, int enabled);
@@ -714,7 +715,7 @@ namespace EpanetCSharpLibrary
         public static extern int ENsetelseaction(int ruleIndex, int actionIndex, int linkIndex, int status, float setting);
 
         [DllImport(EPANETDLL, EntryPoint = "ENgetruleenabled")]
-        public static extern int ENgetruleenabled(int index, int out_enabled);
+        public static extern int ENgetruleenabled(int index, ref int out_enabled);
 
         [DllImport(EPANETDLL, EntryPoint = "ENsetruleenabled")]
         public static extern int ENsetruleenabled(int index, int enabled);

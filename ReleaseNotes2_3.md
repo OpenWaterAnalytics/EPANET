@@ -26,6 +26,8 @@ This document describes the changes and updates that have been made in version 2
 
  - `EN_VALVE_CURVE` can now be used with the `EN_getcurvetype` and `EN_setcurvetype` to get or set the valve position curve.
 
+ - `EN_VALVE_TYPE` can now be used with `EN_getlinkvalue` and `EN_setlinkvalue` to get and set a valve's type. This is the preferred way to change just a valve's type rather than using `EN_setlinktype`.
+
  - A new set of functions has been added to get information about upcoming time step events. Users will now see what type of event is going to cause the end of a time step to occur. See `EN_timetonextevent`.
 
  - A new set of functions has been added to allow users to set a reporting callback function. The user-supplied function will receive all output normally directed to the report file.
@@ -80,7 +82,7 @@ This document describes the changes and updates that have been made in version 2
 
  - Improved checks to prevent outflow from empty tanks or inflow to full (non-overflow) tanks, including the case where a link is connected to a pair of tanks, were added.
 
- - The `EN_INITSETTING` option in function `EN_getlinkvalue` will now return `EN_MISSING` for a valve whose initial status is fixed to `EN_OPEN` or `EN_CLOSED`.
+ - The `EN_INITSETTING` option in function `EN_setlinkvalue` will now save the setting value so that if a new simulation is begun or if  `EN_saveinpfile` is called the saved initial setting will remain in effect rather than whatever setting a simulation may have ended with.
 
  - A new error code `263 - node is not a tank` is returned when `EN_settankdata` or `EN_setnodevalue` attempts to set a tank-only parameter for a non-tank node.
 

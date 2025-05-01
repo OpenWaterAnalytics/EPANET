@@ -11,7 +11,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/14/2025
+ Last Updated: 04/25/2025
  ******************************************************************************
  */
 
@@ -1263,6 +1263,8 @@ typedef struct Project *EN_Project;
   contain the link are deleted when the link's type is changed. If set to
   `EN_CONDITIONAL` then the type change is cancelled if the link appears in any
   control and error 261 is returned.
+  
+  To only change a valve's type (such as from PRV to PSV) use ::EN_setlinkvalue with property `EN_VALVE_TYPE` whose value is selected from the valves in @ref EN_LinkType.
   */
   int  DLLEXPORT EN_setlinktype(EN_Project ph, int *inout_index, int linkType, int actionCode);
 

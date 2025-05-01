@@ -3,7 +3,7 @@ unit epanet2;
 { Declarations of imported procedures from the EPANET PROGRAMMERs TOOLKIT }
 { (EPANET2.DLL) }
 
-{Last updated on 02/14/2025}
+{Last updated on 04/23/2025}
 
 interface
 
@@ -79,6 +79,7 @@ const
  EN_LEAK_AREA      = 26;
  EN_LEAK_EXPAN     = 27;
  EN_LINK_LEAKAGE   = 28;
+ EN_VALVE_TYPE     = 29;
  
  EN_DURATION     = 0;  { Time parameters }
  EN_HYDSTEP      = 1;
@@ -449,8 +450,8 @@ const
  function  ENdeletecontrol(Index: Integer): Integer; cdecl; external EpanetLib;
  function  ENgetcontrol(Index: Integer; var Ctype: Integer; var Link: Integer; var Setting: Single; var Node: Integer; var Level: Single): Integer; cdecl; external EpanetLib;
  function  ENsetcontrol(Index: Integer; Ctype: Integer; Link: Integer; Setting: Single; Node: Integer; Level: Single): Integer; cdecl; external EpanetLib;
- function  ENgetcontrolenabled(Index: Integer; out_enabled: Integer): Integer; cdecl; external EpanetLib;
- function  ENsetcontrolenabled(Index: Integer; var enabled: Integer): Integer; cdecl; external EpanetLib;
+ function  ENgetcontrolenabled(Index: Integer; var out_enabled: Integer): Integer; cdecl; external EpanetLib;
+ function  ENsetcontrolenabled(Index: Integer; enabled: Integer): Integer; cdecl; external EpanetLib;
 
  {Rule-Based Control Functions}
  function ENaddrule(Rule: PAnsiChar): Integer; cdecl; external EpanetLib;
@@ -475,7 +476,7 @@ const
           var Status: Integer; var Setting: Single): Integer; cdecl; external EpanetLib;
  function ENsetelseaction(RuleIndex: Integer; ActionIndex: Integer; LinkIndex: Integer;
           Status: Integer; Setting: Single): Integer; cdecl; external EpanetLib;
- function  ENgetruleenabled(Index: Integer; var enabled: Integer): Integer; cdecl; external EpanetLib;
+ function  ENgetruleenabled(Index: Integer; var out_enabled: Integer): Integer; cdecl; external EpanetLib;
  function  ENsetruleenabled(Index: Integer; enabled: Integer): Integer; cdecl; external EpanetLib;
 
 implementation
