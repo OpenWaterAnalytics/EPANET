@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       hydcoeffs.c
  Description:  computes coefficients for a hydraulic solution matrix
  Authors:      see AUTHORS

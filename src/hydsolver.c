@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       hydsolver.c
  Description:  computes flows and pressures throughout a pipe network using
                Todini's Global Gradient Algorithm

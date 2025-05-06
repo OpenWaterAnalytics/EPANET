@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       mempool.c
  Description:  a simple fast poooled memory allocation package
  Authors:      see AUTHORS
