@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       hydstatus.c
 Description:  updates hydraulic status of network elements
 Authors:      see AUTHORS

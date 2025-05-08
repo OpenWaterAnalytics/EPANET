@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       smatrix.c
  Description:  solves a sparse set of linear equations
  Authors:      see AUTHORS

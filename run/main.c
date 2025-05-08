@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       main.c
  Description:  main stub for a command line executable version of EPANET
  Authors:      see AUTHORS

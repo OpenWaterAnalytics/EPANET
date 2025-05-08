@@ -1,7 +1,7 @@
  /*
   ******************************************************************************
   Project:      OWA EPANET
-  Version:      2.2
+  Version:      2.3
   Module:       hash.c
   Description:  implementation of a simple hash table
   Authors:      see AUTHORS
