@@ -3,9 +3,6 @@ OWA-EPANET
 
 ## Build Status
 [![Build status](https://ci.appveyor.com/api/projects/status/19wpg4g2cmj3oihl?svg=true)](https://ci.appveyor.com/project/OpenWaterAnalytics/epanet)
-
-[![codecov](https://codecov.io/gh/OpenWaterAnalytics/EPANET/branch/master/graph/badge.svg)](https://codecov.io/gh/OpenWaterAnalytics/EPANET)
-
 [![linux](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/ccpp.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/ccpp.yml)
 [![macos](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/macos.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/macos.yml)
 [![epanet2-win32](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win32.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win32.yml)
@@ -21,7 +18,7 @@ Instructions for building the OWA-EPANET Toolkit's function library as well as i
 
 ## USAGE
 
-See the [full documentation](http://wateranalytics.org/EPANET/) of the OWA-EPANET API, along with examples of how to use the toolkit for water distribution system analysis. Additional information may be found on this project's [Wiki](https://github.com/openwateranalytics/epanet/wiki).
+See the [full documentation](http://wateranalytics.org/EPANET/) of the OWA-EPANET API, along with examples of how to use the toolkit for water distribution system analysis. Additional information may be found on this project's [Wiki](https://github.com/OpenWaterAnalytics/EPANET/wiki).
 
 ## CONTRIBUTING
 
@@ -32,4 +29,4 @@ Everyone is welcome to participate in this project. Whether you are helping othe
 The **Open Water Analytics** (OWA) Community is an international group of EPANET developers and users, whose objective is to provide group interaction and coordinated development of the EPANET codebase, to ensure that important new user interface and algorithmic features are identified and that these features progress efficiently from prototype code to production implementations. OWA is actively maintaining OWA-EPANET, a community-supported branch of USEPA EPANET, since May 2014. The full list of individuals contributing to this project can be found [here](https://github.com/OpenWaterAnalytics/EPANET/blob/dev/AUTHORS).
 
 ## DISCLAIMER
-Although OWA is not formally affiliated with nor endorsed by USEPA, this project has been a collaborative effort between the two that builds upon and extends the USEPA’s legacy EPANET 2.0 code base. For the last "official" release of EPANET please go to the [USEPA website](http://www2.epa.gov/water-research/epanet).
+Although OWA is not formally affiliated with nor endorsed by USEPA, this project has been a collaborative effort between the two that builds upon and extends the USEPA’s legacy EPANET 2.0 code base. For the last "official" release of EPANET please go to the [USEPA website](https://www.epa.gov/water-research/epanet).
