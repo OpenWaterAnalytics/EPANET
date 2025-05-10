@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       util/filemanager.h
  Description:  Provides a simple interface for managing files
  Authors:      see AUTHORS
