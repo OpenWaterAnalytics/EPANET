@@ -32,4 +32,6 @@ Everyone is welcome to participate in this project. Whether you are helping othe
 The **Open Water Analytics** (OWA) Community is an international group of EPANET developers and users, whose objective is to provide group interaction and coordinated development of the EPANET codebase, to ensure that important new user interface and algorithmic features are identified and that these features progress efficiently from prototype code to production implementations. OWA is actively maintaining OWA-EPANET, a community-supported branch of USEPA EPANET, since May 2014. The full list of individuals contributing to this project can be found [here](https://github.com/OpenWaterAnalytics/EPANET/blob/dev/AUTHORS).
 
 ## DISCLAIMER
-Although OWA is not formally affiliated with nor endorsed by USEPA, this project has been a collaborative effort between the two that builds upon and extends the USEPA’s legacy EPANET 2.0 code base. For the last "official" release of EPANET please go to the [USEPA website](http://www2.epa.gov/water-research/epanet).
+Although OWA is not formally affiliated with nor endorsed by USEPA, this project has been a collaborative effort between the two that builds upon and extends the USEPA’s legacy EPANET 2.0 code base. For the last "official" release of EPANET please go to the [USEPA website](https://www.epa.gov/water-research/epanet).
+
+For more general community discussion of the project, please go to [OWA Discussions](https://github.com/orgs/OpenWaterAnalytics/discussions).
