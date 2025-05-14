@@ -3,9 +3,6 @@ OWA-EPANET
 
 ## Build Status
 [![Build status](https://ci.appveyor.com/api/projects/status/19wpg4g2cmj3oihl?svg=true)](https://ci.appveyor.com/project/OpenWaterAnalytics/epanet)
-
-[![codecov](https://codecov.io/gh/OpenWaterAnalytics/EPANET/branch/master/graph/badge.svg)](https://codecov.io/gh/OpenWaterAnalytics/EPANET)
-
 [![linux](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/ccpp.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/ccpp.yml)
 [![macos](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/macos.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/macos.yml)
 [![epanet2-win32](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win32.yml/badge.svg)](https://github.com/OpenWaterAnalytics/EPANET/actions/workflows/win32.yml)
@@ -21,7 +18,7 @@ Instructions for building the OWA-EPANET Toolkit's function library as well as i
 
 ## USAGE
 
-See the [full documentation](http://wateranalytics.org/EPANET/) of the OWA-EPANET API, along with examples of how to use the toolkit for water distribution system analysis. Additional information may be found on this project's [Wiki](https://github.com/openwateranalytics/epanet/wiki).
+See the [full documentation](http://wateranalytics.org/EPANET/) of the OWA-EPANET API, along with examples of how to use the toolkit for water distribution system analysis. Additional information may be found on this project's [Wiki](https://github.com/OpenWaterAnalytics/EPANET/wiki).
 
 ## CONTRIBUTING
 
