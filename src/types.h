@@ -315,6 +315,11 @@ typedef enum {
   PDA            // pressure driven analysis
 } DemandModelType;
 
+typedef enum {
+  LEGACY,        // OR goes first, AND goes later
+  STANDARD       // AND goes first, OR goes later
+} OpPrecType;
+
 /*
 ------------------------------------------------------
    Fundamental Data Structures
@@ -907,7 +912,8 @@ typedef struct Project {
 
   int
     Openflag,                    // Project open flag
-    Warnflag;                    // Warning flag
+    Warnflag,                    // Warning flag
+    OpPrec;                      // Operator precedence flag
 
   char
     Msg[MAXMSG+1],               // General-purpose string: errors, messages

@@ -26,6 +26,7 @@ extern char *MixTxt[];
 extern char *Fldname[];
 extern char *DemandModelTxt[];
 extern char *BackflowTxt[];
+extern char *OpPrecTxt[];
 extern char *CurveTypeTxt[];
 
 // Imported Functions
@@ -1895,6 +1896,7 @@ int optionchoice(Project *pr, int n)
 **    PATTERN             id
 **    DEMAND MODEL        DDA/PDA
 **    BACKFLOW ALLOWED    YES/NO
+**    OPERATOR PRECEDENCE LEGACY/STANDARD
 **--------------------------------------------------------------
 */
 {
@@ -2026,6 +2028,16 @@ int optionchoice(Project *pr, int n)
         choice = findmatch(parser->Tok[2], BackflowTxt);
         if (choice < 0) return setError(parser, 2, 213);
         hyd->EmitBackFlag = choice;
+    }
+
+    // Rule OPERATOR PRECEDENCE
+    else if (match(parser->Tok[0], w_OPERATOR))
+    {
+        if (n < 2) return 0;
+        if (!match(parser->Tok[1], w_PRECEDENCE)) return -1;
+        choice = findmatch(parser->Tok[2], OpPrecTxt);
+        if (choice < 0) return setError(parser, 2, 213);
+        pr->OpPrec = choice;
     }
 
     // Return -1 if keyword did not match any option

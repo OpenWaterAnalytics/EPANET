@@ -117,6 +117,10 @@ char *RptFlagTxt[]      = {w_NO,
 char *BackflowTxt[]     = {w_NO,
                            w_YES,
                            NULL};
+
+char *OpPrecTxt[]       = {w_LEGACY,
+                           w_STANDARD,
+                           NULL};
                            
 char *CurveTypeTxt[]    = {c_VOLUME,
                            c_PUMP,

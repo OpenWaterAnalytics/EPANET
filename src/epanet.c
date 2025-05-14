@@ -139,6 +139,7 @@ int DLLEXPORT EN_init(EN_Project p, const char *rptFile, const char *outFile,
     p->outfile.SaveHflag = FALSE;
     p->outfile.SaveQflag = FALSE;
     p->Warnflag = FALSE;
+    p->OpPrec = LEGACY;
     p->report.Messageflag = TRUE;
     p->report.Rptflag = 1;
 
@@ -1433,6 +1434,12 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         i = ROUND(value);
         if (i < EN_NO_REPORT || i > EN_FULL_REPORT) return 213;
         p->report.Statflag = i;
+        break;
+
+    case EN_RULE_OP_PREC:
+        i = ROUND(value);
+        if (i < EN_R_PREC_LEGACY || i > EN_R_PREC_STANDARD) return 213;
+        p->OpPrec = i;
         break;
 
     default:

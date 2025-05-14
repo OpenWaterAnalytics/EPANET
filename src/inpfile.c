@@ -750,6 +750,15 @@ int saveinpfile(Project *pr, const char *fname)
         fprintf(f, "\n REQUIRED PRESSURE   %-.4f", hyd->Preq * pr->Ucf[PRESSURE]);
         fprintf(f, "\n PRESSURE EXPONENT   %-.4f", hyd->Pexp);
     }
+    switch (pr->OpPrec)
+    {
+        case LEGACY:
+            fprintf(f, "\n OPERATOR PRECEDENCE LEGACY");
+            break;
+        case STANDARD:
+            fprintf(f, "\n OPERATOR PRECEDENCE STANDARD");
+            break;
+    }
 
     // Write [REPORT] section
     fprintf(f, "\n\n");

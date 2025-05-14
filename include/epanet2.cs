@@ -270,6 +270,9 @@ namespace EpanetCSharpLibrary
         public const int EN_R_BELOW = 8;
         public const int EN_R_ABOVE = 9;
 
+        public const int EN_R_PREC_LEGACY   = 0;    //Rule operator precedence
+        public const int EN_R_PREC_STANDARD = 1;
+
         public const int EN_R_IS_OPEN   = 1;   //Rule status types
         public const int EN_R_IS_CLOSED = 2;
         public const int EN_R_IS_ACTIVE = 3;

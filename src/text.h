@@ -131,6 +131,10 @@
 #define   w_EMITTER     "EMIT"
 #define   w_BACKFLOW    "BACK"
 #define   w_ALLOWED     "ALLOW"
+#define   w_OPERATOR    "OPER"
+#define   w_PRECEDENCE  "PREC"
+#define   w_LEGACY      "LEGA"
+#define   w_STANDARD    "STAND"
 
 #define   w_PRICE       "PRICE"
 #define   w_DMNDCHARGE  "DEMAN"

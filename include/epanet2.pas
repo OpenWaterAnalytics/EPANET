@@ -273,7 +273,10 @@ const
  EN_R_IS        = 6;
  EN_R_NOT       = 7;
  EN_R_BELOW     = 8;
- EN_R_ABOVE     = 9; 
+ EN_R_ABOVE     = 9;
+
+ EN_R_PREC_LEGACY   = 0;   { Rule-based control operator precedence }
+ EN_R_PREC_STANDARD = 1;
  
  EN_R_IS_OPEN   = 1;   { Rule-based control link status }
  EN_R_IS_CLOSED = 2;

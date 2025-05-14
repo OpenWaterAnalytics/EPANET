@@ -359,7 +359,8 @@ typedef enum {
   EN_DEMANDPATTERN  = 23, //!< Name of default demand pattern
   EN_EMITBACKFLOW   = 24, //!< 1 if emitters can backflow, 0 if not
   EN_PRESS_UNITS    = 25, //!< Pressure units (see @ref EN_PressUnits)
-  EN_STATUS_REPORT  = 26  //!< Type of status report to produce (see @ref EN_StatusReport)
+  EN_STATUS_REPORT  = 26, //!< Type of status report to produce (see @ref EN_StatusReport)
+  EN_RULE_OP_PREC   = 27  //!< Precedence between AND/OR in rules
 } EN_Option;
 
 /// Simple control types
@@ -500,6 +501,12 @@ typedef enum {
   EN_R_BELOW     = 8,   //!< Is below
   EN_R_ABOVE     = 9    //!< Is above
 } EN_RuleOperator;
+
+/// Operator precedence used in rule-based controls
+typedef enum {
+  EN_R_PREC_LEGACY = 0,   //!< OR goes first, AND goes later
+  EN_R_PREC_STANDARD = 1  //!< AND goes first, OR goes later
+} EN_RuleOpPrec;
 
 /// Link status codes used in rule-based controls
 typedef enum {

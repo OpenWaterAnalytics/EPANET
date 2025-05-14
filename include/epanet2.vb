@@ -261,6 +261,9 @@ Public Const EN_R_NOT   = 7
 Public Const EN_R_BELOW = 8
 Public Const EN_R_ABOVE = 9
 
+Public Const EN_R_PREC_LEGACY   = 0;   ' Rule operator precedence
+Public Const EN_R_PREC_STANDARD = 1;
+
 Public Const EN_R_IS_OPEN   = 1   ' Rule status types
 Public Const EN_R_IS_CLOSED = 2
 Public Const EN_R_IS_ACTIVE = 3
