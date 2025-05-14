@@ -507,7 +507,7 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
 **   Input:   i = node index
 **   Output:  hloss = head loss across node's emitter
 **            hgrad = head loss gradient
-**   Purpose: computes an emitters's head loss and gradient.
+**   Purpose: computes an emitter's head loss and gradient.
 **-------------------------------------------------------------
 */
 {

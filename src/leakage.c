@@ -141,7 +141,7 @@ void convert_pipe_to_node_leakage(Project *pr)
 **   Input:   none
 **   Output:  none
 **   Purpose: converts pipe leakage parameters into node leakage
-**            coefficents.
+**            coefficients.
 **-------------------------------------------------------------
 */
 {

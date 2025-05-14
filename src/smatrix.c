@@ -651,7 +651,7 @@ int  sortsparse(Smatrix *sm, int n)
 /*
 **--------------------------------------------------------------
 ** Input:   n = number of rows in solution matrix
-** Output:  returns eror code
+** Output:  returns error code
 ** Purpose: puts row indexes in ascending order in NZSUB
 **--------------------------------------------------------------
 */
@@ -834,7 +834,7 @@ int  linsolve(Smatrix *sm, int n)
       }
    }      // next j
 
-   // Foward substitution
+   // Forward substitution
    for (j = 1; j <= n; j++)
    {
       bj = B[j]/Aii[j];

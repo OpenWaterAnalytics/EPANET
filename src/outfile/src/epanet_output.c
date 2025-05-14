@@ -122,7 +122,7 @@ int EXPORT_OUT_API ENR_close(ENR_Handle *p_handle)
  **
  **  Returns:  Error code 0 on success, -1 on failure
  **
- **  Purpose:  Close the output binary file, dellocate ENR_Handle struc
+ **  Purpose:  Close the output binary file, deallocate ENR_Handle struct
  **            and nullify pointer to ENR_Handle struct
  **
  **  NOTE: ENR_close must be called before program end
@@ -161,7 +161,7 @@ int EXPORT_OUT_API ENR_open(ENR_Handle p_handle, const char* path)
  **  Returns:  warning / error code
  **  Purpose:  Opens the output binary file and reads prologue and epilogue
  **
- **  NOTE: ENR_init must be called before anyother ENR_* functions
+ **  NOTE: ENR_init must be called before any other ENR_* functions
  **-------------------------------------------------------------------------
  */
 {

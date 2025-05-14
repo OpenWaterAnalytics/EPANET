@@ -247,7 +247,7 @@ double  findnodequal(Project *pr, int n, double volin,
         return qual->NodeQual[n];
     }
 
-    // Find quality contribued by any external chemical source
+    // Find quality contributed by any external chemical source
     else qual->SourceQual = findsourcequal(pr, n, volout, tstep);
     if (qual->SourceQual == 0.0) return qual->NodeQual[n];
 

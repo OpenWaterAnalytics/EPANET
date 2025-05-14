@@ -39,7 +39,7 @@ extern char *CurveTypeTxt[];
 void saveauxdata(Project *pr, FILE *f)
 /*
 ------------------------------------------------------------
-  Writes auxilary data from original input file to new file.
+  Writes auxiliary data from original input file to new file.
 ------------------------------------------------------------
 */
 {
@@ -84,7 +84,7 @@ void saveauxdata(Project *pr, FILE *f)
             }
         }
 
-        // Write line of auxilary data to file
+        // Write line of auxiliary data to file
         else
         {
             switch (sect)
@@ -873,7 +873,7 @@ int saveinpfile(Project *pr, const char *fname)
         }
     }
 
-    // Save auxilary data to new input file
+    // Save auxiliary data to new input file
     fprintf(f, "\n");
     saveauxdata(pr, f);
 

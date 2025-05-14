@@ -588,8 +588,8 @@ int linkoutput(Project *pr, int j, REAL4 *x, double ucf)
 
       case FRICTION:  // Friction factor
         // f = 2ghd/(Lu^2) where f = friction factor
-        // u = velocity, g = grav. accel., h = head loss
-        //loss, d = diam., & L = pipe length
+        // u = velocity, g = grav. accel., h = head
+        // loss, d = diam., & L = pipe length
         for (i = 1; i <= net->Nlinks; i++)
         {
             if (net->Link[i].Type <= PIPE && ABS(hyd->LinkFlow[i]) > TINY)
