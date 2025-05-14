@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       util/errormanager.h
  Description:  Provides a simple interface for managing errors
  Authors:      see AUTHORS
