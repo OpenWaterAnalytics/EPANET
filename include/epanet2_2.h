@@ -754,7 +754,7 @@ typedef struct Project *EN_Project;
   int  DLLEXPORT EN_getoption(EN_Project ph, int option, double *out_value);
 
   /**
-  @brief Sets the value for an anlysis option.
+  @brief Sets the value for an analysis option.
   @param ph an EPANET project handle.
   @param option a type of analysis option (see @ref EN_Option).
   @param value the new value assigned to the option.

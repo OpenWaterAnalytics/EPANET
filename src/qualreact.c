@@ -232,7 +232,7 @@ double piperate(Project *pr, int k)
     }
 
     // Compute Reynolds No.
-    // Flow rate made consistent with how its saved to hydraulics file
+    // Flow rate made consistent with how it's saved to hydraulics file
     q = (hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlow[k];
     a = PI * d * d / 4.0;         // pipe area
     u = fabs(q) / a;              // flow velocity
@@ -772,7 +772,7 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
             vsum += vseg;
             wsum += (seg->c) * vseg;
 
-            // ... update remiaing volume to remove
+            // ... update remaining volume to remove
             vnet -= vseg;
 
             // ... if no more volume left in current segment

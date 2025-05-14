@@ -466,7 +466,7 @@ void writemassbalance(Project *pr)
 **   Input:   none
 **   Output:  none
 **   Purpose: writes water quality mass balance ratio
-**            (Outflow + Final Storage) / Inflow + Initial Storage)
+**            (Outflow + Final Storage) / Inflow + Initial Storage
 **            to report file.
 **-------------------------------------------------------------
 */

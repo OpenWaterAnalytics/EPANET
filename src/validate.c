@@ -162,7 +162,7 @@ int powerfuncpump(double h0, double h1, double h2, double q1, double q2,
 **           q1 = design flow
 **           q2 = max. flow
 **  Output:  *a, *b, *c = pump curve coeffs. (H = a-bQ^c),
-**           Returns 1 if sucessful, 0 otherwise.
+**           Returns 1 if successful, 0 otherwise.
 **  Purpose: computes coeffs. for a power function pump curve
 **----------------------------------------------------------
 */

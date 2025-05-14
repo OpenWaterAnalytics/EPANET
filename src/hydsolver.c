@@ -178,7 +178,7 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
             nextcheck = *iter + hyd->CheckFreq;
         }
 
-        // No convergence yet - see if its time for a periodic status
+        // No convergence yet - see if it's time for a periodic status
         // check  on pumps, CV's, and pipes connected to tank
         else if (*iter <= hyd->MaxCheck && *iter == nextcheck)
         {

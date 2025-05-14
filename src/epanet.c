@@ -1019,7 +1019,7 @@ int DLLEXPORT EN_getversion(int *version)
 
 int DLLEXPORT EN_geterror(int errcode, char *errmsg, int maxLen)
 /*----------------------------------------------------------------
-**  Input:   errcode = an error or warnng code
+**  Input:   errcode = an error or warning code
 **           maxLen = maximum characters that errmsg can hold
 **  Output:  errmsg = text of error/warning message
 **  Returns: error code
@@ -1283,7 +1283,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     // All other option values must be non-negative
     if (value < 0.0) return 213;
 
-    // Process the speficied option
+    // Process the specified option
     switch (option)
     {
     case EN_TRIALS:
@@ -1920,7 +1920,7 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
     // Check for valid node type
     if (nodeType < EN_JUNCTION || nodeType > EN_TANK) return 251;
 
-    // Grow node-related arrays to accomodate the new node
+    // Grow node-related arrays to accommodate the new node
     size = (net->Nnodes + 2) * sizeof(Snode);
     net->Node = (Snode *)realloc(net->Node, size);
     size = (net->Nnodes + 2) * sizeof(double);
@@ -3345,7 +3345,7 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
         if (errcode) return errcode;
     }
 
-    // Grow link-related arrays to accomodate the new link
+    // Grow link-related arrays to accommodate the new link
     net->Nlinks++;
     p->parser.MaxLinks = net->Nlinks;
     n = net->Nlinks;
@@ -3364,7 +3364,7 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     if (linkType <= PIPE) net->Npipes++;
     else if (linkType == PUMP)
     {
-        // Grow pump array to accomodate the new link
+        // Grow pump array to accommodate the new link
         net->Npumps++;
         size = (net->Npumps + 1) * sizeof(Spump);
         net->Pump = (Spump *)realloc(net->Pump, size);
@@ -3386,7 +3386,7 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     }
     else
     {
-        // Grow valve array to accomodate the new link
+        // Grow valve array to accommodate the new link
         net->Nvalves++;
         size = (net->Nvalves + 1) * sizeof(Svalve);
         net->Valve = (Svalve *)realloc(net->Valve, size);
@@ -5703,7 +5703,7 @@ int DLLEXPORT EN_setpremisestatus(EN_Project p, int ruleIndex, int premiseIndex,
 **  Input:   ruleIndex = rule index
 **           premiseIndex = premise index
 **           status = object status being tested against
-**                    (see EN_RuleStatus))
+**                    (see EN_RuleStatus)
 **  Output:  none
 **  Returns: error code
 **  Purpose: sets the status of an object being tested against
@@ -5755,7 +5755,7 @@ int DLLEXPORT EN_getthenaction(EN_Project p, int ruleIndex, int actionIndex,
 **  Input:   ruleIndex = rule index
 **           actionIndex = index of a rule's THEN actions
 **  Output:  linkIndex = index of link appearing in the action
-**           status = status assigned to the link (see EN_RuleStatus))
+**           status = status assigned to the link (see EN_RuleStatus)
 **           setting = setting assigned to the link
 **  Returns: error code
 **  Purpose: retrieves the properties of a rule's THEN action
@@ -5783,7 +5783,7 @@ int DLLEXPORT EN_setthenaction(EN_Project p, int ruleIndex, int actionIndex,
 **  Input:   ruleIndex = rule index
 **           actionIndex = index of a rule's THEN actions
 **           linkIndex = index of link appearing in the action
-**           status = status assigned to the link (see EN_RuleStatus))
+**           status = status assigned to the link (see EN_RuleStatus)
 **           setting = setting assigned to the link
 **  Returns: error code
 **  Purpose: sets the properties of a rule's THEN action
@@ -5811,7 +5811,7 @@ int DLLEXPORT EN_getelseaction(EN_Project p, int ruleIndex, int actionIndex,
 **  Input:   ruleIndex = rule index
 **           actionIndex = index of a rule's ELSE actions
 **  Output:  linkIndex = index of link appearing in the action
-**           status = status assigned to the link (see EN_RuleStatus))
+**           status = status assigned to the link (see EN_RuleStatus)
 **           setting = setting assigned to the link
 **  Returns: error code
 **  Purpose: retrieves the properties of a rule's ELSE action
@@ -5839,7 +5839,7 @@ int DLLEXPORT EN_setelseaction(EN_Project p, int ruleIndex, int actionIndex,
 **  Input:   ruleIndex = rule index
 **           actionIndex = index of a rule's ELSE actions
 **           linkIndex = index of link appearing in the action
-**           status = status assigned to the link (see EN_RuleStatus))
+**           status = status assigned to the link (see EN_RuleStatus)
 **           setting = setting assigned to the link
 **  Returns: error code
 **  Purpose: sets the properties of a rule's ELSE action
