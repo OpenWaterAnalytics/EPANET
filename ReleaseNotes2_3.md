@@ -14,12 +14,12 @@ This document describes the changes and updates that have been made in version 2
    - `EN_LEAK_AREA` and `EN_LEAK_EXPAN` can be used with the functions `EN_getlinkvalue` and `EN_setlinkvalue` to retrieve and assign values for a pipe's leak area and expansion properties.
    - `EN_LINK_LEAKAGE` can be used with `EN_getlinkvalue` to retrieve a pipe's leakage rate at a given point in time.
    - `EN_LEAKAGEFLOW` can be used with `EN_getnodevalue` to retrieve the leakage demand generated at a node from all its connecting pipes at a given point in time.
-   - `EN_LEAKAGELOSS` can be used with `EN_getstatistic` to retrieve the the total leakage loss in the system at a given point in time as a percentage of total flow entering the system.
+   - `EN_LEAKAGELOSS` can be used with `EN_getstatistic` to retrieve the total leakage loss in the system at a given point in time as a percentage of total flow entering the system.
 
  - Support has been added for reading the `[TAGS]` section of an EPANET input file. In addition:
    - A newly added `EN_settag` function will assign a Tag to a node or link.
    - A newly added `EN_gettag` function will retrieve a node or link's Tag.
-   - The exisitng `EN_saveinpfile` will include saving all node and link tags to file.
+   - The existing `EN_saveinpfile` will include saving all node and link tags to file.
  - A new Flow Balance Report has been added to end of a simulation run's Status Report that lists the various components of the system's total inflow and outflow over the simulation period. It also displays the ratio of outflow to inflow as a check on flow continuity.
 
  - A new type of valve, a Positional Control Valve (PCV), was added. It uses a valve characteristic curve to relate its loss coefficient to a percentage open setting (parameter - `EN_PCV`).
