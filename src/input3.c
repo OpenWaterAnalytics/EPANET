@@ -530,6 +530,7 @@ int pumpdata(Project *pr)
         {
             c = findcurve(net, parser->Tok[m]);
             if (c == 0) return setError(parser, m, 206);
+			pump->Ptype = CUSTOM;
             pump->Hcurve = c;
         }
         else if (match(parser->Tok[m - 1], w_PATTERN))  // Speed/status pattern
