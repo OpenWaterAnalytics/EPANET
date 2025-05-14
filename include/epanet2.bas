@@ -220,7 +220,7 @@ Public Const EN_INITFLOW = 10     ' Re-initialize flow flag
 Public Const EN_SAVE_AND_INIT = 11
 
 Public Const EN_CONST_HP = 0      ' Constant horsepower pump curve
-Public Const EN_POWER_FUNC = 1    ' Power function pump cuve
+Public Const EN_POWER_FUNC = 1    ' Power function pump curve
 Public Const EN_CUSTOM = 2        ' User-defined custom pump curve
 Public Const EN_NOCURVE = 3       ' No pump curve
 

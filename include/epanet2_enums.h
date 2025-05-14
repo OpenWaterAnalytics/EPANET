@@ -447,7 +447,7 @@ should be taken if the node or link being deleted appears in any simple or rule-
 controls or if a deleted node has any links connected to it.
 */
 typedef enum {
-  EN_UNCONDITIONAL = 0, //!< Delete all controls and connecing links
+  EN_UNCONDITIONAL = 0, //!< Delete all controls and connecting links
   EN_CONDITIONAL   = 1  //!< Cancel object deletion if it appears in controls or has connecting links
 } EN_ActionCodeType;
 

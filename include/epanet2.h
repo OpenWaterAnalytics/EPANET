@@ -18,7 +18,7 @@ set of thread safe API functions that allows one to run concurrent analyses on
 multiple EPANET projects can be found in the epanet2_2.h header file. The two
 APIs share the same function names and arguments with the difference being that
 the thread safe functions use the prefix "EN_" and include an extra argument that
-represents the EPANET project being analyzed. To avoid unneccesary repetition,
+represents the EPANET project being analyzed. To avoid unnecessary repetition,
 only the thread safe API functions have been documented. To see a description of
 a legacy style API function declared here please refer to its complementary named
 function in epanet2_2.h.
