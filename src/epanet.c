@@ -5703,7 +5703,7 @@ int DLLEXPORT EN_setpremisestatus(EN_Project p, int ruleIndex, int premiseIndex,
 **  Input:   ruleIndex = rule index
 **           premiseIndex = premise index
 **           status = object status being tested against
-**                    (see EN_RuleStatus))
+**                    (see EN_RuleStatus)
 **  Output:  none
 **  Returns: error code
 **  Purpose: sets the status of an object being tested against
@@ -5755,7 +5755,7 @@ int DLLEXPORT EN_getthenaction(EN_Project p, int ruleIndex, int actionIndex,
 **  Input:   ruleIndex = rule index
 **           actionIndex = index of a rule's THEN actions
 **  Output:  linkIndex = index of link appearing in the action
-**           status = status assigned to the link (see EN_RuleStatus))
+**           status = status assigned to the link (see EN_RuleStatus)
 **           setting = setting assigned to the link
 **  Returns: error code
 **  Purpose: retrieves the properties of a rule's THEN action
@@ -5783,7 +5783,7 @@ int DLLEXPORT EN_setthenaction(EN_Project p, int ruleIndex, int actionIndex,
 **  Input:   ruleIndex = rule index
 **           actionIndex = index of a rule's THEN actions
 **           linkIndex = index of link appearing in the action
-**           status = status assigned to the link (see EN_RuleStatus))
+**           status = status assigned to the link (see EN_RuleStatus)
 **           setting = setting assigned to the link
 **  Returns: error code
 **  Purpose: sets the properties of a rule's THEN action
@@ -5811,7 +5811,7 @@ int DLLEXPORT EN_getelseaction(EN_Project p, int ruleIndex, int actionIndex,
 **  Input:   ruleIndex = rule index
 **           actionIndex = index of a rule's ELSE actions
 **  Output:  linkIndex = index of link appearing in the action
-**           status = status assigned to the link (see EN_RuleStatus))
+**           status = status assigned to the link (see EN_RuleStatus)
 **           setting = setting assigned to the link
 **  Returns: error code
 **  Purpose: retrieves the properties of a rule's ELSE action
@@ -5839,7 +5839,7 @@ int DLLEXPORT EN_setelseaction(EN_Project p, int ruleIndex, int actionIndex,
 **  Input:   ruleIndex = rule index
 **           actionIndex = index of a rule's ELSE actions
 **           linkIndex = index of link appearing in the action
-**           status = status assigned to the link (see EN_RuleStatus))
+**           status = status assigned to the link (see EN_RuleStatus)
 **           setting = setting assigned to the link
 **  Returns: error code
 **  Purpose: sets the properties of a rule's ELSE action
