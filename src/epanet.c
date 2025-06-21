@@ -1825,7 +1825,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
     Quality *qual = &p->quality;
 
     double *Ucf = p->Ucf;
-    int i, oldQualFlag, traceNodeIndex;
+    int i, oldQualFlag, traceNodeIndex = 0;
     double ccf = 1.0;
 
     if (!p->Openflag) return 102;
@@ -1837,6 +1837,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
         if (traceNodeIndex == 0) return 212;
     }
 
+    qual->TraceNode = traceNodeIndex;
     oldQualFlag = qual->Qualflag;
     qual->Qualflag = qualType;
     qual->Ctol *= Ucf[QUALITY];
@@ -1851,8 +1852,6 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
     }
     if (qual->Qualflag == TRACE) // Source trace analysis
     {
-        qual->TraceNode = findnode(net, traceNode);
-        if (qual->TraceNode == 0) return 212;
         strncpy(qual->ChemName, w_TRACE, MAXID);
         strncpy(qual->ChemUnits, u_PERCENT, MAXID);
         strcpy(rpt->Field[QUALITY].Units, u_PERCENT);
@@ -2086,6 +2085,7 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
         // ... update node's entry in the hash table
         hashtable_update(net->NodeHashTable, net->Node[i].ID, i);
     }
+    if (index < p->quality.TraceNode) (p->quality.TraceNode)--;
 
     // If deleted node is a tank, remove it from the Tank array
     if (nodeType != EN_JUNCTION)
