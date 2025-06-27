@@ -307,10 +307,10 @@ double findlinkleakage(Project *pr, int i)
         hsqrt = sqrt(h2);    
         q2 = c * (a + m * h2) * hsqrt;
     }
-    
+
     // Adjust leakage flows to account for one node being fixed grade
-    if (q2 == 0.0) q1 *= 2.0;
-    if (q1 == 0.0) q2 *= 2.0;
+    if (n2 > net->Njuncs) q1 *= 2.0;
+    if (n1 > net->Njuncs) q2 *= 2.0;
     return q1 + q2;
 }    
 
