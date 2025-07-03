@@ -103,7 +103,7 @@ void setdefaults(Project *pr)
     pr->Warnflag = FALSE;       // Warning flag is off
     parser->Unitsflag = US;     // US unit system
     parser->Flowflag = GPM;     // Flow units are gpm
-    parser->Pressflag = PSI;    // Pressure units are psi
+    parser->Pressflag = UNITDEFAULT; // Pressure units set based on unit system
     out->Hydflag = SCRATCH;     // No external hydraulics file
     rpt->Tstatflag = SERIES;    // Generate time series output
 
@@ -269,8 +269,11 @@ void adjustdata(Project *pr)
     }
 
     // Revise pressure units depending on flow units
-    if (parser->Unitsflag != SI) parser->Pressflag = PSI;
-    else if (parser->Pressflag == PSI) parser->Pressflag = METERS;
+    if (parser->Pressflag == UNITDEFAULT)
+    {
+        if (parser->Unitsflag == SI) parser->Pressflag = METERS;
+        else parser->Pressflag = PSI;
+    }
     
     // Store value of viscosity & diffusivity
     ucf = 1.0;
@@ -404,8 +407,6 @@ void initunits(Project *pr)
         strcpy(rpt->Field[DEMAND].Units, RptFlowUnitsTxt[parser->Flowflag]);
         strcpy(rpt->Field[ELEV].Units, u_METERS);
         strcpy(rpt->Field[HEAD].Units, u_METERS);
-        if (parser->Pressflag == METERS) strcpy(rpt->Field[PRESSURE].Units, u_METERS);
-        else                             strcpy(rpt->Field[PRESSURE].Units, u_KPA);
         strcpy(rpt->Field[LENGTH].Units, u_METERS);
         strcpy(rpt->Field[DIAM].Units, u_MMETERS);
         strcpy(rpt->Field[FLOW].Units, RptFlowUnitsTxt[parser->Flowflag]);
@@ -423,8 +424,6 @@ void initunits(Project *pr)
         if (parser->Flowflag == CMS) qcf = CMSperCFS;
 
         hcf = MperFT;
-        if (parser->Pressflag == METERS) pcf = MperFT * hyd->SpGrav;
-        else pcf = KPAperPSI * PSIperFT * hyd->SpGrav;
         wcf = KWperHP;
     }
     else  // US units
@@ -448,9 +447,16 @@ void initunits(Project *pr)
         if (parser->Flowflag == IMGD) qcf = IMGDperCFS;
         if (parser->Flowflag == AFD)  qcf = AFDperCFS;
         hcf = 1.0;
-        pcf = PSIperFT * hyd->SpGrav;
         wcf = 1.0;
     }
+
+    if (parser->Pressflag == METERS)   strcpy(rpt->Field[PRESSURE].Units, u_METERS);
+    else if (parser->Pressflag == KPA) strcpy(rpt->Field[PRESSURE].Units, u_KPA);
+    else                               strcpy(rpt->Field[PRESSURE].Units, u_PSI);
+
+    if (parser->Pressflag == METERS) pcf = MperFT * hyd->SpGrav;
+    else if (parser->Pressflag == KPA) pcf = KPAperPSI * PSIperFT * hyd->SpGrav;
+    else pcf = PSIperFT * hyd->SpGrav;
 
     strcpy(rpt->Field[QUALITY].Units, "");
     ccf = 1.0;

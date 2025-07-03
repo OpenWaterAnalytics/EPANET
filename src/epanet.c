@@ -1411,8 +1411,6 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     case EN_PRESS_UNITS:
         unit = ROUND(value);
         if (unit < 0 || unit > METERS) return 205;
-        if (p->parser.Unitsflag == US && unit > PSI) return 0;
-        if (p->parser.Unitsflag == SI && unit == PSI) return 0;
         p->parser.Pressflag = unit;
 
         dfactor = Ucf[DEMAND];
