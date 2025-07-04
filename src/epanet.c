@@ -1410,7 +1410,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
 
     case EN_PRESS_UNITS:
         unit = ROUND(value);
-        if (unit < 0 || unit > METERS) return 205;
+        if (unit < 0 || unit > FEET) return 205;
         p->parser.Pressflag = unit;
 
         dfactor = Ucf[DEMAND];
@@ -1465,7 +1465,7 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
 {
     Network *net = &p->network;
 
-    int i, j;
+    int i, j, oldUnitFlag;
     double qfactor, vfactor, hfactor, efactor, pfactor, dfactor, xfactor, yfactor;
     double dcf, pcf, hcf, qcf;
     double *Ucf = p->Ucf;
@@ -1480,6 +1480,7 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
     pfactor = Ucf[PRESSURE];
     dfactor = Ucf[DEMAND];
 
+    oldUnitFlag = p->parser.Unitsflag;
     p->parser.Flowflag = units;
     switch (units)
     {
@@ -1497,8 +1498,11 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
     }
 
     // Revise pressure units depending on flow units
-    if (p->parser.Unitsflag != SI) p->parser.Pressflag = PSI;
-    else if (p->parser.Pressflag == PSI) p->parser.Pressflag = METERS;
+    if (oldUnitFlag != p->parser.Unitsflag)
+    {
+        if (p->parser.Unitsflag == US) p->parser.Pressflag = PSI;
+        else p->parser.Pressflag = METERS;
+    }
     initunits(p);
 
     // Update pressure units in rules
@@ -2233,8 +2237,10 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
     Network *net = &p->network;
     Hydraul *hyd = &p->hydraul;
     Quality *qual = &p->quality;
+    Parser  *parser = &p->parser;
 
     double v = 0.0;
+    double ecfTmp; // Unit conversion factor for emitter pressure
     Psource source;
 
     Snode *Node = net->Node;
@@ -2279,7 +2285,9 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         v = 0.0;
         if (Node[index].Ke > 0.0)
         {
-            v = Ucf[FLOW] / pow((Ucf[PRESSURE] * Node[index].Ke), (1.0 / hyd->Qexp));
+            ecfTmp = (parser->Unitsflag == US) ? (1.0 / PSIperFT) : (1.0 / MperFT);
+            ecfTmp /= hyd->SpGrav;
+            v = Ucf[FLOW] / pow((ecfTmp * Node[index].Ke), (1.0 / hyd->Qexp));
         }
         break;
 
@@ -2468,6 +2476,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     Network *net = &p->network;
     Hydraul *hyd = &p->hydraul;
     Quality *qual = &p->quality;
+    Parser  *parser = &p->parser;
 
     Snode *Node = net->Node;
     Stank *Tank = net->Tank;
@@ -2481,7 +2490,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
 
     int i, j, n;
     Psource source;
-    double hTmp;
+    double hTmp, ecfTmp;
 
     if (!p->Openflag) return 102;
     if (index <= 0 || index > nNodes) return 203;
@@ -2523,7 +2532,12 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     case EN_EMITTER:
         if (index > nJuncs) return 0;
         if (value < 0.0) return 209;
-        if (value > 0.0) value = pow((Ucf[FLOW] / value), hyd->Qexp) / Ucf[PRESSURE];
+        if (value > 0.0)
+        {
+            ecfTmp = (parser->Unitsflag == US) ? (1.0 / PSIperFT) : (1.0 / MperFT);
+            ecfTmp /= hyd->SpGrav;
+            value = pow((Ucf[FLOW] / value), hyd->Qexp) / ecfTmp;
+        }
         Node[index].Ke = value;
         if (hyd->EmitterFlow[index] == 0.0) hyd->EmitterFlow[index] = 1.0;
         break;

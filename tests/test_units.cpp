@@ -312,10 +312,10 @@ BOOST_FIXTURE_TEST_CASE(test_decoupled_pressure_units, FixtureInitClose)
     error = EN_setflowunits(ph, EN_LPS);
     BOOST_REQUIRE(error == 0);
 
-    // Pressure units should remain kPa (not auto-changed to meters)
+    // Pressure units should change to metric default of meters
     error = EN_getoption(ph, EN_PRESS_UNITS, &units);
     BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(units == EN_KPA);
+    BOOST_CHECK(units == EN_METERS);
 
     // Test 5: With SI flow units, set pressure to PSI (should now work)
     error = EN_setoption(ph, EN_PRESS_UNITS, EN_PSI);

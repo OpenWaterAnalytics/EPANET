@@ -90,6 +90,8 @@
 #define   w_PSI         "PSI"
 #define   w_KPA         "KPA"
 #define   w_METERS      "METERS"
+#define   w_BAR         "BAR"
+#define   w_FEET        "FEET"
 
 #define   w_ELEV        "ELEV"
 #define   w_DEMAND      "DEMAND"

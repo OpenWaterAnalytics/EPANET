@@ -1926,6 +1926,8 @@ int optionchoice(Project *pr, int n)
         else if (match(parser->Tok[1], w_PSI))    parser->Pressflag = PSI;
         else if (match(parser->Tok[1], w_KPA))    parser->Pressflag = KPA;
         else if (match(parser->Tok[1], w_METERS)) parser->Pressflag = METERS;
+        else if (match(parser->Tok[1], w_BAR))    parser->Pressflag = BAR;
+        else if (match(parser->Tok[1], w_FEET))   parser->Pressflag = FEET;
         else return setError(parser, 1, 213);
     }
 

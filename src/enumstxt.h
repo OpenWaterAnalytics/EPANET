@@ -76,7 +76,9 @@ char *FlowUnitsTxt[]    = {w_CFS,
 
 char *PressUnitsTxt[]   = {w_PSI,
                            w_KPA,
-                           w_METERS};
+                           w_METERS,
+                           w_BAR,
+                           w_FEET};
 
 char *DemandModelTxt[] = { w_DDA,
                            w_PDA,

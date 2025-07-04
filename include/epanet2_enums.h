@@ -301,14 +301,14 @@ typedef enum {
 /// Pressure units
 /**
 The available choices for pressure units for the `EN_PRESS_UNITS` option in @ref EN_getoption
-and @ref EN_setoption. For networks using US Customary units for flow (`EN_CFS` through
-`EN_AFD`) pressure units can only be set as PSI. For network using metric units, you can
-select either `EN_METERS` or `EN_KPA`.
+and @ref EN_setoption. 
 */
 typedef enum {
   EN_PSI          = 0,  //!< Pounds per square inch
   EN_KPA          = 1,  //!< Kilopascals
-  EN_METERS       = 2   //!< Meters
+  EN_METERS       = 2,   //!< Meters
+  EN_BAR          = 3,   //!< Bar
+  EN_FEET         = 4    //!< Feet
 } EN_PressUnits;
 
 /// Demand models

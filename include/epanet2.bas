@@ -166,6 +166,8 @@ Public Const EN_CMS = 10
 Public Const EN_PSI = 0           ' Pressure units types
 Public Const EN_KPA = 1
 Public Const EN_METERS = 2
+Public Const EN_BAR = 3
+Public Const EN_FEET = 4
 
 Public Const EN_DDA = 0           ' Demand driven analysis
 Public Const EN_PDA = 1           ' Pressure driven analysis

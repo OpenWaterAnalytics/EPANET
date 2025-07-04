@@ -174,6 +174,8 @@ const
  EN_PSI        = 0;   { Pressure units types }
  EN_KPA        = 1;
  EN_METERS     = 2;
+ EN_BAR        = 3;
+ EN_FEET       = 4;
 
  EN_DDA        = 0;   { Demand model types }
  EN_PDA        = 1;  
