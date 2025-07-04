@@ -1,6 +1,10 @@
 var group___enumerations =
 [
+    [ "EN_FALSE", "group___enumerations.html#gaabb0c3b5c1e6cc62cb9c0879dfae8891", null ],
     [ "EN_MISSING", "group___enumerations.html#gad4e49f3adef4fdc4d7457adcf1e98ce3", null ],
+    [ "EN_SET_CLOSED", "group___enumerations.html#gad4fb94d4d62b3e2c11e9f40f3d9257be", null ],
+    [ "EN_SET_OPEN", "group___enumerations.html#gad4b6fde150f549c4b4a78d8496978864", null ],
+    [ "EN_TRUE", "group___enumerations.html#ga4331d1b152328d940d3db3803551d22f", null ],
     [ "EN_ActionCodeType", "group___enumerations.html#gad6844a37d740fe24dad226ff9bf8308e", [
       [ "EN_UNCONDITIONAL", "epanet2__enums_8h.html#gad6844a37d740fe24dad226ff9bf8308ead5feaba8265bb6303a1e10adc1d71db6", null ],
       [ "EN_CONDITIONAL", "epanet2__enums_8h.html#gad6844a37d740fe24dad226ff9bf8308ea19f07346fec51bef2ac3010675186911", null ]
@@ -12,7 +16,8 @@ var group___enumerations =
       [ "EN_MAXFLOWCHANGE", "epanet2__enums_8h.html#ga7fa33fde92d52c48d9ab203170c45171a903a2b26865490dc932bfe5cd319903a", null ],
       [ "EN_MASSBALANCE", "epanet2__enums_8h.html#ga7fa33fde92d52c48d9ab203170c45171aa7bbbb35aa41bc92f746d12329c34065", null ],
       [ "EN_DEFICIENTNODES", "epanet2__enums_8h.html#ga7fa33fde92d52c48d9ab203170c45171a0960674aef82f8ac481f4bf08a9d8f4e", null ],
-      [ "EN_DEMANDREDUCTION", "epanet2__enums_8h.html#ga7fa33fde92d52c48d9ab203170c45171a06ff61b7b5316d415e79a36ed30c7173", null ]
+      [ "EN_DEMANDREDUCTION", "epanet2__enums_8h.html#ga7fa33fde92d52c48d9ab203170c45171a06ff61b7b5316d415e79a36ed30c7173", null ],
+      [ "EN_LEAKAGELOSS", "epanet2__enums_8h.html#ga7fa33fde92d52c48d9ab203170c45171a6772565756e754401a73f78f8ebace78", null ]
     ] ],
     [ "EN_ControlType", "group___enumerations.html#ga90a63ccaf18821665a3a374b3d2bb253", [
       [ "EN_LOWLEVEL", "epanet2__enums_8h.html#ga90a63ccaf18821665a3a374b3d2bb253a8fb2900b3803a1730d75e5cdaab5469c", null ],
@@ -34,7 +39,8 @@ var group___enumerations =
       [ "EN_PUMP_CURVE", "epanet2__enums_8h.html#ga650978d097f4839703f380ee891abce6a011f32376c47474478cb908079f9dd0c", null ],
       [ "EN_EFFIC_CURVE", "epanet2__enums_8h.html#ga650978d097f4839703f380ee891abce6a717bdf2f0c0749bb1c618826327c5b21", null ],
       [ "EN_HLOSS_CURVE", "epanet2__enums_8h.html#ga650978d097f4839703f380ee891abce6a86e76821ca9d526be8de96e8893ad66e", null ],
-      [ "EN_GENERIC_CURVE", "epanet2__enums_8h.html#ga650978d097f4839703f380ee891abce6a89f1306f585371cce3062bb26b196da2", null ]
+      [ "EN_GENERIC_CURVE", "epanet2__enums_8h.html#ga650978d097f4839703f380ee891abce6a89f1306f585371cce3062bb26b196da2", null ],
+      [ "EN_VALVE_CURVE", "epanet2__enums_8h.html#ga650978d097f4839703f380ee891abce6aa9d6ea714d9bca21d183af92b5600e66", null ]
     ] ],
     [ "EN_DemandModel", "group___enumerations.html#ga3488796eff196c989433f3baa532fd26", [
       [ "EN_DDA", "epanet2__enums_8h.html#ga3488796eff196c989433f3baa532fd26a8ebf3799a3d25264dc43c0fa5df784e8", null ],
@@ -50,7 +56,8 @@ var group___enumerations =
       [ "EN_LPM", "epanet2__enums_8h.html#gaddd06e77a2a965546c5d16568f720e35a94bd3b91162e12f091669927f56160bb", null ],
       [ "EN_MLD", "epanet2__enums_8h.html#gaddd06e77a2a965546c5d16568f720e35a035e10ed645334a167e1e7eb1bb9123a", null ],
       [ "EN_CMH", "epanet2__enums_8h.html#gaddd06e77a2a965546c5d16568f720e35a6db40af6771be12bb8f0c7ceb4a706c2", null ],
-      [ "EN_CMD", "epanet2__enums_8h.html#gaddd06e77a2a965546c5d16568f720e35af12f18b417edd62ad2177027f531e0e3", null ]
+      [ "EN_CMD", "epanet2__enums_8h.html#gaddd06e77a2a965546c5d16568f720e35af12f18b417edd62ad2177027f531e0e3", null ],
+      [ "EN_CMS", "epanet2__enums_8h.html#gaddd06e77a2a965546c5d16568f720e35a0cfb7e15d50843de8abd35076a0dfc1e", null ]
     ] ],
     [ "EN_HeadLossType", "group___enumerations.html#ga88e5eaa8af00626ebc9923f05f773e95", [
       [ "EN_HW", "epanet2__enums_8h.html#ga88e5eaa8af00626ebc9923f05f773e95a2039cc9d732d4c21367c74f22c274d81", null ],
@@ -88,7 +95,12 @@ var group___enumerations =
       [ "EN_PUMP_ECOST", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda76f1c6107e788c9ac2ed4068f2bfb93f", null ],
       [ "EN_PUMP_EPAT", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda5042a7bcee620c73393b1323c8698044", null ],
       [ "EN_LINK_INCONTROL", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda3724de42609bbd4d46ce6287191ae10d", null ],
-      [ "EN_GPV_CURVE", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda748fa0cf00aa220fe9ae61f39dd66fd3", null ]
+      [ "EN_GPV_CURVE", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda748fa0cf00aa220fe9ae61f39dd66fd3", null ],
+      [ "EN_PCV_CURVE", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda9fd02a7667872af4409c5af5d407cccf", null ],
+      [ "EN_LEAK_AREA", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4eda0e7f2f2930c7781b41604173f8f26cc4", null ],
+      [ "EN_LEAK_EXPAN", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4edacc7bbd3e50e11b3c3db3c996c5355b3b", null ],
+      [ "EN_LINK_LEAKAGE", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4edab47273c868d0914a7d58c00a739b0459", null ],
+      [ "EN_VALVE_TYPE", "epanet2__enums_8h.html#ga84af78c42cef7c16a513fbdba3b7f4edacc86005ccefa4435382ed1c2ca6a7648", null ]
     ] ],
     [ "EN_LinkStatusType", "group___enumerations.html#gac93e311004297ce675318237f62765cd", null ],
     [ "EN_LinkType", "group___enumerations.html#gabf3b15dab651a86d41b4cdffa1714f2b", [
@@ -100,7 +112,8 @@ var group___enumerations =
       [ "EN_PBV", "epanet2__enums_8h.html#gabf3b15dab651a86d41b4cdffa1714f2ba68b62ecda4af013bed613ea3611d6b08", null ],
       [ "EN_FCV", "epanet2__enums_8h.html#gabf3b15dab651a86d41b4cdffa1714f2baf19e00da9c7360263533bc85a1471343", null ],
       [ "EN_TCV", "epanet2__enums_8h.html#gabf3b15dab651a86d41b4cdffa1714f2ba474e85ccf21dab186122779674cf42a4", null ],
-      [ "EN_GPV", "epanet2__enums_8h.html#gabf3b15dab651a86d41b4cdffa1714f2ba0e4f7cb039c4a9883cdb8aae6e9d10d0", null ]
+      [ "EN_GPV", "epanet2__enums_8h.html#gabf3b15dab651a86d41b4cdffa1714f2ba0e4f7cb039c4a9883cdb8aae6e9d10d0", null ],
+      [ "EN_PCV", "epanet2__enums_8h.html#gabf3b15dab651a86d41b4cdffa1714f2ba5c854c717e5f7aba75d4030183837fa5", null ]
     ] ],
     [ "EN_MixingModel", "group___enumerations.html#ga06ecaf7f8c05ec539a6597cea27f57e8", [
       [ "EN_MIX1", "epanet2__enums_8h.html#ga06ecaf7f8c05ec539a6597cea27f57e8a8a576e0c2593f23c712ab7da5156afa0", null ],
@@ -137,7 +150,11 @@ var group___enumerations =
       [ "EN_MAXVOLUME", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417dab33478f2de092887ee64799ba0e370a9", null ],
       [ "EN_CANOVERFLOW", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417da0e7017b074fb5e9576432927813d9269", null ],
       [ "EN_DEMANDDEFICIT", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417da03b18222ff8391d88a4402d49452f371", null ],
-      [ "EN_NODE_INCONTROL", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417daf6a8e5865b9234b91b88ce1a055f1d35", null ]
+      [ "EN_NODE_INCONTROL", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417daf6a8e5865b9234b91b88ce1a055f1d35", null ],
+      [ "EN_EMITTERFLOW", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417da020f2ccbdb82684f770630acf046f3ce", null ],
+      [ "EN_LEAKAGEFLOW", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417da7b604797cf6e543546d7f7e72fee1916", null ],
+      [ "EN_DEMANDFLOW", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417da46c7b14565ebd6b1112db2eccb3e37f1", null ],
+      [ "EN_FULLDEMAND", "epanet2__enums_8h.html#gae538c7e564d9bd7c5a1f841b107c417da3703949f42154004dd5f89fff477a963", null ]
     ] ],
     [ "EN_NodeType", "group___enumerations.html#ga5be146aaf09fd211d451e0f0de7015e1", [
       [ "EN_JUNCTION", "epanet2__enums_8h.html#ga5be146aaf09fd211d451e0f0de7015e1a4280a9ae6b9135eba19c2cfe2f60b259", null ],
@@ -176,7 +193,15 @@ var group___enumerations =
       [ "EN_WALLORDER", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a775117a2ddc47f429414647e821e9bb3", null ],
       [ "EN_TANKORDER", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a1352d472ea878b0a3aa3dad885e8c4af", null ],
       [ "EN_CONCENLIMIT", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a709bf9e5486fb95e2cd07e3e9d1b6358", null ],
-      [ "EN_DEMANDPATTERN", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a7e56030ff18f3c63bea089080232c329", null ]
+      [ "EN_DEMANDPATTERN", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a7e56030ff18f3c63bea089080232c329", null ],
+      [ "EN_EMITBACKFLOW", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79ae0bd52cb0d077231acb109748bc08e2d", null ],
+      [ "EN_PRESS_UNITS", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79a6adb866ab06a31bcc4d9c687161b61cc", null ],
+      [ "EN_STATUS_REPORT", "epanet2__enums_8h.html#gaedba9e624549e5c519756ec0619c5c79adfb79cdab08f79a7dff5268936a6bc3a", null ]
+    ] ],
+    [ "EN_PressUnits", "group___enumerations.html#ga0d081ed7e724bea68d9f4bb5e3eb5d09", [
+      [ "EN_PSI", "epanet2__enums_8h.html#ga0d081ed7e724bea68d9f4bb5e3eb5d09ac65011537375e624ad612d0fe3450a23", null ],
+      [ "EN_KPA", "epanet2__enums_8h.html#ga0d081ed7e724bea68d9f4bb5e3eb5d09af17fb358676d052ae867d3fa3ab9b726", null ],
+      [ "EN_METERS", "epanet2__enums_8h.html#ga0d081ed7e724bea68d9f4bb5e3eb5d09a17da6ee096fa60eb550688abc49d0e22", null ]
     ] ],
     [ "EN_PumpStateType", "group___enumerations.html#ga479372136624b6cf95fac414f823a5d4", [
       [ "EN_PUMP_XHEAD", "epanet2__enums_8h.html#ga479372136624b6cf95fac414f823a5d4a37894107db939a380c626cbddfc746af", null ],
@@ -272,5 +297,12 @@ var group___enumerations =
       [ "EN_HALTFLAG", "epanet2__enums_8h.html#gad4dff8507f96acf515824b4252f1836aa1eb7d7962f51c92af0956c023a801470", null ],
       [ "EN_NEXTEVENT", "epanet2__enums_8h.html#gad4dff8507f96acf515824b4252f1836aa2bf735d34215bbe28f8a0152773b1ced", null ],
       [ "EN_NEXTEVENTTANK", "epanet2__enums_8h.html#gad4dff8507f96acf515824b4252f1836aa5b5da03e1ac906fd28eaa2ca3945a842", null ]
+    ] ],
+    [ "EN_TimestepEvent", "group___enumerations.html#gae1930f79796117a8ca96826553c903fb", [
+      [ "EN_STEP_REPORT", "epanet2__enums_8h.html#gae1930f79796117a8ca96826553c903fbacf8d83dec9920e72747683f94ac712e7", null ],
+      [ "EN_STEP_HYD", "epanet2__enums_8h.html#gae1930f79796117a8ca96826553c903fba1c0fe34ed6b3336607759b1c1ac13166", null ],
+      [ "EN_STEP_WQ", "epanet2__enums_8h.html#gae1930f79796117a8ca96826553c903fba2502d213a12ac4dca877f0e6b25e4ccf", null ],
+      [ "EN_STEP_TANKEVENT", "epanet2__enums_8h.html#gae1930f79796117a8ca96826553c903fba914f36deba2f5a3ac2a4f0d0b39a0d1c", null ],
+      [ "EN_STEP_CONTROLEVENT", "epanet2__enums_8h.html#gae1930f79796117a8ca96826553c903fba7838397ea697886abd7572a59525afbf", null ]
     ] ]
 ];
