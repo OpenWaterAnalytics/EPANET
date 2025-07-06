@@ -2285,8 +2285,7 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         v = 0.0;
         if (Node[index].Ke > 0.0)
         {
-            ecfTmp = (parser->Unitsflag == US) ? (1.0 / PSIperFT) : (1.0 / MperFT);
-            ecfTmp /= hyd->SpGrav;
+            ecfTmp = (parser->Unitsflag == US) ? (PSIperFT * hyd->SpGrav) : (MperFT * hyd->SpGrav);
             v = Ucf[FLOW] / pow((ecfTmp * Node[index].Ke), (1.0 / hyd->Qexp));
         }
         break;
@@ -2534,8 +2533,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         if (value < 0.0) return 209;
         if (value > 0.0)
         {
-            ecfTmp = (parser->Unitsflag == US) ? (1.0 / PSIperFT) : (1.0 / MperFT);
-            ecfTmp /= hyd->SpGrav;
+            ecfTmp = (parser->Unitsflag == US) ? (PSIperFT * hyd->SpGrav) : (MperFT * hyd->SpGrav);
             value = pow((Ucf[FLOW] / value), hyd->Qexp) / ecfTmp;
         }
         Node[index].Ke = value;

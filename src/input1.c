@@ -545,8 +545,7 @@ void convertunits(Project *pr)
     hyd->Preq /= pr->Ucf[PRESSURE];
 
     // Convert emitter discharge coeffs. to head loss coeff.
-    ecf = (parser->Unitsflag == US) ? (1.0 / PSIperFT) : (1.0 / MperFT);
-    ecf /= hyd->SpGrav;
+    ecf = (parser->Unitsflag == US) ? (PSIperFT * hyd->SpGrav) : (MperFT * hyd->SpGrav);
 
     ucf = pow(pr->Ucf[FLOW], hyd->Qexp) / ecf;
     for (i = 1; i <= net->Njuncs; i++)
