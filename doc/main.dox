@@ -51,7 +51,7 @@ intervals of time
 - data curves that describe relationships between two quantities, such as head versus flow for pumps and
 volume versus water level for tanks
 - simple controls that adjust a link's setting (such as a pump's status) based on node pressure, tank
-level, elapsed time, ot time of day
+level, elapsed time, or time of day
 - rule-based controls that consist of one or more premises that if true result in one set of actions
 being taken and if false result in a different set of actions being taken
 - water quality sources that introduce a chemical constituent into the network at specified nodes.
