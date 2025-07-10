@@ -440,7 +440,7 @@ typedef struct Project *EN_Project;
 
   /**
   @brief Opens a project's water quality solver.
-  @param ph n EPANET project handle.
+  @param ph an EPANET project handle.
   @return an error code.
 
   Call ::EN_openQ prior to running the first water quality analysis using an
@@ -502,7 +502,7 @@ typedef struct Project *EN_Project;
   time step determined by when the next hydraulic event occurs. Use ::EN_stepQ instead
   if you wish to generate results over each water quality time step.
 
-  The value of `tStep` is determined from information produced by the hydraulic analysis
+  The value of `out_tStep` is determined from information produced by the hydraulic analysis
   that preceded the water quality analysis. Treat it as a read-only variable.
 
  <b>Example:</b>
@@ -533,8 +533,8 @@ typedef struct Project *EN_Project;
   quality time step of the simulation, rather than over each hydraulic event period
   as with ::EN_nextQ.
 
-  Use the argument `timeLeft` to determine when no more calls to ::EN_runQ are needed
-  because the end of the simulation period has been reached (i.e., when `timeLeft` = 0).
+  Use the argument `out_timeLeft` to determine when no more calls to ::EN_runQ are needed
+  because the end of the simulation period has been reached (i.e., when `out_timeLeft` = 0).
   */
   int DLLEXPORT EN_stepQ(EN_Project ph, long *out_timeLeft);
 
@@ -1020,7 +1020,7 @@ typedef struct Project *EN_Project;
   @param[out] out_pexp  Pressure exponent in demand function.
   @return an error code.
 
-  Parameters `pmin`, `preq`, and `pexp` are only used when the demand model is `EN_PDA`.
+  Parameters `out_pmin`, `out_preq`, and `out_pexp` are only used when the demand model is `EN_PDA`.
   */
   int DLLEXPORT EN_getdemandmodel(EN_Project ph, int *out_type, double *out_pmin,
                 double *out_preq, double *out_pexp);
@@ -1036,7 +1036,7 @@ typedef struct Project *EN_Project;
 
   Set `type` to `EN_DDA` for a traditional demand driven analysis (in which case the
   remaining three parameter values are ignored) or to `EN_PDA` for a pressure driven
-  analysis. In the latter case a node's demand is computed as:\n 
+  analysis. In the latter case a node's demand is 0 when pressure is below `pmin`, is at full demand when pressure is above `preq`, or is otherwise computed as:\n 
   `Dfull * [ (P - pmin) / (preq - pmin) ] ^ pexp`\n 
   where `Dfull` is the full demand and `P` is the current pressure.
 
@@ -1147,7 +1147,7 @@ typedef struct Project *EN_Project;
   @param[out] out_demandName The name of the selected category.
   @return an error code.
 
-  `demandName` must be sized to contain at least @ref EN_SizeLimits "EN_MAXID+1" characters.
+  `out_demandName` must be sized to contain at least @ref EN_SizeLimits "EN_MAXID+1" characters.
   */
   int DLLEXPORT EN_getdemandname(EN_Project ph, int nodeIndex, int demandIndex, char *out_demandName);
 
@@ -1738,7 +1738,7 @@ typedef struct Project *EN_Project;
   @brief Gets the enabled status of a simple control.
   @param ph an EPANET project handle.
   @param index the control's index (starting from 1).
-  @param out_enabled the control will be either EN_TRUE=enabled or EN_FALSE=disabled.
+  @param out_enabled `EN_TRUE` (= 1) if the control is enabled or `EN_FALSE` (= 0) if it is disabled.
   @return an error code.
   */
   int  DLLEXPORT EN_getcontrolenabled(EN_Project ph, int index, int *out_enabled);
@@ -1747,7 +1747,7 @@ typedef struct Project *EN_Project;
   @brief Sets the enabled status of a simple control.
   @param ph an EPANET project handle.
   @param index the control's index (starting from 1).
-  @param enabled set the control to either EN_TRUE=enabled or EN_FALSE=disabled.
+  @param enabled `EN_TRUE` (= 1) sets the control to enabled, `EN_FALSE` (= 0) sets it to disabled.
   @return an error code.
   */
   int  DLLEXPORT EN_setcontrolenabled(EN_Project ph, int index, int enabled);

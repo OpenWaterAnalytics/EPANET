@@ -344,7 +344,7 @@ __Definitions:__
 
 For <b>CFS, GPM, MGD, IMGD</b>, and <b>AFD</b> other input quantities are expressed in US Customary Units. If flow units are in liters or cubic meters then Metric Units must be used for all other input quantities as well. (See the @ref Units topic). The default flow units are \b GPM.
 
-\b PRESSURE sets the units in which pressure is expressed, for networks using metric units, as determined by the \b UNITS option, the choices are: (\b KPA), or (\b METERS). For networks using US Customary Units, you can only use (\b PSI).
+\b PRESSURE sets the units in which pressure is expressed, for networks using metric units, as determined by the \b UNITS option, the choices are: \b KPA, or \b METERS. For networks using US Customary Units, you can only use \b PSI.
 
 \b HEADLOSS selects a formula to use for computing head loss for flow through a pipe. The choices are the Hazen-Williams (\b H-W ), Darcy-Weisbach (\b D-W ), or Chezy-Manning (\b C-M ) formulas. The default is \b H-W.
 
@@ -526,7 +526,7 @@ One line per node containing:
 
 __Remarks:__
 1. Quality is assumed to be zero for nodes not listed.
-2. Quality represents concentration for chemicals, hours for water age, or percent for source tracing.
+2. Quality represents concentration for chemicals or hours for water age. Values for source tracing are not required and will be ignored.
 3. The <b>[QUALITY]</b> section is optional.
 */
 
@@ -616,6 +616,8 @@ __Definitions:__
 \b STATUS determines whether a hydraulic status report should be generated. If \b YES is selected the report will identify all network components that change status during each time step of the simulation. If \b FULL is selected, then the status report will also include information from each trial of each hydraulic analysis. This level of detail is only useful for de-bugging networks that become hydraulically unbalanced. The default is \b NO.
 
 \b SUMMARY determines whether a summary table of number of network components and key analysis options is generated. The default is \b YES.
+
+\b MESSAGES determines whether error and warning messages are reported. The default is \b YES.
 
 \b ENERGY determines if a table reporting average energy usage and cost for each pump is provided. The default is \b NO.
 
@@ -1067,7 +1069,7 @@ Attaches a descriptive title to the network being analyzed.
 
 __Format:__
 
-Any number of lines of text.
+Up to three lines of text containing no more than 79 characters each can be used as a title.
 
 __Remarks:__
 
@@ -1094,16 +1096,17 @@ One line for each valve containing:
 - ID of valve characteristic curve (PCVs only)
 
 __Remarks:__
-1. Valve types and settings include:
+1. Valve types and settings include: \n
 |Valve Type | Setting |
 |-----------|---------|
-|<B>PRV</B> (pressure reducing valve) | Pressure, psi (m) |
-|<B>PSV</B> (pressure sustaining valve) | Pressure, psi (m) |
-|<B>PBV</B> (pressure breaker valve) | Pressure, psi (m) |
+|<B>PRV</B> (pressure reducing valve) | Pressure (pressure units) |
+|<B>PSV</B> (pressure sustaining valve) | Pressure (pressure units) |
+|<B>PBV</B> (pressure breaker valve) | Pressure (pressure units) |
 |<B>FCV</B> (flow control valve) | Flow (flow units) |
 |<B>TCV</B> (throttle control valve) | Partially open loss coefficient |
 |<B>PCV</B> (positional control valve) | Percent open |
 |<B>GPV</B> (general purpose valve) | ID of head loss curve |
+\n
 2. Shutoff valves and check valves are considered to be part of a pipe, not a separate control valve component (see @ref PipesPage).
 3. The loss coefficient setting for a TCV should not be less than its fully open loss coefficient.
 4. The characteristic curve for a PCV relates the valve's percent of fully open flow to the percent open. If not supplied then a linear curve is assumed.
@@ -1141,8 +1144,6 @@ upper-left corner of the network's bounding rectangle. Default is zero offset.
 __Remarks:__
 
 1. The [BACKDROP] section is optional and only provides support for an external GUI program that uses the EPANET engine.
-
-2. Only Windows Enhanced Metafiles and bitmap files can be used as backdrops.
 */
 
 /**
@@ -1163,9 +1164,9 @@ __Remarks:__
 
 1. Include one line for each node that has coordinates.
 
-2. The coordinates represent the distance from the node to an arbitrary origin at the lower left of the network. Any convenient units of measure for this distance can be used.
+2. Any convenient geographic, projected or arbitrary Cartesian coordinate system can be used.
 
-3. The locations  of the nodes need not be to actual scale.
+3. The locations of nodes need not be to actual scale.
 
 4. A [COORDINATES] section is optional and only provides support for an external GUI program that uses the EPANET engine.
 */
@@ -1212,7 +1213,7 @@ __Remarks:__
 
 1. Include one line for each label.
 
-2. The coordinates refer to the upper left corner of the label and are with respect to an arbitrary origin at the lower left of the network.
+2. The coordinates refer to the upper left corner of the label.
 
 3. The optional anchor node anchors the label to the node when the network layout is re-scaled during zoom-in operations.
 
