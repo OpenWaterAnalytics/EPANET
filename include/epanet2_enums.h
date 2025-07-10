@@ -60,9 +60,9 @@ typedef enum {
   EN_TANK_KBULK   = 23, //!< Tank bulk decay coefficient
   EN_TANKVOLUME   = 24, //!< Current computed tank volume (read only)
   EN_MAXVOLUME    = 25, //!< Tank maximum volume (read only)
-  EN_CANOVERFLOW  = 26, //!< Tank can overflow (= 1) or not (= 0)
+  EN_CANOVERFLOW  = 26, //!< `EN_TRUE` (= 1) if the Tank can overflow, `EN_FALSE` (= 0) if it cannot
   EN_DEMANDDEFICIT = 27,//!< Amount that full demand is reduced under PDA (read only)
-  EN_NODE_INCONTROL = 28, //!< Is present in any simple or rule-based control (= 1) or not (= 0)
+  EN_NODE_INCONTROL = 28, //!< `EN_TRUE` (= 1) if the node appears in any control, `EN_FALSE` (= 0) if not
   EN_EMITTERFLOW    = 29, //!< Current emitter flow (read only)
   EN_LEAKAGEFLOW    = 30, //!< Current leakage flow (read only)
   EN_DEMANDFLOW     = 31, //!< Current consumer demand delivered (read only)
@@ -81,7 +81,7 @@ typedef enum {
   EN_MINORLOSS    = 3,  //!< Pipe/valve minor loss coefficient
   EN_INITSTATUS   = 4,  //!< Initial status (see @ref EN_LinkStatusType)
   EN_INITSETTING  = 5,  //!< Initial pump speed or valve setting
-  EN_KBULK        = 6,  //!< Bulk chemical reaction coefficient
+  EN_KBULK        = 6,  //!< Bulk flow chemical reaction coefficient
   EN_KWALL        = 7,  //!< Pipe wall chemical reaction coefficient
   EN_FLOW         = 8,  //!< Current computed flow rate (read only)
   EN_VELOCITY     = 9,  //!< Current computed flow velocity (read only)
@@ -100,7 +100,7 @@ typedef enum {
   EN_PUMP_EPAT    = 22, //!< Pump energy price time pattern index
   EN_LINK_INCONTROL = 23,  //!< Is present in any simple or rule-based control (= 1) or not (= 0)
   EN_GPV_CURVE    = 24, //!< GPV head loss v. flow curve index
-  EN_PCV_CURVE    = 25, //!< PCV loss coeff. curve index
+  EN_PCV_CURVE    = 25, //!< PCV characteristic curve index
   EN_LEAK_AREA    = 26, //!< Pipe leak area (sq mm per 100 length units)
   EN_LEAK_EXPAN   = 27, //!< Leak expansion rate (sq mm per unit of pressure head)
   EN_LINK_LEAKAGE = 28, //!< Current leakage rate (read only)
@@ -222,8 +222,8 @@ initial status (`EN_INITSTATUS`) or its current status (`EN_STATUS`). These opti
 also used with @ref EN_setlinkvalue to set values for these same properties.
 */
 typedef enum {
-  EN_CLOSED       = 0,
-  EN_OPEN         = 1
+  EN_CLOSED       = 0,  //!< Link is closed and cannot convey any flow
+  EN_OPEN         = 1   //!< Link is open and is able to convey flow
 } EN_LinkStatusType;
 
 /// Pump states
@@ -357,7 +357,7 @@ typedef enum {
   EN_TANKORDER      = 21, //!< Bulk water reaction order for tanks
   EN_CONCENLIMIT    = 22, //!< Limiting concentration for growth reactions
   EN_DEMANDPATTERN  = 23, //!< Name of default demand pattern
-  EN_EMITBACKFLOW   = 24, //!< 1 if emitters can backflow, 0 if not
+  EN_EMITBACKFLOW   = 24, //!< `EN_TRUE` (= 1) if emitters can backflow, `EN_FALSE` (= 0) if not
   EN_PRESS_UNITS    = 25, //!< Pressure units (see @ref EN_PressUnits)
   EN_STATUS_REPORT  = 26  //!< Type of status report to produce (see @ref EN_StatusReport)
 } EN_Option;
