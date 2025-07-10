@@ -1355,7 +1355,12 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
 
     case EN_SP_GRAVITY:
         if (value <= 0.0) return 213;
-        Ucf[PRESSURE] *= (value / hyd->SpGrav);
+        if (p->parser.Pressflag == PSI || 
+            p->parser.Pressflag == KPA || 
+            p->parser.Pressflag == BAR)
+        {
+            Ucf[PRESSURE] *= (value / hyd->SpGrav);
+        }
         hyd->SpGrav = value;
         break;
 
@@ -2285,7 +2290,7 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         v = 0.0;
         if (Node[index].Ke > 0.0)
         {
-            ecfTmp = (parser->Unitsflag == US) ? (PSIperFT * hyd->SpGrav) : (MperFT * hyd->SpGrav);
+            ecfTmp = (parser->Unitsflag == US) ? (PSIperFT * hyd->SpGrav) : MperFT;
             v = Ucf[FLOW] / pow((ecfTmp * Node[index].Ke), (1.0 / hyd->Qexp));
         }
         break;
@@ -2533,7 +2538,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         if (value < 0.0) return 209;
         if (value > 0.0)
         {
-            ecfTmp = (parser->Unitsflag == US) ? (PSIperFT * hyd->SpGrav) : (MperFT * hyd->SpGrav);
+            ecfTmp = (parser->Unitsflag == US) ? (PSIperFT * hyd->SpGrav) : MperFT;
             value = pow((Ucf[FLOW] / value), hyd->Qexp) / ecfTmp;
         }
         Node[index].Ke = value;

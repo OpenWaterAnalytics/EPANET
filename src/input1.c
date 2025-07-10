@@ -453,10 +453,10 @@ void initunits(Project *pr)
 
     strcpy(rpt->Field[PRESSURE].Units, PressUnitsTxt[parser->Pressflag]);
     pcf = PSIperFT * hyd->SpGrav; // Default to PSI
-    if (parser->Pressflag == METERS) pcf = MperFT * hyd->SpGrav;
+    if (parser->Pressflag == METERS) pcf = MperFT;
     if (parser->Pressflag == KPA)    pcf = KPAperPSI * PSIperFT * hyd->SpGrav;
     if (parser->Pressflag == BAR)    pcf = BARperPSI * PSIperFT * hyd->SpGrav;
-    if (parser->Pressflag == FEET)   pcf = 1.0 * hyd->SpGrav;
+    if (parser->Pressflag == FEET)   pcf = 1.0;
 
     strcpy(rpt->Field[QUALITY].Units, "");
     ccf = 1.0;
