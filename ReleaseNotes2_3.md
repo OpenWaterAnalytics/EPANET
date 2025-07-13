@@ -42,6 +42,8 @@ This document describes the changes and updates that have been made in version 2
 
  - `EN_PRESS_UNITS` can now be used with `EN_getoption` and `EN_setoption` to get or set the pressure unit used in EPANET.
 
+ - Decoupled pressure units from the flow unit system, allowing them to be set independently to support mixed-unit conventions (e.g., using LPS for flow and PSI for pressure).
+
  - The following constants can be used with EN_getnodevalue to retrieve the components of a node's total demand at a given point in time:
    - `EN_FULLDEMAND` - the consumer demand requested
    - `EN_DEMANDFLOW` - the consumer demand delivered

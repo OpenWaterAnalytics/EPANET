@@ -83,6 +83,7 @@ typedef  int          INT4;
 #define   MperFT      0.3048
 #define   PSIperFT    0.4333
 #define   KPAperPSI   6.895
+#define   BARperPSI   0.068948
 #define   KWperHP     0.7457
 #define   SECperDAY   86400
 
@@ -238,7 +239,10 @@ typedef enum {
 typedef enum {
   PSI,           // pounds per square inch
   KPA,           // kiloPascals
-  METERS         // meters
+  METERS,        // meters
+  BAR,           // bar
+  FEET,          // feet
+  DEFAULTUNIT    // default based on unit system (SI or US)
 } PressureUnitsType;
 
 typedef enum {

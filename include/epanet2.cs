@@ -170,6 +170,8 @@ namespace EpanetCSharpLibrary
         public const int EN_PSI = 0;           //Pressure units types
         public const int EN_KPA = 1;
         public const int EN_METERS = 2;
+        public const int EN_BAR = 3;
+        public const int EN_FEET = 4;
 
         public const int EN_DDA = 0;           //Demand driven analysis
         public const int EN_PDA = 1;           //Pressure driven analysis
