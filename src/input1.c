@@ -432,7 +432,6 @@ void initunits(Project *pr)
         strcpy(rpt->Field[DEMAND].Units, RptFlowUnitsTxt[parser->Flowflag]);
         strcpy(rpt->Field[ELEV].Units, u_FEET);
         strcpy(rpt->Field[HEAD].Units, u_FEET);
-        strcpy(rpt->Field[PRESSURE].Units, u_PSI);
         strcpy(rpt->Field[LENGTH].Units, u_FEET);
         strcpy(rpt->Field[DIAM].Units, u_INCHES);
         strcpy(rpt->Field[FLOW].Units, RptFlowUnitsTxt[parser->Flowflag]);
