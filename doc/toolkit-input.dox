@@ -301,7 +301,7 @@ __Formats:__
 <table style = "border: 0px solid black">
 <tr><td><B>UNITS</B></td><td><B>CFS / GPM / MGD / IMGD / AFD /</B></td></tr>
 <tr><td>  </td><td><B>LPS / LPM / MLD / CMS / CMH / CMD</B></td></tr>
-<tr><td><B>PRESSURE</B></td><td><B>PSI / KPA / METERS</B></td></tr>
+<tr><td><B>PRESSURE</B></td><td><B>PSI / KPA / METERS / FEET / BAR</B></td></tr>
 <tr><td><B>HEADLOSS</B></td><td><B>H-W / D-W / C-M</B></td></tr>
 <tr><td><B>HYDRAULICS</B></td><td><B>USE / SAVE </B><I>&nbsp;filename</I></td></tr>
 <tr><td><B>VISCOSITY</B></td><td><I>value</I></td></tr>
@@ -342,9 +342,9 @@ __Definitions:__
 - \b CMH = cubic meters per hour
 - \b CMD = cubic meters per day
 
-For <b>CFS, GPM, MGD, IMGD</b>, and <b>AFD</b> other input quantities are expressed in US Customary Units. If flow units are in liters or cubic meters then Metric Units must be used for all other input quantities as well. (See the @ref Units topic). The default flow units are \b GPM.
+For <b>CFS, GPM, MGD, IMGD</b>, and <b>AFD</b> other input quantities are expressed in US Customary Units. If flow units are in liters or cubic meters then Metric Units must be used for all other input quantities as well. (See the @ref Units topic). An exception is pressure which can use either US or SI units. The default flow units are \b GPM.
 
-\b PRESSURE sets the units in which pressure is expressed, for networks using metric units, as determined by the \b UNITS option, the choices are: \b KPA, or \b METERS. For networks using US Customary Units, you can only use \b PSI.
+\b PRESSURE sets the units in which pressure is expressed, regardless of which unit system is in use. The default pressure unit is \b PSI for US Customary Units and \b METERS for SI Metric Units.
 
 \b HEADLOSS selects a formula to use for computing head loss for flow through a pipe. The choices are the Hazen-Williams (\b H-W ), Darcy-Weisbach (\b D-W ), or Chezy-Manning (\b C-M ) formulas. The default is \b H-W.
 
@@ -374,7 +374,7 @@ The \b HYDRAULICS option allows you to either <B>SAVE</B> the current hydraulics
 
 \b MINIMUM PRESSURE is the pressure below which no demand can be delivered under a pressure driven analysis. It has no effect on a demand driven analysis. Its default value is 0.
 
-\b REQUIRED PRESSURE is the pressure required to supply a node's full demand under a pressure driven analysis. It has no effect on a demand driven analysis. It must be at least 0.1 psi or m higher than the MINIMUM PRESSURE, which is also its default value.
+\b REQUIRED PRESSURE is the pressure required to supply a node's full demand under a pressure driven analysis. It has no effect on a demand driven analysis. It must be at least 0.1 pressure units higher than the MINIMUM PRESSURE, which is also its default value.
 
 \b PRESSURE EXPONENT is the power to which pressure is raised when computing the demand delivered to a node under a pressure driven analysis. It has no effect on a demand driven analysis. Its default value is 0.5.
 

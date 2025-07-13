@@ -59,7 +59,7 @@ The Prolog section of an EPANET binary output file contains the following data:
 | Water Quality Option - see @ref EN_QualityType | Integer | 4 |
 | Traced Node Index            | Integer | 4 |
 | Flow Units Option            | Integer | 4 |
-| Pressure Units Option:<br>0 = psi<br>1 = meters<br>2 = kPa | Integer | 4 |
+| Pressure Units Option:<br>0 = psi<br>1 = kPa<br>2 = meters<br>3 = bar<br>4 = feet | Integer | 4 |
 | Report Statistic Type - see @ref EN_StatisticType | Integer | 4 |
 | Reporting Start Time (sec)   | Integer | 4 |
 | Reporting Time Step (sec)    | Integer | 4 |

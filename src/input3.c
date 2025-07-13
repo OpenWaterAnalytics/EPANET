@@ -1884,8 +1884,8 @@ int optionchoice(Project *pr, int n)
 **           those listed below, or -1 otherwise
 **  Purpose: processes fixed choice [OPTIONS] data
 **  Formats:
-**    UNITS               CFS/GPM/MGD/IMGD/AFD/LPS/LPM/MLD/CMH/CMD/CMS/SI
-**    PRESSURE            PSI/KPA/M
+**    UNITS               CFS/GPM/MGD/IMGD/AFD/LPS/LPM/MLD/CMH/CMD/CMS
+**    PRESSURE            PSI/KPA/METERS/BAR/FEET
 **    HEADLOSS            H-W/D-W/C-M
 **    HYDRAULICS          USE/SAVE  filename
 **    QUALITY             NONE/AGE/TRACE/CHEMICAL  (TraceNode)
