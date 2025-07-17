@@ -20,7 +20,8 @@ This document describes the changes and updates that have been made in version 2
    - A newly added `EN_settag` function will assign a Tag to a node or link.
    - A newly added `EN_gettag` function will retrieve a node or link's Tag.
    - The existing `EN_saveinpfile` will include saving all node and link tags to file.
- - A new Flow Balance Report has been added to end of a simulation run's Status Report that lists the various components of the system's total inflow and outflow over the simulation period. It also displays the ratio of outflow to inflow as a check on flow continuity.
+ 
+ - A new Flow Balance Report has been added to the end of a simulation run's Status Report that lists the various components of the system's total inflow and outflow over the simulation period. It also displays the ratio of outflow to inflow as a check on flow continuity.
 
  - A new type of valve, a Positional Control Valve (PCV), was added. It uses a valve characteristic curve to relate its loss coefficient to a percentage open setting (parameter - `EN_PCV`).
 
@@ -40,9 +41,9 @@ This document describes the changes and updates that have been made in version 2
 
  - `EN_STATUS_REPORT` can now be used with `EN_getoption` and `EN_setoption` to get or set the type of status report that EPANET will generate (`EN_NO_REPORT`, `EN_NORMAL_REPORT` or `EN_FULL_REPORT`).  
 
- - `EN_PRESS_UNITS` can now be used with `EN_getoption` and `EN_setoption` to get or set the pressure unit used in EPANET.
+ - `EN_PRESS_UNITS` can now be used with `EN_getoption` and `EN_setoption` to get or set a project's pressure units. The choices are EN_PSI, EN_KPA, EN_METERS, EN_BAR, or EN_FEET.
 
- - Decoupled pressure units from the flow unit system, allowing them to be set independently to support mixed-unit conventions (e.g., using LPS for flow and PSI for pressure).
+ - Pressure units have been decoupled from the flow unit system, allowing them to be set independently to support mixed-unit conventions (e.g., using LPS for flow and PSI for pressure). 
 
  - The following constants can be used with EN_getnodevalue to retrieve the components of a node's total demand at a given point in time:
    - `EN_FULLDEMAND` - the consumer demand requested
