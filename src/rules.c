@@ -953,23 +953,31 @@ int evalpremises(Project *pr, int i)
     Network *net = &pr->network;
 
     int result;
-    Spremise *p;
+    Spremise *p = net->Rule[i].Premises;
 
-    result = TRUE;
-    p = net->Rule[i].Premises;
-    while (p != NULL)
+    // Premises is guaranteed to be non-empty by the caller of the function
+    result = checkpremise(pr, p);
+    p = p->next;
+
+    if (pr->OpPrec == LEGACY)
     {
-        if (p->logop == r_OR)
+        for (; p != NULL; p = p->next)
         {
-            if (result == FALSE) result = checkpremise(pr, p);
-        }
-        else
-        {
-            if (result == FALSE) return (FALSE);
+            if (p->logop == r_OR && result == TRUE) continue;
+            if (p->logop == r_AND && result == FALSE) return (FALSE);
             result = checkpremise(pr, p);
         }
-        p = p->next;
     }
+    else // if (pr->OpPrec == STANDARD)
+    {
+        for (; p != NULL; p = p->next)
+        {
+            if (p->logop == r_AND && result == FALSE) continue;
+            if (p->logop == r_OR && result == TRUE) return (TRUE);
+            result = checkpremise(pr, p);
+        }
+    }
+
     return result;
 }
 

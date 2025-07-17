@@ -48,6 +48,7 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
     pr->outfile.SaveHflag = FALSE;
     pr->outfile.SaveQflag = FALSE;
     pr->Warnflag = FALSE;
+    pr->OpPrec = LEGACY;
     pr->report.Messageflag = TRUE;
     pr->report.Rptflag = 1;
 

@@ -102,6 +102,7 @@ void setdefaults(Project *pr)
     strncpy(parser->DefPatID, DEFPATID, MAXID);
 
     pr->Warnflag = FALSE;       // Warning flag is off
+    pr->OpPrec = LEGACY;        // Operator precedence is legacy
     parser->Unitsflag = US;     // US unit system
     parser->Flowflag = GPM;     // Flow units are gpm
     parser->Pressflag = DEFAULTUNIT; // Pressure units set based on unit system
