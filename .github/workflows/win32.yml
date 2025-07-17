@@ -1,0 +1,50 @@
+name: epanet2-win32
+
+on: 
+  push:
+  pull_request: 
+  schedule: 
+    - cron: '0 0 1 * *'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+          
+      - name: Setup build directory
+        run: mkdir buildproducts
+        
+      - name: CMake
+        working-directory: ./buildproducts
+        shell: pwsh
+        run: |
+          $retryCount = 0
+          $maxRetries = 3
+          do {
+            cmake .. -A Win32 && cmake --build . --config Release
+            if ($LASTEXITCODE -eq 0) { break }
+            Write-Host "Retry $($retryCount + 1)/$maxRetries..."
+            Start-Sleep -Seconds 10
+            $retryCount++
+          } while ($retryCount -lt $maxRetries)
+          if ($retryCount -eq $maxRetries) {
+            Write-Host "CMake build failed after $maxRetries attempts."
+            exit 1
+          }
+
+      - name: Copy header files to build directory
+        run: |
+          copy include\epanet2.h buildproducts\bin\Release
+          copy include\epanet2_2.h buildproducts\bin\Release
+          copy include\epanet2_enums.h buildproducts\bin\Release
+        shell: cmd
+        
+      - uses: actions/upload-artifact@v4
+        with:
+          name: epanet2-win32
+          path: buildproducts\bin\Release

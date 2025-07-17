@@ -1,13 +1,13 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       input2.c
 Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/29/2019
+Last Updated: 02/19/2025
 ******************************************************************************
 */
 
@@ -21,24 +21,18 @@ Last Updated: 10/29/2019
 #include "hash.h"
 #include "text.h"
 
-#define MAXERRS 10      // Max. input errors reported
-
 extern char *SectTxt[]; // Input section keywords (see ENUMSTXT.H)
 
 // Exported functions
-int addnodeID(Network *n, int, char *);
-int addlinkID(Network *n, int, char *);
-
-// Imported functions
-extern int powercurve(double, double, double, double, double, double *,
-                      double *, double *);
+int addnodeID(Network *, int, char *);
+int addlinkID(Network *, int, char *);
+int getunitsoption(Project *, char *);
+int getheadlossoption(Project *, char *);
 
 // Local functions
 static int  newline(Project *, int, char *);
 static int  addpattern(Network *, char *);
 static int  addcurve(Network *, char *);
-static int  unlinked(Project *);
-static int  getpumpparams(Project *);
 static void inperrmsg(Project *, int, int, char *);
 
 
@@ -101,7 +95,11 @@ int netsize(Project *pr)
                 if (sect == _END) break;
                 continue;
             }
-            else continue;
+            else
+            {
+                sect = -1;
+                continue;
+            }
         }
 
         // Add to count of current object
@@ -123,6 +121,12 @@ int netsize(Project *pr)
                 errcode = addcurve(&pr->network, tok);
                 parser->MaxCurves = pr->network.Ncurves;
                 break;
+            case _OPTIONS:
+                if (match(tok, w_UNITS))
+                    getunitsoption(pr, strtok(line, SEPSTR));
+                else if (match(tok, w_HEADLOSS))
+                    getheadlossoption(pr, strtok(line, SEPSTR));
+                break;
         }
         if (errcode) break;
     }
@@ -130,11 +134,6 @@ int netsize(Project *pr)
     parser->MaxNodes = parser->MaxJuncs + parser->MaxTanks;
     parser->MaxLinks = parser->MaxPipes + parser->MaxPumps + parser->MaxValves;
     if (parser->MaxPats < 1) parser->MaxPats = 1;
-    if (!errcode)
-    {
-        if (parser->MaxJuncs < 1)       errcode = 223; // Not enough nodes
-        else if (parser->MaxTanks == 0) errcode = 224; // No tanks
-    }
     return errcode;
 }
 
@@ -152,6 +151,7 @@ int readdata(Project *pr)
 
     char line[MAXLINE + 1],  // Line from input data file
          wline[MAXLINE + 1]; // Working copy of input line
+	char errmsg[MAXMSG + 1] = "";		 
     int  sect, newsect,      // Data sections
          errcode = 0,        // Error code
          inperr, errsum;     // Error code & total error count
@@ -213,7 +213,7 @@ int readdata(Project *pr)
         // Check if max. line length exceeded
         if (strlen(line) >= MAXLINE)
         {
-            sprintf(pr->Msg, "%s section: %s", geterrmsg(214, pr->Msg), SectTxt[sect]);
+            sprintf(pr->Msg, "%s section: %s", geterrmsg(214, errmsg), SectTxt[sect]);
             writeline(pr, pr->Msg);
             writeline(pr, line);
             errsum++;
@@ -231,9 +231,11 @@ int readdata(Project *pr)
             }
             else
             {
-                inperrmsg(pr, 201, sect, line);
+                sect = -1;
+                parser->ErrTok = 0;
                 errsum++;
-                break;
+                inperrmsg(pr, 299, sect, line);
+                continue;
             }
         }
 
@@ -249,25 +251,12 @@ int readdata(Project *pr)
                     errsum++;
                 }
             }
-            else
-            {
-                errcode = 200;
-                break;
-            }
+            else continue;
         }
-
-        // Stop if reach end of file or max. error count
-        if (errsum == MAXERRS)  break;
     }
 
     // Check for errors
     if (errsum > 0) errcode = 200;
-
-    // Check for unlinked nodes
-    if (!errcode) errcode = unlinked(pr);
-
-    // Determine pump curve parameters
-    if (!errcode) errcode = getpumpparams(pr);
 
     // Free input buffer
     free(parser->X);
@@ -315,11 +304,13 @@ int newline(Project *pr, int sect, char *line)
           if (ruledata(pr) > 0)
           {
               ruleerrmsg(pr);
+              deleterule(pr, pr->network.Nrules);
               return 200;
           }
           else return 0;
         case _SOURCES:     return (sourcedata(pr));
         case _EMITTERS:    return (emitterdata(pr));
+        case _LEAKAGE:     return (leakagedata(pr));
         case _QUALITY:     return (qualdata(pr));
         case _STATUS:      return (statusdata(pr));
         case _ROUGHNESS:   return (0);
@@ -329,138 +320,17 @@ int newline(Project *pr, int sect, char *line)
         case _REPORT:      return (reportdata(pr));
         case _TIMES:       return (timedata(pr));
         case _OPTIONS:     return (optiondata(pr));
+        case _TAGS:        return (tagdata(pr));
         case _COORDS:      return (coordata(pr));
         case _VERTICES:    return (vertexdata(pr));
 
         // Data in these sections are not used for any computations
         case _LABELS:
-        case _TAGS:
         case _BACKDROP:
           return (0);
     }
     return 201;
 }
-
-int getpumpparams(Project *pr)
-/*
-**-------------------------------------------------------------
-**  Input:   none
-**  Output:  returns error code
-**  Purpose: computes pump curve coefficients for all pumps
-**--------------------------------------------------------------
-*/
-{
-    Network *net = &pr->network;
-    int i, k, errcode = 0;
-    char errmsg[MAXMSG+1];
-
-    for (i = 1; i <= net->Npumps; i++)
-    {
-        errcode = updatepumpparams(pr, i);
-        if (errcode)
-        {
-            k = net->Pump[i].Link;
-            sprintf(pr->Msg, "Error %d: %s %s",
-                    errcode, geterrmsg(errcode, errmsg), net->Link[k].ID);
-            writeline(pr, pr->Msg);
-            return 200;
-        }
-    }
-    return 0;
-}
-
-int updatepumpparams(Project *pr, int pumpindex)
-/*
-**-------------------------------------------------------------
-**  Input:   pumpindex = index of a pump
-**  Output:  returns error code
-**  Purpose: computes & checks a pump's head curve coefficients
-**--------------------------------------------------------------
-*/
-{
-    Network *net = &pr->network;
-    Spump  *pump;
-    Scurve *curve;
-
-    int m;
-    int curveindex;
-    int npts = 0;
-    int errcode = 0;
-    double a, b, c, h0 = 0.0, h1 = 0.0, h2 = 0.0, q1 = 0.0, q2 = 0.0;
-
-    pump = &net->Pump[pumpindex];
-    if (pump->Ptype == CONST_HP)  // Constant Hp pump
-    {
-        pump->H0 = 0.0;
-        pump->R = -8.814 * net->Link[pump->Link].Km;
-        pump->N = -1.0;
-        pump->Hmax = BIG; // No head limit
-        pump->Qmax = BIG; // No flow limit
-        pump->Q0 = 1.0;   // Init. flow = 1 cfs
-        return errcode;
-    }
-
-    else if (pump->Ptype == NOCURVE) // Pump curve specified
-    {
-        curveindex = pump->Hcurve;
-        if (curveindex == 0) return 226;
-        curve = &net->Curve[curveindex];
-        curve->Type = PUMP_CURVE;
-        npts = curve->Npts;
-
-        // Generic power function curve
-        if (npts == 1)
-        {
-            pump->Ptype = POWER_FUNC;
-            q1 = curve->X[0];
-            h1 = curve->Y[0];
-            h0 = 1.33334 * h1;
-            q2 = 2.0 * q1;
-            h2 = 0.0;
-        }
-
-        // 3 point curve with shutoff head
-        else if (npts == 3 && curve->X[0] == 0.0)
-        {
-            pump->Ptype = POWER_FUNC;
-            h0 = curve->Y[0];
-            q1 = curve->X[1];
-            h1 = curve->Y[1];
-            q2 = curve->X[2];
-            h2 = curve->Y[2];
-        }
-
-        // Custom pump curve
-        else
-        {
-            pump->Ptype = CUSTOM;
-            for (m = 1; m < npts; m++)
-            {
-                if (curve->Y[m] >= curve->Y[m - 1]) return 227;
-            }
-            pump->Qmax = curve->X[npts - 1];
-            pump->Q0 = (curve->X[0] + pump->Qmax) / 2.0;
-            pump->Hmax = curve->Y[0];
-        }
-
-        // Compute shape factors & limits of power function curves
-        if (pump->Ptype == POWER_FUNC)
-        {
-            if (!powercurve(h0, h1, h2, q1, q2, &a, &b, &c)) return 227;
-            else
-            {
-                pump->H0 = -a;
-                pump->R = -b;
-                pump->N = c;
-                pump->Q0 = q1;
-                pump->Qmax = pow((-a / b), (1.0 / c));
-                pump->Hmax = h0;
-            }
-        }
-    }
-    return 0;
-}
-
 
 int addnodeID(Network *net, int n, char *id)
 /*
@@ -572,52 +442,49 @@ int addcurve(Network *network, char *id)
     return 0;
 }
 
-int unlinked(Project *pr)
+int getunitsoption(Project *pr, char *units)
 /*
-**--------------------------------------------------------------
-** Input:   none
-** Output:  returns error code if any unlinked junctions found
-** Purpose: checks for unlinked junctions in network
-**
-** NOTE: unlinked tanks have no effect on computations.
+**-------------------------------------------------------------
+**  Input:   units = name of flow units to be used
+**  Output:  returns 1 if successful, 0 if not
+**  Purpose: sets the flows units to be used by a project.
 **--------------------------------------------------------------
 */
 {
-    Network *net = &pr->network;
-    int *marked;
-    int i, err, errcode;
+    Parser *parser = &pr->parser;
+    if      (match(units, w_CFS))  parser->Flowflag = CFS;
+    else if (match(units, w_GPM))  parser->Flowflag = GPM;
+    else if (match(units, w_AFD))  parser->Flowflag = AFD;
+    else if (match(units, w_MGD))  parser->Flowflag = MGD;
+    else if (match(units, w_IMGD)) parser->Flowflag = IMGD;
+    else if (match(units, w_LPS))  parser->Flowflag = LPS;
+    else if (match(units, w_LPM))  parser->Flowflag = LPM;
+    else if (match(units, w_CMH))  parser->Flowflag = CMH;
+    else if (match(units, w_CMD))  parser->Flowflag = CMD;
+    else if (match(units, w_MLD))  parser->Flowflag = MLD;
+    else if (match(units, w_CMS))  parser->Flowflag = CMS;
+    else if (match(units, w_SI))   parser->Flowflag = LPS;
+    else return 0;
+    if (parser->Flowflag >= LPS) parser->Unitsflag = SI;
+    else parser->Unitsflag = US;
+    return 1;
+}
 
-    errcode = 0;
-    err = 0;
-
-    // Create an array to record number of links incident on each node
-    marked = (int *)calloc(net->Nnodes + 1, sizeof(int));
-    ERRCODE(MEMCHECK(marked));
-    if (errcode) return errcode;
-    memset(marked, 0, (net->Nnodes + 1) * sizeof(int));
-
-    // Mark end nodes of each link
-    for (i = 1; i <= net->Nlinks; i++)
-    {
-        marked[net->Link[i].N1]++;
-        marked[net->Link[i].N2]++;
-    }
-
-    // Check each junction
-    for (i = 1; i <= net->Njuncs; i++)
-    {
-        // If not marked then error
-        if (marked[i] == 0)
-        {
-            err++;
-            sprintf(pr->Msg, "Error 233: %s %s", geterrmsg(233, pr->Msg), net->Node[i].ID);
-            writeline(pr, pr->Msg);
-        }
-        if (err >= MAXERRS) break;
-    }
-    if (err > 0) errcode = 200;
-    free(marked);
-    return errcode;
+int getheadlossoption(Project *pr, char *formula)
+/*
+**-------------------------------------------------------------
+**  Input:   formula = name of head loss formula to be used
+**  Output:  returns 1 if successful, 0 if not
+**  Purpose: sets the head loss formula to be used by a project.
+**--------------------------------------------------------------
+*/
+{
+    Hydraul *hyd = &pr->hydraul;
+    if      (match(formula, w_HW))   hyd->Formflag = HW;
+    else if (match(formula, w_DW))   hyd->Formflag = DW;
+    else if (match(formula, w_CM))   hyd->Formflag = CM;
+    else return 0;
+    return 1;
 }
 
 int findmatch(char *line, char *keyword[])
@@ -686,7 +553,7 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
  */
 {
     int  n;
-    size_t len, m;
+    int len, m;
     char *c, *c2;
 
     // clear comment
@@ -704,10 +571,10 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
         if (c2)
         {
             // there is a comment here, after the semi-colon.
-            len = strlen(c2);
+            len = (int)strlen(c2);
             if (len > 0)
             {
-                len = strcspn(c2, "\n\r");
+                len = (int)strcspn(c2, "\n\r");
                 len = MIN(len, MAXMSG);
                 strncpy(comment, c2, len);
                 comment[MIN(len,MAXMSG)] = '\0';
@@ -855,7 +722,11 @@ void inperrmsg(Project *pr, int err, int sect, char *line)
     else strcpy(tok, "");
 
     // write error message to report file
-    sprintf(pr->Msg, "Error %d: %s %s in %s section:",
+    if (err == 299)
+        sprintf(pr->Msg, "Error %d: %s %s: section contents ignored.",
+            err, geterrmsg(err, errStr), tok);
+    else        
+        sprintf(pr->Msg, "Error %d: %s %s in %s section:",
             err, geterrmsg(err, errStr), tok, SectTxt[sect]);
     writeline(pr, pr->Msg);
 

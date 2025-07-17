@@ -39,6 +39,9 @@ set(toolkit_test_srcs
      test_control.cpp
      test_overflow.cpp
      test_pda.cpp
+     test_valve.cpp
+     test_units.cpp
+     test_leakage.cpp
 )
 
 add_executable(test_toolkit ${toolkit_test_srcs})

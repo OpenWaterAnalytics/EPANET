@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       test_pattern.cpp
  Description:  Tests EPANET toolkit api functions
  Authors:      see AUTHORS

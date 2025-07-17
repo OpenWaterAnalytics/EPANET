@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       epanet2.h
  Description:  declarations of the legacy style EPANET 2 API functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/29/2019
+ Last Updated: 02/14/2025
  ******************************************************************************
  */
 
@@ -18,7 +18,7 @@ set of thread safe API functions that allows one to run concurrent analyses on
 multiple EPANET projects can be found in the epanet2_2.h header file. The two
 APIs share the same function names and arguments with the difference being that
 the thread safe functions use the prefix "EN_" and include an extra argument that
-represents the EPANET project being analyzed. To avoid unneccesary repetition,
+represents the EPANET project being analyzed. To avoid unnecessary repetition,
 only the thread safe API functions have been documented. To see a description of
 a legacy style API function declared here please refer to its complementary named
 function in epanet2_2.h.
@@ -72,14 +72,21 @@ extern "C" {
 
   int  DLLEXPORT ENopen(const char *inpFile, const char *rptFile,
                  const char *outFile);
-  
+
+  int  DLLEXPORT ENopenX(const char *inpFile, const char *rptFile,
+                 const char *outFile);
+
   int  DLLEXPORT ENgettitle(char *line1, char *line2, char *line3);
-  
-  int  DLLEXPORT ENsettitle(char *line1, char *line2, char *line3);
+
+  int  DLLEXPORT ENsettitle(const char *line1, const char *line2, const char *line3);
 
   int  DLLEXPORT ENgetcomment(int object, int index, char *comment);
 
-  int  DLLEXPORT ENsetcomment(int object, int index, char *comment);
+  int  DLLEXPORT ENsetcomment(int object, int index, const char *comment);
+
+  int  DLLEXPORT ENgettag(int object, int index, char *tag);
+
+  int  DLLEXPORT ENsettag(int object, int index, const char *tag);
 
   int  DLLEXPORT ENgetcount(int object, int *count);
 
@@ -107,9 +114,9 @@ extern "C" {
 
   int  DLLEXPORT ENcloseH();
 
-  int  DLLEXPORT ENsavehydfile(char *filename);
+  int  DLLEXPORT ENsavehydfile(const char *filename);
 
-  int  DLLEXPORT ENusehydfile(char *filename);
+  int  DLLEXPORT ENusehydfile(const char *filename);
 
 /********************************************************************
 
@@ -137,17 +144,17 @@ extern "C" {
 
 ********************************************************************/
 
-  int  DLLEXPORT ENwriteline(char *line);
+  int  DLLEXPORT ENwriteline(const char *line);
 
   int  DLLEXPORT ENreport();
 
-  int  DLLEXPORT ENcopyreport(char *filename);
+  int  DLLEXPORT ENcopyreport(const char *filename);
 
   int  DLLEXPORT ENclearreport();
 
   int  DLLEXPORT ENresetreport();
 
-  int  DLLEXPORT ENsetreport(char *format);
+  int  DLLEXPORT ENsetreport(const char *format);
 
   int  DLLEXPORT ENsetstatusreport(int level);
 
@@ -156,8 +163,15 @@ extern "C" {
   int  DLLEXPORT ENgeterror(int errcode, char *errmsg, int maxLen);
 
   int  DLLEXPORT ENgetstatistic(int type, EN_API_FLOAT_TYPE* value);
-  
+
   int  DLLEXPORT ENgetresultindex(int type, int index, int *value);
+
+  int  DLLEXPORT ENtimetonextevent(int *eventType, long *duration, int *elementIndex);
+
+  int DLLEXPORT ENsetreportcallback(void (*callback)(void *userData, void *EN_projectHandle, const char*));
+  
+  int DLLEXPORT ENsetreportcallbackuserdata(void *userData);
+
 
 /********************************************************************
 
@@ -182,8 +196,8 @@ extern "C" {
 
   int  DLLEXPORT ENgetqualtype(int *qualType, int *traceNode);
 
-  int  DLLEXPORT ENsetqualtype(int qualType, char *chemName, char *chemUnits,
-                 char *traceNode);
+  int  DLLEXPORT ENsetqualtype(int qualType, const char *chemName,
+                 const char *chemUnits, const char *traceNode);
 
 /********************************************************************
 
@@ -191,29 +205,31 @@ extern "C" {
 
 ********************************************************************/
 
-   int DLLEXPORT ENaddnode(char *id, int nodeType, int *index);
+   int DLLEXPORT ENaddnode(const char *id, int nodeType, int *index);
 
    int DLLEXPORT ENdeletenode(int index, int actionCode);
 
-   int DLLEXPORT ENgetnodeindex(char *id, int *index);
+   int DLLEXPORT ENgetnodeindex(const char *id, int *index);
 
    int DLLEXPORT ENgetnodeid(int index, char *id);
 
-   int DLLEXPORT ENsetnodeid(int index, char *newid);
+   int DLLEXPORT ENsetnodeid(int index, const char *newid);
 
    int DLLEXPORT ENgetnodetype(int index, int *nodeType);
 
    int DLLEXPORT ENgetnodevalue(int index, int property, EN_API_FLOAT_TYPE *value);
 
+   int DLLEXPORT ENgetnodevalues(int property, EN_API_FLOAT_TYPE *value);
+
    int DLLEXPORT ENsetnodevalue(int index, int property, EN_API_FLOAT_TYPE value);
 
    int DLLEXPORT ENsetjuncdata(int index, EN_API_FLOAT_TYPE elev,
-                 EN_API_FLOAT_TYPE dmnd, char *dmndpat);
+                 EN_API_FLOAT_TYPE dmnd, const char *dmndpat);
 
   int  DLLEXPORT ENsettankdata(int index, EN_API_FLOAT_TYPE elev,
                  EN_API_FLOAT_TYPE initlvl, EN_API_FLOAT_TYPE minlvl,
                  EN_API_FLOAT_TYPE maxlvl, EN_API_FLOAT_TYPE diam,
-                 EN_API_FLOAT_TYPE minvol, char *volcurve);
+                 EN_API_FLOAT_TYPE minvol, const char *volcurve);
 
   int  DLLEXPORT ENgetcoord(int index, double *x, double *y);
 
@@ -232,13 +248,14 @@ extern "C" {
                 EN_API_FLOAT_TYPE preq, EN_API_FLOAT_TYPE pexp);
 
   int DLLEXPORT ENadddemand(int nodeIndex, EN_API_FLOAT_TYPE baseDemand,
-                char *demandPattern, char *demandName);
+                const char *demandPattern, const char *demandName);
 
   int DLLEXPORT ENdeletedemand(int nodeIndex, int demandIndex);
-  
+
   int DLLEXPORT ENgetnumdemands(int nodeIndex, int *numDemands);
 
-  int DLLEXPORT ENgetdemandindex(int nodeIndex, char *demandName, int *demandIndex);
+  int DLLEXPORT ENgetdemandindex(int nodeIndex, const char *demandName,
+                int *demandIndex);
 
   int DLLEXPORT ENgetbasedemand(int nodeIndex, int demandIndex,
                 EN_API_FLOAT_TYPE *baseDemand);
@@ -252,7 +269,7 @@ extern "C" {
 
   int DLLEXPORT ENgetdemandname(int nodeIndex, int demandIndex, char *demandName);
 
-  int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, char *demandName);
+  int DLLEXPORT ENsetdemandname(int nodeIndex, int demandIndex, const char *demandName);
 
 /********************************************************************
 
@@ -260,15 +277,16 @@ extern "C" {
 
 ********************************************************************/
 
-  int DLLEXPORT ENaddlink(char *id, int linkType, char *fromNode, char *toNode, int *index);
+  int DLLEXPORT ENaddlink(const char *id, int linkType, const char *fromNode,
+                const char *toNode, int *index);
 
   int DLLEXPORT ENdeletelink(int index, int actionCode);
 
-  int DLLEXPORT ENgetlinkindex(char *id, int *index);
+  int DLLEXPORT ENgetlinkindex(const char *id, int *index);
 
   int DLLEXPORT ENgetlinkid(int index, char *id);
 
-  int DLLEXPORT ENsetlinkid(int index, char *newid);
+  int DLLEXPORT ENsetlinkid(int index, const char *newid);
 
   int DLLEXPORT ENgetlinktype(int index, int *linkType);
 
@@ -280,16 +298,20 @@ extern "C" {
 
   int DLLEXPORT ENgetlinkvalue(int index, int property, EN_API_FLOAT_TYPE *value);
 
+  int DLLEXPORT ENgetlinkvalues(int property, EN_API_FLOAT_TYPE *value);
+
   int DLLEXPORT ENsetlinkvalue(int index, int property, EN_API_FLOAT_TYPE value);
 
   int DLLEXPORT ENsetpipedata(int index, EN_API_FLOAT_TYPE length,
                 EN_API_FLOAT_TYPE diam, EN_API_FLOAT_TYPE rough,
                 EN_API_FLOAT_TYPE mloss);
-                
+
   int DLLEXPORT ENgetvertexcount(int index, int *count);
-  
+
   int DLLEXPORT ENgetvertex(int index, int vertex, double *x, double *y);
-  
+
+  int DLLEXPORT ENsetvertex(int index, int vertex, double x, double y);
+
   int DLLEXPORT ENsetvertices(int index, double *x, double *y, int count);
 
 /********************************************************************
@@ -310,15 +332,15 @@ extern "C" {
 
 ********************************************************************/
 
-  int DLLEXPORT ENaddpattern(char *id);
+  int DLLEXPORT ENaddpattern(const char *id);
 
   int DLLEXPORT ENdeletepattern(int index);
 
-  int DLLEXPORT ENgetpatternindex(char *id, int *index);
+  int DLLEXPORT ENgetpatternindex(const char *id, int *index);
 
   int DLLEXPORT ENgetpatternid(int index, char *id);
 
-  int DLLEXPORT ENsetpatternid(int index, char *id);
+  int DLLEXPORT ENsetpatternid(int index, const char *id);
 
   int DLLEXPORT ENgetpatternlen(int index, int *len);
 
@@ -330,25 +352,29 @@ extern "C" {
 
   int DLLEXPORT ENsetpattern(int index, EN_API_FLOAT_TYPE *values, int len);
 
+  int DLLEXPORT ENloadpatternfile(const char *filename, const char *id);
+
 /********************************************************************
 
     Data Curve Functions
 
 ********************************************************************/
 
-  int DLLEXPORT ENaddcurve(char *id);
+  int DLLEXPORT ENaddcurve(const char *id);
 
   int DLLEXPORT ENdeletecurve(int index);
 
-  int DLLEXPORT ENgetcurveindex(char *id, int *index);
+  int DLLEXPORT ENgetcurveindex(const char *id, int *index);
 
   int DLLEXPORT ENgetcurveid(int index, char *id);
 
-  int DLLEXPORT ENsetcurveid(int index, char *id);
+  int DLLEXPORT ENsetcurveid(int index, const char *id);
 
   int DLLEXPORT ENgetcurvelen(int index, int *len);
 
   int DLLEXPORT ENgetcurvetype(int index, int *type);
+
+  int DLLEXPORT ENsetcurvetype(int index, int type);
 
   int DLLEXPORT ENgetcurvevalue(int curveIndex, int pointIndex,
                 EN_API_FLOAT_TYPE *x, EN_API_FLOAT_TYPE *y);
@@ -379,6 +405,9 @@ extern "C" {
   int DLLEXPORT ENsetcontrol(int index, int type, int linkIndex,
                 EN_API_FLOAT_TYPE setting, int nodeIndex, EN_API_FLOAT_TYPE level);
 
+  int DLLEXPORT ENgetcontrolenabled(int index, int *out_enabled);
+
+  int DLLEXPORT ENsetcontrolenabled(int index, int enabled);
 
 /********************************************************************
 
@@ -421,8 +450,12 @@ extern "C" {
 
   int DLLEXPORT ENsetelseaction(int ruleIndex, int actionIndex, int linkIndex,
                 int status, EN_API_FLOAT_TYPE setting);
-  
+
   int DLLEXPORT ENsetrulepriority(int index, EN_API_FLOAT_TYPE priority);
+
+  int DLLEXPORT ENgetruleenabled(int index, int *out_enabled);
+
+  int DLLEXPORT ENsetruleenabled(int index, int enabled);
 
   #if defined(__cplusplus)
   }

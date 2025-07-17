@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       test_demand.cpp
  Description:  Tests EPANET toolkit api functions
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/21/2019
+ Last Updated: 08/02/2023
  ******************************************************************************
 */
 
@@ -27,7 +27,9 @@ BOOST_AUTO_TEST_CASE(test_categories_save)
     EN_Project ph = NULL;
 
     error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
     error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, DATA_PATH_OUT);
+    BOOST_REQUIRE(error == 0);
 
     error = EN_getnodeindex(ph, (char *)"12", &Nindex);
     BOOST_REQUIRE(error == 0);
@@ -120,6 +122,32 @@ BOOST_FIXTURE_TEST_CASE(test_adddemand, FixtureSingleNode)
     error = EN_getnumdemands(ph, node_qhut, &nD2);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(nD1 - nD2 == 1);
+}
+
+BOOST_AUTO_TEST_CASE(test_cms_unit)
+{
+    int flowType;
+
+    EN_Project ph = NULL;
+    EN_createproject(&ph);
+
+    int error = EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_CMS, EN_HW);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_setflowunits(ph, EN_CMS);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getflowunits(ph, &flowType );
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(flowType == EN_CMS);
+
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_init(ph, DATA_PATH_RPT, DATA_PATH_OUT, EN_CMS+1, EN_HW);
+    BOOST_REQUIRE(error == 251);
+
+    EN_deleteproject(ph);
 }
 
 

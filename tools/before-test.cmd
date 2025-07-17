@@ -60,6 +60,9 @@ IF NOT DEFINED PLATFORM (
 set "LATEST_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/latest"
 FOR /F delims^=^"^ tokens^=2 %%g IN ('curl --silent %LATEST_URL%') DO ( set "LATEST_TAG=%%~nxg" )
 
+:: even better hack to fix the latest test suite version
+set "LATEST_TAG=v1.0.2-dev.10"
+
 IF defined LATEST_TAG (
   set "TESTFILES_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/archive/%LATEST_TAG%.zip"
   set "BENCHFILES_URL=https://github.com/OpenWaterAnalytics/epanet-example-networks/releases/download/%LATEST_TAG%/benchmark-%PLATFORM%-%REF_BUILD_ID%.zip"

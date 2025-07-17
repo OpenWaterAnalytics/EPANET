@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       test_project.cpp
  Description:  Tests EPANET toolkit api functions
  Authors:      see AUTHORS
@@ -117,7 +117,6 @@ BOOST_AUTO_TEST_CASE(test_run)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
 
 BOOST_AUTO_TEST_SUITE(test_proj_fixture)
 

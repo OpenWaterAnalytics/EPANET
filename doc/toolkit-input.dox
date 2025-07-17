@@ -9,11 +9,12 @@ The file is organized by sections where each section begins with a keyword enclo
 |@subpage TitlePage "[Title]"    |@subpage CurvesPage "[Curves]"  |@subpage QualPage "[Quality]"    |@subpage OptionsPage "[Options]"|@subpage BackdropPage "[Backdrop]"  |
 |@subpage JuncsPage "[Junctions]"|@subpage PatsPage "[Patterns]"  |@subpage ReactsPage "[Reactions]"|@subpage TimesPage "[Times]"    |@subpage CoordsPage "[Coordinates]" |
 |@subpage ResvPage "[Reservoirs]"|@subpage EnergyPage "[Energy]"  |@subpage SourcesPage "[Sources]" |@subpage ReportPage "[Report]"  |@subpage VertexPage "[Vertices]"    |
-|@subpage TanksPage "[Tanks]"    |@subpage StatusPage "[Status]"  |@subpage MixingPage "[Mixing]"   |                                |@subpage LabelsPage "[Labels]"      |
+|@subpage TanksPage "[Tanks]"    |@subpage StatusPage "[Status]"  |@subpage MixingPage "[Mixing]"   |@subpage TagsPage "[Tags]"      |@subpage LabelsPage "[Labels]"      |
 |@subpage PipesPage "[Pipes]"    |@subpage CtrlsPage "[Controls]" |                                 |                                |                                    |
 |@subpage PumpsPage "[Pumps]"    |@subpage RulesPage "[Rules]"    |                                 |                                |                                    |
 |@subpage ValvesPage "[Valves]"  |@subpage DmndsPage "[Demands]"  |                                 |                                |                                    |
-|@subpage EmitsPage "[Emitters]" |                                |                                 |                                |                                    |
+|@subpage EmitsPage "[Emitters]" |@subpage LeaksPage "[Leakage]"  |                                 |                                |                                    |
+
     
 The order of sections is not important. However, whenever a node or link is referred to in a section it must have already been defined in the [JUNCTIONS], [RESERVOIRS], [TANKS], [PIPES], [PUMPS], or [VALVES] sections. Thus it is recommended that these sections be placed first.
 
@@ -40,7 +41,7 @@ One line for each control which can be of the form:
 
 <b>&nbsp;&nbsp; LINK</b> _linkID_ &nbsp; _status_ &nbsp;<b> AT TIME&nbsp;</b> _time_
 
-<b>&nbsp;&nbsp; LINK</b> _linkID_ &nbsp; _status_ &nbsp;<b> AT CLOCKTIME</b> _clocktime_ &nbsp;<b> AM / PM</b>
+<b>&nbsp;&nbsp; LINK</b> _linkID_ &nbsp; _status_ &nbsp;<b> AT CLOCKTIME</b> _clocktime_
 
 where:
 <table style = "border: 0px solid black">
@@ -54,7 +55,8 @@ where:
 
 __Remarks:__
 1. Simple controls are used to change link status or settings based on tank water level, junction pressure, time into the simulation or time of day.  
-2. See the notes for the @ref StatusPage section for conventions used in specifying link status and setting, particularly for control valves.  
+2. See the notes for the @ref StatusPage section for conventions used in specifying link status and setting, particularly for control valves.
+3. Adding the keyword <b>DISABLED</b> at the end of a control statement will indicate that the control is disabled and will not be applied.
 
 __Examples:__ 
 
@@ -65,8 +67,8 @@ LINK 12 CLOSED IF NODE 23 ABOVE 20
 ;Open Link 12 if the pressure at Node 130 is under 30 psi<br>
 LINK 12 OPEN IF NODE 130 BELOW 30
 
-;Pump PUMP02's speed is set to 1.5 at 16 hours into the simulation<br>
-LINK PUMP02 1.5 AT TIME 16
+;Disable setting Pump PUMP02's speed to 1.5 at 16 hours into the simulation<br>
+LINK PUMP02 1.5 AT TIME 16 DISABLED
 
 ;Link 12 is closed at 10 am and opened at 8 pm throughout the simulation<br>
 LINK 12 CLOSED AT CLOCKTIME 10 AM<br>
@@ -92,9 +94,10 @@ __Remarks:__
    - Head v. Flow for pumps
    - Efficiency v. Flow for pumps
    - Volume v. Depth for tanks
+   - Fraction of fully open flow v. fraction open for Positional Control Valves
    - Head Loss v. Flow for General Purpose Valves
 2. The points of a curve must be entered in order of increasing X-values (lower to higher).
-3. If the input file will be used with the Windows version of EPANET, then adding a comment which contains the curve type and description, separated by a colon, directly above the first entry for a curve will ensure that these items appear correctly in EPANET's Curve Editor. Curve types include <B>PUMP, EFFICIENCY, VOLUME</B>, and <B>HEADLOSS</B>. See the examples below.
+3. If the input file will be used with the Windows version of EPANET, then adding a comment which contains the curve type and description, separated by a colon, directly above the first entry for a curve will ensure that these items appear correctly in EPANET's Curve Editor. Curve types include <B>PUMP, EFFICIENCY, VOLUME, VALVE</B>, and <B>HEADLOSS</B>. See the examples below.
 
 __Example:__
 ```
@@ -235,6 +238,26 @@ J3    115                      ;No demand at this junction
 */
 
 /**
+@page LeaksPage [LEAKAGE]
+
+__Purpose:__
+
+Assigns leakage parameters to individual pipes.
+
+__Format:__
+
+A line for each pipe subject to leaking that contains:
+- Pipe ID label
+- the area of cracks that leak in sq. mm per 100 units of pipe length (ft or m)
+- the rate at which cracks expand in sq. mm per unit of pressure head (ft or m)
+
+__Remarks__
+1. This section is optional.
+2. Leak area is the total area of all cracks assumed to exist per 100 feet (or meters) of pipe.
+3. Experimental values of expansion range between 0 and 0.001 (sq mm)/m depending on pipe material and crack size.
+*/
+
+/**
 @page MixingPage [MIXING]
 
 __Purpose:__
@@ -277,7 +300,8 @@ Defines various simulation options.
 __Formats:__
 <table style = "border: 0px solid black">
 <tr><td><B>UNITS</B></td><td><B>CFS / GPM / MGD / IMGD / AFD /</B></td></tr>
-<tr><td>  </td><td><B>LPS / LPM / MLD / CMH / CMD</B></td></tr>
+<tr><td>  </td><td><B>LPS / LPM / MLD / CMS / CMH / CMD</B></td></tr>
+<tr><td><B>PRESSURE</B></td><td><B>PSI / KPA / METERS / FEET / BAR</B></td></tr>
 <tr><td><B>HEADLOSS</B></td><td><B>H-W / D-W / C-M</B></td></tr>
 <tr><td><B>HYDRAULICS</B></td><td><B>USE / SAVE </B><I>&nbsp;filename</I></td></tr>
 <tr><td><B>VISCOSITY</B></td><td><I>value</I></td></tr>
@@ -297,6 +321,7 @@ __Formats:__
 <tr><td><B>PATTERN</B></td><td><I>id</I></td></tr>
 <tr><td><B>DEMAND MULTIPLIER</B></td><td><I>value</I></td></tr>
 <tr><td><B>EMITTER EXPONENT</B></td><td><I>value</I></td></tr>
+<tr><td><B>EMITTER BACKFLOW</B></td><td><B>YES / NO</B></td></tr>
 <tr><td><B>QUALITY</B></td><td><B>NONE / CHEMICAL / AGE / TRACE&nbsp;&nbsp; </B><I>nodeID</I></td></tr>
 <tr><td><B>DIFFUSIVITY</B></td><td><I>value</I></td></tr>
 <tr><td><B>TOLERANCE</B></td><td><I>value</I></td></tr>
@@ -313,10 +338,13 @@ __Definitions:__
 - \b LPS = liters per second
 - \b LPM = liters per minute
 - \b MLD = million liters per day
+- \b CMS = cubic meters per second
 - \b CMH = cubic meters per hour
 - \b CMD = cubic meters per day
 
-For <b>CFS, GPM, MGD, IMGD</b>, and <b>AFD</b> other input quantities are expressed in US Customary Units. If flow units are in liters or cubic meters then Metric Units must be used for all other input quantities as well. (See the @ref Units topic). The default flow units are \b GPM.
+For <b>CFS, GPM, MGD, IMGD</b>, and <b>AFD</b> other input quantities are expressed in US Customary Units. If flow units are in liters or cubic meters then Metric Units must be used for all other input quantities as well. (See the @ref Units topic). An exception is pressure which can use either US or SI units. The default flow units are \b GPM.
+
+\b PRESSURE sets the units in which pressure is expressed, regardless of which unit system is in use. The default pressure unit is \b PSI for US Customary Units and \b METERS for SI Metric Units.
 
 \b HEADLOSS selects a formula to use for computing head loss for flow through a pipe. The choices are the Hazen-Williams (\b H-W ), Darcy-Weisbach (\b D-W ), or Chezy-Manning (\b C-M ) formulas. The default is \b H-W.
 
@@ -346,7 +374,7 @@ The \b HYDRAULICS option allows you to either <B>SAVE</B> the current hydraulics
 
 \b MINIMUM PRESSURE is the pressure below which no demand can be delivered under a pressure driven analysis. It has no effect on a demand driven analysis. Its default value is 0.
 
-\b REQUIRED PRESSURE is the pressure required to supply a node's full demand under a pressure driven analysis. It has no effect on a demand driven analysis. It must be at least 0.1 psi or m higher than the MINIMUM PRESSURE, which is also its default value.
+\b REQUIRED PRESSURE is the pressure required to supply a node's full demand under a pressure driven analysis. It has no effect on a demand driven analysis. It must be at least 0.1 pressure units higher than the MINIMUM PRESSURE, which is also its default value.
 
 \b PRESSURE EXPONENT is the power to which pressure is raised when computing the demand delivered to a node under a pressure driven analysis. It has no effect on a demand driven analysis. Its default value is 0.5.
 
@@ -355,6 +383,8 @@ The \b HYDRAULICS option allows you to either <B>SAVE</B> the current hydraulics
 The <b>DEMAND MULTIPLIER</b> is used to adjust the values of baseline demands for all junctions and all demand categories. For example, a value of 2 doubles all baseline demands, while a value of 0.5 would halve them. The default value is 1.0.
 
 <b>EMITTER EXPONENT</b> specifies the power to which the pressure at a junction is raised when computing the flow issuing from an emitter. The default is 0.5.
+
+<b>EMITTER BACKFLOW</b> specifies if back flow through an emitter (i.e., flow into the network) is allowed. The default is <b>YES</b>.
 
 \b QUALITY selects the type of water quality analysis to perform. The choices are <b>NONE, CHEMICAL, AGE</b>, and \b TRACE. In place of \b CHEMICAL the actual name of the chemical can be used followed by its concentration units (e.g., <b>CHLORINE mg/L</b>). If \b TRACE is selected it must be followed by the ID label of the node being traced. The default selection is \b NONE (no water quality analysis).
 
@@ -496,7 +526,7 @@ One line per node containing:
 
 __Remarks:__
 1. Quality is assumed to be zero for nodes not listed.
-2. Quality represents concentration for chemicals, hours for water age, or percent for source tracing.
+2. Quality represents concentration for chemicals or hours for water age. Values for source tracing are not required and will be ignored.
 3. The <b>[QUALITY]</b> section is optional.
 */
 
@@ -586,6 +616,8 @@ __Definitions:__
 \b STATUS determines whether a hydraulic status report should be generated. If \b YES is selected the report will identify all network components that change status during each time step of the simulation. If \b FULL is selected, then the status report will also include information from each trial of each hydraulic analysis. This level of detail is only useful for de-bugging networks that become hydraulically unbalanced. The default is \b NO.
 
 \b SUMMARY determines whether a summary table of number of network components and key analysis options is generated. The default is \b YES.
+
+\b MESSAGES determines whether error and warning messages are reported. The default is \b YES.
 
 \b ENERGY determines if a table reporting average energy usage and cost for each pump is provided. The default is \b NO.
 
@@ -897,6 +929,38 @@ __Example:__
 */
 
 /**
+@page TagsPage [TAGS]
+
+__Purpose:__
+
+Associates category labels (tags) with specific nodes and links.
+
+__Format:__
+
+One line for each node and link with a tag containing:
+- the keyword <b>NODE</b> or <b>LINK</b>
+- the node or link ID label
+- the text of the tag label (with no spaces)
+
+__Remarks:__
+1. Tags can be useful for assigning nodes to different pressure zones or for classifying pipes by material or age.
+2. If a node or link’s tag is not identified in this section then it is assumed to be blank.
+3. The [TAGS] section is optional and has no effect on the hydraulic or water quality calculations.
+
+__Example:__
+@code
+[TAGS]
+;Object ID      Tag
+;------------------------------
+NODE    1001    Zone_A
+NODE    1002    Zone_A
+NODE    45      Zone_B
+LINK    201     UNCI-1960
+LINK    202     PVC-1985
+@endcode
+*/
+
+/**
 @page TanksPage [TANKS]
 
 __Purpose:__
@@ -1005,7 +1069,7 @@ Attaches a descriptive title to the network being analyzed.
 
 __Format:__
 
-Any number of lines of text.
+Up to three lines of text containing no more than 79 characters each can be used as a title.
 
 __Remarks:__
 
@@ -1028,19 +1092,26 @@ One line for each valve containing:
 - Diameter, inches (mm)
 - Valve type
 - Valve setting
-- Minor loss coefficient
+- Minor loss coefficient when fully open
+- ID of valve characteristic curve (PCVs only)
 
 __Remarks:__
-1. Valve types and settings include:
+1. Valve types and settings include: \n
 |Valve Type | Setting |
 |-----------|---------|
-|<B>PRV</B> (pressure reducing valve) | Pressure, psi (m) |
-|<B>PSV</B> (pressure sustaining valve) | Pressure, psi (m) |
-|<B>PBV</B> (pressure breaker valve) | Pressure, psi (m) |
+|<B>PRV</B> (pressure reducing valve) | Pressure (pressure units) |
+|<B>PSV</B> (pressure sustaining valve) | Pressure (pressure units) |
+|<B>PBV</B> (pressure breaker valve) | Pressure (pressure units) |
 |<B>FCV</B> (flow control valve) | Flow (flow units) |
-|<B>TCV</B> (throttle control valve) | Loss Coefficient |
+|<B>TCV</B> (throttle control valve) | Partially open loss coefficient |
+|<B>PCV</B> (positional control valve) | Percent open |
 |<B>GPV</B> (general purpose valve) | ID of head loss curve |
+\n
 2. Shutoff valves and check valves are considered to be part of a pipe, not a separate control valve component (see @ref PipesPage).
+3. The loss coefficient setting for a TCV should not be less than its fully open loss coefficient.
+4. The characteristic curve for a PCV relates the valve's percent of fully open flow to the percent open. If not supplied then a linear curve is assumed.
+5. The partially opened loss coefficient for a PCV is the inverse of the squared value from its characteristic curve times the fully open loss coefficient.
+6. The head loss curve for a GPV relates head loss across the valve to the flow rate through it.
 */
 
 /**
@@ -1073,8 +1144,6 @@ upper-left corner of the network's bounding rectangle. Default is zero offset.
 __Remarks:__
 
 1. The [BACKDROP] section is optional and only provides support for an external GUI program that uses the EPANET engine.
-
-2. Only Windows Enhanced Metafiles and bitmap files can be used as backdrops.
 */
 
 /**
@@ -1095,9 +1164,9 @@ __Remarks:__
 
 1. Include one line for each node that has coordinates.
 
-2. The coordinates represent the distance from the node to an arbitrary origin at the lower left of the network. Any convenient units of measure for this distance can be used.
+2. Any convenient geographic, projected or arbitrary Cartesian coordinate system can be used.
 
-3. The locations  of the nodes need not be to actual scale.
+3. The locations of nodes need not be to actual scale.
 
 4. A [COORDINATES] section is optional and only provides support for an external GUI program that uses the EPANET engine.
 */
@@ -1144,7 +1213,7 @@ __Remarks:__
 
 1. Include one line for each label.
 
-2. The coordinates refer to the upper left corner of the label and are with respect to an arbitrary origin at the lower left of the network.
+2. The coordinates refer to the upper left corner of the label.
 
 3. The optional anchor node anchors the label to the node when the network layout is re-scaled during zoom-in operations.
 

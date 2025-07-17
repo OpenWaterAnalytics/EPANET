@@ -3,7 +3,8 @@
 //   epanet_output.c -- API for reading results from EPANET binary output file
 //
 //   Version:    0.40
-//   Date        04/02/2019
+//   Date        08/02/2023
+//               04/02/2019
 //               09/06/2017
 //               06/17/2016
 //               08/05/2014
@@ -121,7 +122,7 @@ int EXPORT_OUT_API ENR_close(ENR_Handle *p_handle)
  **
  **  Returns:  Error code 0 on success, -1 on failure
  **
- **  Purpose:  Close the output binary file, dellocate ENR_Handle struc
+ **  Purpose:  Close the output binary file, deallocate ENR_Handle struct
  **            and nullify pointer to ENR_Handle struct
  **
  **  NOTE: ENR_close must be called before program end
@@ -160,7 +161,7 @@ int EXPORT_OUT_API ENR_open(ENR_Handle p_handle, const char* path)
  **  Returns:  warning / error code
  **  Purpose:  Opens the output binary file and reads prologue and epilogue
  **
- **  NOTE: ENR_init must be called before anyother ENR_* functions
+ **  NOTE: ENR_init must be called before any other ENR_* functions
  **-------------------------------------------------------------------------
  */
 {
@@ -252,12 +253,15 @@ int EXPORT_OUT_API ENR_getNetSize(ENR_Handle p_handle, int** elementCount, int* 
  */
 {
     int errorcode = 0;
-    int* temp = newIntArray(NELEMENTTYPES);
+    int* temp;
     data_t* p_data;
 
     p_data = (data_t*)p_handle;
 
     if (p_data == NULL) return -1;
+    // Check memory for count values
+    else if MEMCHECK(temp = newIntArray(NELEMENTTYPES)) errorcode = 411;
+    
     else
     {
         temp[0] = p_data->nodeCount;
@@ -295,6 +299,7 @@ int EXPORT_OUT_API ENR_getUnits(ENR_Handle p_handle, ENR_Units code, int* unitFl
  **  7 = megaliters/day
  **  8 = cubic meters/hour
  **  9 = cubic meters/day
+ **  10 = cubic meters/sec
  **-------------------------------------------------------------------------
  */
 {
@@ -458,6 +463,7 @@ int EXPORT_OUT_API ENR_getElementName(ENR_Handle p_handle, ENR_ElementType type,
             *name = temp;
             *length = MAXID_P1;
         }
+        else free(temp);
     }
 
     return set_error(p_data->error_handle, errorcode);

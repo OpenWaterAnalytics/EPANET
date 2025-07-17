@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       hydraul.c
  Description:  implements EPANET's hydraulic engine
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 12/05/2019
+ Last Updated: 04/19/2025
  ******************************************************************************
 */
 
@@ -23,6 +23,7 @@
 const double QZERO = 1.e-6;  // Equivalent to zero flow in cfs
 
 // Imported functions
+extern int  validateproject(Project *);
 extern int  createsparse(Project *);
 extern void freesparse(Project *);
 extern int  hydsolve(Project *, int *, double *);
@@ -34,11 +35,11 @@ void    initlinkflow(Project *, int, char, double);
 void    demands(Project *);
 int     controls(Project *);
 long    timestep(Project *);
-void    controltimestep(Project *, long *);
 void    ruletimestep(Project *, long *);
 void    addenergy(Project *, long);
 void    tanklevels(Project *, long);
 void    resetpumpflow(Project *, int);
+void    getallpumpsenergy(Project *);
 
 int  openhyd(Project *pr)
 /*
@@ -52,33 +53,27 @@ int  openhyd(Project *pr)
     int  i;
     int  errcode = 0;
     Slink *link;
-
-    // Check for too few nodes & no fixed grade nodes
-    if (pr->network.Nnodes < 2) errcode = 223;
-    else if (pr->network.Ntanks == 0) errcode = 224;
+    
+    // Check for valid project data (see VALIDATE.C)
+    errcode = validateproject(pr);
+    if (errcode > 0) return errcode;
 
     // Allocate memory for sparse matrix structures (see SMATRIX.C)
     ERRCODE(createsparse(pr));
 
     // Allocate memory for hydraulic variables
     ERRCODE(allocmatrix(pr));
-
+    
     // Check for unconnected nodes
-    if (!errcode) for (i = 1; i <= pr->network.Njuncs; i++)
-    {
-        if (pr->network.Adjlist[i] == NULL)
-        {
-            errcode = 233;
-            break;
-        }
-    }
+    ERRCODE(unlinked(pr));
 
     // Initialize link flows
     if (!errcode) for (i = 1; i <= pr->network.Nlinks; i++)
     {
         link = &pr->network.Link[i];
-        initlinkflow(pr, i, link->Status, link->Kc);
+        initlinkflow(pr, i, link->InitStatus, link->Kc);
     }
+    else closehyd(pr);        
     return errcode;
 }
 
@@ -112,8 +107,10 @@ void inithyd(Project *pr, int initflag)
         hyd->OldStatus[net->Nlinks+i] = TEMPCLOSED;
     }
 
-    // Initialize emitter flows
+    // Initialize node outflows
+    memset(hyd->DemandFlow,0,(net->Nnodes+1)*sizeof(double));
     memset(hyd->EmitterFlow,0,(net->Nnodes+1)*sizeof(double));
+    memset(hyd->LeakageFlow,0,(net->Nnodes+1)*sizeof(double));
     for (i = 1; i <= net->Nnodes; i++)
     {
         net->Node[i].ResultIndex = i;
@@ -127,9 +124,22 @@ void inithyd(Project *pr, int initflag)
         link->ResultIndex = i;
 
         // Initialize status and setting
-        hyd->LinkStatus[i] = link->Status;
-        hyd->LinkSetting[i] = link->Kc;
-
+        hyd->LinkStatus[i] = link->InitStatus;
+        hyd->LinkSetting[i] = link->InitSetting;
+        
+        // Setting of non-ACTIVE FCV, PRV, PSV valves is "MISSING"
+        switch (link->Type)
+        {
+        case FCV:
+        case PRV:
+        case PSV:
+            if (link->InitStatus != ACTIVE)
+            {
+                link->Kc = MISSING;
+                hyd->LinkSetting[i] = MISSING;
+            }
+        }
+        
         // Compute flow resistance
         resistcoeff(pr, i);
 
@@ -163,7 +173,12 @@ void inithyd(Project *pr, int initflag)
         pump->Energy.KwHrsPerFlow = 0.0;
         pump->Energy.MaxKwatts = 0.0;
         pump->Energy.TotalCost = 0.0;
+        pump->Energy.CurrentPower = 0.0;
+        pump->Energy.CurrentEffic = 0.0;
     }
+    
+    // Initialize flow balance
+    startflowbalance(pr);
 
     // Re-position hydraulics file
     if (pr->outfile.Saveflag)
@@ -196,7 +211,7 @@ int   runhyd(Project *pr, long *t)
     int   iter;          // Iteration count
     int   errcode;       // Error code
     double relerr;       // Solution accuracy
-    
+
     // Find new demands & control actions
     *t = time->Htime;
     demands(pr);
@@ -239,6 +254,9 @@ int  nexthyd(Project *pr, long *tstep)
     long  hydstep;         // Actual time step
     int   errcode = 0;     // Error code
 
+    // Compute current power and efficiency of all pumps
+    getallpumpsenergy(pr);
+
     // Save current results to hydraulics file and
     // force end of simulation if Haltflag is active
     if (pr->outfile.Saveflag) errcode = savehyd(pr, &time->Htime);
@@ -250,9 +268,12 @@ int  nexthyd(Project *pr, long *tstep)
     if (time->Htime < time->Dur) hydstep = timestep(pr);
     if (pr->outfile.Saveflag) errcode = savehydstep(pr,&hydstep);
 
-    // Compute pumping energy
+    // Accumulate pumping energy
     if (time->Dur == 0) addenergy(pr,0);
     else if (time->Htime < time->Dur) addenergy(pr,hydstep);
+    
+    // Update flow balance
+    updateflowbalance(pr, hydstep);
 
     // More time remains - update current time
     if (time->Htime < time->Dur)
@@ -267,6 +288,8 @@ int  nexthyd(Project *pr, long *tstep)
     // No more time remains - force completion of analysis
     else
     {
+        endflowbalance(pr);
+        if (pr->report.Statflag) writeflowbalance(pr);
         time->Htime++;
         if (pr->quality.OpenQflag) time->Qtime++;
     }
@@ -286,6 +309,7 @@ void  closehyd(Project *pr)
 {
     freesparse(pr);
     freematrix(pr);
+    freeadjlists(&pr->network);
 }
 
 
@@ -305,16 +329,12 @@ int  allocmatrix(Project *pr)
 
     hyd->P   = (double *) calloc(net->Nlinks+1,sizeof(double));
     hyd->Y   = (double *) calloc(net->Nlinks+1,sizeof(double));
-    hyd->DemandFlow = (double *) calloc(net->Nnodes + 1, sizeof(double));
-    hyd->EmitterFlow = (double *) calloc(net->Nnodes+1, sizeof(double));
     hyd->Xflow = (double *) calloc(MAX((net->Nnodes+1), (net->Nlinks+1)),
                                    sizeof(double));
     hyd->OldStatus = (StatusType *) calloc(net->Nlinks+net->Ntanks+1,
                                            sizeof(StatusType));
     ERRCODE(MEMCHECK(hyd->P));
     ERRCODE(MEMCHECK(hyd->Y));
-    ERRCODE(MEMCHECK(hyd->DemandFlow));
-    ERRCODE(MEMCHECK(hyd->EmitterFlow));
     ERRCODE(MEMCHECK(hyd->Xflow));
     ERRCODE(MEMCHECK(hyd->OldStatus));
     return errcode;
@@ -334,8 +354,6 @@ void  freematrix(Project *pr)
 
     free(hyd->P);
     free(hyd->Y);
-    free(hyd->DemandFlow);
-    free(hyd->EmitterFlow);
     free(hyd->Xflow);
     free(hyd->OldStatus);
 }
@@ -397,7 +415,7 @@ void  setlinkstatus(Project *pr, int index, char value, StatusType *s, double *k
         if (t == PUMP)
         {
             *k = 1.0;
-            // Check if a re-opened pump needs its flow reset            
+            // Check if a re-opened pump needs its flow reset
             if (*s == CLOSED) resetpumpflow(pr, index);
         }
         if (t > PUMP &&  t != GPV) *k = MISSING;
@@ -457,6 +475,7 @@ void  setlinksetting(Project *pr, int index, double value, StatusType *s,
     else
     {
         if (*k == MISSING && *s <= CLOSED) *s = OPEN;
+        if (t == PCV) link->R = pcvlosscoeff(pr, index, link->Kc);
         *k = value;
     }
 }
@@ -492,12 +511,14 @@ void  demands(Project *pr)
         {
             // pattern period (k) = (elapsed periods) modulus (periods per pattern)
             j = demand->Pat;
+            if (j == 0)
+                j = hyd->DefPat;
             k = p % (long)net->Pattern[j].Length;
             djunc = (demand->Base) * net->Pattern[j].F[k] * hyd->Dmult;
             if (djunc > 0.0) hyd->Dsystem += djunc;
             sum += djunc;
         }
-        hyd->NodeDemand[i] = sum;
+        hyd->FullDemand[i] = sum;
 
         // Initialize pressure dependent demand
         hyd->DemandFlow[i] = sum;
@@ -562,6 +583,10 @@ int  controls(Project *pr)
     {
         // Make sure that link is defined
         control = &net->Control[i];
+        if (!control->isEnabled)
+        {
+            continue;
+        }
         reset = 0;
         if ( (k = control->Link) <= 0) continue;
         link = &net->Link[k];
@@ -601,15 +626,16 @@ int  controls(Project *pr)
             k1 = hyd->LinkSetting[k];
             k2 = k1;
             if (link->Type > PIPE) k2 = control->Setting;
-            
+
             // Check if a re-opened pump needs its flow reset
             if (link->Type == PUMP && s1 == CLOSED && s2 == OPEN)
                 resetpumpflow(pr, k);
-                
+
             if (s1 != s2 || k1 != k2)
             {
                 hyd->LinkStatus[k] = s2;
                 hyd->LinkSetting[k] = k2;
+                if (link->Type == PCV) link->R = pcvlosscoeff(pr, k, k2);
                 if (pr->report.Statflag) writecontrolaction(pr,k,i);
                 setsum++;
             }
@@ -673,7 +699,7 @@ int  tanktimestep(Project *pr, long *tstep)
     Hydraul *hyd = &pr->hydraul;
 
     int     i, n, tankIdx = 0;
-    double  h, q, v;
+    double  h, q, v, xt;
     long    t;
     Stank   *tank;
 
@@ -696,7 +722,9 @@ int  tanktimestep(Project *pr, long *tstep)
         else continue;
 
         // Find time to fill/drain tank
-        t = (long)ROUND(v / q);
+        xt = v / q;
+        if (ABS(xt) > *tstep + 1) continue;
+        t = (long)ROUND(xt);
         if (t > 0 && t < *tstep)
         {
             *tstep = t;
@@ -707,7 +735,7 @@ int  tanktimestep(Project *pr, long *tstep)
 }
 
 
-void  controltimestep(Project *pr, long *tstep)
+int  controltimestep(Project *pr, long *tstep)
 /*
 **------------------------------------------------------------------
 **  Input:   *tstep = current time step
@@ -720,7 +748,7 @@ void  controltimestep(Project *pr, long *tstep)
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
 
-    int    i, j, k, n;
+    int    i, j, k, n, controlIndex = 0;
     double h, q, v;
     long   t, t1, t2;
     Slink  *link;
@@ -731,7 +759,10 @@ void  controltimestep(Project *pr, long *tstep)
     {
         t = 0;
         control = &net->Control[i];
-
+        if (!control->isEnabled)
+        {
+            continue;
+        }
         // Control depends on a tank level
         if ( (n = control->Node) > 0)
         {
@@ -777,9 +808,14 @@ void  controltimestep(Project *pr, long *tstep)
             k = control->Link;
             link = &net->Link[k];
             if ( (link->Type > PIPE && hyd->LinkSetting[k] != control->Setting)
-            ||   (hyd->LinkStatus[k] != control->Status) ) *tstep = t;
+              || (hyd->LinkStatus[k] != control->Status) )
+            {
+              *tstep = t;
+              controlIndex = i;
+            }
         }
     }
+    return controlIndex;
 }
 
 
@@ -902,7 +938,7 @@ void  addenergy(Project *pr, long hstep)
         // Skip closed pumps
         pump = &net->Pump[j];
         k = pump->Link;
-        if (hyd->LinkStatus[k] <= CLOSED) continue;
+        if (pump->Energy.CurrentEffic == 0.0) continue;
         q = MAX(QZERO, ABS(hyd->LinkFlow[k]));
 
         // Find pump-specific energy cost
@@ -915,11 +951,10 @@ void  addenergy(Project *pr, long hstep)
         }
         else c *= f0;
 
-        // Find pump energy & efficiency
-        getenergy(pr, k, &p, &e);
-        psum += p;
-
         // Update pump's cumulative statistics
+        p = pump->Energy.CurrentPower;
+        e = pump->Energy.CurrentEffic;
+        psum += p;
         pump->Energy.TimeOnLine += dt;
         pump->Energy.Efficiency += e * dt;
         pump->Energy.KwHrsPerFlow += p / q * dt;
@@ -992,6 +1027,27 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
     // Compute energy
     *kw = dh * q * hyd->SpGrav / 8.814 / e * KWperHP;
     *eff = e;
+}
+
+
+void  getallpumpsenergy(Project *pr)
+/*
+**-------------------------------------------------------------
+**  Input:   none
+**  Output:  none
+**  Purpose: finds the current power and efficiency for each pump.
+**-------------------------------------------------------------
+*/
+{
+    int  j;
+    Spump  *pump;
+
+    for (j = 1; j <= pr->network.Npumps; j++)
+    {
+        pump = &(pr->network.Pump[j]);
+        getenergy(pr, pump->Link, &(pump->Energy.CurrentPower),
+            &(pump->Energy.CurrentEffic));
+    }
 }
 
 
@@ -1112,6 +1168,5 @@ void resetpumpflow(Project *pr, int i)
     Network *net = &pr->network;
     Spump *pump = &net->Pump[findpump(net, i)];
     if (pump->Ptype == CONST_HP)
-        pr->hydraul.LinkFlow[i] = pump->Q0; 
+        pr->hydraul.LinkFlow[i] = pump->Q0;
 }
-

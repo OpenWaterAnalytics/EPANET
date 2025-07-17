@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       project.c
  Description:  project data management routines
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 11/15/2019
+ Last Updated: 04/23/2025
  ******************************************************************************
 */
 
@@ -24,6 +24,81 @@
 #include "types.h"
 #include "funcs.h"
 
+int openproject(Project *pr, const char *inpFile, const char *rptFile,
+                      const char *outFile, int allowerrors)
+/*----------------------------------------------------------------
+ **  Input:   inpFile = name of input file
+ **           rptFile = name of report file
+ **           outFile = name of binary output file
+ **           allowerrors = TRUE if project can be opened with errors
+ **  Output:  none
+ **  Returns: error code
+ **  Purpose: opens an EPANET input file & reads in network data
+ **----------------------------------------------------------------
+ */
+{
+    int errcode = 0;
+    int hyderrcode = 0;
+    int projectopened;
+
+    // Set system flags
+    pr->Openflag = FALSE;
+    pr->hydraul.OpenHflag = FALSE;
+    pr->quality.OpenQflag = FALSE;
+    pr->outfile.SaveHflag = FALSE;
+    pr->outfile.SaveQflag = FALSE;
+    pr->Warnflag = FALSE;
+    pr->report.Messageflag = TRUE;
+    pr->report.Rptflag = 1;
+
+    // Initialize data arrays to NULL
+    initpointers(pr);
+
+    // Open input & report files
+    ERRCODE(openfiles(pr, inpFile, rptFile, outFile));
+    if (errcode > 0)
+    {
+        errmsg(pr, errcode);
+        return errcode;
+    }
+
+    // Allocate memory for project's data arrays
+    ERRCODE(netsize(pr));
+    ERRCODE(allocdata(pr));
+
+    // Read input data
+    ERRCODE(getdata(pr));
+
+    // Close input file
+    if (pr->parser.InFile != NULL)
+    {
+        fclose(pr->parser.InFile);
+        pr->parser.InFile = NULL;
+    }
+    
+    // Input file read with no fatal errors
+    if (allowerrors) projectopened = (errcode == 0 || errcode == 200);
+    else projectopened = (errcode == 0);
+    if (projectopened)
+    {
+        // If using previously saved hydraulics file then open it
+        if (pr->outfile.Hydflag == USE)
+        {
+            hyderrcode = openhydfile(pr);
+            if (hyderrcode > 0)
+            {
+                errmsg(pr, hyderrcode);
+                pr->outfile.Hydflag = SCRATCH;
+            }
+        }            
+
+        // Write input summary to report file
+        if (pr->report.Summaryflag) writesummary(pr);
+        pr->Openflag = TRUE;
+    }
+    errmsg(pr, errcode);
+    return errcode;
+}
 
 int openfiles(Project *pr, const char *f1, const char *f2, const char *f3)
 /*----------------------------------------------------------------
@@ -93,10 +168,9 @@ int openhydfile(Project *pr)
     INT4 version;
     int errcode = 0;
 
-    // If HydFile currently open, then close it if its not a scratch file
+    // If HydFile currently open, then close it
     if (pr->outfile.HydFile != NULL)
     {
-        if (pr->outfile.Hydflag == SCRATCH) return 0;
         fclose(pr->outfile.HydFile);
         pr->outfile.HydFile = NULL;
     }
@@ -253,6 +327,11 @@ void initpointers(Project *pr)
     pr->hydraul.P = NULL;
     pr->hydraul.Y = NULL;
     pr->hydraul.Xflow = NULL;
+    pr->hydraul.FullDemand = NULL;
+    pr->hydraul.DemandFlow = NULL;
+    pr->hydraul.EmitterFlow = NULL;
+    pr->hydraul.LeakageFlow = NULL;
+    pr->hydraul.Leakage = NULL;
 
     pr->quality.NodeQual = NULL;
     pr->quality.PipeRateCoeff = NULL;
@@ -278,6 +357,8 @@ void initpointers(Project *pr)
     pr->hydraul.smatrix.XLNZ = NULL;
     pr->hydraul.smatrix.NZSUB = NULL;
     pr->hydraul.smatrix.LNZ = NULL;
+
+    pr->report.reportCallback = NULL;
 
     initrules(pr);
 }
@@ -313,10 +394,18 @@ int allocdata(Project *pr)
         pr->hydraul.NodeDemand = (double *)calloc(n, sizeof(double));
         pr->hydraul.NodeHead   = (double *)calloc(n, sizeof(double));
         pr->quality.NodeQual   = (double *)calloc(n, sizeof(double));
+        pr->hydraul.FullDemand  = (double *)calloc(n, sizeof(double));
+        pr->hydraul.DemandFlow  = (double *)calloc(n, sizeof(double));
+        pr->hydraul.EmitterFlow = (double *)calloc(n, sizeof(double));
+        pr->hydraul.LeakageFlow = (double *)calloc(n, sizeof(double));
         ERRCODE(MEMCHECK(pr->network.Node));
         ERRCODE(MEMCHECK(pr->hydraul.NodeDemand));
         ERRCODE(MEMCHECK(pr->hydraul.NodeHead));
         ERRCODE(MEMCHECK(pr->quality.NodeQual));
+        ERRCODE(MEMCHECK(pr->hydraul.FullDemand));
+        ERRCODE(MEMCHECK(pr->hydraul.DemandFlow));
+        ERRCODE(MEMCHECK(pr->hydraul.EmitterFlow));
+        ERRCODE(MEMCHECK(pr->hydraul.LeakageFlow));
     }
 
     // Allocate memory for network links
@@ -359,11 +448,13 @@ int allocdata(Project *pr)
             pr->network.Node[n].D = NULL;    // node demand
             pr->network.Node[n].S = NULL;    // node source
             pr->network.Node[n].Comment = NULL;
+            pr->network.Node[n].Tag = NULL;                                           
         }
         for (n = 0; n <= pr->parser.MaxLinks; n++)
         {
             pr->network.Link[n].Vertices = NULL;
             pr->network.Link[n].Comment = NULL;
+            pr->network.Link[n].Tag = NULL;                                           
         }
     }
 
@@ -388,6 +479,10 @@ void freedata(Project *pr)
     free(pr->hydraul.LinkFlow);
     free(pr->hydraul.LinkSetting);
     free(pr->hydraul.LinkStatus);
+    free(pr->hydraul.FullDemand);
+    free(pr->hydraul.DemandFlow);
+    free(pr->hydraul.EmitterFlow);
+    free(pr->hydraul.LeakageFlow);
     free(pr->quality.NodeQual);
 
     // Free memory used for nodal adjacency lists
@@ -402,6 +497,7 @@ void freedata(Project *pr)
             freedemands(&(pr->network.Node[j]));
             free(pr->network.Node[j].S);
             free(pr->network.Node[j].Comment);
+            free(pr->network.Node[j].Tag);                                          
         }
         free(pr->network.Node);
     }
@@ -413,6 +509,7 @@ void freedata(Project *pr)
         {
             freelinkvertices(&pr->network.Link[j]);
             free(pr->network.Link[j].Comment);
+            free(pr->network.Link[j].Tag);                                          
         }
     }
     free(pr->network.Link);
@@ -482,7 +579,7 @@ Pdemand finddemand(Pdemand d, int index)
     return d;
 }
 
-int adddemand(Snode *node, double dbase, int dpat, char *dname)
+int adddemand(Snode *node, double dbase, int dpat, const char *dname)
 /*----------------------------------------------------------------
 **  Input:   node = a network junction node
 **           dbase = base demand value
@@ -550,31 +647,41 @@ int  addlinkvertex(Slink *link, double x, double y)
 */
 {
     static int CHUNKSIZE = 5;
-    int n;
+    int n, newCapacity;
     Pvertices vertices;
-    if (link->Vertices == NULL)
+    double *newX, *newY;
+
+    vertices = link->Vertices;
+    if (vertices == NULL)
     {
         vertices = (struct Svertices *) malloc(sizeof(struct Svertices));
         if (vertices == NULL) return 101;
         vertices->Npts = 0;
-        vertices->Capacity = CHUNKSIZE;
-        vertices->X = (double *) calloc(vertices->Capacity, sizeof(double));
-        vertices->Y = (double *) calloc(vertices->Capacity, sizeof(double));
+        vertices->Capacity = 0;
+        vertices->X = NULL;
+        vertices->Y = NULL;
         link->Vertices = vertices;
     }
-    vertices = link->Vertices;
     if (vertices->Npts >= vertices->Capacity)
     {
-        vertices->Capacity += CHUNKSIZE;
-        vertices->X = realloc(vertices->X, vertices->Capacity * sizeof(double));
-        vertices->Y = realloc(vertices->Y, vertices->Capacity * sizeof(double));
+        newCapacity = vertices->Capacity + CHUNKSIZE;
+        newX = realloc(vertices->X, newCapacity * sizeof(double));
+        newY = realloc(vertices->Y, newCapacity * sizeof(double));
+        if (newX == NULL || newY == NULL)
+        {
+            free(newX);
+            free(newY);
+            return 101;
+        }
+        vertices->Capacity = newCapacity;
+        vertices->X = newX;
+        vertices->Y = newY;
     }
-    if (vertices->X == NULL || vertices->Y == NULL) return 101;
     n = vertices->Npts;
     vertices->X[n] = x;
     vertices->Y[n] = y;
     vertices->Npts++;
-    return 0;    
+    return 0;
 }
 
 void freelinkvertices(Slink *link)
@@ -646,7 +753,6 @@ int  buildadjlists(Network *net)
     if (errcode) freeadjlists(net);
     return errcode;
 }
-
 
 void  freeadjlists(Network *net)
 /*
@@ -734,6 +840,66 @@ int incontrols(Project *pr, int objType, int index)
     return 0;
 }
 
+int changevalvetype(Project *pr, int index, int type)
+/*
+**--------------------------------------------------------------
+**  Input:   index = link index
+**           type = new valve type
+**  Output:  returns an error code
+**  Purpose: changes a valve's type
+**--------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    Slink *link;
+    int errcode;
+    double setting;
+
+    // Check that new valve type has legal connections
+    link = &net->Link[index];
+    if (link->Type <= PUMP) return 264;
+    errcode = valvecheck(pr, index, type, link->N1, link->N2);
+    if (errcode) return errcode;
+    
+    // Preserve new type's setting in solver units
+    setting = link->InitSetting;
+    switch (link->Type)
+    {
+        case FCV:
+            setting *= pr->Ucf[FLOW];
+            break;
+        case PRV:
+        case PSV:
+        case PBV:
+            setting *= pr->Ucf[PRESSURE];
+            break;
+        case GPV:
+            setting = 0.0;
+            break;
+    }
+    switch (type)
+    {
+        case FCV:
+            setting /= pr->Ucf[FLOW];
+            break;
+        case PRV:
+        case PSV:
+        case PBV:
+            setting /= pr->Ucf[PRESSURE];
+            break;
+    }
+    
+    // Save setting
+    if (type == GPV) setting = 0.0;
+    if (type == PCV) setting = MIN(setting, 100.0);
+    link->Kc = setting;
+    link->InitSetting = setting;
+    
+    // Change valve link's type
+    link->Type = type;    
+    return 0;
+}
+    
 int valvecheck(Project *pr, int index, int type, int j1, int j2)
 /*
 **--------------------------------------------------------------
@@ -795,7 +961,36 @@ int valvecheck(Project *pr, int index, int type, int j1, int j2)
     return 0;
 }
 
-int findnode(Network *network, char *id)
+int unlinked(Project *pr)
+/*
+**--------------------------------------------------------------
+** Input:   none
+** Output:  returns error code if any unlinked junctions found
+** Purpose: checks for unlinked junctions in network
+**
+** NOTE: unlinked tanks have no effect on computations.
+**--------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    int i, count = 0;
+	char errmsg[MAXMSG + 1] = "";
+    
+    for (i = 1; i <= net->Njuncs; i++)
+    {
+        if (pr->network.Adjlist[i] == NULL)
+        {
+            count++;
+            sprintf(pr->Msg, "Error 234: %s %s", geterrmsg(234, errmsg), net->Node[i].ID);
+            writeline(pr, pr->Msg);
+        }
+        if (count >= 10) break;
+    }
+    if (count > 0) return 233;
+    return 0;
+}    
+
+int findnode(Network *network, const char *id)
 /*----------------------------------------------------------------
 **  Input:   id = node ID
 **  Output:  none
@@ -807,7 +1002,7 @@ int findnode(Network *network, char *id)
     return (hashtable_find(network->NodeHashTable, id));
 }
 
-int findlink(Network *network, char *id)
+int findlink(Network *network, const char *id)
 /*----------------------------------------------------------------
 **  Input:   id = link ID
 **  Output:  none
@@ -823,7 +1018,7 @@ int findtank(Network *network, int index)
 /*----------------------------------------------------------------
 **  Input:   index = node index
 **  Output:  none
-**  Returns: index of tank with given node id, or NOTFOUND if tank not found
+**  Returns: index of tank with given node index, or NOTFOUND if tank not found
 **  Purpose: for use in the deletenode function
 **----------------------------------------------------------------
 */
@@ -840,7 +1035,7 @@ int findpump(Network *network, int index)
 /*----------------------------------------------------------------
 **  Input:   index = link ID
 **  Output:  none
-**  Returns: index of pump with given link id, or NOTFOUND if pump not found
+**  Returns: index of pump with given link index, or NOTFOUND if pump not found
 **  Purpose: for use in the deletelink function
 **----------------------------------------------------------------
 */
@@ -857,7 +1052,7 @@ int findvalve(Network *network, int index)
 /*----------------------------------------------------------------
 **  Input:   index = link ID
 **  Output:  none
-**  Returns: index of valve with given link id, or NOTFOUND if valve not found
+**  Returns: index of valve with given link index, or NOTFOUND if valve not found
 **  Purpose: for use in the deletelink function
 **----------------------------------------------------------------
 */
@@ -870,7 +1065,7 @@ int findvalve(Network *network, int index)
     return NOTFOUND;
 }
 
-int findpattern(Network *network, char *id)
+int findpattern(Network *network, const char *id)
 /*----------------------------------------------------------------
 **  Input:   id = time pattern ID
 **  Output:  none
@@ -889,7 +1084,7 @@ int findpattern(Network *network, char *id)
     return -1;
 }
 
-int findcurve(Network *network, char *id)
+int findcurve(Network *network, const char *id)
 /*----------------------------------------------------------------
 **  Input:   id = data curve ID
 **  Output:  none
@@ -912,8 +1107,8 @@ void adjustpattern(int *pat, int index)
 **----------------------------------------------------------------
 */
 {
-	if (*pat == index) *pat = 0;
-	else if (*pat > index) (*pat)--;
+    if (*pat == index) *pat = 0;
+    else if (*pat > index) (*pat)--;
 }
 
 void adjustpatterns(Network *network, int index)
@@ -973,7 +1168,7 @@ void adjustcurves(Network *network, int index)
 **----------------------------------------------------------------
 */
 {
-    int j, k, setting;
+    int j, k, curve;
 
     // Adjust tank volume curves
     for (j = 1; j <= network->Ntanks; j++)
@@ -988,60 +1183,29 @@ void adjustcurves(Network *network, int index)
         adjustcurve(&network->Pump[j].Ecurve, index);
     }
 
-    // Adjust GPV curves
+    // Adjust PCV & GPV curves
     for (j = 1; j <= network->Nvalves; j++)
     {
         k = network->Valve[j].Link;
+        if (network->Link[k].Type == PCV)
+        {
+            if ((curve = network->Valve[j].Curve) > 0)
+            {
+                adjustcurve(&curve, index);
+                network->Valve[j].Curve = curve;
+                if (curve == 0)
+                    network->Link[k].Kc = 0.0;
+            }
+        }
         if (network->Link[k].Type == GPV)
         {
-            setting = INT(network->Link[k].Kc);
-            adjustcurve(&setting, index);
-            network->Link[k].Kc = setting;
+            curve = INT(network->Link[k].Kc);
+            adjustcurve(&curve, index);
+            network->Link[k].Kc = curve;
         }
     }
 }
 
-int adjustpumpparams(Project *pr, int curveIndex)
-/*----------------------------------------------------------------
-**  Input:   curveIndex = index of a data curve
-**  Output:  returns an error code
-**  Purpose: updates head curve parameters for pumps using a 
-**           curve whose data have been modified.
-**----------------------------------------------------------------
-*/
-{
-    Network *network = &pr->network;
-
-    double *Ucf = pr->Ucf;
-    int j, err = 0;
-    Spump *pump;
-    
-    // Check each pump
-    for (j = 1; j <= network->Npumps; j++)
-    {
-        // Pump uses curve as head curve
-        pump = &network->Pump[j];
-        if ( curveIndex == pump->Hcurve)
-        {
-            // Update its head curve parameters
-            pump->Ptype = NOCURVE;
-            err = updatepumpparams(pr, curveIndex);
-            if (err > 0) break;
-            
-            // Convert parameters to internal units
-            if (pump->Ptype == POWER_FUNC)
-            {
-                pump->H0 /= Ucf[HEAD];
-                pump->R *= (pow(Ucf[FLOW], pump->N) / Ucf[HEAD]);
-            }
-            pump->Q0 /= Ucf[FLOW];
-            pump->Qmax /= Ucf[FLOW];
-            pump->Hmax /= Ucf[HEAD];
-        }
-    }
-    return err;
-}
-        
 
 int resizecurve(Scurve *curve, int size)
 /*----------------------------------------------------------------
@@ -1071,6 +1235,112 @@ int resizecurve(Scurve *curve, int size)
     }
     return 0;
 }
+
+
+int setcontrol(EN_Project p, int type, int linkIndex, double setting,
+        int nodeIndex, double level, Scontrol *control)
+/*----------------------------------------------------------------
+**  Input:   type = type of control (see EN_ControlType)
+**           linkIndex = index of link being controlled
+**           setting = link control setting (e.g., pump speed)
+**           nodeIndex = index of node controlling a link (for level controls)
+**           level = control activation level (pressure for junction nodes,
+**                   water level for tank nodes or time value for time-based
+**                   control)
+**  Output:  control = control struct whose properties are being set
+**  Returns: error code
+**  Purpose: assigns properties to a control struct.
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    Parser *parser = &p->parser;
+    
+    long t = 0;
+    double lvl = 0.0, s = MISSING;
+    double *Ucf = p->Ucf;
+    LinkType linktype;
+    StatusType status = ACTIVE;
+   
+    // Cannot control check valve
+    linktype = net->Link[linkIndex].Type;
+    if (linktype == CVPIPE)  return 207;
+
+    // Check for valid control type and node index
+    if (type < 0 || type > TIMEOFDAY) return 251;
+    if (type == LOWLEVEL || type == HILEVEL)
+    {
+        if (nodeIndex < 1 || nodeIndex > net->Nnodes) return 203;
+    }
+    else nodeIndex = 0;
+
+    // Check if control setting is a status level
+    if (setting == SET_OPEN)
+    {
+        status = OPEN;
+        if (linktype == PUMP) s = 1.0;
+        if (linktype == GPV)  s = net->Link[linkIndex].Kc;
+    }
+    else if (setting == SET_CLOSED)
+    {
+        status = CLOSED;
+        if (linktype == PUMP) s = 0.0;
+        if (linktype == GPV)  s = net->Link[linkIndex].Kc;
+    }
+    
+    // Convert units of control setting
+    else
+    {
+        s = setting;
+        switch (linktype)
+        {
+            case PIPE:
+            case PUMP:
+                if (s < 0.0)       return 202;
+                else if (s == 0.0) status = CLOSED;
+                else               status = OPEN;
+                break;
+            case PRV:
+            case PSV:
+            case PBV:
+                s /= Ucf[PRESSURE];
+                break;
+            case FCV:
+                s /= Ucf[FLOW];
+                break;
+            case GPV:
+                if (s == 0.0) status = CLOSED;
+                else if (s == 1.0) status = OPEN;
+                else return 202;
+                s = net->Link[linkIndex].Kc;
+                break;
+        }
+    }
+    
+    // Determine if control level is a pressure, tank level or time value 
+    if (type == LOWLEVEL || type == HILEVEL)
+    {
+        if (nodeIndex > net->Njuncs) lvl = net->Node[nodeIndex].El + level / Ucf[ELEV];
+        else lvl = net->Node[nodeIndex].El + level / Ucf[PRESSURE];
+    }
+    else if (type == TIMER || type == TIMEOFDAY)
+    {
+        t = (long)level;
+        if (t < 0) return 202;
+    }
+    
+    // Assign values to control struct
+    control->Link = linkIndex;
+    control->Node = nodeIndex;
+    control->Type = type;
+    control->Status = status;
+    control->Setting = s;
+    control->Time = t;
+    control->Grade = lvl;
+    control->isEnabled = TRUE;
+    return 0;
+}
+
 
 int  getcomment(Network *network, int object, int index, char *comment)
 //----------------------------------------------------------------
@@ -1154,6 +1424,67 @@ int setcomment(Network *network, int object, int index, const char *newcomment)
     }
 }
 
+int  gettag(Network *network, int object, int index, char *tag)
+//----------------------------------------------------------------
+//  Input:   object = a type of network object
+//           index = index of the specified object
+//           tag = the object's tag string
+//  Output:  error code
+//  Purpose: gets the tag string assigned to an object.
+//----------------------------------------------------------------
+{
+    char *currenttag;
+
+    // Get pointer to specified object's tag
+    switch (object)
+    {
+    case NODE:
+        if (index < 1 || index > network->Nnodes) return 251;
+        currenttag = network->Node[index].Tag;
+        break;
+    case LINK:
+        if (index < 1 || index > network->Nlinks) return 251;
+        currenttag = network->Link[index].Tag;
+        break;
+    default:
+        strcpy(tag, "");
+        return 251;
+    }
+    // Copy the object's tag to the returned string
+    if (currenttag) strcpy(tag, currenttag);
+    else tag[0] = '\0';
+    return 0;
+}
+    
+int settag(Network *network, int object, int index, const char *newtag)
+//----------------------------------------------------------------
+//  Input:   object = a type of network object
+//           index = index of the specified object
+//           newtag = new tag string
+//  Output:  error code
+//  Purpose: sets the tag string of an object.
+//----------------------------------------------------------------
+{
+    char *tag;
+
+    switch (object)
+    {
+    case NODE:
+        if (index < 1 || index > network->Nnodes) return 251;
+        tag = network->Node[index].Tag;
+        network->Node[index].Tag = xstrcpy(&tag, newtag, MAXMSG);
+        return 0;
+
+    case LINK:
+        if (index < 1 || index > network->Nlinks) return 251;
+        tag = network->Link[index].Tag;
+        network->Link[index].Tag = xstrcpy(&tag, newtag, MAXMSG);
+        return 0;
+
+    default: return 251;
+    }
+}
+
 int namevalid(const char *name)
 //----------------------------------------------------------------
 //  Input:   name = name used to ID an object
@@ -1219,10 +1550,10 @@ char *xstrcpy(char **s1, const char *s2, const size_t n)
 //           s1 points to a valid memory location or is NULL. E.g.,
 //           the following code will likely cause a segment fault:
 //             char *s;
-//             s = xstrcpy(s, "Some text");
+//             s = xstrcpy(&s, "Some text");
 //           while this would work correctly:
 //             char *s = NULL;
-//             s = xstrcpy(s, "Some text");
+//             s = xstrcpy(&s, "Some text");
 //----------------------------------------------------------------
 {
     size_t n1 = 0, n2 = 0;
@@ -1244,7 +1575,7 @@ char *xstrcpy(char **s1, const char *s2, const size_t n)
     if (n2 > n1) *s1 = realloc(*s1, (n2 + 1) * sizeof(char));
 
     // Copy the source string into the destination string
-    strncpy(*s1, s2, n2+1);
+    if (*s1) strncpy(*s1, s2, n2+1);
     return *s1;
 }
 
@@ -1283,6 +1614,7 @@ double interp(int n, double x[], double y[], double xx)
     int k, m;
     double dx, dy;
 
+    if (n == 0) return 0.0;
     m = n - 1;                        // Highest data index
     if (xx <= x[0]) return (y[0]);    // xx off low end of curve
     for (k = 1; k <= m; k++)          // Bracket xx on curve

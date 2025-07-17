@@ -1,13 +1,13 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       qualreact.c
 Description:  computes water quality reactions within pipes and tanks
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/15/2019
+Last Updated: 12/16/2024
 ******************************************************************************
 */
 
@@ -232,7 +232,7 @@ double piperate(Project *pr, int k)
     }
 
     // Compute Reynolds No.
-    // Flow rate made consistent with how its saved to hydraulics file
+    // Flow rate made consistent with how it's saved to hydraulics file
     q = (hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlow[k];
     a = PI * d * d / 4.0;         // pipe area
     u = fabs(q) / a;              // flow velocity
@@ -492,6 +492,13 @@ void tankmix1(Project *pr, int i, double vin, double win, double vnet)
        seg->v += vnet;
        seg->v = MAX(0.0, seg->v);
        tank->C = seg->c;
+       
+        // Account for mass lost in tank overflow
+        if (seg->v > tank->Vmax)
+        {
+            qual->MassBalance.outflow += ((seg->v) - tank->Vmax) * tank->C;
+            seg->v = tank->Vmax;
+        }
     }
 }
 
@@ -513,7 +520,8 @@ void tankmix2(Project *pr, int i, double vin, double win, double vnet)
 
     int    k;
     double vt,          // Transferred volume
-           vmz;         // Full mixing zone volume
+           vmz,         // Full mixing zone volume
+           vsz;         // Full stagnant zone volume
     Pseg   mixzone,     // Mixing zone segment
            stagzone;    // Stagnant zone segment
     Stank  *tank = &pr->network.Tank[i];
@@ -525,7 +533,7 @@ void tankmix2(Project *pr, int i, double vin, double win, double vnet)
     if (mixzone == NULL || stagzone == NULL) return;
 
     // Full mixing zone volume
-    vmz = tank->V1max;
+    vmz = tank->V1frac * tank->Vmax;
 
     // Tank is filling
     vt = 0.0;
@@ -558,16 +566,31 @@ void tankmix2(Project *pr, int i, double vin, double win, double vnet)
     // Update segment volumes
     if (vt > 0.0)
     {
-        mixzone->v = vmz;
-        if (vnet > 0.0) stagzone->v += vt;
-        else            stagzone->v = MAX(0.0, ((stagzone->v) - vt));
+        if (vnet > 0.0)
+        {
+           mixzone->v = vmz;
+           stagzone->v += vt;
+            
+            // Account for mass lost in overflow from stagnant zone
+            vsz = (tank->Vmax) - vmz;
+            if (stagzone->v > vsz)
+            {
+                qual->MassBalance.outflow += ((stagzone->v) - vsz) * stagzone->c;
+                stagzone->v = vsz;
+            }
+        }
+        else
+        {
+            stagzone->v = MAX(0.0, ((stagzone->v) - vt));
+            mixzone->v = vmz + vt + vnet;
+        }
     }
     else
     {
         mixzone->v += vnet;
         mixzone->v = MIN(mixzone->v, vmz);
         mixzone->v = MAX(0.0, mixzone->v);
-        stagzone->v = 0.0;
+        if (vmz - mixzone->v > 0.0) stagzone->v = 0.0;
     }
 
     // Use quality of mixing zone to represent quality of
@@ -612,10 +635,13 @@ void tankmix3(Project *pr, int i, double vin, double win, double vnet)
         else addseg(pr, k, vin, cin);
     }
 
-    // Withdraw flow from first segment
+    // Find volume leaving tank, adjusted so its volume doesn't exceed Vmax
+    vout = vin - vnet;
+    if (tank->V >= tank->Vmax && vnet > 0.0) vout = vin;
+
+    // Withdraw outflow from first segment
     vsum = 0.0;
     wsum = 0.0;
-    vout = vin - vnet;
     while (vout > 0.0)
     {
         seg = qual->FirstSeg[k];
@@ -643,6 +669,10 @@ void tankmix3(Project *pr, int i, double vin, double win, double vnet)
     if      (vsum > 0.0)                tank->C = wsum / vsum;
     else if (qual->FirstSeg[k] == NULL) tank->C = 0.0;
     else                                tank->C = qual->FirstSeg[k]->c;
+    
+    // Account for mass lost in overflow from 1st segment
+    if (tank->V >= tank->Vmax && vnet > 0.0)
+        qual->MassBalance.outflow += vnet * tank->C;
 }
 
 
@@ -669,7 +699,7 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
     k = net->Nlinks + i;
     if (qual->LastSeg[k] == NULL || qual->FirstSeg[k] == NULL) return;
 
-    // Find inflows & outflows
+    // Find inflow concentration
     if (vin > 0.0) cin = win / vin;
     else           cin = 0.0;
 
@@ -687,6 +717,33 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
 
         // Update reported tank quality
         tank->C = qual->LastSeg[k]->c;
+        
+        // If tank full then remove vnet from leading segments
+        if (tank->V >= tank->Vmax)
+        {
+            wsum = 0.0;
+            while (vnet > 0.0)
+            {
+                seg = qual->FirstSeg[k];
+                if (seg == NULL)  break;
+                vseg = seg->v;               // Flow volume from leading seg
+                vseg = MIN(vseg, vnet);
+                if (seg == qual->LastSeg[k]) vseg = vnet;
+                wsum += (seg->c) * vseg;
+                vnet -= vseg;               // Remaining flow volume
+                if (vnet >= 0.0 && vseg >= seg->v)  // Seg used up
+                {
+                    if (seg->prev)
+                    {
+                        qual->FirstSeg[k] = seg->prev;
+                        seg->prev = qual->FreeSeg;
+                        qual->FreeSeg = seg;
+                    }
+                }
+                else seg->v -= vseg;   // Remaining volume in segment
+            }
+            qual->MassBalance.outflow += wsum;
+        }
     }
 
     // If tank emptying then remove last segments until vnet consumed
@@ -715,7 +772,7 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
             vsum += vseg;
             wsum += (seg->c) * vseg;
 
-            // ... update remiaing volume to remove
+            // ... update remaining volume to remove
             vnet -= vseg;
 
             // ... if no more volume left in current segment

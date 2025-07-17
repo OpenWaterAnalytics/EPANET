@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       hydcoeffs.c
  Description:  computes coefficients for a hydraulic solution matrix
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/04/2019
+ Last Updated: 06/15/2024
  ******************************************************************************
 */
 
@@ -36,6 +36,7 @@ const double CBIG   = 1.e8;
 
 // Exported functions
 //void   resistcoeff(Project *, int );
+//double pcvlosscoeff(Project *, int, double);
 //void   headlosscoeffs(Project *);
 //void   matrixcoeffs(Project *);
 //void   emitterheadloss(Project *, int, double *, double *);
@@ -59,9 +60,45 @@ static void    valvecoeff(Project *pr, int k);
 static void    gpvcoeff(Project *pr, int k);
 static void    pbvcoeff(Project *pr, int k);
 static void    tcvcoeff(Project *pr, int k);
+static void    pcvcoeff(Project *pr, int k);
 static void    prvcoeff(Project *pr, int k, int n1, int n2);
 static void    psvcoeff(Project *pr, int k, int n1, int n2);
 static void    fcvcoeff(Project *pr, int k, int n1, int n2);
+
+
+void addlowerbarrier(double dq, double* hloss, double* hgrad)
+/*
+**--------------------------------------------------------------------
+**  Input:   dq = difference between current flow and lower flow limit
+**  Output:  hloss = updated head loss value
+**           hgrad = updated head loss gradient value
+**  Purpose: adds a head loss barrier to prevent flow from falling
+**           below a given lower limit.
+**--------------------------------------------------------------------
+*/
+{
+    double a = 1.e9 * dq;
+    double b = sqrt(a*a + 1.e-6);
+    *hloss += (a - b) / 2.;
+    *hgrad += (1.e9 / 2.) * ( 1.0 - a / b);
+}
+
+void addupperbarrier(double dq, double* hloss, double* hgrad)
+/*
+**--------------------------------------------------------------------
+**  Input:   dq = difference between current flow and upper flow limit
+**  Output:  hloss = updated head loss value
+**           hgrad = updated head loss gradient value
+**  Purpose: adds a head loss barrier to prevent flow from exceeding
+**           a given upper limit.
+**--------------------------------------------------------------------
+*/
+{
+    double a = 1.e9 * dq;
+    double b = sqrt(a*a + 1.e-6);
+    *hloss += (a + b) / 2.;
+    *hgrad += (1.e9 / 2.) * ( 1.0 + a / b);
+}
 
 
 void  resistcoeff(Project *pr, int k)
@@ -107,6 +144,10 @@ void  resistcoeff(Project *pr, int k)
     case PUMP:
         link->R = CBIG;
         break;
+        
+    case PCV:
+        link->R = pcvlosscoeff(pr, k, link->Kc);
+        break;
 
     // ... For all other links (e.g. valves) use a small resistance
     default:
@@ -114,6 +155,87 @@ void  resistcoeff(Project *pr, int k)
         break;
     }
 }
+
+
+double pcvlosscoeff(Project* pr, int k, double s)
+/*
+**--------------------------------------------------------------
+**   Input:   k = link index
+**            s = valve percent open setting
+**   Output:  returns a valve loss coefficient
+**   Purpose: finds a Positional Control Valve's loss
+**            coefficient from its percent open setting.
+**--------------------------------------------------------------
+*/
+{
+    Network* net = &pr->network;
+    
+    int v = findvalve(net, k);         // valve index
+    int c = net->Valve[v].Curve;       // Kv curve index
+    double d;                          // valve diameter
+    double kmo;                        // fully open loss coeff.
+    double km;                         // partly open loss coeff.
+    double kvr;                        // Kv / Kvo (Kvo = Kv at fully open)
+    double *x, *y;                     // points on kvr v. percent open curve
+    int k1, k2, npts;
+    Scurve *curve;
+
+    // Valve has no setting so return 0
+    if (s == MISSING) return 0.0;
+    
+    // Valve is completely open so return its Km value
+    d = net->Link[k].Diam;
+    kmo = net->Link[k].Km;
+    if (s >= 100.0) return kmo;
+    
+    // Valve is completely closed so return a large coeff.
+    if (s <= 0.0) return CBIG;
+    
+    // Valve has no assigned curve so assume a linear one
+    if (c == 0) kvr = s;
+
+    else
+    {        
+        // Valve curve data
+        curve = &net->Curve[c];
+        npts = curve->Npts;
+        x = curve->X;            // x = % open
+        y = curve->Y;            // y = Kv / Kvo as a %
+    
+        // s lies below first point of curve
+        if (s < x[0])
+            kvr = s / x[0] * y[0];
+    
+        // s lies above last point of curve
+        else if (s > x[npts-1])
+        {
+            k2 = npts - 1;
+            kvr = (s - x[k2]) / (1. -  x[k2]) * (1. - y[k2]) + y[k2];
+        }
+    
+        // Otherwise interpolate over curve segment that brackets s
+        else 
+        {
+            k2 = 0;
+            while (k2 < npts && x[k2] < s) k2++;
+            if (k2 == 0) k2++;
+            else if (k2 == npts)  k2--;
+            k1 = k2 - 1;
+            kvr = (y[k2] - y[k1]) / (x[k2] - x[k1]);
+            kvr = y[k1] + kvr * (s - x[k1]);
+        }
+    }
+
+    // Convert kvr from % to fraction
+    kvr /= 100.;    
+    kvr = MIN(kvr, 1.0);
+    kvr = MAX(kvr, CSMALL);
+    
+    // Convert from Kv ratio to minor loss coeff.
+    km = kmo / (kvr * kvr);
+    km = MIN(km, CBIG);
+    return km;
+}    
 
 
 void headlosscoeffs(Project *pr)
@@ -147,6 +269,9 @@ void headlosscoeffs(Project *pr)
             break;
         case TCV:
             tcvcoeff(pr, k);
+            break;
+        case PCV:
+            pcvcoeff(pr, k);
             break;
         case GPV:
             gpvcoeff(pr, k);
@@ -185,6 +310,7 @@ void   matrixcoeffs(Project *pr)
     linkcoeffs(pr);
     emittercoeffs(pr);
     demandcoeffs(pr);
+    if (hyd->HasLeakage) leakagecoeffs(pr);
 
     // Update nodal flow balances with demands and add onto r.h.s. coeffs.
     nodecoeffs(pr);
@@ -381,7 +507,7 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
 **   Input:   i = node index
 **   Output:  hloss = head loss across node's emitter
 **            hgrad = head loss gradient
-**   Purpose: computes an emitters's head loss and gradient.
+**   Purpose: computes an emitter's head loss and gradient.
 **-------------------------------------------------------------
 */
 {
@@ -400,12 +526,18 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
     // Use linear head loss function for small gradient
     if (*hgrad < hyd->RQtol)
     {
-        *hgrad = hyd->RQtol;
+        *hgrad = hyd->RQtol / hyd->Qexp;
         *hloss = (*hgrad) * q;
     }            
 
     // Otherwise use normal emitter head loss function
     else *hloss = (*hgrad) * q / hyd->Qexp;
+    
+    // Prevent negative flow if backflow not allowed
+    if (hyd->EmitBackFlag == 0)
+    {
+        addlowerbarrier(q, hloss, hgrad);
+    }
 }
 
 
@@ -443,7 +575,7 @@ void  demandcoeffs(Project *pr)
     for (i = 1; i <= net->Njuncs; i++)
     {
         // Skip junctions with non-positive demands
-        if (hyd->NodeDemand[i] <= 0.0) continue;
+        if (hyd->FullDemand[i] <= 0.0) continue;
         
         // Find head loss for demand outflow at node's elevation
         demandheadloss(pr, i, dp, n, &hloss, &hgrad);
@@ -475,35 +607,17 @@ void demandheadloss(Project *pr, int i, double dp, double n,
     Hydraul *hyd = &pr->hydraul;
    
     double d = hyd->DemandFlow[i];
-    double dfull = hyd->NodeDemand[i];
+    double dfull = hyd->FullDemand[i];
     double r = d / dfull;
     
-    // Use lower barrier function for negative demand
-    if (r <= 0)
-    {
-        *hgrad = CBIG;
-        *hloss = CBIG * d;
-    }
-
-    // Use power head loss function for demand less than full
-    else if (r < 1.0)
-    {
-        *hgrad = n * dp * pow(r, n - 1.0) / dfull;
-        // ... use linear function for very small gradient
-        if (*hgrad < hyd->RQtol)
-        {
-            *hgrad = hyd->RQtol;
-            *hloss = (*hgrad) * d;
-        }
-        else *hloss = (*hgrad) * d / n;
-    }
+    // Evaluate inverted demand function
+    r = fabs(d) / dfull;
+    *hgrad = n * dp * pow(r, n - 1.0) / dfull;
+    *hloss = (*hgrad) * d / n;
     
-    // Use upper barrier function for demand above full value
-    else
-    {
-        *hgrad = CBIG;
-        *hloss = dp + CBIG * (d - dfull);
-    }
+    // Add barrier functions
+    addlowerbarrier(d, hloss, hgrad);
+    addupperbarrier(d-dfull, hloss, hgrad);
 }
 
 
@@ -553,7 +667,7 @@ void  pipecoeff(Project *pr, int k)
     // ... use linear function for very small gradient
     if (hgrad < hyd->RQtol)
     {
-        hgrad = hyd->RQtol;
+        hgrad = hyd->RQtol / hyd->Hexp;
         hloss = hgrad * q;
     }
     // ... otherwise use original formula
@@ -744,17 +858,23 @@ void  pumpcoeff(Project *pr, int k)
         {
             // ... compute pump curve's gradient
             hgrad = -r / q / q;
-            // ... use linear curve if gradient too large or too small
+            
+            // ... treat as closed link if gradient too large
             if (hgrad > CBIG)
             {
-                hgrad = CBIG;
-                hloss = -hgrad * hyd->LinkFlow[k];
+                hyd->P[k] = 1.0 / CBIG;
+                hyd->Y[k] = hyd->LinkFlow[k];
+                return;
             }
-            else if (hgrad < hyd->RQtol)
+            
+            // ... treat as open valve if gradient too small
+            else if (hgrad < CSMALL)
             {
-                hgrad = hyd->RQtol;
-                hloss = -hgrad * hyd->LinkFlow[k];
-            }
+                hyd->P[k] = 1.0 / CSMALL;
+                hyd->Y[k] = hyd->LinkFlow[k];
+                return;
+            }    
+
             // ... otherwise compute head loss from pump curve
             else
             {
@@ -939,6 +1059,36 @@ void  tcvcoeff(Project *pr, int k)
 }
 
 
+void  pcvcoeff(Project *pr, int k)
+/*
+**--------------------------------------------------------------
+**   Input:   k = link index
+**   Output:  none
+**   Purpose: computes P & Y coeffs. for positional control valve
+**--------------------------------------------------------------
+*/
+{
+    double km;
+    Hydraul *hyd = &pr->hydraul;
+    Slink *link = &pr->network.Link[k];
+
+    // Save original loss coeff. for open valve
+    km = link->Km;
+
+    // If valve not fixed OPEN or CLOSED, compute its loss coeff.
+    if (hyd->LinkSetting[k] != MISSING)
+    {
+        link->Km = link->R;
+    }
+
+    // Then apply usual valve formula
+    valvecoeff(pr, k);
+
+    // Restore original loss coeff.
+    link->Km = km;
+}
+
+
 void  prvcoeff(Project *pr, int k, int n1, int n2)
 /*
 **--------------------------------------------------------------
@@ -1029,6 +1179,8 @@ void  psvcoeff(Project *pr, int k, int n1, int n2)
         {
             sm->F[j] += hyd->Xflow[n1];
         }
+        sm->Aij[sm->Ndx[k]] -= 1.0 / CBIG;             // Preserve connectivity
+        sm->Aii[j] += 1.0 / CBIG;
         return;
     }
 
@@ -1131,7 +1283,7 @@ void valvecoeff(Project *pr, int k)
         // Guard against too small a head loss gradient
         if (hgrad < hyd->RQtol)
         {
-            hgrad = hyd->RQtol;
+            hgrad = hyd->RQtol / 2.0;
             hloss = flow * hgrad;
         }
         else hloss = flow * hgrad / 2.0;        

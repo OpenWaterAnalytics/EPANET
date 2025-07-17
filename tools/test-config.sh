@@ -36,8 +36,8 @@ cat<<EOF
         "${name}.inp"
     ],
     "output_files": {
-        "${name}.rpt": "epanet report",
         "${name}.out": "epanet allclose"
+        "${name}.rpt": "epanet report",
     }
 }
 EOF

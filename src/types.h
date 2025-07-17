@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       types.h
  Description:  symbolic constants and data types used throughout EPANET
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/29/2019
+ Last Updated: 04/19/2025
  ******************************************************************************
 */
 
@@ -31,7 +31,7 @@ typedef  int          INT4;
    Various constants
 ----------------------------------------------
 */
-#define   CODEVERSION        20200
+#define   CODEVERSION        20300
 #define   MAGICNUMBER        516114521
 #define   ENGINE_VERSION     201   // Used for binary hydraulics file
 #define   EOFMARK            0x1A  // Use 0x04 for UNIX systems
@@ -48,6 +48,9 @@ typedef  int          INT4;
 #define   BIG       1.E10
 #define   TINY      1.E-6
 #define   MISSING   -1.E10     // Missing value indicator
+#define   SET_CLOSED -1.E10    // Link set closed indicator
+#define   SET_OPEN    1.E10    // Link set open indicator
+
 #define   DIFFUS    1.3E-8     // Diffusivity of chlorine
                                // @ 20 deg C (sq ft/sec)
 #define   VISCOS    1.1E-5     // Kinematic viscosity of water
@@ -71,6 +74,7 @@ typedef  int          INT4;
 #define   IMGDperCFS  0.5382
 #define   LPSperCFS   28.317
 #define   LPMperCFS   1699.0
+#define   CMSperCFS   0.028317
 #define   CMHperCFS   101.94
 #define   CMDperCFS   2446.6
 #define   MLDperCFS   2.4466
@@ -79,6 +83,7 @@ typedef  int          INT4;
 #define   MperFT      0.3048
 #define   PSIperFT    0.4333
 #define   KPAperPSI   6.895
+#define   BARperPSI   0.068948
 #define   KWperHP     0.7457
 #define   SECperDAY   86400
 
@@ -145,7 +150,8 @@ typedef enum {
   PBV,           // pressure breaker valve
   FCV,           // flow control valve
   TCV,           // throttle control valve
-  GPV            // general purpose valve
+  GPV,           // general purpose valve
+  PCV            // positional control valve
 } LinkType;
 
 typedef enum {
@@ -166,7 +172,8 @@ typedef enum {
   PUMP_CURVE,    // pump curve
   EFFIC_CURVE,   // efficiency curve
   HLOSS_CURVE,   // head loss curve
-  GENERIC_CURVE  // generic curve
+  GENERIC_CURVE, // generic curve
+  VALVE_CURVE    // positional valve loss curve
 } CurveType;
 
 typedef enum {
@@ -225,13 +232,17 @@ typedef enum {
   LPM,           // liters per minute
   MLD,           // megaliters per day
   CMH,           // cubic meters per hour
-  CMD            // cubic meters per day
+  CMD,           // cubic meters per day
+  CMS            // cubic meters per second
 } FlowUnitsType;
 
 typedef enum {
   PSI,           // pounds per square inch
   KPA,           // kiloPascals
-  METERS         // meters
+  METERS,        // meters
+  BAR,           // bar
+  FEET,          // feet
+  DEFAULTUNIT    // default based on unit system (SI or US)
 } PressureUnitsType;
 
 typedef enum {
@@ -287,7 +298,7 @@ typedef enum {
   _VALVES, _CONTROLS, _RULES, _DEMANDS, _SOURCES, _EMITTERS,
   _PATTERNS, _CURVES, _QUALITY, _STATUS, _ROUGHNESS, _ENERGY,
   _REACTIONS, _MIXING, _REPORT, _TIMES, _OPTIONS,
-    _COORDS, _VERTICES, _LABELS, _BACKDROP, _TAGS, _END
+    _COORDS, _VERTICES, _LABELS, _BACKDROP, _TAGS, _LEAKAGE, _END
 } SectionType;
 
 typedef enum {
@@ -355,6 +366,8 @@ typedef struct             // Energy Usage Object
   double KwHrs;            // total kw-hrs consumed
   double MaxKwatts;        // max. kw consumed
   double TotalCost;        // total pumping cost
+  double CurrentPower;     // current pump power (kw)
+  double CurrentEffic;     // current pump efficiency
 } Senergy;
 
 struct Ssource             // Water Quality Source Object
@@ -389,6 +402,7 @@ typedef struct             // Node Object
   int      ResultIndex;    // saved result index
   NodeType Type;           // node type
   char     *Comment;       // node comment
+  char     *Tag;           // optional category tag                                                   
 } Snode;
 
 typedef struct             // Link Object
@@ -398,18 +412,22 @@ typedef struct             // Link Object
   int      N2;             // end node index
   double   Diam;           // diameter
   double   Len;            // length
-  double   Kc;             // roughness
+  double   Kc;             // pipe roughness, pump speed, valve setting
   double   Km;             // minor loss coeff.
   double   Kb;             // bulk react. coeff.
   double   Kw;             // wall react. coef.
   double   R;              // flow resistance
   double   Rc;             // reaction coeff.
+  double   LeakArea;       // leak area (sq mm per 100 pipe length units
+  double   LeakExpan;      // leak expansion (sq mm per unit of head)
   LinkType Type;           // link type
-  StatusType Status;       // initial status
+  StatusType InitStatus;   // initial status
+  double     InitSetting;  // initial setting
   Pvertices  Vertices;     // internal vertex coordinates
   int      Rpt;            // reporting flag
   int      ResultIndex;    // saved result index
   char     *Comment;       // link comment
+  char     *Tag;           // optional category tag                                                   
 } Slink;
 
 typedef struct             // Tank Object
@@ -428,7 +446,7 @@ typedef struct             // Tank Object
   int     Pat;             // fixed grade time pattern
   int     Vcurve;          // volume v. elev. curve index
   MixType MixModel;        // type of mixing model
-  double  V1max;           // mixing compartment size
+  double  V1frac;          // mixing compartment fraction
   int     CanOverflow;     // tank can overflow or not
 } Stank;
 
@@ -453,6 +471,7 @@ typedef struct             // Pump Object
 typedef struct             // Valve Object
 {
   int Link;                // link index of valve
+  int Curve;               // positional loss coeff. curve
 } Svalve;
 
 typedef struct             // Control Statement
@@ -464,6 +483,7 @@ typedef struct             // Control Statement
     double      Setting;   // new link setting
     StatusType  Status;    // new link status
     ControlType Type;      // control type
+    int         isEnabled; // control enabled?
 } Scontrol;
 
 typedef struct             // Field Object of Report Table
@@ -515,6 +535,7 @@ typedef struct                 // Control Rule Structure
 {
     char     label[MAXID+1];   // rule label
     double   priority;         // priority level
+    int      isEnabled;        // is the rule enabled?
     Spremise *Premises;        // list of premises
     Saction  *ThenActions;     // list of THEN actions
     Saction  *ElseActions;     // list of ELSE actions
@@ -535,7 +556,28 @@ typedef struct                 // Mass Balance Components
     double    reacted;         // mass reacted in system
     double    final;           // final mass in system
     double    ratio;           // ratio of mass added to mass lost
+    int       segCount;        // total number of pipe segments used                       
 } SmassBalance;
+
+typedef struct
+{
+    double    totalInflow;
+    double    totalOutflow;
+    double    consumerDemand;
+    double    emitterDemand;
+    double    leakageDemand;
+    double    deficitDemand;
+    double    storageDemand;
+    double    ratio;
+} SflowBalance;    
+
+typedef struct                 // Node Leakage Object
+{
+  double qfa;                  // fixed area leakage flow
+  double qva;                  // variable area leakage flow
+  double cfa;                  // fixed area leakage coeff.
+  double cva;                  // variable area leakage coeff.
+} Sleakage;
 
 /*
 ------------------------------------------------------
@@ -571,8 +613,7 @@ typedef struct {
     ErrTok,                // Index of error-producing token
     Unitsflag,             // Unit system flag
     Flowflag,              // Flow units flag
-    Pressflag,             // Pressure units flag
-    DefPat;                // Default demand pattern
+    Pressflag;             // Pressure units flag
 
   Spattern *PrevPat;       // Previous pattern processed
   Scurve   *PrevCurve;     // Previous curve processed
@@ -628,7 +669,10 @@ typedef struct {
     Rpt2Fname[MAXFNAME+1], // Secondary report file name
     DateStamp[26];         // Current date & time
 
-  SField   Field[MAXVAR];  // Output reporting fields
+    SField   Field[MAXVAR];  // Output reporting fields
+
+    void (*reportCallback)(void*,void*,const char*); // user-supplied reporting callback
+    void *reportCallbackUserData;  // user-supplied reporting context
 
 } Report;
 
@@ -688,7 +732,6 @@ typedef struct {
     *XLNZ,       // Start position of each column in NZSUB
     *NZSUB,      // Row index of each coeff. in each column
     *LNZ,        // Position of each coeff. in Aij array
-    *Degree,     // Number of links adjacent to each node
     *link,       // Array used by linear eqn. solver
     *first;      // Array used by linear eqn. solver
 
@@ -699,9 +742,11 @@ typedef struct {
 
   double
     *NodeHead,             // Node hydraulic heads
-    *NodeDemand,           // Node demand + emitter flows
-    *DemandFlow,           // Work array of demand flows
-    *EmitterFlow,          // Emitter outflows
+    *NodeDemand,           // Node total demand (consumer + emitter + leakage)
+    *FullDemand,           // Required consumer demand
+    *DemandFlow,           // Demand flow from nodes
+    *EmitterFlow,          // Emitter flow from nodes
+    *LeakageFlow,          // Leakage flow from nodes
     *LinkFlow,             // Link flows
     *LinkSetting,          // Link settings
     Htol,                  // Hydraulic head tolerance
@@ -728,15 +773,18 @@ typedef struct {
     MaxHeadError,          // Max. error for link head loss
     MaxFlowChange,         // Max. change in link flow
     DemandReduction,       // % demand reduction at pressure deficient nodes
+    LeakageLoss,           // % system leakage loss
     RelaxFactor,           // Relaxation factor for flow updating
     *P,                    // Inverse of head loss derivatives
     *Y,                    // Flow correction factors
     *Xflow;                // Inflow - outflow at each node
 
   int
+    DefPat,                // Default demand pattern
     Epat,                  // Energy cost time pattern
     DemandModel,           // Fixed or pressure dependent
     Formflag,              // Head loss formula flag
+    EmitBackFlag,          // Emitter backflow flag
     Iterations,            // Number of hydraulic trials taken
     MaxIter,               // Max. hydraulic trials allowed
     ExtraIter,             // Extra hydraulic trials
@@ -744,11 +792,17 @@ typedef struct {
     MaxCheck,              // Hydraulic trials limit on status checks
     OpenHflag,             // Hydraulic system opened flag
     Haltflag,              // Flag to halt simulation
-    DeficientNodes;        // Number of pressure deficient nodes
+    DeficientNodes,        // Number of pressure deficient nodes
+    HasLeakage;            // TRUE if project has non-zero leakage parameters
+    
+  Sleakage *Leakage;       // Array of node leakage parameters
 
   StatusType
     *LinkStatus,           // Link status
     *OldStatus;            // Previous link/tank status
+
+  SflowBalance
+    FlowBalance;           // Flow balance components
 
   Smatrix smatrix;         // Sparse matrix storage
 

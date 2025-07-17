@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       text.h
  Description:  string constants used throughout EPANET
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/15/2019
+ Last Updated: 03/10/2025
  ******************************************************************************
 */
 
@@ -40,6 +40,7 @@
 #define   w_FCV         "FCV"
 #define   w_TCV         "TCV"
 #define   w_GPV         "GPV"
+#define   w_PCV         "PCV"
 
 #define   w_OPEN        "OPEN"
 #define   w_CLOSED      "CLOSED"
@@ -50,9 +51,6 @@
 #define   w_PRECISION   "PREC"
 #define   w_IS          "IS"
 #define   w_NOT         "NOT"
-
-#define   w_ADD         "ADD"
-#define   w_MULTIPLY    "MULT"
 
 #define   w_LIMITING    "LIMIT"
 #define   w_ORDER       "ORDER"
@@ -86,11 +84,14 @@
 #define   w_MLD         "MLD"
 #define   w_CMH         "CMH"
 #define   w_CMD         "CMD"
+#define   w_CMS         "CMS"
 #define   w_SI          "SI"
 
 #define   w_PSI         "PSI"
 #define   w_KPA         "KPA"
 #define   w_METERS      "METERS"
+#define   w_BAR         "BAR"
+#define   w_FEET        "FEET"
 
 #define   w_ELEV        "ELEV"
 #define   w_DEMAND      "DEMAND"
@@ -130,6 +131,8 @@
 #define   w_SEGMENTS    "SEGM"
 #define   w_TOLERANCE   "TOLER"
 #define   w_EMITTER     "EMIT"
+#define   w_BACKFLOW    "BACK"
+#define   w_ALLOWED     "ALLOW"
 
 #define   w_PRICE       "PRICE"
 #define   w_DMNDCHARGE  "DEMAN"
@@ -149,6 +152,9 @@
 #define   w_PDA         "PDA"
 #define   w_REQUIRED    "REQ"
 #define   w_EXPONENT    "EXP"
+
+#define   w_AREA        "AREA"
+#define   w_EXPAN       "EXPAN"
 
 #define   w_SECONDS     "SEC"
 #define   w_MINUTES     "MIN"
@@ -192,6 +198,7 @@
 #define   w_THEN        "THEN"
 #define   w_ELSE        "ELSE"
 #define   w_PRIORITY    "PRIO"
+#define   w_DISABLED    "DISABLED"
 
 // ------ Input File Section Names ------------------------
 
@@ -207,6 +214,7 @@
 #define   s_DEMANDS     "[DEMANDS]"
 #define   s_SOURCES     "[SOURCES]"
 #define   s_EMITTERS    "[EMITTERS]"
+#define   s_LEAKAGE     "[LEAKAGE]"
 #define   s_PATTERNS    "[PATTERNS]"
 #define   s_CURVES      "[CURVES]"
 #define   s_QUALITY     "[QUALITY]"
@@ -234,6 +242,7 @@
 #define   u_IMGD        "Imgd"
 #define   u_LPS         "L/s"
 #define   u_LPM         "Lpm"
+#define   u_CMS         "m3/s"
 #define   u_CMH         "m3/h"
 #define   u_CMD         "m3/d"
 #define   u_MLD         "ML/d"
@@ -263,6 +272,8 @@
 #define   c_PUMP        "PUMP"
 #define   c_EFFIC       "EFFIC"
 #define   c_VOLUME      "VOLUME"
+#define   c_VALVE       "VALVE"
+#define   c_GENERIC     "GENERIC"
 
 //------- Text Phrases ------------------------------------
 

@@ -1,13 +1,13 @@
 /*
  ******************************************************************************
  Project:      OWA EPANET
- Version:      2.2
+ Version:      2.3
  Module:       report.c
  Description:  procedures for writing formatted text to a report file
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 07/22/2019
+ Last Updated: 02/14/2025
  ******************************************************************************
 */
 
@@ -45,7 +45,7 @@ static void writeenergy(Project *);
 static int  writeresults(Project *);
 static int  disconnected(Project *);
 static void marknodes(Project *, int, int *, char *);
-static void getclosedlink(Project *, int, char *);
+static void getclosedlink(Project *, int, char *, int *);
 static void writelimits(Project *, int, int);
 static int  checklimits(Report *, double *, int, int);
 static char *fillstr(char *, char, int);
@@ -67,7 +67,7 @@ int clearreport(Project *pr)
     return 0;
 }
 
-int copyreport(Project* pr, char *filename)
+int copyreport(Project* pr, const char *filename)
 /*
 **------------------------------------------------------
 **   Input:   filename = name of file to copy to
@@ -291,7 +291,7 @@ void writesummary(Project *pr)
   if (qual->Qualflag == NONE || time->Dur == 0.0) sprintf(s, FMT29);
   else if (qual->Qualflag == CHEM)  sprintf(s, FMT30, qual->ChemName);
   else if (qual->Qualflag == TRACE) sprintf(s, FMT31, net->Node[qual->TraceNode].ID);
-  else if (qual->Qualflag == AGE)   printf(s, FMT32);
+  else if (qual->Qualflag == AGE)   sprintf(s, FMT32);
   writeline(pr, s);
   if (qual->Qualflag != NONE && time->Dur > 0)
   {
@@ -422,13 +422,51 @@ void writehydstat(Project *pr, int iter, double relerr)
   writeline(pr, " ");
 }
 
+void writeflowbalance(Project *pr)
+/*
+**-------------------------------------------------------------
+**   Input:   none
+**   Output:  none
+**   Purpose: writes hydraulic flow balance ratio to report file.
+**-------------------------------------------------------------
+*/
+{
+    Hydraul *hyd = &pr->hydraul;
+    Report  *rpt = &pr->report;
+    char s1[MAXMSG+1];
+    double ucf = pr->Ucf[FLOW];
+
+    snprintf(s1, MAXMSG, "Hydraulic Flow Balance (%s)", rpt->Field[DEMAND].Units);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "================================");
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Total Inflow:      %12.3f", hyd->FlowBalance.totalInflow*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Consumer Demand:   %12.3f", hyd->FlowBalance.consumerDemand*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Demand Deficit:    %12.3f", hyd->FlowBalance.deficitDemand*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Emitter Flow:      %12.3f", hyd->FlowBalance.emitterDemand*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Leakage Flow:      %12.3f", hyd->FlowBalance.leakageDemand*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Total Outflow:     %12.3f", hyd->FlowBalance.totalOutflow*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Storage Flow:      %12.3f", hyd->FlowBalance.storageDemand*ucf);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Flow Ratio:        %12.3f", hyd->FlowBalance.ratio);
+    writeline(pr, s1);
+    snprintf(s1, MAXMSG, "================================\n");
+    writeline(pr, s1);
+}
+    
 void writemassbalance(Project *pr)
 /*
 **-------------------------------------------------------------
 **   Input:   none
 **   Output:  none
 **   Purpose: writes water quality mass balance ratio
-**            (Outflow + Final Storage) / Inflow + Initial Storage)
+**            (Outflow + Final Storage) / Inflow + Initial Storage
 **            to report file.
 **-------------------------------------------------------------
 */
@@ -463,6 +501,8 @@ void writemassbalance(Project *pr)
     writeline(pr, s1);
     snprintf(s1, MAXMSG, "Mass Ratio:         %-.5f", qual->MassBalance.ratio);
     writeline(pr, s1);
+    snprintf(s1, MAXMSG, "Total Segments:     %d", qual->MassBalance.segCount);
+    writeline(pr, s1);                          
     snprintf(s1, MAXMSG, "================================\n");
     writeline(pr, s1);
 }
@@ -876,7 +916,7 @@ void writeheader(Project *pr, int type, int contin)
     }
 }
 
-void writeline(Project *pr, char *s)
+void writeline(Project *pr, const char *s)
 /*
 **--------------------------------------------------------------
 **   Input:   *s = text string
@@ -886,6 +926,12 @@ void writeline(Project *pr, char *s)
 */
 {
     Report *rpt = &pr->report;
+    
+    if (pr->report.reportCallback != NULL)
+    {
+        pr->report.reportCallback(pr->report.reportCallbackUserData, pr, s);
+        return;
+    }
 
     if (rpt->RptFile == NULL) return;
     if (rpt->Rptflag)
@@ -1281,7 +1327,7 @@ int disconnected(Project *pr)
                     clocktime(rpt->Atime, time->Htime));
             writeline(pr, pr->Msg);
         }
-        getclosedlink(pr, j, marked);
+        getclosedlink(pr, j, marked, nodelist);
     }
 
     // Free allocated memory
@@ -1344,11 +1390,12 @@ void marknodes(Project *pr, int m, int *nodelist, char *marked)
     }
 }
 
-void getclosedlink(Project *pr, int i, char *marked)
+void getclosedlink(Project *pr, int i, char *marked, int *stack)
 /*
 **----------------------------------------------------------------
 **   Input:   i = junction index
 **            marked[] = marks nodes already examined
+**            stack[] = stack to hold nodes to examine
 **   Output:  None.
 **   Purpose: Determines if a closed link connects to junction i.
 **----------------------------------------------------------------
@@ -1359,20 +1406,41 @@ void getclosedlink(Project *pr, int i, char *marked)
     int j, k;
     Padjlist alink;
 
+    int top = 0;
+
+    // Mark the current junction as examined and push onto stack
     marked[i] = 2;
-    for (alink = net->Adjlist[i]; alink != NULL; alink = alink->next)
-    {
-        k = alink->link;
-        j = alink->node;
-        if (marked[j] == 2) continue;
-        if (marked[j] == 1)
-        {
-            sprintf(pr->Msg, WARN03c, net->Link[k].ID);
-            writeline(pr, pr->Msg);
-            return;
+    stack[top] = i;
+
+    while (top >= 0) {
+        i = stack[top--];
+        alink = net->Adjlist[i];
+        
+        // Iterate through each link adjacent to the current node
+        while (alink != NULL) {
+            k = alink->link;
+            j = alink->node;
+
+            // Skip nodes that have already been examined
+            if (marked[j] == 2) {
+                alink = alink->next;
+                continue;
+            }
+
+            // If a closed link is found, return and display a warning message
+            if (marked[j] == 1) {
+                sprintf(pr->Msg, WARN03c, net->Link[k].ID);
+                writeline(pr, pr->Msg);
+                return;
+            }
+
+            // Mark the node as examined and push it onto the stack
+            marked[j] = 2;
+            stack[++top] = j;
+            alink = alink->next;
         }
-        else getclosedlink(pr, j, marked);
     }
+
 }
 
 void writelimits(Project *pr, int j1, int j2)

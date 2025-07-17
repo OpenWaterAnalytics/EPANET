@@ -1,13 +1,13 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       qualroute.c
 Description:  computes water quality transport over a single time step
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/15/2019
+Last Updated: 02/14/2025
 ******************************************************************************
 */
 
@@ -183,6 +183,7 @@ void  evalnodeinflow(Project *pr, int k, long tstep, double *volin,
             // ... recycle the used up segment
             seg->prev = qual->FreeSeg;
             qual->FreeSeg = seg;
+            qual->MassBalance.segCount--;                                         
         }
 
         // ... otherwise just reduce this segment's volume
@@ -246,7 +247,7 @@ double  findnodequal(Project *pr, int n, double volin,
         return qual->NodeQual[n];
     }
 
-    // Find quality contribued by any external chemical source
+    // Find quality contributed by any external chemical source
     else qual->SourceQual = findsourcequal(pr, n, volout, tstep);
     if (qual->SourceQual == 0.0) return qual->NodeQual[n];
 
@@ -609,10 +610,10 @@ void initsegs(Project *pr)
         addseg(pr, k, v, c);
 
         // Create a 2nd segment for the 2-compartment tank model
-        if (net->Tank[j].MixModel == MIX2)
+        if (!qual->OutOfMemory && net->Tank[j].MixModel == MIX2)
         {
             // ... mixing zone segment
-            v1 = MAX(0, v - net->Tank[j].V1max);
+            v1 = MAX(0, v - net->Tank[j].V1frac * net->Tank[j].Vmax);
             qual->FirstSeg[k]->v = v1;
 
             // ... stagnant zone segment
@@ -691,4 +692,5 @@ void addseg(Project *pr, int k, double v, double c)
     if (qual->FirstSeg[k] == NULL) qual->FirstSeg[k] = seg;
     if (qual->LastSeg[k] != NULL)  qual->LastSeg[k]->prev = seg;
     qual->LastSeg[k] = seg;
+    qual->MassBalance.segCount++;                                     
 }

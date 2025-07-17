@@ -14,6 +14,7 @@ DAT(120,"cannot solve water quality transport equations")
 // These errors apply only to an input file
 DAT(200,"one or more errors in input file")
 DAT(201,"syntax error")
+DAT(299,"invalid section keyword")
 
 // These errors apply to both an input file and to API functions
 DAT(202,"illegal numeric value")
@@ -43,7 +44,10 @@ DAT(225,"invalid lower/upper levels for tank")
 DAT(226,"no head curve or power rating for pump")
 DAT(227,"invalid head curve for pump")
 DAT(230,"nonincreasing x-values for curve")
-DAT(233,"network has unconnected node")
+DAT(231,"no data provided for curve")
+DAT(232,"no data provided for pattern")
+DAT(233,"network has unconnected nodes")
+DAT(234,"network has an unconnected node with ID: ")
 
 // These errors apply only to API functions
 DAT(240,"nonexistent source")
@@ -60,6 +64,8 @@ DAT(259,"attempt to delete a node that still has links connected to it")
 DAT(260,"attempt to delete node assigned as a Trace Node")
 DAT(261,"attempt to delete a node or link contained in a control")
 DAT(262,"attempt to modify network structure while solver is active")
+DAT(263,"node is not a tank")
+DAT(264,"link is not a valve")
 
 // File errors
 DAT(301,"identical file names")

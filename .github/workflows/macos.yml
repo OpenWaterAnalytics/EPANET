@@ -1,0 +1,60 @@
+name: macOS
+
+on: 
+  push:
+  pull_request: 
+  schedule: 
+    - cron: '0 0 1 * *'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup build directory
+      run: mkdir buildproducts
+
+    - name: CMake
+      working-directory: ./buildproducts
+      run: |
+        retry=0
+        max_retries=3
+        until cmake ..; do
+          ((retry++))
+          echo "Retry $retry/$max_retries..."
+          if [ "$retry" -ge "$max_retries" ]; then
+            echo "CMake configuration failed after $max_retries attempts."
+            exit 1
+          fi
+          sleep 10
+        done
+
+    - name: Make
+      working-directory: ./buildproducts
+      run: |
+        retry=0
+        max_retries=3
+        until make; do
+          ((retry++))
+          echo "Retry $retry/$max_retries..."
+          if [ "$retry" -ge "$max_retries" ]; then
+            echo "Make build failed after $max_retries attempts."
+            exit 1
+          fi
+          sleep 10
+        done
+
+    - name: Copy header files to build directory
+      run: |
+        cp include/epanet2.h buildproducts/
+        cp include/epanet2_2.h buildproducts/
+        cp include/epanet2_enums.h buildproducts/
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: libepanet-output
+        path: buildproducts/

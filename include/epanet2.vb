@@ -4,7 +4,7 @@
 'Declarations of functions in the EPANET PROGRAMMERs TOOLKIT
 '(EPANET2.DLL) for use with VB.Net.
 
-'Last updated on 11/04/2019
+'Last updated on 04/23/2025
 
 Imports System.Runtime.InteropServices
 Imports System.Text
@@ -29,7 +29,6 @@ Public Const EN_SOURCEMASS = 13
 Public Const EN_INITVOLUME = 14
 Public Const EN_MIXMODEL = 15
 Public Const EN_MIXZONEVOL = 16
-
 Public Const EN_TANKDIAM = 17
 Public Const EN_MINVOLUME = 18
 Public Const EN_VOLCURVE = 19
@@ -37,11 +36,15 @@ Public Const EN_MINLEVEL = 20
 Public Const EN_MAXLEVEL = 21
 Public Const EN_MIXFRACTION = 22
 Public Const EN_TANK_KBULK = 23
-
 Public Const EN_TANKVOLUME = 24
 Public Const EN_MAXVOLUME = 25
 Public Const EN_CANOVERFLOW = 26
-Public Const EN_DEMANDDEFICIT = 27 
+Public Const EN_DEMANDDEFICIT = 27
+Public Const EN_NODE_INCONTROL = 28
+Public Const EN_EMITTERFLOW = 29
+Public Const EN_LEAKAGEFLOW = 30
+Public Const EN_DEMANDFLOW = 31
+Public Const EN_FULLDEMAND = 32
 
 Public Const EN_DIAMETER = 0      ' Link parameters
 Public Const EN_LENGTH = 1
@@ -59,7 +62,6 @@ Public Const EN_SETTING = 12
 Public Const EN_ENERGY = 13
 Public Const EN_LINKQUAL = 14
 Public Const EN_LINKPATTERN = 15
-
 Public Const EN_PUMP_STATE = 16
 Public Const EN_PUMP_EFFIC = 17
 Public Const EN_PUMP_POWER = 18
@@ -67,6 +69,13 @@ Public Const EN_PUMP_HCURVE = 19
 Public Const EN_PUMP_ECURVE = 20
 Public Const EN_PUMP_ECOST = 21
 Public Const EN_PUMP_EPAT = 22
+Public Const EN_LINK_INCONTROL = 23
+Public Const EN_GPV_CURVE = 24
+Public Const EN_PCV_CURVE = 25
+Public Const EN_LEAK_AREA = 26
+Public Const EN_LEAK_EXPAN = 27
+Public Const EN_LINK_LEAKAGE = 28
+Public Const EN_VALVE_TYPE = 29
 
 Public Const EN_DURATION = 0      ' Time parameters
 Public Const EN_HYDSTEP = 1
@@ -91,6 +100,7 @@ Public Const EN_MAXFLOWCHANGE = 3
 Public Const EN_MASSBALANCE = 4
 Public Const EN_DEFICIENTNODES = 5
 Public Const EN_DEMANDREDUCTION = 6
+Public Const EN_LEAKAGELOSS = 7
 
 Public Const EN_NODE = 0          ' Component types
 Public Const EN_LINK = 1
@@ -120,6 +130,7 @@ Public Const EN_PBV = 5
 Public Const EN_FCV = 6
 Public Const EN_TCV = 7
 Public Const EN_GPV = 8
+Public Const EN_PCV = 9
 
 Public Const EN_NONE = 0          ' Quality analysis types
 Public Const EN_CHEM = 1
@@ -145,6 +156,13 @@ Public Const EN_LPM = 6
 Public Const EN_MLD = 7
 Public Const EN_CMH = 8
 Public Const EN_CMD = 9
+Public Const EN_CMS = 10
+
+Public Const EN_PSI = 0           ' Pressure units types
+Public Const EN_KPA = 1
+Public Const EN_METERS = 2
+Public Const EN_BAR = 3
+Public Const EN_FEET = 4
 
 Public Const EN_DDA = 0           ' Demand driven analysis
 Public Const EN_PDA = 1           ' Pressure driven analysis
@@ -172,6 +190,10 @@ Public Const EN_BULKORDER = 19
 Public Const EN_WALLORDER = 20
 Public Const EN_TANKORDER = 21
 Public Const EN_CONCENLIMIT = 22 
+Public Const EN_DEMANDPATTERN = 23
+Public Const EN_EMITBACKFLOW = 24
+Public Const EN_PRESS_UNITS = 25
+Public Const EN_STATUS_REPORT = 26
 
 Public Const EN_LOWLEVEL = 0      ' Control types
 Public Const EN_HILEVEL = 1
@@ -203,6 +225,7 @@ Public Const EN_PUMP_CURVE = 1    ' Pump curve
 Public Const EN_EFFIC_CURVE = 2   ' Efficiency curve
 Public Const EN_HLOSS_CURVE = 3   ' Head loss curve
 Public Const EN_GENERIC_CURVE = 4 ' Generic curve
+Public Const EN_VALVE_CURVE = 5   ' Valve position curve
 
 Public Const EN_UNCONDITIONAL = 0 ' Unconditional object deletion
 Public Const EN_CONDITIONAL   = 1 ' Conditional object deletion
@@ -245,6 +268,11 @@ Public Const EN_R_IS_CLOSED = 2
 Public Const EN_R_IS_ACTIVE = 3
 
 Public Const EN_MISSING As Double = -1.0E10
+Public Const EN_SET_CLOSED As Double = -1.0E10
+Public Const EN_SET_OPEN As Double = 1.0E10
+
+Public Const EN_FALSE = 0   ' boolean false
+Public Const EN_TRUE  = 1   ' boolean true
 
 'These are the external functions that comprise the DLL
 
@@ -253,8 +281,13 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENepanet Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String, ByVal pviewprog As Any) As Int32
  Declare Function ENinit Lib "epanet2.dll" (ByVal rptFile As String, ByVal outFile As String, ByVal unitsType As Int32, ByVal headlossType As Int32) As Int32
  Declare Function ENopen Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String) As Int32
+ Declare Function ENopenX Lib "epanet2.dll" (ByVal inpFile As String, ByVal rptFile As String, ByVal outFile As String) As Int32
  Declare Function ENgettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Int32
  Declare Function ENsettitle Lib "epanet2.dll" (ByVal titleline1 As String, ByVal titleline2 As String, ByVal titleline3 As String) As Int32
+ Declare Function ENgetcomment Lib "epanet2.dll" (ByVal type_ As Int32, ByVal index As Int32, ByVal comment As String) As Int32
+ Declare Function ENsetcomment Lib "epanet2.dll" (ByVal type_ As Int32, ByVal index As Int32, ByVal comment As String) As Int32
+ Declare Function ENgettag Lib "epanet2.dll" (ByVal type_ As Int32, ByVal index As Int32, ByVal tag As String) As Int32
+ Declare Function ENsettag Lib "epanet2.dll" (ByVal type_ As Int32, ByVal index As Int32, ByVal tag As String) As Int32
  Declare Function ENsaveinpfile Lib "epanet2.dll" (ByVal filename As String) As Int32
  Declare Function ENclose Lib "epanet2.dll" () As Int32
 
@@ -290,6 +323,7 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENgeterror Lib "epanet2.dll" (ByVal errcode As Int32, ByVal errmsg As String, ByVal maxLen As Int32) As Int32
  Declare Function ENgetstatistic Lib "epanet2.dll" (ByVal type_ As Int32, ByRef value As Single) As Int32
  Declare Function ENgetresultindex Lib "epanet2.dll" (ByVal type_ As Int32, ByVal index As Int32, ByRef value As Int32) As Int32
+ Declare Function ENtimetonextevent Lib "epanet2.dll" (eventType As Int32, duration As Int32, elementIndex As Int32) As Int32
 
 'Analysis Options Functions
  Declare Function ENgetoption Lib "epanet2.dll" (ByVal option As Int32, value As Single) As Int32
@@ -315,7 +349,8 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENsettankdata Lib "epanet2.dll" (ByVal index As Int32, ByVal elev As Single, ByVal initlvl As Single, ByVal minlvl As Single, ByVal maxlvl As Single, ByVal diam As Single, ByVal minvol As Single, ByVal volcurve As String) As Int32
  Declare Function ENgetcoord Lib "epanet2.dll" (ByVal index As Int32, x As Double, y As Double) As Int32
  Declare Function ENsetcoord Lib "epanet2.dll" (ByVal index As Int32, ByVal x As Double, ByVal y As Double) As Int32
- 
+ Declare Function ENgetnodevalues Lib "epanet2.dll" (ByVal property as Int32, values as Any) As Int32
+
 'Nodal Demand Functions
  Declare Function ENgetdemandmodel Lib "epanet2.dll" (type_ As Int32, pmin As Single, preq As Single, pexp As Single) As Int32
  Declare Function ENsetdemandmodel Lib "epanet2.dll" (ByVal type_ As Int32, ByVal pmin As Single, ByVal preq As Single, ByVal pexp As Single) As Int32
@@ -345,7 +380,9 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENsetpipedata Lib "epanet2.dll" (ByVal index As Int32, ByVal length As Single, ByVal diam As Single, ByVal rough As Single, ByVal mloss As Single) As Int32
  Declare Function ENgetvertexcount Lib "epanet2.dll" (ByVal index As Int32, count As Int32) As Int32
  Declare Function ENgetvertex Lib "epanet2.dll" (ByVal index As Int32, ByVal vertex As Int32, x As Double, y As Double) As Int32
+ Declare Function ENsetvertex Lib "epanet2.dll" (ByVal index As Int32, ByVal vertex As Int32, ByVal x As Double, ByVal y As Double) As Int32
  Declare Function ENsetvertices Lib "epanet2.dll" (ByVal index As Int32, xCoords As Any, yCoords As Any, ByVal count As Int32) As Int32
+ Declare Function ENgetlinkvalues Lib "epanet2.dll" (ByVal property as Int32, values as Any) As Int32
 
 'Pump Functions
  Declare Function ENgetheadcurveindex Lib "epanet2.dll" (ByVal linkIndex As Int32, curveIndex As Int32) As Int32
@@ -363,6 +400,7 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENsetpatternvalue Lib "epanet2.dll" (ByVal index As Int32, ByVal period As Int32, ByVal value As Single) As Int32
  Declare Function ENgetaveragepatternvalue Lib "epanet2.dll" (ByVal index As Int32, value As Single) As Int32
  Declare Function ENsetpattern Lib "epanet2.dll" (ByVal index As Int32, values As Any, ByVal len_ As Int32) As Int32
+ Declare Function ENloadpatternfile Lib "epanet2.dll" (ByVal filename As String, ByVal id As String) As Int32
 
 'Data Curve Functions
  Declare Function ENaddcurve Lib "epanet2.dll" (ByVal id As String) As Int32
@@ -372,6 +410,7 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENsetcurveid Lib "epanet2.dll" (ByVal index As Int32, ByVal newid As String) As Int32
  Declare Function ENgetcurvelen Lib "epanet2.dll" (ByVal index As Int32, len_ As Int32) As Int32
  Declare Function ENgetcurvetype Lib "epanet2.dll" (ByVal index As Int32, type_ As Int32) As Int32
+ Declare Function ENsetcurvetype Lib "epanet2.dll" (ByVal index As Int32, ByVal type_ As Int32) As Int32 
  Declare Function ENgetcurvevalue Lib "epanet2.dll" (ByVal curveIndex As Int32, ByVal pointIndex As Int32, x As Single, y As Single) As Int32
  Declare Function ENsetcurvevalue Lib "epanet2.dll" (ByVal curveIndex As Int32, ByVal pointIndex As Int32, ByVal x As Single, ByVal y As Single) As Int32
  Declare Function ENgetcurve Lib "epanet2.dll" (ByVal index As Int32, ByVal id As String, nPoints As Int32, xValues As Any, yValues As Any) As Int32
@@ -382,6 +421,8 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENdeletecontrol Lib "epanet2.dll" (ByVal index As Int32) As Int32
  Declare Function ENgetcontrol Lib "epanet2.dll" (ByVal index As Int32, type_ As Int32, linkIndex As Int32, setting As Single, nodeIndex As Int32, level As Single) As Int32
  Declare Function ENsetcontrol Lib "epanet2.dll" (ByVal index As Int32, ByVal type_ As Int32, ByVal linkIndex As Int32, ByVal setting As Single, ByVal nodeIndex As Int32, ByVal level As Single) As Int32
+ Declare Function ENgetcontrolenabled Lib "epanet2.dll" (ByVal index As Int32, out_enabled As Int32) As Int32
+ Declare Function ENsetcontrolenabled Lib "epanet2.dll" (ByVal index As Int32, ByVal enabled As Int32) As Int32
 
 'Rule-Based Control Functions
  Declare Function ENaddrule Lib "epanet2.dll" (ByVal rule As String) As Int32
@@ -398,5 +439,7 @@ Public Const EN_MISSING As Double = -1.0E10
  Declare Function ENsetthenaction Lib "epanet2.dll" (ByVal ruleIndex As Int32, ByVal actionIndex As Int32, ByVal linkIndex As Int32, ByVal status As Int32, ByVal setting As Single) As Int32
  Declare Function ENgetelseaction Lib "epanet2.dll" (ByVal ruleIndex As Int32, ByVal actionIndex As Int32, linkIndex As Int32, status As Int32, setting As Single) As Int32
  Declare Function ENsetelseaction Lib "epanet2.dll" (ByVal ruleIndex As Int32, ByVal actionIndex As Int32, ByVal linkIndex As Int32, ByVal status As Int32, ByVal setting As Single) As Int32
+ Declare Function ENgetruleenabled Lib "epanet2.dll" (ByVal index As Int32, out_enabled As Int32) As Int32
+ Declare Function ENsetruleenabled Lib "epanet2.dll" (ByVal index As Int32, ByVal enabled As Int32) As Int32
 
 End Module

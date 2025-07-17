@@ -1,13 +1,13 @@
 /*
 ******************************************************************************
 Project:      OWA EPANET
-Version:      2.2
+Version:      2.3
 Module:       hydstatus.c
 Description:  updates hydraulic status of network elements
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/15/2019
+Last Updated: 02/03/2023
 ******************************************************************************
 */
 
@@ -27,7 +27,7 @@ static StatusType pumpstatus(Project *, int, double);
 static StatusType prvstatus(Project *, int, StatusType, double, double, double);
 static StatusType psvstatus(Project *, int, StatusType, double, double, double);
 static StatusType fcvstatus(Project *, int, StatusType, double, double);
-static void       tankstatus(Project *, int, int, int);
+static void       tankstatus(Project *, int, int, double);
 
 
 int  valvestatus(Project *pr)
@@ -155,10 +155,8 @@ int  linkstatus(Project *pr)
         }
 
         // Check for flow into (out of) full (empty) tanks
-        if (n1 > net->Njuncs || n2 > net->Njuncs)
-        {
-            tankstatus(pr, k, n1, n2);
-        }
+        if (n1 > net->Njuncs) tankstatus(pr, k, n1, hyd->LinkFlow[k]);
+        if (n2 > net->Njuncs) tankstatus(pr, k, n2, -hyd->LinkFlow[k]);
 
         // Note any change in link status; do not revise link flow
         if (status != hyd->LinkStatus[k])
@@ -224,6 +222,7 @@ StatusType  pumpstatus(Project *pr, int k, double dh)
     {
         // Use huge value for constant HP pump
         hmax = BIG;
+        if (hyd->LinkFlow[k] < TINY) return TEMPCLOSED;
     }
     else
     {
@@ -394,16 +393,25 @@ StatusType  fcvstatus(Project *pr, int k, StatusType s, double h1, double h2)
     {
         status = ACTIVE;
     }
+
+    // Active valve's loss coeff. can't be < fully open loss coeff.
+    else if (status == ACTIVE)
+    {
+        if ((h1 - h2) / SQR(hyd->LinkFlow[k]) < pr->network.Link[k].Km)
+        {
+            status = XFCV;
+        }
+    }        
     return status;
 }
 
 
-void  tankstatus(Project *pr, int k, int n1, int n2)
+void  tankstatus(Project *pr, int k, int n, double q)
 /*
 **----------------------------------------------------------------
-**  Input:   k  = link index
-**           n1 = start node of link
-**           n2 = end node of link
+**  Input:   k = link index
+**           n = tank node index
+**           q = link flow rate out of (+) or into (-) tank
 **  Output:  none
 **  Purpose: closes link flowing into full or out of empty tank
 **----------------------------------------------------------------
@@ -412,65 +420,23 @@ void  tankstatus(Project *pr, int k, int n1, int n2)
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
 
-    int   i, n;
-    double h, q;
+    int   i;
     Stank *tank;
     Slink *link = &net->Link[k];
 
     // Return if link is closed
     if (hyd->LinkStatus[k] <= CLOSED) return;
 
-    // Make node n1 be the tank, reversing flow (q) if need be
-    q = hyd->LinkFlow[k];
-    i = n1 - net->Njuncs;
-    if (i <= 0)
-    {
-        i = n2 - net->Njuncs;
-        if (i <= 0) return;
-        n = n1;
-        n1 = n2;
-        n2 = n;
-        q = -q;
-    }
-
     // Ignore reservoirs
+    i = n - net->Njuncs;
     tank = &net->Tank[i];
     if (tank->A == 0.0) return;
-
-    // Find head difference across link
-    h = hyd->NodeHead[n1] - hyd->NodeHead[n2];
-
-    // If tank is full, then prevent flow into it
-    if (hyd->NodeHead[n1] >= tank->Hmax - hyd->Htol && !tank->CanOverflow)
-    {
-        // Case 1: Link is a pump discharging into tank
-        if (link->Type == PUMP)
-        {
-            if (link->N2 == n1) hyd->LinkStatus[k] = TEMPCLOSED;
-        }
-
-        // Case 2: Downstream head > tank head
-        // (e.g., an open outflow check valve would close)
-        else if (cvstatus(pr, OPEN, h, q) == CLOSED)
-        {
-            hyd->LinkStatus[k] = TEMPCLOSED;
-        }
-    }
-
-    // If tank is empty, then prevent flow out of it
-    if (hyd->NodeHead[n1] <= tank->Hmin + hyd->Htol)
-    {
-        // Case 1: Link is a pump discharging from tank
-        if (link->Type == PUMP)
-        {
-            if (link->N1 == n1) hyd->LinkStatus[k] = TEMPCLOSED;
-        }
-
-        // Case 2: Tank head > downstream head
-        // (e.g., a closed outflow check valve would open)
-        else if (cvstatus(pr, CLOSED, h, q) == OPEN)
-        {
-            hyd->LinkStatus[k] = TEMPCLOSED;
-        }
-    }
+    
+    // Can't add flow to a full tank
+    if (hyd->NodeHead[n] >= tank->Hmax && !tank->CanOverflow && q < 0.0)
+        hyd->LinkStatus[k] = TEMPCLOSED;
+ 
+    // Can't remove flow from an empty tank
+    else if (hyd->NodeHead[n] <= tank->Hmin && q > 0.0)
+        hyd->LinkStatus[k] = TEMPCLOSED;
 }
