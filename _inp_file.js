@@ -18,6 +18,7 @@ var _inp_file =
     [ "[TANKS]", "_tanks_page.html", null ],
     [ "[STATUS]", "_status_page.html", null ],
     [ "[MIXING]", "_mixing_page.html", null ],
+    [ "[TAGS]", "_tags_page.html", null ],
     [ "[LABELS]", "_labels_page.html", null ],
     [ "[PIPES]", "_pipes_page.html", null ],
     [ "[CONTROLS]", "_ctrls_page.html", null ],
@@ -25,5 +26,6 @@ var _inp_file =
     [ "[RULES]", "_rules_page.html", "_rules_page" ],
     [ "[VALVES]", "_valves_page.html", null ],
     [ "[DEMANDS]", "_dmnds_page.html", null ],
-    [ "[EMITTERS]", "_emits_page.html", null ]
+    [ "[EMITTERS]", "_emits_page.html", null ],
+    [ "[LEAKAGE]", "_leaks_page.html", null ]
 ];

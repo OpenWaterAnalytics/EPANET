@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['report_20file_820',['Report File',['../_rpt_file.html',1,'Files']]]
+  ['labels_0',['[LABELS]',['../_labels_page.html',1,'InpFile']]],
+  ['leakage_1',['[LEAKAGE]',['../_leaks_page.html',1,'InpFile']]]
 ];

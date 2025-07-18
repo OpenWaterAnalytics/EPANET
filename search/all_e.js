@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['water_20quality_20analysis_20functions_410',['Water Quality Analysis Functions',['../group___quality.html',1,'']]],
-  ['warning_20codes_411',['Warning Codes',['../group___warning_codes.html',1,'']]]
+  ['quality_0',['[QUALITY]',['../_qual_page.html',1,'InpFile']]],
+  ['quality_1',['Computing Water Quality',['../toolkit-usage.html#quality',1,'']]],
+  ['quality_20analysis_20functions_2',['Water Quality Analysis Functions',['../group___quality.html',1,'']]]
 ];

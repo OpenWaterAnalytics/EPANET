@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['data_20curve_20functions_791',['Data Curve Functions',['../group___curves.html',1,'']]]
+  ['based_20control_20functions_0',['Rule-Based Control Functions',['../group___rules.html',1,'']]]
 ];

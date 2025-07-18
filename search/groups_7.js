@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['simple_20control_20functions_801',['Simple Control Functions',['../group___controls.html',1,'']]]
+  ['link_20functions_0',['Network Link Functions',['../group___links.html',1,'']]]
 ];
