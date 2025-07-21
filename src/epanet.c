@@ -4177,6 +4177,11 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             {
                 Link[index].Kc = value;
                 Link[index].InitSetting = value;
+                valveType = Link[index].Type;
+                if (valveType > PUMP && valveType != GPV)
+                {
+                    Link[index].InitStatus = ACTIVE;
+                }
             }
             else
             {
