@@ -2259,6 +2259,7 @@ void changestatus(Network *net, int j, StatusType status, double y)
     else if (link->Type >= PRV)
     {
         if (status == ACTIVE) link->Kc = y;
+        else link->Kc = MISSING;
         link->InitStatus = status;
         link->InitSetting = link->Kc;
     }
