@@ -200,7 +200,6 @@ void writelogo(Project *pr)
     major = version / 10000;
     minor = (version % 10000) / 100;
     patch = version % 100;
-    //patch = version - (10000 * major) - (100 * minor);
 
     time(&timer);
     strcpy(rpt->DateStamp, ctime(&timer));
