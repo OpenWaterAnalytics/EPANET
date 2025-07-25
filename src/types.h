@@ -31,7 +31,7 @@ typedef  int          INT4;
    Various constants
 ----------------------------------------------
 */
-#define   CODEVERSION        20300
+#define   CODEVERSION        20301
 #define   MAGICNUMBER        516114521
 #define   ENGINE_VERSION     201   // Used for binary hydraulics file
 #define   EOFMARK            0x1A  // Use 0x04 for UNIX systems

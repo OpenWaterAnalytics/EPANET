@@ -359,7 +359,7 @@
 #define LOGO4  \
 "*                   Analysis for Pipe Networks                   *"
 #define LOGO5  \
-"*                         Version %d.%d                            *"
+"*                          Version %d.%d.%02d                        *"
 #define LOGO6  \
 "******************************************************************"
 #define FMT02  "\n  o Retrieving network data"
