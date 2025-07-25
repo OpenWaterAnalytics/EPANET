@@ -191,6 +191,7 @@ void writelogo(Project *pr)
     int version;
     int major;
     int minor;
+    int patch;
     char s[80];
     time_t timer; // time_t structure & functions time() &
                   // ctime() are defined in time.h
@@ -198,6 +199,8 @@ void writelogo(Project *pr)
     version = CODEVERSION;
     major = version / 10000;
     minor = (version % 10000) / 100;
+    patch = version % 100;
+    //patch = version - (10000 * major) - (100 * minor);
 
     time(&timer);
     strcpy(rpt->DateStamp, ctime(&timer));
@@ -209,7 +212,7 @@ void writelogo(Project *pr)
     writeline(pr, LOGO2);
     writeline(pr, LOGO3);
     writeline(pr, LOGO4);
-    sprintf(s, LOGO5, major, minor);
+    sprintf(s, LOGO5, major, minor, patch);
     writeline(pr, s);
     writeline(pr, LOGO6);
     writeline(pr, "");

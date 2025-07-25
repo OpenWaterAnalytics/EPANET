@@ -41,6 +41,7 @@ void    tanklevels(Project *, long);
 void    resetpumpflow(Project *, int);
 void    getallpumpsenergy(Project *);
 
+
 int  openhyd(Project *pr)
 /*
  *--------------------------------------------------------------
@@ -126,18 +127,9 @@ void inithyd(Project *pr, int initflag)
         // Initialize status and setting
         hyd->LinkStatus[i] = link->InitStatus;
         hyd->LinkSetting[i] = link->InitSetting;
-        
-        // Setting of non-ACTIVE FCV, PRV, PSV valves is "MISSING"
-        switch (link->Type)
+        if (link->Type > PUMP && link->Type != GPV && link->InitStatus != ACTIVE)
         {
-        case FCV:
-        case PRV:
-        case PSV:
-            if (link->InitStatus != ACTIVE)
-            {
-                link->Kc = MISSING;
-                hyd->LinkSetting[i] = MISSING;
-            }
+            hyd->LinkSetting[i] = MISSING;
         }
         
         // Compute flow resistance
@@ -146,7 +138,7 @@ void inithyd(Project *pr, int initflag)
         // Start active control valves in ACTIVE position
         if (
             (link->Type == PRV || link->Type == PSV
-            || link->Type == FCV) && (link->Kc != MISSING)
+            || link->Type == FCV) && (hyd->LinkSetting[i] != MISSING)
         ) hyd->LinkStatus[i] = ACTIVE;
 
         // Initialize flows if necessary
@@ -475,7 +467,7 @@ void  setlinksetting(Project *pr, int index, double value, StatusType *s,
     else
     {
         if (*k == MISSING && *s <= CLOSED) *s = OPEN;
-        if (t == PCV) link->R = pcvlosscoeff(pr, index, link->Kc);
+        if (t == PCV) link->R = pcvlosscoeff(pr, index, value);
         *k = value;
     }
 }

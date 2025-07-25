@@ -4177,8 +4177,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             {
                 Link[index].Kc = value;
                 Link[index].InitSetting = value;
-                valveType = Link[index].Type;
-                if (valveType > PUMP && valveType != GPV)
+                if (Link[index].Type > PUMP && Link[index].Type != GPV)
                 {
                     Link[index].InitStatus = ACTIVE;
                 }
@@ -4343,8 +4342,12 @@ int DLLEXPORT EN_setpipedata(EN_Project p, int index, double length,
     if (p->hydraul.Formflag == DW) Link[index].Kc /= (1000.0 * Ucf[ELEV]);
 
     // Update minor loss factor & pipe flow resistance
-    Link[index].Km = 0.02517 * mloss / SQR(Link[index].Diam) / SQR(Link[index].Diam);
-    resistcoeff(p, index);
+    if (p->hydraul.OpenHflag)
+    {
+        Link[index].Km = 0.02517 * mloss / SQR(Link[index].Diam) / SQR(Link[index].Diam);
+        resistcoeff(p, index);
+    }
+    else Link[index].InitSetting = Link[index].Kc;
     return 0;
 }
 
