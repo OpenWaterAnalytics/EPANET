@@ -185,7 +185,9 @@ The @ref EN_getnodevalue and @ref EN_getlinkvalue functions can also be used to 
 |\b EN_TANKLEVEL (tank water level)   |\b EN_STATUS (link status)                 |
 |\b EN_TANKVOLUME (tank water volume) |\b EN_SETTING (pump speed or valve setting)|
 |\b EN_QUALITY (water quality)        |\b EN_ENERGY (pump energy usage)           |
-|\b EN_SOURCEMASS (source mass inflow)|\b EN_PUMP_EFFIC (pump efficiency)         |
+|\b EN_SOURCEMASS (source mass inflow)|\b EN_LINKQUAL (water quality)             |
+|                                     |\b EN_PUMP_STATE (pump state)              |
+|                                     |\b EN_PUMP_EFFIC (pump efficiency)         |
 |                                     |\b EN_LINK_LEAKAGE (pipe leakage flow rate)|
 
 In addition, the following quantities related to a node's outflow can be retrieved:
