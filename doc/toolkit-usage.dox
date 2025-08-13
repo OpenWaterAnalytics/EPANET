@@ -179,14 +179,14 @@ int runConcurrentQuality(EN_Project ph)
 The @ref EN_getnodevalue and @ref EN_getlinkvalue functions can also be used to retrieve the results of hydraulic and water quality simulations. The computed parameters (and their Toolkit codes) that can be retrieved are as follows:
 |For Nodes:                           | For Links:                                |
 |------------------------------------ | ----------------------------------------- |
-|\b EN_DEMAND (total node outflow     |\b EN_FLOW (flow rate)                     |
+|\b EN_DEMAND (total node outflow)    |\b EN_FLOW (flow rate)                     |
 |\b EN_HEAD (hydraulic head)          |\b EN_VELOCITY (flow velocity)             |
 |\b EN_PRESSURE (pressure)            |\b EN_HEADLOSS (head loss)                 |
 |\b EN_TANKLEVEL (tank water level)   |\b EN_STATUS (link status)                 |
 |\b EN_TANKVOLUME (tank water volume) |\b EN_SETTING (pump speed or valve setting)|
 |\b EN_QUALITY (water quality)        |\b EN_ENERGY (pump energy usage)           |
 |\b EN_SOURCEMASS (source mass inflow)|\b EN_PUMP_EFFIC (pump efficiency)         |
-|                                     |\b EN_LINK_LEAKAGE (pipe leakage flow rate |
+|                                     |\b EN_LINK_LEAKAGE (pipe leakage flow rate)|
 
 In addition, the following quantities related to a node's outflow can be retrieved:
 -# EN_FULLDEMAND (consumer demand requested)
