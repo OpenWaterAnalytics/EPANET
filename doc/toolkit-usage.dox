@@ -70,7 +70,7 @@ EN_addlink(ph, "P1", EN_PIPE, "J1", "J2", &index);
 // additional function calls to complete building the network
 \endcode
 
-See the @ref Example2 for a more complete example. The labels used to name objects cannot contain spaces, semi-colons, or double quotes nor exceed @ref EN_SizeLimits "EN_MAXID" characters in length. While adding objects their properties can be set as described in the next section. Attemtping to change a network's structure by adding or deleting nodes and links while the Toolkit's hydraulic or water quality solvers are open will result in an error condition.
+See the @ref Example2 for a more complete example. The labels used to name objects cannot contain spaces, semi-colons, or double quotes nor exceed @ref EN_SizeLimits "EN_MAXID" characters in length. While adding objects their properties can be set as described in the next section. Attempting to change a network's structure by adding or deleting nodes and links while the Toolkit's hydraulic or water quality solvers are open will result in an error condition.
 
 @section Properties Setting Object Properties
 
