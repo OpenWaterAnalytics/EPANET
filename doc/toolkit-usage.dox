@@ -194,6 +194,7 @@ In addition, the following quantities related to a node's outflow can be retriev
 -# EN_DEMANDDEFICIT (difference between consumer demand requested and delivered)
 -# EN_EMITTERFLOW (outflow through a node's emitter)
 -# EN_LEAKAGEFLOW (outflow due to leakage in a node's connecting pipes)
+
 where `EN_DEMAND` is the sum of `EN_DEMANDFLOW`, `EN_EMITTERFLOW`, and `EN_LEAKAGEFLOW`.
 
 The following code shows how to retrieve the pressure at each node of a network after each time step of a hydraulic analysis (`writetofile` is a user-defined function that will write a record to a file):
