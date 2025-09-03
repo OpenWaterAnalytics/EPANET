@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/23/2025
+ Last Updated: 09/03/2025
  ******************************************************************************
 */
 
@@ -4340,11 +4340,11 @@ int DLLEXPORT EN_setpipedata(EN_Project p, int index, double length,
     Link[index].Diam = diameter;
     Link[index].Kc = rough;
     if (p->hydraul.Formflag == DW) Link[index].Kc /= (1000.0 * Ucf[ELEV]);
+    Link[index].Km = 0.02517 * mloss / SQR(Link[index].Diam) / SQR(Link[index].Diam);
 
-    // Update minor loss factor & pipe flow resistance
+    // Update pipe flow resistance
     if (p->hydraul.OpenHflag)
     {
-        Link[index].Km = 0.02517 * mloss / SQR(Link[index].Diam) / SQR(Link[index].Diam);
         resistcoeff(p, index);
     }
     else Link[index].InitSetting = Link[index].Kc;
