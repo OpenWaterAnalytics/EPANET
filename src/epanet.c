@@ -4132,10 +4132,9 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         if (Link[index].Type == CVPIPE) return 207;
         s = (char)ROUND(value);
         if (s < 0 || s > 2) return 211;
-        s = s + CLOSED;
         if (property == EN_INITSTATUS)
         {
-            Link[index].InitStatus = s;
+            Link[index].InitStatus = s + CLOSED;
         }
         else
         {
