@@ -4130,10 +4130,16 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
     case EN_STATUS:
         // Cannot set status for a check valve
         if (Link[index].Type == CVPIPE) return 207;
+        
+        // Status 's' must be either EN_CLOSED (0) or EN_OPEN (1)
+        // (to set the status of a valve to ACTIVE, assign a value to its
+        // EN_INITSETTING or EN_SETTING property)
         s = (char)ROUND(value);
-        if (s < 0 || s > 2) return 211;
+        if (s < 0 || s > 1) return 211;
+
         if (property == EN_INITSTATUS)
         {
+            // Convert 0/1 to StatusType CLOSED/OPEN
             Link[index].InitStatus = s + CLOSED;
         }
         else
