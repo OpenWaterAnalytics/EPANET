@@ -457,8 +457,6 @@ extern "C" {
 
   int DLLEXPORT ENsetruleenabled(int index, int enabled);
 
-  int DLLEXPORT ENgeterrornode(int *errorNode);
-
   #if defined(__cplusplus)
   }
   #endif

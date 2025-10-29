@@ -195,7 +195,7 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     if (errcode > 0)
     {
         hyd->IsIllConditioned = TRUE;
-        hyd->ErrNode = sm->Order[errcode]; // store error in project for retrieval later
+        hyd->ErrNode = sm->Order[errcode]; // Store node causing ill-conditioned error
         writehyderr(pr, sm->Order[errcode]);    // Ill-conditioned matrix error
         errcode = 110;
     }

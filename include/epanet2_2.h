@@ -413,15 +413,6 @@ typedef struct Project *EN_Project;
   */
   int DLLEXPORT EN_closeH(EN_Project ph);
 
-
-  /**
-  @brief Retrieves the index of the node giving an ill-conditioned error
-  @param ph an EPANET project handle.
-  @param 
-  @return an error code.
-  */
-  int  DLLEXPORT EN_geterrornode(EN_Project ph, int *errorNode);
-
 /*===================================================================
 
   Water Quality Analysis Functions

@@ -662,15 +662,6 @@ int DLLEXPORT EN_usehydfile(EN_Project p, const char *filename)
     return errcode;
 }
 
-int DLLEXPORT EN_geterrornode(EN_Project p, int *errorNode)
-{
-    if(!p->Openflag) return 102;
-    if(!p->hydraul.IsIllConditioned) return 265;
-
-    *errorNode = p->hydraul.ErrNode;
-    return 0;
-}
-
 /********************************************************************
 
     Water Quality Analysis Functions
@@ -1107,6 +1098,12 @@ int DLLEXPORT EN_getstatistic(EN_Project p, int type, double *value)
     case EN_MASSBALANCE:
         *value = p->quality.MassBalance.ratio;
         break;
+    case EN_ERRORNODE:
+        // check if hydraulic solver is ill conditioned
+        if(!p->hydraul.IsIllConditioned) return 265;
+        *value = p->hydraul.ErrNode;
+        break;
+
     default:
         *value = 0.0;
         return 251;
