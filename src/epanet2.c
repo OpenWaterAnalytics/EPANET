@@ -959,3 +959,8 @@ int DLLEXPORT ENsetruleenabled(int index, int enabled)
 {
     return EN_setruleenabled(_defaultProject, index, enabled);
 }
+
+int DLLEXPORT ENgeterrornode(int *errorNode)
+{
+    return EN_geterrornode(_defaultProject, errorNode);
+}

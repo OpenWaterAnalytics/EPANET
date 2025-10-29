@@ -66,6 +66,7 @@ DAT(261,"attempt to delete a node or link contained in a control")
 DAT(262,"attempt to modify network structure while solver is active")
 DAT(263,"node is not a tank")
 DAT(264,"link is not a valve")
+DAT(265,"network is not ill-conditioned")
 
 // File errors
 DAT(301,"identical file names")
