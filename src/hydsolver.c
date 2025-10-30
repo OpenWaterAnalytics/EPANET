@@ -105,8 +105,8 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     hyd->DeficientNodes = 0;
     hyd->DemandReduction = 0.0;
 
-    // initialize ill conditioned status
-    hyd->IsIllConditioned = FALSE;
+    // initialize error node
+    hyd->ErrNode = 0;
 
     // Repeat iterations until convergence or trial limit is exceeded.
     // (ExtraIter used to increase trials in case of status cycling.)
@@ -194,7 +194,6 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     // Iterations ended - report any errors.
     if (errcode > 0)
     {
-        hyd->IsIllConditioned = TRUE;
         hyd->ErrNode = sm->Order[errcode]; // Store node causing ill-conditioned error
         writehyderr(pr, sm->Order[errcode]);    // Ill-conditioned matrix error
         errcode = 110;
