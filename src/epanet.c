@@ -1099,10 +1099,6 @@ int DLLEXPORT EN_getstatistic(EN_Project p, int type, double *value)
         *value = p->quality.MassBalance.ratio;
         break;
     case EN_ERRORNODE:
-        // check if hydraulic solver is ill conditioned
-        if(p->hydraul.ErrNode == 0) {
-            return 203;
-        }
         *value = p->hydraul.ErrNode;
         break;
 
