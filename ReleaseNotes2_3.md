@@ -137,3 +137,16 @@ This document describes the changes and updates that have been made in version 2
  - A failure to close a temporary hydraulics file between successive simulations of an opened project was fixed.
  
  - Corrupting the index of a water quality Trace Node when adding or deleting a node was fixed.
+
+### Patch Releases
+
+ - **OWA-EPANET 2.3.1**:
+   - Restores the ability to assign an initial status of fully open to valves.
+   - Corrects how Positional Control Valve (PCV) settings are updated when changed through the API or with a control.
+
+ - **OWA-EPANET 2.3.2**:
+   - Corrects how the function `EN_setpipedata` assigns the minor loss coefficient for pipes.
+
+ - **OWA-EPANET 2.3.3**:
+   - Corrects how the function `EN_setlinkvalue` assigns the Open/Closed status for links.
+
