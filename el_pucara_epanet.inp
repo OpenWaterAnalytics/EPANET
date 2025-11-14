@@ -1,0 +1,79 @@
+[TITLE]
+; Proyecto El Pucará - Archivo EPANET generado automáticamente
+; Sistema de abastecimiento por gravedad - tanque 15 m3 - demanda proyectada 0.58 L/s
+
+[JUNCTIONS]
+;ID      ELEVATION    DEMAND(lps)  PATTERN
+J1        1898         0.058
+J2        1897         0.058
+J3        1896         0.058
+J4        1895         0.058
+J5        1894         0.058
+J6        1893         0.058
+J7        1892         0.058
+J8        1892.5       0.058
+J9        1894.5       0.058
+J10       1896.5       0.058
+
+[TANKS]
+;ID   ELEVATION  INITLEVEL  MINLEVEL  MAXLEVEL  DIAMETER  MINVOLUME
+T1    1905       1.5        0.0       3.0      4.37      0.0
+
+[RESERVOIRS]
+; (no external reservoir in this gravity system)
+
+[PIPES]
+;ID     NODE1  NODE2  LENGTH(m)  DIAM(mm)  ROUGHNESS
+P1     T1     J1     200        50        140
+P2     J1     J2     120        50        140
+P3     J2     J3     150        50        140
+P4     J3     J4     130        50        140
+P5     J4     J5     100        50        140
+P6     J3     J6     80         32        140
+P7     J2     J7     90         32        140
+P8     J5     J8     70         32        140
+P9     J4     J9     110        32        140
+P10    J9     J10    60         32        140
+
+[PUMPS]
+; (no pumps - gravity system)
+
+[VALVES]
+; (omit explicit valves for the simplified model)
+
+[DEMANDS]
+; (Demands already listed in [JUNCTIONS] for this simple input)
+
+[STATUS]
+; All pipes OPEN by default
+
+[CONTROLS]
+; No automated controls in this basic model
+
+[OPTIONS]
+Units             LPS
+Headloss          H-W
+Specific gravity  1.0
+Viscosity         1.0
+Tolerance         0.001
+
+[REPORT]
+Status Yes
+Summary Yes
+Page 1
+
+[COORDINATES]
+; approximate coordinates for visualization (arbitrary relative positions)
+T1    100.0   300.0
+J1    100.0   240.0
+J2    80.0    200.0
+J3    120.0   160.0
+J4    160.0   130.0
+J5    200.0   110.0
+J6    140.0   90.0
+J7    60.0    180.0
+J8    220.0   100.0
+J9    180.0   140.0
+J10   200.0   60.0
+
+[END]
