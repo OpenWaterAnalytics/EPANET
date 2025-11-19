@@ -1,9 +1,10 @@
 # EPANET 2.3: Advancing Leakage Modelling in Water Distribution Systems Simulations
 
-* Author1, Institute, Address, email
-* Author2, Institute, Address, email
+* Marios Kyriakou, KIOS Research and Innovation Center of Excellence, University of Cyprus (use this as an example to provide your co-author data)
+* Author2, Institute, Address
 * ...
-* AuthorN, Institute, Address, email
+* Demetrios G. Eliades, KIOS Research and Innovation Center of Excellence, University of Cyprus
+* AuthorN, Institute, Address, email* 
 
 **Keywords:** Water Distribution Systems, Simulation, EPANET, Leakage Modeling
 
