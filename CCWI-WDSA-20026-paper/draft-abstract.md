@@ -1,16 +1,23 @@
-# EPANET 2.3: Advancing Leakage Modelling in Water Distribution Systems Simulations
+# EPANET 2.3: Advancing Modelling in Water Distribution Systems Simulations
 
-* Marios Kyriakou, KIOS Research and Innovation Center of Excellence, University of Cyprus (use this as an example to provide your co-author data)
-* Author2, Institute, Address
-* ...
-* Demetrios G. Eliades, KIOS Research and Innovation Center of Excellence, University of Cyprus
-* AuthorN, Institute, Address, email* 
+* Marios Kyriakou*, KIOS Research and Innovation Center of Excellence, University of Cyprus, Cyprus
+* Luke Butler, Iterating, Canada
+* Demetris Eliades, KIOS Research and Innovation Center of Excellence, University of Cyprus, Cyprus
+* Sam Hatchett, Xylem Inc., USA
+* Abel Heinsbroek, Vitens N.V., Netherlands
+* Oscar Vegas Niño, Aqualia, Spain
+* Lewis A. Rossman, OpenWaterAnalytics (OWA), USA
+* Elad Salomons, Optiwater, Israel
+* Stelios Vrachimis, KIOS Research and Innovation Center of Excellence, University of Cyprus, Cyprus
+* Dennis Zanutto, KWR Water Research Institute
 
-**Keywords:** Water Distribution Systems, Simulation, EPANET, Leakage Modeling
+*Corresponding author: kiriakou.marios@ucy.ac.cy
+
+**Keywords:** Water Distribution Systems, Simulation, EPANET, Hydraulic Modeling
 
 **ABSTRACT**
 
-EPANET, with over 7,000 citations in peer-reviewed literature [1] and widespread use in both academic and professional domains, has long served as the reference engine for simulating pressurized water distribution networks. The release of EPANET 2.3 by the Open Water Analytics (OWA) community on GitHub, marks a major milestone in the software’s evolution. The new version incorporates substantial new modelling capabilities, improved numerical robustness, and significant enhancements to its API and interoperability features, achieved through the sustained efforts of a volunteer development team over a six-year period.
+EPANET [1], with over 5,000 mentions in peer-reviewed literature (according to Scopus) and widespread use in both academic and professional domains, has long served as the reference engine for simulating pressurized water distribution networks. The release of EPANET 2.3 by the Open Water Analytics (OWA) community on GitHub, marks a major milestone in the software’s evolution. The new version incorporates substantial new modelling capabilities, improved numerical robustness, and significant enhancements to its API and interoperability features, achieved through the sustained efforts of a volunteer development team over a six-year period.
 
 This paper presents the current release of EPANET 2.3, alongside its patch releases up to 2.3.3, as the open-source standard for simulating water distribution systems. We summarize the most significant additions to the engine, with particular focus on enhancements that expand its modelling realism and operational flexibility. One of the most notable developments is the integration of Fixed and Variable Area Discharge (FAVAD) leakage modelling. This new capability, implemented via a dedicated [LEAKAGE] input section, enables detailed accounting of water losses at links. Additionally, enhanced API functions provide comprehensive demand breakdown at each node, including emitter flow, leakage, and delivered demand components.
 
@@ -35,4 +42,5 @@ To illustrate the benefits of these features, in the paper we will demonstrate i
 Finally, the paper outlines the roadmap for future development. The continued openness of development, enabled by GitHub-based workflows and community engagement, ensures that EPANET remains both a robust science-based open modelling platform, a foundation for research and innovation in the water sector, and an enabler of smart water systems.
 
 **REFERENCES**
+
 [1] Rossman, L. A. (2000). EPANET 2 Users Manual. U.S. Environmental Protection Agency, Cincinnati, OH
