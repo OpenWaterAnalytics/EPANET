@@ -1098,6 +1098,10 @@ int DLLEXPORT EN_getstatistic(EN_Project p, int type, double *value)
     case EN_MASSBALANCE:
         *value = p->quality.MassBalance.ratio;
         break;
+    case EN_ERRORNODE:
+        *value = p->hydraul.ErrNode;
+        break;
+
     default:
         *value = 0.0;
         return 251;
@@ -5939,5 +5943,6 @@ int  DLLEXPORT EN_setruleenabled(EN_Project p, int index, int enabled)
     rule->isEnabled = enabled;
     return 0;
 }
+
 
 

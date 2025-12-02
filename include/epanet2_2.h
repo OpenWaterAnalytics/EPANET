@@ -1953,6 +1953,7 @@ typedef struct Project *EN_Project;
   */
   int  DLLEXPORT EN_setruleenabled(EN_Project ph, int index, int enabled);
 
+
 #if defined(__cplusplus)
 }
 #endif
