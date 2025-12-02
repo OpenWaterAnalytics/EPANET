@@ -77,7 +77,7 @@ test_script:
 on_success:
   - cd %TEST_HOME%\benchmark
   - appveyor PushArtifact receipt.json
-  - cd %BUILD_HOME\lib
+  - cd %BUILD_HOME%\lib
   - appveyor PushArtifact epanet2.dll
 
 on_failure:
