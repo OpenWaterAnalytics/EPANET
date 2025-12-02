@@ -78,7 +78,7 @@ on_success:
   - cd %TEST_HOME%\benchmark
   - appveyor PushArtifact receipt.json
   - cd %EPANET_HOME%
-  - cd %BUILD_HOME%\lib
+  - cd %BUILD_HOME%\bin\Release
   - appveyor PushArtifact epanet2.dll
 
 on_failure:
