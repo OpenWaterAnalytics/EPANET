@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/15/2024
+ Last Updated: 12/02/2025
  ******************************************************************************
 */
 
@@ -1172,15 +1172,21 @@ void  psvcoeff(Project *pr, int k, int n1, int n2)
         // equal to flow excess at upstream node.
 
         hyd->P[k] = 0.0;
-        hyd->Y[k] = hyd->LinkFlow[k] - hyd->Xflow[n1];   // Force flow balance
+        hyd->Y[k] = hyd->LinkFlow[k] - hyd->Xflow[n1];    // Force flow balance
         sm->F[i] += (hset * CBIG);                        // Force head = hset
         sm->Aii[i] += CBIG;                               // at upstream node
         if (hyd->Xflow[n1] > 0.0)
         {
             sm->F[j] += hyd->Xflow[n1];
         }
-        sm->Aij[sm->Ndx[k]] -= 1.0 / CBIG;             // Preserve connectivity
-        sm->Aii[j] += 1.0 / CBIG;
+
+        // Preserve connectivity if outlet node has positive pressure
+        if (hyd->NodeHead[n2] >= pr->network.Node[n2].El)
+        {
+            sm->Aij[sm->Ndx[k]] -= 1.0 / CBIG;             
+            sm->Aii[j] += 1.0 / CBIG;
+        }
+        
         return;
     }
 
