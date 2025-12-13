@@ -243,6 +243,7 @@ int  nexthyd(Project *pr, long *tstep)
     Hydraul *hyd = &pr->hydraul;
     Times   *time = &pr->times;
 
+    long  tNow = time->Htime;
     long  hydstep;         // Actual time step
     int   errcode = 0;     // Error code
 
@@ -280,7 +281,7 @@ int  nexthyd(Project *pr, long *tstep)
     // No more time remains - force completion of analysis
     else
     {
-        endflowbalance(pr);
+        endflowbalance(pr, tNow);
         if (pr->report.Statflag) writeflowbalance(pr);
         time->Htime++;
         if (pr->quality.OpenQflag) time->Qtime++;

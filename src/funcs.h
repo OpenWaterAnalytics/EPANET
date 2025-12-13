@@ -214,6 +214,6 @@ int     leakagehasconverged(Project *);
 
 void    startflowbalance(Project *);
 void    updateflowbalance(Project *, long);
-void    endflowbalance(Project *);
+void    endflowbalance(Project *, long);
 
 #endif

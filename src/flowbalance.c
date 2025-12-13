@@ -16,7 +16,7 @@
 // Exported functions (declared in funcs.h)
 //void startflowbalance(Project *);
 //void updateflowbalance(Project *, long);
-//void endflowbalance(Project *);
+//void endflowbalance(Project *, long);
 
 void startflowbalance(Project *pr)
 /*
@@ -143,7 +143,7 @@ void updateflowbalance(Project *pr, long hstep)
     hyd->FlowBalance.storageDemand += flowBalance.storageDemand * dt;
 }
 
-void endflowbalance(Project *pr)
+void endflowbalance(Project *pr, long tFinal)
 /*
 **-------------------------------------------------------------------
 **  Input:   none
@@ -153,12 +153,11 @@ void endflowbalance(Project *pr)
 */
 {
     Hydraul *hyd = &pr->hydraul;
-    Times   *time = &pr->times;
     
     double seconds, qin, qout, qstor, r;
 
-    if (time->Htime > 0)
-        seconds = time->Htime;
+    if (tFinal > 0)
+        seconds = tFinal;
     else
         seconds = 1.0;        
     hyd->FlowBalance.totalInflow /= seconds;
