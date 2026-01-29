@@ -7,18 +7,18 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 09/10/2025
+ Last Updated: 01/28/2026
  ******************************************************************************
 */
 /*
 This module uses the FAVAD (Fixed and Variable Discharge) equation to model
 leaky pipes:
   
-  Q = Co * L * (Ao + m * H) * sqrt(H)
+  Q = Co * (Ao + m * H) * sqrt(H)
   
-where Q = pipe leak flow rate, Co = an orifice coefficient (= 0.6*sqrt(2g)),
-L = pipe length, Ao = initial area of leak per unit of pipe length,
-m = change in leak area per unit of pressure head, and H = pressure head.
+where Q = pipe leak flow rate, Co = an orifice coefficient = 0.6*sqrt(2g),
+Ao = initial area of leak, m = change in leak area per unit of pressure
+head, and H = pressure head.
 
 The inverted form of this equation is used to model the leakage demand from
 a pipe's end node using a pair of equivalent emitters as follows:
@@ -27,13 +27,8 @@ a pipe's end node using a pair of equivalent emitters as follows:
   H = Cva * Qva^(2/3)
   
 where Qfa = fixed area node leakage rate, Qva = variable area node leakage rate,
-Cfa = 1 / SUM(Co*(L/2)*Ao)^2, Cva = 1 / SUM(Co*(L/2)*m)^2/3, and
+Cfa = 1 / SUM(Co/2*Ao)^2, Cva = 1 / SUM(Co/2*m)^2/3, and
 SUM(x) is the summation of x over all pipes connected to the node.
-
-In implementing this model, the pipe property "LeakArea" represents Ao in
-sq. mm per 100 units of pipe length and "LeakExpan" represents m in sq. mm
-per unit of pressure head.
-
 */
 #include <stdlib.h>
 #include <math.h>
@@ -154,8 +149,8 @@ void convert_pipe_to_node_leakage(Project *pr)
     Snode *node1;
     Snode *node2;
 
-    // Orifice coeff. with conversion from sq. mm to sq. m
-    c_orif = 4.8149866 * 1.e-6;
+    // Orifice coeff. = 0.6 * sqrt(2 * g) * (sq m per sq mm)
+    c_orif = 4.8149766 * 1.e-6;
     
     // Examine each link
     for (i = 1; i <= net->Nlinks; i++)
@@ -173,10 +168,10 @@ void convert_pipe_to_node_leakage(Project *pr)
         // Get pipe's fixed and variable area leak coeffs.
         if (link->LeakArea == 0.0 && link->LeakExpan == 0.0) continue;
         c_area = c_orif * link->LeakArea / SQR(MperFT);
-        c_expan = c_orif * link->LeakExpan;
+        c_expan = c_orif * link->LeakExpan / MperFT;
 
         // Adjust for number of 100-ft pipe sections
-        len = link->Len * pr->Ucf[LENGTH] / 100.;
+        len = link->Len / 100.;
         if (node1->Type == JUNCTION && node2->Type == JUNCTION)
         {
             len *= 0.5;
@@ -286,11 +281,11 @@ double findlinkleakage(Project *pr, int i)
     h2 = hyd->NodeHead[n2] - net->Node[n2].El;
     h2 = MAX(h2, 0.0);
     
-    // Pipe leak parameters converted to feet
+    // Pipe leak parameters
     a = link->LeakArea / SQR(MperFT);
-    m = link->LeakExpan;
-    len = link->Len * pr->Ucf[LENGTH] / 100.; // # 100 ft pipe lengths
-    c = 4.8149866 * len / 2.0 * 1.e-6;
+    m = link->LeakExpan / MperFT;
+    len = link->Len / 100.; // # 100 ft pipe lengths
+    c = 4.8149766 * (len / 2.0) * 1.0e-6;
     
     // Leakage from 1st half of pipe connected to node n1
     q1 = 0.0;

@@ -137,3 +137,14 @@ This document describes the changes and updates that have been made in version 2
  - A failure to close a temporary hydraulics file between successive simulations of an opened project was fixed.
  
  - Corrupting the index of a water quality Trace Node when adding or deleting a node was fixed.
+
+ ### Patch Releases
+ #### 2.3.1:
+ - Restores the ability to assign an initial status of fully open to a valve and corrects how the setting of a Positional Control Valve is changed using the API or with a control.
+ #### 2.3.2:
+ - Fixes how `EN_setpipedata` assigns a minor loss coefficient to a pipe.
+ #### 2.3.3:
+ - Corrects how `EN_setlinkvalue` assigns OPEN/CLOSED status to a link.
+ #### 2.3.4:
+ - Fixes errors converting the units of the Leak Area and Leak Area Expansion parameters used in the FAVAD pipe leakage model.
+ - To avoid reporting that full tanks are overflowing when they see negligible net inflows or outflows, those flows are now ignored when updating the tank's volume and head.
