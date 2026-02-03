@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(test_leakage_model)
 //    printf(" Calculated leakage: %.4f\n", Q);
     
     // Compare pipe leakage with EPANET's value
-    BOOST_REQUIRE(abs(linkLeakage - Q) < 0.01);
+    BOOST_REQUIRE(abs(pipe21Leak - Q) < 0.01);
 
 // Clean up
     error = EN_close(ph);
