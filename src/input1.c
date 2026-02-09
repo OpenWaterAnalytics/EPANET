@@ -7,7 +7,7 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 04/19/2025
+Last Updated: 01/28/2026
 ******************************************************************************
 */
 
@@ -602,8 +602,8 @@ void convertunits(Project *pr)
             link->Kw /= SECperDAY;
 
             // Convert leakage parameters
-            link->LeakArea /= pr->Ucf[LENGTH];
-            link->LeakExpan /= pr->Ucf[LENGTH];
+            link->LeakArea *= pr->Ucf[LENGTH];
+            link->LeakExpan *= pr->Ucf[LENGTH];
         }
 
         else if (link->Type == PUMP)

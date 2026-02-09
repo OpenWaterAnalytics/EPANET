@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/19/2025
+ Last Updated: 01/28/2026
  ******************************************************************************
 */
 
@@ -1066,6 +1066,7 @@ void  tanklevels(Project *pr, long tstep)
 
         // Update the tank's volume & water elevation
         n = tank->Node;
+        if (ABS(hyd->NodeDemand[n]) <= QZERO) continue;
         dv = hyd->NodeDemand[n] * tstep;
         tank->V += dv;
 

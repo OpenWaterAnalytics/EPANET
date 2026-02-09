@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/26/2024
+ Last Updated: 02/02/2026
  ******************************************************************************
 */
 
@@ -33,6 +33,9 @@ BOOST_AUTO_TEST_CASE(test_leakage_model)
     int Pipe21, Junc21, Junc22;
 	double pipe21Leak, junc21Leak, junc22Leak;
     EN_Project ph = NULL;
+    double A, C, M, L, E1, E2, H1, H2, Q1, Q2, Q;
+    const double GPMperCFS = 448.831;
+    const double MperFT = 0.3048;
 
     error = EN_createproject(&ph);
     BOOST_REQUIRE(error == 0);
@@ -81,6 +84,42 @@ BOOST_AUTO_TEST_CASE(test_leakage_model)
 	// Check that the sum of the node leakages equals the pipe leakage
 	//printf("\n Node leakage flow: %.4f\n", junc21Leak + junc22Leak);
     BOOST_REQUIRE(abs(pipe21Leak - (junc21Leak+junc22Leak)) < 0.01);
+
+    // Independently verify pipe leakage flow
+    
+    // Retrieve leak parameters (in mm units)
+    EN_getlinkvalue(ph, Pipe21, EN_LEAK_AREA, &A);
+    EN_getlinkvalue(ph, Pipe21, EN_LEAK_EXPAN, &M);
+    
+    // Convert leak parameters to feet units
+    A = A / MperFT / MperFT / 1.e6;
+    M = M / MperFT / 1.e6;
+    
+    // Find number of 100-ft pipe lengths
+    EN_getlinkvalue(ph, Pipe21, EN_LENGTH, &L);
+    L = L / 100.;
+    
+    // Compute orifice coefficient
+    C = 0.6 * sqrt(2. * 32.2);
+    
+    // Find pressure heads at up and down stream nodes
+	EN_getnodevalue(ph, Junc21, EN_ELEVATION, &E1);
+	EN_getnodevalue(ph, Junc22, EN_ELEVATION, &E2);
+	EN_getnodevalue(ph, Junc21, EN_HEAD, &H1);
+	EN_getnodevalue(ph, Junc22, EN_HEAD, &H2);
+	H1 = H1 - E1;
+	H2 = H2 - E2;
+
+    // Compute leakage flow over each half of pipe (in cfs)
+    Q1 = C * (L/2.) * (A + M * H1) * sqrt(H1);
+    Q2 = C * (L/2.) * (A + M * H2) * sqrt(H2);
+    
+    // Find total pipe leakage in gpm
+    Q = (Q1 + Q2) * GPMperCFS;
+//    printf(" Calculated leakage: %.4f\n", Q);
+    
+    // Compare pipe leakage with EPANET's value
+    BOOST_REQUIRE(abs(pipe21Leak - Q) < 0.01);
 
 // Clean up
     error = EN_close(ph);

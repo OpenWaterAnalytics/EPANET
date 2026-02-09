@@ -370,7 +370,8 @@ int saveinpfile(Project *pr, const char *fname)
         link = &net->Link[i];
         if (link->LeakArea == 0.0 && link->LeakExpan == 0.0) continue;
         fprintf(f, "\n %-31s %14.6f %14.6f", link->ID,
-        link->LeakArea * pr->Ucf[LENGTH], link->LeakExpan * pr->Ucf[LENGTH]);
+            link->LeakArea / pr->Ucf[LENGTH],
+            link->LeakExpan / pr->Ucf[LENGTH]);
     }
 
     // Write [STATUS] section
