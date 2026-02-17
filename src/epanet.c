@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/28/2026
+ Last Updated: 02/17/2026
  ******************************************************************************
 */
 
@@ -1476,6 +1476,9 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
     double *Ucf = p->Ucf;
 
     if (!p->Openflag) return 102;
+
+    // Make sure all curve types are correctly set
+    assigncurvetypes(net);
 
     // Determine unit system based on flow units
     qfactor = Ucf[FLOW];
