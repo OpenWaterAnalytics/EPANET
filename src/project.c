@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/23/2025
+ Last Updated: 02/17/2026
  ******************************************************************************
 */
 
@@ -97,6 +97,52 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
         pr->Openflag = TRUE;
     }
     errmsg(pr, errcode);
+
+    // Fix curve types
+    Network *net = &pr->network;
+
+    // Pump curves
+    for (int i = 1; i <= net->Npumps; i++)
+    {
+        Spump *pump = &net->Pump[i];
+
+        int j;
+        if ((j = pump->Hcurve) > 0) {
+            net->Curve[j].Type = PUMP_CURVE;
+        }
+        if ((j = pump->Ecurve) > 0) {
+            net->Curve[j].Type = EFFIC_CURVE;
+        }
+    }
+
+    // Tank volume curves
+    for (int i=1; i <= net->Ntanks; i++) {
+        Stank* tank = &net->Tank[i];
+
+        int j;
+        if ((j = tank->Vcurve) > 0) {
+            net->Curve[j].Type = VOLUME_CURVE;
+        }
+    }
+
+    // Valve curves
+    for (int i=1; i <= net->Nvalves; i++) {
+        Svalve* valve = &net->Valve[i];
+        Slink* link = &net->Link[valve->Link];
+
+        int j;
+        if (link->Type == PCV) {
+            if((j = valve->Curve) > 0) {
+                net->Curve[j].Type = VALVE_CURVE;
+            }
+        }
+        else if (link->Type == GPV){
+            if((j = valve->Curve) > 0) {
+                net->Curve[j].Type = HLOSS_CURVE;
+            }
+        }
+    }
+
     return errcode;
 }
 
