@@ -98,9 +98,6 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
     }
     errmsg(pr, errcode);
 
-    // Fix curve types
-    assigncurvetypes(&pr->network);
-
     return errcode;
 }
 

@@ -1470,15 +1470,12 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
 {
     Network *net = &p->network;
 
-    int i, j, oldUnitFlag;
+    int i, j;
     double qfactor, vfactor, hfactor, efactor, pfactor, dfactor, xfactor, yfactor;
     double dcf, pcf, hcf, qcf;
     double *Ucf = p->Ucf;
 
     if (!p->Openflag) return 102;
-
-    // Make sure all curve types are correctly set
-    assigncurvetypes(net);
 
     // Determine unit system based on flow units
     qfactor = Ucf[FLOW];
@@ -1488,7 +1485,6 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
     pfactor = Ucf[PRESSURE];
     dfactor = Ucf[DEMAND];
 
-    oldUnitFlag = p->parser.Unitsflag;
     p->parser.Flowflag = units;
     switch (units)
     {
@@ -1504,23 +1500,17 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
         p->parser.Unitsflag = US;
         break;
     }
-
-    // Revise pressure units depending on flow units
-    if (oldUnitFlag != p->parser.Unitsflag)
-    {
-        if (p->parser.Unitsflag == US) p->parser.Pressflag = PSI;
-        else p->parser.Pressflag = METERS;
-    }
     initunits(p);
 
-    // Update pressure units in rules
+    // Update units in rules
     dcf =  Ucf[DEMAND] / dfactor;
     pcf =  Ucf[PRESSURE] / pfactor;
     hcf =  Ucf[HEAD] / hfactor;
     qcf =  Ucf[FLOW] / qfactor;
     updateruleunits(p, dcf, pcf, hcf, qcf);
 
-    //update curves
+    //update curves after making sure that all curve types are correctly set
+    assigncurvetypes(net);
     for (i = 1; i <= net->Ncurves; i++)
     {
         switch (net->Curve[i].Type)
