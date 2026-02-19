@@ -131,11 +131,11 @@ BOOST_FIXTURE_TEST_CASE(test_pda_unit_change,  FixtureOpenClose)
 
     error = EN_setflowunits(ph, EN_LPS);
     BOOST_REQUIRE(error == 0);
+    error = EN_setoption(ph, EN_PRESS_UNITS, EN_METERS);
+    BOOST_REQUIRE(error == 0);
 
     error = EN_getdemandmodel(ph, &type, &pmin, &preq, &pexp);
     BOOST_REQUIRE(error == 0);
-	error = EN_setoption(ph, EN_PRESS_UNITS, EN_METERS);
-	BOOST_REQUIRE(error == 0);
     BOOST_CHECK(abs(pmin - (20/PSIperFT*MperFT)) < 1.e-5); 
     BOOST_CHECK(abs(preq - (100/PSIperFT*MperFT)) < 1.e-5); 
 
