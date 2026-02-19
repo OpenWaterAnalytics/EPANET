@@ -97,6 +97,7 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
         pr->Openflag = TRUE;
     }
     errmsg(pr, errcode);
+
     return errcode;
 }
 
@@ -1099,6 +1100,58 @@ int findcurve(Network *network, const char *id)
         if (strcmp(id, network->Curve[i].ID) == 0) return i;
     }
     return 0;
+}
+
+void assigncurvetypes(Network *network)
+/*----------------------------------------------------------------
+**  Input:   none
+**  Output:  none
+**  Returns: none
+**  Purpose: assign correct curve type to all curves
+**----------------------------------------------------------------
+*/
+{
+    // Pump curves
+    for (int i = 1; i <= network->Npumps; i++)
+    {
+        Spump *pump = &network->Pump[i];
+
+        int j;
+        if ((j = pump->Hcurve) > 0) {
+            network->Curve[j].Type = PUMP_CURVE;
+        }
+        if ((j = pump->Ecurve) > 0) {
+            network->Curve[j].Type = EFFIC_CURVE;
+        }
+    }
+
+    // Tank volume curves
+    for (int i=1; i <= network->Ntanks; i++) {
+        Stank* tank = &network->Tank[i];
+
+        int j;
+        if ((j = tank->Vcurve) > 0) {
+            network->Curve[j].Type = VOLUME_CURVE;
+        }
+    }
+
+    // Valve curves
+    for (int i=1; i <= network->Nvalves; i++) {
+        Svalve* valve = &network->Valve[i];
+        Slink* link = &network->Link[valve->Link];
+
+        int j;
+        if (link->Type == PCV) {
+            if((j = valve->Curve) > 0) {
+                network->Curve[j].Type = VALVE_CURVE;
+            }
+        }
+        else if (link->Type == GPV){
+            if((j = valve->Curve) > 0) {
+                network->Curve[j].Type = HLOSS_CURVE;
+            }
+        }
+    }
 }
 
 void adjustpattern(int *pat, int index)
