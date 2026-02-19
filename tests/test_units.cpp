@@ -131,6 +131,8 @@ BOOST_FIXTURE_TEST_CASE(test_pda_unit_change,  FixtureOpenClose)
 
     error = EN_setflowunits(ph, EN_LPS);
     BOOST_REQUIRE(error == 0);
+    error = EN_setoption(ph, EN_PRESS_UNITS, EN_METERS);
+    BOOST_REQUIRE(error == 0);
 
     error = EN_getdemandmodel(ph, &type, &pmin, &preq, &pexp);
     BOOST_REQUIRE(error == 0);
@@ -180,6 +182,8 @@ BOOST_FIXTURE_TEST_CASE(test_rule_unit_change,  FixtureOpenClose)
     // Change flow units to lps and pressure to meters
     error = EN_setflowunits(ph, EN_LPS);
     BOOST_REQUIRE(error == 0);
+	error = EN_setoption(ph, EN_PRESS_UNITS, EN_METERS);
+	BOOST_REQUIRE(error == 0);
 
     error = EN_getoption(ph, EN_PRESS_UNITS, &units);
     BOOST_REQUIRE(error == 0);
@@ -312,10 +316,10 @@ BOOST_FIXTURE_TEST_CASE(test_decoupled_pressure_units, FixtureInitClose)
     error = EN_setflowunits(ph, EN_LPS);
     BOOST_REQUIRE(error == 0);
 
-    // Pressure units should change to metric default of meters
+    // Pressure units should not change
     error = EN_getoption(ph, EN_PRESS_UNITS, &units);
     BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(units == EN_METERS);
+    BOOST_CHECK(units == EN_KPA);  
 
     // Test 5: With SI flow units, set pressure to PSI (should now work)
     error = EN_setoption(ph, EN_PRESS_UNITS, EN_PSI);
@@ -349,111 +353,6 @@ BOOST_FIXTURE_TEST_CASE(test_decoupled_pressure_units, FixtureInitClose)
 
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
-}
-
-BOOST_FIXTURE_TEST_CASE(test_automatic_pressure_unit_switching, FixtureInitClose)
-{
-    int index;
-    double pressure_units;
-
-    // Create basic network
-    error = EN_addnode(ph, "R1", EN_RESERVOIR, &index);
-    BOOST_REQUIRE(error == 0);
-    error = EN_setnodevalue(ph, index, EN_ELEVATION, 100);
-    BOOST_REQUIRE(error == 0);
-    error = EN_addnode(ph, "J1", EN_JUNCTION, &index);
-    BOOST_REQUIRE(error == 0);
-    error = EN_addlink(ph, "P1", EN_PIPE, "R1", "J1", &index);
-    BOOST_REQUIRE(error == 0);
-
-    // Test 1: Start with US flow units (CFS) - should have PSI pressure units
-    error = EN_setflowunits(ph, EN_CFS);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_PSI);
-
-    // Test 2: Change from US flow units (CFS) to metric flow units (LPS)
-    // Pressure units should automatically change from PSI to METERS
-    error = EN_setflowunits(ph, EN_LPS);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_METERS);
-
-    // Test 3: Change from metric flow units (LPS) back to US flow units (GPM)
-    // Pressure units should automatically change from METERS to PSI
-    error = EN_setflowunits(ph, EN_GPM);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_PSI);
-
-    // Test 4: Change from US flow units (GPM) to another metric flow unit (MLD)
-    // Pressure units should automatically change from PSI to METERS
-    error = EN_setflowunits(ph, EN_MLD);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_METERS);
-
-    // Test 5: Manually set pressure units to kPa while using metric flow units
-    error = EN_setoption(ph, EN_PRESS_UNITS, EN_KPA);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_KPA);
-
-    // Test 6: Change from metric flow units (MLD) to US flow units (MGD)
-    // Pressure units should automatically change from kPa to PSI
-    error = EN_setflowunits(ph, EN_MGD);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_PSI);
-
-    // Test 7: Change from US flow units (MGD) to metric flow units (CMH)
-    // Pressure units should automatically change from PSI to METERS
-    error = EN_setflowunits(ph, EN_CMH);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_METERS);
-
-    // Test 8: Set pressure to kPa again with metric flow units
-    error = EN_setoption(ph, EN_PRESS_UNITS, EN_KPA);
-    BOOST_REQUIRE(error == 0);
-
-    // Test 9: Change between metric flow units (CMH to CMD)
-    // Pressure units should remain kPa (not changed to METERS since not switching from PSI)
-    error = EN_setflowunits(ph, EN_CMD);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_KPA);
-
-    // Test 10: Change from metric flow units (CMD) to US flow units (AFD)
-    // Pressure units should automatically change from kPa to PSI
-    error = EN_setflowunits(ph, EN_AFD);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_PSI);
-
-    // Test 11: Change between US flow units (AFD to IMGD)
-    // Pressure units should remain PSI
-    error = EN_setflowunits(ph, EN_IMGD);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_PSI);
-
-    // Test 12: Final test - metric flow units (CMS) should change PSI to METERS
-    error = EN_setflowunits(ph, EN_CMS);
-    BOOST_REQUIRE(error == 0);
-    error = EN_getoption(ph, EN_PRESS_UNITS, &pressure_units);
-    BOOST_REQUIRE(error == 0);
-    BOOST_CHECK(pressure_units == EN_METERS);
 }
 
 
