@@ -16,6 +16,10 @@ Last Updated: 04/19/2025
 #include <string.h>
 #include <math.h>
 
+#ifdef _WIN32
+  #define strtok_r(str, delim, saveptr) strtok_s(str, delim, saveptr)
+#endif
+
 #include "types.h"
 #include "funcs.h"
 #include "hash.h"
@@ -62,7 +66,8 @@ void saveauxdata(Project *pr, FILE *f)
     while (fgets(line, MAXLINE, InFile) != NULL)
     {
         strcpy(s, line);
-        tok = strtok(s, SEPSTR);
+        char *saveptr;
+        tok = strtok_r(s, SEPSTR, &saveptr);
         if (tok == NULL) continue;
 
         // Check if line begins with a new section heading

@@ -16,6 +16,10 @@ Last Updated: 02/19/2025
 #include <string.h>
 #include <math.h>
 
+#ifdef _WIN32
+  #define strtok_r(str, delim, saveptr) strtok_s(str, delim, saveptr)
+#endif
+
 #include "types.h"
 #include "funcs.h"
 #include "hash.h"
@@ -81,7 +85,8 @@ int netsize(Project *pr)
     while (fgets(line, MAXLINE, parser->InFile) != NULL)
     {
         // Skip blank lines & those beginning with a comment
-        tok = strtok(line, SEPSTR);
+        char *saveptr;
+        tok = strtok_r(line, SEPSTR, &saveptr);
         if (tok == NULL) continue;
         if (*tok == ';') continue;
 
@@ -122,11 +127,14 @@ int netsize(Project *pr)
                 parser->MaxCurves = pr->network.Ncurves;
                 break;
             case _OPTIONS:
+            {
+                char *saveptr;
                 if (match(tok, w_UNITS))
-                    getunitsoption(pr, strtok(line, SEPSTR));
+                    getunitsoption(pr, strtok_r(line, SEPSTR, &saveptr));
                 else if (match(tok, w_HEADLOSS))
-                    getheadlossoption(pr, strtok(line, SEPSTR));
+                    getheadlossoption(pr, strtok_r(line, SEPSTR, &saveptr));
                 break;
+            }
         }
         if (errcode) break;
     }
@@ -625,16 +633,16 @@ double hour(char *time, char *units)
 {
     int n;
     double y[3];
-    char *s;
+    char *s, *saveptr;
 
     // Separate clock time into hrs, min, sec
     for (n = 0; n < 3; n++) y[n] = 0.0;
     n = 0;
-    s = strtok(time, ":");
+    s = strtok_r(time, ":", &saveptr);
     while (s != NULL && n <= 3)
     {
         if (!getfloat(s, &y[n])) return -1.0;
-        s = strtok(NULL, ":");
+        s = strtok_r(NULL, ":", &saveptr);
         n++;
     }
 

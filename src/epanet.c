@@ -17,6 +17,11 @@
 #include <float.h>
 #include <math.h>
 
+#ifdef _WIN32
+#define snprintf _snprintf
+#define strtok_r(str, delim, saveptr) strtok_s(str, delim, saveptr)
+#endif
+
 #include "epanet2_2.h"
 #include "types.h"
 #include "funcs.h"
@@ -4742,7 +4747,8 @@ int DLLEXPORT EN_loadpatternfile(EN_Project p, const char *filename, const char 
     while (fgets(line, sizeof(line), file) != NULL) {
     
         // Skip lines that don't contain valid numbers
-        tok = strtok(line, SEPSTR);
+        char *saveptr;
+        tok = strtok_r(line, SEPSTR, &saveptr);
         if (tok == NULL) continue;
         if (!getfloat(tok, &value)) continue;
         
