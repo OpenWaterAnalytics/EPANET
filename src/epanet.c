@@ -176,6 +176,75 @@ int DLLEXPORT EN_init(EN_Project p, const char *rptFile, const char *outFile,
     return errcode;
 }
 
+int DLLEXPORT EN_preallocate(EN_Project p, int maxJuncs, int maxTanks,
+                              int maxPipes, int maxPumps, int maxValves,
+                              int maxPats, int maxCurves, int maxControls,
+                              int maxRules)
+/*----------------------------------------------------------------
+**  Input:   maxJuncs = expected number of junctions
+**           maxTanks = expected number of tanks + reservoirs
+**           maxPipes = expected number of pipes (incl. CV pipes)
+**           maxPumps = expected number of pumps
+**           maxValves = expected number of valves
+**           maxPats = expected number of time patterns
+**           maxCurves = expected number of data curves
+**           maxControls = expected number of simple controls
+**           maxRules = expected number of rule-based controls
+**  Output:  none
+**  Returns: error code
+**  Purpose: pre-allocates network arrays to avoid per-element
+**           realloc calls when building a network via the toolkit API
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+
+    // Must be called after EN_init and before adding any objects
+    if (!p->Openflag) return 102;
+    if (net->Nnodes > 0 || net->Nlinks > 0) return 257;
+
+    // Free the small default arrays created by EN_init -> allocdata
+    free(net->Node);
+    free(p->hydraul.NodeDemand);
+    free(p->hydraul.NodeHead);
+    free(p->quality.NodeQual);
+    free(p->hydraul.FullDemand);
+    free(p->hydraul.DemandFlow);
+    free(p->hydraul.EmitterFlow);
+    free(p->hydraul.LeakageFlow);
+
+    free(net->Link);
+    free(p->hydraul.LinkFlow);
+    free(p->hydraul.LinkSetting);
+    free(p->hydraul.LinkStatus);
+
+    free(net->Tank);
+    free(net->Pump);
+    free(net->Valve);
+    free(net->Control);
+    freerules(p);
+
+    // Set capacities from caller-supplied sizes
+    p->parser.MaxJuncs = maxJuncs;
+    p->parser.MaxTanks = maxTanks;
+    p->parser.MaxNodes = maxJuncs + maxTanks;
+    p->parser.MaxPipes = maxPipes;
+    p->parser.MaxPumps = maxPumps;
+    p->parser.MaxValves = maxValves;
+    p->parser.MaxLinks = maxPipes + maxPumps + maxValves;
+    p->parser.MaxControls = maxControls;
+    p->parser.MaxRules = maxRules;
+
+    // NOTE: Patterns and Curves are managed via their own linked lists
+    // and are not part of the main allocdata() call, so maxPats/maxCurves
+    // are recorded but not pre-allocated here.
+    (void)maxPats;
+    (void)maxCurves;
+
+    // Re-allocate all arrays at the correct capacity
+    return allocdata(p);
+}
+
 int DLLEXPORT EN_open(EN_Project p, const char *inpFile, const char *rptFile,
                       const char *outFile)
 /*----------------------------------------------------------------
@@ -1925,16 +1994,20 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
     if (nodeType < EN_JUNCTION || nodeType > EN_TANK) return 251;
 
     // Grow node-related arrays to accommodate the new node
-    size = (net->Nnodes + 2) * sizeof(Snode);
-    net->Node = (Snode *)realloc(net->Node, size);
-    size = (net->Nnodes + 2) * sizeof(double);
-    hyd->NodeDemand = (double *)realloc(hyd->NodeDemand, size);
-    qual->NodeQual = (double *)realloc(qual->NodeQual, size);
-    hyd->NodeHead = (double *)realloc(hyd->NodeHead, size);
-    hyd->FullDemand = (double *)realloc(hyd->FullDemand, size);
-    hyd->EmitterFlow = (double *)realloc(hyd->EmitterFlow, size);
-    hyd->LeakageFlow = (double *)realloc(hyd->LeakageFlow, size);
-    hyd->DemandFlow = (double *)realloc(hyd->DemandFlow, size);
+    // (skip if capacity was pre-allocated via EN_preallocate)
+    if (net->Nnodes + 1 >= p->parser.MaxNodes)
+    {
+        size = (net->Nnodes + 2) * sizeof(Snode);
+        net->Node = (Snode *)realloc(net->Node, size);
+        size = (net->Nnodes + 2) * sizeof(double);
+        hyd->NodeDemand = (double *)realloc(hyd->NodeDemand, size);
+        qual->NodeQual = (double *)realloc(qual->NodeQual, size);
+        hyd->NodeHead = (double *)realloc(hyd->NodeHead, size);
+        hyd->FullDemand = (double *)realloc(hyd->FullDemand, size);
+        hyd->EmitterFlow = (double *)realloc(hyd->EmitterFlow, size);
+        hyd->LeakageFlow = (double *)realloc(hyd->LeakageFlow, size);
+        hyd->DemandFlow = (double *)realloc(hyd->DemandFlow, size);
+    }
 
     // Actions taken when a new Junction is added
     if (nodeType == EN_JUNCTION)
@@ -1982,8 +2055,9 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
         node->D = NULL;
         net->Ntanks++;
 
-        // resize tanks array
-        net->Tank = (Stank *)realloc(net->Tank, (net->Ntanks + 1) * sizeof(Stank));
+        // resize tanks array (skip if pre-allocated)
+        if (net->Ntanks >= p->parser.MaxTanks)
+            net->Tank = (Stank *)realloc(net->Tank, (net->Ntanks + 1) * sizeof(Stank));
         tank = &net->Tank[net->Ntanks];
 
         // set default values for new tank or reservoir
@@ -2007,7 +2081,8 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
         tank->CanOverflow = FALSE;
     }
     net->Nnodes++;
-    p->parser.MaxNodes = net->Nnodes;
+    if (net->Nnodes > p->parser.MaxNodes)
+        p->parser.MaxNodes = net->Nnodes;
     strncpy(node->ID, id, MAXID);
 
     // set default values for new node
@@ -3409,15 +3484,21 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
 
     // Grow link-related arrays to accommodate the new link
     net->Nlinks++;
-    p->parser.MaxLinks = net->Nlinks;
+    if (net->Nlinks > p->parser.MaxLinks)
+        p->parser.MaxLinks = net->Nlinks;
     n = net->Nlinks;
-    size = (n + 1) * sizeof(Slink);
-    net->Link = (Slink *)realloc(net->Link, size);
-    size = (n + 1) * sizeof(double);
-    hyd->LinkFlow = (double *)realloc(hyd->LinkFlow, size);
-    hyd->LinkSetting = (double *)realloc(hyd->LinkSetting, size);
-    size = (n + 1) * sizeof(StatusType);
-    hyd->LinkStatus = (StatusType *)realloc(hyd->LinkStatus, size);
+
+    // (skip realloc if capacity was pre-allocated via EN_preallocate)
+    if (n >= p->parser.MaxLinks)
+    {
+        size = (n + 1) * sizeof(Slink);
+        net->Link = (Slink *)realloc(net->Link, size);
+        size = (n + 1) * sizeof(double);
+        hyd->LinkFlow = (double *)realloc(hyd->LinkFlow, size);
+        hyd->LinkSetting = (double *)realloc(hyd->LinkSetting, size);
+        size = (n + 1) * sizeof(StatusType);
+        hyd->LinkStatus = (StatusType *)realloc(hyd->LinkStatus, size);
+    }
 
     // Set properties for the new link
     link = &net->Link[n];
@@ -3426,10 +3507,13 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     if (linkType <= PIPE) net->Npipes++;
     else if (linkType == PUMP)
     {
-        // Grow pump array to accommodate the new link
+        // Grow pump array to accommodate the new link (skip if pre-allocated)
         net->Npumps++;
-        size = (net->Npumps + 1) * sizeof(Spump);
-        net->Pump = (Spump *)realloc(net->Pump, size);
+        if (net->Npumps >= p->parser.MaxPumps)
+        {
+            size = (net->Npumps + 1) * sizeof(Spump);
+            net->Pump = (Spump *)realloc(net->Pump, size);
+        }
         pump = &net->Pump[net->Npumps];
         pump->Link = n;
         pump->Ptype = NOCURVE;
@@ -3448,10 +3532,13 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     }
     else
     {
-        // Grow valve array to accommodate the new link
+        // Grow valve array to accommodate the new link (skip if pre-allocated)
         net->Nvalves++;
-        size = (net->Nvalves + 1) * sizeof(Svalve);
-        net->Valve = (Svalve *)realloc(net->Valve, size);
+        if (net->Nvalves >= p->parser.MaxValves)
+        {
+            size = (net->Nvalves + 1) * sizeof(Svalve);
+            net->Valve = (Svalve *)realloc(net->Valve, size);
+        }
         net->Valve[net->Nvalves].Link = n;
         net->Valve[net->Nvalves].Curve = 0;
     }

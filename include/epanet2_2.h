@@ -113,6 +113,29 @@ typedef struct Project *EN_Project;
                 int unitsType, int headLossType);
 
   /**
+  @brief Pre-allocates memory for network data arrays.
+  @param ph an EPANET project handle.
+  @param maxJuncs the expected number of junction nodes.
+  @param maxTanks the expected number of tank and reservoir nodes.
+  @param maxPipes the expected number of pipes (including check-valve pipes).
+  @param maxPumps the expected number of pumps.
+  @param maxValves the expected number of valves.
+  @param maxPats the expected number of time patterns.
+  @param maxCurves the expected number of data curves.
+  @param maxControls the expected number of simple controls.
+  @param maxRules the expected number of rule-based controls.
+  @return an error code.
+
+  Call this function after ::EN_init and before adding any network objects
+  with ::EN_addnode or ::EN_addlink. It replaces the small default arrays
+  allocated by ::EN_init with arrays sized at the given capacities, avoiding
+  the overhead of per-element reallocation during network construction.
+  */
+  int DLLEXPORT EN_preallocate(EN_Project ph, int maxJuncs, int maxTanks,
+                int maxPipes, int maxPumps, int maxValves,
+                int maxPats, int maxCurves, int maxControls, int maxRules);
+
+  /**
   @brief Reads an EPANET input file with no errors allowed.
   @param ph an EPANET project handle.
   @param inpFile the name of an existing EPANET-formatted input file.
