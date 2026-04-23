@@ -12,6 +12,8 @@
 # Build Options:
 #   BUILD_TESTS = ON/OFF
 #   BUILD_PY_LIB = ON/OFF
+#   SANITIZERS_ENABLED = ON/OFF
+#    Enables Undefined Behaviour Sanitizer for tests (if supported by toolchain)
 #
 # Generic Invocation:
 #   cmake -E make_directory buildprod
