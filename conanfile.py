@@ -3,7 +3,7 @@ from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout
 
 class EpanetConan(ConanFile):
     name = "epanet"
-    version = "2.2"
+    version = "2.3.5"
     description = "EPANET is an industry-standard program for modeling the hydraulic and water quality behavior of water distribution system pipe networks."
     homepage = "https://github.com/OpenWaterAnalytics/EPANET"
     url = "https://github.com/OpenWaterAnalytics/EPANET"

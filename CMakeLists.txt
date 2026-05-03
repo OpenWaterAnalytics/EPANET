@@ -96,8 +96,18 @@ ENDIF(MSVC AND "${CMAKE_VS_PLATFORM_NAME}" MATCHES "(Win32)")
 
 target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
-install(TARGETS epanet2 DESTINATION .)
-install(TARGETS runepanet DESTINATION .)
-install(FILES ./include/epanet2.h DESTINATION .)
-install(FILES ./include/epanet2_2.h DESTINATION .)
-install(FILES ./include/epanet2_enums.h DESTINATION .)
+# Install the library to 'lib'
+install(TARGETS epanet2
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+
+# Install the executable to 'bin'
+install(TARGETS runepanet DESTINATION bin)
+
+# Install the headers to 'include'
+install(FILES
+    include/epanet2.h
+    include/epanet2_2.h
+    include/epanet2_enums.h
+    DESTINATION include)
