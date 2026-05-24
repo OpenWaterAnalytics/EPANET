@@ -158,7 +158,8 @@ typedef enum {
   EN_MASSBALANCE     = 4, //!< Cumulative water quality mass balance ratio
   EN_DEFICIENTNODES  = 5, //!< Number of pressure deficient nodes
   EN_DEMANDREDUCTION = 6, //!< % demand reduction at pressure deficient nodes
-  EN_LEAKAGELOSS     = 7  //!< % flow lost to system leakage
+  EN_LEAKAGELOSS     = 7, //!< % flow lost to system leakage
+  EN_ERRORNODE       = 8  //!< Index of node causing ill-conditioned error
 } EN_AnalysisStatistic;
 
 /// Types of network objects

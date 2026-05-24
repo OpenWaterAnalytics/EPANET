@@ -42,7 +42,7 @@ BOOST_FIXTURE_TEST_CASE(test_rprt_anlysstats, FixtureOpenClose)
     BOOST_CHECK(check_cdd_double(test, ref, 3));
 
     double temp;
-    error = EN_getstatistic(ph, 8, &temp);
+    error = EN_getstatistic(ph, 9, &temp);
     BOOST_CHECK(error == 251);
 }
 
