@@ -204,6 +204,13 @@ int   runhyd(Project *pr, long *t)
     int   errcode;       // Error code
     double relerr;       // Solution accuracy
 
+    // Re-initialize leakage coeffs. if parameters have changed
+    if (hyd->LeakageChanged)
+    {
+        errcode = openleakage(pr);
+        if (errcode) return errcode;
+    }
+
     // Find new demands & control actions
     *t = time->Htime;
     demands(pr);

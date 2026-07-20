@@ -4336,12 +4336,22 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
 
     case EN_LEAK_AREA:  // leak area per 100 pipe lengths units
         if (value < 0.0) return 211;
-        Link[index].LeakArea = value * Ucf[LENGTH];
+        value = value * Ucf[LENGTH];
+        if (fabs(value - Link[index].LeakArea) > TINY)
+        {
+            Link[index].LeakArea = value;
+            if (hyd->OpenHflag) hyd->LeakageChanged = TRUE;
+        }
         break;
 
     case EN_LEAK_EXPAN:  // leak area expansion slope per 100 pipe length units
         if (value < 0.0) return 211;
-        Link[index].LeakExpan = value * Ucf[LENGTH];
+        value = value * Ucf[LENGTH];
+        if (fabs(value - Link[index].LeakExpan) > TINY)
+        {
+            Link[index].LeakExpan = value;
+            if (hyd->OpenHflag) hyd->LeakageChanged = TRUE;
+        }
         break;
         
     case EN_VALVE_TYPE:

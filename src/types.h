@@ -793,7 +793,8 @@ typedef struct {
     OpenHflag,             // Hydraulic system opened flag
     Haltflag,              // Flag to halt simulation
     DeficientNodes,        // Number of pressure deficient nodes
-    HasLeakage;            // TRUE if project has non-zero leakage parameters
+    HasLeakage,            // TRUE if project has non-zero leakage parameters
+    LeakageChanged;        // TRUE if leakage parameters changed
     
   Sleakage *Leakage;       // Array of node leakage parameters
 

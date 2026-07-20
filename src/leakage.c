@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/28/2026
+ Last Updated: 06/06/2026
  ******************************************************************************
 */
 /*
@@ -32,6 +32,7 @@ SUM(x) is the summation of x over all pipes connected to the node.
 */
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "types.h"
 #include "funcs.h"
@@ -64,12 +65,17 @@ int openleakage(Project *pr)
 **-------------------------------------------------------------
 */
 {
+    Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
 
     int err;
-    
-    // Check if project includes leakage
+
+    // Reclaim any existing leakage memory    
     closeleakage(pr);
+    hyd->LeakageChanged = FALSE;
+    memset(hyd->LeakageFlow,0,(net->Nnodes+1)*sizeof(double));
+
+    // Check if project includes leakage
     hyd->HasLeakage = check_for_leakage(pr);
     if (!hyd->HasLeakage) return 0;
     
