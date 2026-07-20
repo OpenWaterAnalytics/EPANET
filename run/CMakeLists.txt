@@ -1,5 +1,5 @@
 # EPANET COMMAND LINE EXECUTABLE
-cmake_minimum_required (VERSION 3.8.0)
+cmake_minimum_required (VERSION 3.10.0)
 
 
 # Sets for output directory for executables and libraries.
