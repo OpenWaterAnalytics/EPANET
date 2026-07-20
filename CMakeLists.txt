@@ -25,7 +25,7 @@
 #   CMake is available at https://cmake.org/download/
 #
 
-cmake_minimum_required (VERSION 3.10.0)
+cmake_minimum_required (VERSION 3.16.0)
 
 project(EPANET)
 
