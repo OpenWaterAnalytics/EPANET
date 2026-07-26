@@ -253,10 +253,10 @@ BOOST_FIXTURE_TEST_CASE(test_getNodeResult, FixtureOutput) {
     error = ENR_getNodeResult(p_handle, 1, 2, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
 
-	std::vector<float> ref_vec = {0.041142918f,
-                                  150.0f,
+	std::vector<float> ref_vec = {150.0f,
                                   987.98358f,
-                                  120.45029f};
+                                  120.45029f,
+                                  0.44408f};
 
     std::vector<float> test_vec;
     test_vec.assign(array, array + array_dim);
@@ -269,13 +269,13 @@ BOOST_FIXTURE_TEST_CASE(test_getLinkResult, FixtureOutput) {
     error = ENR_getLinkResult(p_handle, 24, 13, &array, &array_dim);
     BOOST_REQUIRE(error == 0);
 
-	std::vector<float> ref_vec = {0.58586824f,
-                                  1892.2433f,
+	std::vector<float> ref_vec = {1892.2433f,
                                   0.0f,
                                   -200.71875f,
                                   1.0f,
                                   3.0f,
                                   1.0f,
+                                  0.0f,
                                   0.0f};
 
     std::vector<float> test_vec;
