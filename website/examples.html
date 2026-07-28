@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examples - EPANET</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <i class="fas fa-water"></i>
+                    <span>EPANET</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="documentation.html">Documentation</a></li>
+                    <li><a href="examples.html" class="active">Examples</a></li>
+                    <li><a href="https://github.com/OpenWaterAnalytics/EPANET" target="_blank">GitHub</a></li>
+                </ul>
+                <div class="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="examples-hero">
+        <div class="container">
+            <h1>Examples</h1>
+            <p>Learn how to use EPANET with practical code examples and network models</p>
+        </div>
+    </section>
+
+    <!-- Examples Content -->
+    <section class="examples-content">
+        <div class="container">
+            <!-- Example 1: Basic Hydraulic Analysis -->
+            <div class="example-card">
+                <div class="example-header">
+                    <h3><i class="fas fa-tint"></i> Basic Hydraulic Analysis</h3>
+                </div>
+                <div class="example-body">
+                    <p>Run a complete hydraulic simulation with EPANET Toolkit:</p>
+                    <pre><code>#include <epanet2.h>
+#include <stdio.h>
+
+int main() {
+    EN_Project ph;
+    int errcode;
+    
+    // Create a new EPANET project
+    errcode = EN_createproject(&ph);
+    if (errcode != 0) {
+        printf("Error creating project: %d\n", errcode);
+        return 1;
+    }
+    
+    // Open an existing network file
+    errcode = EN_open(ph, "Net1.inp", "Net1.rpt", "Net1.out");
+    if (errcode != 0) {
+        printf("Error opening file: %d\n", errcode);
+        EN_deleteproject(ph);
+        return 1;
+    }
+    
+    // Run hydraulic analysis
+    errcode = EN_solveH(ph);
+    if (errcode != 0) {
+        printf("Error in hydraulic analysis: %d\n", errcode);
+    }
+    
+    // Generate report
+    EN_report(ph);
+    
+    // Clean up
+    EN_deleteproject(ph);
+    return 0;
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- Example 2: Water Quality Analysis -->
+            <div class="example-card">
+                <div class="example-header">
+                    <h3><i class="fas fa-flask"></i> Water Quality Analysis</h3>
+                </div>
+                <div class="example-body">
+                    <p>Run a water quality simulation with chlorine decay analysis:</p>
+                    <pre><code>#include <epanet2.h>
+
+int main() {
+    EN_Project ph;
+    
+    // Create and open project
+    EN_createproject(&ph);
+    EN_open(ph, "Net1.inp", "quality.rpt", "quality.out");
+    
+    // Run hydraulic analysis first
+    EN_solveH(ph);
+    
+    // Run water quality analysis
+    EN_solveQ(ph);
+    
+    // Generate report
+    EN_report(ph);
+    
+    // Clean up
+    EN_deleteproject(ph);
+    return 0;
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- Example 3: Step-by-Step Hydraulic Analysis -->
+            <div class="example-card">
+                <div class="example-header">
+                    <h3><i class="fas fa-cogs"></i> Step-by-Step Hydraulic Analysis</h3>
+                </div>
+                <div class="example-body">
+                    <p>Access intermediate hydraulic results during simulation:</p>
+                    <pre><code>#include <epanet2.h>
+
+int main() {
+    EN_Project ph;
+    long t, tstep;
+    double pressure, flow;
+    int nodeIndex, linkIndex;
+    
+    // Create and open project
+    EN_createproject(&ph);
+    EN_open(ph, "Net1.inp", "Net1.rpt", "");
+    
+    // Open hydraulic solver
+    EN_openH(ph);
+    EN_initH(ph, EN_SAVE);  // Save intermediate results
+    
+    // Run extended period simulation
+    do {
+        EN_runH(ph, &t);
+        
+        // Get node pressure at current time
+        nodeIndex = 1;  // Node 1
+        EN_getnodevalue(ph, nodeIndex, EN_PRESSURE, &pressure);
+        
+        // Get link flow at current time
+        linkIndex = 1;  // Link 1
+        EN_getlinkvalue(ph, linkIndex, EN_FLOW, &flow);
+        
+        printf("Time: %ld, Pressure: %.2f, Flow: %.2f\n", t, pressure, flow);
+        
+        EN_nextH(ph, &tstep);
+    } while (tstep > 0);
+    
+    EN_closeH(ph);
+    EN_deleteproject(ph);
+    return 0;
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- Example 4: Network Modification -->
+            <div class="example-card">
+                <div class="example-header">
+                    <h3><i class="fas fa-edit"></i> Network Modification</h3>
+                </div>
+                <div class="example-body">
+                    <p>Modify network elements programmatically:</p>
+                    <pre><code>#include <epanet2.h>
+
+int main() {
+    EN_Project ph;
+    int nodeIndex;
+    double newDemand;
+    
+    // Create and open project
+    EN_createproject(&ph);
+    EN_open(ph, "Net1.inp", "Net1.rpt", "");
+    
+    // Get node index by ID
+    EN_getnodeindex(ph, "11", &nodeIndex);
+    
+    // Modify node demand
+    newDemand = 200.0;  // GPM
+    EN_setnodevalue(ph, nodeIndex, EN_BASEDEMAND, newDemand);
+    
+    // Save modified network
+    EN_saveinpfile(ph, "modified_network.inp");
+    
+    // Run analysis on modified network
+    EN_solveH(ph);
+    EN_solveQ(ph);
+    EN_report(ph);
+    
+    EN_deleteproject(ph);
+    return 0;
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- Example 5: Building Network from Scratch -->
+            <div class="example-card">
+                <div class="example-header">
+                    <h3><i class="fas fa-plus-square"></i> Building Network from Scratch</h3>
+                </div>
+                <div class="example-body">
+                    <p>Create a water network programmatically without an input file:</p>
+                    <pre><code>#include <epanet2.h>
+
+int main() {
+    EN_Project ph;
+    int j1, j2, p1, t1, r1;
+    
+    // Create a new project
+    EN_createproject(&ph);
+    
+    // Initialize project with units and headloss formula
+    EN_init(ph, "report.rpt", "output.out", 
+            EN_GPM, EN_HW);  // GPM, Hazen-Williams
+    
+    // Add nodes
+    EN_addnode(ph, "J1", EN_JUNCTION, &j1);
+    EN_addnode(ph, "J2", EN_JUNCTION, &j2);
+    EN_addnode(ph, "Tank1", EN_TANK, &t1);
+    EN_addnode(ph, "Reservoir1", EN_RESERVOIR, &r1);
+    
+    // Set node properties
+    EN_setjuncdata(ph, j1, 100.0, 100.0, "");  // Elev, Demand
+    EN_setjuncdata(ph, j2, 95.0, 100.0, "");
+    
+    // Add links (pipes)
+    EN_addlink(ph, "P1", EN_PIPE, "J1", "J2", &p1);
+    
+    // Set link properties
+    EN_setlinkvalue(ph, p1, EN_LENGTH, 1000.0);
+    EN_setlinkvalue(ph, p1, EN_DIAMETER, 12.0);
+    EN_setlinkvalue(ph, p1, EN_ROUGHNESS, 0.1);
+    
+    // Run analysis
+    EN_solveH(ph);
+    EN_report(ph);
+    
+    EN_deleteproject(ph);
+    return 0;
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- Example Networks -->
+            <div class="example-card">
+                <div class="example-header">
+                    <h3><i class="fas fa-folder-open"></i> Example Networks</h3>
+                </div>
+                <div class="example-body">
+                    <p>Pre-built example networks are available in the <code>example-networks</code> directory:</p>
+                    <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                        <li><strong>Net1.inp</strong> - Simple network with chlorine decay analysis</li>
+                        <li><strong>Net2.inp</strong> - Network with multiple tanks and pumps</li>
+                        <li><strong>Net3.inp</strong> - Complex network for advanced analysis</li>
+                    </ul>
+                    <p>These networks demonstrate various features of EPANET including:</p>
+                    <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                        <li>Junctions, tanks, and reservoirs</li>
+                        <li>Pipes, pumps, and valves</li>
+                        <li>Demand patterns and time controls</li>
+                        <li>Water quality analysis</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>EPANET</h3>
+                    <p>Open Water Analytics Community</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="documentation.html">Documentation</a></li>
+                        <li><a href="examples.html">Examples</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki" target="_blank">Wiki</a></li>
+                        <li><a href="http://wateranalytics.org/EPANET/" target="_blank">API Docs</a></li>
+                        <li><a href="BUILDING.md" target="_blank">Building Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Open Water Analytics. Licensed under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
