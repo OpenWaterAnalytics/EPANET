@@ -12,6 +12,6 @@
 */
 
 #ifdef LUA_SCRIPTING
-#include "minilua.h"
 #define LUA_IMPL    1
+#include "minilua.h"
 #endif // LUA_SCRIPTING

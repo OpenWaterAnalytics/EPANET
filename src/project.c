@@ -21,6 +21,10 @@
 #include <windows.h>
 #endif
 
+#ifdef LUA_SCRIPTING
+#include "lua/luascript.h"
+#endif // LUA_SCRIPTING
+
 #include "types.h"
 #include "funcs.h"
 
@@ -75,6 +79,10 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
         fclose(pr->parser.InFile);
         pr->parser.InFile = NULL;
     }
+
+    #ifdef LUA_SCRIPTING
+    ERRCODE(luascript_open(pr));
+    #endif
     
     // Input file read with no fatal errors
     if (allowerrors) projectopened = (errcode == 0 || errcode == 200);
@@ -557,6 +565,13 @@ void freedata(Project *pr)
     {
         hashtable_free(pr->network.LinkHashTable);
     }
+
+    #ifdef LUA_SCRIPTING
+    if (pr->lua != NULL)
+    {
+        luascript_close(pr);
+    }
+    #endif // LUA_SCRIPTING
 }
 
 Pdemand finddemand(Pdemand d, int index)

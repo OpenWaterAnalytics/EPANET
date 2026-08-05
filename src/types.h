@@ -864,6 +864,11 @@ typedef struct {
 
 } Quality;
 
+#ifdef LUA_SCRIPTING
+// Opaque struct sefinition for the Lua engine
+typedef struct LuaEngine LuaEngine;
+#endif // LUA_SCRIPTING
+
 // Pipe Network Wrapper
 typedef struct {
 
@@ -923,6 +928,10 @@ typedef struct Project {
     TmpStatFname[MAXFNAME+1];    // Temporary statistic file name
 
   void (* viewprog) (char *);    // Pointer to progress viewing function
+
+  #ifdef LUA_SCRIPTING
+  LuaEngine *lua;                 // Opaque struct holding the Lua engine state
+  #endif // LUA_SCRIPTING
 
 } Project, *EN_Project;
 
