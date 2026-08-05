@@ -36,6 +36,7 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 option(BUILD_TESTS "Build tests (requires Boost)" OFF)
 #option(BUILD_PY_LIB "Build library for Python wrapper" OFF)
 option(BUILD_COVERAGE "Build library for coverage" OFF)
+option(LUA_SCRIPTING "Enable Lua scripting support" OFF)
 
 #IF (NOT BUILD_PY_LIB)
   add_subdirectory(run)
@@ -81,6 +82,13 @@ ENDIF (MSVC)
 # configure file groups
 file(GLOB EPANET_SOURCES RELATIVE ${PROJECT_SOURCE_DIR} src/*.c src/util/*.c)
 file(GLOB EPANET_LIB_ALL RELATIVE ${PROJECT_SOURCE_DIR} src/* src/util/*)
+
+IF (LUA_SCRIPTING)
+  add_definitions(-DLUA_SCRIPTING)
+  list(APPEND EPANET_SOURCES src/lua/lua.c)
+  list(APPEND EPANET_LIB_ALL src/lua/lua.c)
+ENDIF (LUA_SCRIPTING)
+
 source_group("Library" FILES ${EPANET_LIB_ALL})
 
 # the shared library
