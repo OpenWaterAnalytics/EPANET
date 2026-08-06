@@ -62,8 +62,15 @@ int luascript_open(Project *pr)
     return 0;
 }
 
-void luascript_run(Project *pr)
+int luascript_run(Project *pr)
 {
+    if (pr->lua == NULL || pr->lua->engine == NULL || pr->lua->script == NULL)
+    {
+        return 0;
+    }
+
+    luaL_dostring(pr->lua->engine, pr->lua->script);
+    return 0;
 }
 
 void luascript_close(Project *pr)

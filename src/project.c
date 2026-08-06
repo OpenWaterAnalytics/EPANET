@@ -370,6 +370,10 @@ void initpointers(Project *pr)
     pr->report.reportCallback = NULL;
 
     initrules(pr);
+
+    #ifdef LUA_SCRIPTING
+    pr->lua = NULL;
+    #endif
 }
 
 int allocdata(Project *pr)

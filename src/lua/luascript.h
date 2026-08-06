@@ -6,7 +6,7 @@
 
 int luascript_addScriptLine(Project *pr, char *line);
 int luascript_open(Project *pr);
-void luascript_run(Project *pr);
+int luascript_run(Project *pr);
 void luascript_close(Project *pr);
 
 #endif // LUA_SCRIPTING
