@@ -7,16 +7,48 @@
 
 struct LuaEngine {
     lua_State *engine;
+    char *script;
 };
 
-int luascript_setScript(Project *pr, char *code)
+int luascript_addScriptLine(Project *pr, char *line)
 {
+    size_t line_len = strlen(line);
+
+    if (pr->lua == NULL)
+    {
+        return 311;
+    }
+    
+    if (pr->lua->script == NULL)
+    {
+        pr->lua->script = malloc(line_len+1);
+        memcpy(pr->lua->script, line, line_len);
+        pr->lua->script[line_len] = '\0';
+    }
+    else
+    {
+        size_t prev_len = strlen(pr->lua->script);
+        char *buffer = realloc(pr->lua->script, prev_len + line_len + 1);
+        if (buffer == NULL)
+        {
+            return 101;
+        }
+
+        memcpy(buffer + prev_len, line, line_len);
+        buffer[line_len + prev_len] = '\0';
+        pr->lua->script = buffer;
+    }
+
     return 0;
 }
 
 int luascript_open(Project *pr)
 {
     pr->lua = calloc(1, sizeof(LuaEngine));
+    if (pr->lua == NULL)
+    {
+        return 101;
+    }
 
     pr->lua->engine = luaL_newstate();
     if (pr->lua == NULL)

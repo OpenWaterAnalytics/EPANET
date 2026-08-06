@@ -137,8 +137,11 @@ char *SectTxt[]         = {s_TITLE,     s_JUNCTIONS, s_RESERVOIRS,
                            s_REACTIONS, s_MIXING,    s_REPORT,
                            s_TIMES,     s_OPTIONS,   s_COORDS,
                            s_VERTICES,  s_LABELS,    s_BACKDROP,
-                           s_TAGS,      s_LEAKAGE,   s_END,
-                           NULL};
+                           s_TAGS,      s_LEAKAGE,   
+                           #ifdef LUA_SCRIPTING
+                           s_SCRIPT,
+                           #endif
+                           s_END,       NULL};
 
 char *Fldname[]         = {t_ELEV,      t_DEMAND,    t_HEAD,
                            t_PRESSURE,  t_QUALITY,   t_LENGTH,

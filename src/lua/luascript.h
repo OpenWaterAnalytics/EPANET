@@ -4,7 +4,7 @@
 
 #include "types.h"
 
-int luascript_setScript(Project *pr, char *code);
+int luascript_addScriptLine(Project *pr, char *line);
 int luascript_open(Project *pr);
 void luascript_run(Project *pr);
 void luascript_close(Project *pr);

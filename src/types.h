@@ -298,7 +298,11 @@ typedef enum {
   _VALVES, _CONTROLS, _RULES, _DEMANDS, _SOURCES, _EMITTERS,
   _PATTERNS, _CURVES, _QUALITY, _STATUS, _ROUGHNESS, _ENERGY,
   _REACTIONS, _MIXING, _REPORT, _TIMES, _OPTIONS,
-    _COORDS, _VERTICES, _LABELS, _BACKDROP, _TAGS, _LEAKAGE, _END
+    _COORDS, _VERTICES, _LABELS, _BACKDROP, _TAGS, _LEAKAGE, 
+    #ifdef LUA_SCRIPTING
+    _SCRIPT,
+    #endif
+    _END
 } SectionType;
 
 typedef enum {
@@ -865,7 +869,7 @@ typedef struct {
 } Quality;
 
 #ifdef LUA_SCRIPTING
-// Opaque struct sefinition for the Lua engine
+// Opaque struct definition for the Lua engine
 typedef struct LuaEngine LuaEngine;
 #endif // LUA_SCRIPTING
 

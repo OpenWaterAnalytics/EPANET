@@ -27,6 +27,10 @@ Last Updated: 05/11/2026
 #include "hash.h"
 #include "text.h"
 
+#ifdef LUA_SCRIPTING
+#include "lua/luascript.h"
+#endif
+
 extern char *SectTxt[]; // Input section keywords (see ENUMSTXT.H)
 
 // Exported functions
@@ -201,6 +205,14 @@ int readdata(Project *pr)
         parser->ErrTok = -1;
         if (parser->Ntokens == 0)
         {
+            #ifdef LUA_SCRIPTING
+            if (sect == _SCRIPT)
+            {
+                newline(pr, sect, line);
+                continue;
+            }
+            #endif
+
             // Store full line comment for Patterns and Curves
             if (sect == _PATTERNS || sect == _CURVES)
             {
@@ -329,6 +341,9 @@ int newline(Project *pr, int sect, char *line)
         case _TAGS:        return (tagdata(pr));
         case _COORDS:      return (coordata(pr));
         case _VERTICES:    return (vertexdata(pr));
+        #ifdef LUA_SCRIPTING
+        case _SCRIPT:      return (luascript_addScriptLine(pr, line));
+        #endif
 
         // Data in these sections are not used for any computations
         case _LABELS:

@@ -215,6 +215,9 @@
 #define   s_SOURCES     "[SOURCES]"
 #define   s_EMITTERS    "[EMITTERS]"
 #define   s_LEAKAGE     "[LEAKAGE]"
+#ifdef LUA_SCRIPTING
+#define   s_SCRIPT      "[SCRIPT]"
+#endif
 #define   s_PATTERNS    "[PATTERNS]"
 #define   s_CURVES      "[CURVES]"
 #define   s_QUALITY     "[QUALITY]"
