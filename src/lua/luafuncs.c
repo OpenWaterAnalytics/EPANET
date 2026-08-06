@@ -35,19 +35,76 @@ typedef struct
     int (*set)(EN_Project, int, int, double);
 } LuaApiFunc;
 
+// Writability follows what EN_setnodevalue / EN_setlinkvalue accept
 static const PropDesc NodeProps[] = {
-    { "pressure", EN_PRESSURE, READ_ONLY },
-    { "demand",   EN_DEMAND,   READ_ONLY },
-    { "head",     EN_HEAD,     READ_ONLY },
-    { NULL,       0,           READ_ONLY }
+    { "elevation",       EN_ELEVATION,      WRITABLE  },
+    { "base_demand",     EN_BASEDEMAND,     WRITABLE  },
+    { "pattern",         EN_PATTERN,        WRITABLE  },
+    { "emitter",         EN_EMITTER,        WRITABLE  },
+    { "init_quality",    EN_INITQUAL,       WRITABLE  },
+    { "source_quality",  EN_SOURCEQUAL,     WRITABLE  },
+    { "source_pattern",  EN_SOURCEPAT,      WRITABLE  },
+    { "source_type",     EN_SOURCETYPE,     WRITABLE  },
+    { "tank_level",      EN_TANKLEVEL,      WRITABLE  },
+    { "demand",          EN_DEMAND,         READ_ONLY },
+    { "head",            EN_HEAD,           READ_ONLY },
+    { "pressure",        EN_PRESSURE,       READ_ONLY },
+    { "quality",         EN_QUALITY,        READ_ONLY },
+    { "source_mass",     EN_SOURCEMASS,     READ_ONLY },
+    { "init_volume",     EN_INITVOLUME,     READ_ONLY },
+    { "mix_model",       EN_MIXMODEL,       WRITABLE  },
+    { "mix_zone_volume", EN_MIXZONEVOL,     READ_ONLY },
+    { "tank_diameter",   EN_TANKDIAM,       WRITABLE  },
+    { "min_volume",      EN_MINVOLUME,      WRITABLE  },
+    { "volume_curve",    EN_VOLCURVE,       WRITABLE  },
+    { "min_level",       EN_MINLEVEL,       WRITABLE  },
+    { "max_level",       EN_MAXLEVEL,       WRITABLE  },
+    { "mix_fraction",    EN_MIXFRACTION,    WRITABLE  },
+    { "bulk_coeff",      EN_TANK_KBULK,     WRITABLE  },
+    { "tank_volume",     EN_TANKVOLUME,     READ_ONLY },
+    { "max_volume",      EN_MAXVOLUME,      READ_ONLY },
+    { "can_overflow",    EN_CANOVERFLOW,    WRITABLE  },
+    { "demand_deficit",  EN_DEMANDDEFICIT,  READ_ONLY },
+    { "in_control",      EN_NODE_INCONTROL, READ_ONLY },
+    { "emitter_flow",    EN_EMITTERFLOW,    READ_ONLY },
+    { "leakage_flow",    EN_LEAKAGEFLOW,    READ_ONLY },
+    { "demand_flow",     EN_DEMANDFLOW,     READ_ONLY },
+    { "full_demand",     EN_FULLDEMAND,     READ_ONLY },
+    { NULL,              0,                 READ_ONLY }
 };
 
 static const PropDesc LinkProps[] = {
-    { "flow",     EN_FLOW,     READ_ONLY },
-    { "velocity", EN_VELOCITY, READ_ONLY },
-    { "status",   EN_STATUS,   WRITABLE  },
-    { "setting",  EN_SETTING,  WRITABLE  },
-    { NULL,       0,           READ_ONLY }
+    { "diameter",        EN_DIAMETER,       WRITABLE  },
+    { "length",          EN_LENGTH,         WRITABLE  },
+    { "roughness",       EN_ROUGHNESS,      WRITABLE  },
+    { "minor_loss",      EN_MINORLOSS,      WRITABLE  },
+    { "init_status",     EN_INITSTATUS,     WRITABLE  },
+    { "init_setting",    EN_INITSETTING,    WRITABLE  },
+    { "bulk_coeff",      EN_KBULK,          WRITABLE  },
+    { "wall_coeff",      EN_KWALL,          WRITABLE  },
+    { "flow",            EN_FLOW,           READ_ONLY },
+    { "velocity",        EN_VELOCITY,       READ_ONLY },
+    { "headloss",        EN_HEADLOSS,       READ_ONLY },
+    { "status",          EN_STATUS,         WRITABLE  },
+    { "setting",         EN_SETTING,        WRITABLE  },
+    { "energy",          EN_ENERGY,         READ_ONLY },
+    { "quality",         EN_LINKQUAL,       READ_ONLY },
+    { "pattern",         EN_LINKPATTERN,    WRITABLE  },
+    { "pump_state",      EN_PUMP_STATE,     READ_ONLY },
+    { "pump_efficiency", EN_PUMP_EFFIC,     READ_ONLY },
+    { "pump_power",      EN_PUMP_POWER,     WRITABLE  },
+    { "pump_hcurve",     EN_PUMP_HCURVE,    WRITABLE  },
+    { "pump_ecurve",     EN_PUMP_ECURVE,    WRITABLE  },
+    { "pump_ecost",      EN_PUMP_ECOST,     WRITABLE  },
+    { "pump_epattern",   EN_PUMP_EPAT,      WRITABLE  },
+    { "in_control",      EN_LINK_INCONTROL, READ_ONLY },
+    { "gpv_curve",       EN_GPV_CURVE,      WRITABLE  },
+    { "pcv_curve",       EN_PCV_CURVE,      WRITABLE  },
+    { "leak_area",       EN_LEAK_AREA,      WRITABLE  },
+    { "leak_expansion",  EN_LEAK_EXPAN,     WRITABLE  },
+    { "leakage",         EN_LINK_LEAKAGE,   READ_ONLY },
+    { "valve_type",      EN_VALVE_TYPE,     WRITABLE  },
+    { NULL,              0,                 READ_ONLY }
 };
 
 static const LuaApiFunc LuaApi[] = {
@@ -188,6 +245,5 @@ void luafuncs_register(lua_State *lua, Project *pr)
     {
         registerFunction(lua, &LuaApi[i], pr);
     }
-    return 0;
 }
 #endif // LUA_SCRIPTING
