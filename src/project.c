@@ -70,6 +70,10 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
     ERRCODE(netsize(pr));
     ERRCODE(allocdata(pr));
 
+    #ifdef LUA_SCRIPTING
+    ERRCODE(luascript_open(pr));
+    #endif
+
     // Read input data
     ERRCODE(getdata(pr));
 
@@ -80,10 +84,6 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
         pr->parser.InFile = NULL;
     }
 
-    #ifdef LUA_SCRIPTING
-    ERRCODE(luascript_open(pr));
-    #endif
-    
     // Input file read with no fatal errors
     if (allowerrors) projectopened = (errcode == 0 || errcode == 200);
     else projectopened = (errcode == 0);
