@@ -23,6 +23,9 @@ static const char *WRITE_TEST_INP = "./lua-api-write.inp";
 static const char *WRITE_TEST_RPT = "./lua-api-write.rpt";
 static const char *READ_TEST_INP = "./lua-api-read.inp";
 static const char *READ_TEST_RPT = "./lua-api-read.rpt";
+static const char *RESOLVE_TEST_INP = "./lua-api-resolve.inp";
+static const char *RESOLVE_TEST_RPT = "./lua-api-resolve.rpt";
+static const char *RESOLVE_REFERENCE_RPT = "./lua-api-resolve-ref.rpt";
 
 static const std::vector<PropertyWrite> WRITABLE_PROPERTY_WRITES = {
     { NODE, "10",   "elevation",      EN_ELEVATION,    712.5  },
@@ -247,6 +250,47 @@ BOOST_AUTO_TEST_CASE(script_reads_all_properties_into_report)
             std::abs(printed - line.value) <= 0.001 * std::abs(line.value),
             line.label << printed << " but the API returns " << line.value);
     }
+}
+
+// A script write invalidates the solution the solver just converged on,
+// so the solver must re-converge before reporting results.
+//
+// Halving the roughness of main pipe 10 is used because, unlike a valve
+// change, it does not trip the solver's own status checks: only the change 
+// flag raised by the script bindings can trigger the re-solve.
+//
+// The solver's periodic status checks are disabled because they also run
+// the script mid-solve, which would let the change slip in before convergence 
+// and mask a broken change flag. MAXCHECK 1 disables them: the parser
+// rejects 0, and the first check would come at iteration CHECKFREQ (2),
+// already past it.
+static const char *PERIODIC_STATUS_CHECKS_OFF =
+    "[OPTIONS]\n"
+    " MAXCHECK  1\n"
+    "\n";
+
+BOOST_AUTO_TEST_CASE(script_writes_take_effect_in_the_same_timestep)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, RESOLVE_TEST_INP,
+                                     "link(\"10\").roughness = 50\n",
+                                     PERIODIC_STATUS_CHECKS_OFF));
+
+    ProjectUnderTest scripted;
+    BOOST_REQUIRE(scripted.open(RESOLVE_TEST_INP, RESOLVE_TEST_RPT) == 0);
+    BOOST_REQUIRE(scripted.solveOneHydraulicStep() == 0);
+    double scriptedPressure;
+    BOOST_REQUIRE(scripted.readValue(NODE, "11", EN_PRESSURE,
+                                     &scriptedPressure) == 0);
+
+    ProjectUnderTest reference;
+    BOOST_REQUIRE(reference.open(BASE_INP, RESOLVE_REFERENCE_RPT) == 0);
+    BOOST_REQUIRE(reference.writeValue(LINK, "10", EN_ROUGHNESS, 50) == 0);
+    BOOST_REQUIRE(reference.solveOneHydraulicStep() == 0);
+    double referencePressure;
+    BOOST_REQUIRE(reference.readValue(NODE, "11", EN_PRESSURE,
+                                      &referencePressure) == 0);
+
+    BOOST_CHECK_CLOSE(scriptedPressure, referencePressure, 0.5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

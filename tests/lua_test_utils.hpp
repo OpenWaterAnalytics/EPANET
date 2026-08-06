@@ -55,16 +55,17 @@ inline std::string readWholeFile(const char *path)
     return contents.str();
 }
 
-// Builds an INP file by inserting a [SCRIPT] section right before the
-// [END] of a base INP file
+// Builds an INP file by inserting a [SCRIPT] section, and optionally
+// other extra sections, right before the [END] of a base INP file
 inline bool buildInpWithScript(const char *basePath, const char *outPath,
-                               const std::string &script)
+                               const std::string &script,
+                               const std::string &extraSections = "")
 {
     std::string inp = readWholeFile(basePath);
     size_t endSection = inp.rfind("[END]");
     if (inp.empty() || endSection == std::string::npos) return false;
 
-    inp.insert(endSection, "[SCRIPT]\n" + script + "\n");
+    inp.insert(endSection, extraSections + "[SCRIPT]\n" + script + "\n");
 
     std::ofstream out(outPath);
     out << inp;
@@ -176,6 +177,19 @@ struct ProjectUnderTest
         }
         EN_getlinkindex(ph, (char *)elementId, &index);
         return EN_getlinkvalue(ph, index, enProperty, value);
+    }
+
+    int writeValue(ElementKind kind, const char *elementId, int enProperty,
+                   double value)
+    {
+        int index;
+        if (kind == NODE)
+        {
+            EN_getnodeindex(ph, (char *)elementId, &index);
+            return EN_setnodevalue(ph, index, enProperty, value);
+        }
+        EN_getlinkindex(ph, (char *)elementId, &index);
+        return EN_setlinkvalue(ph, index, enProperty, value);
     }
 
     // Closing flushes the report file so it can be read back

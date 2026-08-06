@@ -1,6 +1,7 @@
 #ifdef LUA_SCRIPTING
 #include <string.h>
 #include "luafuncs.h"
+#include "luascript.h"
 #include "funcs.h"
 #include "epanet2_2.h"
 
@@ -209,9 +210,20 @@ static int lua_elem_newindex(lua_State *lua)
     if (p == NULL) return luaL_error(lua, "unknown %s property: %s", d->global, key);
     if (!p->writable) return luaL_error(lua, "%s property is read only: %s", d->global, key);
 
+    double before, after;
+    int hadValueBefore = (d->get(pr, e->index, p->code, &before) == 0);
+
     int err = d->set(pr, e->index, p->code, value);
     if (err) return luaL_error(lua, "error %d writing %s.%s", err, d->global, key);
 
+    // Flag the change so the hydraulic solver re-converges, but only if
+    // the stored value actually changed: scripts re-run on every solver
+    // convergence, so no-op rewrites must not keep it iterating forever
+    if (!hadValueBefore || d->get(pr, e->index, p->code, &after) != 0
+        || after != before)
+    {
+        luascript_setChanged(pr);
+    }
     return 0;
 }
 

@@ -10,7 +10,13 @@
 struct LuaEngine {
     lua_State *engine;
     char *script;
+    int changed;
 };
+
+void luascript_setChanged(Project *pr)
+{
+    if (pr->lua != NULL) pr->lua->changed = TRUE;
+}
 
 int luascript_addScriptLine(Project *pr, char *line)
 {
@@ -71,6 +77,7 @@ int luascript_run(Project *pr)
         return 0;
     }
 
+    pr->lua->changed = FALSE;
     if (luaL_dostring(pr->lua->engine, pr->lua->script) != LUA_OK)
     {
         char msg[MAXMSG + 1];
@@ -79,7 +86,7 @@ int luascript_run(Project *pr)
         writeline(pr, msg);
         lua_pop(pr->lua->engine, 1);
     }
-    return 0;
+    return pr->lua->changed;
 }
 
 void luascript_close(Project *pr)
