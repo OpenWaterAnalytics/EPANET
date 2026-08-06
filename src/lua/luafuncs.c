@@ -103,7 +103,7 @@ static const PropDesc LinkProps[] = {
     { "leak_area",       EN_LEAK_AREA,      WRITABLE  },
     { "leak_expansion",  EN_LEAK_EXPAN,     WRITABLE  },
     { "leakage",         EN_LINK_LEAKAGE,   READ_ONLY },
-    { "valve_type",      EN_VALVE_TYPE,     WRITABLE  },
+    { "valve_type",      EN_VALVE_TYPE,     READ_ONLY },
     { NULL,              0,                 READ_ONLY }
 };
 
