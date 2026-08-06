@@ -58,6 +58,12 @@ IF (LUA_SCRIPTING)
     add_test(NAME test_lua
         COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_lua
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
+
+    add_executable(test_lua_api test_lua_api.cpp)
+    target_link_libraries(test_lua_api ${Boost_LIBRARIES} epanet2)
+    add_test(NAME test_lua_api
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_lua_api
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
 ENDIF (LUA_SCRIPTING)
 
 
