@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include "minilua.h"
 #include "luascript.h"
+#include "luafuncs.h"
+#include "funcs.h"
 
 struct LuaEngine {
     lua_State *engine;
@@ -51,13 +53,13 @@ int luascript_open(Project *pr)
     }
 
     pr->lua->engine = luaL_newstate();
-    if (pr->lua == NULL)
+    if (pr->lua->engine == NULL)
     {
         return 310;
     }
-    
+
     luaL_openlibs(pr->lua->engine);
-    lua_pushlightuserdata(pr->lua->engine, pr);
+    luafuncs_register(pr->lua->engine, pr);
 
     return 0;
 }
@@ -69,7 +71,14 @@ int luascript_run(Project *pr)
         return 0;
     }
 
-    luaL_dostring(pr->lua->engine, pr->lua->script);
+    if (luaL_dostring(pr->lua->engine, pr->lua->script) != LUA_OK)
+    {
+        char msg[MAXMSG + 1];
+        snprintf(msg, MAXMSG, "Lua script error: %s",
+                 lua_tostring(pr->lua->engine, -1));
+        writeline(pr, msg);
+        lua_pop(pr->lua->engine, 1);
+    }
     return 0;
 }
 

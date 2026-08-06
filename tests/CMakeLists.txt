@@ -52,6 +52,15 @@ add_test(NAME test_toolkit
 
 
 
+IF (LUA_SCRIPTING)
+    add_executable(test_lua test_lua.cpp)
+    target_link_libraries(test_lua ${Boost_LIBRARIES} epanet2)
+    add_test(NAME test_lua
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_lua
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
+ENDIF (LUA_SCRIPTING)
+
+
 add_executable(test_reent test_reent.cpp)
 
 IF(MSVC)
