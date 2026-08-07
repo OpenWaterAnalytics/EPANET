@@ -22,7 +22,9 @@ License:      see LICENSE
 #include "epanet2_2.h"
 
 
-enum ElementKind { NODE, LINK };
+// OPTIONS is the project's analysis options, which are reached through
+// options() rather than by id, so its elementId is unused
+enum ElementKind { NODE, LINK, OPTIONS };
 
 struct PropertyWrite
 {
@@ -44,6 +46,7 @@ struct ElementToDump
     ElementKind kind;
     const char *elementId;
     const char *reportTag;
+    const std::vector<LuaProperty> *properties;
 };
 
 
@@ -72,11 +75,19 @@ inline bool buildInpWithScript(const char *basePath, const char *outPath,
     return out.good();
 }
 
+// The Lua expression that yields an element: node("11"), link("9") or
+// options()
+inline std::string luaElementRef(ElementKind kind, const char *elementId)
+{
+    if (kind == OPTIONS) return "options()";
+    return std::string(kind == NODE ? "node" : "link")
+         + "(\"" + elementId + "\")";
+}
+
 inline std::string luaAssignment(const PropertyWrite &write)
 {
     std::ostringstream statement;
-    statement << (write.kind == NODE ? "node" : "link")
-              << "(\"" << write.elementId << "\")."
+    statement << luaElementRef(write.kind, write.elementId) << "."
               << write.luaProperty << " = " << write.value << "\n";
     return statement.str();
 }
@@ -95,13 +106,9 @@ inline std::string luaStringList(const std::vector<LuaProperty> &properties)
 // Builds a script that prints one "tag.property=value" line per readable
 // property of each element; properties whose read raises an error are
 // skipped
-inline std::string luaDumpScript(const std::vector<LuaProperty> &nodeProperties,
-                                 const std::vector<LuaProperty> &linkProperties,
-                                 const std::vector<ElementToDump> &elements)
+inline std::string luaDumpScript(const std::vector<ElementToDump> &elements)
 {
     std::string script =
-        "local nodeprops = " + luaStringList(nodeProperties) + "\n"
-        "local linkprops = " + luaStringList(linkProperties) + "\n"
         "local function dump(tag, element, propertyNames)\n"
         "    for _, name in ipairs(propertyNames) do\n"
         "        local ok, value = pcall(function() return element[name] end)\n"
@@ -112,9 +119,8 @@ inline std::string luaDumpScript(const std::vector<LuaProperty> &nodeProperties,
     for (const ElementToDump &element : elements)
     {
         script += std::string("dump(\"") + element.reportTag + "\", "
-                + (element.kind == NODE ? "node" : "link")
-                + "(\"" + element.elementId + "\"), "
-                + (element.kind == NODE ? "nodeprops" : "linkprops") + ")\n";
+                + luaElementRef(element.kind, element.elementId) + ", "
+                + luaStringList(*element.properties) + ")\n";
     }
     return script;
 }
@@ -170,6 +176,7 @@ struct ProjectUnderTest
                   double *value)
     {
         int index;
+        if (kind == OPTIONS) return EN_getoption(ph, enProperty, value);
         if (kind == NODE)
         {
             EN_getnodeindex(ph, (char *)elementId, &index);
@@ -183,6 +190,7 @@ struct ProjectUnderTest
                    double value)
     {
         int index;
+        if (kind == OPTIONS) return EN_setoption(ph, enProperty, value);
         if (kind == NODE)
         {
             EN_getnodeindex(ph, (char *)elementId, &index);

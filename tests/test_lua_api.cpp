@@ -26,6 +26,10 @@ static const char *READ_TEST_RPT = "./lua-api-read.rpt";
 static const char *RESOLVE_TEST_INP = "./lua-api-resolve.inp";
 static const char *RESOLVE_TEST_RPT = "./lua-api-resolve.rpt";
 static const char *RESOLVE_REFERENCE_RPT = "./lua-api-resolve-ref.rpt";
+static const char *READ_ONLY_OPTION_INP = "./lua-api-readonly-option.inp";
+static const char *READ_ONLY_OPTION_RPT = "./lua-api-readonly-option.rpt";
+static const char *UNKNOWN_OPTION_INP = "./lua-api-unknown-option.inp";
+static const char *UNKNOWN_OPTION_RPT = "./lua-api-unknown-option.rpt";
 
 static const std::vector<PropertyWrite> WRITABLE_PROPERTY_WRITES = {
     { NODE, "10",   "elevation",      EN_ELEVATION,    712.5  },
@@ -66,6 +70,35 @@ static const std::vector<PropertyWrite> WRITABLE_PROPERTY_WRITES = {
     { LINK, "P9B",  "pump_power",     EN_PUMP_POWER,   50     },
     { LINK, "VGPV", "gpv_curve",      EN_GPV_CURVE,    5      },
     { LINK, "VPCV", "pcv_curve",      EN_PCV_CURVE,    6      },
+};
+
+static const std::vector<PropertyWrite> WRITABLE_OPTION_WRITES = {
+    { OPTIONS, "", "trials",               EN_TRIALS,        60           },
+    { OPTIONS, "", "accuracy",             EN_ACCURACY,      0.005        },
+    { OPTIONS, "", "tolerance",            EN_TOLERANCE,     0.02         },
+    { OPTIONS, "", "emitter_exponent",     EN_EMITEXPON,     0.6          },
+    { OPTIONS, "", "demand_multiplier",    EN_DEMANDMULT,    1.5          },
+    { OPTIONS, "", "head_error",           EN_HEADERROR,     0.5          },
+    { OPTIONS, "", "flow_change",          EN_FLOWCHANGE,    0.75         },
+    { OPTIONS, "", "global_efficiency",    EN_GLOBALEFFIC,   80           },
+    { OPTIONS, "", "global_price",         EN_GLOBALPRICE,   0.15         },
+    { OPTIONS, "", "global_pattern",       EN_GLOBALPATTERN, 2            },
+    { OPTIONS, "", "demand_charge",        EN_DEMANDCHARGE,  12.5         },
+    { OPTIONS, "", "specific_gravity",     EN_SP_GRAVITY,    1.2          },
+    { OPTIONS, "", "specific_viscosity",   EN_SP_VISCOS,     1.1          },
+    { OPTIONS, "", "unbalanced",           EN_UNBALANCED,    15           },
+    { OPTIONS, "", "check_frequency",      EN_CHECKFREQ,     3            },
+    { OPTIONS, "", "max_check",            EN_MAXCHECK,      12           },
+    { OPTIONS, "", "damp_limit",           EN_DAMPLIMIT,     0.05         },
+    { OPTIONS, "", "specific_diffusivity", EN_SP_DIFFUS,     1.3          },
+    { OPTIONS, "", "bulk_order",           EN_BULKORDER,     0.5          },
+    { OPTIONS, "", "wall_order",           EN_WALLORDER,     0            },
+    { OPTIONS, "", "tank_order",           EN_TANKORDER,     0.5          },
+    { OPTIONS, "", "concentration_limit",  EN_CONCENLIMIT,   4            },
+    { OPTIONS, "", "demand_pattern",       EN_DEMANDPATTERN, 2            },
+    { OPTIONS, "", "emitter_backflow",     EN_EMITBACKFLOW,  0            },
+    { OPTIONS, "", "pressure_units",       EN_PRESS_UNITS,   EN_METERS    },
+    { OPTIONS, "", "status_report",        EN_STATUS_REPORT, EN_NO_REPORT },
 };
 
 static const std::vector<LuaProperty> NODE_PROPERTIES = {
@@ -137,18 +170,61 @@ static const std::vector<LuaProperty> LINK_PROPERTIES = {
     { "valve_type",      EN_VALVE_TYPE     },
 };
 
-static const std::vector<ElementToDump> DUMPED_ELEMENTS = {
-    { NODE, "11",   "n11"   },
-    { NODE, "2",    "n2"    },
-    { LINK, "110",  "l110"  },
-    { LINK, "9",    "l9"    },
-    { LINK, "VGPV", "lVGPV" },
+static const std::vector<LuaProperty> OPTION_PROPERTIES = {
+    { "trials",               EN_TRIALS         },
+    { "accuracy",             EN_ACCURACY       },
+    { "tolerance",            EN_TOLERANCE      },
+    { "emitter_exponent",     EN_EMITEXPON      },
+    { "demand_multiplier",    EN_DEMANDMULT     },
+    { "head_error",           EN_HEADERROR      },
+    { "flow_change",          EN_FLOWCHANGE     },
+    { "headloss_form",        EN_HEADLOSSFORM   },
+    { "global_efficiency",    EN_GLOBALEFFIC    },
+    { "global_price",         EN_GLOBALPRICE    },
+    { "global_pattern",       EN_GLOBALPATTERN  },
+    { "demand_charge",        EN_DEMANDCHARGE   },
+    { "specific_gravity",     EN_SP_GRAVITY     },
+    { "specific_viscosity",   EN_SP_VISCOS      },
+    { "unbalanced",           EN_UNBALANCED     },
+    { "check_frequency",      EN_CHECKFREQ      },
+    { "max_check",            EN_MAXCHECK       },
+    { "damp_limit",           EN_DAMPLIMIT      },
+    { "specific_diffusivity", EN_SP_DIFFUS      },
+    { "bulk_order",           EN_BULKORDER      },
+    { "wall_order",           EN_WALLORDER      },
+    { "tank_order",           EN_TANKORDER      },
+    { "concentration_limit",  EN_CONCENLIMIT    },
+    { "demand_pattern",       EN_DEMANDPATTERN  },
+    { "emitter_backflow",     EN_EMITBACKFLOW   },
+    { "pressure_units",       EN_PRESS_UNITS    },
+    { "status_report",        EN_STATUS_REPORT  },
 };
+
+static const std::vector<ElementToDump> DUMPED_ELEMENTS = {
+    { NODE,    "11",   "n11",   &NODE_PROPERTIES   },
+    { NODE,    "2",    "n2",    &NODE_PROPERTIES   },
+    { LINK,    "110",  "l110",  &LINK_PROPERTIES   },
+    { LINK,    "9",    "l9",    &LINK_PROPERTIES   },
+    { LINK,    "VGPV", "lVGPV", &LINK_PROPERTIES   },
+    { OPTIONS, "",     "opt",   &OPTION_PROPERTIES },
+};
+
+static std::vector<PropertyWrite> everyWritableProperty()
+{
+    std::vector<PropertyWrite> writes = WRITABLE_OPTION_WRITES;
+    writes.insert(
+        writes.end(),
+        WRITABLE_PROPERTY_WRITES.begin(),
+        WRITABLE_PROPERTY_WRITES.end()
+    );
+    
+    return writes;
+}
 
 static std::string scriptWritingEveryWritableProperty()
 {
     std::string script;
-    for (const PropertyWrite &write : WRITABLE_PROPERTY_WRITES)
+    for (const PropertyWrite &write : everyWritableProperty())
     {
         script += luaAssignment(write);
     }
@@ -172,7 +248,7 @@ BOOST_AUTO_TEST_CASE(script_writes_all_writable_properties)
     BOOST_REQUIRE(project.open(WRITE_TEST_INP, WRITE_TEST_RPT) == 0);
     BOOST_REQUIRE(project.solveOneHydraulicStep() == 0);
 
-    for (const PropertyWrite &write : WRITABLE_PROPERTY_WRITES)
+    for (const PropertyWrite &write : everyWritableProperty())
     {
         double value;
         int error = project.readValue(write.kind, write.elementId,
@@ -192,7 +268,7 @@ BOOST_AUTO_TEST_CASE(script_writes_all_writable_properties)
 BOOST_AUTO_TEST_CASE(script_reads_all_properties_into_report)
 {
     BOOST_REQUIRE(buildInpWithScript(BASE_INP, READ_TEST_INP,
-        luaDumpScript(NODE_PROPERTIES, LINK_PROPERTIES, DUMPED_ELEMENTS)));
+                                     luaDumpScript(DUMPED_ELEMENTS)));
 
     ProjectUnderTest project;
     BOOST_REQUIRE(project.open(READ_TEST_INP, READ_TEST_RPT) == 0);
@@ -209,10 +285,7 @@ BOOST_AUTO_TEST_CASE(script_reads_all_properties_into_report)
 
     for (const ElementToDump &element : DUMPED_ELEMENTS)
     {
-        const std::vector<LuaProperty> &properties =
-            element.kind == NODE ? NODE_PROPERTIES : LINK_PROPERTIES;
-
-        for (const LuaProperty &property : properties)
+        for (const LuaProperty &property : *element.properties)
         {
             ExpectedLine line;
             line.label = std::string(element.reportTag) + "."
@@ -250,6 +323,40 @@ BOOST_AUTO_TEST_CASE(script_reads_all_properties_into_report)
             std::abs(printed - line.value) <= 0.001 * std::abs(line.value),
             line.label << printed << " but the API returns " << line.value);
     }
+}
+
+BOOST_AUTO_TEST_CASE(script_cannot_write_a_read_only_option)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, READ_ONLY_OPTION_INP,
+                                     "options().headloss_form = 1\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE(project.open(READ_ONLY_OPTION_INP, READ_ONLY_OPTION_RPT) == 0);
+    BOOST_REQUIRE(project.solveOneHydraulicStep() == 0);
+
+    double headlossForm;
+    BOOST_CHECK(project.readValue(OPTIONS, "", EN_HEADLOSSFORM,
+                                  &headlossForm) == 0);
+    BOOST_CHECK_EQUAL(headlossForm, EN_HW);
+
+    project.close();
+
+    BOOST_CHECK(readWholeFile(READ_ONLY_OPTION_RPT).find(
+        "options property is read only: headloss_form") != std::string::npos);
+}
+
+BOOST_AUTO_TEST_CASE(script_cannot_use_an_unknown_option)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, UNKNOWN_OPTION_INP,
+                                     "options().not_an_option = 1\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE(project.open(UNKNOWN_OPTION_INP, UNKNOWN_OPTION_RPT) == 0);
+    BOOST_REQUIRE(project.solveOneHydraulicStep() == 0);
+    project.close();
+
+    BOOST_CHECK(readWholeFile(UNKNOWN_OPTION_RPT).find(
+        "unknown options property: not_an_option") != std::string::npos);
 }
 
 // A script write invalidates the solution the solver just converged on,

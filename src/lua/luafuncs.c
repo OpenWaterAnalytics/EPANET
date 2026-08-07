@@ -9,14 +9,14 @@
 #define WRITABLE  TRUE
 #define NUM_API_FUNCS (sizeof(LuaApi) / sizeof(LuaApi[0]))
 
-// A network element exposed to Lua as userdata; the metatable
-// attached to it determines whether it is a node or a link.
+// An object exposed to Lua as userdata; the metatable attached to it
+// determines whether it is a node, a link or the project's options.
 typedef struct
 {
     int index;
 } LuaElem;
 
-// A named element property mapped to its EN_ property code
+// A named property mapped to its EN_ property code
 typedef struct
 {
     const char *name;
@@ -24,8 +24,10 @@ typedef struct
     int writable;
 } PropDesc;
 
-// An element type: its Lua-facing names, its property table and the
-// EPANET functions used to look it up and read/write its properties
+// An object type: its Lua-facing names, its property table and the
+// EPANET functions used to look it up and read/write its properties.
+// A NULL find marks a project-wide object, which takes no id and whose
+// index is unused
 typedef struct
 {
     const char *metatable;
@@ -108,9 +110,51 @@ static const PropDesc LinkProps[] = {
     { NULL,              0,                 READ_ONLY }
 };
 
+static const PropDesc OptionProps[] = {
+    { "trials",               EN_TRIALS,        WRITABLE  },
+    { "accuracy",             EN_ACCURACY,      WRITABLE  },
+    { "tolerance",            EN_TOLERANCE,     WRITABLE  },
+    { "emitter_exponent",     EN_EMITEXPON,     WRITABLE  },
+    { "demand_multiplier",    EN_DEMANDMULT,    WRITABLE  },
+    { "head_error",           EN_HEADERROR,     WRITABLE  },
+    { "flow_change",          EN_FLOWCHANGE,    WRITABLE  },
+    { "headloss_form",        EN_HEADLOSSFORM,  READ_ONLY },
+    { "global_efficiency",    EN_GLOBALEFFIC,   WRITABLE  },
+    { "global_price",         EN_GLOBALPRICE,   WRITABLE  },
+    { "global_pattern",       EN_GLOBALPATTERN, WRITABLE  },
+    { "demand_charge",        EN_DEMANDCHARGE,  WRITABLE  },
+    { "specific_gravity",     EN_SP_GRAVITY,    WRITABLE  },
+    { "specific_viscosity",   EN_SP_VISCOS,     WRITABLE  },
+    { "unbalanced",           EN_UNBALANCED,    WRITABLE  },
+    { "check_frequency",      EN_CHECKFREQ,     WRITABLE  },
+    { "max_check",            EN_MAXCHECK,      WRITABLE  },
+    { "damp_limit",           EN_DAMPLIMIT,     WRITABLE  },
+    { "specific_diffusivity", EN_SP_DIFFUS,     WRITABLE  },
+    { "bulk_order",           EN_BULKORDER,     WRITABLE  },
+    { "wall_order",           EN_WALLORDER,     WRITABLE  },
+    { "tank_order",           EN_TANKORDER,     WRITABLE  },
+    { "concentration_limit",  EN_CONCENLIMIT,   WRITABLE  },
+    { "demand_pattern",       EN_DEMANDPATTERN, WRITABLE  },
+    { "emitter_backflow",     EN_EMITBACKFLOW,  WRITABLE  },
+    { "pressure_units",       EN_PRESS_UNITS,   WRITABLE  },
+    { "status_report",        EN_STATUS_REPORT, WRITABLE  },
+    { NULL,                   0,                READ_ONLY }
+};
+
+static int getOptionValue(EN_Project pr, int index, int code, double *value)
+{
+    return EN_getoption(pr, code, value);
+}
+
+static int setOptionValue(EN_Project pr, int index, int code, double value)
+{
+    return EN_setoption(pr, code, value);
+}
+
 static const LuaApiFunc LuaApi[] = {
-    { "epanet.node", "node", NodeProps, findnode, EN_getnodevalue, EN_setnodevalue },
-    { "epanet.link", "link", LinkProps, findlink, EN_getlinkvalue, EN_setlinkvalue }
+    { "epanet.node",    "node",    NodeProps,   findnode, EN_getnodevalue, EN_setnodevalue },
+    { "epanet.link",    "link",    LinkProps,   findlink, EN_getlinkvalue, EN_setlinkvalue },
+    { "epanet.options", "options", OptionProps, NULL,     getOptionValue,  setOptionValue  }
 };
 
 static const PropDesc *findElementProperty(const PropDesc *props, const char *name)
@@ -165,10 +209,14 @@ static int lua_elem_new(lua_State *lua)
 {
     Project *pr = lua_touserdata(lua, lua_upvalueindex(1));
     const LuaApiFunc *d = lua_touserdata(lua, lua_upvalueindex(2));
-    const char *id = luaL_checkstring(lua, 1);
+    int index = 0;
 
-    int index = d->find(&pr->network, id);
-    if (index == 0) return luaL_error(lua, "%s not found: %s", d->global, id);
+    if (d->find != NULL)
+    {
+        const char *id = luaL_checkstring(lua, 1);
+        index = d->find(&pr->network, id);
+        if (index == 0) return luaL_error(lua, "%s not found: %s", d->global, id);
+    }
 
     LuaElem *e = lua_newuserdata(lua, sizeof(LuaElem));
     e->index = index;
