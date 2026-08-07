@@ -28,6 +28,8 @@ static const char *READ_ONLY_OPTION_INP = "./lua-api-readonly-option.inp";
 static const char *READ_ONLY_OPTION_RPT = "./lua-api-readonly-option.rpt";
 static const char *UNKNOWN_OPTION_INP = "./lua-api-unknown-option.inp";
 static const char *UNKNOWN_OPTION_RPT = "./lua-api-unknown-option.rpt";
+static const char *READ_ONLY_TIME_INP = "./lua-api-readonly-time.inp";
+static const char *READ_ONLY_TIME_RPT = "./lua-api-readonly-time.rpt";
 static const char *REPORT_EVENT_INP = "./lua-api-report-event.inp";
 static const char *REPORT_EVENT_RPT = "./lua-api-report-event.rpt";
 static const char *ITERATION_EVENT_INP = "./lua-api-iteration-event.inp";
@@ -110,6 +112,40 @@ static const std::vector<PropertyWrite> WRITABLE_OPTION_WRITES = {
     { OPTIONS, "", "emitter_backflow",     EN_EMITBACKFLOW,  0            },
     { OPTIONS, "", "pressure_units",       EN_PRESS_UNITS,   EN_METERS    },
     { OPTIONS, "", "status_report",        EN_STATUS_REPORT, EN_NO_REPORT },
+};
+
+static const std::vector<PropertyWrite> WRITABLE_TIME_WRITES = {
+    { TIMES, "", "duration",        EN_DURATION,      43200 },
+    { TIMES, "", "pattern_step",    EN_PATTERNSTEP,   5400  },
+    { TIMES, "", "report_step",     EN_REPORTSTEP,    2700  },
+    { TIMES, "", "hydraulic_step",  EN_HYDSTEP,       1800  },
+    { TIMES, "", "quality_step",    EN_QUALSTEP,      900   },
+    { TIMES, "", "rule_step",       EN_RULESTEP,      600   },
+    { TIMES, "", "pattern_start",   EN_PATTERNSTART,  3600  },
+    { TIMES, "", "report_start",    EN_REPORTSTART,   7200  },
+    { TIMES, "", "start_time",      EN_STARTTIME,     21600 },
+    { TIMES, "", "statistic",       EN_STATISTIC,     1     },
+    { TIMES, "", "hydraulic_time",  EN_HTIME,         5400  },
+    { TIMES, "", "quality_time",    EN_QTIME,         1200  },
+};
+
+static const std::vector<LuaProperty> TIME_PROPERTIES = {
+    { "duration",        EN_DURATION      },
+    { "hydraulic_step",  EN_HYDSTEP       },
+    { "quality_step",    EN_QUALSTEP      },
+    { "pattern_step",    EN_PATTERNSTEP   },
+    { "pattern_start",   EN_PATTERNSTART  },
+    { "report_step",     EN_REPORTSTEP    },
+    { "report_start",    EN_REPORTSTART   },
+    { "rule_step",       EN_RULESTEP      },
+    { "statistic",       EN_STATISTIC     },
+    { "periods",         EN_PERIODS       },
+    { "start_time",      EN_STARTTIME     },
+    { "hydraulic_time",  EN_HTIME         },
+    { "quality_time",    EN_QTIME         },
+    { "halt_flag",       EN_HALTFLAG      },
+    { "next_event",      EN_NEXTEVENT     },
+    { "next_event_tank", EN_NEXTEVENTTANK },
 };
 
 static const std::vector<LuaProperty> NODE_PROPERTIES = {
@@ -218,6 +254,7 @@ static const std::vector<ElementToDump> DUMPED_ELEMENTS = {
     { LINK,    "9",    "l9",    &LINK_PROPERTIES   },
     { LINK,    "VGPV", "lVGPV", &LINK_PROPERTIES   },
     { OPTIONS, "",     "opt",   &OPTION_PROPERTIES },
+    { TIMES,   "",     "time",  &TIME_PROPERTIES   },
 };
 
 static std::vector<PropertyWrite> everyWritableProperty()
@@ -225,10 +262,15 @@ static std::vector<PropertyWrite> everyWritableProperty()
     std::vector<PropertyWrite> writes = WRITABLE_OPTION_WRITES;
     writes.insert(
         writes.end(),
+        WRITABLE_TIME_WRITES.begin(),
+        WRITABLE_TIME_WRITES.end()
+    );
+    writes.insert(
+        writes.end(),
         WRITABLE_PROPERTY_WRITES.begin(),
         WRITABLE_PROPERTY_WRITES.end()
     );
-    
+
     return writes;
 }
 
@@ -360,6 +402,25 @@ BOOST_AUTO_TEST_CASE(script_cannot_write_a_read_only_option)
 
     BOOST_CHECK(readWholeFile(READ_ONLY_OPTION_RPT).find(
         "options property is read only: headloss_form") != std::string::npos);
+}
+
+BOOST_AUTO_TEST_CASE(script_cannot_write_a_read_only_time_parameter)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, READ_ONLY_TIME_INP,
+                                     "times().periods = 5\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE(project.open(READ_ONLY_TIME_INP, READ_ONLY_TIME_RPT) == 0);
+    BOOST_REQUIRE(project.solveOneHydraulicStep() == 0);
+
+    double periods;
+    BOOST_CHECK(project.readValue(TIMES, "", EN_PERIODS, &periods) == 0);
+    BOOST_CHECK(periods != 5);
+
+    project.close();
+
+    BOOST_CHECK(readWholeFile(READ_ONLY_TIME_RPT).find(
+        "times property is read only: periods") != std::string::npos);
 }
 
 BOOST_AUTO_TEST_CASE(script_cannot_use_an_unknown_option)

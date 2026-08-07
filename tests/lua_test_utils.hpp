@@ -22,9 +22,9 @@ License:      see LICENSE
 #include "epanet2_2.h"
 
 
-// OPTIONS is the project's analysis options, which are reached through
-// options() rather than by id, so its elementId is unused
-enum ElementKind { NODE, LINK, OPTIONS };
+// OPTIONS and TIMES are project-wide, reached through options() and
+// times() rather than by id, so their elementId is unused
+enum ElementKind { NODE, LINK, OPTIONS, TIMES };
 
 struct PropertyWrite
 {
@@ -75,11 +75,12 @@ inline bool buildInpWithScript(const char *basePath, const char *outPath,
     return out.good();
 }
 
-// The Lua expression that yields an element: node("11"), link("9") or
-// options()
+// The Lua expression that yields an element: node("11"), link("9"),
+// options() or times()
 inline std::string luaElementRef(ElementKind kind, const char *elementId)
 {
     if (kind == OPTIONS) return "options()";
+    if (kind == TIMES) return "times()";
     return std::string(kind == NODE ? "node" : "link")
          + "(\"" + elementId + "\")";
 }
@@ -229,6 +230,13 @@ struct ProjectUnderTest
     {
         int index;
         if (kind == OPTIONS) return EN_getoption(ph, enProperty, value);
+        if (kind == TIMES)
+        {
+            long seconds = 0;
+            int error = EN_gettimeparam(ph, enProperty, &seconds);
+            *value = (double)seconds;
+            return error;
+        }
         if (kind == NODE)
         {
             EN_getnodeindex(ph, (char *)elementId, &index);
@@ -243,6 +251,7 @@ struct ProjectUnderTest
     {
         int index;
         if (kind == OPTIONS) return EN_setoption(ph, enProperty, value);
+        if (kind == TIMES) return EN_settimeparam(ph, enProperty, (long)value);
         if (kind == NODE)
         {
             EN_getnodeindex(ph, (char *)elementId, &index);

@@ -141,6 +141,26 @@ static const PropDesc OptionProps[] = {
     { NULL,                   0,                READ_ONLY }
 };
 
+static const PropDesc TimeProps[] = {
+    { "duration",             EN_DURATION,      WRITABLE  },
+    { "hydraulic_step",       EN_HYDSTEP,       WRITABLE  },
+    { "quality_step",         EN_QUALSTEP,      WRITABLE  },
+    { "pattern_step",         EN_PATTERNSTEP,   WRITABLE  },
+    { "pattern_start",        EN_PATTERNSTART,  WRITABLE  },
+    { "report_step",          EN_REPORTSTEP,    WRITABLE  },
+    { "report_start",         EN_REPORTSTART,   WRITABLE  },
+    { "rule_step",            EN_RULESTEP,      WRITABLE  },
+    { "statistic",            EN_STATISTIC,     WRITABLE  },
+    { "periods",              EN_PERIODS,       READ_ONLY },
+    { "start_time",           EN_STARTTIME,     WRITABLE  },
+    { "hydraulic_time",       EN_HTIME,         WRITABLE  },
+    { "quality_time",         EN_QTIME,         WRITABLE  },
+    { "halt_flag",            EN_HALTFLAG,      READ_ONLY },
+    { "next_event",           EN_NEXTEVENT,     READ_ONLY },
+    { "next_event_tank",      EN_NEXTEVENTTANK, READ_ONLY },
+    { NULL,                   0,                READ_ONLY }
+};
+
 static int getOptionValue(EN_Project pr, int index, int code, double *value)
 {
     return EN_getoption(pr, code, value);
@@ -151,10 +171,25 @@ static int setOptionValue(EN_Project pr, int index, int code, double value)
     return EN_setoption(pr, code, value);
 }
 
+static int getTimeValue(EN_Project pr, int index, int code, double *value)
+{
+    long seconds = 0;
+    int err = EN_gettimeparam(pr, code, &seconds);
+
+    *value = (double)seconds;
+    return err;
+}
+
+static int setTimeValue(EN_Project pr, int index, int code, double value)
+{
+    return EN_settimeparam(pr, code, (long)(value + (value < 0 ? -0.5 : 0.5)));
+}
+
 static const LuaApiFunc LuaApi[] = {
     { "epanet.node",    "node",    NodeProps,   findnode, EN_getnodevalue, EN_setnodevalue },
     { "epanet.link",    "link",    LinkProps,   findlink, EN_getlinkvalue, EN_setlinkvalue },
-    { "epanet.options", "options", OptionProps, NULL,     getOptionValue,  setOptionValue  }
+    { "epanet.options", "options", OptionProps, NULL,     getOptionValue,  setOptionValue  },
+    { "epanet.times",   "times",   TimeProps,   NULL,     getTimeValue,    setTimeValue    }
 };
 
 static const PropDesc *findElementProperty(const PropDesc *props, const char *name)
