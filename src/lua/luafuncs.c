@@ -123,7 +123,6 @@ static const PropDesc *findElementProperty(const PropDesc *props, const char *na
     return NULL;
 }
 
-
 static const char *stringOrEmpty(lua_State *lua, int arg)
 {
     const char *s = luaL_tolstring(lua, arg, NULL);
