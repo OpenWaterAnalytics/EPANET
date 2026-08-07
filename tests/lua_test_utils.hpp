@@ -100,15 +100,25 @@ inline std::string luaAssignment(const PropertyWrite &write)
     return statement.str();
 }
 
-inline std::string luaStringList(const std::vector<LuaProperty> &properties)
+inline std::string luaStringList(const std::vector<const char *> &values)
 {
     std::string list = "{";
-    for (size_t i = 0; i < properties.size(); i++)
+    for (size_t i = 0; i < values.size(); i++)
     {
         if (i > 0) list += ",";
-        list += "\"" + std::string(properties[i].luaName) + "\"";
+        list += "\"" + std::string(values[i]) + "\"";
     }
     return list + "}";
+}
+
+inline std::string luaStringList(const std::vector<LuaProperty> &properties)
+{
+    std::vector<const char *> names;
+    for (const LuaProperty &property : properties)
+    {
+        names.push_back(property.luaName);
+    }
+    return luaStringList(names);
 }
 
 // Builds a script whose handler prints one "tag.property=value" line per

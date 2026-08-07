@@ -36,6 +36,10 @@ static const char *CLOSE_EVENT_INP = "./lua-api-close-event.inp";
 static const char *CLOSE_EVENT_RPT = "./lua-api-close-event.rpt";
 static const char *RUNAWAY_EVENT_INP = "./lua-api-runaway-event.inp";
 static const char *RUNAWAY_EVENT_RPT = "./lua-api-runaway-event.rpt";
+static const char *CURVE_INP = "./lua-api-curve.inp";
+static const char *CURVE_RPT = "./lua-api-curve.rpt";
+static const char *UNKNOWN_CURVE_INP = "./lua-api-unknown-curve.inp";
+static const char *UNKNOWN_CURVE_RPT = "./lua-api-unknown-curve.rpt";
 static const char *EVENT_BASELINE_RPT = "./lua-api-event-baseline.rpt";
 
 static const std::vector<PropertyWrite> WRITABLE_PROPERTY_WRITES = {
@@ -508,6 +512,107 @@ BOOST_AUTO_TEST_CASE(iteration_event_re_solving_is_bounded)
                         << "so its change never triggered a re-solve");
     BOOST_CHECK_MESSAGE(passes <= 11, "the handler ran " << passes << " times, "
                         << "so re-solving is not capped");
+}
+
+// Curves of one, two and three points, so a single-point curve is not
+// mistaken for a bare {x, y} pair and the array nesting is exercised
+static const std::vector<const char *> DUMPED_CURVES = { "1", "4", "6" };
+
+static std::string scriptDumpingCurves()
+{
+    std::string body =
+        "    for _, id in ipairs(" + luaStringList(DUMPED_CURVES) + ") do\n"
+        "        local points = curve(id)\n"
+        "        print(\"curve.\" .. id .. \".count=\" .. tostring(#points))\n"
+        "        for i, point in ipairs(points) do\n"
+        "            print(\"curve.\" .. id .. \".\" .. i .. \".x=\"\n"
+        "                  .. tostring(point[1]))\n"
+        "            print(\"curve.\" .. id .. \".\" .. i .. \".y=\"\n"
+        "                  .. tostring(point[2]))\n"
+        "        end\n"
+        "    end\n";
+    return luaEventHandler("on_report", body);
+}
+
+BOOST_AUTO_TEST_CASE(script_reads_every_point_of_a_curve)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, CURVE_INP, scriptDumpingCurves()));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE(project.open(CURVE_INP, CURVE_RPT) == 0);
+    BOOST_REQUIRE(project.solveOneHydraulicStep() == 0);
+
+    struct ExpectedCurve
+    {
+        std::string id;
+        int length;
+        std::vector<double> x, y;
+    };
+    std::vector<ExpectedCurve> expected;
+
+    for (const char *id : DUMPED_CURVES)
+    {
+        ExpectedCurve curve;
+        curve.id = id;
+
+        int index = 0;
+        BOOST_REQUIRE(EN_getcurveindex(project.ph, id, &index) == 0);
+        BOOST_REQUIRE(EN_getcurvelen(project.ph, index, &curve.length) == 0);
+        BOOST_REQUIRE(curve.length > 0);
+
+        for (int point = 1; point <= curve.length; point++)
+        {
+            double x, y;
+            BOOST_REQUIRE(EN_getcurvevalue(project.ph, index, point, &x, &y) == 0);
+            curve.x.push_back(x);
+            curve.y.push_back(y);
+        }
+        expected.push_back(curve);
+    }
+
+    project.close();
+
+    std::string report = readWholeFile(CURVE_RPT);
+    BOOST_REQUIRE(!report.empty());
+    BOOST_CHECK(!reportMentionsLuaError(report));
+
+    for (const ExpectedCurve &curve : expected)
+    {
+        std::string prefix = "curve." + curve.id + ".";
+
+        double count;
+        BOOST_REQUIRE(findLastPrintedValue(report, prefix + "count=", &count));
+        BOOST_CHECK_EQUAL((int)count, curve.length);
+
+        for (int point = 1; point <= curve.length; point++)
+        {
+            std::string at = prefix + std::to_string(point) + ".";
+            double x, y;
+
+            BOOST_REQUIRE(findLastPrintedValue(report, at + "x=", &x));
+            BOOST_REQUIRE(findLastPrintedValue(report, at + "y=", &y));
+
+            if (curve.x[point - 1] == 0.0) BOOST_CHECK_SMALL(x, 1e-6);
+            else BOOST_CHECK_CLOSE(x, curve.x[point - 1], 0.01);
+
+            if (curve.y[point - 1] == 0.0) BOOST_CHECK_SMALL(y, 1e-6);
+            else BOOST_CHECK_CLOSE(y, curve.y[point - 1], 0.01);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(script_cannot_read_an_unknown_curve)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, UNKNOWN_CURVE_INP,
+        "function on_report() local points = curve(\"not_a_curve\") end\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE(project.open(UNKNOWN_CURVE_INP, UNKNOWN_CURVE_RPT) == 0);
+    BOOST_REQUIRE(project.solveOneHydraulicStep() == 0);
+    project.close();
+
+    BOOST_CHECK(readWholeFile(UNKNOWN_CURVE_RPT).find(
+        "curve not found: not_a_curve") != std::string::npos);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

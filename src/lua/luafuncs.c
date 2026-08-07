@@ -205,6 +205,40 @@ static int lua_epanet_print(lua_State *lua)
     return 0;
 }
 
+static int lua_curve_points(lua_State *lua)
+{
+    Project *pr = lua_touserdata(lua, lua_upvalueindex(1));
+    const char *id = luaL_checkstring(lua, 1);
+
+    int index = findcurve(&pr->network, id);
+    if (index == 0) return luaL_error(lua, "curve not found: %s", id);
+
+    int npoints = 0;
+    int err = EN_getcurvelen(pr, index, &npoints);
+    if (err) return luaL_error(lua, "error %d reading curve %s", err, id);
+
+    lua_createtable(lua, npoints, 0);
+    for (int i = 1; i <= npoints; i++)
+    {
+        double x, y;
+        err = EN_getcurvevalue(pr, index, i, &x, &y);
+        if (err)
+        {
+            return luaL_error(lua, "error %d reading point %d of curve %s",
+                              err, i, id);
+        }
+
+        lua_createtable(lua, 2, 0);
+        lua_pushnumber(lua, x);
+        lua_rawseti(lua, -2, 1);
+        lua_pushnumber(lua, y);
+        lua_rawseti(lua, -2, 2);
+        lua_rawseti(lua, -2, i);
+    }
+
+    return 1;
+}
+
 static int lua_elem_new(lua_State *lua)
 {
     Project *pr = lua_touserdata(lua, lua_upvalueindex(1));
@@ -299,6 +333,10 @@ void luafuncs_register(lua_State *lua, Project *pr)
     lua_pushlightuserdata(lua, pr);
     lua_pushcclosure(lua, lua_epanet_print, 1);
     lua_setglobal(lua, "print");
+
+    lua_pushlightuserdata(lua, pr);
+    lua_pushcclosure(lua, lua_curve_points, 1);
+    lua_setglobal(lua, "curve");
 
     for (size_t i = 0; i < NUM_API_FUNCS; i++)
     {
