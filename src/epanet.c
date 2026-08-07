@@ -552,6 +552,14 @@ int DLLEXPORT EN_initH(EN_Project p, int initFlag)
     // Initialize hydraulics solver
     inithyd(p, fflag);
     if (p->report.Statflag > 0) writeheader(p, STATHDR, 0);
+
+    #ifdef LUA_SCRIPTING
+    if (!errcode)
+    {
+        luascript_onEvent(p, LUA_EVENT_OPEN);
+    }
+    #endif // LUA_SCRIPTING
+
     return errcode;
 }
 
@@ -610,8 +618,12 @@ int DLLEXPORT EN_closeH(EN_Project p)
 */
 {
   if (!p->Openflag) return 102;
+
   if (p->hydraul.OpenHflag)
   {
+      #ifdef LUA_SCRIPTING
+      luascript_onEvent(p, LUA_EVENT_CLOSE);
+      #endif // LUA_SCRIPTING
       closeleakage(p);
       closehyd(p);
   }

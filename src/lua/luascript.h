@@ -12,12 +12,13 @@ typedef enum  {
   LUA_EVENT_MAX
 } LuaEvent;
 
-int luascript_addScriptLine(Project *pr, char *line);
 int luascript_open(Project *pr);
-int luascript_run(Project *pr);
+void luascript_close(Project *pr);
+
+int luascript_addScriptLine(Project *pr, char *line);
+int luascript_parseScript(Project *pr);
 int luascript_onEvent(Project *pr, LuaEvent event);
 void luascript_setChanged(Project *pr);
-void luascript_close(Project *pr);
 
 #endif // LUA_SCRIPTING
 #endif // LUASCRIPT_H

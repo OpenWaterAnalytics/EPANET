@@ -93,10 +93,10 @@ BOOST_FIXTURE_TEST_CASE(script_steers_prv_toward_target, FixtureOpenLuaPrv)
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
 
-    // A setting change re-triggers the solver's status checks, so the
-    // script converges on the target within each time step: J126 must
-    // stay at the target pressure for the whole run, which is only
-    // possible if the script pulled the valve away from its fixed setting
+    // A setting change made from on_iteration sends the solver round
+    // again, so the handler converges on the target within each time
+    // step: J126 must stay at the target pressure for the whole run,
+    // which is only possible if it pulled the valve off its fixed setting
     BOOST_CHECK_SMALL(maxDeviation, 0.5);
     BOOST_CHECK(std::abs(lastSetting - initialSetting) > 1.0);
 }

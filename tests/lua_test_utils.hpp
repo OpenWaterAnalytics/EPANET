@@ -84,6 +84,14 @@ inline std::string luaElementRef(ElementKind kind, const char *elementId)
          + "(\"" + elementId + "\")";
 }
 
+// Wraps statements in an event handler. The [SCRIPT] chunk is evaluated
+// once, when the project opens, so anything that has to see or change a
+// solved network belongs in a handler rather than at the top level
+inline std::string luaEventHandler(const char *event, const std::string &body)
+{
+    return "function " + std::string(event) + "()\n" + body + "end\n";
+}
+
 inline std::string luaAssignment(const PropertyWrite &write)
 {
     std::ostringstream statement;
@@ -103,31 +111,43 @@ inline std::string luaStringList(const std::vector<LuaProperty> &properties)
     return list + "}";
 }
 
-// Builds a script that prints one "tag.property=value" line per readable
-// property of each element; properties whose read raises an error are
-// skipped
-inline std::string luaDumpScript(const std::vector<ElementToDump> &elements)
+// Builds a script whose handler prints one "tag.property=value" line per
+// readable property of each element; properties whose read raises an
+// error are skipped
+inline std::string luaDumpScript(const std::vector<ElementToDump> &elements,
+                                 const char *event)
 {
-    std::string script =
-        "local function dump(tag, element, propertyNames)\n"
-        "    for _, name in ipairs(propertyNames) do\n"
-        "        local ok, value = pcall(function() return element[name] end)\n"
-        "        if ok then print(tag .. \".\" .. name .. \"=\" .. tostring(value)) end\n"
-        "    end\n"
-        "end\n";
-
+    std::string body;
     for (const ElementToDump &element : elements)
     {
-        script += std::string("dump(\"") + element.reportTag + "\", "
-                + luaElementRef(element.kind, element.elementId) + ", "
-                + luaStringList(*element.properties) + ")\n";
+        body += std::string("    dump(\"") + element.reportTag + "\", "
+              + luaElementRef(element.kind, element.elementId) + ", "
+              + luaStringList(*element.properties) + ")\n";
     }
-    return script;
+
+    return "local function dump(tag, element, propertyNames)\n"
+           "    for _, name in ipairs(propertyNames) do\n"
+           "        local ok, value = pcall(function() return element[name] end)\n"
+           "        if ok then print(tag .. \".\" .. name .. \"=\" .. tostring(value)) end\n"
+           "    end\n"
+           "end\n"
+         + luaEventHandler(event, body);
 }
 
 inline bool reportMentionsLuaError(const std::string &report)
 {
     return report.find("Lua script error") != std::string::npos;
+}
+
+inline int countOccurrences(const std::string &report, const std::string &label)
+{
+    int count = 0;
+    for (size_t at = report.find(label); at != std::string::npos;
+         at = report.find(label, at + label.size()))
+    {
+        count++;
+    }
+    return count;
 }
 
 // The script prints once per solver convergence; the last occurrence
@@ -168,6 +188,28 @@ struct ProjectUnderTest
         int error = EN_openH(ph);
         if (!error) error = EN_initH(ph, EN_NOSAVE);
         if (!error) error = EN_runH(ph, &time);
+        if (!error) error = EN_closeH(ph);
+        return error;
+    }
+
+    // Runs every time step of the simulation, reporting how many were solved
+    int solveAllHydraulicSteps(int *steps)
+    {
+        long time, tstep = 0;
+        int error = EN_openH(ph);
+        if (!error) error = EN_initH(ph, EN_NOSAVE);
+
+        *steps = 0;
+        while (!error)
+        {
+            error = EN_runH(ph, &time);
+            if (error) break;
+            (*steps)++;
+
+            error = EN_nextH(ph, &tstep);
+            if (error || tstep == 0) break;
+        }
+
         if (!error) error = EN_closeH(ph);
         return error;
     }

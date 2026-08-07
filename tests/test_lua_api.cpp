@@ -23,13 +23,20 @@ static const char *WRITE_TEST_INP = "./lua-api-write.inp";
 static const char *WRITE_TEST_RPT = "./lua-api-write.rpt";
 static const char *READ_TEST_INP = "./lua-api-read.inp";
 static const char *READ_TEST_RPT = "./lua-api-read.rpt";
-static const char *RESOLVE_TEST_INP = "./lua-api-resolve.inp";
-static const char *RESOLVE_TEST_RPT = "./lua-api-resolve.rpt";
 static const char *RESOLVE_REFERENCE_RPT = "./lua-api-resolve-ref.rpt";
 static const char *READ_ONLY_OPTION_INP = "./lua-api-readonly-option.inp";
 static const char *READ_ONLY_OPTION_RPT = "./lua-api-readonly-option.rpt";
 static const char *UNKNOWN_OPTION_INP = "./lua-api-unknown-option.inp";
 static const char *UNKNOWN_OPTION_RPT = "./lua-api-unknown-option.rpt";
+static const char *REPORT_EVENT_INP = "./lua-api-report-event.inp";
+static const char *REPORT_EVENT_RPT = "./lua-api-report-event.rpt";
+static const char *ITERATION_EVENT_INP = "./lua-api-iteration-event.inp";
+static const char *ITERATION_EVENT_RPT = "./lua-api-iteration-event.rpt";
+static const char *CLOSE_EVENT_INP = "./lua-api-close-event.inp";
+static const char *CLOSE_EVENT_RPT = "./lua-api-close-event.rpt";
+static const char *RUNAWAY_EVENT_INP = "./lua-api-runaway-event.inp";
+static const char *RUNAWAY_EVENT_RPT = "./lua-api-runaway-event.rpt";
+static const char *EVENT_BASELINE_RPT = "./lua-api-event-baseline.rpt";
 
 static const std::vector<PropertyWrite> WRITABLE_PROPERTY_WRITES = {
     { NODE, "10",   "elevation",      EN_ELEVATION,    712.5  },
@@ -221,14 +228,17 @@ static std::vector<PropertyWrite> everyWritableProperty()
     return writes;
 }
 
+// Writes go in the iteration handler, the event meant for changing the
+// network: it fires once the step has converged, and whatever it changes
+// sends the solver round again before results are saved
 static std::string scriptWritingEveryWritableProperty()
 {
-    std::string script;
+    std::string body;
     for (const PropertyWrite &write : everyWritableProperty())
     {
-        script += luaAssignment(write);
+        body += "    " + luaAssignment(write);
     }
-    return script;
+    return luaEventHandler("on_iteration", body);
 }
 
 static bool finalValueMatchesScriptValue(const LuaProperty &property)
@@ -267,8 +277,11 @@ BOOST_AUTO_TEST_CASE(script_writes_all_writable_properties)
 
 BOOST_AUTO_TEST_CASE(script_reads_all_properties_into_report)
 {
+    // Reads go in the report handler, which runs once the step has been
+    // solved and its results saved
     BOOST_REQUIRE(buildInpWithScript(BASE_INP, READ_TEST_INP,
-                                     luaDumpScript(DUMPED_ELEMENTS)));
+                                     luaDumpScript(DUMPED_ELEMENTS,
+                                                   "on_report")));
 
     ProjectUnderTest project;
     BOOST_REQUIRE(project.open(READ_TEST_INP, READ_TEST_RPT) == 0);
@@ -359,31 +372,93 @@ BOOST_AUTO_TEST_CASE(script_cannot_use_an_unknown_option)
         "unknown options property: not_an_option") != std::string::npos);
 }
 
-// A script write invalidates the solution the solver just converged on,
-// so the solver must re-converge before reporting results.
-//
-// Halving the roughness of main pipe 10 is used because, unlike a valve
-// change, it does not trip the solver's own status checks: only the change 
-// flag raised by the script bindings can trigger the re-solve.
-//
-// The solver's periodic status checks are disabled because they also run
-// the script mid-solve, which would let the change slip in before convergence 
-// and mask a broken change flag. MAXCHECK 1 disables them: the parser
-// rejects 0, and the first check would come at iteration CHECKFREQ (2),
-// already past it.
-static const char *PERIODIC_STATUS_CHECKS_OFF =
-    "[OPTIONS]\n"
-    " MAXCHECK  1\n"
-    "\n";
-
-BOOST_AUTO_TEST_CASE(script_writes_take_effect_in_the_same_timestep)
+// The [SCRIPT] chunk is evaluated once, when the project opens, and its
+// only job is to define handlers: by the time it runs nothing has been
+// solved yet, so a top-level read would see an empty network
+BOOST_AUTO_TEST_CASE(report_event_runs_once_per_time_step)
 {
-    BOOST_REQUIRE(buildInpWithScript(BASE_INP, RESOLVE_TEST_INP,
-                                     "link(\"10\").roughness = 50\n",
-                                     PERIODIC_STATUS_CHECKS_OFF));
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, REPORT_EVENT_INP,
+        "function on_report()\n"
+        "    print(\"on_report p11=\" .. tostring(node(\"11\").pressure))\n"
+        "end\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE(project.open(REPORT_EVENT_INP, REPORT_EVENT_RPT) == 0);
+
+    int steps = 0;
+    BOOST_REQUIRE(project.solveAllHydraulicSteps(&steps) == 0);
+    BOOST_REQUIRE(steps > 1);
+
+    double finalPressure;
+    BOOST_REQUIRE(project.readValue(NODE, "11", EN_PRESSURE,
+                                    &finalPressure) == 0);
+    project.close();
+
+    std::string report = readWholeFile(REPORT_EVENT_RPT);
+    BOOST_CHECK(!reportMentionsLuaError(report));
+    BOOST_CHECK_EQUAL(countOccurrences(report, "on_report p11="), steps);
+
+    // The handler runs after the step has converged, so the pressure it
+    // sees is the one the step ended on
+    double printed;
+    BOOST_REQUIRE(findLastPrintedValue(report, "on_report p11=", &printed));
+    BOOST_CHECK_CLOSE(printed, finalPressure, 0.01);
+}
+
+// on_open fires from EN_initH and on_close from EN_closeH, so they
+// bracket the run: one open before every report, one close after them
+// all, and the network is already in place when the first one runs
+BOOST_AUTO_TEST_CASE(open_and_close_events_bracket_the_run)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, CLOSE_EVENT_INP,
+        "function on_open()\n"
+        "    print(\"event on_open n11elev=\" .. tostring(node(\"11\").elevation))\n"
+        "end\n"
+        "function on_report() print(\"event on_report\") end\n"
+        "function on_close() print(\"event on_close\") end\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE(project.open(CLOSE_EVENT_INP, CLOSE_EVENT_RPT) == 0);
+
+    double elevation;
+    BOOST_REQUIRE(project.readValue(NODE, "11", EN_ELEVATION, &elevation) == 0);
+
+    int steps = 0;
+    BOOST_REQUIRE(project.solveAllHydraulicSteps(&steps) == 0);
+    BOOST_REQUIRE(steps > 1);
+    project.close();
+
+    std::string report = readWholeFile(CLOSE_EVENT_RPT);
+    BOOST_CHECK(!reportMentionsLuaError(report));
+
+    BOOST_CHECK_EQUAL(countOccurrences(report, "event on_open n11elev="), 1);
+    BOOST_CHECK_EQUAL(countOccurrences(report, "event on_close"), 1);
+    BOOST_CHECK_EQUAL(countOccurrences(report, "event on_report"), steps);
+
+    // The parsed network is readable from on_open, which is what firing
+    // it after the input has been read buys
+    double printed;
+    BOOST_REQUIRE(findLastPrintedValue(report, "event on_open n11elev=",
+                                       &printed));
+    BOOST_CHECK_CLOSE(printed, elevation, 0.01);
+
+    BOOST_CHECK(report.find("event on_open") < report.find("event on_report"));
+    BOOST_CHECK(report.rfind("event on_close")
+                > report.rfind("event on_report"));
+}
+
+// The iteration event fires once the step has converged, and a change
+// made there has to send the solver round again before results are
+// saved. Halving the roughness of main pipe 10 is used because, unlike a
+// valve change, it does not trip the solver's own status checks: only
+// the change flag raised by the handler can trigger the re-solve
+BOOST_AUTO_TEST_CASE(iteration_event_changes_take_effect_in_the_same_timestep)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, ITERATION_EVENT_INP,
+        "function on_iteration() link(\"10\").roughness = 50 end\n"));
 
     ProjectUnderTest scripted;
-    BOOST_REQUIRE(scripted.open(RESOLVE_TEST_INP, RESOLVE_TEST_RPT) == 0);
+    BOOST_REQUIRE(scripted.open(ITERATION_EVENT_INP, ITERATION_EVENT_RPT) == 0);
     BOOST_REQUIRE(scripted.solveOneHydraulicStep() == 0);
     double scriptedPressure;
     BOOST_REQUIRE(scripted.readValue(NODE, "11", EN_PRESSURE,
@@ -397,7 +472,42 @@ BOOST_AUTO_TEST_CASE(script_writes_take_effect_in_the_same_timestep)
     BOOST_REQUIRE(reference.readValue(NODE, "11", EN_PRESSURE,
                                       &referencePressure) == 0);
 
+    // Without the re-solve the step would report the untouched network,
+    // so the baseline is what a passing test must not look like
+    ProjectUnderTest baseline;
+    BOOST_REQUIRE(baseline.open(BASE_INP, EVENT_BASELINE_RPT) == 0);
+    BOOST_REQUIRE(baseline.solveOneHydraulicStep() == 0);
+    double baselinePressure;
+    BOOST_REQUIRE(baseline.readValue(NODE, "11", EN_PRESSURE,
+                                     &baselinePressure) == 0);
+
     BOOST_CHECK_CLOSE(scriptedPressure, referencePressure, 0.5);
+    BOOST_CHECK(std::abs(scriptedPressure - baselinePressure) > 0.5);
+}
+
+// A handler that changes something on every call would re-solve forever,
+// so runhyd caps the number of passes
+BOOST_AUTO_TEST_CASE(iteration_event_re_solving_is_bounded)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, RUNAWAY_EVENT_INP,
+        "function on_iteration()\n"
+        "    print(\"iteration pass\")\n"
+        "    link(\"10\").roughness = link(\"10\").roughness - 1\n"
+        "end\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE(project.open(RUNAWAY_EVENT_INP, RUNAWAY_EVENT_RPT) == 0);
+    BOOST_REQUIRE(project.solveOneHydraulicStep() == 0);
+    project.close();
+
+    std::string report = readWholeFile(RUNAWAY_EVENT_RPT);
+    BOOST_CHECK(!reportMentionsLuaError(report));
+
+    int passes = countOccurrences(report, "iteration pass");
+    BOOST_CHECK_MESSAGE(passes > 1, "the handler ran " << passes << " times, "
+                        << "so its change never triggered a re-solve");
+    BOOST_CHECK_MESSAGE(passes <= 11, "the handler ran " << passes << " times, "
+                        << "so re-solving is not capped");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
