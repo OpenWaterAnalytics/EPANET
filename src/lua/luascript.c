@@ -70,6 +70,30 @@ int luascript_open(Project *pr)
     return 0;
 }
 
+static const char *event_name[LUA_EVENT_MAX] = {
+    [LUA_EVENT_OPEN] = "on_init",
+    [LUA_EVENT_CLOSE] = "on_close",
+    [LUA_EVENT_REPORT] = "on_report",
+    [LUA_EVENT_ITERATION] = "on_iteration"
+};
+
+int luascript_onEvent(Project *pr, LuaEvent event)
+{
+    if (pr->lua == NULL || pr->lua->engine == NULL || pr->lua->script == NULL)
+    {
+        return 0;
+    }
+
+    pr->lua->changed = FALSE;
+    lua_getglobal(pr->lua->engine, event_name[event]);
+    if (lua_isfunction(pr->lua->engine, -1))
+    {
+        lua_pcall(pr->lua->engine, 1, 0, 0);
+    }
+
+    return pr->lua->changed;
+}
+
 int luascript_run(Project *pr)
 {
     if (pr->lua == NULL || pr->lua->engine == NULL || pr->lua->script == NULL)

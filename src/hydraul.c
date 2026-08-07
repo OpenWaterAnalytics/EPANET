@@ -20,6 +20,10 @@
 #include "funcs.h"
 #include "text.h"
 
+#ifdef LUA_SCRIPTING
+#include "lua/luascript.h"
+#endif // LUA_SCRIPTING
+
 const double QZERO = 1.e-6;  // Equivalent to zero flow in cfs
 
 // Imported functions
@@ -218,6 +222,27 @@ int   runhyd(Project *pr, long *t)
 
     // Solve network hydraulic equations
     errcode = hydsolve(pr,&iter,&relerr);
+
+    #ifdef LUA_SCRIPTING
+    // Run "iteration" event after convergence.
+    // If it changes anything, re-solve and repeat until stable.
+    if (!errcode)
+    {
+        int luapass = 0;
+        while (luascript_onEvent(pr, LUA_EVENT_ITERATION) && luapass < 10)
+        {
+            luapass++;
+            if (rpt->Statflag == FULL)
+            {
+                snprintf(pr->Msg, sizeof(pr->Msg), "    Lua script changed status — re-solving (pass %d)", luapass);
+                writeline(pr, pr->Msg);
+            }
+            errcode = hydsolve(pr,&iter,&relerr);
+            if (errcode) break;
+        }
+    }
+    #endif // LUA_SCRIPTING
+
     if (!errcode)
     {
         // Report new status & save results
@@ -233,6 +258,7 @@ int   runhyd(Project *pr, long *t)
         // Report any warning conditions
         if (!errcode) errcode = writehydwarn(pr,iter,relerr);
    }
+
    return errcode;
 }
 

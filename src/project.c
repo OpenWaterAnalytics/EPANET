@@ -72,6 +72,7 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
 
     #ifdef LUA_SCRIPTING
     ERRCODE(luascript_open(pr));
+    luascript_onEvent(pr, LUA_EVENT_OPEN);
     #endif
 
     // Read input data
@@ -573,6 +574,7 @@ void freedata(Project *pr)
     #ifdef LUA_SCRIPTING
     if (pr->lua != NULL)
     {
+        luascript_onEvent(pr, LUA_EVENT_CLOSE);
         luascript_close(pr);
     }
     #endif // LUA_SCRIPTING

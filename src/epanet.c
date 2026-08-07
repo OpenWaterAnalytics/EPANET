@@ -28,6 +28,10 @@
 #define snprintf _snprintf
 #endif
 
+#ifdef LUA_SCRIPTING
+#include "lua/luascript.h"
+#endif
+
 /********************************************************************
 
     Project Functions
@@ -566,6 +570,14 @@ int DLLEXPORT EN_runH(EN_Project p, long *currentTime)
     if (!p->hydraul.OpenHflag) return 103;
     errcode = runhyd(p, currentTime);
     if (errcode) errmsg(p, errcode);
+
+    #ifdef LUA_SCRIPTING
+    if (!errcode)
+    {
+        luascript_onEvent(p, LUA_EVENT_REPORT);
+    }
+    #endif
+
     return errcode;
 }
 
