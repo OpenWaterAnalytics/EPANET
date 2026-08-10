@@ -65,14 +65,14 @@ int luascript_open(Project *pr)
 
 int luascript_parseScript(Project *pr)
 {
-    if (pr->lua->script == NULL)
-    {
-        return 0;
-    }
-
     if (pr->lua == NULL || pr->lua->engine == NULL)
     {
         return 311;
+    }
+
+    if (pr->lua->script == NULL)
+    {
+        return 0;
     }
 
     if (luaL_dostring(pr->lua->engine, pr->lua->script) != LUA_OK)

@@ -1,3 +1,4 @@
+#ifdef LUA_SCRIPTING
 #include "types.h"
 #include "funcs.h"
 #include "luatypes.h"
@@ -39,3 +40,4 @@ int luascript_onEvent(Project *pr, LuaEvent event)
 
     return pr->lua->changed;
 }
+#endif // LUA_SCRIPTING
