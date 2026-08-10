@@ -3,7 +3,9 @@
 #include <string.h>
 #include <stdio.h>
 #include "luatypes.h"
+#include "luascript.h"
 #include "luafuncs.h"
+#include "luaevents.h"
 #include "funcs.h"
 
 void luascript_setChanged(Project *pr)
@@ -51,6 +53,8 @@ int luascript_open(Project *pr)
         return 101;
     }
 
+    pr->lua->global_closure_ref = LUA_NOREF;
+
     pr->lua->engine = luaL_newstate();
     if (pr->lua->engine == NULL)
     {
@@ -61,6 +65,33 @@ int luascript_open(Project *pr)
     luafuncs_register(pr->lua->engine, pr);
 
     return 0;
+}
+
+static int run_lua_script(Project *pr)
+{
+    if (pr->lua == NULL || pr->lua->engine == NULL || pr->lua->global_closure_ref == LUA_NOREF)
+    {
+        return 311;
+    }
+
+    pr->lua->changed = FALSE;
+
+    lua_rawgeti(pr->lua->engine, LUA_REGISTRYINDEX, pr->lua->global_closure_ref);
+    if (lua_pcall(pr->lua->engine, 0, 0, 0) != LUA_OK)
+    {
+        if (!pr->lua->error_reported)
+        {
+            char msg[MAXMSG + 1];
+            snprintf(msg, MAXMSG, "Lua script error: %s (further errors from "
+                     "this script will not be reported)",
+                     lua_tostring(pr->lua->engine, -1));
+            writeline(pr, msg);
+            pr->lua->error_reported = TRUE;
+        }
+        lua_pop(pr->lua->engine, 1);
+    }
+
+    return pr->lua->changed;
 }
 
 int luascript_parseScript(Project *pr)
@@ -75,24 +106,49 @@ int luascript_parseScript(Project *pr)
         return 0;
     }
 
-    if (luaL_dostring(pr->lua->engine, pr->lua->script) != LUA_OK)
+    if (luaL_loadstring(pr->lua->engine, pr->lua->script) != LUA_OK)
     {
         char msg[MAXMSG + 1];
-        snprintf(msg, MAXMSG, "Lua script error: %s", lua_tostring(pr->lua->engine, -1));
+        snprintf(msg, MAXMSG, "Lua script error while parsing: %s",
+                 lua_tostring(pr->lua->engine, -1));
         writeline(pr, msg);
         lua_pop(pr->lua->engine, 1);
+        return 312;
     }
+    pr->lua->global_closure_ref = luaL_ref(pr->lua->engine, LUA_REGISTRYINDEX);
 
+    run_lua_script(pr);
     pr->lua->changed = FALSE;
 
     return 0;
+}
+
+int luascript_runIteration(Project *pr)
+{
+    if (pr->lua == NULL || pr->lua->engine == NULL) return 0;
+
+    lua_getglobal(pr->lua->engine, "on_iteration");
+    int hasHandler = lua_isfunction(pr->lua->engine, -1);
+    lua_pop(pr->lua->engine, 1);
+
+    if (hasHandler) return luascript_onEvent(pr, LUA_EVENT_ITERATION);
+    return run_lua_script(pr);
 }
 
 void luascript_close(Project *pr)
 {
     if (pr->lua != NULL)
     {
-        lua_close(pr->lua->engine);
+        if (pr->lua->engine != NULL)
+        {
+            if (pr->lua->global_closure_ref != LUA_NOREF)
+            {
+                luaL_unref(pr->lua->engine, LUA_REGISTRYINDEX,
+                           pr->lua->global_closure_ref);
+            }
+            lua_close(pr->lua->engine);
+        }
+        free(pr->lua->script);
         free(pr->lua);
         pr->lua = NULL;
     }

@@ -22,6 +22,8 @@
 
 #ifdef LUA_SCRIPTING
 #include "lua/luaevents.h"
+#include "lua/luascript.h"
+#define MAX_LUA_ITERATION_PASSES    10
 #endif // LUA_SCRIPTING
 
 const double QZERO = 1.e-6;  // Equivalent to zero flow in cfs
@@ -228,17 +230,26 @@ int   runhyd(Project *pr, long *t)
     // If it changes anything, re-solve and repeat until stable.
     if (!errcode)
     {
-        int luapass = 0;
-        while (luascript_onEvent(pr, LUA_EVENT_ITERATION) && luapass < 10)
+        int luaiterations = 0;
+        while (luascript_runIteration(pr) && luaiterations < MAX_LUA_ITERATION_PASSES)
         {
-            luapass++;
+            luaiterations++;
             if (rpt->Statflag == FULL)
             {
-                snprintf(pr->Msg, sizeof(pr->Msg), "    Lua script changed status — re-solving (pass %d)", luapass);
+                snprintf(pr->Msg, sizeof(pr->Msg), "    Lua script changed status — re-solving (pass %d)", luaiterations);
                 writeline(pr, pr->Msg);
             }
             errcode = hydsolve(pr,&iter,&relerr);
             if (errcode) break;
+        }
+
+        if (luaiterations >= MAX_LUA_ITERATION_PASSES)
+        {
+            snprintf(pr->Msg, sizeof(pr->Msg),
+                     "  WARNING: Lua script still changing the network after "
+                     "%d re-solves at hour %.2f", luaiterations,
+                     (double)time->Htime / 3600.0);
+            writeline(pr, pr->Msg);
         }
     }
     #endif // LUA_SCRIPTING
