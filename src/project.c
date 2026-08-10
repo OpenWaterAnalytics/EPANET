@@ -88,14 +88,6 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
     if (allowerrors) projectopened = (errcode == 0 || errcode == 200);
     else projectopened = (errcode == 0);
 
-    #ifdef LUA_SCRIPTING
-    if (projectopened)
-    {
-        ERRCODE(luascript_parseScript(pr));
-        if (errcode) projectopened = FALSE;
-    }
-    #endif // LUA_SCRIPTING
-
     if (projectopened)
     {
         // If using previously saved hydraulics file then open it
@@ -113,6 +105,14 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
         if (pr->report.Summaryflag) writesummary(pr);
         pr->Openflag = TRUE;
     }
+
+    #ifdef LUA_SCRIPTING
+    if (pr->Openflag)
+    {
+        ERRCODE(luascript_parseScript(pr));
+        if (errcode) pr->Openflag = FALSE;
+    }
+    #endif // LUA_SCRIPTING
 
     errmsg(pr, errcode);
 
