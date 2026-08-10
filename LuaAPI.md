@@ -6,36 +6,69 @@ model while it is being solved. Scripting is only available when EPANET is built
 
 ## The `[SCRIPT]` section
 
-The section holds one Lua chunk, evaluated once when the project is opened, right after
-the input file has been read. Its job is to define event handlers:
+The section holds a Lua script, compiled once when the project is opened, right after the
+input file has been read. There are two ways to write the control code that runs during
+the simulation:
 
-```
-[SCRIPT]
-function on_hydraulics_solved()
-    print("pressure at node 11: ", node("11").pressure)
-end
-```
-
-Nothing has been solved when the chunk runs, so reading `pressure`, `flow` or any other
-computed value at the top level returns whatever the network was initialised with. Put
-that work in a handler.
-
-Top-level code is still useful for constants and state the handlers share:
+- Explicit handler, defining `on_hydraulic_step`. 
 
 ```
 [SCRIPT]
 local target = 30.0
-local worst = 0.0
 
-function on_hydraulics_solved()
-    local off = math.abs(node("J126").pressure - target)
-    if off > worst then worst = off end
-end
-
-function on_close()
-    print(string.format("worst deviation: %.3f", worst))
+function on_hydraulic_step()
+    local off = node("J126").pressure - target
+    if math.abs(off) > 0.01 then
+        link("V1").setting = link("V1").setting - off
+    end
 end
 ```
+
+- Through global scope evaluation. Leave `on_hydraulic_step` undefined and write the control code straight into the script.
+
+The whole script is then re-evaluated on every solver pass:
+
+```
+[SCRIPT]
+local target = 30.0
+
+local off = node("J126").pressure - target
+if math.abs(off) > 0.01 then
+    link("V1").setting = link("V1").setting - off
+end
+```
+
+Because the script re-runs, its top-level `local`s are rebuilt from scratch every pass.
+Consider locals scratch variables, not global state. Anything that has to survive from one pass to the
+next must be a global:
+
+```
+[SCRIPT]
+passes = (passes or 0) + 1        -- global: counts up across the run
+local level = node("2").head      -- local: recomputed every pass
+```
+
+### Not both
+
+The two are alternatives, and which one is in effect is decided by whether
+`on_hydraulic_step` exists. Defining it *and* putting control code at the top level does
+not run both: the handler wins and the top-level code runs only once, at load.
+
+The other three handlers are unaffected and can be used with either mode. Note that in
+global scope mode they are re-created on every pass, so state they keep in a top-level
+`local` is reset each time; use a global for that too.
+
+### The load-time evaluation
+
+Either way, the script is evaluated once when the project opens, which is what defines the
+handlers. In global scope mode that means the control code also runs once at this point,
+against a network that has not been solved yet: `pressure`, `flow` and the other computed
+properties still hold their initial values, and `times().hydraulic_time` is 0.
+
+Writes made during this evaluation are applied but never trigger a re-solve. Usually it is
+harmless — a controller simply computes one result from the initial state and is corrected
+on the first real pass — but a script that would divide by a solved value, or that logs,
+should expect this extra run.
 
 ## Events
 
@@ -46,14 +79,22 @@ end
 | `on_hydraulics_solved` | After each time step is complete (`EN_runH`), with the step's final results in place |
 | `on_close` | Once, when the hydraulic solver is closed (`EN_closeH`) |
 
-All four are optional; a handler that is not defined is skipped.
+All four are optional; a handler that is not defined is skipped. Leaving
+`on_hydraulic_step` out is what selects global scope mode, described above; the other three
+are simply skipped when absent.
 
-`on_hydraulic_step` is the one that can change the outcome of the step it runs in. If a handler
-changes the model, EPANET re-solves the step and calls `on_hydraulic_step` again, repeating
-until the handler stops changing anything, up to a limit of 10 passes. This is what lets a
-script act as a controller — see the PRV example below.
+`on_hydraulic_step` — or, in global scope mode, the script that stands in for it — is the one
+that can change the outcome of the step it runs in. If it changes the model, EPANET re-solves
+the step and runs it again, repeating until it stops changing anything, up to a limit of 10
+passes. This is what lets a script act as a controller — see the examples below.
 
-Two details matter when writing an `on_hydraulic_step` handler:
+If the limit is reached, the step is saved as it stands and the report file gets:
+
+```
+WARNING: Lua script still changing the network after 10 re-solves at hour 4.00
+```
+
+Two details matter when writing control code, in either mode:
 
 - A write only counts as a change if it actually alters the stored value. Assigning a
   property the value it already holds does not trigger another pass, so a handler that
@@ -108,13 +149,28 @@ Lua's standard `print`, which would otherwise write to stdout.
 
 ## Errors
 
-Errors are written to the report file and never abort the simulation.
+A script that does not **compile** is a fatal input error. `EN_open` fails with error 312,
+the project is left closed, and the report file names the line Lua objected to:
 
-An error inside a handler cancels that one call, is reported as
-`Lua script error in on_hydraulics_solved: ...`, and the run continues with the next event. An error
-in the chunk itself is reported as `Lua script error: ...` when the project opens; opening
-still succeeds, but any handlers defined after the failing line will not exist, so the run
-proceeds unscripted.
+```
+Lua script error while parsing: [string "function on_hydraulic_step()..."]:5: ')' expected near 'elevation'
+Error 312: failed to parse Lua script
+```
+
+Line numbers count from the first line of the `[SCRIPT]` section, blank lines included.
+
+A **runtime** error is not fatal. It cancels the one call it happened in and the run
+continues. An error inside a handler is reported as
+`Lua script error in on_hydraulics_solved: ...` every time it happens. An error in the script
+is reported as `Lua script error: ...`, but only the first time — the script can run on every
+solver pass, and repeating the same line thousands of times would bury the report file:
+
+```
+Lua script error: ...:3: node not found: NOSUCHNODE (further errors from this script will not be reported)
+```
+
+Note that a runtime error stops the rest of that call. In global scope mode an error early
+in the script means the control code below it does not run for that pass.
 
 Reading or writing a property that does not exist, or writing a read-only one, raises an
 error naming it: `unknown node property: presure`,
@@ -137,6 +193,10 @@ error naming it: `unknown node property: presure`,
 | `tank_level` | rw | `tank_volume` | r | `max_volume` | r |
 | `demand_deficit` | r | `in_control` | r | `emitter_flow` | r |
 | `leakage_flow` | r | `demand_flow` | r | `full_demand` | r |
+
+`tank_level` is the tank's *initial* level and stays fixed for the whole run. For the level
+a tank is currently at, use `head - elevation`, or `tank_volume` for the volume that
+corresponds to it.
 
 ### `link(id)`
 
@@ -197,22 +257,51 @@ end
 
 ### A pump controlled by tank level
 
+The live level of a tank is `head - elevation`. Do not use `tank_level` for this: that
+property is the tank's *initial* level and does not change while the run proceeds.
+
+Written as a handler:
+
 ```
 [SCRIPT]
 function on_hydraulic_step()
-    local level = node("T1").tank_level
-    local pump = link("PU1")
+    local tank = node("2")
+    local pump = link("9")
+    local level = tank.head - tank.elevation
 
-    if level > 5.2 then
+    if level > 140 then
         pump.status = 0
-    elseif level < 3.5 then
+    elseif level < 110 then
         pump.status = 1
     end
 end
 ```
 
-The guards matter: writing a status the pump already holds is not a change, so the step
-settles once the level is inside the band.
+The same control, written at global scope. The body is identical; all that changed is that
+it is no longer wrapped in a function:
+
+```
+[SCRIPT]
+local tank = node("2")
+local pump = link("9")
+local level = tank.head - tank.elevation
+
+if level > 140 then
+    pump.status = 0
+elseif level < 110 then
+    pump.status = 1
+end
+```
+
+Both drive the pump identically. The handler form is the better fit once the script needs
+state that outlives a pass — a pump start counter, a minimum-level record — because a
+top-level `local` will hold it. The global scope form suits a control law like this one,
+which is a pure function of the current state and keeps nothing.
+
+The guards matter in either form: writing a status the pump already holds is not a change,
+so the step settles once the level is inside the band. Without the band — say a bare
+`pump.status = level > 140 and 0 or 1` recomputed from a level that the switching itself
+moves — the step would flip back and forth until it hit the 10-pass cap.
 
 ### A PRV holding a downstream setpoint
 

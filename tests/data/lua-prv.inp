@@ -48,7 +48,7 @@ Headloss	H-W
 
 local prv_target = 30
 
-function on_iteration()
+function on_hydraulic_step()
     local diff = node("J126").pressure - prv_target
 
     if math.abs(diff) > 0.01 then
