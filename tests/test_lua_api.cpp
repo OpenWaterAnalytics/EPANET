@@ -42,6 +42,10 @@ static const char *CURVE_INP = "./lua-api-curve.inp";
 static const char *CURVE_RPT = "./lua-api-curve.rpt";
 static const char *UNKNOWN_CURVE_INP = "./lua-api-unknown-curve.inp";
 static const char *UNKNOWN_CURVE_RPT = "./lua-api-unknown-curve.rpt";
+static const char *SYNTAX_ERROR_INP = "./lua-api-syntax-error.inp";
+static const char *SYNTAX_ERROR_RPT = "./lua-api-syntax-error.rpt";
+static const char *SYNTAX_ERROR_LINE_INP = "./lua-api-syntax-error-line.inp";
+static const char *SYNTAX_ERROR_LINE_RPT = "./lua-api-syntax-error-line.rpt";
 static const char *EVENT_BASELINE_RPT = "./lua-api-event-baseline.rpt";
 
 static const std::vector<PropertyWrite> WRITABLE_PROPERTY_WRITES = {
@@ -674,6 +678,42 @@ BOOST_AUTO_TEST_CASE(script_cannot_read_an_unknown_curve)
 
     BOOST_CHECK(readWholeFile(UNKNOWN_CURVE_RPT).find(
         "curve not found: not_a_curve") != std::string::npos);
+}
+
+BOOST_AUTO_TEST_CASE(script_with_a_syntax_error_stops_the_project_opening)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, SYNTAX_ERROR_INP,
+                                     "this is not ( valid lua\n"));
+
+    ProjectUnderTest project;
+    BOOST_CHECK_EQUAL(project.open(SYNTAX_ERROR_INP, SYNTAX_ERROR_RPT), 312);
+    BOOST_CHECK_EQUAL(project.solveOneHydraulicStep(), 102);
+    project.close();
+
+    std::string report = readWholeFile(SYNTAX_ERROR_RPT);
+    BOOST_CHECK(report.find("Lua script error while parsing")
+                != std::string::npos);
+    BOOST_CHECK(report.find("Error 312") != std::string::npos);
+}
+
+BOOST_AUTO_TEST_CASE(syntax_error_is_reported_at_the_offending_line)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, SYNTAX_ERROR_LINE_INP,
+        "function on_iteration()\n"           // 1
+        "    local pressure = node(\"11\").pressure\n"
+        "\n"                                  // 3
+        "    if pressure > 10 then\n"
+        "        node(\"11\" elevation = 5\n" // 5: missing ')' and ','
+        "    end\n"
+        "end\n"));
+
+    ProjectUnderTest project;
+    BOOST_CHECK_EQUAL(project.open(SYNTAX_ERROR_LINE_INP,
+                                   SYNTAX_ERROR_LINE_RPT), 312);
+    project.close();
+
+    BOOST_CHECK(readWholeFile(SYNTAX_ERROR_LINE_RPT).find(":5:")
+                != std::string::npos);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

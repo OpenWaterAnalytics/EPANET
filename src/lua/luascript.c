@@ -71,7 +71,7 @@ static int run_lua_script(Project *pr)
 {
     if (pr->lua == NULL || pr->lua->engine == NULL || pr->lua->global_closure_ref == LUA_NOREF)
     {
-        return 311;
+        return FALSE;
     }
 
     pr->lua->changed = FALSE;
