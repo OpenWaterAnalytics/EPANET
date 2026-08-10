@@ -1,9 +1,9 @@
 #ifdef LUA_SCRIPTING
 #include <string.h>
-#include "luafuncs.h"
 #include "luascript.h"
 #include "funcs.h"
 #include "epanet2_2.h"
+#include "luafuncs.h"
 
 #define READ_ONLY FALSE
 #define WRITABLE  TRUE

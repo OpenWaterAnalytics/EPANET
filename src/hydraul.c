@@ -21,7 +21,7 @@
 #include "text.h"
 
 #ifdef LUA_SCRIPTING
-#include "lua/luascript.h"
+#include "lua/luaevents.h"
 #endif // LUA_SCRIPTING
 
 const double QZERO = 1.e-6;  // Equivalent to zero flow in cfs

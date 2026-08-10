@@ -29,7 +29,7 @@
 #endif
 
 #ifdef LUA_SCRIPTING
-#include "lua/luascript.h"
+#include "lua/luaevents.h"
 #endif
 
 /********************************************************************
