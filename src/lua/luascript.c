@@ -127,11 +127,11 @@ int luascript_runIteration(Project *pr)
 {
     if (pr->lua == NULL || pr->lua->engine == NULL) return 0;
 
-    lua_getglobal(pr->lua->engine, "on_iteration");
+    lua_getglobal(pr->lua->engine, "on_hydraulic_step");
     int hasHandler = lua_isfunction(pr->lua->engine, -1);
     lua_pop(pr->lua->engine, 1);
 
-    if (hasHandler) return luascript_onEvent(pr, LUA_EVENT_ITERATION);
+    if (hasHandler) return luascript_onEvent(pr, LUA_EVENT_HYDRAULIC_STEP);
     return run_lua_script(pr);
 }
 

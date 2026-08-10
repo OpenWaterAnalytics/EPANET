@@ -26,7 +26,7 @@ I have changed it so the script is evaluated once on startup, and every change t
 
 With the other scheme the lifecycle was a bit hard to understand: some code in the main body of the script would run once per time step, and other code would run only on events. Now, all changes to the model have to be applied through event callbacks.
 
-Also, instead of one global event handler for everything, there is a callback per event (`on_open`, `on_close`, `on_report`, `on_iteration`). I think this is more aligned with how other scripting engines work.
+Also, instead of one global event handler for everything, there is a callback per event (`on_open`, `on_close`, `on_hydraulics_solved`, `on_hydraulic_step`). I think this is more aligned with how other scripting engines work.
 
 ## Integration points in the engine
 
@@ -36,6 +36,6 @@ Also, instead of one global event handler for everything, there is a callback pe
 | `project.c` `openproject()` | `luascript_open()` creates the state and registers the API. `luascript_parseScript()` evaluates the chunk |
 | `project.c` `freedata()` | `luascript_close()` to cleanup the engine |
 | `epanet.c` `EN_initH()` | fires `on_open` |
-| `epanet.c` `EN_runH()` | fires `on_report`, only once `runhyd()` has succeeded |
+| `epanet.c` `EN_runH()` | fires `on_hydraulics_solved`, only once `runhyd()` has succeeded |
 | `epanet.c` `EN_closeH()` | fires `on_close` |
-| `hydraul.c` `runhyd()` | fires `on_iteration` after the step converges, and re-solves while the script keeps changing the model |
+| `hydraul.c` `runhyd()` | fires `on_hydraulic_step` after the step converges, and re-solves while the script keeps changing the model |

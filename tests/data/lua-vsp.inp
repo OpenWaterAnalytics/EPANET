@@ -62,7 +62,7 @@ function on_open()
     print("VSP logic initialised, target = ", target_pressure)
 end
 
-function on_report()
+function on_hydraulics_solved()
     local speed = link("PU2").setting
     local pressure = node("J126").pressure
 
@@ -73,7 +73,7 @@ function on_report()
     last_pressure = pressure
 end
 
-function on_iteration()
+function on_hydraulic_step()
     local pump = link("PU2")
     local speed = pump.setting
     local pressure = node("J126").pressure

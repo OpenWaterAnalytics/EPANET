@@ -11,7 +11,7 @@ the input file has been read. Its job is to define event handlers:
 
 ```
 [SCRIPT]
-function on_report()
+function on_hydraulics_solved()
     print("pressure at node 11: ", node("11").pressure)
 end
 ```
@@ -27,7 +27,7 @@ Top-level code is still useful for constants and state the handlers share:
 local target = 30.0
 local worst = 0.0
 
-function on_report()
+function on_hydraulics_solved()
     local off = math.abs(node("J126").pressure - target)
     if off > worst then worst = off end
 end
@@ -42,18 +42,18 @@ end
 | Handler | When it runs |
 | --- | --- |
 | `on_open` | Once, when the hydraulic solver is initialised (`EN_initH`), before the first time step |
-| `on_iteration` | After each time step converges, before its results are saved |
-| `on_report` | After each time step is complete (`EN_runH`), with the step's final results in place |
+| `on_hydraulic_step` | After each time step converges, before its results are saved |
+| `on_hydraulics_solved` | After each time step is complete (`EN_runH`), with the step's final results in place |
 | `on_close` | Once, when the hydraulic solver is closed (`EN_closeH`) |
 
 All four are optional; a handler that is not defined is skipped.
 
-`on_iteration` is the one that can change the outcome of the step it runs in. If a handler
-changes the model, EPANET re-solves the step and calls `on_iteration` again, repeating
+`on_hydraulic_step` is the one that can change the outcome of the step it runs in. If a handler
+changes the model, EPANET re-solves the step and calls `on_hydraulic_step` again, repeating
 until the handler stops changing anything, up to a limit of 10 passes. This is what lets a
 script act as a controller — see the PRV example below.
 
-Two details matter when writing an `on_iteration` handler:
+Two details matter when writing an `on_hydraulic_step` handler:
 
 - A write only counts as a change if it actually alters the stored value. Assigning a
   property the value it already holds does not trigger another pass, so a handler that
@@ -111,7 +111,7 @@ Lua's standard `print`, which would otherwise write to stdout.
 Errors are written to the report file and never abort the simulation.
 
 An error inside a handler cancels that one call, is reported as
-`Lua script error in on_report: ...`, and the run continues with the next event. An error
+`Lua script error in on_hydraulics_solved: ...`, and the run continues with the next event. An error
 in the chunk itself is reported as `Lua script error: ...` when the project opens; opening
 still succeeds, but any handlers defined after the failing line will not exist, so the run
 proceeds unscripted.
@@ -187,7 +187,7 @@ solver is open — which is always the case while a script runs.
 
 ```
 [SCRIPT]
-function on_report()
+function on_hydraulics_solved()
     print(string.format("t=%d p=%.2f q=%.3f",
                         times().hydraulic_time,
                         node("J126").pressure,
@@ -199,7 +199,7 @@ end
 
 ```
 [SCRIPT]
-function on_iteration()
+function on_hydraulic_step()
     local level = node("T1").tank_level
     local pump = link("PU1")
 
@@ -223,7 +223,7 @@ the demand is fixed while the step is being solved.
 [SCRIPT]
 local target = 30.0
 
-function on_iteration()
+function on_hydraulic_step()
     local off = node("J126").pressure - target
 
     if math.abs(off) > 0.01 then

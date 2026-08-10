@@ -288,7 +288,7 @@ static std::string scriptWritingEveryWritableProperty()
     {
         body += "    " + luaAssignment(write);
     }
-    return luaEventHandler("on_iteration", body);
+    return luaEventHandler("on_hydraulic_step", body);
 }
 
 static bool finalValueMatchesScriptValue(const LuaProperty &property)
@@ -331,7 +331,7 @@ BOOST_AUTO_TEST_CASE(script_reads_all_properties_into_report)
     // solved and its results saved
     BOOST_REQUIRE(buildInpWithScript(BASE_INP, READ_TEST_INP,
                                      luaDumpScript(DUMPED_ELEMENTS,
-                                                   "on_report")));
+                                                   "on_hydraulics_solved")));
 
     ProjectUnderTest project;
     BOOST_REQUIRE(project.open(READ_TEST_INP, READ_TEST_RPT) == 0);
@@ -447,8 +447,8 @@ BOOST_AUTO_TEST_CASE(script_cannot_use_an_unknown_option)
 BOOST_AUTO_TEST_CASE(report_event_runs_once_per_time_step)
 {
     BOOST_REQUIRE(buildInpWithScript(BASE_INP, REPORT_EVENT_INP,
-        "function on_report()\n"
-        "    print(\"on_report p11=\" .. tostring(node(\"11\").pressure))\n"
+        "function on_hydraulics_solved()\n"
+        "    print(\"on_hydraulics_solved p11=\" .. tostring(node(\"11\").pressure))\n"
         "end\n"));
 
     ProjectUnderTest project;
@@ -465,12 +465,12 @@ BOOST_AUTO_TEST_CASE(report_event_runs_once_per_time_step)
 
     std::string report = readWholeFile(REPORT_EVENT_RPT);
     BOOST_CHECK(!reportMentionsLuaError(report));
-    BOOST_CHECK_EQUAL(countOccurrences(report, "on_report p11="), steps);
+    BOOST_CHECK_EQUAL(countOccurrences(report, "on_hydraulics_solved p11="), steps);
 
     // The handler runs after the step has converged, so the pressure it
     // sees is the one the step ended on
     double printed;
-    BOOST_REQUIRE(findLastPrintedValue(report, "on_report p11=", &printed));
+    BOOST_REQUIRE(findLastPrintedValue(report, "on_hydraulics_solved p11=", &printed));
     BOOST_CHECK_CLOSE(printed, finalPressure, 0.01);
 }
 
@@ -483,7 +483,7 @@ BOOST_AUTO_TEST_CASE(open_and_close_events_bracket_the_run)
         "function on_open()\n"
         "    print(\"event on_open n11elev=\" .. tostring(node(\"11\").elevation))\n"
         "end\n"
-        "function on_report() print(\"event on_report\") end\n"
+        "function on_hydraulics_solved() print(\"event on_hydraulics_solved\") end\n"
         "function on_close() print(\"event on_close\") end\n"));
 
     ProjectUnderTest project;
@@ -502,7 +502,7 @@ BOOST_AUTO_TEST_CASE(open_and_close_events_bracket_the_run)
 
     BOOST_CHECK_EQUAL(countOccurrences(report, "event on_open n11elev="), 1);
     BOOST_CHECK_EQUAL(countOccurrences(report, "event on_close"), 1);
-    BOOST_CHECK_EQUAL(countOccurrences(report, "event on_report"), steps);
+    BOOST_CHECK_EQUAL(countOccurrences(report, "event on_hydraulics_solved"), steps);
 
     // The parsed network is readable from on_open, which is what firing
     // it after the input has been read buys
@@ -511,9 +511,9 @@ BOOST_AUTO_TEST_CASE(open_and_close_events_bracket_the_run)
                                        &printed));
     BOOST_CHECK_CLOSE(printed, elevation, 0.01);
 
-    BOOST_CHECK(report.find("event on_open") < report.find("event on_report"));
+    BOOST_CHECK(report.find("event on_open") < report.find("event on_hydraulics_solved"));
     BOOST_CHECK(report.rfind("event on_close")
-                > report.rfind("event on_report"));
+                > report.rfind("event on_hydraulics_solved"));
 }
 
 // The iteration event fires once the step has converged, and a change
@@ -524,7 +524,7 @@ BOOST_AUTO_TEST_CASE(open_and_close_events_bracket_the_run)
 BOOST_AUTO_TEST_CASE(iteration_event_changes_take_effect_in_the_same_timestep)
 {
     BOOST_REQUIRE(buildInpWithScript(BASE_INP, ITERATION_EVENT_INP,
-        "function on_iteration() link(\"10\").roughness = 50 end\n"));
+        "function on_hydraulic_step() link(\"10\").roughness = 50 end\n"));
 
     ProjectUnderTest scripted;
     BOOST_REQUIRE(scripted.open(ITERATION_EVENT_INP, ITERATION_EVENT_RPT) == 0);
@@ -559,7 +559,7 @@ BOOST_AUTO_TEST_CASE(iteration_event_changes_take_effect_in_the_same_timestep)
 BOOST_AUTO_TEST_CASE(iteration_event_re_solving_is_bounded)
 {
     BOOST_REQUIRE(buildInpWithScript(BASE_INP, RUNAWAY_EVENT_INP,
-        "function on_iteration()\n"
+        "function on_hydraulic_step()\n"
         "    print(\"iteration pass\")\n"
         "    link(\"10\").roughness = link(\"10\").roughness - 1\n"
         "end\n"));
@@ -596,7 +596,7 @@ static std::string scriptDumpingCurves()
         "                  .. tostring(point[2]))\n"
         "        end\n"
         "    end\n";
-    return luaEventHandler("on_report", body);
+    return luaEventHandler("on_hydraulics_solved", body);
 }
 
 BOOST_AUTO_TEST_CASE(script_reads_every_point_of_a_curve)
@@ -669,7 +669,7 @@ BOOST_AUTO_TEST_CASE(script_reads_every_point_of_a_curve)
 BOOST_AUTO_TEST_CASE(script_cannot_read_an_unknown_curve)
 {
     BOOST_REQUIRE(buildInpWithScript(BASE_INP, UNKNOWN_CURVE_INP,
-        "function on_report() local points = curve(\"not_a_curve\") end\n"));
+        "function on_hydraulics_solved() local points = curve(\"not_a_curve\") end\n"));
 
     ProjectUnderTest project;
     BOOST_REQUIRE(project.open(UNKNOWN_CURVE_INP, UNKNOWN_CURVE_RPT) == 0);
@@ -699,7 +699,7 @@ BOOST_AUTO_TEST_CASE(script_with_a_syntax_error_stops_the_project_opening)
 BOOST_AUTO_TEST_CASE(syntax_error_is_reported_at_the_offending_line)
 {
     BOOST_REQUIRE(buildInpWithScript(BASE_INP, SYNTAX_ERROR_LINE_INP,
-        "function on_iteration()\n"           // 1
+        "function on_hydraulic_step()\n"           // 1
         "    local pressure = node(\"11\").pressure\n"
         "\n"                                  // 3
         "    if pressure > 10 then\n"

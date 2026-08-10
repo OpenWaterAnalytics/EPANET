@@ -582,7 +582,7 @@ int DLLEXPORT EN_runH(EN_Project p, long *currentTime)
     #ifdef LUA_SCRIPTING
     if (!errcode)
     {
-        luascript_onEvent(p, LUA_EVENT_REPORT);
+        luascript_onEvent(p, LUA_EVENT_HYDRAULICS_SOLVED);
     }
     #endif
 

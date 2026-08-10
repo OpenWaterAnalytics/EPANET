@@ -119,7 +119,7 @@ BOOST_FIXTURE_TEST_CASE(script_steers_prv_toward_target, FixtureOpenLuaPrv)
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
 
-    // A setting change made from on_iteration sends the solver round
+    // A setting change made from on_hydraulic_step sends the solver round
     // again, so the handler converges on the target within each time
     // step: J126 must stay at the target pressure for the whole run,
     // which is only possible if it pulled the valve off its fixed setting
@@ -170,7 +170,7 @@ BOOST_FIXTURE_TEST_CASE(script_steers_vsp_toward_target, FixtureOpenLuaVsp)
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
 
-    // The speed search runs from on_iteration, so it re-solves until the
+    // The speed search runs from on_hydraulic_step, so it re-solves until the
     // pump holds the target within each time step
     BOOST_CHECK_SMALL(maxDeviation, 0.5);
 

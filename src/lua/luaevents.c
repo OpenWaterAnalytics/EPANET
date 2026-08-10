@@ -7,8 +7,8 @@
 static const char *event_name[LUA_EVENT_MAX] = {
     [LUA_EVENT_OPEN] = "on_open",
     [LUA_EVENT_CLOSE] = "on_close",
-    [LUA_EVENT_REPORT] = "on_report",
-    [LUA_EVENT_ITERATION] = "on_iteration"
+    [LUA_EVENT_HYDRAULICS_SOLVED] = "on_hydraulics_solved",
+    [LUA_EVENT_HYDRAULIC_STEP] = "on_hydraulic_step"
 };
 
 int luascript_onEvent(Project *pr, LuaEvent event)
