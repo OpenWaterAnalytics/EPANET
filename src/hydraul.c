@@ -299,6 +299,13 @@ int  nexthyd(Project *pr, long *tstep)
     if (pr->outfile.Saveflag) errcode = savehyd(pr, &time->Htime);
     if (hyd->Haltflag) time->Htime = time->Dur;
 
+    #ifdef LUA_SCRIPTING
+    if (!errcode)
+    {
+        luascript_onEvent(pr, LUA_EVENT_HYDRAULICS_SOLVED);
+    }
+    #endif
+
     // Compute next time step & update tank levels
     *tstep = 0;
     hydstep = 0;

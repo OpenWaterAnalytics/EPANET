@@ -579,13 +579,6 @@ int DLLEXPORT EN_runH(EN_Project p, long *currentTime)
     errcode = runhyd(p, currentTime);
     if (errcode) errmsg(p, errcode);
 
-    #ifdef LUA_SCRIPTING
-    if (!errcode)
-    {
-        luascript_onEvent(p, LUA_EVENT_HYDRAULICS_SOLVED);
-    }
-    #endif
-
     return errcode;
 }
 

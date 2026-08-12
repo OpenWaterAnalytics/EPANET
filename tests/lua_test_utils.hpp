@@ -202,6 +202,17 @@ struct ProjectUnderTest
         if (!error) error = EN_closeH(ph);
         return error;
     }
+    
+    int solveAndAdvanceOneHydraulicStep()
+    {
+        long time, tstep;
+        int error = EN_openH(ph);
+        if (!error) error = EN_initH(ph, EN_NOSAVE);
+        if (!error) error = EN_runH(ph, &time);
+        if (!error) error = EN_nextH(ph, &tstep);
+        if (!error) error = EN_closeH(ph);
+        return error;
+    }
 
     // Runs every time step of the simulation, reporting how many were solved
     int solveAllHydraulicSteps(int *steps)

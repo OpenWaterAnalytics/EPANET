@@ -36,6 +36,6 @@ Also, instead of one global event handler for everything, there is a callback pe
 | `project.c` `openproject()` | `luascript_open()` creates the state and registers the API. `luascript_parseScript()` evaluates the chunk |
 | `project.c` `freedata()` | `luascript_close()` to cleanup the engine |
 | `epanet.c` `EN_initH()` | fires `on_open` |
-| `epanet.c` `EN_runH()` | fires `on_hydraulics_solved`, only once `runhyd()` has succeeded |
 | `epanet.c` `EN_closeH()` | fires `on_close` |
 | `hydraul.c` `runhyd()` | fires `on_hydraulic_step` after the step converges, and re-solves while the script keeps changing the model |
+| `hydraul.c` `nexthyd()` | fires `on_hydraulics_solved` once `savehyd()` has written the step out, but before the clock and the tank levels advance: reads to links and nodes see values from the just finished hydraulic step, while writes are deferred to the next step |

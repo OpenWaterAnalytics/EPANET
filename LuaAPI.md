@@ -76,7 +76,7 @@ should expect this extra run.
 | --- | --- |
 | `on_open` | Once, when the hydraulic solver is initialised (`EN_initH`), before the first time step |
 | `on_hydraulic_step` | After each time step converges, before its results are saved |
-| `on_hydraulics_solved` | After each time step is complete (`EN_runH`), with the step's final results in place |
+| `on_hydraulics_solved` | After each time step's results have been saved (`EN_nextH`), with those results still in place |
 | `on_close` | Once, when the hydraulic solver is closed (`EN_closeH`) |
 
 All four are optional; a handler that is not defined is skipped. Leaving
