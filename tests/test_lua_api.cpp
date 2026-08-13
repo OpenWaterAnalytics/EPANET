@@ -26,6 +26,8 @@ static const char *READ_TEST_RPT = "./lua-api-read.rpt";
 static const char *RESOLVE_REFERENCE_RPT = "./lua-api-resolve-ref.rpt";
 static const char *READ_ONLY_OPTION_INP = "./lua-api-readonly-option.inp";
 static const char *READ_ONLY_OPTION_RPT = "./lua-api-readonly-option.rpt";
+static const char *EVERY_OPTION_INP = "./lua-api-every-option.inp";
+static const char *EVERY_OPTION_RPT = "./lua-api-every-option.rpt";
 static const char *UNKNOWN_OPTION_INP = "./lua-api-unknown-option.inp";
 static const char *UNKNOWN_OPTION_RPT = "./lua-api-unknown-option.rpt";
 static const char *READ_ONLY_TIME_INP = "./lua-api-readonly-time.inp";
@@ -101,34 +103,6 @@ static const std::vector<PropertyWrite> WRITABLE_PROPERTY_WRITES = {
     { LINK, "VPCV", "pcv_curve",      EN_PCV_CURVE,    6      },
 };
 
-static const std::vector<PropertyWrite> WRITABLE_OPTION_WRITES = {
-    { OPTIONS, "", "trials",               EN_TRIALS,        60           },
-    { OPTIONS, "", "accuracy",             EN_ACCURACY,      0.005        },
-    { OPTIONS, "", "tolerance",            EN_TOLERANCE,     0.02         },
-    { OPTIONS, "", "emitter_exponent",     EN_EMITEXPON,     0.6          },
-    { OPTIONS, "", "demand_multiplier",    EN_DEMANDMULT,    1.5          },
-    { OPTIONS, "", "head_error",           EN_HEADERROR,     0.5          },
-    { OPTIONS, "", "flow_change",          EN_FLOWCHANGE,    0.75         },
-    { OPTIONS, "", "global_efficiency",    EN_GLOBALEFFIC,   80           },
-    { OPTIONS, "", "global_price",         EN_GLOBALPRICE,   0.15         },
-    { OPTIONS, "", "global_pattern",       EN_GLOBALPATTERN, 2            },
-    { OPTIONS, "", "demand_charge",        EN_DEMANDCHARGE,  12.5         },
-    { OPTIONS, "", "specific_gravity",     EN_SP_GRAVITY,    1.2          },
-    { OPTIONS, "", "specific_viscosity",   EN_SP_VISCOS,     1.1          },
-    { OPTIONS, "", "unbalanced",           EN_UNBALANCED,    15           },
-    { OPTIONS, "", "check_frequency",      EN_CHECKFREQ,     3            },
-    { OPTIONS, "", "max_check",            EN_MAXCHECK,      12           },
-    { OPTIONS, "", "damp_limit",           EN_DAMPLIMIT,     0.05         },
-    { OPTIONS, "", "specific_diffusivity", EN_SP_DIFFUS,     1.3          },
-    { OPTIONS, "", "bulk_order",           EN_BULKORDER,     0.5          },
-    { OPTIONS, "", "wall_order",           EN_WALLORDER,     0            },
-    { OPTIONS, "", "tank_order",           EN_TANKORDER,     0.5          },
-    { OPTIONS, "", "concentration_limit",  EN_CONCENLIMIT,   4            },
-    { OPTIONS, "", "demand_pattern",       EN_DEMANDPATTERN, 2            },
-    { OPTIONS, "", "emitter_backflow",     EN_EMITBACKFLOW,  0            },
-    { OPTIONS, "", "pressure_units",       EN_PRESS_UNITS,   EN_METERS    },
-    { OPTIONS, "", "status_report",        EN_STATUS_REPORT, EN_NO_REPORT },
-};
 
 static const std::vector<PropertyWrite> WRITABLE_TIME_WRITES = {
     { TIMES, "", "duration",        EN_DURATION,      43200 },
@@ -275,12 +249,7 @@ static const std::vector<ElementToDump> DUMPED_ELEMENTS = {
 
 static std::vector<PropertyWrite> everyWritableProperty()
 {
-    std::vector<PropertyWrite> writes = WRITABLE_OPTION_WRITES;
-    writes.insert(
-        writes.end(),
-        WRITABLE_TIME_WRITES.begin(),
-        WRITABLE_TIME_WRITES.end()
-    );
+    std::vector<PropertyWrite> writes = WRITABLE_TIME_WRITES;
     writes.insert(
         writes.end(),
         WRITABLE_PROPERTY_WRITES.begin(),
@@ -421,24 +390,61 @@ BOOST_AUTO_TEST_CASE(script_reads_all_properties_into_report)
     }
 }
 
-BOOST_AUTO_TEST_CASE(script_cannot_write_a_read_only_option)
+BOOST_AUTO_TEST_CASE(script_cannot_write_an_option)
 {
     BOOST_REQUIRE(buildInpWithScript(BASE_INP, READ_ONLY_OPTION_INP,
-                                     "options().headloss_form = 1\n"));
+                                     "options().demand_multiplier = 1.5\n"));
 
     ProjectUnderTest project;
     BOOST_REQUIRE(project.open(READ_ONLY_OPTION_INP, READ_ONLY_OPTION_RPT) == 0);
     BOOST_REQUIRE_EQUAL(project.solveOneHydraulicStep(), 313);
 
-    double headlossForm;
-    BOOST_CHECK(project.readValue(OPTIONS, "", EN_HEADLOSSFORM,
-                                  &headlossForm) == 0);
-    BOOST_CHECK_EQUAL(headlossForm, EN_HW);
+    double multiplier;
+    BOOST_CHECK(project.readValue(OPTIONS, "", EN_DEMANDMULT, &multiplier) == 0);
+    BOOST_CHECK_NE(multiplier, 1.5);
 
     project.close();
 
     BOOST_CHECK(readWholeFile(READ_ONLY_OPTION_RPT).find(
-        "options property is read only: headloss_form") != std::string::npos);
+        "options property is read only: demand_multiplier") != std::string::npos);
+}
+
+// Every option, not just a sample of them: the whole table is read only,
+// so each assignment has to raise and leave the value where it was
+BOOST_AUTO_TEST_CASE(script_cannot_write_any_option)
+{
+    std::string body;
+    for (const LuaProperty &property : OPTION_PROPERTIES)
+    {
+        body += std::string("    refuse(\"") + property.luaName + "\")\n";
+    }
+
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, EVERY_OPTION_INP,
+        "tried, refused = 0, 0\n"
+        "local function refuse(name)\n"
+        "    tried = tried + 1\n"
+        "    local before = options()[name]\n"
+        "    local ok = pcall(function() options()[name] = before + 1 end)\n"
+        "    if not ok and options()[name] == before then\n"
+        "        refused = refused + 1\n"
+        "    end\n"
+        "end\n"
+      + luaEventHandler("on_hydraulic_step",
+            body + "    print(\"tried=\" .. tried)\n"
+                   "    print(\"refused=\" .. refused)\n")));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE_EQUAL(project.open(EVERY_OPTION_INP, EVERY_OPTION_RPT), 0);
+    BOOST_REQUIRE_EQUAL(project.solveOneHydraulicStep(), 0);
+    project.close();
+
+    std::string report = readWholeFile(EVERY_OPTION_RPT);
+    double tried = 0, refused = 0;
+    BOOST_REQUIRE(findLastPrintedValue(report, "tried=", &tried));
+    BOOST_REQUIRE(findLastPrintedValue(report, "refused=", &refused));
+
+    BOOST_CHECK_EQUAL(tried, (double)OPTION_PROPERTIES.size());
+    BOOST_CHECK_EQUAL(refused, (double)OPTION_PROPERTIES.size());
 }
 
 BOOST_AUTO_TEST_CASE(script_cannot_write_a_read_only_time_parameter)

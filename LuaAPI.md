@@ -123,11 +123,12 @@ An unknown id raises `node not found: <id>`.
 The project-wide analysis options and time parameters. They take no id:
 
 ```lua
-options().demand_multiplier = 1.2
-print(times().duration)
+print(options().demand_multiplier)
+times().report_step = 900
 ```
 
-`times()` values are whole seconds. Values written to them are rounded, not truncated.
+Options are read only. Time parameters can be written.
+Their values are whole seconds, and values written to them are rounded, not truncated.
 
 ### `curve(id)`
 
@@ -210,20 +211,20 @@ corresponds to it.
 
 ### `options()`
 
-Every option is writable except `headloss_form`, which EPANET refuses to change while the
-solver is open — which is always the case while a script runs.
+Every option is read only. They configure the run, and a script only ever sees a run that is
+already under way, so writing one raises `options property is read only: <name>`.
 
 | Property | | Property | | Property | |
 | --- | --- | --- | --- | --- | --- |
-| `trials` | rw | `global_efficiency` | rw | `specific_diffusivity` | rw |
-| `accuracy` | rw | `global_price` | rw | `bulk_order` | rw |
-| `tolerance` | rw | `global_pattern` | rw | `wall_order` | rw |
-| `emitter_exponent` | rw | `demand_charge` | rw | `tank_order` | rw |
-| `demand_multiplier` | rw | `specific_gravity` | rw | `concentration_limit` | rw |
-| `head_error` | rw | `specific_viscosity` | rw | `demand_pattern` | rw |
-| `flow_change` | rw | `unbalanced` | rw | `emitter_backflow` | rw |
-| `check_frequency` | rw | `max_check` | rw | `pressure_units` | rw |
-| `damp_limit` | rw | `status_report` | rw | `headloss_form` | r |
+| `trials` | r | `global_efficiency` | r | `specific_diffusivity` | r |
+| `accuracy` | r | `global_price` | r | `bulk_order` | r |
+| `tolerance` | r | `global_pattern` | r | `wall_order` | r |
+| `emitter_exponent` | r | `demand_charge` | r | `tank_order` | r |
+| `demand_multiplier` | r | `specific_gravity` | r | `concentration_limit` | r |
+| `head_error` | r | `specific_viscosity` | r | `demand_pattern` | r |
+| `flow_change` | r | `unbalanced` | r | `emitter_backflow` | r |
+| `check_frequency` | r | `max_check` | r | `pressure_units` | r |
+| `damp_limit` | r | `status_report` | r | `headloss_form` | r |
 
 ### `times()`
 
@@ -321,7 +322,8 @@ end
 ```
 [SCRIPT]
 function on_open()
-    options().demand_multiplier = 1.2
+    times().report_step = 900
+    print("demand multiplier: ", options().demand_multiplier)
     print("duration (s):      ", times().duration)
     print("hydraulic step (s):", times().hydraulic_step)
 end

@@ -27,7 +27,7 @@ typedef struct
 // An object type: its Lua-facing names, its property table and the
 // EPANET functions used to look it up and read/write its properties.
 // A NULL find marks a project-wide object, which takes no id and whose
-// index is unused
+// index is unused; a NULL set marks one that is read only throughout
 typedef struct
 {
     const char *metatable;
@@ -111,33 +111,33 @@ static const PropDesc LinkProps[] = {
 };
 
 static const PropDesc OptionProps[] = {
-    { "trials",               EN_TRIALS,        WRITABLE  },
-    { "accuracy",             EN_ACCURACY,      WRITABLE  },
-    { "tolerance",            EN_TOLERANCE,     WRITABLE  },
-    { "emitter_exponent",     EN_EMITEXPON,     WRITABLE  },
-    { "demand_multiplier",    EN_DEMANDMULT,    WRITABLE  },
-    { "head_error",           EN_HEADERROR,     WRITABLE  },
-    { "flow_change",          EN_FLOWCHANGE,    WRITABLE  },
+    { "trials",               EN_TRIALS,        READ_ONLY },
+    { "accuracy",             EN_ACCURACY,      READ_ONLY },
+    { "tolerance",            EN_TOLERANCE,     READ_ONLY },
+    { "emitter_exponent",     EN_EMITEXPON,     READ_ONLY },
+    { "demand_multiplier",    EN_DEMANDMULT,    READ_ONLY },
+    { "head_error",           EN_HEADERROR,     READ_ONLY },
+    { "flow_change",          EN_FLOWCHANGE,    READ_ONLY },
     { "headloss_form",        EN_HEADLOSSFORM,  READ_ONLY },
-    { "global_efficiency",    EN_GLOBALEFFIC,   WRITABLE  },
-    { "global_price",         EN_GLOBALPRICE,   WRITABLE  },
-    { "global_pattern",       EN_GLOBALPATTERN, WRITABLE  },
-    { "demand_charge",        EN_DEMANDCHARGE,  WRITABLE  },
-    { "specific_gravity",     EN_SP_GRAVITY,    WRITABLE  },
-    { "specific_viscosity",   EN_SP_VISCOS,     WRITABLE  },
-    { "unbalanced",           EN_UNBALANCED,    WRITABLE  },
-    { "check_frequency",      EN_CHECKFREQ,     WRITABLE  },
-    { "max_check",            EN_MAXCHECK,      WRITABLE  },
-    { "damp_limit",           EN_DAMPLIMIT,     WRITABLE  },
-    { "specific_diffusivity", EN_SP_DIFFUS,     WRITABLE  },
-    { "bulk_order",           EN_BULKORDER,     WRITABLE  },
-    { "wall_order",           EN_WALLORDER,     WRITABLE  },
-    { "tank_order",           EN_TANKORDER,     WRITABLE  },
-    { "concentration_limit",  EN_CONCENLIMIT,   WRITABLE  },
-    { "demand_pattern",       EN_DEMANDPATTERN, WRITABLE  },
-    { "emitter_backflow",     EN_EMITBACKFLOW,  WRITABLE  },
-    { "pressure_units",       EN_PRESS_UNITS,   WRITABLE  },
-    { "status_report",        EN_STATUS_REPORT, WRITABLE  },
+    { "global_efficiency",    EN_GLOBALEFFIC,   READ_ONLY },
+    { "global_price",         EN_GLOBALPRICE,   READ_ONLY },
+    { "global_pattern",       EN_GLOBALPATTERN, READ_ONLY },
+    { "demand_charge",        EN_DEMANDCHARGE,  READ_ONLY },
+    { "specific_gravity",     EN_SP_GRAVITY,    READ_ONLY },
+    { "specific_viscosity",   EN_SP_VISCOS,     READ_ONLY },
+    { "unbalanced",           EN_UNBALANCED,    READ_ONLY },
+    { "check_frequency",      EN_CHECKFREQ,     READ_ONLY },
+    { "max_check",            EN_MAXCHECK,      READ_ONLY },
+    { "damp_limit",           EN_DAMPLIMIT,     READ_ONLY },
+    { "specific_diffusivity", EN_SP_DIFFUS,     READ_ONLY },
+    { "bulk_order",           EN_BULKORDER,     READ_ONLY },
+    { "wall_order",           EN_WALLORDER,     READ_ONLY },
+    { "tank_order",           EN_TANKORDER,     READ_ONLY },
+    { "concentration_limit",  EN_CONCENLIMIT,   READ_ONLY },
+    { "demand_pattern",       EN_DEMANDPATTERN, READ_ONLY },
+    { "emitter_backflow",     EN_EMITBACKFLOW,  READ_ONLY },
+    { "pressure_units",       EN_PRESS_UNITS,   READ_ONLY },
+    { "status_report",        EN_STATUS_REPORT, READ_ONLY },
     { NULL,                   0,                READ_ONLY }
 };
 
@@ -166,11 +166,6 @@ static int getOptionValue(EN_Project pr, int index, int code, double *value)
     return EN_getoption(pr, code, value);
 }
 
-static int setOptionValue(EN_Project pr, int index, int code, double value)
-{
-    return EN_setoption(pr, code, value);
-}
-
 static int getTimeValue(EN_Project pr, int index, int code, double *value)
 {
     long seconds = 0;
@@ -188,7 +183,7 @@ static int setTimeValue(EN_Project pr, int index, int code, double value)
 static const LuaApiFunc LuaApi[] = {
     { "epanet.node",    "node",    NodeProps,   findnode, EN_getnodevalue, EN_setnodevalue },
     { "epanet.link",    "link",    LinkProps,   findlink, EN_getlinkvalue, EN_setlinkvalue },
-    { "epanet.options", "options", OptionProps, NULL,     getOptionValue,  setOptionValue  },
+    { "epanet.options", "options", OptionProps, NULL,     getOptionValue,  NULL            },
     { "epanet.times",   "times",   TimeProps,   NULL,     getTimeValue,    setTimeValue    }
 };
 
@@ -325,7 +320,10 @@ static int lua_elem_newindex(lua_State *lua)
 
     const PropDesc *p = findElementProperty(d->props, key);
     if (p == NULL) return luaL_error(lua, "unknown %s property: %s", d->global, key);
-    if (!p->writable) return luaL_error(lua, "%s property is read only: %s", d->global, key);
+    if (!p->writable || d->set == NULL)
+    {
+        return luaL_error(lua, "%s property is read only: %s", d->global, key);
+    }
 
     double before, after;
     int hadValueBefore = (d->get(pr, e->index, p->code, &before) == 0);
