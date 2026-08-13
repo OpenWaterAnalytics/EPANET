@@ -213,6 +213,7 @@ static int lua_epanet_print(lua_State *lua)
 
     if (pr->report.Statflag == FALSE) return 0;
 
+    pos += sprintf(buf, "[SCRIPT] ");
     for (int i = 1; i <= nargs; i++)
     {
         const char *argAsString = stringOrEmpty(lua, i);
