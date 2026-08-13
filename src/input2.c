@@ -44,6 +44,9 @@ static int  newline(Project *, int, char *);
 static int  addpattern(Network *, char *);
 static int  addcurve(Network *, char *);
 static void inperrmsg(Project *, int, int, char *);
+#ifdef LUA_SCRIPTING
+static int  startsnewsection(Parser *, int);
+#endif // LUA_SCRIPTING
 
 
 int netsize(Project *pr)
@@ -211,7 +214,7 @@ int readdata(Project *pr)
                 newline(pr, sect, line);
                 continue;
             }
-            #endif
+            #endif // LUA_SCRIPTING
 
             // Store full line comment for Patterns and Curves
             if (sect == _PATTERNS || sect == _CURVES)
@@ -238,7 +241,11 @@ int readdata(Project *pr)
         }
 
         // Check if at start of a new input section
+        #ifdef LUA_SCRIPTING
+        if (startsnewsection(parser, sect))
+        #else
         if (parser->Tok[0][0] == '[')
+        #endif // LUA_SCRIPTING
         {
             newsect = findmatch(parser->Tok[0], SectTxt);
             if (newsect >= 0)
@@ -280,6 +287,16 @@ int readdata(Project *pr)
     free(parser->X);
     return errcode;
 }
+
+#ifdef LUA_SCRIPTING
+int startsnewsection(Parser *parser, int sect)
+{
+    if (parser->Tok[0][0] != '[') return FALSE;
+    if (sect != _SCRIPT) return TRUE;
+
+    return (parser->Ntokens == 1 && findmatch(parser->Tok[0], SectTxt) >= 0);
+}
+#endif // LUA_SCRIPTING
 
 int newline(Project *pr, int sect, char *line)
 /*

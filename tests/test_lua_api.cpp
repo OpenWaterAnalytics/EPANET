@@ -46,6 +46,12 @@ static const char *SYNTAX_ERROR_INP = "./lua-api-syntax-error.inp";
 static const char *SYNTAX_ERROR_RPT = "./lua-api-syntax-error.rpt";
 static const char *SYNTAX_ERROR_LINE_INP = "./lua-api-syntax-error-line.inp";
 static const char *SYNTAX_ERROR_LINE_RPT = "./lua-api-syntax-error-line.rpt";
+static const char *BRACKET_LINE_INP = "./lua-api-bracket-line.inp";
+static const char *BRACKET_LINE_RPT = "./lua-api-bracket-line.rpt";
+static const char *BAD_SECTION_INP = "./lua-api-bad-section.inp";
+static const char *BAD_SECTION_RPT = "./lua-api-bad-section.rpt";
+static const char *SECTION_AFTER_INP = "./lua-api-section-after.inp";
+static const char *SECTION_AFTER_RPT = "./lua-api-section-after.rpt";
 static const char *EVENT_BASELINE_RPT = "./lua-api-event-baseline.rpt";
 
 static const std::vector<PropertyWrite> WRITABLE_PROPERTY_WRITES = {
@@ -734,6 +740,78 @@ BOOST_AUTO_TEST_CASE(syntax_error_is_reported_at_the_offending_line)
     project.close();
 
     BOOST_CHECK(readWholeFile(SYNTAX_ERROR_LINE_RPT).find(":5:")
+                != std::string::npos);
+}
+
+// A '[' opening a line means a new section everywhere else in the input
+// file, but in a script it is ordinary Lua: a table key or a long string
+BOOST_AUTO_TEST_CASE(script_lines_may_open_with_a_bracket)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, BRACKET_LINE_INP,
+        "local monitored = {\n"
+        "    [\"11\"] = true,\n"
+        "}\n"
+        "local j = 1\n"
+        "local indexed = {\n"
+        "    [j] = \"11\",\n"
+        "}\n"
+        "local banner = [[\n"
+        "a long string, [PIPES] and all\n"
+        "]]\n"
+        "function on_hydraulic_step()\n"
+        "    for id in pairs(monitored) do\n"
+        "        print(\"keyed=\" .. node(id).pressure)\n"
+        "    end\n"
+        "    print(\"indexed=\" .. node(indexed[1]).pressure)\n"
+        "    print(\"banner=\" .. #banner)\n"
+        "end\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE_EQUAL(project.open(BRACKET_LINE_INP, BRACKET_LINE_RPT), 0);
+    BOOST_REQUIRE_EQUAL(project.solveAndAdvanceOneHydraulicStep(), 0);
+    project.close();
+
+    std::string report = readWholeFile(BRACKET_LINE_RPT);
+    BOOST_CHECK(!reportMentionsLuaError(report));
+    BOOST_CHECK(report.find("keyed=") != std::string::npos);
+    BOOST_CHECK(report.find("indexed=") != std::string::npos);
+    BOOST_CHECK(report.find("banner=") != std::string::npos);
+}
+
+// The keywords are what a script gives way to, so the section that
+// follows one still has to be read
+BOOST_AUTO_TEST_CASE(a_section_keyword_ends_the_script)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, SECTION_AFTER_INP,
+        "function on_hydraulic_step() end\n"
+        "\n"
+        "[TIMES]\n"
+        "Duration\t12:00\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE_EQUAL(project.open(SECTION_AFTER_INP, SECTION_AFTER_RPT), 0);
+
+    long duration = 0;
+    BOOST_CHECK_EQUAL(EN_gettimeparam(project.ph, EN_DURATION, &duration), 0);
+    BOOST_CHECK_EQUAL(duration, 12 * 3600);
+    project.close();
+
+    BOOST_CHECK(!reportMentionsLuaError(readWholeFile(SECTION_AFTER_RPT)));
+}
+
+// Outside a script every '[' still heads a section, so a misspelled
+// keyword is reported rather than read as data
+BOOST_AUTO_TEST_CASE(unknown_section_outside_a_script_is_still_reported)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, BAD_SECTION_INP,
+        "function on_hydraulic_step() end\n",
+        "[NOSUCHSECTION]\nsome junk\n\n"));
+
+    ProjectUnderTest project;
+    BOOST_CHECK_EQUAL(project.open(BAD_SECTION_INP, BAD_SECTION_RPT), 200);
+    project.close();
+
+    BOOST_CHECK(readWholeFile(BAD_SECTION_RPT).find("Error 299")
                 != std::string::npos);
 }
 
