@@ -30,7 +30,11 @@ int luascript_onEvent(Project *pr, LuaEvent event, int *changed)
         return 0;
     }
 
+    pr->lua->timed_event = (event == LUA_EVENT_HYDRAULIC_STEP ||
+                            event == LUA_EVENT_HYDRAULICS_SOLVED);
     int execution_result = lua_pcall(pr->lua->engine, 0, 0, 0);
+    pr->lua->timed_event = FALSE;
+
     if (execution_result != LUA_OK)
     {
         if (pr->report.Statflag != FALSE)
