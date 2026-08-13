@@ -3,6 +3,7 @@
 #include "luascript.h"
 #include "luatypes.h"
 #include "funcs.h"
+#include "text.h"
 #include "epanet2_2.h"
 #include "luafuncs.h"
 
@@ -216,10 +217,10 @@ static int lua_epanet_print(lua_State *lua)
 
     if (pr->lua->timed_event)
     {
-        pos += sprintf(buf, "%10s: ",
-                       clocktime(pr->report.Atime, pr->times.Htime));
+        pos += sprintf(buf, FMT83, clocktime(pr->report.Atime,
+                                             pr->times.Htime));
     }
-    pos += sprintf(buf + pos, "[SCRIPT] ");
+    else pos += sprintf(buf, FMT84);
     for (int i = 1; i <= nargs; i++)
     {
         const char *argAsString = stringOrEmpty(lua, i);

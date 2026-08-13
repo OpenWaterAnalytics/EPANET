@@ -7,6 +7,7 @@
 #include "luafuncs.h"
 #include "luaevents.h"
 #include "funcs.h"
+#include "text.h"
 
 void luascript_setChanged(Project *pr)
 {
@@ -84,8 +85,7 @@ static int run_lua_script(Project *pr, int *changed)
         if (pr->report.Statflag != FALSE)
         {
             char msg[MAXMSG + 1];
-            snprintf(msg, MAXMSG, "Lua script error: %s",
-                lua_tostring(pr->lua->engine, -1));
+            snprintf(msg, MAXMSG, FMT87, lua_tostring(pr->lua->engine, -1));
             writeline(pr, msg);
         }
         lua_pop(pr->lua->engine, 1);
@@ -113,8 +113,7 @@ int luascript_parseScript(Project *pr)
         if (pr->report.Statflag != FALSE)
         {
             char msg[MAXMSG + 1];
-            snprintf(msg, MAXMSG, "Lua script error while parsing: %s",
-                    lua_tostring(pr->lua->engine, -1));
+            snprintf(msg, MAXMSG, FMT86, lua_tostring(pr->lua->engine, -1));
             writeline(pr, msg);
         }
         lua_pop(pr->lua->engine, 1);

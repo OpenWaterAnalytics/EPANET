@@ -239,7 +239,8 @@ int   runhyd(Project *pr, long *t)
             luaiterations++;
             if (rpt->Statflag == FULL)
             {
-                snprintf(pr->Msg, sizeof(pr->Msg), "Lua script changed status — re-solving (pass %d)", luaiterations);
+                snprintf(pr->Msg, sizeof(pr->Msg), FMT85,
+                         clocktime(rpt->Atime, time->Htime), luaiterations);
                 writeline(pr, pr->Msg);
             }
             errcode = hydsolve(pr,&iter,&relerr);
@@ -248,10 +249,8 @@ int   runhyd(Project *pr, long *t)
 
         if (!errcode && luaiterations >= MAX_LUA_ITERATION_PASSES && rpt->Statflag != FALSE)
         {
-            snprintf(pr->Msg, sizeof(pr->Msg),
-                     "  WARNING: Lua script still changing the network after "
-                     "%d re-solves at hour %.2f", luaiterations,
-                     (double)time->Htime / 3600.0);
+            snprintf(pr->Msg, sizeof(pr->Msg), WARN07, luaiterations,
+                     clocktime(rpt->Atime, time->Htime));
             writeline(pr, pr->Msg);
         }
     }

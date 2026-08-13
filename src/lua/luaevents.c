@@ -1,6 +1,7 @@
 #ifdef LUA_SCRIPTING
 #include "types.h"
 #include "funcs.h"
+#include "text.h"
 #include "luatypes.h"
 #include "luaevents.h"
 
@@ -40,8 +41,8 @@ int luascript_onEvent(Project *pr, LuaEvent event, int *changed)
         if (pr->report.Statflag != FALSE)
         {
             char msg[MAXMSG + 1];
-            snprintf(msg, MAXMSG, "Lua script error in %s: %s",
-                event_name[event], lua_tostring(pr->lua->engine, -1));
+            snprintf(msg, MAXMSG, FMT88, event_name[event],
+                lua_tostring(pr->lua->engine, -1));
             writeline(pr, msg);
         }
         lua_pop(pr->lua->engine, 1);
