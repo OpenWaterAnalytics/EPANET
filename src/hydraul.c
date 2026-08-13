@@ -239,14 +239,14 @@ int   runhyd(Project *pr, long *t)
             luaiterations++;
             if (rpt->Statflag == FULL)
             {
-                snprintf(pr->Msg, sizeof(pr->Msg), "    Lua script changed status — re-solving (pass %d)", luaiterations);
+                snprintf(pr->Msg, sizeof(pr->Msg), "Lua script changed status — re-solving (pass %d)", luaiterations);
                 writeline(pr, pr->Msg);
             }
             errcode = hydsolve(pr,&iter,&relerr);
             if (errcode) break;
         }
 
-        if (!errcode && luaiterations >= MAX_LUA_ITERATION_PASSES)
+        if (!errcode && luaiterations >= MAX_LUA_ITERATION_PASSES && rpt->Statflag != FALSE)
         {
             snprintf(pr->Msg, sizeof(pr->Msg),
                      "  WARNING: Lua script still changing the network after "

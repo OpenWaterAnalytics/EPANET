@@ -81,10 +81,13 @@ static int run_lua_script(Project *pr, int *changed)
     lua_rawgeti(pr->lua->engine, LUA_REGISTRYINDEX, pr->lua->global_closure_ref);
     if (lua_pcall(pr->lua->engine, 0, 0, 0) != LUA_OK)
     {
-        char msg[MAXMSG + 1];
-        snprintf(msg, MAXMSG, "Lua script error: %s",
-                 lua_tostring(pr->lua->engine, -1));
-        writeline(pr, msg);
+        if (pr->report.Statflag != FALSE)
+        {
+            char msg[MAXMSG + 1];
+            snprintf(msg, MAXMSG, "Lua script error: %s",
+                lua_tostring(pr->lua->engine, -1));
+            writeline(pr, msg);
+        }
         lua_pop(pr->lua->engine, 1);
         return 313;
     }
@@ -107,10 +110,13 @@ int luascript_parseScript(Project *pr)
 
     if (luaL_loadstring(pr->lua->engine, pr->lua->script) != LUA_OK)
     {
-        char msg[MAXMSG + 1];
-        snprintf(msg, MAXMSG, "Lua script error while parsing: %s",
-                 lua_tostring(pr->lua->engine, -1));
-        writeline(pr, msg);
+        if (pr->report.Statflag != FALSE)
+        {
+            char msg[MAXMSG + 1];
+            snprintf(msg, MAXMSG, "Lua script error while parsing: %s",
+                    lua_tostring(pr->lua->engine, -1));
+            writeline(pr, msg);
+        }
         lua_pop(pr->lua->engine, 1);
         return 312;
     }

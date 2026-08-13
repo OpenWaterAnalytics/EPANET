@@ -33,10 +33,13 @@ int luascript_onEvent(Project *pr, LuaEvent event, int *changed)
     int execution_result = lua_pcall(pr->lua->engine, 0, 0, 0);
     if (execution_result != LUA_OK)
     {
-        char msg[MAXMSG + 1];
-        snprintf(msg, MAXMSG, "Lua script error in %s: %s",
-                 event_name[event], lua_tostring(pr->lua->engine, -1));
-        writeline(pr, msg);
+        if (pr->report.Statflag != FALSE)
+        {
+            char msg[MAXMSG + 1];
+            snprintf(msg, MAXMSG, "Lua script error in %s: %s",
+                event_name[event], lua_tostring(pr->lua->engine, -1));
+            writeline(pr, msg);
+        }
         lua_pop(pr->lua->engine, 1);
         return 313;
     }

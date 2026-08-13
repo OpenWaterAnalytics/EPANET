@@ -211,7 +211,8 @@ static int lua_epanet_print(lua_State *lua)
     int nargs = lua_gettop(lua);
     int pos = 0;
 
-    buf[pos++] = '\t';
+    if (pr->report.Statflag == FALSE) return 0;
+
     for (int i = 1; i <= nargs; i++)
     {
         const char *argAsString = stringOrEmpty(lua, i);
