@@ -52,6 +52,12 @@ static const char *BAD_SECTION_INP = "./lua-api-bad-section.inp";
 static const char *BAD_SECTION_RPT = "./lua-api-bad-section.rpt";
 static const char *SECTION_AFTER_INP = "./lua-api-section-after.inp";
 static const char *SECTION_AFTER_RPT = "./lua-api-section-after.rpt";
+static const char *STEP_ERROR_INP = "./lua-api-step-error.inp";
+static const char *STEP_ERROR_RPT = "./lua-api-step-error.rpt";
+static const char *OPEN_ERROR_INP = "./lua-api-open-error.inp";
+static const char *OPEN_ERROR_RPT = "./lua-api-open-error.rpt";
+static const char *CLOSE_ERROR_INP = "./lua-api-close-error.inp";
+static const char *CLOSE_ERROR_RPT = "./lua-api-close-error.rpt";
 static const char *EVENT_BASELINE_RPT = "./lua-api-event-baseline.rpt";
 
 static const std::vector<PropertyWrite> WRITABLE_PROPERTY_WRITES = {
@@ -422,7 +428,7 @@ BOOST_AUTO_TEST_CASE(script_cannot_write_a_read_only_option)
 
     ProjectUnderTest project;
     BOOST_REQUIRE(project.open(READ_ONLY_OPTION_INP, READ_ONLY_OPTION_RPT) == 0);
-    BOOST_REQUIRE(project.solveOneHydraulicStep() == 0);
+    BOOST_REQUIRE_EQUAL(project.solveOneHydraulicStep(), 313);
 
     double headlossForm;
     BOOST_CHECK(project.readValue(OPTIONS, "", EN_HEADLOSSFORM,
@@ -442,7 +448,7 @@ BOOST_AUTO_TEST_CASE(script_cannot_write_a_read_only_time_parameter)
 
     ProjectUnderTest project;
     BOOST_REQUIRE(project.open(READ_ONLY_TIME_INP, READ_ONLY_TIME_RPT) == 0);
-    BOOST_REQUIRE(project.solveOneHydraulicStep() == 0);
+    BOOST_REQUIRE_EQUAL(project.solveOneHydraulicStep(), 313);
 
     double periods;
     BOOST_CHECK(project.readValue(TIMES, "", EN_PERIODS, &periods) == 0);
@@ -461,7 +467,7 @@ BOOST_AUTO_TEST_CASE(script_cannot_use_an_unknown_option)
 
     ProjectUnderTest project;
     BOOST_REQUIRE(project.open(UNKNOWN_OPTION_INP, UNKNOWN_OPTION_RPT) == 0);
-    BOOST_REQUIRE(project.solveOneHydraulicStep() == 0);
+    BOOST_REQUIRE_EQUAL(project.solveOneHydraulicStep(), 313);
     project.close();
 
     BOOST_CHECK(readWholeFile(UNKNOWN_OPTION_RPT).find(
@@ -700,7 +706,7 @@ BOOST_AUTO_TEST_CASE(script_cannot_read_an_unknown_curve)
 
     ProjectUnderTest project;
     BOOST_REQUIRE(project.open(UNKNOWN_CURVE_INP, UNKNOWN_CURVE_RPT) == 0);
-    BOOST_REQUIRE(project.solveAndAdvanceOneHydraulicStep() == 0);
+    BOOST_REQUIRE_EQUAL(project.solveAndAdvanceOneHydraulicStep(), 313);
     project.close();
 
     BOOST_CHECK(readWholeFile(UNKNOWN_CURVE_RPT).find(
@@ -797,6 +803,67 @@ BOOST_AUTO_TEST_CASE(a_section_keyword_ends_the_script)
     project.close();
 
     BOOST_CHECK(!reportMentionsLuaError(readWholeFile(SECTION_AFTER_RPT)));
+}
+
+// A runtime error is fatal: the step it happened in fails with 313 and
+// the run stops there rather than carrying on with a script that raised
+BOOST_AUTO_TEST_CASE(a_failing_step_handler_stops_the_simulation)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, STEP_ERROR_INP,
+        "solved = 0\n"
+        "function on_hydraulic_step()\n"
+        "    solved = solved + 1\n"
+        "    if solved > 2 then error(\"stop here\") end\n"
+        "end\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE_EQUAL(project.open(STEP_ERROR_INP, STEP_ERROR_RPT), 0);
+
+    int steps = 0;
+    BOOST_CHECK_EQUAL(project.solveAllHydraulicSteps(&steps), 313);
+    BOOST_CHECK_EQUAL(steps, 2);
+    project.close();
+
+    std::string report = readWholeFile(STEP_ERROR_RPT);
+    BOOST_CHECK(report.find("Lua script error in on_hydraulic_step")
+                != std::string::npos);
+    BOOST_CHECK(report.find("stop here") != std::string::npos);
+    BOOST_CHECK(report.find("Error 313") != std::string::npos);
+}
+
+BOOST_AUTO_TEST_CASE(a_failing_open_handler_fails_the_solver_init)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, OPEN_ERROR_INP,
+        "function on_open() error(\"stop here\") end\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE_EQUAL(project.open(OPEN_ERROR_INP, OPEN_ERROR_RPT), 0);
+    BOOST_REQUIRE_EQUAL(EN_openH(project.ph), 0);
+    BOOST_CHECK_EQUAL(EN_initH(project.ph, EN_NOSAVE), 313);
+    project.close();
+
+    std::string report = readWholeFile(OPEN_ERROR_RPT);
+    BOOST_CHECK(report.find("Lua script error in on_open") != std::string::npos);
+    BOOST_CHECK(report.find("Error 313") != std::string::npos);
+}
+
+// on_close runs when the analysis is already over, so there is nothing
+// left to abort: the error is reported and the close still succeeds
+BOOST_AUTO_TEST_CASE(a_failing_close_handler_is_only_reported)
+{
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, CLOSE_ERROR_INP,
+        "function on_close() error(\"stop here\") end\n"));
+
+    ProjectUnderTest project;
+    BOOST_REQUIRE_EQUAL(project.open(CLOSE_ERROR_INP, CLOSE_ERROR_RPT), 0);
+    BOOST_REQUIRE_EQUAL(EN_openH(project.ph), 0);
+    BOOST_REQUIRE_EQUAL(EN_initH(project.ph, EN_NOSAVE), 0);
+    BOOST_CHECK_EQUAL(EN_closeH(project.ph), 0);
+    project.close();
+
+    std::string report = readWholeFile(CLOSE_ERROR_RPT);
+    BOOST_CHECK(report.find("Lua script error in on_close") != std::string::npos);
+    BOOST_CHECK(report.find("stop here") != std::string::npos);
 }
 
 // Outside a script every '[' still heads a section, so a misspelled

@@ -11,15 +11,17 @@ static const char *event_name[LUA_EVENT_MAX] = {
     [LUA_EVENT_HYDRAULIC_STEP] = "on_hydraulic_step"
 };
 
-int luascript_onEvent(Project *pr, LuaEvent event)
+int luascript_onEvent(Project *pr, LuaEvent event, int *changed)
 {
+    if (changed != NULL) *changed = FALSE;
+
     if (pr->lua == NULL || pr->lua->engine == NULL || pr->lua->script == NULL)
     {
         return 0;
     }
 
     pr->lua->changed = FALSE;
-    
+
     lua_getglobal(pr->lua->engine, event_name[event]);
     int event_defined = lua_isfunction(pr->lua->engine, -1);
     if (!event_defined)
@@ -27,7 +29,7 @@ int luascript_onEvent(Project *pr, LuaEvent event)
         lua_pop(pr->lua->engine, 1);
         return 0;
     }
-    
+
     int execution_result = lua_pcall(pr->lua->engine, 0, 0, 0);
     if (execution_result != LUA_OK)
     {
@@ -36,8 +38,10 @@ int luascript_onEvent(Project *pr, LuaEvent event)
                  event_name[event], lua_tostring(pr->lua->engine, -1));
         writeline(pr, msg);
         lua_pop(pr->lua->engine, 1);
+        return 313;
     }
 
-    return pr->lua->changed;
+    if (changed != NULL) *changed = pr->lua->changed;
+    return 0;
 }
 #endif // LUA_SCRIPTING

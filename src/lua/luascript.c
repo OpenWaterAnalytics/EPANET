@@ -67,11 +67,13 @@ int luascript_open(Project *pr)
     return 0;
 }
 
-static int run_lua_script(Project *pr)
+static int run_lua_script(Project *pr, int *changed)
 {
+    if (changed != NULL) *changed = FALSE;
+
     if (pr->lua == NULL || pr->lua->engine == NULL || pr->lua->global_closure_ref == LUA_NOREF)
     {
-        return FALSE;
+        return 0;
     }
 
     pr->lua->changed = FALSE;
@@ -79,19 +81,16 @@ static int run_lua_script(Project *pr)
     lua_rawgeti(pr->lua->engine, LUA_REGISTRYINDEX, pr->lua->global_closure_ref);
     if (lua_pcall(pr->lua->engine, 0, 0, 0) != LUA_OK)
     {
-        if (!pr->lua->error_reported)
-        {
-            char msg[MAXMSG + 1];
-            snprintf(msg, MAXMSG, "Lua script error: %s (further errors from "
-                     "this script will not be reported)",
-                     lua_tostring(pr->lua->engine, -1));
-            writeline(pr, msg);
-            pr->lua->error_reported = TRUE;
-        }
+        char msg[MAXMSG + 1];
+        snprintf(msg, MAXMSG, "Lua script error: %s",
+                 lua_tostring(pr->lua->engine, -1));
+        writeline(pr, msg);
         lua_pop(pr->lua->engine, 1);
+        return 313;
     }
 
-    return pr->lua->changed;
+    if (changed != NULL) *changed = pr->lua->changed;
+    return 0;
 }
 
 int luascript_parseScript(Project *pr)
@@ -117,22 +116,29 @@ int luascript_parseScript(Project *pr)
     }
     pr->lua->global_closure_ref = luaL_ref(pr->lua->engine, LUA_REGISTRYINDEX);
 
-    run_lua_script(pr);
+    // The load-time evaluation runs against a network that has not been
+    // solved yet, so an error in it is reported but left to be raised by
+    // the first pass of the run proper
+    run_lua_script(pr, NULL);
     pr->lua->changed = FALSE;
 
     return 0;
 }
 
-int luascript_runIteration(Project *pr)
+int luascript_runIteration(Project *pr, int *changed)
 {
+    if (changed != NULL) *changed = FALSE;
     if (pr->lua == NULL || pr->lua->engine == NULL) return 0;
 
     lua_getglobal(pr->lua->engine, "on_hydraulic_step");
     int hasHandler = lua_isfunction(pr->lua->engine, -1);
     lua_pop(pr->lua->engine, 1);
 
-    if (hasHandler) return luascript_onEvent(pr, LUA_EVENT_HYDRAULIC_STEP);
-    return run_lua_script(pr);
+    if (hasHandler)
+    {
+        return luascript_onEvent(pr, LUA_EVENT_HYDRAULIC_STEP, changed);
+    }
+    return run_lua_script(pr, changed);
 }
 
 void luascript_close(Project *pr)

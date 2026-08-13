@@ -556,7 +556,8 @@ int DLLEXPORT EN_initH(EN_Project p, int initFlag)
     #ifdef LUA_SCRIPTING
     if (!errcode)
     {
-        luascript_onEvent(p, LUA_EVENT_OPEN);
+        errcode = luascript_onEvent(p, LUA_EVENT_OPEN, NULL);
+        if (errcode) errmsg(p, errcode);
     }
     #endif // LUA_SCRIPTING
 
@@ -615,7 +616,7 @@ int DLLEXPORT EN_closeH(EN_Project p)
   if (p->hydraul.OpenHflag)
   {
       #ifdef LUA_SCRIPTING
-      luascript_onEvent(p, LUA_EVENT_CLOSE);
+      luascript_onEvent(p, LUA_EVENT_CLOSE, NULL);
       #endif // LUA_SCRIPTING
       closeleakage(p);
       closehyd(p);

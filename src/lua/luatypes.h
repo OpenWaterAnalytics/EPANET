@@ -9,7 +9,6 @@ struct LuaEngine {
     char *script;
     int changed;
     int global_closure_ref;
-    int error_reported;
 };
 
 #endif // LUATYPES_H

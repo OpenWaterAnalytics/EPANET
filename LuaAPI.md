@@ -159,18 +159,13 @@ Error 312: failed to parse Lua script
 
 Line numbers count from the first line of the `[SCRIPT]` section, blank lines included.
 
-A **runtime** error is not fatal. It cancels the one call it happened in and the run
-continues. An error inside a handler is reported as
-`Lua script error in on_hydraulics_solved: ...` every time it happens. An error in the script
-is reported as `Lua script error: ...`, but only the first time — the script can run on every
-solver pass, and repeating the same line thousands of times would bury the report file:
+A **runtime** error is fatal as well. The toolkit call the script was running under fails
+with error 313 and the run stops there, rather than carrying on with a script that raised:
 
 ```
-Lua script error: ...:3: node not found: NOSUCHNODE (further errors from this script will not be reported)
+Lua script error in on_hydraulic_step: [string "local target_pressure = 90.0..."]:30: link not found: NOPE
+Error 313: failed to execute Lua script
 ```
-
-Note that a runtime error stops the rest of that call. In global scope mode an error early
-in the script means the control code below it does not run for that pass.
 
 Reading or writing a property that does not exist, or writing a read-only one, raises an
 error naming it: `unknown node property: presure`,

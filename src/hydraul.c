@@ -231,7 +231,10 @@ int   runhyd(Project *pr, long *t)
     if (!errcode)
     {
         int luaiterations = 0;
-        while (luascript_runIteration(pr) && luaiterations < MAX_LUA_ITERATION_PASSES)
+        int changed = FALSE;
+
+        while (!(errcode = luascript_runIteration(pr, &changed)) && changed
+               && luaiterations < MAX_LUA_ITERATION_PASSES)
         {
             luaiterations++;
             if (rpt->Statflag == FULL)
@@ -243,7 +246,7 @@ int   runhyd(Project *pr, long *t)
             if (errcode) break;
         }
 
-        if (luaiterations >= MAX_LUA_ITERATION_PASSES)
+        if (!errcode && luaiterations >= MAX_LUA_ITERATION_PASSES)
         {
             snprintf(pr->Msg, sizeof(pr->Msg),
                      "  WARNING: Lua script still changing the network after "
@@ -300,11 +303,14 @@ int  nexthyd(Project *pr, long *tstep)
     if (hyd->Haltflag) time->Htime = time->Dur;
 
     #ifdef LUA_SCRIPTING
+    // A failing script aborts the run, so stop before the step's
+    // remaining bookkeeping overwrites the error
     if (!errcode)
     {
-        luascript_onEvent(pr, LUA_EVENT_HYDRAULICS_SOLVED);
+        errcode = luascript_onEvent(pr, LUA_EVENT_HYDRAULICS_SOLVED, NULL);
+        if (errcode) return errcode;
     }
-    #endif
+    #endif // LUA_SCRIPTING
 
     // Compute next time step & update tank levels
     *tstep = 0;

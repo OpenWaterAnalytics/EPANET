@@ -12,7 +12,7 @@ typedef enum  {
   LUA_EVENT_MAX
 } LuaEvent;
 
-int luascript_onEvent(Project *pr, LuaEvent event);
+int luascript_onEvent(Project *pr, LuaEvent event, int *changed);
 
 #endif // LUAEVENTS_H
 #endif // LUA_SCRIPTING
