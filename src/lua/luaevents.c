@@ -19,10 +19,10 @@
 #include "luaevents.h"
 
 static const char *event_name[LUA_EVENT_MAX] = {
-    [LUA_EVENT_OPEN] = "on_open",
-    [LUA_EVENT_CLOSE] = "on_close",
-    [LUA_EVENT_HYDRAULICS_SOLVED] = "on_hydraulics_solved",
-    [LUA_EVENT_HYDRAULIC_STEP] = "on_hydraulic_step"
+    "on_open",
+    "on_close",
+    "on_hydraulics_solved",
+    "on_hydraulic_step"
 };
 
 int luascript_onEvent(Project *pr, LuaEvent event, int *changed)
