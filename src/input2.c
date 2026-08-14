@@ -289,7 +289,7 @@ int readdata(Project *pr)
 }
 
 #ifdef LUA_SCRIPTING
-int startsnewsection(Parser *parser, int sect)
+static int startsnewsection(Parser *parser, int sect)
 {
     if (parser->Tok[0][0] != '[') return FALSE;
     if (sect != _SCRIPT) return TRUE;

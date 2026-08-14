@@ -20,8 +20,8 @@
 #include "epanet2_2.h"
 #include "luafuncs.h"
 
-#define READ_ONLY FALSE
-#define WRITABLE  TRUE
+#define LUA_READ_ONLY FALSE
+#define LUA_WRITABLE  TRUE
 #define NUM_API_FUNCS (sizeof(LuaApi) / sizeof(LuaApi[0]))
 
 // An object exposed to Lua as userdata; the metatable attached to it
@@ -55,125 +55,125 @@ typedef struct
 
 // Writability follows what EN_setnodevalue / EN_setlinkvalue accept
 static const PropDesc NodeProps[] = {
-    { "elevation",       EN_ELEVATION,      WRITABLE  },
-    { "base_demand",     EN_BASEDEMAND,     WRITABLE  },
-    { "pattern",         EN_PATTERN,        WRITABLE  },
-    { "emitter",         EN_EMITTER,        WRITABLE  },
-    { "init_quality",    EN_INITQUAL,       WRITABLE  },
-    { "source_quality",  EN_SOURCEQUAL,     WRITABLE  },
-    { "source_pattern",  EN_SOURCEPAT,      WRITABLE  },
-    { "source_type",     EN_SOURCETYPE,     WRITABLE  },
-    { "tank_level",      EN_TANKLEVEL,      WRITABLE  },
-    { "demand",          EN_DEMAND,         READ_ONLY },
-    { "head",            EN_HEAD,           READ_ONLY },
-    { "pressure",        EN_PRESSURE,       READ_ONLY },
-    { "quality",         EN_QUALITY,        READ_ONLY },
-    { "source_mass",     EN_SOURCEMASS,     READ_ONLY },
-    { "init_volume",     EN_INITVOLUME,     READ_ONLY },
-    { "mix_model",       EN_MIXMODEL,       WRITABLE  },
-    { "mix_zone_volume", EN_MIXZONEVOL,     READ_ONLY },
-    { "tank_diameter",   EN_TANKDIAM,       WRITABLE  },
-    { "min_volume",      EN_MINVOLUME,      WRITABLE  },
-    { "volume_curve",    EN_VOLCURVE,       WRITABLE  },
-    { "min_level",       EN_MINLEVEL,       WRITABLE  },
-    { "max_level",       EN_MAXLEVEL,       WRITABLE  },
-    { "mix_fraction",    EN_MIXFRACTION,    WRITABLE  },
-    { "bulk_coeff",      EN_TANK_KBULK,     WRITABLE  },
-    { "tank_volume",     EN_TANKVOLUME,     READ_ONLY },
-    { "max_volume",      EN_MAXVOLUME,      READ_ONLY },
-    { "can_overflow",    EN_CANOVERFLOW,    WRITABLE  },
-    { "demand_deficit",  EN_DEMANDDEFICIT,  READ_ONLY },
-    { "in_control",      EN_NODE_INCONTROL, READ_ONLY },
-    { "emitter_flow",    EN_EMITTERFLOW,    READ_ONLY },
-    { "leakage_flow",    EN_LEAKAGEFLOW,    READ_ONLY },
-    { "demand_flow",     EN_DEMANDFLOW,     READ_ONLY },
-    { "full_demand",     EN_FULLDEMAND,     READ_ONLY },
-    { NULL,              0,                 READ_ONLY }
+    { "elevation",       EN_ELEVATION,      LUA_WRITABLE  },
+    { "base_demand",     EN_BASEDEMAND,     LUA_WRITABLE  },
+    { "pattern",         EN_PATTERN,        LUA_WRITABLE  },
+    { "emitter",         EN_EMITTER,        LUA_WRITABLE  },
+    { "init_quality",    EN_INITQUAL,       LUA_WRITABLE  },
+    { "source_quality",  EN_SOURCEQUAL,     LUA_WRITABLE  },
+    { "source_pattern",  EN_SOURCEPAT,      LUA_WRITABLE  },
+    { "source_type",     EN_SOURCETYPE,     LUA_WRITABLE  },
+    { "tank_level",      EN_TANKLEVEL,      LUA_WRITABLE  },
+    { "demand",          EN_DEMAND,         LUA_READ_ONLY },
+    { "head",            EN_HEAD,           LUA_READ_ONLY },
+    { "pressure",        EN_PRESSURE,       LUA_READ_ONLY },
+    { "quality",         EN_QUALITY,        LUA_READ_ONLY },
+    { "source_mass",     EN_SOURCEMASS,     LUA_READ_ONLY },
+    { "init_volume",     EN_INITVOLUME,     LUA_READ_ONLY },
+    { "mix_model",       EN_MIXMODEL,       LUA_WRITABLE  },
+    { "mix_zone_volume", EN_MIXZONEVOL,     LUA_READ_ONLY },
+    { "tank_diameter",   EN_TANKDIAM,       LUA_WRITABLE  },
+    { "min_volume",      EN_MINVOLUME,      LUA_WRITABLE  },
+    { "volume_curve",    EN_VOLCURVE,       LUA_WRITABLE  },
+    { "min_level",       EN_MINLEVEL,       LUA_WRITABLE  },
+    { "max_level",       EN_MAXLEVEL,       LUA_WRITABLE  },
+    { "mix_fraction",    EN_MIXFRACTION,    LUA_WRITABLE  },
+    { "bulk_coeff",      EN_TANK_KBULK,     LUA_WRITABLE  },
+    { "tank_volume",     EN_TANKVOLUME,     LUA_READ_ONLY },
+    { "max_volume",      EN_MAXVOLUME,      LUA_READ_ONLY },
+    { "can_overflow",    EN_CANOVERFLOW,    LUA_WRITABLE  },
+    { "demand_deficit",  EN_DEMANDDEFICIT,  LUA_READ_ONLY },
+    { "in_control",      EN_NODE_INCONTROL, LUA_READ_ONLY },
+    { "emitter_flow",    EN_EMITTERFLOW,    LUA_READ_ONLY },
+    { "leakage_flow",    EN_LEAKAGEFLOW,    LUA_READ_ONLY },
+    { "demand_flow",     EN_DEMANDFLOW,     LUA_READ_ONLY },
+    { "full_demand",     EN_FULLDEMAND,     LUA_READ_ONLY },
+    { NULL,              0,                 LUA_READ_ONLY }
 };
 
 static const PropDesc LinkProps[] = {
-    { "diameter",        EN_DIAMETER,       WRITABLE  },
-    { "length",          EN_LENGTH,         WRITABLE  },
-    { "roughness",       EN_ROUGHNESS,      WRITABLE  },
-    { "minor_loss",      EN_MINORLOSS,      WRITABLE  },
-    { "init_status",     EN_INITSTATUS,     WRITABLE  },
-    { "init_setting",    EN_INITSETTING,    WRITABLE  },
-    { "bulk_coeff",      EN_KBULK,          WRITABLE  },
-    { "wall_coeff",      EN_KWALL,          WRITABLE  },
-    { "flow",            EN_FLOW,           READ_ONLY },
-    { "velocity",        EN_VELOCITY,       READ_ONLY },
-    { "headloss",        EN_HEADLOSS,       READ_ONLY },
-    { "status",          EN_STATUS,         WRITABLE  },
-    { "setting",         EN_SETTING,        WRITABLE  },
-    { "energy",          EN_ENERGY,         READ_ONLY },
-    { "quality",         EN_LINKQUAL,       READ_ONLY },
-    { "pattern",         EN_LINKPATTERN,    WRITABLE  },
-    { "pump_state",      EN_PUMP_STATE,     READ_ONLY },
-    { "pump_efficiency", EN_PUMP_EFFIC,     READ_ONLY },
-    { "pump_power",      EN_PUMP_POWER,     WRITABLE  },
-    { "pump_hcurve",     EN_PUMP_HCURVE,    WRITABLE  },
-    { "pump_ecurve",     EN_PUMP_ECURVE,    WRITABLE  },
-    { "pump_ecost",      EN_PUMP_ECOST,     WRITABLE  },
-    { "pump_epattern",   EN_PUMP_EPAT,      WRITABLE  },
-    { "in_control",      EN_LINK_INCONTROL, READ_ONLY },
-    { "gpv_curve",       EN_GPV_CURVE,      WRITABLE  },
-    { "pcv_curve",       EN_PCV_CURVE,      WRITABLE  },
-    { "leak_area",       EN_LEAK_AREA,      WRITABLE  },
-    { "leak_expansion",  EN_LEAK_EXPAN,     WRITABLE  },
-    { "leakage",         EN_LINK_LEAKAGE,   READ_ONLY },
-    { "valve_type",      EN_VALVE_TYPE,     READ_ONLY },
-    { NULL,              0,                 READ_ONLY }
+    { "diameter",        EN_DIAMETER,       LUA_WRITABLE  },
+    { "length",          EN_LENGTH,         LUA_WRITABLE  },
+    { "roughness",       EN_ROUGHNESS,      LUA_WRITABLE  },
+    { "minor_loss",      EN_MINORLOSS,      LUA_WRITABLE  },
+    { "init_status",     EN_INITSTATUS,     LUA_WRITABLE  },
+    { "init_setting",    EN_INITSETTING,    LUA_WRITABLE  },
+    { "bulk_coeff",      EN_KBULK,          LUA_WRITABLE  },
+    { "wall_coeff",      EN_KWALL,          LUA_WRITABLE  },
+    { "flow",            EN_FLOW,           LUA_READ_ONLY },
+    { "velocity",        EN_VELOCITY,       LUA_READ_ONLY },
+    { "headloss",        EN_HEADLOSS,       LUA_READ_ONLY },
+    { "status",          EN_STATUS,         LUA_WRITABLE  },
+    { "setting",         EN_SETTING,        LUA_WRITABLE  },
+    { "energy",          EN_ENERGY,         LUA_READ_ONLY },
+    { "quality",         EN_LINKQUAL,       LUA_READ_ONLY },
+    { "pattern",         EN_LINKPATTERN,    LUA_WRITABLE  },
+    { "pump_state",      EN_PUMP_STATE,     LUA_READ_ONLY },
+    { "pump_efficiency", EN_PUMP_EFFIC,     LUA_READ_ONLY },
+    { "pump_power",      EN_PUMP_POWER,     LUA_WRITABLE  },
+    { "pump_hcurve",     EN_PUMP_HCURVE,    LUA_WRITABLE  },
+    { "pump_ecurve",     EN_PUMP_ECURVE,    LUA_WRITABLE  },
+    { "pump_ecost",      EN_PUMP_ECOST,     LUA_WRITABLE  },
+    { "pump_epattern",   EN_PUMP_EPAT,      LUA_WRITABLE  },
+    { "in_control",      EN_LINK_INCONTROL, LUA_READ_ONLY },
+    { "gpv_curve",       EN_GPV_CURVE,      LUA_WRITABLE  },
+    { "pcv_curve",       EN_PCV_CURVE,      LUA_WRITABLE  },
+    { "leak_area",       EN_LEAK_AREA,      LUA_WRITABLE  },
+    { "leak_expansion",  EN_LEAK_EXPAN,     LUA_WRITABLE  },
+    { "leakage",         EN_LINK_LEAKAGE,   LUA_READ_ONLY },
+    { "valve_type",      EN_VALVE_TYPE,     LUA_READ_ONLY },
+    { NULL,              0,                 LUA_READ_ONLY }
 };
 
 static const PropDesc OptionProps[] = {
-    { "trials",               EN_TRIALS,        READ_ONLY },
-    { "accuracy",             EN_ACCURACY,      READ_ONLY },
-    { "tolerance",            EN_TOLERANCE,     READ_ONLY },
-    { "emitter_exponent",     EN_EMITEXPON,     READ_ONLY },
-    { "demand_multiplier",    EN_DEMANDMULT,    READ_ONLY },
-    { "head_error",           EN_HEADERROR,     READ_ONLY },
-    { "flow_change",          EN_FLOWCHANGE,    READ_ONLY },
-    { "headloss_form",        EN_HEADLOSSFORM,  READ_ONLY },
-    { "global_efficiency",    EN_GLOBALEFFIC,   READ_ONLY },
-    { "global_price",         EN_GLOBALPRICE,   READ_ONLY },
-    { "global_pattern",       EN_GLOBALPATTERN, READ_ONLY },
-    { "demand_charge",        EN_DEMANDCHARGE,  READ_ONLY },
-    { "specific_gravity",     EN_SP_GRAVITY,    READ_ONLY },
-    { "specific_viscosity",   EN_SP_VISCOS,     READ_ONLY },
-    { "unbalanced",           EN_UNBALANCED,    READ_ONLY },
-    { "check_frequency",      EN_CHECKFREQ,     READ_ONLY },
-    { "max_check",            EN_MAXCHECK,      READ_ONLY },
-    { "damp_limit",           EN_DAMPLIMIT,     READ_ONLY },
-    { "specific_diffusivity", EN_SP_DIFFUS,     READ_ONLY },
-    { "bulk_order",           EN_BULKORDER,     READ_ONLY },
-    { "wall_order",           EN_WALLORDER,     READ_ONLY },
-    { "tank_order",           EN_TANKORDER,     READ_ONLY },
-    { "concentration_limit",  EN_CONCENLIMIT,   READ_ONLY },
-    { "demand_pattern",       EN_DEMANDPATTERN, READ_ONLY },
-    { "emitter_backflow",     EN_EMITBACKFLOW,  READ_ONLY },
-    { "pressure_units",       EN_PRESS_UNITS,   READ_ONLY },
-    { "status_report",        EN_STATUS_REPORT, READ_ONLY },
-    { NULL,                   0,                READ_ONLY }
+    { "trials",               EN_TRIALS,        LUA_READ_ONLY },
+    { "accuracy",             EN_ACCURACY,      LUA_READ_ONLY },
+    { "tolerance",            EN_TOLERANCE,     LUA_READ_ONLY },
+    { "emitter_exponent",     EN_EMITEXPON,     LUA_READ_ONLY },
+    { "demand_multiplier",    EN_DEMANDMULT,    LUA_READ_ONLY },
+    { "head_error",           EN_HEADERROR,     LUA_READ_ONLY },
+    { "flow_change",          EN_FLOWCHANGE,    LUA_READ_ONLY },
+    { "headloss_form",        EN_HEADLOSSFORM,  LUA_READ_ONLY },
+    { "global_efficiency",    EN_GLOBALEFFIC,   LUA_READ_ONLY },
+    { "global_price",         EN_GLOBALPRICE,   LUA_READ_ONLY },
+    { "global_pattern",       EN_GLOBALPATTERN, LUA_READ_ONLY },
+    { "demand_charge",        EN_DEMANDCHARGE,  LUA_READ_ONLY },
+    { "specific_gravity",     EN_SP_GRAVITY,    LUA_READ_ONLY },
+    { "specific_viscosity",   EN_SP_VISCOS,     LUA_READ_ONLY },
+    { "unbalanced",           EN_UNBALANCED,    LUA_READ_ONLY },
+    { "check_frequency",      EN_CHECKFREQ,     LUA_READ_ONLY },
+    { "max_check",            EN_MAXCHECK,      LUA_READ_ONLY },
+    { "damp_limit",           EN_DAMPLIMIT,     LUA_READ_ONLY },
+    { "specific_diffusivity", EN_SP_DIFFUS,     LUA_READ_ONLY },
+    { "bulk_order",           EN_BULKORDER,     LUA_READ_ONLY },
+    { "wall_order",           EN_WALLORDER,     LUA_READ_ONLY },
+    { "tank_order",           EN_TANKORDER,     LUA_READ_ONLY },
+    { "concentration_limit",  EN_CONCENLIMIT,   LUA_READ_ONLY },
+    { "demand_pattern",       EN_DEMANDPATTERN, LUA_READ_ONLY },
+    { "emitter_backflow",     EN_EMITBACKFLOW,  LUA_READ_ONLY },
+    { "pressure_units",       EN_PRESS_UNITS,   LUA_READ_ONLY },
+    { "status_report",        EN_STATUS_REPORT, LUA_READ_ONLY },
+    { NULL,                   0,                LUA_READ_ONLY }
 };
 
 static const PropDesc TimeProps[] = {
-    { "duration",             EN_DURATION,      WRITABLE  },
-    { "hydraulic_step",       EN_HYDSTEP,       WRITABLE  },
-    { "quality_step",         EN_QUALSTEP,      WRITABLE  },
-    { "pattern_step",         EN_PATTERNSTEP,   WRITABLE  },
-    { "pattern_start",        EN_PATTERNSTART,  WRITABLE  },
-    { "report_step",          EN_REPORTSTEP,    WRITABLE  },
-    { "report_start",         EN_REPORTSTART,   WRITABLE  },
-    { "rule_step",            EN_RULESTEP,      WRITABLE  },
-    { "statistic",            EN_STATISTIC,     WRITABLE  },
-    { "periods",              EN_PERIODS,       READ_ONLY },
-    { "start_time",           EN_STARTTIME,     WRITABLE  },
-    { "hydraulic_time",       EN_HTIME,         WRITABLE  },
-    { "quality_time",         EN_QTIME,         WRITABLE  },
-    { "halt_flag",            EN_HALTFLAG,      READ_ONLY },
-    { "next_event",           EN_NEXTEVENT,     READ_ONLY },
-    { "next_event_tank",      EN_NEXTEVENTTANK, READ_ONLY },
-    { NULL,                   0,                READ_ONLY }
+    { "duration",             EN_DURATION,      LUA_WRITABLE  },
+    { "hydraulic_step",       EN_HYDSTEP,       LUA_WRITABLE  },
+    { "quality_step",         EN_QUALSTEP,      LUA_WRITABLE  },
+    { "pattern_step",         EN_PATTERNSTEP,   LUA_WRITABLE  },
+    { "pattern_start",        EN_PATTERNSTART,  LUA_WRITABLE  },
+    { "report_step",          EN_REPORTSTEP,    LUA_WRITABLE  },
+    { "report_start",         EN_REPORTSTART,   LUA_WRITABLE  },
+    { "rule_step",            EN_RULESTEP,      LUA_WRITABLE  },
+    { "statistic",            EN_STATISTIC,     LUA_WRITABLE  },
+    { "periods",              EN_PERIODS,       LUA_READ_ONLY },
+    { "start_time",           EN_STARTTIME,     LUA_WRITABLE  },
+    { "hydraulic_time",       EN_HTIME,         LUA_WRITABLE  },
+    { "quality_time",         EN_QTIME,         LUA_WRITABLE  },
+    { "halt_flag",            EN_HALTFLAG,      LUA_READ_ONLY },
+    { "next_event",           EN_NEXTEVENT,     LUA_READ_ONLY },
+    { "next_event_tank",      EN_NEXTEVENTTANK, LUA_READ_ONLY },
+    { NULL,                   0,                LUA_READ_ONLY }
 };
 
 static int getOptionValue(EN_Project pr, int index, int code, double *value)
@@ -192,7 +192,7 @@ static int getTimeValue(EN_Project pr, int index, int code, double *value)
 
 static int setTimeValue(EN_Project pr, int index, int code, double value)
 {
-    return EN_settimeparam(pr, code, (long)(value + (value < 0 ? -0.5 : 0.5)));
+    return EN_settimeparam(pr, code, (long)ROUND(value));
 }
 
 static const LuaApiFunc LuaApi[] = {
@@ -357,7 +357,7 @@ static int lua_elem_newindex(lua_State *lua)
     // the stored value actually changed: scripts re-run on every solver
     // convergence, so no-op rewrites must not keep it iterating forever
     if (!hadValueBefore || d->get(pr, e->index, p->code, &after) != 0
-        || after != before)
+        || ABS(after - before) > TINY * (1.0 + ABS(before)))
     {
         luascript_setChanged(pr);
     }

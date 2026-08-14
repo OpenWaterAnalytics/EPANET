@@ -21,10 +21,6 @@
 #include "funcs.h"
 #include "text.h"
 
-#ifdef LUA_SCRIPTING
-#include "lua/luascript.h"
-#endif
-
 // Hydraulic balance error for network being analyzed
 typedef struct {
     double maxheaderror;
