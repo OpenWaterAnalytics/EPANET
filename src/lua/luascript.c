@@ -39,6 +39,11 @@ int luascript_addScriptLine(Project *pr, char *line)
     if (pr->lua->script == NULL)
     {
         pr->lua->script = malloc(line_len+1);
+        if (pr->lua->script == NULL)
+        {
+            return 101;
+        }
+        
         memcpy(pr->lua->script, line, line_len);
         pr->lua->script[line_len] = '\0';
     }
