@@ -22,6 +22,7 @@ void luascript_close(Project *pr);
 int luascript_runIteration(Project *pr, int *changed);
 
 int luascript_addScriptLine(Project *pr, char *line);
+const char *luascript_getScript(Project *pr);
 int luascript_parseScript(Project *pr);
 void luascript_setChanged(Project *pr);
 

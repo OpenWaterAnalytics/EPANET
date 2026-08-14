@@ -61,6 +61,10 @@ static const char *OPEN_ERROR_RPT = "./lua-api-open-error.rpt";
 static const char *CLOSE_ERROR_INP = "./lua-api-close-error.inp";
 static const char *CLOSE_ERROR_RPT = "./lua-api-close-error.rpt";
 static const char *EVENT_BASELINE_RPT = "./lua-api-event-baseline.rpt";
+static const char *ROUND_TRIP_INP = "./lua-api-round-trip.inp";
+static const char *ROUND_TRIP_RPT = "./lua-api-round-trip.rpt";
+static const char *ROUND_TRIP_SAVED_INP = "./lua-api-round-trip-saved.inp";
+static const char *ROUND_TRIP_SAVED_RPT = "./lua-api-round-trip-saved.rpt";
 
 static const std::vector<PropertyWrite> WRITABLE_PROPERTY_WRITES = {
     { NODE, "10",   "elevation",      EN_ELEVATION,    712.5  },
@@ -886,6 +890,50 @@ BOOST_AUTO_TEST_CASE(unknown_section_outside_a_script_is_still_reported)
 
     BOOST_CHECK(readWholeFile(BAD_SECTION_RPT).find("Error 299")
                 != std::string::npos);
+}
+
+// EN_saveinpfile has to write the section back out, or a project that is
+// opened and saved silently loses its script. The text is reproduced as it
+// was read, so that the line numbers Lua reports do not shift either.
+BOOST_AUTO_TEST_CASE(a_saved_project_keeps_its_script)
+{
+    // A comment carrying ';', a blank line and a long string opening with
+    // '[': the three things a section written back as plain text could
+    // mangle or be cut short by
+    const char *script =
+        "-- a comment with a ; semicolon and [brackets]\n"
+        "\n"
+        "local banner = [[\n"
+        "a long string, [PIPES] and all\n"
+        "]]\n"
+        "function on_hydraulic_step()\n"
+        "    print(\"saved script ran, banner=\" .. #banner)\n"
+        "end\n";
+    BOOST_REQUIRE(buildInpWithScript(BASE_INP, ROUND_TRIP_INP, script));
+
+    ProjectUnderTest original;
+    BOOST_REQUIRE_EQUAL(original.open(ROUND_TRIP_INP, ROUND_TRIP_RPT), 0);
+    BOOST_REQUIRE_EQUAL(EN_saveinpfile(original.ph, ROUND_TRIP_SAVED_INP), 0);
+    original.close();
+
+    // The saved section holds exactly what was read
+    std::string saved = readWholeFile(ROUND_TRIP_SAVED_INP);
+    BOOST_REQUIRE(saved.find("[SCRIPT]") != std::string::npos);
+    BOOST_CHECK(saved.find(script) != std::string::npos);
+
+    // And the saved file still behaves like the original
+    ProjectUnderTest reopened;
+    BOOST_REQUIRE_EQUAL(reopened.open(ROUND_TRIP_SAVED_INP,
+                                      ROUND_TRIP_SAVED_RPT), 0);
+    BOOST_REQUIRE_EQUAL(reopened.solveOneHydraulicStep(), 0);
+    reopened.close();
+
+    // The banner's length is checked as well as its presence: it is the
+    // 30 characters of the long string plus its closing newline, so a
+    // section written back with lines dropped or added would not match
+    std::string report = readWholeFile(ROUND_TRIP_SAVED_RPT);
+    BOOST_CHECK(!reportMentionsLuaError(report));
+    BOOST_CHECK(report.find("saved script ran, banner=31") != std::string::npos);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -59,6 +59,12 @@ int luascript_addScriptLine(Project *pr, char *line)
     return 0;
 }
 
+const char *luascript_getScript(Project *pr)
+{
+    if (pr->lua == NULL) return NULL;
+    return pr->lua->script;
+}
+
 int luascript_open(Project *pr)
 {
     pr->lua = calloc(1, sizeof(LuaEngine));
