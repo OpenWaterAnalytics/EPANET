@@ -221,7 +221,7 @@ static const char *stringOrEmpty(lua_State *lua, int arg)
 
 static int lua_epanet_print(lua_State *lua)
 {
-    char buf[1024];
+    char buf[MAXMSG + 1];
     Project *pr = lua_touserdata(lua, lua_upvalueindex(1));
     int nargs = lua_gettop(lua);
     int pos = 0;
