@@ -1,3 +1,16 @@
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.3
+ Module:       luafuncs.c
+ Description:  exposes a project's network to its Lua script
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 08/14/2026
+ ******************************************************************************
+*/
+
 #ifdef LUA_SCRIPTING
 #include <string.h>
 #include "luascript.h"

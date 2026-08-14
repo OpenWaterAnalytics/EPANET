@@ -1,3 +1,16 @@
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.3
+ Module:       luaevents.h
+ Description:  events a project's Lua script can define a handler for
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 08/14/2026
+ ******************************************************************************
+*/
+
 #ifdef LUA_SCRIPTING
 #ifndef LUAEVENTS_H
 #define LUAEVENTS_H

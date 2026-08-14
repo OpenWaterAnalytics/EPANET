@@ -1,3 +1,16 @@
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.3
+ Module:       luaevents.c
+ Description:  calls the handler functions defined by a project's Lua script
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 08/14/2026
+ ******************************************************************************
+*/
+
 #ifdef LUA_SCRIPTING
 #include "types.h"
 #include "funcs.h"

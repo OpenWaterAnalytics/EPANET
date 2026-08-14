@@ -1,3 +1,16 @@
+/*
+ ******************************************************************************
+ Project:      OWA EPANET
+ Version:      2.3
+ Module:       luascript.c
+ Description:  manages a project's Lua scripting engine
+ Authors:      see AUTHORS
+ Copyright:    see AUTHORS
+ License:      see LICENSE
+ Last Updated: 08/14/2026
+ ******************************************************************************
+*/
+
 #ifdef LUA_SCRIPTING
 #include <stdlib.h>
 #include <string.h>
