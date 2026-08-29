@@ -6,18 +6,29 @@
 # Modified by: Michael E. Tryby
 #              US EPA ORD/NRMRL
 #
-
+include(CheckCXXCompilerFlag)
 
 # Sets for output directory for executables and libraries.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 if(UNIX)
-    set(CMAKE_CXX_FLAGS "-std=c++11")
+    set(CMAKE_CXX_FLAGS "-std=c++11 -g")
 endif(UNIX)
+
+# Check for UBSAN support
+set(CMAKE_REQUIRED_FLAGS "-fsanitize=undefined")
+set(CMAKE_REQUIRED_LINK_OPTIONS "-fsanitize=undefined")
+check_cxx_source_compiles("int main() { return 0; }" SANITIZERS_SUPPORTED)
+unset(CMAKE_REQUIRED_FLAGS)
+unset(CMAKE_REQUIRED_LINK_OPTIONS)
 
 
 add_executable(test_net_builder test_net_builder.cpp)
 target_link_libraries(test_net_builder ${Boost_LIBRARIES} epanet2)
+if(SANITIZERS_SUPPORTED AND SANITIZERS_ENABLED)
+    target_compile_options(test_net_builder PUBLIC -fsanitize=undefined)
+    target_link_options(test_net_builder PUBLIC -fsanitize=undefined)
+endif()
 add_test(NAME test_net_builder
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_net_builder
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
@@ -46,6 +57,10 @@ set(toolkit_test_srcs
 
 add_executable(test_toolkit ${toolkit_test_srcs})
 target_link_libraries(test_toolkit ${Boost_LIBRARIES} epanet2)
+if(SANITIZERS_SUPPORTED AND SANITIZERS_ENABLED)
+    target_compile_options(test_toolkit PUBLIC -fsanitize=undefined)
+    target_link_options(test_toolkit PUBLIC -fsanitize=undefined)
+endif()
 add_test(NAME test_toolkit
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_toolkit
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
@@ -53,6 +68,10 @@ add_test(NAME test_toolkit
 
 
 add_executable(test_reent test_reent.cpp)
+if(SANITIZERS_SUPPORTED AND SANITIZERS_ENABLED)
+    target_compile_options(test_reent PUBLIC -fsanitize=undefined)
+    target_link_options(test_reent PUBLIC -fsanitize=undefined)
+endif()
 
 IF(MSVC)
     target_link_libraries(test_reent ${Boost_LIBRARIES} epanet2)
