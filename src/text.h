@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/10/2025
+ Last Updated: 08/14/2026
  ******************************************************************************
 */
 
@@ -215,6 +215,9 @@
 #define   s_SOURCES     "[SOURCES]"
 #define   s_EMITTERS    "[EMITTERS]"
 #define   s_LEAKAGE     "[LEAKAGE]"
+#ifdef LUA_SCRIPTING
+#define   s_SCRIPT      "[SCRIPT]"
+#endif
 #define   s_PATTERNS    "[PATTERNS]"
 #define   s_CURVES      "[CURVES]"
 #define   s_QUALITY     "[QUALITY]"
@@ -465,6 +468,17 @@
 #define FMT81  "Link Results at %s hrs:"
 #define FMT82  "\n\f\n  Page %-d    %60.60s\n"
 
+//----- Lua Script Report Messages ------------------------
+
+#ifdef LUA_SCRIPTING
+#define FMT83  "%10s: [SCRIPT] "
+#define FMT84  "[SCRIPT] "
+#define FMT85  "%10s: Lua script changed status - re-solving (pass %d)"
+#define FMT86  "Lua script error while parsing: %s"
+#define FMT87  "Lua script error: %s"
+#define FMT88  "Lua script error in %s: %s"
+#endif // LUA_SCRIPTING
+
 //----- Progress Messages ---------------------------------
 
 #define FMT100 "    Retrieving network data ...                   "
@@ -495,6 +509,8 @@
 #define WARN04  "WARNING: Pump %s %s at %s hrs."
 #define WARN05  "WARNING: %s %s %s at %s hrs."
 #define WARN06  "WARNING: Negative pressures at %s hrs."
+#define WARN07 \
+"WARNING: Lua script still changing the network after %d re-solves at %s hrs."
 
 //----- General Warning Messages --------------------------
 

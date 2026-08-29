@@ -1,0 +1,70 @@
+[TITLE]
+Minimal network used to test a Lua-controlled PRV.
+;
+;  R1 --P1--> J112 --V1--> J113 --P2--> J126 (demand)
+;
+; V1 is a PRV whose fixed setting is deliberately too low. The Lua
+; on_iteration handler below moves the setting after each time step
+; converges, so that the pressure at J126, which changes with the demand
+; pattern, stays at 30 m.
+
+[JUNCTIONS]
+;Id	Elevation	Demand	Pattern
+J112	0	0
+J113	0	0
+J126	0	20	DAILY
+
+[RESERVOIRS]
+;Id	Head
+R1	100
+
+[PIPES]
+;Id	Start	End	Length	Diameter	Roughness	MinorLoss	Status
+P1	R1	J112	100	150	100	0	Open
+P2	J113	J126	500	150	100	0	Open
+
+[VALVES]
+;Id	Start	End	Diameter	Type	Setting	MinorLoss
+V1	J112	J113	150	PRV	20	0
+
+[PATTERNS]
+;Id	Multipliers
+DAILY	0.5	0.8	1.2	1.5	1.0	0.7
+
+[TIMES]
+Duration	24
+Hydraulic Timestep	1
+Report Timestep	1
+Pattern Timestep	4
+
+[OPTIONS]
+Quality	NONE
+Unbalanced	CONTINUE 10
+Accuracy	0.001
+Units	LPS
+Headloss	H-W
+
+[SCRIPT]
+
+local prv_target = 30
+
+function on_hydraulic_step()
+    local diff = node("J126").pressure - prv_target
+
+    if math.abs(diff) > 0.01 then
+        print("## Pressure at J126 is: ", node("J126").pressure)
+        print("### Adjusting PRV V1 to try to reach target pressure of ", prv_target, "m")
+        local new_setting = link("V1").setting - diff
+        link("V1").setting = new_setting
+        print("### New PRV V1 setting: ", link("V1").setting)
+    end
+end
+
+[REPORT]
+Status	FULL
+Summary	No
+Page	0
+NODE J126 J113
+PRESSURE YES
+
+[END]

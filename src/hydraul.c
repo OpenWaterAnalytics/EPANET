@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/28/2026
+ Last Updated: 08/14/2026
  ******************************************************************************
 */
 
@@ -19,6 +19,12 @@
 #include "types.h"
 #include "funcs.h"
 #include "text.h"
+
+#ifdef LUA_SCRIPTING
+#include "lua/luaevents.h"
+#include "lua/luascript.h"
+#define MAX_LUA_ITERATION_PASSES    10
+#endif // LUA_SCRIPTING
 
 const double QZERO = 1.e-6;  // Equivalent to zero flow in cfs
 
@@ -218,6 +224,38 @@ int   runhyd(Project *pr, long *t)
 
     // Solve network hydraulic equations
     errcode = hydsolve(pr,&iter,&relerr);
+
+    #ifdef LUA_SCRIPTING
+    // Run "iteration" event after convergence.
+    // If it changes anything, re-solve and repeat until stable.
+    if (!errcode)
+    {
+        int luaiterations = 0;
+        int changed = FALSE;
+
+        while (!(errcode = luascript_runIteration(pr, &changed)) && changed
+               && luaiterations < MAX_LUA_ITERATION_PASSES)
+        {
+            luaiterations++;
+            if (rpt->Statflag == FULL)
+            {
+                snprintf(pr->Msg, sizeof(pr->Msg), FMT85,
+                         clocktime(rpt->Atime, time->Htime), luaiterations);
+                writeline(pr, pr->Msg);
+            }
+            errcode = hydsolve(pr,&iter,&relerr);
+            if (errcode) break;
+        }
+
+        if (!errcode && luaiterations >= MAX_LUA_ITERATION_PASSES && rpt->Statflag != FALSE)
+        {
+            snprintf(pr->Msg, sizeof(pr->Msg), WARN07, luaiterations,
+                     clocktime(rpt->Atime, time->Htime));
+            writeline(pr, pr->Msg);
+        }
+    }
+    #endif // LUA_SCRIPTING
+
     if (!errcode)
     {
         // Report new status & save results
@@ -233,6 +271,7 @@ int   runhyd(Project *pr, long *t)
         // Report any warning conditions
         if (!errcode) errcode = writehydwarn(pr,iter,relerr);
    }
+
    return errcode;
 }
 
@@ -261,6 +300,16 @@ int  nexthyd(Project *pr, long *tstep)
     // force end of simulation if Haltflag is active
     if (pr->outfile.Saveflag) errcode = savehyd(pr, &time->Htime);
     if (hyd->Haltflag) time->Htime = time->Dur;
+
+    #ifdef LUA_SCRIPTING
+    // A failing script aborts the run, so stop before the step's
+    // remaining bookkeeping overwrites the error
+    if (!errcode)
+    {
+        errcode = luascript_onEvent(pr, LUA_EVENT_HYDRAULICS_SOLVED, NULL);
+        if (errcode) return errcode;
+    }
+    #endif // LUA_SCRIPTING
 
     // Compute next time step & update tank levels
     *tstep = 0;

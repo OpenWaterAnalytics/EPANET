@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/11/2026
+Last Updated: 08/14/2026
 ******************************************************************************
 */
 
@@ -21,6 +21,10 @@ Last Updated: 05/11/2026
 #include "funcs.h"
 #include "hash.h"
 #include "text.h"
+
+#ifdef LUA_SCRIPTING
+#include "lua/luascript.h"
+#endif
 
 // Defined in enumstxt.h in EPANET.C
 extern char *LinkTxt[];
@@ -130,6 +134,9 @@ int saveinpfile(Project *pr, const char *fname)
     Spump *pump;
     Scontrol *control;
     Scurve *curve;
+    #ifdef LUA_SCRIPTING
+    const char *script;
+    #endif
 
     // Open the new text file
     if ((f = fopen(fname, "wt")) == NULL) return 302;
@@ -881,6 +888,18 @@ int saveinpfile(Project *pr, const char *fname)
     // Save auxiliary data to new input file
     fprintf(f, "\n");
     saveauxdata(pr, f);
+
+    #ifdef LUA_SCRIPTING
+    script = luascript_getScript(pr);
+    if (script != NULL && script[0] != '\0')
+    {
+        size_t scriptlen = strlen(script);
+        fprintf(f, "\n\n");
+        fprintf(f, s_SCRIPT);
+        fprintf(f, "\n%s", script);
+        if (script[scriptlen - 1] != '\n') fprintf(f, "\n");
+    }
+    #endif
 
     // Close the new input file
     fprintf(f, "\n%s\n", s_END);

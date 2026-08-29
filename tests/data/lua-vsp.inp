@@ -1,0 +1,116 @@
+[TITLE]
+Minimal network used to test a Lua-controlled variable speed pump.
+;
+;  R1 --PU2--> J138 --P1--> J126 (demand)
+;
+; PU2 runs at a fixed speed of 1, which cannot hold 90 m at J126 as the
+; demand pattern moves. The Lua handlers below search for the speed that
+; can, seeding a secant search with one naive speed/pressure ratio step.
+
+[JUNCTIONS]
+;Id	Elevation	Demand	Pattern
+J138	0	0
+J126	19.2	1	DAILY
+
+[RESERVOIRS]
+;Id	Head
+R1	20
+
+[PIPES]
+;Id	Start	End	Length	Diameter	Roughness	MinorLoss	Status
+P1	J138	J126	200	100	100	0	Open
+
+[PUMPS]
+;Id	Start	End	Properties
+PU2	R1	J138	HEAD PU2	SPEED 1
+
+[CURVES]
+;Id	X	Y
+;PUMP: design point of PU2
+PU2	1	50
+
+[PATTERNS]
+;Id	Multipliers
+DAILY	0.4	0.8	1.2	1.6	1.0	0.6
+
+[TIMES]
+Duration	24
+Hydraulic Timestep	1
+Report Timestep	1
+Pattern Timestep	4
+
+[OPTIONS]
+Quality	NONE
+Unbalanced	CONTINUE 10
+Accuracy	0.001
+Units	LPS
+Headloss	H-W
+
+[SCRIPT]
+
+local target_pressure = 90.0
+local pressure_tolerance = 0.05
+local speed_tolerance = 0.0001
+local max_speed = 2.0
+
+-- The previous (speed, pressure) point the secant search works from
+local last_speed, last_pressure
+
+function on_open()
+    last_speed = link("PU2").setting
+    last_pressure = 0.0
+    print("VSP logic initialised, target = ", target_pressure)
+end
+
+function on_hydraulics_solved()
+    local speed = link("PU2").setting
+    local pressure = node("J126").pressure
+
+    print(string.format("Step report: speed=%.3f pressure=%.3f",
+                        speed, pressure))
+
+    last_speed = speed
+    last_pressure = pressure
+end
+
+function on_hydraulic_step()
+    local pump = link("PU2")
+    local speed = pump.setting
+    local pressure = node("J126").pressure
+
+    if math.abs(pressure - target_pressure) <= pressure_tolerance then
+        return
+    end
+
+    local new_speed
+
+    -- A secant step needs two distinct points to draw a line through, so
+    -- until there are two, step with the naive speed/pressure ratio
+    if math.abs(last_speed - speed) < speed_tolerance
+       or math.abs(pressure - last_pressure) < 1e-6 then
+        new_speed = speed * (target_pressure / pressure)
+    else
+        new_speed = speed + (last_speed - speed)
+                          * (pressure - target_pressure)
+                          / (pressure - last_pressure)
+    end
+
+    if new_speed > max_speed then new_speed = max_speed end
+    if new_speed < 0 then new_speed = 0 end
+
+    if math.abs(new_speed - speed) > speed_tolerance then
+        pump.setting = new_speed
+        last_speed, last_pressure = speed, pressure
+    end
+end
+
+[REPORT]
+Status	FULL
+Summary	No
+Page	0
+NODE J126
+LINK PU2
+PRESSURE YES
+SETTING YES
+
+[END]

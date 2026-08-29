@@ -77,3 +77,9 @@ DAT(306,"hydraulics file does not match network data")
 DAT(307,"cannot read hydraulics file")
 DAT(308,"cannot save results to file")
 DAT(309,"cannot save results to report file")
+
+// Lua scripting errors
+DAT(310,"failed to initialize Lua scripting engine")
+DAT(311,"Lua scripting engine not initialized")
+DAT(312,"failed to parse Lua script")
+DAT(313,"failed to execute Lua script")

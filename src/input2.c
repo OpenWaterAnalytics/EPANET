@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/11/2026
+Last Updated: 08/14/2026
 ******************************************************************************
 */
 
@@ -27,6 +27,10 @@ Last Updated: 05/11/2026
 #include "hash.h"
 #include "text.h"
 
+#ifdef LUA_SCRIPTING
+#include "lua/luascript.h"
+#endif
+
 extern char *SectTxt[]; // Input section keywords (see ENUMSTXT.H)
 
 // Exported functions
@@ -40,6 +44,9 @@ static int  newline(Project *, int, char *);
 static int  addpattern(Network *, char *);
 static int  addcurve(Network *, char *);
 static void inperrmsg(Project *, int, int, char *);
+#ifdef LUA_SCRIPTING
+static int  startsnewsection(Parser *, int);
+#endif // LUA_SCRIPTING
 
 
 int netsize(Project *pr)
@@ -201,6 +208,14 @@ int readdata(Project *pr)
         parser->ErrTok = -1;
         if (parser->Ntokens == 0)
         {
+            #ifdef LUA_SCRIPTING
+            if (sect == _SCRIPT)
+            {
+                newline(pr, sect, line);
+                continue;
+            }
+            #endif // LUA_SCRIPTING
+
             // Store full line comment for Patterns and Curves
             if (sect == _PATTERNS || sect == _CURVES)
             {
@@ -226,7 +241,11 @@ int readdata(Project *pr)
         }
 
         // Check if at start of a new input section
+        #ifdef LUA_SCRIPTING
+        if (startsnewsection(parser, sect))
+        #else
         if (parser->Tok[0][0] == '[')
+        #endif // LUA_SCRIPTING
         {
             newsect = findmatch(parser->Tok[0], SectTxt);
             if (newsect >= 0)
@@ -268,6 +287,16 @@ int readdata(Project *pr)
     free(parser->X);
     return errcode;
 }
+
+#ifdef LUA_SCRIPTING
+static int startsnewsection(Parser *parser, int sect)
+{
+    if (parser->Tok[0][0] != '[') return FALSE;
+    if (sect != _SCRIPT) return TRUE;
+
+    return (parser->Ntokens == 1 && findmatch(parser->Tok[0], SectTxt) >= 0);
+}
+#endif // LUA_SCRIPTING
 
 int newline(Project *pr, int sect, char *line)
 /*
@@ -329,6 +358,9 @@ int newline(Project *pr, int sect, char *line)
         case _TAGS:        return (tagdata(pr));
         case _COORDS:      return (coordata(pr));
         case _VERTICES:    return (vertexdata(pr));
+        #ifdef LUA_SCRIPTING
+        case _SCRIPT:      return (luascript_addScriptLine(pr, line));
+        #endif
 
         // Data in these sections are not used for any computations
         case _LABELS:

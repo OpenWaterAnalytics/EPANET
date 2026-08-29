@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/23/2025
+ Last Updated: 08/14/2026
  ******************************************************************************
 */
 
@@ -20,6 +20,10 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
+#ifdef LUA_SCRIPTING
+#include "lua/luascript.h"
+#endif // LUA_SCRIPTING
 
 #include "types.h"
 #include "funcs.h"
@@ -66,6 +70,10 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
     ERRCODE(netsize(pr));
     ERRCODE(allocdata(pr));
 
+    #ifdef LUA_SCRIPTING
+    ERRCODE(luascript_open(pr));
+    #endif
+
     // Read input data
     ERRCODE(getdata(pr));
 
@@ -75,10 +83,11 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
         fclose(pr->parser.InFile);
         pr->parser.InFile = NULL;
     }
-    
+
     // Input file read with no fatal errors
     if (allowerrors) projectopened = (errcode == 0 || errcode == 200);
     else projectopened = (errcode == 0);
+
     if (projectopened)
     {
         // If using previously saved hydraulics file then open it
@@ -96,6 +105,15 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
         if (pr->report.Summaryflag) writesummary(pr);
         pr->Openflag = TRUE;
     }
+
+    #ifdef LUA_SCRIPTING
+    if (pr->Openflag)
+    {
+        ERRCODE(luascript_parseScript(pr));
+        if (errcode) pr->Openflag = FALSE;
+    }
+    #endif // LUA_SCRIPTING
+
     errmsg(pr, errcode);
 
     return errcode;
@@ -362,6 +380,10 @@ void initpointers(Project *pr)
     pr->report.reportCallback = NULL;
 
     initrules(pr);
+
+    #ifdef LUA_SCRIPTING
+    pr->lua = NULL;
+    #endif
 }
 
 int allocdata(Project *pr)
@@ -557,6 +579,13 @@ void freedata(Project *pr)
     {
         hashtable_free(pr->network.LinkHashTable);
     }
+
+    #ifdef LUA_SCRIPTING
+    if (pr->lua != NULL)
+    {
+        luascript_close(pr);
+    }
+    #endif // LUA_SCRIPTING
 }
 
 Pdemand finddemand(Pdemand d, int index)

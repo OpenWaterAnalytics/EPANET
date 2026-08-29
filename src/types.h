@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/11/2026
+ Last Updated: 08/14/2026
  ******************************************************************************
 */
 
@@ -298,7 +298,11 @@ typedef enum {
   _VALVES, _CONTROLS, _RULES, _DEMANDS, _SOURCES, _EMITTERS,
   _PATTERNS, _CURVES, _QUALITY, _STATUS, _ROUGHNESS, _ENERGY,
   _REACTIONS, _MIXING, _REPORT, _TIMES, _OPTIONS,
-    _COORDS, _VERTICES, _LABELS, _BACKDROP, _TAGS, _LEAKAGE, _END
+    _COORDS, _VERTICES, _LABELS, _BACKDROP, _TAGS, _LEAKAGE, 
+    #ifdef LUA_SCRIPTING
+    _SCRIPT,
+    #endif
+    _END
 } SectionType;
 
 typedef enum {
@@ -864,6 +868,11 @@ typedef struct {
 
 } Quality;
 
+#ifdef LUA_SCRIPTING
+// Opaque struct definition for the Lua engine
+typedef struct LuaEngine LuaEngine;
+#endif // LUA_SCRIPTING
+
 // Pipe Network Wrapper
 typedef struct {
 
@@ -923,6 +932,10 @@ typedef struct Project {
     TmpStatFname[MAXFNAME+1];    // Temporary statistic file name
 
   void (* viewprog) (char *);    // Pointer to progress viewing function
+
+  #ifdef LUA_SCRIPTING
+  LuaEngine *lua;                 // Opaque struct holding the Lua engine state
+  #endif // LUA_SCRIPTING
 
 } Project, *EN_Project;
 

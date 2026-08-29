@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/11/2026
+ Last Updated: 08/14/2026
  ******************************************************************************
 */
 
@@ -26,6 +26,10 @@
 
 #ifdef _WIN32
 #define snprintf _snprintf
+#endif
+
+#ifdef LUA_SCRIPTING
+#include "lua/luaevents.h"
 #endif
 
 /********************************************************************
@@ -548,6 +552,15 @@ int DLLEXPORT EN_initH(EN_Project p, int initFlag)
     // Initialize hydraulics solver
     inithyd(p, fflag);
     if (p->report.Statflag > 0) writeheader(p, STATHDR, 0);
+
+    #ifdef LUA_SCRIPTING
+    if (!errcode)
+    {
+        errcode = luascript_onEvent(p, LUA_EVENT_OPEN, NULL);
+        if (errcode) errmsg(p, errcode);
+    }
+    #endif // LUA_SCRIPTING
+
     return errcode;
 }
 
@@ -566,6 +579,7 @@ int DLLEXPORT EN_runH(EN_Project p, long *currentTime)
     if (!p->hydraul.OpenHflag) return 103;
     errcode = runhyd(p, currentTime);
     if (errcode) errmsg(p, errcode);
+
     return errcode;
 }
 
@@ -598,8 +612,12 @@ int DLLEXPORT EN_closeH(EN_Project p)
 */
 {
   if (!p->Openflag) return 102;
+
   if (p->hydraul.OpenHflag)
   {
+      #ifdef LUA_SCRIPTING
+      luascript_onEvent(p, LUA_EVENT_CLOSE, NULL);
+      #endif // LUA_SCRIPTING
       closeleakage(p);
       closehyd(p);
   }
