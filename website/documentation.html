@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - EPANET</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <i class="fas fa-water"></i>
+                    <span>EPANET</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="documentation.html" class="active">Documentation</a></li>
+                    <li><a href="examples.html">Examples</a></li>
+                    <li><a href="https://github.com/OpenWaterAnalytics/EPANET" target="_blank">GitHub</a></li>
+                </ul>
+                <div class="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="docs-hero">
+        <div class="container">
+            <h1>Documentation</h1>
+            <p>Complete guide to using EPANET and its Programmer's Toolkit API</p>
+        </div>
+    </section>
+
+    <!-- Documentation Content -->
+    <section class="docs-content">
+        <div class="container">
+            <div class="docs-grid">
+                <!-- API Reference -->
+                <div class="doc-card">
+                    <i class="fas fa-book"></i>
+                    <h3>API Reference</h3>
+                    <ul>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/blob/master/include/epanet2_2.h" target="_blank">C API Documentation</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/blob/master/include/epanet2_enums.h" target="_blank">API Enums</a></li>
+                        <li><a href="http://wateranalytics.org/EPANET/" target="_blank">Full API Docs</a></li>
+                    </ul>
+                </div>
+
+                <!-- Installation -->
+                <div class="doc-card">
+                    <i class="fas fa-download"></i>
+                    <h3>Installation</h3>
+                    <ul>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/blob/master/BUILDING.md" target="_blank">Building Guide</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/releases" target="_blank">Download Releases</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki" target="_blank">Installation Wiki</a></li>
+                    </ul>
+                </div>
+
+                <!-- Input File Format -->
+                <div class="doc-card">
+                    <i class="fas fa-file-alt"></i>
+                    <h3>Input File Format</h3>
+                    <ul>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Input-File-Format" target="_blank">INP File Format</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Keywords" target="_blank">Keywords Reference</a></li>
+                        <li><a href="example-networks/Net1.inp" target="_blank">Example Networks</a></li>
+                    </ul>
+                </div>
+
+                <!-- Toolkit Functions -->
+                <div class="doc-card">
+                    <i class="fas fa-cogs"></i>
+                    <h3>Toolkit Functions</h3>
+                    <ul>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Project-Functions" target="_blank">Project Functions</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Hydraulic-Functions" target="_blank">Hydraulic Functions</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Water-Quality-Functions" target="_blank">Water Quality Functions</a></li>
+                    </ul>
+                </div>
+
+                <!-- Node Functions -->
+                <div class="doc-card">
+                    <i class="fas fa-circle"></i>
+                    <h3>Node Functions</h3>
+                    <ul>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Node-Functions" target="_blank">Node API</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Node-Properties" target="_blank">Node Properties</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Junctions" target="_blank">Junctions</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Tanks" target="_blank">Tanks</a></li>
+                    </ul>
+                </div>
+
+                <!-- Link Functions -->
+                <div class="doc-card">
+                    <i class="fas fa-link"></i>
+                    <h3>Link Functions</h3>
+                    <ul>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Link-Functions" target="_blank">Link API</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Pipes" target="_blank">Pipes</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Pumps" target="_blank">Pumps</a></li>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki/Valves" target="_blank">Valves</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- API Categories -->
+            <div style="margin-top: 4rem;">
+                <h2 style="text-align: center; margin-bottom: 2rem;">API Function Categories</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-project-diagram"></i>
+                        <h3>Project Management</h3>
+                        <p>EN_createproject, EN_deleteproject, EN_open, EN_saveinpfile, EN_close</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-tint"></i>
+                        <h3>Hydraulic Analysis</h3>
+                        <p>EN_solveH, EN_openH, EN_initH, EN_runH, EN_nextH, EN_closeH</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-vial"></i>
+                        <h3>Water Quality</h3>
+                        <p>EN_solveQ, EN_openQ, EN_initQ, EN_runQ, EN_nextQ, EN_closeQ</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-file-invoice"></i>
+                        <h3>Reporting</h3>
+                        <p>EN_report, EN_setreport, EN_writeline, EN_geterror</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-cog"></i>
+                        <h3>Options & Settings</h3>
+                        <p>EN_getoption, EN_setoption, EN_gettimeparam, EN_settimeparam</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-network-wired"></i>
+                        <h3>Network Elements</h3>
+                        <p>EN_addnode, EN_addlink, EN_getnodevalue, EN_setnodevalue</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>EPANET</h3>
+                    <p>Open Water Analytics Community</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="documentation.html">Documentation</a></li>
+                        <li><a href="examples.html">Examples</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki" target="_blank">Wiki</a></li>
+                        <li><a href="http://wateranalytics.org/EPANET/" target="_blank">API Docs</a></li>
+                        <li><a href="BUILDING.md" target="_blank">Building Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Open Water Analytics. Licensed under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

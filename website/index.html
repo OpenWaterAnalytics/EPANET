@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPANET - Water Distribution System Modeling</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <i class="fas fa-water"></i>
+                    <span>EPANET</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="documentation.html">Documentation</a></li>
+                    <li><a href="examples.html">Examples</a></li>
+                    <li><a href="https://github.com/OpenWaterAnalytics/EPANET" target="_blank">GitHub</a></li>
+                </ul>
+                <div class="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>EPANET</h1>
+                <p class="hero-subtitle">Industry-Standard Software for Modeling Hydraulic and Water Quality Behavior of Water Distribution Systems</p>
+                <div class="hero-buttons">
+                    <a href="https://github.com/OpenWaterAnalytics/EPANET/releases" class="btn btn-primary">Download</a>
+                    <a href="documentation.html" class="btn btn-secondary">View Documentation</a>
+                </div>
+            </div>
+                <div class="hero-image">
+                    <img src="img/Network.png" alt="Water Distribution Network">
+                </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2>Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <h3>Hydraulic Analysis</h3>
+                    <p>Model steady-state and extended period simulations of water flow, pressure, and tank levels.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-flask"></i>
+                    <h3>Water Quality</h3>
+                    <p>Analyze the fate and transport of chemical constituents and trace the source of contamination.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-code"></i>
+                    <h3>Toolkit API</h3>
+                    <p>Programmatic access to EPANET's engine for custom applications in C/C++.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-project-diagram"></i>
+                    <h3>Network Modeling</h3>
+                    <p>Model complex water distribution networks with pumps, valves, tanks, and pipes.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Scenario Analysis</h3>
+                    <p>Evaluate system performance under various operating conditions and demand patterns.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Open Source</h3>
+                    <p>Community-driven development with contributions from researchers and practitioners worldwide.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about">
+        <div class="container">
+            <div class="about-content">
+                <h2>About EPANET</h2>
+                <p>EPANET is an industry-standard program for modeling the hydraulic and water quality behavior of water distribution system pipe networks. Originally developed by the U.S. Environmental Protection Agency (USEPA), it is now maintained by the Open Water Analytics (OWA) community.</p>
+                <p>The EPANET Programmer's Toolkit is a library of functions (or API) written in C that allows programmers to customize the use of EPANET's solution engine for their own applications.</p>
+                <a href="https://en.wikipedia.org/wiki/EPANET" target="_blank" class="btn btn-outline">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section class="quick-start">
+        <div class="container">
+            <h2>Quick Start</h2>
+            <div class="code-block">
+                <pre><code>// C Example - Simple EPANET Analysis
+#include <epanet2.h>
+
+int main() {
+    EN_Project ph;
+    EN_createproject(&ph);
+    EN_open(ph, "network.inp", "network.rpt", "network.out");
+    EN_solveH(ph);  // Run hydraulic analysis
+    EN_solveQ(ph);  // Run water quality analysis
+    EN_report(ph);  // Generate report
+    EN_deleteproject(ph);
+    return 0;
+}</code></pre>
+            </div>
+            <p class="quick-start-text">Use the Toolkit API to integrate EPANET into your applications. See the <a href="documentation.html">Documentation</a> for more details.</p>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Join the Community</h2>
+            <p>Contribute to EPANET development, report issues, or get help from the community.</p>
+            <div class="cta-buttons">
+                <a href="https://github.com/OpenWaterAnalytics/EPANET" class="btn btn-primary"><i class="fab fa-github"></i> GitHub</a>
+                <a href="https://github.com/OpenWaterAnalytics/EPANET/issues" class="btn btn-secondary"><i class="fas fa-bug"></i> Report Issues</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>EPANET</h3>
+                    <p>Open Water Analytics Community</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="documentation.html">Documentation</a></li>
+                        <li><a href="examples.html">Examples</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="https://github.com/OpenWaterAnalytics/EPANET/wiki" target="_blank">Wiki</a></li>
+                        <li><a href="http://wateranalytics.org/EPANET/" target="_blank">API Docs</a></li>
+                        <li><a href="BUILDING.md" target="_blank">Building Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Open Water Analytics. Licensed under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
