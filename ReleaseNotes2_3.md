@@ -152,3 +152,5 @@ This document describes the changes and updates that have been made in version 2
  - Makes `EN_setflowunits` change flow units for all assigned data curves but no longer changes pressure units when the unit system changes since v2.3 supports mixed-unit conventions (e.g., using LPS for flow and PSI for pressure).
 #### 2.3.6:
 - Insures that a dot decimal point is used when reading/writing EPANET files regardless of what the system locale uses.
+- Improves the code that prevents empty tanks from draining and full tanks from filling.
+- Checks that the start and end node arguments passed into `EN_addlink` are not the same.
