@@ -24,6 +24,25 @@
 int  validateproject(Project *);
 void reindextanks(Project *);
 
+int validtankcurve(const Scurve *curve)
+/*
+**-------------------------------------------------------------------
+**  Input:   curve = tank volume curve
+**  Output:  returns 1 if valid, 0 otherwise
+**  Purpose: checks that tank volume increases with water depth.
+**-------------------------------------------------------------------
+*/
+{
+    int i;
+    if (curve->Npts < 2) return 0;
+    for (i = 1; i < curve->Npts; i++)
+    {
+        if (curve->X[i] <= curve->X[i-1] ||
+            curve->Y[i] <= curve->Y[i-1]) return 0;
+    }
+    return 1;
+}
+
 int validatetanks(Project *pr)
 /*
 **-------------------------------------------------------------------
@@ -58,6 +77,14 @@ int validatetanks(Project *pr)
         if (i > 0)
         {
             curve = &net->Curve[i];
+            if (!validtankcurve(curve))
+            {
+                sprintf(pr->Msg, "Error 228: %s node %s", geterrmsg(228, errmsg),
+                        net->Node[tank->Node].ID);
+                writeline(pr, pr->Msg);
+                result = 0;
+                continue;
+            }
             n = curve->Npts - 1;
             if ((tank->Hmin - elev) * pr->Ucf[ELEV] < curve->X[0] - TINY ||
                 (tank->Hmax - elev) * pr->Ucf[ELEV] > curve->X[n] + TINY)

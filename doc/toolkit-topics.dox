@@ -364,6 +364,7 @@ These are the toolkit's enumerated types whose members are used as function argu
 | 225  | Invalid lower/upper levels for tank |
 | 226  | No head curve or power rating for pump |
 | 227  | Invalid head curve for pump |
+| 228  | Invalid volume curve for tank |
 | 230  | Nonincreasing x-values for curve |
 | 231  | No data provided for a curve |
 | 232  | No data provided for a pattern |

@@ -12,6 +12,7 @@
 */
 
 #include <boost/test/unit_test.hpp>
+#include <cmath>
 
 #include "test_toolkit.hpp"
 
@@ -88,5 +89,64 @@ BOOST_FIXTURE_TEST_CASE(test_curve_id_isvalid, FixtureInitClose)
     BOOST_REQUIRE(error == 252);
 }
 
+
+BOOST_FIXTURE_TEST_CASE(test_invalid_tank_volume_curve_assignment, FixtureOpenClose)
+{
+    int tank, curve;
+    double assignedCurve, diameter;
+    double depths[] = {100.0, 125.0, 150.0};
+    double volumes[][3] = {
+        {2000.0, 1000.0, 0.0},
+        {0.0, 2000.0, 1000.0},
+        {0.0, 0.0, 2000.0}
+    };
+    BOOST_REQUIRE(EN_getnodeindex(ph, "2", &tank) == 0);
+    BOOST_REQUIRE(EN_addcurve(ph, "volume") == 0);
+    BOOST_REQUIRE(EN_getcurveindex(ph, "volume", &curve) == 0);
+
+    for (auto &values : volumes)
+    {
+        BOOST_REQUIRE(EN_setcurve(ph, curve, depths, values, 3) == 0);
+        BOOST_CHECK(EN_setnodevalue(ph, tank, EN_VOLCURVE, curve) == 228);
+        BOOST_CHECK(EN_settankdata(ph, tank, 850.0, 120.0, 100.0, 150.0,
+                                  50.5, 0.0, "volume") == 228);
+        BOOST_REQUIRE(EN_getnodevalue(ph, tank, EN_VOLCURVE, &assignedCurve) == 0);
+        BOOST_CHECK_EQUAL(assignedCurve, 0.0);
+        BOOST_REQUIRE(EN_getnodevalue(ph, tank, EN_TANKDIAM, &diameter) == 0);
+        BOOST_CHECK_CLOSE(diameter, 50.5, 1.e-6);
+    }
+
+    double validVolumes[] = {0.0, 1000.0, 2000.0};
+    BOOST_REQUIRE(EN_setcurve(ph, curve, depths, validVolumes, 3) == 0);
+    BOOST_CHECK(EN_setnodevalue(ph, tank, EN_VOLCURVE, curve) == 0);
+    BOOST_CHECK(EN_settankdata(ph, tank, 850.0, 120.0, 100.0, 150.0,
+                              50.5, 0.0, "volume") == 0);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_invalid_tank_volume_curve_from_file, FixtureOpenClose)
+{
+    int tank, curve;
+    double diameter;
+    double depths[] = {100.0, 125.0, 150.0};
+    double volumes[] = {0.0, 1000.0, 2000.0};
+    BOOST_REQUIRE(EN_getnodeindex(ph, "2", &tank) == 0);
+    BOOST_REQUIRE(EN_addcurve(ph, "volume") == 0);
+    BOOST_REQUIRE(EN_getcurveindex(ph, "volume", &curve) == 0);
+    BOOST_REQUIRE(EN_setcurve(ph, curve, depths, volumes, 3) == 0);
+    BOOST_REQUIRE(EN_setnodevalue(ph, tank, EN_VOLCURVE, curve) == 0);
+
+    // Editing a curve after assignment must also be caught before simulation.
+    volumes[0] = 3000.0;
+    BOOST_REQUIRE(EN_setcurve(ph, curve, depths, volumes, 3) == 0);
+    BOOST_CHECK_EQUAL(EN_openH(ph), 110);
+    BOOST_REQUIRE(EN_saveinpfile(ph, DATA_PATH_TMP) == 0);
+    BOOST_REQUIRE(EN_close(ph) == 0);
+
+    BOOST_REQUIRE(EN_open(ph, DATA_PATH_TMP, DATA_PATH_RPT, DATA_PATH_OUT) == 0);
+    BOOST_REQUIRE(EN_getnodeindex(ph, "2", &tank) == 0);
+    BOOST_REQUIRE(EN_getnodevalue(ph, tank, EN_TANKDIAM, &diameter) == 0);
+    BOOST_CHECK(std::isfinite(diameter));
+    BOOST_CHECK_EQUAL(EN_openH(ph), 110);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

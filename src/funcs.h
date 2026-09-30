@@ -68,6 +68,10 @@ char    *geterrmsg(int, char *);
 void    errmsg(Project *, int);
 void    writewin(void (*vp)(char *), char *);
 
+// ------- VALIDATE.C --------------
+
+int     validtankcurve(const Scurve *);
+
 // ------- INPUT1.C ----------------
 
 int     getdata(Project *);
