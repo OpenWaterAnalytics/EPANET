@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/11/2026
+ Last Updated: 09/29/2026
  ******************************************************************************
 */
 
@@ -3424,6 +3424,9 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     n1 = hashtable_find(net->NodeHashTable, fromNode);
     n2 = hashtable_find(net->NodeHashTable, toNode);
     if (n1 == 0 || n2 == 0) return 203;
+
+    // Check that nodes are not the same
+    if (n1 == n2) return 222;
 
     // Check that valve link has legal connections
     if (linkType > PUMP)

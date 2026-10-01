@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 01/28/2026
+ Last Updated: 09/29/2026
  ******************************************************************************
 */
 
@@ -1083,7 +1083,7 @@ void  tanklevels(Project *pr, long tstep)
         {
             tank->V = tank->Vmax;
         }
-        else if (tank->V - hyd->NodeDemand[n] <= tank->Vmin)
+        else if (tank->V + hyd->NodeDemand[n] <= tank->Vmin)
         {
             tank->V = tank->Vmin;
         }
