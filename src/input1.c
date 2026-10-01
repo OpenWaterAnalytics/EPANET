@@ -365,6 +365,8 @@ void inittanks(Project *pr)
         if (i > 0)
         {
             curve = &net->Curve[i];
+            // Leave invalid curves for project validation before hydraulics.
+            if (!validtankcurve(curve)) continue;
             n = curve->Npts - 1;
 
             // Find min., max., and initial volumes from curve

@@ -2683,6 +2683,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         j = index - nJuncs;                        // tank index
         if (Tank[j].A == 0.0) return 263;          // tank is a reservoir
         curve = &net->Curve[i];                    // curve object
+        if (!validtankcurve(curve)) return 228;
 
         // Check that tank's min/max levels lie within curve
         value = (Tank[j].Hmin - Node[index].El) * Ucf[ELEV];
@@ -2923,6 +2924,7 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
         }
         if (curveIndex == 0) return 206;
         curve = &net->Curve[curveIndex];
+        if (!validtankcurve(curve)) return 228;
         n = curve->Npts - 1;
         if (minlvl < curve->X[0] || maxlvl > curve->X[n]) return 225;
         area = (curve->Y[n] - curve->Y[0]) / (curve->X[n] - curve->X[0]);
