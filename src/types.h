@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/11/2026
+ Last Updated: 10/01/2026
  ******************************************************************************
 */
 
@@ -891,7 +891,8 @@ typedef struct {
   Srule    *Rule;          // Rule-based controls array
   HashTable
     *NodeHashTable,        // Hash table for Node ID names
-    *LinkHashTable;        // Hash table for Link ID names
+    *LinkHashTable,        // Hash table for Link ID names
+    *PatternHashTable;     // Hash table for Pattern ID names
   Padjlist *Adjlist;       // Node adjacency lists
 
 } Network;

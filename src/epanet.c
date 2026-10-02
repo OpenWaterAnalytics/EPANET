@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 09/29/2026
+ Last Updated: 10/01/2026
  ******************************************************************************
 */
 
@@ -4727,7 +4727,7 @@ int DLLEXPORT EN_addpattern(EN_Project p, const char *id)
 
     // Assign properties to the new pattern
     pat = &net->Pattern[n];
-    strcpy(pat->ID, id);
+    safe_strcpy(pat->ID, id, MAXID+1);
     pat->Comment = NULL;
     pat->Length = 1;
     pat->F = (double *)calloc(1, sizeof(double));
@@ -4740,6 +4740,9 @@ int DLLEXPORT EN_addpattern(EN_Project p, const char *id)
         free(pat->F);
         return 101;
     }
+
+    // Add pattern ID and its index to hash table
+    hashtable_insert(net->PatternHashTable, id, n);                                                 
 
     // Update the number of patterns
     net->Npats = n;
@@ -4820,8 +4823,6 @@ int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
 **----------------------------------------------------------------
 */
 {
-    int i;
-
     Network *net = &p->network;
     Parser  *parser = &p->parser;
     Hydraul *hyd = &p->hydraul;
@@ -4847,9 +4848,18 @@ int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
     // Free the pattern's factor array
     FREE(net->Pattern[index].F);
     FREE(net->Pattern[index].Comment);
+    
+    // Remove pattern entry from its hash table
+    hashtable_delete(net->PatternHashTable, net->Pattern[index].ID);
+    
+    // Replace the deleted pattern with the last pattern in the Patterns array
+    if (index < p->network.Npats)
+    {
+        net->Pattern[index] = net->Pattern[net->Npats];
+        hashtable_update(net->PatternHashTable, net->Pattern[index].ID, index);
+    }
 
-    // Shift the entries in the network's Pattern array
-    for (i = index; i < net->Npats; i++) net->Pattern[i] = net->Pattern[i+1];
+    // Reduce the number of patterns    
     net->Npats--;
     parser->MaxPats--;
     return 0;
@@ -4868,16 +4878,10 @@ int DLLEXPORT EN_getpatternindex(EN_Project p, const char *id, int *index)
 
     *index = 0;
     if (!p->Openflag) return 102;
-    for (i = 1; i <= p->network.Npats; i++)
-    {
-        if (strcmp(id, p->network.Pattern[i].ID) == 0)
-        {
-            *index = i;
-            return 0;
-        }
-    }
-    *index = 0;
-    return 205;
+    i = findpattern(&p->network, id);
+    if (i < 0) return 205;
+    *index = i;
+    return 0;
 }
 
 int DLLEXPORT EN_getpatternid(EN_Project p, int index, char *id)
@@ -4905,19 +4909,21 @@ int DLLEXPORT EN_setpatternid(EN_Project p, int index, const char *id)
 **----------------------------------------------------------------
 */
 {
-    int i;
-
+    Network *net = &p->network;
+ 
     if (!p->Openflag) return 102;
-    if (index < 1 || index > p->network.Npats) return 205;
+    if (index < 1 || index > net->Npats) return 205;
 
     // Check if id name contains invalid characters
     if (!namevalid(id)) return 252;
 
-    for (i = 1; i <= p->network.Npats; i++)
-    {
-        if (i != index && strcmp(id, p->network.Pattern[i].ID) == 0) return 215;
-    }
-    strcpy(p->network.Pattern[index].ID, id);
+    // Check if another pattern with same name exists
+    if (hashtable_find(net->PatternHashTable, id) > 0) return 215;
+
+    // Replace the existing pattern ID with the new value
+    hashtable_delete(net->PatternHashTable, net->Pattern[index].ID);
+    safe_strcpy(net->Pattern[index].ID, id, MAXID+1);
+    hashtable_insert(net->NodeHashTable, id, index);
     return 0;
 }
 

@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/11/2026
+Last Updated: 10/01/2026
 ******************************************************************************
 */
 
@@ -37,7 +37,7 @@ int getheadlossoption(Project *, char *);
 
 // Local functions
 static int  newline(Project *, int, char *);
-static int  addpattern(Network *, char *);
+static int  addpatternID(Network *, char *);
 static int  addcurve(Network *, char *);
 static void inperrmsg(Project *, int, int, char *);
 
@@ -53,11 +53,11 @@ int netsize(Project *pr)
 {
     Parser *parser = &pr->parser;
 
-    char line[MAXLINE + 1]; // Line from input data file
+    char line[MAXLINE + 1];      // Line from input data file
+    char prevID[MAXID + 1] = ""; // Previous pattern ID
     char *tok;              // First token of line
     int sect, newsect;      // Input data sections
     int errcode = 0;        // Error code
-    Spattern *pattern;
 
     // Initialize object counts
     parser->MaxJuncs = 0;
@@ -68,19 +68,9 @@ int netsize(Project *pr)
     parser->MaxControls = 0;
     parser->MaxRules = 0;
     parser->MaxCurves = 0;
+    parser->MaxPats = 0;
+    pr->network.Npats = 0;
     sect = -1;
-
-
-    // Add a "dummy" time pattern with index of 0 and a single multiplier
-    // of 1.0 to be used by all demands not assigned a pattern
-    pr->network.Npats = -1;
-    errcode = addpattern(&pr->network, "");
-    if (errcode) return errcode;
-    pattern = &pr->network.Pattern[0];
-    pattern->Length = 1;
-    pattern[0].F = (double *)calloc(1, sizeof(double));
-    pattern[0].F[0] = 1.0;
-    parser->MaxPats = pr->network.Npats;
 
     // Make a pass through input file counting number of each object
     if (parser->InFile == NULL) return 0;
@@ -120,8 +110,12 @@ int netsize(Project *pr)
             case _CONTROLS:  parser->MaxControls++; break;
             case _RULES:     addrule(parser,tok);   break;
             case _PATTERNS:
-                errcode = addpattern(&pr->network, tok);
-                parser->MaxPats = pr->network.Npats;
+                if (strcmp(tok, prevID) != 0)
+                {
+                    safe_strcpy(prevID, tok, MAXID+1);
+                    errcode = addpatternID(&pr->network, tok);
+                    parser->MaxPats = pr->network.Npats;
+                }
                 break;
             case _CURVES:
                 errcode = addcurve(&pr->network, tok);
@@ -376,7 +370,7 @@ int addlinkID(Network *net, int n, char *id)
     return 0;
 }
 
-int addpattern(Network *network, char *id)
+int addpatternID(Network *network, char *id)
 /*
 **-------------------------------------------------------------
 **  Input:   id = pattern ID label
@@ -385,30 +379,14 @@ int addpattern(Network *network, char *id)
 **--------------------------------------------------------------
 */
 {
-    int n = network->Npats;
-    Spattern *pattern;
-
-    // Check if pattern was already created
-    if (n > 0)
-    {
-        if (strcmp(id, network->Pattern[n].ID) == 0) return 0;
-        if (findpattern(network, id) > 0) return 0;
-    }
+    // Check if pattern ID was already hashed
     if (strlen(id) > MAXID) return 252;
+    if (findpattern(network, id) > 0) return 0;
 
-    // Update pattern count & add a new pattern to the database
-    n = n + 2;
-    network->Pattern = (Spattern *)realloc(network->Pattern, n * sizeof(Spattern));
-    if (network->Pattern == NULL) return 101;
+    // Update pattern count & add a new pattern to its hash table
     (network->Npats)++;
-
-    // Initialize the pattern
-    pattern = &network->Pattern[network->Npats];
-    strncpy(pattern->ID, id, MAXID);
-    pattern->Comment = NULL;
-    pattern->Length = 0;
-    pattern->F = NULL;
-    return 0;
+    hashtable_insert(network->PatternHashTable, id, network->Npats);
+    return 0;    
 }
 
 int addcurve(Network *network, char *id)

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/17/2025
+ Last Updated: 10/01/2026
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -62,6 +62,7 @@ int     settag(Network *, int, int, const char *);
 int     namevalid(const char *);
 void    getTmpName(char *);
 char    *xstrcpy(char **, const char *, const size_t n);
+size_t  safe_strcpy(char *dst, const char *src, size_t dst_size);                                                                 
 int     strcomp(const char *, const char *);
 double  interp(int, double [], double [], double);
 char    *geterrmsg(int, char *);

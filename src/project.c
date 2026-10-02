@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/23/2025
+ Last Updated: 10/01/2026
  ******************************************************************************
 */
 
@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h> 
+#include <stddef.h>
 
 //*** For the Windows SDK _tempnam function ***//
 #ifdef _WIN32
@@ -306,6 +307,8 @@ void initpointers(Project *pr)
 **----------------------------------------------------------------
 */
 {
+    int errcode = 0;
+    
     Network* nw = &pr->network;
     nw->Nnodes = 0;
     nw->Ntanks = 0;
@@ -316,7 +319,7 @@ void initpointers(Project *pr)
     nw->Nvalves = 0;
     nw->Ncontrols = 0;
     nw->Nrules = 0;
-    nw->Npats = 0;
+    nw->Npats  = 0; 
     nw->Ncurves = 0;
 
     pr->hydraul.NodeDemand = NULL;
@@ -362,6 +365,14 @@ void initpointers(Project *pr)
     pr->report.reportCallback = NULL;
 
     initrules(pr);
+
+    // Allocate node, link & pattern ID hash tables
+    pr->network.NodeHashTable = hashtable_create();
+    pr->network.LinkHashTable = hashtable_create();
+    pr->network.PatternHashTable = hashtable_create();
+    ERRCODE(MEMCHECK(pr->network.NodeHashTable));
+    ERRCODE(MEMCHECK(pr->network.LinkHashTable));
+    ERRCODE(MEMCHECK(pr->network.PatternHashTable));
 }
 
 int allocdata(Project *pr)
@@ -375,12 +386,6 @@ int allocdata(Project *pr)
 {
     int n;
     int errcode = 0;
-
-    // Allocate node & link ID hash tables
-    pr->network.NodeHashTable = hashtable_create();
-    pr->network.LinkHashTable = hashtable_create();
-    ERRCODE(MEMCHECK(pr->network.NodeHashTable));
-    ERRCODE(MEMCHECK(pr->network.LinkHashTable));
 
     // Allocate memory for network nodes
     //*************************************************************
@@ -423,8 +428,8 @@ int allocdata(Project *pr)
         ERRCODE(MEMCHECK(pr->hydraul.LinkStatus));
     }
 
-    // Allocate memory for tanks, sources, pumps, valves, and controls
-    // (memory for Patterns and Curves arrays expanded as each is added)
+    // Allocate memory for tanks, sources, pumps, valves, patterns and controls
+    // (memory for Curves arrays expanded as each is added)
     if (!errcode)
     {
         pr->network.Tank =
@@ -433,6 +438,8 @@ int allocdata(Project *pr)
             (Spump *)calloc(pr->parser.MaxPumps + 1, sizeof(Spump));
         pr->network.Valve =
             (Svalve *)calloc(pr->parser.MaxValves + 1, sizeof(Svalve));
+        pr->network.Pattern =
+            (Spattern *)calloc(pr->parser.MaxPats + 1, sizeof(Spattern));
         pr->network.Control =
             (Scontrol *)calloc(pr->parser.MaxControls + 1, sizeof(Scontrol));
         ERRCODE(MEMCHECK(pr->network.Tank));
@@ -440,6 +447,14 @@ int allocdata(Project *pr)
         ERRCODE(MEMCHECK(pr->network.Valve));
         ERRCODE(MEMCHECK(pr->network.Control));
     }
+    
+    // Initialize a "dummy" time pattern used by all demands not assigned a pattern
+    Spattern* pattern = &pr->network.Pattern[0];
+    strcpy(pattern->ID, "");
+    pattern->Comment = NULL;
+    pattern->Length = 1;
+    pattern[0].F = (double *)calloc(1, sizeof(double));
+    pattern[0].F[0] = 1.0;
 
     // Initialize pointers used in nodes and links
     if (!errcode)
@@ -556,6 +571,10 @@ void freedata(Project *pr)
     if (pr->network.LinkHashTable != NULL)
     {
         hashtable_free(pr->network.LinkHashTable);
+    }
+    if (pr->network.PatternHashTable != NULL)
+    {
+        hashtable_free(pr->network.PatternHashTable);
     }
 }
 
@@ -1077,13 +1096,10 @@ int findpattern(Network *network, const char *id)
 */
 {
     int i;
-
-    // Don't forget to include the "dummy" pattern 0 in the search
-    for (i = 0; i <= network->Npats; i++)
-    {
-        if (strcmp(id, network->Pattern[i].ID) == 0) return i;
-    }
-    return -1;
+    
+    i = hashtable_find(network->PatternHashTable, id);
+    if (i == 0) return -1;
+    return i;
 }
 
 int findcurve(Network *network, const char *id)
@@ -1153,14 +1169,18 @@ void assigncurvetypes(Network *network)
     }
 }
 
-void adjustpattern(int *pat, int index)
+void adjustpattern(int *pat, int index, int Npats)
 /*----------------------------------------------------------------
 ** Local function that modifies a reference to a deleted time pattern
 **----------------------------------------------------------------
 */
 {
+    // Pattern index is same as that of pattern being deleted
     if (*pat == index) *pat = 0;
-    else if (*pat > index) (*pat)--;
+    
+    // Pattern index is same as last entry in patterns array
+    // which will take the place of the deleted pattern
+    else if (*pat == Npats) *pat = index;
 }
 
 void adjustpatterns(Network *network, int index)
@@ -1168,10 +1188,12 @@ void adjustpatterns(Network *network, int index)
 **  Input:   index = index of time pattern being deleted
 **  Output:  none
 **  Purpose: modifies references made to a deleted time pattern
+**           and to the last pattern swapped into its position 
 **----------------------------------------------------------------
 */
 {
     int j;
+    int n = network->Npats;
     Pdemand demand;
     Psource source;
 
@@ -1181,24 +1203,24 @@ void adjustpatterns(Network *network, int index)
         // Adjust demand patterns
         for (demand = network->Node[j].D; demand != NULL; demand = demand->next)
         {
-            adjustpattern(&demand->Pat, index);
+            adjustpattern(&demand->Pat, index, n);
         }
         // Adjust WQ source patterns
         source = network->Node[j].S;
-        if (source) adjustpattern(&source->Pat, index);
+        if (source) adjustpattern(&source->Pat, index, n);
     }
 
     // Adjust patterns used by reservoir tanks
     for (j = 1; j <= network->Ntanks; j++)
     {
-        adjustpattern(&network->Tank[j].Pat, index);
+        adjustpattern(&network->Tank[j].Pat, index, n);
     }
 
     // Adjust patterns used by pumps
     for (j = 1; j <= network->Npumps; j++)
     {
-        adjustpattern(&network->Pump[j].Upat, index);
-        adjustpattern(&network->Pump[j].Epat, index);
+        adjustpattern(&network->Pump[j].Upat, index, n);
+        adjustpattern(&network->Pump[j].Epat, index, n);
     }
 }
 
@@ -1631,6 +1653,43 @@ char *xstrcpy(char **s1, const char *s2, const size_t n)
     return *s1;
 }
 
+size_t safe_strcpy(char *dst, const char *src, size_t dst_size)
+/*---------------------------------------------------------------
+**  Input:   dst = destination string
+**           src = source string
+**           dst_size = max. size of destination string
+**  Output:  updated contents of dst
+**  Returns: number of bytes copied
+**  Purpose: copies src into dst, writing at most dst_size bytes 
+**           (including the NUL).
+**---------------------------------------------------------------
+ */
+{
+    size_t src_len;
+    size_t copy_len;
+
+    if (src == NULL)
+    {
+        if (dst != NULL && dst_size > 0)
+        {
+            dst[0] = '\0';
+        }
+        return 0;
+    }
+    if (dst == NULL || dst_size == 0)
+    {
+        return 0;
+    }
+
+    src_len = strlen(src);
+    copy_len = (src_len >= dst_size) ? dst_size - 1 : src_len;
+    memmove(dst, src, copy_len);
+    dst[copy_len] = '\0';
+
+    return copy_len;
+}
+
+
 int strcomp(const char *s1, const char *s2)
 /*---------------------------------------------------------------
 **  Input:   s1 = character string
@@ -1648,6 +1707,7 @@ int strcomp(const char *s1, const char *s2)
     }
     return 0;
 }
+
 
 double interp(int n, double x[], double y[], double xx)
 /*----------------------------------------------------------------

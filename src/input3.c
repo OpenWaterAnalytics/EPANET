@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 04/19/2025
+Last Updated: 10/01/2026
 ******************************************************************************
 */
 
@@ -709,6 +709,7 @@ int patterndata(Project *pr)
         i = findpattern(net, parser->Tok[0]);
         if (i <= 0) return setError(parser, 0, 205);
         pattern = &(net->Pattern[i]);
+        safe_strcpy(pattern->ID, parser->Tok[0], MAXID+1);
         if (pattern->Comment == NULL && parser->Comment[0])
         {
             pattern->Comment = xstrcpy(&pattern->Comment, parser->Comment, MAXMSG);
