@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/01/2026
+ Last Updated: 10/02/2026
  ******************************************************************************
 */
 
@@ -156,6 +156,7 @@ int DLLEXPORT EN_init(EN_Project p, const char *rptFile, const char *outFile,
 
     // Initialize memory used for project's data objects
     initpointers(p);
+    ERRCODE(createhashtables(p));
     ERRCODE(netsize(p));
     ERRCODE(allocdata(p));
     if (errcode) return (errcode);
@@ -4839,11 +4840,11 @@ int  DLLEXPORT EN_deletepattern(EN_Project p, int index)
 
     // Modify global energy price pattern
     if (hyd->Epat == index)  hyd->Epat = 0;
-    else if (hyd->Epat > index) hyd->Epat--;
+    else if (hyd->Epat == net->Npats) hyd->Epat = index;
 
     // Modify global default demand pattern
     if (hyd->DefPat == index) hyd->DefPat = 0;
-    else if (hyd->DefPat > index) hyd->DefPat--;
+    else if (hyd->DefPat == net->Npats) hyd->DefPat = index;
 
     // Free the pattern's factor array
     FREE(net->Pattern[index].F);
@@ -4918,12 +4919,13 @@ int DLLEXPORT EN_setpatternid(EN_Project p, int index, const char *id)
     if (!namevalid(id)) return 252;
 
     // Check if another pattern with same name exists
-    if (hashtable_find(net->PatternHashTable, id) > 0) return 215;
+    int k = hashtable_find(net->PatternHashTable, id);
+    if (k > 0 && k != index) return 215;
 
     // Replace the existing pattern ID with the new value
     hashtable_delete(net->PatternHashTable, net->Pattern[index].ID);
     safe_strcpy(net->Pattern[index].ID, id, MAXID+1);
-    hashtable_insert(net->NodeHashTable, id, index);
+    hashtable_insert(net->PatternHashTable, id, index);
     return 0;
 }
 

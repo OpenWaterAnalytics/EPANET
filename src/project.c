@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/01/2026
+ Last Updated: 10/02/2026
  ******************************************************************************
 */
 
@@ -54,6 +54,9 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
 
     // Initialize data arrays to NULL
     initpointers(pr);
+    
+    // Create hash tables
+    ERRCODE(createhashtables(pr));
 
     // Open input & report files
     ERRCODE(openfiles(pr, inpFile, rptFile, outFile));
@@ -365,14 +368,25 @@ void initpointers(Project *pr)
     pr->report.reportCallback = NULL;
 
     initrules(pr);
+}
 
-    // Allocate node, link & pattern ID hash tables
+int createhashtables(Project *pr)
+/*----------------------------------------------------------------
+**  Input:   none
+**  Output:  none
+**  Returns: error code
+**  Purpose: creates hash tables for node, link & pattern IDs 
+**----------------------------------------------------------------
+*/
+{
+    int errcode = 0;
     pr->network.NodeHashTable = hashtable_create();
     pr->network.LinkHashTable = hashtable_create();
     pr->network.PatternHashTable = hashtable_create();
     ERRCODE(MEMCHECK(pr->network.NodeHashTable));
     ERRCODE(MEMCHECK(pr->network.LinkHashTable));
     ERRCODE(MEMCHECK(pr->network.PatternHashTable));
+    return errcode;
 }
 
 int allocdata(Project *pr)
@@ -445,20 +459,21 @@ int allocdata(Project *pr)
         ERRCODE(MEMCHECK(pr->network.Tank));
         ERRCODE(MEMCHECK(pr->network.Pump));
         ERRCODE(MEMCHECK(pr->network.Valve));
+        ERRCODE(MEMCHECK(pr->network.Pattern));
         ERRCODE(MEMCHECK(pr->network.Control));
     }
-    
-    // Initialize a "dummy" time pattern used by all demands not assigned a pattern
-    Spattern* pattern = &pr->network.Pattern[0];
-    strcpy(pattern->ID, "");
-    pattern->Comment = NULL;
-    pattern->Length = 1;
-    pattern[0].F = (double *)calloc(1, sizeof(double));
-    pattern[0].F[0] = 1.0;
 
-    // Initialize pointers used in nodes and links
     if (!errcode)
     {
+        // Initialize a "dummy" time pattern used by all demands not assigned a pattern
+        Spattern* pattern = &pr->network.Pattern[0];
+        strcpy(pattern->ID, "");
+        pattern->Comment = NULL;
+        pattern->Length = 1;
+        pattern[0].F = (double *)calloc(1, sizeof(double));
+        pattern[0].F[0] = 1.0;        
+        
+        // Initialize pointers used in nodes and links        
         for (n = 0; n <= pr->parser.MaxNodes; n++)
         {
             pr->network.Node[n].D = NULL;    // node demand

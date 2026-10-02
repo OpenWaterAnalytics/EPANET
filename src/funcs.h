@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/01/2026
+ Last Updated: 10/02/2026
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -16,6 +16,7 @@
 // ------- PROJECT.C ------------
 
 void    initpointers(Project *);
+int     createhashtables(Project *);
 int     allocdata(Project *);
 void    freedata(Project *);
 
