@@ -44,7 +44,9 @@ void loadhydraulicsolverstate(Project *pr)
 **  Purpose: copies dimensional hydraulic state into solver state
 **----------------------------------------------------------------
 **  This is the dimensional -> numerical boundary for hydraulic state.
-**  Keep unit conversion here rather than scattering it through GGA code.
+**  It includes tank node head and net inflow (NodeDemand): tank/event logic
+**  keeps using the dimensional arrays while GGA uses SolverState. Keep unit
+**  conversion here rather than scattering it through either subsystem.
 */
 {
     Network *net = &pr->network;
@@ -80,6 +82,8 @@ void savehydraulicsolverstate(Project *pr)
 **  Purpose: copies solver hydraulic state back to dimensional state
 **----------------------------------------------------------------
 **  This is the numerical -> dimensional boundary after a hydraulic solve.
+**  Tank head and net inflow are published here before timestep, control, rule,
+**  energy, and quality calculations consume the dimensional hydraulic state.
 */
 {
     Network *net = &pr->network;

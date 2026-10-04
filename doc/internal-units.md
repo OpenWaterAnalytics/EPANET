@@ -243,9 +243,11 @@ coefficients, head loss, gradients, and convergence tests.
   before comparisons/actions.
 
 **Migration:** do not dimensionless-ize the event scheduler or rule language as
-part of this project. Keep simulation state dimensional. Convert values only
-when they cross into/out of the numerical hydraulic solve. Controls that are
-checked *inside* hydraulic iterations need scaled comparison values.
+part of this project. Keep simulation state dimensional. `hydsolve()` loads tank
+head/net inflow into `SolverState` through the hydraulic scaling boundary and
+publishes them back before timestep, control, and rule evaluation. Tank volume
+logic consumes only dimensional state. Controls checked *inside* hydraulic
+iterations use scaled comparison values.
 
 ### 10. Convergence and numerical scale assumptions
 
@@ -337,7 +339,7 @@ The implementation is complete only when all items below are satisfied.
 - [x] Replace dimensional/hard-coded convergence thresholds inside the solver.
 - [x] Classify and normalize numerical regularization constants (`RQtol`,
       `CSMALL`, `CBIG`, barriers, hydraulic uses of `TINY`).
-- [ ] Keep tank/event simulation state dimensional and define its solver boundary.
+- [x] Keep tank/event simulation state dimensional and define its solver boundary.
 - [ ] Keep energy calculations dimensional and define their solver boundary.
 - [ ] Keep water-quality calculations dimensional and define their solver boundary.
 - [x] Return hydraulic results/diagnostics to the legacy physical representation

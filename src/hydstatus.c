@@ -159,11 +159,14 @@ int  linkstatus(Project *pr)
                                            hyd->SolverState.NodeHead[n2]);
         }
 
-        // Check for flow into (out of) full (empty) tanks
+        // Tank volume is simulation state and remains dimensional. Convert
+        // the solver flow before crossing into tank status logic.
         if (n1 > net->Njuncs)
-            tankstatus(pr, k, n1, hyd->SolverState.LinkFlow[k]);
+            tankstatus(pr, k, n1,
+                       hydflowfromsolver(pr, hyd->SolverState.LinkFlow[k]));
         if (n2 > net->Njuncs)
-            tankstatus(pr, k, n2, -hyd->SolverState.LinkFlow[k]);
+            tankstatus(pr, k, n2,
+                       -hydflowfromsolver(pr, hyd->SolverState.LinkFlow[k]));
 
         // Note any change in link status; do not revise link flow
         if (status != hyd->LinkStatus[k])
@@ -433,7 +436,7 @@ void  tankstatus(Project *pr, int k, int n, double q)
 **----------------------------------------------------------------
 **  Input:   k = link index
 **           n = tank node index
-**           q = link flow rate out of (+) or into (-) tank
+**           q = dimensional link flow rate out of (+) or into (-) tank
 **  Output:  none
 **  Purpose: closes link flowing into full or out of empty tank
 **----------------------------------------------------------------

@@ -734,7 +734,7 @@ int  tanktimestep(Project *pr, long *tstep)
     Hydraul *hyd = &pr->hydraul;
 
     int     i, n, tankIdx = 0;
-    double  h, q, v, xt;
+    double  tankHead, tankFlow, volume, fillTime;
     long    t;
     Stank   *tank;
 
@@ -745,21 +745,24 @@ int  tanktimestep(Project *pr, long *tstep)
         tank = &net->Tank[i];
         if (tank->A == 0.0) continue;
 
-        // Get current tank grade (h) & inflow (q)
+        // Tank/event simulation state is dimensional. hydsolve() publishes
+        // solver results back to these arrays before timestep() is called.
         n = tank->Node;
-        h = hyd->NodeHead[n];
-        q = hyd->NodeDemand[n];
-        if (ABS(q) <= QZERO) continue;
+        tankHead = hyd->NodeHead[n];
+        tankFlow = hyd->NodeDemand[n];
+        if (ABS(tankFlow) <= QZERO) continue;
 
-        // Find volume to fill/drain tank
-        if      (q > 0.0 && h < tank->Hmax) v = tank->Vmax - tank->V;
-        else if (q < 0.0 && h > tank->Hmin) v = tank->Vmin - tank->V;
+        // Find dimensional volume required to fill/drain the tank.
+        if (tankFlow > 0.0 && tankHead < tank->Hmax)
+            volume = tank->Vmax - tank->V;
+        else if (tankFlow < 0.0 && tankHead > tank->Hmin)
+            volume = tank->Vmin - tank->V;
         else continue;
 
-        // Find time to fill/drain tank
-        xt = v / q;
-        if (ABS(xt) > *tstep + 1) continue;
-        t = (long)ROUND(xt);
+        // volume / flow gives physical elapsed time (seconds).
+        fillTime = volume / tankFlow;
+        if (ABS(fillTime) > *tstep + 1) continue;
+        t = (long)ROUND(fillTime);
         if (t > 0 && t < *tstep)
         {
             *tstep = t;
@@ -784,7 +787,7 @@ int  controltimestep(Project *pr, long *tstep)
     Hydraul *hyd = &pr->hydraul;
 
     int    i, j, k, n, controlIndex = 0;
-    double h, q, v;
+    double tankHead, tankFlow, volume;
     long   t, t1, t2;
     Slink  *link;
     Scontrol *control;
@@ -804,18 +807,20 @@ int  controltimestep(Project *pr, long *tstep)
             // Skip node if not a tank or reservoir
             if ((j = n - net->Njuncs) <= 0) continue;
 
-            // Find current head and flow into tank
-            h = hyd->NodeHead[n];
-            q = hyd->NodeDemand[n];
-            if (ABS(q) <= QZERO) continue;
+            // Controls outside the GGA use dimensional tank head and inflow.
+            tankHead = hyd->NodeHead[n];
+            tankFlow = hyd->NodeDemand[n];
+            if (ABS(tankFlow) <= QZERO) continue;
 
-            // Find time to reach upper or lower control level
-           if ( (h < control->Grade && control->Type == HILEVEL && q > 0.0)
-           ||   (h > control->Grade && control->Type == LOWLEVEL && q < 0.0) )
-           {
-               v = tankvolume(pr, j, control->Grade) - net->Tank[j].V;
-               t = (long)ROUND(v/q);
-           }
+            // Find time to reach upper or lower control level.
+            if ((tankHead < control->Grade && control->Type == HILEVEL &&
+                 tankFlow > 0.0) ||
+                (tankHead > control->Grade && control->Type == LOWLEVEL &&
+                 tankFlow < 0.0))
+            {
+                volume = tankvolume(pr, j, control->Grade) - net->Tank[j].V;
+                t = (long)ROUND(volume / tankFlow);
+            }
         }
 
         // Control is based on elapsed time
@@ -1100,18 +1105,19 @@ void  tanklevels(Project *pr, long tstep)
     Hydraul *hyd = &pr->hydraul;
 
     int    i, n;
-    double dv;
+    double volumeChange;
 
     for (i = 1; i <= net->Ntanks; i++)
     {
         Stank *tank = &net->Tank[i];
         if (tank->A == 0.0) continue;    // Skip reservoirs
 
-        // Update the tank's volume & water elevation
+        // Tank volume integration stays in dimensional simulation state:
+        // physical flow multiplied by seconds produces physical volume.
         n = tank->Node;
         if (ABS(hyd->NodeDemand[n]) <= QZERO) continue;
-        dv = hyd->NodeDemand[n] * tstep;
-        tank->V += dv;
+        volumeChange = hyd->NodeDemand[n] * tstep;
+        tank->V += volumeChange;
 
         // Check if tank full/empty within next second
         if (tank->V + hyd->NodeDemand[n] >= tank->Vmax)
