@@ -377,6 +377,24 @@ reports, energy, quality, tank integration, or event timing. The scale is fixed
 for a hydraulic-open session and is recomputed the next time hydraulics are opened,
 so model edits made before `EN_openH()` are reflected in the numerical scaling.
 
+### Compatibility and cost review
+
+The production policy is regression-tested against the former `Head = 1`,
+`Flow = 1` path on Net1, Net2, and Net3 over their full hydraulic event
+sequences. Event times and link statuses must match exactly; dimensional node
+heads, demands, and link flows must remain within tight floating-point
+tolerances. The test intentionally does not freeze iteration counts because
+solver scaling is allowed to change the numerical convergence path without
+changing the physical solution.
+
+The separated solver state adds six `double` arrays per node (head, total node
+demand, full demand, delivered demand, emitter flow, and leakage flow) plus one
+`double` array per link for flow. This is 48 bytes per node and 8 bytes per link,
+excluding allocator overhead. Each hydraulic solve also performs one O(N + L)
+load and save across the dimensional/solver boundary. These costs are explicit
+tradeoffs for keeping the GGA numerical representation isolated from the public
+and simulation-state representation.
+
 ## Migration checklist
 
 The implementation is complete only when all items below are satisfied.

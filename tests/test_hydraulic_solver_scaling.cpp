@@ -27,6 +27,12 @@ const double FLOW_TOL = 1.e-5;
 const double VOLUME_TOL = 1.e-3;
 const double SPECIAL_TOL = 1.e-7;
 const double QUALITY_TOL = 1.e-9;
+const double COMPAT_HEAD_TOL = 5.e-5;
+const double COMPAT_FLOW_TOL = 5.e-6;
+
+const char* EXAMPLE_NET1 = EPANET_SOURCE_DIR "/example-networks/Net1.inp";
+const char* EXAMPLE_NET2 = EPANET_SOURCE_DIR "/example-networks/Net2.inp";
+const char* EXAMPLE_NET3 = EPANET_SOURCE_DIR "/example-networks/Net3.inp";
 
 struct SolverScale
 {
@@ -230,6 +236,121 @@ void compare_eps(const std::vector<EpsSnapshot>& actual,
         BOOST_CHECK_MESSAGE(std::fabs(a.tankVolume - e.tankVolume) <= VOLUME_TOL,
             scale.name << " at t=" << e.time << " s: tank volume differs by " <<
             std::fabs(a.tankVolume - e.tankVolume));
+    }
+}
+
+struct CompatibilitySnapshot
+{
+    long time;
+    std::vector<double> nodeHead;
+    std::vector<double> nodeDemand;
+    std::vector<double> linkFlow;
+    std::vector<int> linkStatus;
+};
+
+std::vector<CompatibilitySnapshot> solve_example_eps(
+    const char* inputPath, bool forceLegacyScale)
+{
+    EN_Project ph = NULL;
+    int error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, inputPath, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+    if (forceLegacyScale)
+    {
+        ph->hydraul.SolverScale.Head = 1.0;
+        ph->hydraul.SolverScale.Flow = 1.0;
+    }
+    error = EN_initH(ph, EN_NOSAVE);
+    BOOST_REQUIRE(error == 0);
+
+    const int nodeCount = ph->network.Nnodes;
+    const int linkCount = ph->network.Nlinks;
+    std::vector<CompatibilitySnapshot> result;
+    long time = 0;
+    long timeStep = 0;
+
+    do
+    {
+        error = EN_runH(ph, &time);
+        BOOST_REQUIRE(error == 0);
+
+        CompatibilitySnapshot snapshot;
+        snapshot.time = time;
+        snapshot.nodeHead.resize(nodeCount);
+        snapshot.nodeDemand.resize(nodeCount);
+        snapshot.linkFlow.resize(linkCount);
+        snapshot.linkStatus.resize(linkCount);
+
+        // Compare the dimensional state published by hydsolve(). This avoids
+        // making the compatibility check depend on each example's public units.
+        for (int i = 1; i <= nodeCount; ++i)
+        {
+            snapshot.nodeHead[i - 1] = ph->hydraul.NodeHead[i];
+            snapshot.nodeDemand[i - 1] = ph->hydraul.NodeDemand[i];
+        }
+        for (int i = 1; i <= linkCount; ++i)
+        {
+            snapshot.linkFlow[i - 1] = ph->hydraul.LinkFlow[i];
+            snapshot.linkStatus[i - 1] = ph->hydraul.LinkStatus[i];
+        }
+        result.push_back(snapshot);
+
+        error = EN_nextH(ph, &timeStep);
+        BOOST_REQUIRE(error == 0);
+    }
+    while (timeStep > 0);
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deleteproject(ph);
+    BOOST_REQUIRE(error == 0);
+
+    return result;
+}
+
+void compare_example_eps(const std::vector<CompatibilitySnapshot>& actual,
+    const std::vector<CompatibilitySnapshot>& expected, const char* networkName)
+{
+    BOOST_REQUIRE_MESSAGE(actual.size() == expected.size(),
+        networkName << ": expected " << expected.size() <<
+        " hydraulic events, got " << actual.size());
+
+    for (std::size_t event = 0; event < expected.size(); ++event)
+    {
+        const CompatibilitySnapshot& a = actual[event];
+        const CompatibilitySnapshot& e = expected[event];
+        BOOST_REQUIRE_MESSAGE(a.time == e.time,
+            networkName << ": event " << event << " expected at " << e.time <<
+            " s, got " << a.time << " s");
+
+        for (std::size_t i = 0; i < e.nodeHead.size(); ++i)
+        {
+            BOOST_CHECK_MESSAGE(std::fabs(a.nodeHead[i] - e.nodeHead[i]) <=
+                COMPAT_HEAD_TOL, networkName << " at t=" << e.time <<
+                " s: node " << (i + 1) << " head differs by " <<
+                std::fabs(a.nodeHead[i] - e.nodeHead[i]));
+            BOOST_CHECK_MESSAGE(std::fabs(a.nodeDemand[i] - e.nodeDemand[i]) <=
+                COMPAT_FLOW_TOL, networkName << " at t=" << e.time <<
+                " s: node " << (i + 1) << " demand differs by " <<
+                std::fabs(a.nodeDemand[i] - e.nodeDemand[i]));
+        }
+        for (std::size_t i = 0; i < e.linkFlow.size(); ++i)
+        {
+            BOOST_CHECK_MESSAGE(std::fabs(a.linkFlow[i] - e.linkFlow[i]) <=
+                COMPAT_FLOW_TOL, networkName << " at t=" << e.time <<
+                " s: link " << (i + 1) << " flow differs by " <<
+                std::fabs(a.linkFlow[i] - e.linkFlow[i]));
+            BOOST_CHECK_MESSAGE(a.linkStatus[i] == e.linkStatus[i],
+                networkName << " at t=" << e.time << " s: link " << (i + 1) <<
+                " status expected " << e.linkStatus[i] << ", got " <<
+                a.linkStatus[i]);
+        }
     }
 }
 
@@ -498,6 +619,29 @@ BOOST_AUTO_TEST_CASE(test_production_scale_is_model_based_and_unit_independent)
         const SolverScale actual = get_production_scale(units, "alternate units");
         BOOST_CHECK_EQUAL(actual.head, reference.head);
         BOOST_CHECK_EQUAL(actual.flow, reference.flow);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_production_scaling_preserves_example_network_results)
+{
+    struct ExampleNetwork
+    {
+        const char* path;
+        const char* name;
+    };
+    const ExampleNetwork examples[] = {
+        {EXAMPLE_NET1, "Net1"},
+        {EXAMPLE_NET2, "Net2"},
+        {EXAMPLE_NET3, "Net3"}
+    };
+
+    for (const ExampleNetwork& example : examples)
+    {
+        const std::vector<CompatibilitySnapshot> expected =
+            solve_example_eps(example.path, true);
+        const std::vector<CompatibilitySnapshot> actual =
+            solve_example_eps(example.path, false);
+        compare_example_eps(actual, expected, example.name);
     }
 }
 
