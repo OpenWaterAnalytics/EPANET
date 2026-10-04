@@ -11,6 +11,8 @@
  ******************************************************************************
 */
 
+#include <math.h>
+
 #include "types.h"
 #include "funcs.h"
 
@@ -143,4 +145,30 @@ double hydflowfromsolver(Project *pr, double flow)
 */
 {
     return flow * pr->hydraul.SolverScale.Flow;
+}
+
+
+double hydresistancetosolver(Project *pr, double resistance, double exponent)
+/*
+**----------------------------------------------------------------
+**  Purpose: converts a dimensional headloss resistance coefficient
+**           for H = R * Q^exponent into solver units
+**----------------------------------------------------------------
+*/
+{
+    ShydScale *scale = &pr->hydraul.SolverScale;
+
+    return resistance * pow(scale->Flow, exponent) / scale->Head;
+}
+
+
+double hydminorlosstosolver(Project *pr, double resistance)
+/*
+**----------------------------------------------------------------
+**  Purpose: converts a quadratic minor-loss coefficient into
+**           solver units
+**----------------------------------------------------------------
+*/
+{
+    return hydresistancetosolver(pr, resistance, 2.0);
 }
