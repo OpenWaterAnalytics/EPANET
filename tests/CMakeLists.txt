@@ -29,6 +29,7 @@ set(toolkit_test_srcs
      test_hydraulics.cpp
      test_hydraulic_characterization.cpp
      test_hydraulic_unit_equivalence.cpp
+     test_hydraulic_solver_scaling.cpp
      test_quality.cpp
      test_report.cpp
      test_analysis.cpp

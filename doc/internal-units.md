@@ -344,9 +344,9 @@ The implementation is complete only when all items below are satisfied.
 - [x] Keep water-quality calculations dimensional and define their solver boundary.
 - [x] Return hydraulic results/diagnostics to the legacy physical representation
       before Toolkit/report/output consumers use them.
-- [ ] Pass hydraulic characterization tests unchanged.
-- [ ] Pass cross-unit equivalence tests for all supported flow-unit systems.
-- [ ] Add stress tests for very small/large hydraulic scales.
+- [x] Pass hydraulic characterization tests unchanged.
+- [x] Pass cross-unit equivalence tests for all supported flow-unit systems.
+- [x] Add stress tests for very small/large hydraulic scales.
 - [ ] Audit `hydsolver.c`, `hydcoeffs.c`, and `hydstatus.c` for remaining fixed
       ft/cfs assumptions.
 - [ ] Document the final solver-unit contract and add a CI guard against
