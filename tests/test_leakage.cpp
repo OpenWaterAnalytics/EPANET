@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(test_leakage_model)
 	double pipe21Leak, junc21Leak, junc22Leak;
     EN_Project ph = NULL;
     double A, C, M, L, E1, E2, H1, H2, Q1, Q2, Q;
-    const double GPMperCFS = 448.831;
+    const double GPMperCFS = 448.8311688311688;
     const double MperFT = 0.3048;
 
     error = EN_createproject(&ph);
