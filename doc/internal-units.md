@@ -331,14 +331,14 @@ The implementation is complete only when all items below are satisfied.
 - [x] Compile emitter and PDA equations into solver units.
 - [x] Compile leakage equations into solver units without changing public leak
       parameter semantics.
-- [ ] Scale status/control comparisons that occur inside hydraulic iterations.
-- [ ] Replace dimensional/hard-coded convergence thresholds inside the solver.
+- [x] Scale status/control comparisons that occur inside hydraulic iterations.
+- [x] Replace dimensional/hard-coded convergence thresholds inside the solver.
 - [ ] Classify and normalize numerical regularization constants (`RQtol`,
       `CSMALL`, `CBIG`, barriers, hydraulic uses of `TINY`).
 - [ ] Keep tank/event simulation state dimensional and define its solver boundary.
 - [ ] Keep energy calculations dimensional and define their solver boundary.
 - [ ] Keep water-quality calculations dimensional and define their solver boundary.
-- [ ] Return hydraulic results/diagnostics to the legacy physical representation
+- [x] Return hydraulic results/diagnostics to the legacy physical representation
       before Toolkit/report/output consumers use them.
 - [ ] Pass hydraulic characterization tests unchanged.
 - [ ] Pass cross-unit equivalence tests for all supported flow-unit systems.

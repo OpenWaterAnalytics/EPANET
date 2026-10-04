@@ -191,18 +191,21 @@ StatusType  cvstatus(Project *pr, StatusType s, double dh, double q)
 */
 {
     Hydraul *hyd = &pr->hydraul;
+    double htol = hydheadtosolver(pr, hyd->Htol);
+    double qtol = hydflowtosolver(pr, hyd->Qtol);
 
-    // Prevent reverse flow through CVs
-    if (ABS(dh) > hyd->Htol)
+    // dh and q are solver quantities, so compare them against scaled
+    // versions of EPANET's dimensional status tolerances.
+    if (ABS(dh) > htol)
     {
-        if (dh < -hyd->Htol)     return CLOSED;
-        else if (q < -hyd->Qtol) return CLOSED;
-        else                     return OPEN;
+        if (dh < -htol)     return CLOSED;
+        else if (q < -qtol) return CLOSED;
+        else                return OPEN;
     }
     else
     {
-        if (q < -hyd->Qtol) return CLOSED;
-        else                return s;
+        if (q < -qtol) return CLOSED;
+        else           return s;
     }
 }
 
@@ -231,7 +234,8 @@ StatusType  pumpstatus(Project *pr, int k, double dh)
     {
         // Use huge value for constant HP pump
         hmax = hydheadtosolver(pr, BIG);
-        if (hyd->SolverState.LinkFlow[k] < TINY) return TEMPCLOSED;
+        if (hyd->SolverState.LinkFlow[k] < hydflowtosolver(pr, TINY))
+            return TEMPCLOSED;
     }
     else
     {

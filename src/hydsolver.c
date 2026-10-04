@@ -211,8 +211,10 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
 
     // Save convergence info
     hyd->RelativeError = *relerr;
-    hyd->MaxHeadError = hydbal.maxheaderror;
-    hyd->MaxFlowChange = hydbal.maxflowchange;
+    // Diagnostics are part of EPANET's dimensional state contract. Convert
+    // solver residuals before Toolkit/reporting code applies user units.
+    hyd->MaxHeadError = hydheadfromsolver(pr, hydbal.maxheaderror);
+    hyd->MaxFlowChange = hydflowfromsolver(pr, hydbal.maxflowchange);
     hyd->Iterations = *iter;
 
     // Publish the numerical solution back to EPANET's dimensional state.
@@ -308,14 +310,18 @@ int  pswitch(Project *pr)
         n = net->Control[i].Node;
         if (n > 0 && n <= net->Njuncs)
         {
-            // Determine if control conditions are satisfied
+            double htol = hydheadtosolver(pr, hyd->Htol);
+            double hgrade = hydheadtosolver(pr, net->Control[i].Grade);
+
+            // Junction-control grades are dimensional model values, while
+            // NodeHead is numerical solver state. Compare in solver units.
             if (net->Control[i].Type == LOWLEVEL &&
-                hyd->SolverState.NodeHead[n] <= net->Control[i].Grade + hyd->Htol)
+                hyd->SolverState.NodeHead[n] <= hgrade + htol)
             {
                 reset = 1;
             }
             if (net->Control[i].Type == HILEVEL &&
-                hyd->SolverState.NodeHead[n] >= net->Control[i].Grade - hyd->Htol)
+                hyd->SolverState.NodeHead[n] >= hgrade - htol)
             {
                 reset = 1;
             }
@@ -692,9 +698,11 @@ int  hasconverged(Project *pr, double *relerr, Hydbalance *hbal)
     
     // Check that head loss error and flow change criteria are met
     if (hyd->HeadErrorLimit > 0.0 &&
-        hbal->maxheaderror > hyd->HeadErrorLimit) return 0;
+        hbal->maxheaderror >
+            hydheadtosolver(pr, hyd->HeadErrorLimit)) return 0;
     if (hyd->FlowChangeLimit > 0.0 &&
-        hbal->maxflowchange > hyd->FlowChangeLimit) return 0;
+        hbal->maxflowchange >
+            hydflowtosolver(pr, hyd->FlowChangeLimit)) return 0;
         
     // Check for node leakage convergence
     if (hyd->HasLeakage && !leakagehasconverged(pr)) return 0;
@@ -778,8 +786,10 @@ void  reporthydbal(Project *pr, Hydbalance *hbal)
 **--------------------------------------------------------------
 */
 {
-    double qchange = hbal->maxflowchange * pr->Ucf[FLOW];
-    double herror = hbal->maxheaderror * pr->Ucf[HEAD];
+    double qchange = hydflowfromsolver(pr, hbal->maxflowchange) *
+                     pr->Ucf[FLOW];
+    double herror = hydheadfromsolver(pr, hbal->maxheaderror) *
+                    pr->Ucf[HEAD];
     int    qlink = hbal->maxflowlink;
     int    qnode = hbal->maxflownode;
     int    hlink = hbal->maxheadlink;
