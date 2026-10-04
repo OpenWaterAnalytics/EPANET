@@ -232,9 +232,9 @@ void init_node_leakage(Project *pr)
         // Initialize leakage flow to a non-zero value (as required by
         // the hydraulic solver)
         if (hyd->Leakage[i].cfa > 0.0)
-            hyd->Leakage[i].qfa = 0.001;
+            hyd->Leakage[i].qfa = hydflowtosolver(pr, 0.001);
         if (hyd->Leakage[i].cva > 0.0)
-            hyd->Leakage[i].qva = 0.001;
+            hyd->Leakage[i].qva = hydflowtosolver(pr, 0.001);
     }
 }
 
@@ -401,7 +401,8 @@ double leakageflowchange(Project *pr, int i)
     }
 
     // New leakage flow at the node 
-    hyd->LeakageFlow[i] = hyd->Leakage[i].qfa + hyd->Leakage[i].qva;
+    hyd->SolverState.LeakageFlow[i] =
+        hyd->Leakage[i].qfa + hyd->Leakage[i].qva;
     return dqfa + dqva;
 }
 

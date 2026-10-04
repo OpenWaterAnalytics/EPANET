@@ -397,7 +397,7 @@ void  nodecoeffs(Project *pr)
     // flow excess & add flow excess to RHS array F
     for (i = 1; i <= net->Njuncs; i++)
     {
-        hyd->Xflow[i] -= hyd->DemandFlow[i];
+        hyd->Xflow[i] -= hyd->SolverState.DemandFlow[i];
         sm->F[sm->Row[i]] += hyd->Xflow[i];
     }
 }
@@ -494,7 +494,7 @@ void  emittercoeffs(Project *pr)
         sm->F[row] += (hloss + node->El) / hgrad;
 
         // Update to node flow excess
-        hyd->Xflow[i] -= hyd->EmitterFlow[i];
+        hyd->Xflow[i] -= hyd->SolverState.EmitterFlow[i];
     }
 }
 
@@ -518,7 +518,7 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
     ke = MAX(CSMALL, pr->network.Node[i].Ke);
 
     // Compute gradient of head loss through emitter
-    q = hyd->EmitterFlow[i];
+    q = hyd->SolverState.EmitterFlow[i];
     *hgrad = hyd->Qexp * ke * pow(fabs(q), hyd->Qexp - 1.0);
     
     // Use linear head loss function for small gradient
@@ -573,7 +573,7 @@ void  demandcoeffs(Project *pr)
     for (i = 1; i <= net->Njuncs; i++)
     {
         // Skip junctions with non-positive demands
-        if (hyd->FullDemand[i] <= 0.0) continue;
+        if (hyd->SolverState.FullDemand[i] <= 0.0) continue;
         
         // Find head loss for demand outflow at node's elevation
         demandheadloss(pr, i, dp, n, &hloss, &hgrad);
@@ -604,8 +604,8 @@ void demandheadloss(Project *pr, int i, double dp, double n,
 {
     Hydraul *hyd = &pr->hydraul;
    
-    double d = hyd->DemandFlow[i];
-    double dfull = hyd->FullDemand[i];
+    double d = hyd->SolverState.DemandFlow[i];
+    double dfull = hyd->SolverState.FullDemand[i];
     double r = d / dfull;
     
     // Evaluate inverted demand function

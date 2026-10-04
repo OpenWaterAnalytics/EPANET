@@ -751,7 +751,12 @@ typedef struct {
 
   double
     *NodeHead,             // Numerical solver heads
-    *LinkFlow;             // Numerical solver flows
+    *NodeDemand,           // Numerical solver total node outflows
+    *FullDemand,           // Numerical solver required consumer demands
+    *DemandFlow,           // Numerical solver consumer demand flows
+    *EmitterFlow,          // Numerical solver emitter flows
+    *LeakageFlow,          // Numerical solver leakage flows
+    *LinkFlow;             // Numerical solver link flows
 
 } ShydSolverState;
 

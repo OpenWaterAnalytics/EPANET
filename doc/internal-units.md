@@ -310,7 +310,7 @@ The implementation is complete only when all items below are satisfied.
 
 - [x] Introduce an explicit hydraulic solver scaling/context object.
 - [x] Separate dimensional physical hydraulic state from numerical solver state.
-- [ ] Scale/reset all initial head and flow guesses.
+- [x] Scale/reset all initial head and flow guesses.
 - [ ] Compile HW, DW, CM, and minor-loss pipe equations into solver units.
 - [ ] Make Reynolds-number/relative-roughness evaluation unit-independent.
 - [ ] Compile pump equations and pump curves into solver units.

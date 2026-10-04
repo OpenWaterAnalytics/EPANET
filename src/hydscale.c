@@ -51,6 +51,16 @@ void loadhydraulicsolverstate(Project *pr)
     {
         hyd->SolverState.NodeHead[i] =
             hydheadtosolver(pr, hyd->NodeHead[i]);
+        hyd->SolverState.NodeDemand[i] =
+            hydflowtosolver(pr, hyd->NodeDemand[i]);
+        hyd->SolverState.FullDemand[i] =
+            hydflowtosolver(pr, hyd->FullDemand[i]);
+        hyd->SolverState.DemandFlow[i] =
+            hydflowtosolver(pr, hyd->DemandFlow[i]);
+        hyd->SolverState.EmitterFlow[i] =
+            hydflowtosolver(pr, hyd->EmitterFlow[i]);
+        hyd->SolverState.LeakageFlow[i] =
+            hydflowtosolver(pr, hyd->LeakageFlow[i]);
     }
     for (i = 1; i <= net->Nlinks; i++)
     {
@@ -75,6 +85,14 @@ void savehydraulicsolverstate(Project *pr)
     {
         hyd->NodeHead[i] =
             hydheadfromsolver(pr, hyd->SolverState.NodeHead[i]);
+        hyd->NodeDemand[i] =
+            hydflowfromsolver(pr, hyd->SolverState.NodeDemand[i]);
+        hyd->DemandFlow[i] =
+            hydflowfromsolver(pr, hyd->SolverState.DemandFlow[i]);
+        hyd->EmitterFlow[i] =
+            hydflowfromsolver(pr, hyd->SolverState.EmitterFlow[i]);
+        hyd->LeakageFlow[i] =
+            hydflowfromsolver(pr, hyd->SolverState.LeakageFlow[i]);
     }
     for (i = 1; i <= net->Nlinks; i++)
     {

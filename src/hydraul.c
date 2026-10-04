@@ -333,6 +333,16 @@ int  allocmatrix(Project *pr)
                                    sizeof(double));
     hyd->SolverState.NodeHead =
         (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.NodeDemand =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.FullDemand =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.DemandFlow =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.EmitterFlow =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.LeakageFlow =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
     hyd->SolverState.LinkFlow =
         (double *) calloc(net->Nlinks+1, sizeof(double));
     hyd->OldStatus = (StatusType *) calloc(net->Nlinks+net->Ntanks+1,
@@ -341,6 +351,11 @@ int  allocmatrix(Project *pr)
     ERRCODE(MEMCHECK(hyd->Y));
     ERRCODE(MEMCHECK(hyd->Xflow));
     ERRCODE(MEMCHECK(hyd->SolverState.NodeHead));
+    ERRCODE(MEMCHECK(hyd->SolverState.NodeDemand));
+    ERRCODE(MEMCHECK(hyd->SolverState.FullDemand));
+    ERRCODE(MEMCHECK(hyd->SolverState.DemandFlow));
+    ERRCODE(MEMCHECK(hyd->SolverState.EmitterFlow));
+    ERRCODE(MEMCHECK(hyd->SolverState.LeakageFlow));
     ERRCODE(MEMCHECK(hyd->SolverState.LinkFlow));
     ERRCODE(MEMCHECK(hyd->OldStatus));
     return errcode;
@@ -362,9 +377,19 @@ void  freematrix(Project *pr)
     free(hyd->Y);
     free(hyd->Xflow);
     free(hyd->SolverState.NodeHead);
+    free(hyd->SolverState.NodeDemand);
+    free(hyd->SolverState.FullDemand);
+    free(hyd->SolverState.DemandFlow);
+    free(hyd->SolverState.EmitterFlow);
+    free(hyd->SolverState.LeakageFlow);
     free(hyd->SolverState.LinkFlow);
     free(hyd->OldStatus);
     hyd->SolverState.NodeHead = NULL;
+    hyd->SolverState.NodeDemand = NULL;
+    hyd->SolverState.FullDemand = NULL;
+    hyd->SolverState.DemandFlow = NULL;
+    hyd->SolverState.EmitterFlow = NULL;
+    hyd->SolverState.LeakageFlow = NULL;
     hyd->SolverState.LinkFlow = NULL;
 }
 

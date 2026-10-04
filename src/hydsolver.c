@@ -203,9 +203,10 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     // Save total outflow (NodeDemand) at each junction
     for (i = 1; i <= net->Njuncs; i++)
     {
-        hyd->NodeDemand[i] = hyd->DemandFlow[i] +
-                             hyd->EmitterFlow[i] +
-                             hyd->LeakageFlow[i];
+        hyd->SolverState.NodeDemand[i] =
+            hyd->SolverState.DemandFlow[i] +
+            hyd->SolverState.EmitterFlow[i] +
+            hyd->SolverState.LeakageFlow[i];
     }
 
     // Save convergence info
@@ -419,7 +420,7 @@ void  newlinkflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
     // Initialize net inflows (i.e., demands) at fixed grade nodes
     for (n = net->Njuncs + 1; n <= net->Nnodes; n++)
     {
-        hyd->NodeDemand[n] = 0.0;
+        hyd->SolverState.NodeDemand[n] = 0.0;
     }
 
     // Examine each link
@@ -468,8 +469,10 @@ void  newlinkflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
         // Update net flows to fixed grade nodes
         if (hyd->LinkStatus[k] > CLOSED)
         {
-            if (n1 > net->Njuncs) hyd->NodeDemand[n1] -= hyd->SolverState.LinkFlow[k];
-            if (n2 > net->Njuncs) hyd->NodeDemand[n2] += hyd->SolverState.LinkFlow[k];
+            if (n1 > net->Njuncs)
+                hyd->SolverState.NodeDemand[n1] -= hyd->SolverState.LinkFlow[k];
+            if (n2 > net->Njuncs)
+                hyd->SolverState.NodeDemand[n2] += hyd->SolverState.LinkFlow[k];
         }
     }
 }
@@ -506,10 +509,10 @@ void newemitterflows(Project *pr, Hydbalance *hbal, double *qsum,
         dh = hyd->SolverState.NodeHead[i] - net->Node[i].El;
         dq = (hloss - dh) / hgrad;
         dq *= hyd->RelaxFactor;
-        hyd->EmitterFlow[i] -= dq;
+        hyd->SolverState.EmitterFlow[i] -= dq;
 
         // Update system flow summation
-        *qsum += ABS(hyd->EmitterFlow[i]);
+        *qsum += ABS(hyd->SolverState.EmitterFlow[i]);
         *dqsum += ABS(dq);
 
         // Update identity of element with max. flow change
@@ -548,7 +551,7 @@ void newleakageflows(Project *pr, Hydbalance *hbal, double *qsum,
         if (dq == 0.0) continue;
         
          // Update system flow summation
-        *qsum += ABS(hyd->LeakageFlow[i]);
+        *qsum += ABS(hyd->SolverState.LeakageFlow[i]);
         *dqsum += ABS(dq);
 
         // Update identity of element with max. flow change
@@ -594,7 +597,7 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
     for (i = 1; i <= net->Njuncs; i++)
     {
         // Skip junctions with no positive demand
-        if (hyd->FullDemand[i] <= 0.0) continue;
+        if (hyd->SolverState.FullDemand[i] <= 0.0) continue;
         
         // Find change in demand flow (see hydcoeffs.c)
         demandheadloss(pr, i, dp, n, &hloss, &hgrad);
@@ -603,12 +606,12 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
         dq *= hyd->RelaxFactor;
 
         // Prevent a flow change greater than full demand
-        if (fabs(dq) > 0.4 * hyd->FullDemand[i])
-            dq = 0.4 * SGN(dq) * hyd->FullDemand[i];
-        hyd->DemandFlow[i] -= dq;
+        if (fabs(dq) > 0.4 * hyd->SolverState.FullDemand[i])
+            dq = 0.4 * SGN(dq) * hyd->SolverState.FullDemand[i];
+        hyd->SolverState.DemandFlow[i] -= dq;
 
         // Update system flow summation
-        *qsum += ABS(hyd->DemandFlow[i]);
+        *qsum += ABS(hyd->SolverState.DemandFlow[i]);
         *dqsum += ABS(dq);
 
         // Update identity of element with max. flow change
@@ -724,30 +727,30 @@ int pdaconverged(Project *pr)
     for (i = 1; i <= pr->network.Njuncs; i++)
     {
         // Skip nodes whose required demand is non-positive
-        if (hyd->FullDemand[i] <= 0.0) continue;
+        if (hyd->SolverState.FullDemand[i] <= 0.0) continue;
  
        // Evaluate demand equation at current pressure solution
         p = hyd->SolverState.NodeHead[i] - pr->network.Node[i].El;
         if (p <= hyd->Pmin)
             q = 0.0;
         else if (p >= hyd->Preq)
-            q = hyd->FullDemand[i];
+            q = hyd->SolverState.FullDemand[i];
         else
         {
             r = (p - hyd->Pmin) / dp;
-            q = hyd->FullDemand[i] * pow(r, hyd->Pexp);
+            q = hyd->SolverState.FullDemand[i] * pow(r, hyd->Pexp);
         }
         
         // Check if demand has not converged
-        if (fabs(q - hyd->DemandFlow[i]) > QTOL)
+        if (fabs(q - hyd->SolverState.DemandFlow[i]) > QTOL)
             converged = 0;
 
         // Accumulate demand deficient node count and demand deficit
-        if (hyd->DemandFlow[i] + QTOL < hyd->FullDemand[i])
+        if (hyd->SolverState.DemandFlow[i] + QTOL < hyd->SolverState.FullDemand[i])
         {
             hyd->DeficientNodes++;
-            totalDemand += hyd->FullDemand[i];
-            totalReduction += hyd->FullDemand[i] - hyd->DemandFlow[i];
+            totalDemand += hyd->SolverState.FullDemand[i];
+            totalReduction += hyd->SolverState.FullDemand[i] - hyd->SolverState.DemandFlow[i];
         }
     }            
     if (totalDemand > 0.0)
