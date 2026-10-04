@@ -43,6 +43,8 @@ void loadhydraulicsolverstate(Project *pr)
 **----------------------------------------------------------------
 **  Purpose: copies dimensional hydraulic state into solver state
 **----------------------------------------------------------------
+**  This is the dimensional -> numerical boundary for hydraulic state.
+**  Keep unit conversion here rather than scattering it through GGA code.
 */
 {
     Network *net = &pr->network;
@@ -77,6 +79,7 @@ void savehydraulicsolverstate(Project *pr)
 **----------------------------------------------------------------
 **  Purpose: copies solver hydraulic state back to dimensional state
 **----------------------------------------------------------------
+**  This is the numerical -> dimensional boundary after a hydraulic solve.
 */
 {
     Network *net = &pr->network;
@@ -154,6 +157,11 @@ double hydresistancetosolver(Project *pr, double resistance, double exponent)
 **  Purpose: converts a dimensional headloss resistance coefficient
 **           for H = R * Q^exponent into solver units
 **----------------------------------------------------------------
+**  If H = Hs*H' and Q = Qs*Q', then:
+**
+**      H' = [R * Qs^exponent / Hs] * Q'^exponent
+**
+**  where Hs and Qs are the configured head and flow scales.
 */
 {
     ShydScale *scale = &pr->hydraul.SolverScale;

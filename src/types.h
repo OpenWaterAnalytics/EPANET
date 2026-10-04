@@ -738,6 +738,9 @@ typedef struct {
 } Smatrix;
 
 // Hydraulic Solver Scaling
+// Maps solver values to EPANET's dimensional internal representation:
+//   H_internal = H_solver * Head
+//   Q_internal = Q_solver * Flow
 typedef struct {
 
   double
@@ -747,6 +750,8 @@ typedef struct {
 } ShydScale;
 
 // Hydraulic Solver State
+// State used only while the GGA is iterating. Values here are in solver
+// units; Hydraul.NodeHead/LinkFlow/etc. remain in dimensional EPANET units.
 typedef struct {
 
   double

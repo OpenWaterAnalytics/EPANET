@@ -655,6 +655,9 @@ void  pipecoeff(Project *pr, int k)
     }
 
     q = ABS(hyd->SolverState.LinkFlow[k]);
+
+    // Link R and Km are stored in EPANET's dimensional internal units.
+    // Convert them once here so the headloss equation below is solver-only.
     ml = hydminorlosstosolver(pr, pr->network.Link[k].Km);
     r = hydresistancetosolver(pr, pr->network.Link[k].R, hyd->Hexp);
 
@@ -704,6 +707,9 @@ void DWpipecoeff(Project *pr, int k)
     double r = hydresistancetosolver(pr, link->R, 2.0);
     double ml = hydminorlosstosolver(pr, link->Km);
     double e = link->Kc / link->Diam;           // Relative roughness
+
+    // nu*D has the dimensions of flow. Scaling it exactly like Q preserves
+    // Q/(nu*D), and therefore Reynolds number, in solver units.
     double s = hydflowtosolver(pr, hyd->Viscos * link->Diam);
     double hloss, hgrad, f, dfdq, r1;
 
@@ -737,9 +743,9 @@ void DWpipecoeff(Project *pr, int k)
 double frictionFactor(double q, double e, double s, double *dfdq)
 /*
 **--------------------------------------------------------------
-**   Input:   q = |pipe flow|
-**            e = pipe roughness  / diameter
-**            s = viscosity * pipe diameter
+**   Input:   q = |pipe flow| in solver units
+**            e = pipe roughness / diameter (dimensionless)
+**            s = viscosity * pipe diameter in solver flow units
 **   Output:  dfdq = derivative of friction factor w.r.t. flow
 **   Returns: pipe's friction factor
 **   Purpose: computes Darcy-Weisbach friction factor and its
