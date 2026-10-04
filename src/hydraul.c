@@ -59,6 +59,9 @@ int  openhyd(Project *pr)
     errcode = validateproject(pr);
     if (errcode > 0) return errcode;
 
+    // Choose numerical head/flow scales from the validated physical model.
+    inithydraulicscaling(pr);
+
     // Allocate memory for sparse matrix structures (see SMATRIX.C)
     ERRCODE(createsparse(pr));
 

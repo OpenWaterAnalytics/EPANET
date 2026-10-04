@@ -17,6 +17,29 @@
 #include "funcs.h"
 
 
+static void includecharacteristic(double value, double *magnitude)
+/* Adds a finite, non-sentinel dimensional magnitude to a scale estimate. */
+{
+    value = fabs(value);
+    if (isfinite(value) && value < BIG && value > *magnitude)
+    {
+        *magnitude = value;
+    }
+}
+
+
+static double decadescale(double magnitude)
+/* Returns the lower power-of-ten scale for a dimensional magnitude. */
+{
+    double scale;
+
+    if (!isfinite(magnitude) || magnitude <= 0.0) return 1.0;
+    scale = pow(10.0, floor(log10(magnitude)));
+    if (!isfinite(scale) || scale <= 0.0) return 1.0;
+    return scale;
+}
+
+
 void inithydraulicscaling(Project *pr)
 /*
 **----------------------------------------------------------------
@@ -24,17 +47,100 @@ void inithydraulicscaling(Project *pr)
 **  Output:  none
 **  Purpose: initializes the hydraulic solver's numerical scales
 **----------------------------------------------------------------
-**  The current scales intentionally reproduce EPANET's legacy internal
-**  hydraulic representation exactly: one solver head unit is one internal
-**  foot of head and one solver flow unit is one internal cfs. Later stages
-**  of the unit-independence migration will change these scale values without
-**  changing the public input/output unit contract.
+**  The model remains in EPANET's dimensional internal representation. The
+**  GGA scales are chosen from the loaded physical network so typical heads
+**  and flows enter the numerical solve near order one. Rounding each scale
+**  down to a power of ten keeps the policy stable when model values differ
+**  only by small input/conversion roundoff.
+**
+**  This routine is also called while project defaults are initialized, before
+**  a network exists. In that case the 1.0 fallbacks are replaced when the
+**  hydraulic system is opened after project validation.
 */
 {
-    ShydScale *scale = &pr->hydraul.SolverScale;
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    ShydScale *scale = &hyd->SolverScale;
+    double headMagnitude = 0.0;
+    double flowMagnitude = 0.0;
+    double demandMagnitude = 0.0;
+    double typicalFlow;
+    int i;
+    Pdemand demand;
 
-    scale->Head = 1.0;
-    scale->Flow = 1.0;
+    // Total base demand is a useful characteristic network throughput.
+    for (i = 1; i <= net->Njuncs; i++)
+    {
+        for (demand = net->Node[i].D; demand != NULL; demand = demand->next)
+        {
+            demandMagnitude += fabs(demand->Base * hyd->Dmult);
+        }
+    }
+    includecharacteristic(demandMagnitude, &flowMagnitude);
+
+    // Pump operating points and FCV settings cover networks with little demand.
+    for (i = 1; i <= net->Npumps; i++)
+    {
+        includecharacteristic(net->Pump[i].Q0, &flowMagnitude);
+        includecharacteristic(net->Pump[i].Qmax, &flowMagnitude);
+    }
+    for (i = 1; i <= net->Nlinks; i++)
+    {
+        if (net->Link[i].Type == FCV)
+        {
+            includecharacteristic(net->Link[i].Kc, &flowMagnitude);
+        }
+    }
+    scale->Flow = decadescale(flowMagnitude);
+    typicalFlow = (flowMagnitude > 0.0) ? flowMagnitude : scale->Flow;
+
+    // Absolute grades dominate the head unknowns solved by the GGA.
+    for (i = 1; i <= net->Nnodes; i++)
+    {
+        includecharacteristic(net->Node[i].El, &headMagnitude);
+    }
+    for (i = 1; i <= net->Ntanks; i++)
+    {
+        includecharacteristic(net->Tank[i].H0, &headMagnitude);
+        includecharacteristic(net->Tank[i].Hmin, &headMagnitude);
+        includecharacteristic(net->Tank[i].Hmax, &headMagnitude);
+    }
+
+    includecharacteristic(hyd->Pmin, &headMagnitude);
+    includecharacteristic(hyd->Preq, &headMagnitude);
+
+    // Pump curve heads are head differences, but they still set the scale of
+    // the node grades a pump can create. Constant-power pumps have no finite
+    // Hmax, so estimate their head at the characteristic network flow instead.
+    for (i = 1; i <= net->Npumps; i++)
+    {
+        Spump *pump = &net->Pump[i];
+        includecharacteristic(pump->H0, &headMagnitude);
+        includecharacteristic(pump->Hmax, &headMagnitude);
+        if (pump->Ptype == CONST_HP && typicalFlow > 0.0)
+        {
+            includecharacteristic(pump->R / typicalFlow, &headMagnitude);
+        }
+    }
+
+    // Pressure-control valve settings and simple control grades also represent
+    // physical heads that can dominate otherwise low-elevation networks.
+    for (i = 1; i <= net->Nlinks; i++)
+    {
+        LinkType type = net->Link[i].Type;
+        if (type == PRV || type == PSV || type == PBV)
+        {
+            includecharacteristic(net->Link[i].Kc, &headMagnitude);
+        }
+    }
+    for (i = 1; i <= net->Ncontrols; i++)
+    {
+        if (net->Control[i].Node > 0)
+        {
+            includecharacteristic(net->Control[i].Grade, &headMagnitude);
+        }
+    }
+    scale->Head = decadescale(headMagnitude);
 }
 
 

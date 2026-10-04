@@ -51,6 +51,29 @@ void set_solver_scale(EN_Project ph, const SolverScale& scale)
     ph->hydraul.SolverScale.Flow = scale.flow;
 }
 
+void solve_hydraulics_with_scale(EN_Project ph, const SolverScale& scale, int initFlag)
+{
+    int error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+    set_solver_scale(ph, scale);
+    error = EN_initH(ph, initFlag);
+    BOOST_REQUIRE(error == 0);
+
+    long time = 0;
+    long timeStep = 0;
+    do
+    {
+        error = EN_runH(ph, &time);
+        BOOST_REQUIRE(error == 0);
+        error = EN_nextH(ph, &timeStep);
+        BOOST_REQUIRE(error == 0);
+    }
+    while (timeStep > 0);
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+}
+
 int get_node_index(EN_Project ph, const char* id)
 {
     int index = 0;
@@ -109,8 +132,6 @@ std::vector<EpsSnapshot> solve_net1_eps(const SolverScale& scale)
     error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
     BOOST_REQUIRE(error == 0);
 
-    set_solver_scale(ph, scale);
-
     int nodeCount = 0;
     int linkCount = 0;
     error = EN_getcount(ph, EN_NODECOUNT, &nodeCount);
@@ -121,6 +142,7 @@ std::vector<EpsSnapshot> solve_net1_eps(const SolverScale& scale)
 
     error = EN_openH(ph);
     BOOST_REQUIRE(error == 0);
+    set_solver_scale(ph, scale);
     error = EN_initH(ph, EN_NOSAVE);
     BOOST_REQUIRE(error == 0);
 
@@ -248,9 +270,7 @@ SpecialSnapshot solve_special_case(const SolverScale& scale)
     error = EN_setlinkvalue(ph, pipe21, EN_LEAK_EXPAN, 0.1);
     BOOST_REQUIRE(error == 0);
 
-    set_solver_scale(ph, scale);
-    error = EN_solveH(ph);
-    BOOST_REQUIRE(error == 0);
+    solve_hydraulics_with_scale(ph, scale, EN_NOSAVE);
 
     int nodeCount = 0;
     int linkCount = 0;
@@ -353,9 +373,7 @@ PrvSnapshot solve_prv_case(const SolverScale& scale)
     error = EN_setlinkvalue(ph, pipe121, EN_DIAMETER, diameter);
     BOOST_REQUIRE(error == 0);
 
-    set_solver_scale(ph, scale);
-    error = EN_solveH(ph);
-    BOOST_REQUIRE(error == 0);
+    solve_hydraulics_with_scale(ph, scale, EN_NOSAVE);
 
     pipe113 = get_link_index(ph, "113");
     pipe121 = get_link_index(ph, "121");
@@ -397,9 +415,7 @@ BoundarySnapshot solve_boundary_case(const SolverScale& scale)
     error = EN_settimeparam(ph, EN_DURATION, 0);
     BOOST_REQUIRE(error == 0);
     const int pump9 = get_link_index(ph, "9");
-    set_solver_scale(ph, scale);
-    error = EN_solveH(ph);
-    BOOST_REQUIRE(error == 0);
+    solve_hydraulics_with_scale(ph, scale, EN_NOSAVE);
     result.pumpEnergy = get_link_value(ph, pump9, EN_ENERGY);
     result.pumpEfficiency = get_link_value(ph, pump9, EN_PUMP_EFFIC);
     error = EN_close(ph);
@@ -415,9 +431,7 @@ BoundarySnapshot solve_boundary_case(const SolverScale& scale)
     BOOST_REQUIRE(error == 0);
     const int node21 = get_node_index(ph, "21");
     const int node32 = get_node_index(ph, "32");
-    set_solver_scale(ph, scale);
-    error = EN_solveH(ph);
-    BOOST_REQUIRE(error == 0);
+    solve_hydraulics_with_scale(ph, scale, EN_SAVE);
     error = EN_solveQ(ph);
     BOOST_REQUIRE(error == 0);
     result.quality21 = get_node_value(ph, node21, EN_QUALITY);
@@ -432,12 +446,60 @@ BoundarySnapshot solve_boundary_case(const SolverScale& scale)
     return result;
 }
 
+SolverScale get_production_scale(int flowUnits, const char* name)
+{
+    EN_Project ph = NULL;
+    int error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+    error = EN_setflowunits(ph, flowUnits);
+    BOOST_REQUIRE(error == 0);
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    SolverScale result = {
+        ph->hydraul.SolverScale.Head,
+        ph->hydraul.SolverScale.Flow,
+        name
+    };
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deleteproject(ph);
+    BOOST_REQUIRE(error == 0);
+    return result;
+}
+
 const SolverScale LEGACY_SCALE = {1.0, 1.0, "legacy"};
 
 } // namespace
 
 
 BOOST_AUTO_TEST_SUITE(test_hydraulic_solver_scaling)
+
+BOOST_AUTO_TEST_CASE(test_production_scale_is_model_based_and_unit_independent)
+{
+    const SolverScale reference = get_production_scale(EN_CFS, "CFS");
+    const int flowUnits[] = {
+        EN_GPM, EN_MGD, EN_IMGD, EN_AFD, EN_LPS, EN_LPM,
+        EN_MLD, EN_CMH, EN_CMD, EN_CMS
+    };
+
+    BOOST_CHECK(reference.head > 0.0);
+    BOOST_CHECK(reference.flow > 0.0);
+    BOOST_CHECK_MESSAGE(reference.head != 1.0 || reference.flow != 1.0,
+        "Net1 production solver scale should not remain the legacy 1/1 pair");
+
+    for (int units : flowUnits)
+    {
+        const SolverScale actual = get_production_scale(units, "alternate units");
+        BOOST_CHECK_EQUAL(actual.head, reference.head);
+        BOOST_CHECK_EQUAL(actual.flow, reference.flow);
+    }
+}
 
 BOOST_AUTO_TEST_CASE(test_net1_eps_is_invariant_to_solver_scaling)
 {

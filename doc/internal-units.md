@@ -355,6 +355,28 @@ fixed-unit constants remain confined to the dimensional coefficient-compilation
 boundary. Both are part of `./test.sh hydraulic` and therefore run in CI wherever
 the hydraulic test command is used.
 
+### Production scaling policy
+
+The production solver no longer uses the legacy `Head = 1`, `Flow = 1` mapping.
+When hydraulics are opened, `inithydraulicscaling()` derives characteristic
+magnitudes from the validated dimensional network and rounds them down to powers
+of ten. This keeps typical GGA unknowns near order one while making the selected
+scale stable against small parsing/conversion roundoff.
+
+The characteristic flow magnitude is the largest of the total absolute base
+junction demand, finite pump operating flows, and FCV settings. The characteristic
+head magnitude is the largest relevant absolute grade/head from nodes, tanks, PDA
+pressure limits, finite pump heads, pressure-control valves, and simple controls.
+For constant-power pumps, which have no finite maximum head, the pump head at the
+characteristic network flow is included instead. Empty or degenerate models fall
+back to `1.0` until a meaningful dimensional magnitude exists.
+
+These scale values are a numerical preconditioner only. They do not depend on the
+selected public flow-unit system and do not change model storage, Toolkit units,
+reports, energy, quality, tank integration, or event timing. The scale is fixed
+for a hydraulic-open session and is recomputed the next time hydraulics are opened,
+so model edits made before `EN_openH()` are reflected in the numerical scaling.
+
 ## Migration checklist
 
 The implementation is complete only when all items below are satisfied.
@@ -385,6 +407,8 @@ The implementation is complete only when all items below are satisfied.
       ft/cfs assumptions.
 - [x] Document the final solver-unit contract and add a CI guard against
       reintroducing fixed-unit assumptions into the numerical core.
+- [x] Enable model-derived production solver scaling instead of the legacy
+      `Head = 1`, `Flow = 1` mapping.
 
 ## Suggested migration order
 
