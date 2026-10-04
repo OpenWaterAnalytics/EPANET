@@ -737,6 +737,15 @@ typedef struct {
 
 } Smatrix;
 
+// Hydraulic Solver Scaling
+typedef struct {
+
+  double
+    Head,                  // Dimensional head per solver head unit
+    Flow;                  // Dimensional flow per solver flow unit
+
+} ShydScale;
+
 // Hydraulics Solver Wrapper
 typedef struct {
 
@@ -804,6 +813,9 @@ typedef struct {
 
   SflowBalance
     FlowBalance;           // Flow balance components
+
+  ShydScale
+    SolverScale;           // Numerical scaling for hydraulic solver
 
   Smatrix smatrix;         // Sparse matrix storage
 

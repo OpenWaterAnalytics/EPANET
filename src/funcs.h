@@ -172,6 +172,14 @@ void    getenergy(Project *, int, double *, double *);
 double  tankvolume(Project *, int, double);
 double  tankgrade(Project *, int, double);
 
+// ------- HYDSCALE.C ------------------
+
+void    inithydraulicscaling(Project *);
+double  hydheadtosolver(Project *, double);
+double  hydheadfromsolver(Project *, double);
+double  hydflowtosolver(Project *, double);
+double  hydflowfromsolver(Project *, double);
+
 // ------- HYDCOEFFS.C -----------------
 
 void    resistcoeff(Project *, int);

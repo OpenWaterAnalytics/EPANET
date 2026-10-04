@@ -135,6 +135,7 @@ void setdefaults(Project *pr)
     hyd->CheckFreq = CHECKFREQ;
     hyd->MaxCheck = MAXCHECK;
     hyd->DampLimit = DAMPLIMIT;
+    inithydraulicscaling(pr);    // Use legacy-equivalent solver scales
 
     qual->Qualflag = NONE;      // No quality simulation
     qual->Ctol = MISSING;       // No pre-set quality tolerance
