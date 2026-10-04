@@ -196,10 +196,12 @@ tests.
 - `hydsolver.c` documents PDA intermediate values (`dp`, `dq`, `hloss`,
   `hgrad`, `dh`) explicitly as ft/cfs quantities.
 
-**Migration:** compile emitter and PDA coefficients into solver units. Replace
-hard-coded convergence thresholds with scaled equivalents derived from a
-single dimensional definition or with a clearly specified dimensionless
-criterion.
+**Migration:** emitter coefficients, PDA pressure ranges, node elevations, and
+the legacy PDA convergence tolerance are now compiled into solver units at the
+GGA boundary. The emitter/PDA flow barriers preserve their historical shape in
+EPANET's dimensional internal basis and scale their contributions back into
+solver units. Remaining hydraulic regularization constants are handled in the
+separate numerical-regularization migration step.
 
 ### 8. Leakage model
 
@@ -326,7 +328,7 @@ The implementation is complete only when all items below are satisfied.
 - [x] Make Reynolds-number/relative-roughness evaluation unit-independent.
 - [x] Compile pump equations and pump curves into solver units.
 - [x] Compile valve equations/settings/curves into solver units.
-- [ ] Compile emitter and PDA equations into solver units.
+- [x] Compile emitter and PDA equations into solver units.
 - [ ] Compile leakage equations into solver units without changing public leak
       parameter semantics.
 - [ ] Scale status/control comparisons that occur inside hydraulic iterations.

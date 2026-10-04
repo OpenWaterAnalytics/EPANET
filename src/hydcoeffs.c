@@ -66,7 +66,7 @@ static void    psvcoeff(Project *pr, int k, int n1, int n2);
 static void    fcvcoeff(Project *pr, int k, int n1, int n2);
 
 
-void addlowerbarrier(double dq, double* hloss, double* hgrad)
+void addlowerbarrier(Project *pr, double dq, double* hloss, double* hgrad)
 /*
 **--------------------------------------------------------------------
 **  Input:   dq = difference between current flow and lower flow limit
@@ -77,13 +77,20 @@ void addlowerbarrier(double dq, double* hloss, double* hgrad)
 **--------------------------------------------------------------------
 */
 {
-    double a = 1.e9 * dq;
+    // Preserve the legacy barrier shape in EPANET's dimensional internal
+    // basis, then map its head and gradient contributions into solver units.
+    // This keeps the regularization independent of the chosen solver scales.
+    double q = hydflowfromsolver(pr, dq);
+    double a = 1.e9 * q;
     double b = sqrt(a*a + 1.e-6);
-    *hloss += (a - b) / 2.;
-    *hgrad += (1.e9 / 2.) * ( 1.0 - a / b);
+    double barrierHead = (a - b) / 2.;
+    double barrierGrad = (1.e9 / 2.) * (1.0 - a / b);
+
+    *hloss += hydheadtosolver(pr, barrierHead);
+    *hgrad += hydresistancetosolver(pr, barrierGrad, 1.0);
 }
 
-void addupperbarrier(double dq, double* hloss, double* hgrad)
+void addupperbarrier(Project *pr, double dq, double* hloss, double* hgrad)
 /*
 **--------------------------------------------------------------------
 **  Input:   dq = difference between current flow and upper flow limit
@@ -94,10 +101,14 @@ void addupperbarrier(double dq, double* hloss, double* hgrad)
 **--------------------------------------------------------------------
 */
 {
-    double a = 1.e9 * dq;
+    double q = hydflowfromsolver(pr, dq);
+    double a = 1.e9 * q;
     double b = sqrt(a*a + 1.e-6);
-    *hloss += (a + b) / 2.;
-    *hgrad += (1.e9 / 2.) * ( 1.0 + a / b);
+    double barrierHead = (a + b) / 2.;
+    double barrierGrad = (1.e9 / 2.) * (1.0 + a / b);
+
+    *hloss += hydheadtosolver(pr, barrierHead);
+    *hgrad += hydresistancetosolver(pr, barrierGrad, 1.0);
 }
 
 
@@ -491,7 +502,7 @@ void  emittercoeffs(Project *pr)
 
         // Addition to matrix diagonal & r.h.s
         sm->Aii[row] += 1.0 / hgrad;
-        sm->F[row] += (hloss + node->El) / hgrad;
+        sm->F[row] += (hloss + hydheadtosolver(pr, node->El)) / hgrad;
 
         // Update to node flow excess
         hyd->Xflow[i] -= hyd->SolverState.EmitterFlow[i];
@@ -513,18 +524,22 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
 
     double  ke;
     double  q;
+    double  rqtol;
 
-    // Set adjusted emitter coeff.
-    ke = MAX(CSMALL, pr->network.Node[i].Ke);
+    // Node.Ke remains a dimensional model property for H = Ke * Q^Qexp.
+    // Compile it to solver units before evaluating the emitter relation.
+    ke = hydresistancetosolver(pr,
+        MAX(CSMALL, pr->network.Node[i].Ke), hyd->Qexp);
+    rqtol = hydresistancetosolver(pr, hyd->RQtol, 1.0);
 
     // Compute gradient of head loss through emitter
     q = hyd->SolverState.EmitterFlow[i];
     *hgrad = hyd->Qexp * ke * pow(fabs(q), hyd->Qexp - 1.0);
     
     // Use linear head loss function for small gradient
-    if (*hgrad < hyd->RQtol)
+    if (*hgrad < rqtol)
     {
-        *hgrad = hyd->RQtol / hyd->Qexp;
+        *hgrad = rqtol / hyd->Qexp;
         *hloss = (*hgrad) * q;
     }            
 
@@ -534,7 +549,7 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
     // Prevent negative flow if backflow not allowed
     if (hyd->EmitBackFlag == 0)
     {
-        addlowerbarrier(q, hloss, hgrad);
+        addlowerbarrier(pr, q, hloss, hgrad);
     }
 }
 
@@ -559,14 +574,14 @@ void  demandcoeffs(Project *pr)
     Smatrix *sm = &hyd->smatrix;
 
     int i, row;
-    double  dp,         // pressure range over which demand can vary (ft)
+    double  dp,         // solver pressure-head range over which demand can vary
             n,          // exponent in head loss v. demand function
-            hloss,      // head loss in supplying demand (ft)
-            hgrad;      // gradient of demand head loss (ft/cfs)
+            hloss,      // solver head loss in supplying demand
+            hgrad;      // solver head-loss gradient
             
     // Get demand function parameters
     if (hyd->DemandModel == DDA) return;
-    dp = hyd->Preq - hyd->Pmin;
+    dp = hydheadtosolver(pr, hyd->Preq - hyd->Pmin);
     n = 1.0 / hyd->Pexp;
 
     // Examine each junction node
@@ -583,7 +598,8 @@ void  demandcoeffs(Project *pr)
         {
             row = sm->Row[i];
             sm->Aii[row] += 1.0 / hgrad;
-            sm->F[row] += (hloss + net->Node[i].El + hyd->Pmin) / hgrad;
+            sm->F[row] += (hloss + hydheadtosolver(pr,
+                net->Node[i].El + hyd->Pmin)) / hgrad;
         }
     }
 }
@@ -593,10 +609,10 @@ void demandheadloss(Project *pr, int i, double dp, double n,
 /*
 **--------------------------------------------------------------
 **   Input:   i  = junction index
-**            dp = pressure range for demand function (ft)
+**            dp = pressure range for demand function (solver head)
 **            n  = exponent in head v. demand function
-**   Output:  hloss = pressure dependent demand head loss (ft)
-**            hgrad = gradient of head loss (ft/cfs)
+**   Output:  hloss = pressure dependent demand head loss (solver head)
+**            hgrad = gradient of head loss (solver head / solver flow)
 **  Purpose:  computes head loss and its gradient for delivering
 **            a pressure dependent demand flow.
 **--------------------------------------------------------------
@@ -614,8 +630,8 @@ void demandheadloss(Project *pr, int i, double dp, double n,
     *hloss = (*hgrad) * d / n;
     
     // Add barrier functions
-    addlowerbarrier(d, hloss, hgrad);
-    addupperbarrier(d-dfull, hloss, hgrad);
+    addlowerbarrier(pr, d, hloss, hgrad);
+    addupperbarrier(pr, d-dfull, hloss, hgrad);
 }
 
 

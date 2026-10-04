@@ -506,7 +506,8 @@ void newemitterflows(Project *pr, Hydbalance *hbal, double *qsum,
         emitterheadloss(pr, i, &hloss, &hgrad);
 
         // Find emitter flow change
-        dh = hyd->SolverState.NodeHead[i] - net->Node[i].El;
+        dh = hyd->SolverState.NodeHead[i] -
+             hydheadtosolver(pr, net->Node[i].El);
         dq = (hloss - dh) / hgrad;
         dq *= hyd->RelaxFactor;
         hyd->SolverState.EmitterFlow[i] -= dq;
@@ -580,17 +581,19 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
 
-    double  dp,         // pressure range over which demand can vary (ft)
-            dq,         // change in demand flow (cfs)
+    double  dp,         // solver pressure-head range over which demand can vary
+            dq,         // change in demand flow (solver flow)
             n,          // exponent in head loss v. demand  function
-            hloss,      // current head loss through outflow junction (ft)
-            hgrad,      // head loss gradient with respect to flow (ft/cfs)
-            dh;         // new head loss through outflow junction (ft)
+            hloss,      // current head loss through outflow junction
+            hgrad,      // head loss gradient with respect to solver flow
+            dh,         // new head loss through outflow junction
+            pmin;
     int     i;
     
     // Get demand function parameters
     if (hyd->DemandModel == DDA) return;
-    dp = MAX((hyd->Preq - hyd->Pmin), MINPDIFF);
+    dp = hydheadtosolver(pr, MAX((hyd->Preq - hyd->Pmin), MINPDIFF));
+    pmin = hydheadtosolver(pr, hyd->Pmin);
     n = 1.0 / hyd->Pexp;
 
     // Examine each junction
@@ -601,7 +604,8 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
         
         // Find change in demand flow (see hydcoeffs.c)
         demandheadloss(pr, i, dp, n, &hloss, &hgrad);
-        dh = hyd->SolverState.NodeHead[i] - net->Node[i].El - hyd->Pmin;
+        dh = hyd->SolverState.NodeHead[i] -
+             hydheadtosolver(pr, net->Node[i].El) - pmin;
         dq = (hloss - dh) / hgrad;
         dq *= hyd->RelaxFactor;
 
@@ -713,11 +717,15 @@ int pdaconverged(Project *pr)
 {
     Hydraul *hyd = &pr->hydraul;
 
-    const double QTOL = 0.0001;  // 0.0001 cfs ~= 0.05 gpm ~= 0.2 lpm)
     int i, converged = 1;
 
     double totalDemand = 0.0, totalReduction = 0.0;
-    double dp = hyd->Preq - hyd->Pmin;
+    double pmin = hydheadtosolver(pr, hyd->Pmin);
+    double preq = hydheadtosolver(pr, hyd->Preq);
+    double dp = preq - pmin;
+    // Preserve the legacy 0.0001 cfs PDA tolerance while expressing it in
+    // solver flow units.
+    double qtol = hydflowtosolver(pr, 0.0001);
     double p, q, r;
 
     hyd->DeficientNodes = 0;
@@ -730,23 +738,24 @@ int pdaconverged(Project *pr)
         if (hyd->SolverState.FullDemand[i] <= 0.0) continue;
  
        // Evaluate demand equation at current pressure solution
-        p = hyd->SolverState.NodeHead[i] - pr->network.Node[i].El;
-        if (p <= hyd->Pmin)
+        p = hyd->SolverState.NodeHead[i] -
+            hydheadtosolver(pr, pr->network.Node[i].El);
+        if (p <= pmin)
             q = 0.0;
-        else if (p >= hyd->Preq)
+        else if (p >= preq)
             q = hyd->SolverState.FullDemand[i];
         else
         {
-            r = (p - hyd->Pmin) / dp;
+            r = (p - pmin) / dp;
             q = hyd->SolverState.FullDemand[i] * pow(r, hyd->Pexp);
         }
         
         // Check if demand has not converged
-        if (fabs(q - hyd->SolverState.DemandFlow[i]) > QTOL)
+        if (fabs(q - hyd->SolverState.DemandFlow[i]) > qtol)
             converged = 0;
 
         // Accumulate demand deficient node count and demand deficit
-        if (hyd->SolverState.DemandFlow[i] + QTOL < hyd->SolverState.FullDemand[i])
+        if (hyd->SolverState.DemandFlow[i] + qtol < hyd->SolverState.FullDemand[i])
         {
             hyd->DeficientNodes++;
             totalDemand += hyd->SolverState.FullDemand[i];
