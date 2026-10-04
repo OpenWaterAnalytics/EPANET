@@ -325,7 +325,7 @@ The implementation is complete only when all items below are satisfied.
 - [x] Compile HW, DW, CM, and minor-loss pipe equations into solver units.
 - [x] Make Reynolds-number/relative-roughness evaluation unit-independent.
 - [x] Compile pump equations and pump curves into solver units.
-- [ ] Compile valve equations/settings/curves into solver units.
+- [x] Compile valve equations/settings/curves into solver units.
 - [ ] Compile emitter and PDA equations into solver units.
 - [ ] Compile leakage equations into solver units without changing public leak
       parameter semantics.

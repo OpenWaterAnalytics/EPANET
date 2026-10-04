@@ -71,13 +71,15 @@ int  valvestatus(Project *pr)
         switch (link->Type)
         {
         case PRV:
-            hset = net->Node[n2].El + hyd->LinkSetting[k];
+            hset = hydheadtosolver(pr,
+                net->Node[n2].El + hyd->LinkSetting[k]);
             hyd->LinkStatus[k] = prvstatus(pr, k, status, hset,
                                      hyd->SolverState.NodeHead[n1],
                                      hyd->SolverState.NodeHead[n2]);
             break;
         case PSV:
-            hset = net->Node[n1].El + hyd->LinkSetting[k];
+            hset = hydheadtosolver(pr,
+                net->Node[n1].El + hyd->LinkSetting[k]);
             hyd->LinkStatus[k] = psvstatus(pr, k, status, hset,
                                      hyd->SolverState.NodeHead[n1],
                                      hyd->SolverState.NodeHead[n2]);
@@ -264,27 +266,29 @@ StatusType  prvstatus(Project *pr, int k, StatusType s, double hset,
 
     StatusType status;             // Valve's new status
     double  hml;                   // Head loss when fully opened
-    double  htol;
+    double  htol, qtol;
     Slink   *link;
 
-    htol = hyd->Htol;
+    htol = hydheadtosolver(pr, hyd->Htol);
+    qtol = hydflowtosolver(pr, hyd->Qtol);
     link = &pr->network.Link[k];
 
-    // Head loss when fully open
-    hml = link->Km * SQR(hyd->SolverState.LinkFlow[k]);
+    // Head loss when fully open. Km is stored in dimensional model units.
+    hml = hydminorlosstosolver(pr, link->Km) *
+          SQR(hyd->SolverState.LinkFlow[k]);
 
     // Rules for updating valve's status from current value s
     status = s;
     switch (s)
     {
     case ACTIVE:
-        if (hyd->SolverState.LinkFlow[k] < -hyd->Qtol)  status = CLOSED;
+        if (hyd->SolverState.LinkFlow[k] < -qtol)  status = CLOSED;
         else if (h1 - hml < hset - htol)     status = OPEN;
         else                                 status = ACTIVE;
         break;
 
     case OPEN:
-        if (hyd->SolverState.LinkFlow[k] < -hyd->Qtol)  status = CLOSED;
+        if (hyd->SolverState.LinkFlow[k] < -qtol)  status = CLOSED;
         else if (h2 >= hset + htol)          status = ACTIVE;
         else                                 status = OPEN;
         break;
@@ -296,7 +300,7 @@ StatusType  prvstatus(Project *pr, int k, StatusType s, double hset,
         break;
 
     case XPRESSURE:
-        if (hyd->SolverState.LinkFlow[k] < -hyd->Qtol) status = CLOSED;
+        if (hyd->SolverState.LinkFlow[k] < -qtol) status = CLOSED;
         break;
 
     default:
@@ -324,27 +328,29 @@ StatusType  psvstatus(Project *pr, int k, StatusType s, double hset,
 
     StatusType status;             // Valve's new status
     double  hml;                   // Head loss when fully opened
-    double  htol;
+    double  htol, qtol;
     Slink   *link;
 
-    htol = hyd->Htol;
+    htol = hydheadtosolver(pr, hyd->Htol);
+    qtol = hydflowtosolver(pr, hyd->Qtol);
     link = &pr->network.Link[k];
 
-    // Head loss when fully open
-    hml = link->Km * SQR(hyd->SolverState.LinkFlow[k]);
+    // Head loss when fully open. Km is stored in dimensional model units.
+    hml = hydminorlosstosolver(pr, link->Km) *
+          SQR(hyd->SolverState.LinkFlow[k]);
 
     // Rules for updating valve's status from current value s
     status = s;
     switch (s)
     {
     case ACTIVE:
-        if (hyd->SolverState.LinkFlow[k] < -hyd->Qtol) status = CLOSED;
+        if (hyd->SolverState.LinkFlow[k] < -qtol) status = CLOSED;
         else if (h2 + hml > hset + htol)    status = OPEN;
         else                                status = ACTIVE;
         break;
 
     case OPEN:
-        if (hyd->SolverState.LinkFlow[k] < -hyd->Qtol) status = CLOSED;
+        if (hyd->SolverState.LinkFlow[k] < -qtol) status = CLOSED;
         else if (h1 < hset - htol)          status = ACTIVE;
         else                                status = OPEN;
         break;
@@ -356,7 +362,7 @@ StatusType  psvstatus(Project *pr, int k, StatusType s, double hset,
         break;
 
     case XPRESSURE:
-        if (hyd->SolverState.LinkFlow[k] < -hyd->Qtol) status = CLOSED;
+        if (hyd->SolverState.LinkFlow[k] < -qtol) status = CLOSED;
         break;
 
     default:
@@ -387,17 +393,21 @@ StatusType  fcvstatus(Project *pr, int k, StatusType s, double h1, double h2)
 {
     Hydraul *hyd = &pr->hydraul;
     StatusType status;            // New valve status
+    double htol = hydheadtosolver(pr, hyd->Htol);
+    double qtol = hydflowtosolver(pr, hyd->Qtol);
+    double qset = hydflowtosolver(pr, hyd->LinkSetting[k]);
+    double km = hydminorlosstosolver(pr, pr->network.Link[k].Km);
 
     status = s;
-    if (h1 - h2 < -hyd->Htol)
+    if (h1 - h2 < -htol)
     {
         status = XFCV;
     }
-    else if (hyd->SolverState.LinkFlow[k] < -hyd->Qtol)
+    else if (hyd->SolverState.LinkFlow[k] < -qtol)
     {
         status = XFCV;
     }
-    else if (s == XFCV && hyd->SolverState.LinkFlow[k] >= hyd->LinkSetting[k])
+    else if (s == XFCV && hyd->SolverState.LinkFlow[k] >= qset)
     {
         status = ACTIVE;
     }
@@ -405,7 +415,7 @@ StatusType  fcvstatus(Project *pr, int k, StatusType s, double h1, double h2)
     // Active valve's loss coeff. can't be < fully open loss coeff.
     else if (status == ACTIVE)
     {
-        if ((h1 - h2) / SQR(hyd->SolverState.LinkFlow[k]) < pr->network.Link[k].Km)
+        if ((h1 - h2) / SQR(hyd->SolverState.LinkFlow[k]) < km)
         {
             status = XFCV;
         }

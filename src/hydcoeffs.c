@@ -994,8 +994,11 @@ void  gpvcoeff(Project *pr, int k)
         q = ABS(hyd->SolverState.LinkFlow[k]);
         q = MAX(q, TINY);
 
-        // Intercept and slope of curve segment containing q
-        curvecoeff(pr, i, q, &h0, &r);
+        // GPV curves are stored in user units. Interpolate them with a
+        // dimensional flow, then compile head and slope into solver units.
+        curvecoeff(pr, i, hydflowfromsolver(pr, q), &h0, &r);
+        h0 = hydheadtosolver(pr, h0);
+        r = hydresistancetosolver(pr, r, 1.0);
         r = MAX(r, TINY);
 
         // Resulting P and Y coeffs.
@@ -1016,6 +1019,7 @@ void  pbvcoeff(Project *pr, int k)
 {
     Hydraul *hyd = &pr->hydraul;
     Slink *link = &pr->network.Link[k];
+    double hset, km;
 
     // If valve fixed OPEN or CLOSED then treat as a pipe
     if (hyd->LinkSetting[k] == MISSING || hyd->LinkSetting[k] == 0.0)
@@ -1026,8 +1030,13 @@ void  pbvcoeff(Project *pr, int k)
     // If valve is active
     else
     {
+        // PBV setting is a dimensional head loss while Km is a dimensional
+        // quadratic headloss coefficient. Compile both before comparing them.
+        hset = hydheadtosolver(pr, hyd->LinkSetting[k]);
+        km = hydminorlosstosolver(pr, link->Km);
+
         // Treat as a pipe if minor loss > valve setting
-        if (link->Km * SQR(hyd->SolverState.LinkFlow[k]) > hyd->LinkSetting[k])
+        if (km * SQR(hyd->SolverState.LinkFlow[k]) > hset)
         {
             valvecoeff(pr, k);
         }
@@ -1035,7 +1044,7 @@ void  pbvcoeff(Project *pr, int k)
         else
         {
             hyd->P[k] = CBIG;
-            hyd->Y[k] = hyd->LinkSetting[k] * CBIG;
+            hyd->Y[k] = hset * CBIG;
         }
     }
 }
@@ -1121,8 +1130,8 @@ void  prvcoeff(Project *pr, int k, int n1, int n2)
 
     i = sm->Row[n1];                  // Matrix rows of nodes
     j = sm->Row[n2];
-    hset = pr->network.Node[n2].El +
-           hyd->LinkSetting[k];        // Valve setting
+    hset = hydheadtosolver(pr,
+        pr->network.Node[n2].El + hyd->LinkSetting[k]); // Valve setting
 
     if (hyd->LinkStatus[k] == ACTIVE)
     {
@@ -1174,8 +1183,8 @@ void  psvcoeff(Project *pr, int k, int n1, int n2)
 
     i = sm->Row[n1];                   // Matrix rows of nodes
     j = sm->Row[n2];
-    hset = pr->network.Node[n1].El +
-           hyd->LinkSetting[k];        // Valve setting
+    hset = hydheadtosolver(pr,
+        pr->network.Node[n1].El + hyd->LinkSetting[k]); // Valve setting
 
     if (hyd->LinkStatus[k] == ACTIVE)
     {
@@ -1226,7 +1235,7 @@ void  fcvcoeff(Project *pr, int k, int n1, int n2)
     int   i, j;                   // Rows in solution matrix
     double q;                     // Valve flow setting
 
-    q = hyd->LinkSetting[k];
+    q = hydflowtosolver(pr, hyd->LinkSetting[k]);
     i = sm->Row[n1];
     j = sm->Row[n2];
 
@@ -1274,9 +1283,11 @@ void valvecoeff(Project *pr, int k)
     Hydraul *hyd = &pr->hydraul;
     Slink *link = &pr->network.Link[k];
 
-    double flow, q, hloss, hgrad;
+    double flow, q, hloss, hgrad, km, rqtol;
 
     flow = hyd->SolverState.LinkFlow[k];
+    km = hydminorlosstosolver(pr, link->Km);
+    rqtol = hydresistancetosolver(pr, hyd->RQtol, 1.0);
 
     // Valve is closed. Use a very small matrix coeff.
     if (hyd->LinkStatus[k] <= CLOSED)
@@ -1287,15 +1298,15 @@ void valvecoeff(Project *pr, int k)
     }
 
     // Account for any minor headloss through the valve
-    if (link->Km > 0.0)
+    if (km > 0.0)
     {
         q = fabs(flow);
-        hgrad = 2.0 * link->Km * q;
+        hgrad = 2.0 * km * q;
         
         // Guard against too small a head loss gradient
-        if (hgrad < hyd->RQtol)
+        if (hgrad < rqtol)
         {
-            hgrad = hyd->RQtol / 2.0;
+            hgrad = rqtol / 2.0;
             hloss = flow * hgrad;
         }
         else hloss = flow * hgrad / 2.0;        
