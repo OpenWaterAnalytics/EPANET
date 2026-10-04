@@ -701,20 +701,19 @@ void DWpipecoeff(Project *pr, int k)
     Slink   *link = &pr->network.Link[k];
 
     double q = ABS(hyd->SolverState.LinkFlow[k]);
-    double qPhysical = ABS(hydflowfromsolver(pr, hyd->SolverState.LinkFlow[k]));
     double r = hydresistancetosolver(pr, link->R, 2.0);
     double ml = hydminorlosstosolver(pr, link->Km);
     double e = link->Kc / link->Diam;           // Relative roughness
-    double s = hyd->Viscos * link->Diam;        // Viscosity / diameter
+    double s = hydflowtosolver(pr, hyd->Viscos * link->Diam);
     double hloss, hgrad, f, dfdq, r1;
 
-    // Compute head loss and its derivative. Reynolds-number evaluation
-    // remains in EPANET's dimensional hydraulic representation for now;
-    // only the resulting headloss relation is compiled into solver units.
+    // Compute head loss and its derivative entirely in solver units.
+    // The quantity s has the same dimensions as flow, so scaling it with
+    // the solver flow scale preserves q/s and therefore Reynolds number.
     // ... use Hagen-Poiseuille formula for laminar flow (Re <= 2000)
-    if (qPhysical <= A2 * s)
+    if (q <= A2 * s)
     {
-        r = hydresistancetosolver(pr, 16.0 * PI * s * link->R, 1.0);
+        r = 16.0 * PI * s * r;
         hloss = hyd->SolverState.LinkFlow[k] * (r + ml * q);
         hgrad  = r + 2.0 * ml * q;
     }
@@ -723,8 +722,7 @@ void DWpipecoeff(Project *pr, int k)
     else
     {
         dfdq = 0.0;
-        f = frictionFactor(qPhysical, e, s, &dfdq);
-        dfdq *= hyd->SolverScale.Flow;
+        f = frictionFactor(q, e, s, &dfdq);
         r1 = f * r + ml;
         hloss = r1 * q * hyd->SolverState.LinkFlow[k];
         hgrad = (2.0 * r1 * q) + (dfdq * r * q * q);

@@ -130,12 +130,14 @@ physical-law compilation boundary.
 - `DWpipecoeff()` builds relative roughness and the viscosity/diameter term from
   these fixed-basis quantities before calling `frictionFactor()`.
 
-The friction factor itself is dimensionless, but its inputs are produced from
-fixed-unit state.
+The friction factor itself is dimensionless. `DWpipecoeff()` now scales the
+viscosity-diameter term with the solver flow scale before evaluating Reynolds
+number, while relative roughness remains dimensionless. `frictionFactor()`
+therefore receives only solver-scaled flow-like input plus dimensionless
+roughness, and its derivative is returned directly with respect to solver flow.
 
-**Migration:** make Reynolds number and relative roughness explicit
-unit-independent inputs. This is a good early proof that the physical-law layer
-has been separated correctly.
+**Migration:** complete. Reynolds number and relative roughness no longer require
+converting solver flow back to EPANET's legacy cfs representation.
 
 ### 5. Pump curves and constant-power pumps
 
@@ -312,7 +314,7 @@ The implementation is complete only when all items below are satisfied.
 - [x] Separate dimensional physical hydraulic state from numerical solver state.
 - [x] Scale/reset all initial head and flow guesses.
 - [x] Compile HW, DW, CM, and minor-loss pipe equations into solver units.
-- [ ] Make Reynolds-number/relative-roughness evaluation unit-independent.
+- [x] Make Reynolds-number/relative-roughness evaluation unit-independent.
 - [ ] Compile pump equations and pump curves into solver units.
 - [ ] Compile valve equations/settings/curves into solver units.
 - [ ] Compile emitter and PDA equations into solver units.
