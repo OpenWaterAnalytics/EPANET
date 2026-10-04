@@ -254,7 +254,9 @@ int  nexthyd(Project *pr, long *tstep)
     long  hydstep;         // Actual time step
     int   errcode = 0;     // Error code
 
-    // Compute current power and efficiency of all pumps
+    // Hydraulic solves publish dimensional head/flow results before nexthyd()
+    // is called. Energy calculations intentionally consume that physical state,
+    // never the numerically scaled SolverState.
     getallpumpsenergy(pr);
 
     // Save current results to hydraulics file and
@@ -1023,10 +1025,10 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
 
     int    i,       // efficiency curve index
            j;       // pump index
-    double dh,      // head across pump (ft)
-           q,       // flow through pump (cfs)
-           e;       // pump efficiency
-    double q4eff;   // flow at nominal pump speed of 1.0
+    double headChange,    // dimensional head across link (ft)
+           flow,          // dimensional flow through link (cfs)
+           e;             // pump efficiency
+    double nominalFlow;    // dimensional flow at nominal pump speed of 1.0
     double speed;   // current speed setting
     Scurve *curve;
     Slink  *link = &net->Link[k];
@@ -1039,9 +1041,11 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
         return;
     }
 
-    // Determine flow and head difference
-    q = ABS(hyd->LinkFlow[k]);
-    dh = ABS(hyd->NodeHead[link->N1] - hyd->NodeHead[link->N2]);
+    // Energy remains on EPANET's dimensional internal-unit contract. These
+    // values are populated from SolverState by savehydraulicsolverstate() at
+    // the end of hydsolve(). Do not read SolverState directly here.
+    flow = ABS(hyd->LinkFlow[k]);
+    headChange = ABS(hyd->NodeHead[link->N1] - hyd->NodeHead[link->N2]);
 
     // For pumps, find effic. at current flow
     if (link->Type == PUMP)
@@ -1051,9 +1055,9 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
         speed = hyd->LinkSetting[k];
         if ((i = net->Pump[j].Ecurve) > 0)
         {
-            q4eff = q / speed * pr->Ucf[FLOW];
+            nominalFlow = flow / speed * pr->Ucf[FLOW];
             curve = &net->Curve[i];
-            e = interp(curve->Npts,curve->X, curve->Y, q4eff);
+            e = interp(curve->Npts,curve->X, curve->Y, nominalFlow);
 
             // Sarbu and Borza pump speed adjustment
             e = 100.0 - ((100.0-e) * pow(1.0/speed, 0.1));
@@ -1065,7 +1069,9 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
     else e = 1.0;
 
     // Compute energy
-    *kw = dh * q * hyd->SpGrav / 8.814 / e * KWperHP;
+    // The 8.814 factor belongs to this dimensional energy calculation
+    // (ft, cfs, specific gravity); it is not part of the hydraulic solver.
+    *kw = headChange * flow * hyd->SpGrav / 8.814 / e * KWperHP;
     *eff = e;
 }
 

@@ -397,6 +397,33 @@ BOOST_AUTO_TEST_CASE(test_prv_baseline)
 }
 
 
+BOOST_AUTO_TEST_CASE(test_pump_energy_uses_dimensional_hydraulic_results)
+{
+    EN_Project ph = NULL;
+    int error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+
+    const int pump9 = get_link_index(ph, "9");
+
+    error = EN_settimeparam(ph, EN_DURATION, 0);
+    BOOST_REQUIRE(error == 0);
+    error = EN_solveH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    check_near(get_link_value(ph, pump9, EN_ENERGY), 95.8448203536107,
+        1.e-9, "pump 9 energy");
+    check_near(get_link_value(ph, pump9, EN_PUMP_EFFIC), 0.75,
+        1.e-12, "pump 9 efficiency");
+
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deleteproject(ph);
+    BOOST_REQUIRE(error == 0);
+}
+
+
 BOOST_AUTO_TEST_CASE(test_constant_power_pump_baseline)
 {
     EN_Project ph = NULL;
