@@ -837,27 +837,33 @@ void  pumpcoeff(Project *pr, int k)
     // (Other pump types have pre-determined coeffs.)
     if (pump->Ptype == CUSTOM)
     {
-        // Find intercept (h0) & slope (r) of pump curve
-        // line segment which contains speed-adjusted flow.
-        curvecoeff(pr, pump->Hcurve, q / setting, &h0, &r);
+        // Pump curves are stored in their original user units. curvecoeff()
+        // therefore expects dimensional internal flow and returns dimensional
+        // head/slope values. Convert only at the solver boundary.
+        curvecoeff(pr, pump->Hcurve,
+            hydflowfromsolver(pr, q) / setting, &h0, &r);
 
-        // Determine head loss coefficients (negative sign
-        // converts from pump curve's head gain to head loss)
+        // Keep cached pump properties dimensional. The local h0/r values used
+        // below are then compiled into solver head and head/flow units.
         pump->H0 = -h0;
         pump->R = -r;
         pump->N = 1.0;
+        h0 = hydheadtosolver(pr, pump->H0);
+        r = hydresistancetosolver(pr, pump->R, 1.0);
 
-        // Compute head loss and its gradient (with speed adjustment)
-        hgrad = pump->R * setting ;
-        hloss = pump->H0 * SQR(setting) + hgrad * hyd->SolverState.LinkFlow[k];
+        // Compute head loss and its gradient (with speed adjustment).
+        hgrad = r * setting;
+        hloss = h0 * SQR(setting) + hgrad * hyd->SolverState.LinkFlow[k];
     }
     else
     {
-        // Adjust head loss coefficients for pump speed
-        h0 = SQR(setting) * pump->H0;
+        // Pump H0/R remain dimensional model properties. Compile them to the
+        // numerical solver representation before applying the speed law.
+        h0 = SQR(setting) * hydheadtosolver(pr, pump->H0);
         n = pump->N;
         if (ABS(n - 1.0) < TINY) n = 1.0;
-        r = pump->R * pow(setting, 2.0 - n);
+        r = hydresistancetosolver(pr, pump->R, n) *
+            pow(setting, 2.0 - n);
         
         // Constant HP pump
         if (pump->Ptype == CONST_HP)
@@ -895,9 +901,9 @@ void  pumpcoeff(Project *pr, int k)
             // ... compute pump curve's gradient
             hgrad = n * r * pow(q, n - 1.0);
             // ... use linear pump curve if gradient too small
-            if (hgrad < hyd->RQtol)
+            if (hgrad < hydresistancetosolver(pr, hyd->RQtol, 1.0))
             {
-                hgrad = hyd->RQtol;
+                hgrad = hydresistancetosolver(pr, hyd->RQtol, 1.0);
                 hloss = h0 + hgrad * hyd->SolverState.LinkFlow[k];
             }
             // ... otherwise compute head loss from pump curve

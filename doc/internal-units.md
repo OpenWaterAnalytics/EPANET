@@ -153,9 +153,18 @@ converting solver flow back to EPANET's legacy cfs representation.
 - `getenergy()` uses ft and cfs head/flow and the corresponding `8.814` /
   horsepower conversion to compute kW.
 
-**Migration:** normalize the hydraulic pump equations and curve coordinates at
-solver compilation. Keep energy calculation outside the unit-independent GGA
-and feed it dimensional, unscaled hydraulic results.
+The pump coefficient path now converts dimensional pump properties to solver
+head/flow units at the GGA boundary. Custom curves are still interpolated in
+their original user units, but the resulting head/slope are compiled into
+solver units before use. Constant-power and power-function pump coefficients
+use the same generalized resistance scaling as other relations of the form
+`H = R * Q^n`. Pump maximum-head status checks are also converted to solver
+head units.
+
+**Migration:** hydraulic pump equations and head/flow curves are complete. The
+legacy `8.814` factor remains only where constant pump power is converted into
+the dimensional physical-model coefficient and in dimensional energy reporting;
+neither use is part of the GGA.
 
 ### 6. Valves and valve status logic
 
@@ -315,7 +324,7 @@ The implementation is complete only when all items below are satisfied.
 - [x] Scale/reset all initial head and flow guesses.
 - [x] Compile HW, DW, CM, and minor-loss pipe equations into solver units.
 - [x] Make Reynolds-number/relative-roughness evaluation unit-independent.
-- [ ] Compile pump equations and pump curves into solver units.
+- [x] Compile pump equations and pump curves into solver units.
 - [ ] Compile valve equations/settings/curves into solver units.
 - [ ] Compile emitter and PDA equations into solver units.
 - [ ] Compile leakage equations into solver units without changing public leak

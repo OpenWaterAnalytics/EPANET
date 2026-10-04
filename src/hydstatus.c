@@ -219,24 +219,27 @@ StatusType  pumpstatus(Project *pr, int k, double dh)
     Network *net = &pr->network;
 
     int   p;
-    double hmax;
+    double hmax, htol;
 
-    // Find maximum head (hmax) pump can deliver
+    // Find maximum head (hmax) pump can deliver. Pump limits and Htol are
+    // dimensional model values, while dh is already in solver head units.
     p = findpump(net, k);
+    htol = hydheadtosolver(pr, hyd->Htol);
     if (net->Pump[p].Ptype == CONST_HP)
     {
         // Use huge value for constant HP pump
-        hmax = BIG;
+        hmax = hydheadtosolver(pr, BIG);
         if (hyd->SolverState.LinkFlow[k] < TINY) return TEMPCLOSED;
     }
     else
     {
         // Use speed-adjusted shut-off head for other pumps
-        hmax = SQR(hyd->LinkSetting[k]) * net->Pump[p].Hmax;
+        hmax = hydheadtosolver(pr,
+            SQR(hyd->LinkSetting[k]) * net->Pump[p].Hmax);
     }
 
-    // Check if currrent head gain exceeds pump's max. head
-    if (dh > hmax + hyd->Htol) return XHEAD;
+    // Check if current head gain exceeds pump's max. head
+    if (dh > hmax + htol) return XHEAD;
 
     // No check is made to see if flow exceeds pump's max. flow
     return OPEN;
