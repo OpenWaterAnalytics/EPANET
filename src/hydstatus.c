@@ -17,6 +17,12 @@ Last Updated: 02/03/2023
 #include "types.h"
 #include "funcs.h"
 
+/*
+** Solver-unit contract: status decisions made during GGA iterations compare
+** SolverState values only with settings, tolerances, and loss terms that have
+** first been converted to the same solver head/flow representation.
+*/
+
 // Exported functions
 int  valvestatus(Project *);
 int  linkstatus(Project *);

@@ -321,6 +321,40 @@ Water quality is especially important: `quality.c` and `qualreact.c` currently
 consume physical hydraulic flow, pipe size, velocity, and volume. The hydraulic
 solver must therefore publish dimensional results before quality advances.
 
+
+## Final hydraulic solver-unit contract
+
+The hydraulic refactor leaves EPANET's model and public interfaces dimensional
+while giving the Global Gradient Algorithm an independent numerical head/flow
+representation. The contract is:
+
+1. `Hydraul.NodeHead`, `Hydraul.LinkFlow`, demands, settings, tolerances, tank
+   state, and model coefficients remain in EPANET's dimensional internal basis.
+2. `Hydraul.SolverState` is the exclusive head/flow state used while the GGA is
+   iterating. `ShydScale` defines the mapping `H_internal = H_solver * Head` and
+   `Q_internal = Q_solver * Flow`.
+3. A dimensional quantity may participate in GGA arithmetic only after being
+   converted with the appropriate `hyd*tosolver()` helper. Head-loss resistance,
+   conductance, and minor-loss coefficients use their dedicated scaling helpers
+   because their dimensions differ from head and flow.
+4. `hydcoeffs.c` is intentionally also a physical-law compilation boundary.
+   Unit-specific constants such as the HW/DW/CM coefficients and the TCV loss
+   conversion may remain while constructing dimensional model-side coefficients;
+   those coefficients must be scaled before they are combined with `SolverState`.
+5. `savehydraulicsolverstate()` publishes dimensional hydraulic results before
+   tank/event logic, rules, energy, water quality, Toolkit getters, reporting, or
+   output code consumes them.
+6. The sparse matrix solver is numerical only. Its assembled quantities inherit
+   solver head/flow scales, not EPANET's ft/cfs basis.
+
+Two complementary tests guard this contract.
+`test_hydraulic_solver_scaling` checks behavior under widely different solver
+scales. `test_hydraulic_core_unit_contract` statically checks that the three GGA
+core modules do not directly access dimensional hydraulic state and that known
+fixed-unit constants remain confined to the dimensional coefficient-compilation
+boundary. Both are part of `./test.sh hydraulic` and therefore run in CI wherever
+the hydraulic test command is used.
+
 ## Migration checklist
 
 The implementation is complete only when all items below are satisfied.
@@ -347,9 +381,9 @@ The implementation is complete only when all items below are satisfied.
 - [x] Pass hydraulic characterization tests unchanged.
 - [x] Pass cross-unit equivalence tests for all supported flow-unit systems.
 - [x] Add stress tests for very small/large hydraulic scales.
-- [ ] Audit `hydsolver.c`, `hydcoeffs.c`, and `hydstatus.c` for remaining fixed
+- [x] Audit `hydsolver.c`, `hydcoeffs.c`, and `hydstatus.c` for remaining fixed
       ft/cfs assumptions.
-- [ ] Document the final solver-unit contract and add a CI guard against
+- [x] Document the final solver-unit contract and add a CI guard against
       reintroducing fixed-unit assumptions into the numerical core.
 
 ## Suggested migration order

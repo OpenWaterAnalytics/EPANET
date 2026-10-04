@@ -19,6 +19,12 @@
 #include "types.h"
 #include "funcs.h"
 
+/*
+** Solver-unit contract: model coefficients may remain in EPANET's dimensional
+** internal basis, but every coefficient used by GGA assembly must be compiled
+** into solver units before it is combined with SolverState head or flow.
+*/
+
 // Constants used for computing Darcy-Weisbach friction factor
 const double A1 = 3.14159265358979323850e+03;   // 1000*PI
 const double A2 = 1.57079632679489661930e+03;   // 500*PI

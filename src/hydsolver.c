@@ -21,6 +21,12 @@
 #include "funcs.h"
 #include "text.h"
 
+/*
+** Solver-unit contract: hydraulic head/flow state in this module comes from
+** SolverState. Dimensional model values may enter only through hyd*tosolver()
+** conversions, and public diagnostics are converted back before publication.
+*/
+
 // Hydraulic balance error for network being analyzed
 typedef struct {
     double maxheaderror;

@@ -36,6 +36,8 @@ case "$MODE" in
                 --run_test=test_hydraulic_unit_equivalence
             "$BUILD_DIR/bin/test_toolkit" \
                 --run_test=test_hydraulic_solver_scaling
+            "$BUILD_DIR/bin/test_toolkit" \
+                --run_test=test_hydraulic_core_unit_contract
         )
         ;;
 esac

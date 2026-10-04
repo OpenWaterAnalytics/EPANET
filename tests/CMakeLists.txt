@@ -30,6 +30,7 @@ set(toolkit_test_srcs
      test_hydraulic_characterization.cpp
      test_hydraulic_unit_equivalence.cpp
      test_hydraulic_solver_scaling.cpp
+     test_hydraulic_core_unit_contract.cpp
      test_quality.cpp
      test_report.cpp
      test_analysis.cpp
@@ -49,6 +50,7 @@ set(toolkit_test_srcs
 
 add_executable(test_toolkit ${toolkit_test_srcs})
 target_link_libraries(test_toolkit ${Boost_LIBRARIES} epanet2)
+target_compile_definitions(test_toolkit PRIVATE EPANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 add_test(NAME test_toolkit
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_toolkit
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
