@@ -647,6 +647,7 @@ int valvedata(Project *pr)
             if (c == 0) return setError(parser, 5, 206);
             net->Valve[net->Nvalves].Curve = c;
             net->Curve[c].Type = HLOSS_CURVE;
+            link->InitStatus = OPEN;
         }
         else
         {
