@@ -264,10 +264,12 @@ normalization:
 - global `TINY = 1e-6` when it is applied to hydraulic flow/curve quantities;
 - the separate `0.0001 cfs` PDA and leakage convergence tests.
 
-**Migration:** classify each as either (a) a public dimensional tolerance to be
-scaled at the boundary, or (b) a numerical regularization parameter to be
-specified in normalized solver space. Do not mechanically multiply every
-constant by a conversion factor.
+**Migration:** preserve the legacy dimensional meaning of hydraulic
+regularizers, then map them into solver head/flow, head/flow-gradient, or
+flow/head-conductance units according to how each one is used. Dimensionless
+uses (for example `TINY` when comparing a pump exponent to 1.0) remain
+unscaled. Raw `CSMALL`/`CBIG` values are still valid while constructing
+dimensional model-side resistance data; numerical GGA uses must be scaled.
 
 ### 11. Solver matrix quantities
 
@@ -333,7 +335,7 @@ The implementation is complete only when all items below are satisfied.
       parameter semantics.
 - [x] Scale status/control comparisons that occur inside hydraulic iterations.
 - [x] Replace dimensional/hard-coded convergence thresholds inside the solver.
-- [ ] Classify and normalize numerical regularization constants (`RQtol`,
+- [x] Classify and normalize numerical regularization constants (`RQtol`,
       `CSMALL`, `CBIG`, barriers, hydraulic uses of `TINY`).
 - [ ] Keep tank/event simulation state dimensional and define its solver boundary.
 - [ ] Keep energy calculations dimensional and define their solver boundary.

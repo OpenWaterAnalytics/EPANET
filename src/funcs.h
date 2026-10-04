@@ -182,6 +182,7 @@ double  hydheadfromsolver(Project *, double);
 double  hydflowtosolver(Project *, double);
 double  hydflowfromsolver(Project *, double);
 double  hydresistancetosolver(Project *, double, double);
+double  hydconductancetosolver(Project *, double);
 double  hydminorlosstosolver(Project *, double);
 
 // ------- HYDCOEFFS.C -----------------

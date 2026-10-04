@@ -170,6 +170,22 @@ double hydresistancetosolver(Project *pr, double resistance, double exponent)
 }
 
 
+double hydconductancetosolver(Project *pr, double conductance)
+/*
+**----------------------------------------------------------------
+**  Purpose: converts a dimensional flow/head conductance into
+**           solver units
+**----------------------------------------------------------------
+**  Conductance is the reciprocal of a linear headloss gradient.
+**  If Q = C * H, then Q' = [C * Hs / Qs] * H'.
+*/
+{
+    ShydScale *scale = &pr->hydraul.SolverScale;
+
+    return conductance * scale->Head / scale->Flow;
+}
+
+
 double hydminorlosstosolver(Project *pr, double resistance)
 /*
 **----------------------------------------------------------------
