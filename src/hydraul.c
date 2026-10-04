@@ -130,6 +130,12 @@ void inithyd(Project *pr, int initflag)
         // Initialize status and setting
         hyd->LinkStatus[i] = link->InitStatus;
         hyd->LinkSetting[i] = link->InitSetting;
+        if (link->Type == PUMP && hyd->LinkStatus[i] <= CLOSED)
+        {
+            // A closed pump has zero operating speed even when the model keeps
+            // a separate nominal initial speed for later use.
+            hyd->LinkSetting[i] = 0.0;
+        }
         if (link->Type > PUMP && link->Type != GPV && link->InitStatus != ACTIVE)
         {
             hyd->LinkSetting[i] = MISSING;
