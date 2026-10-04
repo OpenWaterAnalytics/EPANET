@@ -341,7 +341,7 @@ The implementation is complete only when all items below are satisfied.
       `CSMALL`, `CBIG`, barriers, hydraulic uses of `TINY`).
 - [x] Keep tank/event simulation state dimensional and define its solver boundary.
 - [x] Keep energy calculations dimensional and define their solver boundary.
-- [ ] Keep water-quality calculations dimensional and define their solver boundary.
+- [x] Keep water-quality calculations dimensional and define their solver boundary.
 - [x] Return hydraulic results/diagnostics to the legacy physical representation
       before Toolkit/report/output consumers use them.
 - [ ] Pass hydraulic characterization tests unchanged.

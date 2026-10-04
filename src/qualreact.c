@@ -231,8 +231,9 @@ double piperate(Project *pr, int k)
         else return (net->Link[k].Kw * (4.0 / d) / pr->Ucf[ELEV]);
     }
 
-    // Compute Reynolds No.
-    // Flow rate made consistent with how it's saved to hydraulics file
+    // Compute Reynolds No. from the published dimensional hydraulic flow.
+    // Water-quality reaction calculations intentionally remain in EPANET's
+    // physical internal units and must not consume the scaled SolverState.
     q = (hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlow[k];
     a = PI * d * d / 4.0;         // pipe area
     u = fabs(q) / a;              // flow velocity

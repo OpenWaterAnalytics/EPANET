@@ -21,7 +21,9 @@ Last Updated: 02/14/2025
 // Macro to compute the volume of a link
 #define LINKVOL(k) (0.785398 * net->Link[(k)].Len * SQR(net->Link[(k)].Diam))
 
-// Macro to get link flow compatible with flow saved to hydraulics file
+// LinkFlow is the published dimensional hydraulic flow (cfs internally),
+// matching the representation stored in the hydraulics file. Water-quality
+// transport stays dimensional and must not read the scaled SolverState.
 #define LINKFLOW(k) ((hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlow[k])
 
 // Exported functions

@@ -125,4 +125,32 @@ BOOST_FIXTURE_TEST_CASE(test_michaelis_menten_reaction_orders, FixtureOpenClose)
     BOOST_REQUIRE(error == 0);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_quality_uses_published_hydraulic_state, FixtureOpenClose)
+{
+    int node21, node32;
+    double quality21, quality32, massBalance;
+
+    error = EN_solveH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_solveQ(ph);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getnodeindex(ph, (char *)"21", &node21);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getnodeindex(ph, (char *)"32", &node32);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_getnodevalue(ph, node21, EN_QUALITY, &quality21);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getnodevalue(ph, node32, EN_QUALITY, &quality32);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getstatistic(ph, EN_MASSBALANCE, &massBalance);
+    BOOST_REQUIRE(error == 0);
+
+    BOOST_CHECK_SMALL(quality21 - 0.593764082790338, 1.e-9);
+    BOOST_CHECK_SMALL(quality32 - 0.153379320274777, 1.e-9);
+    BOOST_CHECK_SMALL(massBalance - 0.999999981951671, 1.e-9);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
