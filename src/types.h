@@ -746,6 +746,15 @@ typedef struct {
 
 } ShydScale;
 
+// Hydraulic Solver State
+typedef struct {
+
+  double
+    *NodeHead,             // Numerical solver heads
+    *LinkFlow;             // Numerical solver flows
+
+} ShydSolverState;
+
 // Hydraulics Solver Wrapper
 typedef struct {
 
@@ -816,6 +825,9 @@ typedef struct {
 
   ShydScale
     SolverScale;           // Numerical scaling for hydraulic solver
+
+  ShydSolverState
+    SolverState;           // Numerical hydraulic state
 
   Smatrix smatrix;         // Sparse matrix storage
 

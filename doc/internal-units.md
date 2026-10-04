@@ -309,7 +309,7 @@ solver must therefore publish dimensional results before quality advances.
 The implementation is complete only when all items below are satisfied.
 
 - [x] Introduce an explicit hydraulic solver scaling/context object.
-- [ ] Separate dimensional physical hydraulic state from numerical solver state.
+- [x] Separate dimensional physical hydraulic state from numerical solver state.
 - [ ] Scale/reset all initial head and flow guesses.
 - [ ] Compile HW, DW, CM, and minor-loss pipe equations into solver units.
 - [ ] Make Reynolds-number/relative-roughness evaluation unit-independent.

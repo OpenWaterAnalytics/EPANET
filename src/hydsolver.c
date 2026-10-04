@@ -95,6 +95,9 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     int    statChange;            // Non-valve status change flag
     Hydbalance hydbal;            // Hydraulic balance errors
 
+    // Copy dimensional heads and flows into the numerical solver state.
+    loadhydraulicsolverstate(pr);
+
     // Initialize status checking & relaxation factor
     nextcheck = hyd->CheckFreq;
     hyd->RelaxFactor = 1.0;
@@ -134,7 +137,7 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
         // (Row[i] = row of solution matrix corresponding to node i)
         for (i = 1; i <= net->Njuncs; i++)
         {
-            hyd->NodeHead[i] = sm->F[sm->Row[i]];   // Update heads
+            hyd->SolverState.NodeHead[i] = sm->F[sm->Row[i]];   // Update heads
         }
         newerr = newflows(pr, &hydbal);             // Update flows
         *relerr = newerr;
@@ -191,6 +194,8 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     // Iterations ended - report any errors.
     if (errcode > 0)
     {
+        // Keep diagnostic/reporting code on the dimensional state contract.
+        savehydraulicsolverstate(pr);
         writehyderr(pr, sm->Order[errcode]);    // Ill-conditioned matrix error
         errcode = 110;
     }
@@ -208,6 +213,9 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     hyd->MaxHeadError = hydbal.maxheaderror;
     hyd->MaxFlowChange = hydbal.maxflowchange;
     hyd->Iterations = *iter;
+
+    // Publish the numerical solution back to EPANET's dimensional state.
+    savehydraulicsolverstate(pr);
     return errcode;
 }
 
@@ -301,12 +309,12 @@ int  pswitch(Project *pr)
         {
             // Determine if control conditions are satisfied
             if (net->Control[i].Type == LOWLEVEL &&
-                hyd->NodeHead[n] <= net->Control[i].Grade + hyd->Htol)
+                hyd->SolverState.NodeHead[n] <= net->Control[i].Grade + hyd->Htol)
             {
                 reset = 1;
             }
             if (net->Control[i].Type == HILEVEL &&
-                hyd->NodeHead[n] >= net->Control[i].Grade - hyd->Htol)
+                hyd->SolverState.NodeHead[n] >= net->Control[i].Grade - hyd->Htol)
             {
                 reset = 1;
             }
@@ -428,7 +436,7 @@ void  newlinkflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
         //    Y = P * (previous head loss)
         // where P & Y were computed in hlosscoeff() in hydcoeffs.c
 
-        dh = hyd->NodeHead[n1] - hyd->NodeHead[n2];
+        dh = hyd->SolverState.NodeHead[n1] - hyd->SolverState.NodeHead[n2];
         dq = hyd->Y[k] - hyd->P[k] * dh;
 
         // Adjust flow change by the relaxation factor
@@ -438,15 +446,15 @@ void  newlinkflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
         if (link->Type == PUMP)
         {
             n = findpump(net, k);
-            if (net->Pump[n].Ptype == CONST_HP && dq > hyd->LinkFlow[k])
+            if (net->Pump[n].Ptype == CONST_HP && dq > hyd->SolverState.LinkFlow[k])
             {
-                dq = hyd->LinkFlow[k] / 2.0;
+                dq = hyd->SolverState.LinkFlow[k] / 2.0;
             }
         }
 
         // Update link flow and system flow summation
-        hyd->LinkFlow[k] -= dq;
-        *qsum += ABS(hyd->LinkFlow[k]);
+        hyd->SolverState.LinkFlow[k] -= dq;
+        *qsum += ABS(hyd->SolverState.LinkFlow[k]);
         *dqsum += ABS(dq);
 
         // Update identity of element with max. flow change
@@ -460,8 +468,8 @@ void  newlinkflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
         // Update net flows to fixed grade nodes
         if (hyd->LinkStatus[k] > CLOSED)
         {
-            if (n1 > net->Njuncs) hyd->NodeDemand[n1] -= hyd->LinkFlow[k];
-            if (n2 > net->Njuncs) hyd->NodeDemand[n2] += hyd->LinkFlow[k];
+            if (n1 > net->Njuncs) hyd->NodeDemand[n1] -= hyd->SolverState.LinkFlow[k];
+            if (n2 > net->Njuncs) hyd->NodeDemand[n2] += hyd->SolverState.LinkFlow[k];
         }
     }
 }
@@ -495,7 +503,7 @@ void newemitterflows(Project *pr, Hydbalance *hbal, double *qsum,
         emitterheadloss(pr, i, &hloss, &hgrad);
 
         // Find emitter flow change
-        dh = hyd->NodeHead[i] - net->Node[i].El;
+        dh = hyd->SolverState.NodeHead[i] - net->Node[i].El;
         dq = (hloss - dh) / hgrad;
         dq *= hyd->RelaxFactor;
         hyd->EmitterFlow[i] -= dq;
@@ -590,7 +598,7 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
         
         // Find change in demand flow (see hydcoeffs.c)
         demandheadloss(pr, i, dp, n, &hloss, &hgrad);
-        dh = hyd->NodeHead[i] - net->Node[i].El - hyd->Pmin;
+        dh = hyd->SolverState.NodeHead[i] - net->Node[i].El - hyd->Pmin;
         dq = (hloss - dh) / hgrad;
         dq *= hyd->RelaxFactor;
 
@@ -640,7 +648,7 @@ void  checkhydbalance(Project *pr, Hydbalance *hbal)
         link = &net->Link[k];
         n1 = link->N1;
         n2 = link->N2;
-        dh = hyd->NodeHead[n1] - hyd->NodeHead[n2];
+        dh = hyd->SolverState.NodeHead[n1] - hyd->SolverState.NodeHead[n2];
         headloss = hyd->Y[k] / hyd->P[k];
         headerror = ABS(dh - headloss);
         if (headerror > hbal->maxheaderror)
@@ -719,7 +727,7 @@ int pdaconverged(Project *pr)
         if (hyd->FullDemand[i] <= 0.0) continue;
  
        // Evaluate demand equation at current pressure solution
-        p = hyd->NodeHead[i] - pr->network.Node[i].El;
+        p = hyd->SolverState.NodeHead[i] - pr->network.Node[i].El;
         if (p <= hyd->Pmin)
             q = 0.0;
         else if (p >= hyd->Preq)

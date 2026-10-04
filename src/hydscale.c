@@ -36,6 +36,54 @@ void inithydraulicscaling(Project *pr)
 }
 
 
+void loadhydraulicsolverstate(Project *pr)
+/*
+**----------------------------------------------------------------
+**  Purpose: copies dimensional hydraulic state into solver state
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    int i;
+
+    for (i = 1; i <= net->Nnodes; i++)
+    {
+        hyd->SolverState.NodeHead[i] =
+            hydheadtosolver(pr, hyd->NodeHead[i]);
+    }
+    for (i = 1; i <= net->Nlinks; i++)
+    {
+        hyd->SolverState.LinkFlow[i] =
+            hydflowtosolver(pr, hyd->LinkFlow[i]);
+    }
+}
+
+
+void savehydraulicsolverstate(Project *pr)
+/*
+**----------------------------------------------------------------
+**  Purpose: copies solver hydraulic state back to dimensional state
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    int i;
+
+    for (i = 1; i <= net->Nnodes; i++)
+    {
+        hyd->NodeHead[i] =
+            hydheadfromsolver(pr, hyd->SolverState.NodeHead[i]);
+    }
+    for (i = 1; i <= net->Nlinks; i++)
+    {
+        hyd->LinkFlow[i] =
+            hydflowfromsolver(pr, hyd->SolverState.LinkFlow[i]);
+    }
+}
+
+
 double hydheadtosolver(Project *pr, double head)
 /*
 **----------------------------------------------------------------

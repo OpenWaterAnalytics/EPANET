@@ -331,11 +331,17 @@ int  allocmatrix(Project *pr)
     hyd->Y   = (double *) calloc(net->Nlinks+1,sizeof(double));
     hyd->Xflow = (double *) calloc(MAX((net->Nnodes+1), (net->Nlinks+1)),
                                    sizeof(double));
+    hyd->SolverState.NodeHead =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.LinkFlow =
+        (double *) calloc(net->Nlinks+1, sizeof(double));
     hyd->OldStatus = (StatusType *) calloc(net->Nlinks+net->Ntanks+1,
                                            sizeof(StatusType));
     ERRCODE(MEMCHECK(hyd->P));
     ERRCODE(MEMCHECK(hyd->Y));
     ERRCODE(MEMCHECK(hyd->Xflow));
+    ERRCODE(MEMCHECK(hyd->SolverState.NodeHead));
+    ERRCODE(MEMCHECK(hyd->SolverState.LinkFlow));
     ERRCODE(MEMCHECK(hyd->OldStatus));
     return errcode;
 }
@@ -355,7 +361,11 @@ void  freematrix(Project *pr)
     free(hyd->P);
     free(hyd->Y);
     free(hyd->Xflow);
+    free(hyd->SolverState.NodeHead);
+    free(hyd->SolverState.LinkFlow);
     free(hyd->OldStatus);
+    hyd->SolverState.NodeHead = NULL;
+    hyd->SolverState.LinkFlow = NULL;
 }
 
 

@@ -322,6 +322,8 @@ void initpointers(Project *pr)
     pr->hydraul.NodeDemand = NULL;
     pr->hydraul.NodeHead = NULL;
     pr->hydraul.LinkFlow = NULL;
+    pr->hydraul.SolverState.NodeHead = NULL;
+    pr->hydraul.SolverState.LinkFlow = NULL;
     pr->hydraul.LinkStatus = NULL;
     pr->hydraul.LinkSetting = NULL;
     pr->hydraul.OldStatus = NULL;

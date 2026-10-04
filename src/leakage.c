@@ -382,7 +382,7 @@ double leakageflowchange(Project *pr, int i)
     if (!leakage_headloss(pr, i, &hfa, &gfa, &hva, &gva)) return 0.0;
     
     // Pressure head using latest head solution
-    h = hyd->NodeHead[i] - net->Node[i].El;
+    h = hyd->SolverState.NodeHead[i] - net->Node[i].El;
 
     // GGA flow update formula for fixed area leakage
     dqfa = 0.0;
@@ -428,7 +428,7 @@ int leakagehasconverged(Project *pr)
         if (hyd->Leakage[i].cfa == 0 && hyd->Leakage[i].cva == 0) continue;
         
         // Evaluate node's pressure head
-        h = hyd->NodeHead[i] - net->Node[i].El;
+        h = hyd->SolverState.NodeHead[i] - net->Node[i].El;
         
         // Directly compute a reference leakage at this pressure head
         qref = 0.0;
