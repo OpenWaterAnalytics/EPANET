@@ -329,7 +329,7 @@ The implementation is complete only when all items below are satisfied.
 - [x] Compile pump equations and pump curves into solver units.
 - [x] Compile valve equations/settings/curves into solver units.
 - [x] Compile emitter and PDA equations into solver units.
-- [ ] Compile leakage equations into solver units without changing public leak
+- [x] Compile leakage equations into solver units without changing public leak
       parameter semantics.
 - [ ] Scale status/control comparisons that occur inside hydraulic iterations.
 - [ ] Replace dimensional/hard-coded convergence thresholds inside the solver.
