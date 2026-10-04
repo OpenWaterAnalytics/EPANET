@@ -7,7 +7,7 @@ Description:  binary file read/write routines
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 08/13/2022
+Last Updated: 10/02/2026
 ******************************************************************************
 */
 
@@ -261,58 +261,26 @@ int saveenergy(Project *pr)
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
     Outfile *out = &pr->outfile;
-    Parser  *parser = &pr->parser;
-    Times   *time = &pr->times;
 
     int    i;
     INT4   index;
     REAL4  x[6];                // work array
-    double hdur,               // total simulation duration in hours
-           t;                  // total pumping time duration
+    Senergy e;                  // pump's energy usage statistics
     Spump *pump;
     FILE  *outFile = out->OutFile;
 
-    hdur = time->Dur / 3600.0;
     for (i = 1; i <= net->Npumps; i++)
     {
         pump = &net->Pump[i];
-        if (hdur == 0.0) pump->Energy.TotalCost *= 24.0;
-        else
-        {
-            // ... convert total hrs. online to fraction of total time online
-            t = pump->Energy.TimeOnLine;  //currently holds total hrs. online
-            pump->Energy.TimeOnLine = t / hdur;
-
-            // ... convert cumulative values to time-averaged ones
-            if (t > 0.0)
-            {
-                pump->Energy.Efficiency /= t;
-                pump->Energy.KwHrsPerFlow /= t;
-                pump->Energy.KwHrs /= t;
-            }
-
-            // ... convert total cost to cost per day
-            pump->Energy.TotalCost *= 24.0 / hdur;
-        }
-
-        // ... express time online and avg. efficiency as percentages
-        pump->Energy.TimeOnLine *= 100.0;
-        pump->Energy.Efficiency *= 100.0;
-
-        // ... compute KWH per Million Gallons or per Cubic Meter
-        if (parser->Unitsflag == SI)
-        {
-            pump->Energy.KwHrsPerFlow *= (1000. / LPSperCFS / 3600.);
-        }
-        else pump->Energy.KwHrsPerFlow *= (1.0e6 / GPMperCFS / 60.);
-
+        pumpenergystats(pr, i, &e);
+        
         // ... save energy stats to REAL4 work array
-        x[0] = (REAL4)pump->Energy.TimeOnLine;
-        x[1] = (REAL4)pump->Energy.Efficiency;
-        x[2] = (REAL4)pump->Energy.KwHrsPerFlow;
-        x[3] = (REAL4)pump->Energy.KwHrs;
-        x[4] = (REAL4)pump->Energy.MaxKwatts;
-        x[5] = (REAL4)pump->Energy.TotalCost;
+        x[0] = (REAL4)e.TimeOnLine;
+        x[1] = (REAL4)e.Efficiency;
+        x[2] = (REAL4)e.KwHrsPerFlow;
+        x[3] = (REAL4)e.KwHrs;
+        x[4] = (REAL4)e.MaxKwatts;
+        x[5] = (REAL4)e.TotalCost;
 
         // ... save energy results to output file
         index = pump->Link;
@@ -321,10 +289,59 @@ int saveenergy(Project *pr)
     }
 
     // ... compute and save demand charge
-    hyd->Emax = hyd->Emax * hyd->Dcost;
-    x[0] = (REAL4)hyd->Emax;
+    x[0] = (REAL4)(hyd->Emax * hyd->Dcost);
     if (fwrite(&x[0], sizeof(REAL4), 1, outFile) < 1) return 308;
     return (0);
+}
+
+void pumpenergystats(Project *pr, int i, Senergy *e)
+/*
+**--------------------------------------------------------------
+**   Input:   i = pump index
+**   Output:  e = energy usage statistics of pump i
+**   Purpose: converts the energy totals accumulated for pump i
+**            during a hydraulic run into time-averaged values,
+**            leaving the totals unchanged
+**--------------------------------------------------------------
+*/
+{
+    Parser *parser = &pr->parser;
+    Times  *time = &pr->times;
+
+    double hdur,               // total simulation duration in hours
+           t;                  // total pumping time duration
+
+    *e = pr->network.Pump[i].Energy;
+    hdur = time->Dur / 3600.0;
+    if (hdur == 0.0) e->TotalCost *= 24.0;
+    else
+    {
+        // ... convert total hrs. online to fraction of total time online
+        t = e->TimeOnLine;  //currently holds total hrs. online
+        e->TimeOnLine = t / hdur;
+
+        // ... convert cumulative values to time-averaged ones
+        if (t > 0.0)
+        {
+            e->Efficiency /= t;
+            e->KwHrsPerFlow /= t;
+            e->KwHrs /= t;
+        }
+
+        // ... convert total cost to cost per day
+        e->TotalCost *= 24.0 / hdur;
+    }
+
+    // ... express time online and avg. efficiency as percentages
+    e->TimeOnLine *= 100.0;
+    e->Efficiency *= 100.0;
+
+    // ... compute KWH per Million Gallons or per Cubic Meter
+    if (parser->Unitsflag == SI)
+    {
+        e->KwHrsPerFlow *= (1000. / LPSperCFS / 3600.);
+    }
+    else e->KwHrsPerFlow *= (1.0e6 / GPMperCFS / 60.);
 }
 
 int readhyd(Project *pr, long *hydtime)

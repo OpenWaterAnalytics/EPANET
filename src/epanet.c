@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 09/29/2026
+ Last Updated: 10/02/2026
  ******************************************************************************
 */
 
@@ -1309,7 +1309,8 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     case EN_EMITEXPON:
         if (value <= 0.0) return 213;
         n = 1.0 / value;
-        ucf = pow(Ucf[FLOW], n) / Ucf[PRESSURE];
+        ucf = (p->parser.Unitsflag == US) ? (PSIperFT * hyd->SpGrav) : MperFT;
+        ucf = pow(Ucf[FLOW], n) / ucf;
         for (i = 1; i <= Njuncs; i++)
         {
             j = EN_getnodevalue(p, i, EN_EMITTER, &Ke);
@@ -1847,7 +1848,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
     Quality *qual = &p->quality;
 
     double *Ucf = p->Ucf;
-    int i, oldQualFlag, traceNodeIndex = 0;
+    int i, traceNodeIndex = 0;
     double ccf = 1.0;
 
     if (!p->Openflag) return 102;
@@ -1860,9 +1861,9 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
     }
 
     qual->TraceNode = traceNodeIndex;
-    oldQualFlag = qual->Qualflag;
     qual->Qualflag = qualType;
     qual->Ctol *= Ucf[QUALITY];
+    qual->Climit *= Ucf[QUALITY];
     if (qual->Qualflag == CHEM) // Chemical analysis
     {
         strncpy(qual->ChemName, chemName, MAXID);
@@ -1885,14 +1886,11 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
         strcpy(rpt->Field[QUALITY].Units, u_HOURS);
     }
 
-    // When changing from CHEM to AGE or TRACE, nodes initial quality
-    // values must be returned to their original ones
-    if ((qual->Qualflag == AGE || qual->Qualflag == TRACE) && oldQualFlag == CHEM)
+    // Convert nodes initial quality values to the new concentration
+    // units, so that their values in user units do not change
+    for (i = 1; i <= p->network.Nnodes; i++)
     {
-        for (i = 1; i <= p->network.Nnodes; i++)
-        {
-            p->network.Node[i].C0 *= Ucf[QUALITY];
-        }
+        p->network.Node[i].C0 *= Ucf[QUALITY] / ccf;       
     }
 
     Ucf[QUALITY] = ccf;
@@ -2698,6 +2696,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
         Tank[j].A = (curve->Y[n] - curve->Y[0]) /      // nominal area
             (curve->X[n] - curve->X[0]);
+        Tank[j].A /= SQR(Ucf[ELEV]);                   // area in ft2
         break;
 
     case EN_MINLEVEL:
@@ -2719,6 +2718,8 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         // NOTE: We assume that for non-volume curve tanks Vmin doesn't change
         //       with Hmin. If not the case then a subsequent call setting
         //       EN_MINVOLUME must be made.
+        Tank[j].V0 = tankvolume(p, j, Tank[j].H0);     // new init. volume
+        Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax); // new max. volume
         break;
 
     case EN_MAXLEVEL:
@@ -4046,7 +4047,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
         if (Link[index].Type == PUMP)
         {
             pmp = findpump(net, index);
-            if (Pump[pmp].Ptype == CONST_HP) v = Link[index].Km; // Power in HP or KW
+            if (Pump[pmp].Ptype == CONST_HP) v = Link[index].Km * Ucf[POWER]; // Power in HP or KW
         }
         break;
 
@@ -4088,7 +4089,7 @@ int DLLEXPORT EN_getlinkvalue(EN_Project p, int index, int property, double *val
     case EN_GPV_CURVE:
         if (Link[index].Type == GPV)
         {
-            v = Link[index].Kc;
+            v = net->Valve[findvalve(&p->network, index)].Curve;
         }
         break;
 
@@ -4305,7 +4306,11 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             pumpIndex = findpump(&p->network, index);
             net->Pump[pumpIndex].Ptype = CONST_HP;
             net->Pump[pumpIndex].Hcurve = 0;
-            net->Link[index].Km = value;
+            net->Link[index].Km = value / Ucf[POWER];
+
+            // If the hydraulic solver is open, update the pump's
+            // coefficients now (otherwise EN_openH does this)
+            if (hyd->OpenHflag) updatepumpparams(p, pumpIndex);
         }
         break;
 
@@ -4358,9 +4363,9 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         if (Link[index].Type == GPV)
         {
             curveIndex = ROUND(value);
-            if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
-            Link[index].Kc = curveIndex;
-            if (hyd->OpenHflag == FALSE) Link[index].InitSetting = curveIndex;
+            if (curveIndex <= 0 || curveIndex > net->Ncurves) return 206;
+            net->Valve[findvalve(&p->network, index)].Curve = curveIndex;
+            net->Curve[curveIndex].Type = HLOSS_CURVE;
         }
         break;
 
@@ -4676,7 +4681,8 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
 {
     Network *net = &p->network;
 
-    int pumpIndex;
+    int pumpIndex, oldCurve, errcode = 0;;
+    double oldKm;
     Spump *pump;
 
     // Check for valid parameters
@@ -4688,10 +4694,25 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
     // Assign the new curve to the pump
     pumpIndex = findpump(net, linkIndex);
     pump = &net->Pump[pumpIndex];
+    oldCurve = pump->Hcurve;
+    oldKm = net->Link[linkIndex].Km;
     pump->Hcurve = curveIndex;
     net->Link[linkIndex].Km = 0.0;
-    return 0;
-}
+
+    // If the hydraulic solver is open, update the pump's curve
+    // coefficients now (otherwise EN_openH does this), keeping
+    // the old curve if the new one is not valid
+    if (p->hydraul.OpenHflag)
+    {
+        errcode = updatepumpparams(p, pumpIndex);
+        if (errcode)
+        {
+            pump->Hcurve = oldCurve;
+            net->Link[linkIndex].Km = oldKm;
+            updatepumpparams(p, pumpIndex);
+        }
+    }
+    return errcode;}
 
 /********************************************************************
 
@@ -5117,6 +5138,18 @@ int  DLLEXPORT EN_deletecurve(EN_Project p, int index)
     // Check that curve exists
     if (index < 1 || index > p->network.Ncurves) return 205;
 
+    // A tank that uses the curve becomes a cylinder with the curve's
+    // nominal area, so its volumes must be updated (see EN_TANKDIAM)
+    for (i = 1; i <= net->Ntanks; i++)
+    {
+        if (net->Tank[i].Vcurve != index) continue;
+        net->Tank[i].Vcurve = 0;
+        net->Tank[i].Vmin = net->Tank[i].A *
+            (net->Tank[i].Hmin - net->Node[net->Tank[i].Node].El);
+        net->Tank[i].V0 = tankvolume(p, i, net->Tank[i].H0);
+        net->Tank[i].Vmax = tankvolume(p, i, net->Tank[i].Hmax);
+    }
+ 
     // Adjust references by other objects to curves
     adjustcurves(net, index);
 
@@ -5306,6 +5339,16 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
     // Insert new point into curve
     curve->X[n] = x;
     curve->Y[n] = y;
+
+    // Update the volumes of any tank that uses the curve
+    // (n is reused as the tank index)
+    for (n = 1; n <= net->Ntanks; n++)
+    {
+        if (net->Tank[n].Vcurve != curveIndex) continue;
+        net->Tank[n].Vmin = tankvolume(p, n, net->Tank[n].Hmin);
+        net->Tank[n].V0 = tankvolume(p, n, net->Tank[n].H0);
+        net->Tank[n].Vmax = tankvolume(p, n, net->Tank[n].Hmax);
+    }
     return 0;
 }
 
@@ -5356,7 +5399,7 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
 {
     Network *net = &p->network;
     Scurve *curve;
-    int j;
+    int j, errcode;
 
     // Check for valid arguments
     if (!p->Openflag) return 102;
@@ -5377,6 +5420,27 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
     {
         curve->X[j] = xValues[j];
         curve->Y[j] = yValues[j];
+    }
+
+    // Update the volumes of any tank that uses the curve
+    for (j = 1; j <= net->Ntanks; j++)
+    {
+        if (net->Tank[j].Vcurve != index) continue;
+        net->Tank[j].Vmin = tankvolume(p, j, net->Tank[j].Hmin);
+        net->Tank[j].V0 = tankvolume(p, j, net->Tank[j].H0);
+        net->Tank[j].Vmax = tankvolume(p, j, net->Tank[j].Hmax);
+    }
+
+    // If the hydraulic solver is open, update the coefficients
+    // of pumps that use the curve (otherwise EN_openH does this)
+    if (p->hydraul.OpenHflag)
+    {
+        for (j = 1; j <= net->Npumps; j++)
+        {
+            if (net->Pump[j].Hcurve != index) continue;
+            errcode = updatepumpparams(p, j);
+            if (errcode) return errcode;
+        }
     }
     return 0;
 }

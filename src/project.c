@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/23/2025
+ Last Updated: 10/03/2026
  ******************************************************************************
 */
 
@@ -874,9 +874,6 @@ int changevalvetype(Project *pr, int index, int type)
         case PBV:
             setting *= pr->Ucf[PRESSURE];
             break;
-        case GPV:
-            setting = 0.0;
-            break;
         default: break;
     }
     switch (type)
@@ -892,7 +889,6 @@ int changevalvetype(Project *pr, int index, int type)
     }
     
     // Save setting
-    if (type == GPV) setting = 0.0;
     if (type == PCV) setting = MIN(setting, 100.0);
     link->Kc = setting;
     link->InitSetting = setting;
@@ -1146,7 +1142,7 @@ void assigncurvetypes(Network *network)
             }
         }
         else if (link->Type == GPV){
-            if((j = valve->Curve) > 0) {
+            if((j = valve->Curve) > 0) {            
                 network->Curve[j].Type = HLOSS_CURVE;
             }
         }
@@ -1251,9 +1247,11 @@ void adjustcurves(Network *network, int index)
         }
         if (network->Link[k].Type == GPV)
         {
-            curve = INT(network->Link[k].Kc);
-            adjustcurve(&curve, index);
-            network->Link[k].Kc = curve;
+            if ((curve = network->Valve[j].Curve) > 0)
+            {
+                adjustcurve(&curve, index);
+                network->Valve[j].Curve = curve;
+            }
         }
     }
 }
@@ -1330,13 +1328,13 @@ int setcontrol(EN_Project p, int type, int linkIndex, double setting,
     {
         status = OPEN;
         if (linktype == PUMP) s = 1.0;
-        if (linktype == GPV)  s = net->Link[linkIndex].Kc;
+        if (linktype == GPV)  s = 1.0;
     }
     else if (setting == SET_CLOSED)
     {
         status = CLOSED;
         if (linktype == PUMP) s = 0.0;
-        if (linktype == GPV)  s = net->Link[linkIndex].Kc;
+        if (linktype == GPV)  s = 0.0;
     }
     
     // Convert units of control setting
@@ -1363,7 +1361,7 @@ int setcontrol(EN_Project p, int type, int linkIndex, double setting,
                 if (s == 0.0) status = CLOSED;
                 else if (s == 1.0) status = OPEN;
                 else return 202;
-                s = net->Link[linkIndex].Kc;
+                s = 0;
                 break;
             default: break;
         }

@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/11/2026
+Last Updated: 10/02/2026
 ******************************************************************************
 */
 
@@ -244,7 +244,8 @@ int saveinpfile(Project *pr, const char *fname)
                 net->Node[link->N2].ID);
 
         // Pump has constant power
-        if (pump->Ptype == CONST_HP) sprintf(s1, "\tPOWER %.4f", link->Km);
+        if (pump->Ptype == CONST_HP)
+            sprintf(s1, "\tPOWER %.4f", link->Km * pr->Ucf[POWER]);
 
         // Pump has a head curve
         else if ((j = pump->Hcurve) > 0)
@@ -315,7 +316,7 @@ int saveinpfile(Project *pr, const char *fname)
                 LinkTxt[link->Type]);
 
         // For GPV, setting = head curve index
-        if (link->Type == GPV && (j = ROUND(kc)) > 0)
+        if (link->Type == GPV && (j = net->Valve[i].Curve) > 0)
         {
             sprintf(s1, "%-31s\t%-12.4f", net->Curve[j].ID, km);
         }
@@ -360,7 +361,8 @@ int saveinpfile(Project *pr, const char *fname)
     {
         node = &net->Node[i];
         if (node->Ke == 0.0) continue;
-        ke = pr->Ucf[FLOW] / pow(pr->Ucf[PRESSURE] * node->Ke, (1.0 / hyd->Qexp));
+        ucf = (parser->Unitsflag == US) ? (PSIperFT * hyd->SpGrav) : (MperFT);
+        ke = pr->Ucf[FLOW] / pow(ucf * node->Ke, (1.0 / hyd->Qexp));  // SM-05
         fprintf(f, "\n %-31s\t%-14.6f", node->ID, ke);
     }
 

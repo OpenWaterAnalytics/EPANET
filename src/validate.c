@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 03/18/2024
+ Last Updated: 10/02/2026
  ******************************************************************************
 */
 
@@ -178,6 +178,38 @@ int validatecurves(Project *pr)
     return result;
 }
 
+int validatevalves(Project *pr)
+/*
+**-------------------------------------------------------------------
+**  Input:   none
+**  Output:  returns 1 if successful, 0 if not
+**  Purpose: checks that each GPV is assigned a head loss curve.
+**-------------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    int i, c, result = 1;
+    char errmsg[MAXMSG+1] = "";
+    Slink *link;
+
+    for (i = 1; i <= net->Nvalves; i++)
+    {
+        link = &net->Link[net->Valve[i].Link];
+        if (link->Type != GPV) continue;
+
+        // Check for valid head loss curve
+        c = net->Valve[i].Curve;
+        if (c < 1 || c > net->Ncurves)
+        {
+            sprintf(pr->Msg, "Error 206: %s for GPV %s",
+                geterrmsg(206, errmsg), link->ID);
+            writeline(pr, pr->Msg);
+            result = 0;
+        }
+    }
+    return result;
+}
+
 int powerfuncpump(double h0, double h1, double h2, double q1, double q2,
                   double *a, double *b, double *c)
 /*
@@ -303,12 +335,38 @@ int constpowerpump(Project *pr, Spump *pump)
 {
     pump->Ptype = CONST_HP;
     pump->H0 = 0.0;
-    pump->R = -8.814 * pr->network.Link[pump->Link].Km / pr->Ucf[POWER];
+    pump->R = -8.814 * pr->network.Link[pump->Link].Km;
     pump->N = -1.0;
     pump->Hmax = BIG; // No head limit
     pump->Qmax = BIG; // No flow limit
     pump->Q0 = 1.0;   // Init. flow = 1 cfs
     return 0;
+}
+  
+int updatepumpparams(Project *pr, int i)
+/*
+**-------------------------------------------------------------------
+**  Input:   i = pump index
+**  Output:  returns an error code
+**  Purpose: computes a pump's head curve coefficients from its head
+**           curve or its constant power rating.
+**-------------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    Spump *pump = &net->Pump[i];
+
+    // Pump has a designated pump curve
+    if (pump->Hcurve > 0)
+        return pumpcurvepump(pr, pump, &net->Curve[pump->Hcurve]);
+
+    // Pump has a constant power setting
+    if (net->Link[pump->Link].Km > 0.0)
+        return constpowerpump(pr, pump);
+
+    // Pump has no pump curve info assigned
+    pump->Ptype = NOCURVE;
+    return 226;
 }
  
 int validatepumps(Project *pr)
@@ -327,22 +385,8 @@ int validatepumps(Project *pr)
     
     for (i = 1; i <= net->Npumps; i++)
     {
-        // Pump has a designated pump curve
         pump = &net->Pump[i];
-        if (pump->Hcurve > 0)
-            errcode = pumpcurvepump(pr, pump, &net->Curve[pump->Hcurve]);
-        
-        // Pump has a constant power setting
-        else if (net->Link[pump->Link].Km > 0.0)
-            errcode = constpowerpump(pr, pump);
-        
-        // Pump has no pump curve info assigned
-        else
-        {
-            pump->Ptype = NOCURVE;
-            errcode = 226;
-        }
-        
+        errcode = updatepumpparams(pr, i);
         if (errcode)
         {
             sprintf(pr->Msg, "Error %d: %s %s",
@@ -370,6 +414,7 @@ int validateproject(Project *pr)
     if (!validatepumps(pr)) errcode = 110;
     if (!validatepatterns(pr)) errcode = 110;
     if (!validatecurves(pr)) errcode = 110;
+    if (!validatevalves(pr)) errcode = 110;
     return errcode;
 }
 

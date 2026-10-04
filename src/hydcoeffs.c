@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/15/2024
+ Last Updated: 10/02/2026
  ******************************************************************************
 */
 
@@ -208,7 +208,7 @@ double pcvlosscoeff(Project* pr, int k, double s)
         else if (s > x[npts-1])
         {
             k2 = npts - 1;
-            kvr = (s - x[k2]) / (1. -  x[k2]) * (1. - y[k2]) + y[k2];
+            kvr = (s - x[k2]) / (100. -  x[k2]) * (100. - y[k2]) + y[k2];
         }
     
         // Otherwise interpolate over curve segment that brackets s
@@ -958,23 +958,25 @@ void  gpvcoeff(Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    int    i;
+    int    i,         // curve index
+           v;         // valve index
+           
     double h0,        // Intercept of head loss curve segment
            r,         // Slope of head loss curve segment
            q;         // Abs. value of flow
-
+           
     Hydraul *hyd = &pr->hydraul;
-
+    Network* net = &pr->network;
+    
     // Treat as a pipe if valve closed
-    if (hyd->LinkStatus[k] == CLOSED) valvecoeff(pr, k);
+    if (hyd->LinkStatus[k] <= CLOSED) valvecoeff(pr, k);
 
-    // Otherwise utilize segment of head loss curve
-    // bracketing current flow (curve index is stored
-    // in valve's setting)
+    // Otherwise utilize valve's head loss curve
     else
     {
         // Index of valve's head loss curve
-        i = (int)ROUND(hyd->LinkSetting[k]);
+        v = findvalve(net, k);         
+        i = net->Valve[v].Curve;
 
         // Adjusted flow rate
         q = ABS(hyd->LinkFlow[k]);
@@ -1003,8 +1005,9 @@ void  pbvcoeff(Project *pr, int k)
     Hydraul *hyd = &pr->hydraul;
     Slink *link = &pr->network.Link[k];
 
-    // If valve fixed OPEN or CLOSED then treat as a pipe
-    if (hyd->LinkSetting[k] == MISSING || hyd->LinkSetting[k] == 0.0)
+    // If valve closed, or fixed OPEN or CLOSED, then treat as a pipe
+    if (hyd->LinkStatus[k] <= CLOSED ||
+        hyd->LinkSetting[k] == MISSING || hyd->LinkSetting[k] == 0.0)
     {
         valvecoeff(pr, k);
     }

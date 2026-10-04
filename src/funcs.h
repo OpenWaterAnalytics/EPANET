@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/17/2025
+ Last Updated: 10/02/2026
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -181,6 +181,10 @@ void    emitterheadloss(Project *, int, double *, double *);
 void    demandheadloss(Project *, int, double, double, double *, double *);
 double  pcvlosscoeff(Project *, int, double);
 
+// ------- VALIDATE.C -----------------
+
+int     updatepumpparams(Project *, int);
+
 // ------- QUALITY.C --------------------
 
 int     openqual(Project *);
@@ -197,6 +201,7 @@ int     savenetdata(Project *);
 int     savehyd(Project *, long *);
 int     savehydstep(Project *, long *);
 int     saveenergy(Project *);
+void    pumpenergystats(Project *, int, Senergy *);
 int     readhyd(Project *, long *);
 int     readhydstep(Project *, long *);
 int     saveoutput(Project *);

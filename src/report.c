@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/14/2025
+ Last Updated: 10/02/2026
  ******************************************************************************
 */
 
@@ -526,6 +526,7 @@ void writeenergy(Project *pr)
     double csum;
     char s[MAXLINE + 1];
     Spump *pump;
+    Senergy e;
 
     if (net->Npumps == 0) return;
     writeline(pr, " ");
@@ -535,14 +536,15 @@ void writeenergy(Project *pr)
     for (j = 1; j <= net->Npumps; j++)
     {
         pump = &net->Pump[j];
-        csum += pump->Energy.TotalCost;
+        pumpenergystats(pr, j, &e);
+        csum += e.TotalCost;
         if (rpt->LineNum == (long)rpt->PageSize) writeheader(pr, ENERHDR, 1);
 
         sprintf(s, "%-8s  %6.2f %6.2f %9.2f %9.2f %9.2f %9.2f",
-            net->Link[pump->Link].ID, pump->Energy.TimeOnLine,
-            pump->Energy.Efficiency,  pump->Energy.KwHrsPerFlow,
-            pump->Energy.KwHrs,       pump->Energy.MaxKwatts,
-            pump->Energy.TotalCost);
+            net->Link[pump->Link].ID, e.TimeOnLine,
+            e.Efficiency, e.KwHrsPerFlow,
+            e.KwHrs,      e.MaxKwatts,
+            e.TotalCost);
         writeline(pr, s);
     }
 
