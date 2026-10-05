@@ -13,6 +13,10 @@
 #ifndef FUNCS_H
 #define FUNCS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // ------- PROJECT.C ------------
 
 void    initpointers(Project *);
@@ -234,5 +238,9 @@ int     leakagehasconverged(Project *);
 void    startflowbalance(Project *);
 void    updateflowbalance(Project *, long);
 void    endflowbalance(Project *, long);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
