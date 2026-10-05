@@ -301,7 +301,7 @@ void headlosscoeffs(Project *pr)
         case FCV:
         case PRV:
         case PSV:
-            if (hyd->LinkSetting[k] == MISSING) valvecoeff(pr, k);
+            if (hyd->SolverModel.LinkSetting[k] == MISSING) valvecoeff(pr, k);
             else hyd->P[k] = 0.0;
         }
     }
@@ -453,7 +453,7 @@ void  valvecoeffs(Project *pr)
         k = valve->Link;
 
         // Coeffs. for fixed status valves have already been computed
-        if (hyd->LinkSetting[k] == MISSING) continue;
+        if (hyd->SolverModel.LinkSetting[k] == MISSING) continue;
 
         // Start & end nodes of valve's link
         link = &net->Link[k];
@@ -849,7 +849,7 @@ void  pumpcoeff(Project *pr, int k)
     biggrad = hyd->SolverModel.BigGradient;
 
     // Use high resistance pipe if pump closed or cannot deliver head
-    setting = hyd->LinkSetting[k];
+    setting = hyd->SolverModel.LinkSetting[k];
     if (hyd->LinkStatus[k] <= CLOSED || setting == 0.0)
     {
         hyd->P[k] = 1.0 / biggrad;
@@ -1027,7 +1027,7 @@ void  gpvcoeff(Project *pr, int k)
     else
     {
         // Index of valve's head loss curve
-        i = (int)ROUND(hyd->LinkSetting[k]);
+        i = (int)ROUND(hyd->SolverModel.LinkSetting[k]);
 
         // Adjusted flow rate. TINY historically means an internal cfs flow
         // here, so preserve that physical threshold under solver scaling.
@@ -1063,7 +1063,8 @@ void  pbvcoeff(Project *pr, int k)
     double hset, km, bigconductance;
 
     // If valve fixed OPEN or CLOSED then treat as a pipe
-    if (hyd->LinkSetting[k] == MISSING || hyd->LinkSetting[k] == 0.0)
+    if (hyd->SolverModel.LinkSetting[k] == MISSING ||
+        hyd->SolverModel.LinkSetting[k] == 0.0)
     {
         valvecoeff(pr, k);
     }
@@ -1071,9 +1072,9 @@ void  pbvcoeff(Project *pr, int k)
     // If valve is active
     else
     {
-        // PBV setting remains dynamic; its static base minor-loss coefficient
-        // is already compiled into SolverModel.
-        hset = hydheadtosolver(pr, hyd->LinkSetting[k]);
+        // PBV setting and base minor-loss coefficient are both compiled at
+        // their mutation/model boundaries.
+        hset = hyd->SolverModel.LinkSetting[k];
         km = hyd->SolverModel.LinkMinorLoss[k];
 
         // Treat as a pipe if minor loss > valve setting
@@ -1103,23 +1104,17 @@ void  tcvcoeff(Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    double km;
     Hydraul *hyd = &pr->hydraul;
-    Slink *link = &pr->network.Link[k];
 
     // Fixed-open/closed TCVs use the compiled base minor-loss coefficient.
-    if (hyd->LinkSetting[k] == MISSING)
+    if (hyd->SolverModel.LinkSetting[k] == MISSING)
     {
         valvecoeff(pr, k);
         return;
     }
 
-    // A throttled TCV has a setting-dependent dimensional loss coefficient.
-    // Keep this dynamic conversion at the setting boundary for the later
-    // dynamic-link compilation stage rather than modifying the model's Km.
-    km = 0.02517 * hyd->LinkSetting[k] /
-        (SQR(link->Diam) * SQR(link->Diam));
-    valvecoeffwithloss(pr, k, hydminorlosstosolver(pr, km));
+    // Throttled TCV loss is compiled once when its setting or diameter changes.
+    valvecoeffwithloss(pr, k, hyd->SolverModel.LinkDynamicLoss[k]);
 }
 
 
@@ -1132,21 +1127,17 @@ void  pcvcoeff(Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    double km;
     Hydraul *hyd = &pr->hydraul;
-    Slink *link = &pr->network.Link[k];
 
     // Fixed-open/closed PCVs use the compiled base minor-loss coefficient.
-    if (hyd->LinkSetting[k] == MISSING)
+    if (hyd->SolverModel.LinkSetting[k] == MISSING)
     {
         valvecoeff(pr, k);
         return;
     }
 
-    // The positional setting changes link->R dynamically. Compile that
-    // setting-dependent loss only when this valve is evaluated.
-    km = hydminorlosstosolver(pr, link->R);
-    valvecoeffwithloss(pr, k, km);
+    // Position-dependent loss is compiled when the valve setting changes.
+    valvecoeffwithloss(pr, k, hyd->SolverModel.LinkDynamicLoss[k]);
 }
 
 
@@ -1171,8 +1162,7 @@ void  prvcoeff(Project *pr, int k, int n1, int n2)
 
     i = sm->Row[n1];                  // Matrix rows of nodes
     j = sm->Row[n2];
-    hset = hydheadtosolver(pr,
-        pr->network.Node[n2].El + hyd->LinkSetting[k]); // Valve setting
+    hset = hyd->SolverModel.LinkSetting[k]; // Compiled downstream target grade
 
     if (hyd->LinkStatus[k] == ACTIVE)
     {
@@ -1227,8 +1217,7 @@ void  psvcoeff(Project *pr, int k, int n1, int n2)
 
     i = sm->Row[n1];                   // Matrix rows of nodes
     j = sm->Row[n2];
-    hset = hydheadtosolver(pr,
-        pr->network.Node[n1].El + hyd->LinkSetting[k]); // Valve setting
+    hset = hyd->SolverModel.LinkSetting[k]; // Compiled upstream target grade
 
     if (hyd->LinkStatus[k] == ACTIVE)
     {
@@ -1282,7 +1271,7 @@ void  fcvcoeff(Project *pr, int k, int n1, int n2)
     double q,                      // Valve flow setting
            smallconductance;       // Connectivity-preserving conductance
 
-    q = hydflowtosolver(pr, hyd->LinkSetting[k]);
+    q = hyd->SolverModel.LinkSetting[k];
     i = sm->Row[n1];
     j = sm->Row[n2];
 

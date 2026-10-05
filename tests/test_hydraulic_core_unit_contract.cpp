@@ -179,29 +179,68 @@ BOOST_AUTO_TEST_CASE(static_link_coefficients_use_compiled_solver_model)
 }
 
 
-BOOST_AUTO_TEST_CASE(remaining_dynamic_and_link_inputs_use_scaling_helpers)
+BOOST_AUTO_TEST_CASE(dynamic_link_settings_use_compiled_solver_model)
+{
+    const std::string hydscale = read_source("src/hydscale.c");
+    const std::string hydraul = read_source("src/hydraul.c");
+    const std::string hydsolver = read_source("src/hydsolver.c");
+    const std::string hydcoeffs = read_source("src/hydcoeffs.c");
+    const std::string hydstatus = read_source("src/hydstatus.c");
+
+    // Dynamic settings are compiled once at mutation boundaries. Pressure and
+    // flow settings become solver values, while TCV/PCV loss is cached as the
+    // exact coefficient consumed by the iterative solver.
+    BOOST_CHECK(hydscale.find("compilehydraulicsolversetting") !=
+        std::string::npos);
+    BOOST_CHECK(hydscale.find("model->LinkSetting[i]") != std::string::npos);
+    BOOST_CHECK(hydscale.find("model->LinkDynamicLoss[i]") !=
+        std::string::npos);
+    BOOST_CHECK(hydraul.find("compilehydraulicsolversetting(pr, index)") !=
+        std::string::npos);
+    BOOST_CHECK(hydraul.find("compilehydraulicsolversetting(pr, k)") !=
+        std::string::npos);
+    BOOST_CHECK(hydsolver.find("compilehydraulicsolversetting(pr, k)") !=
+        std::string::npos);
+
+    // GGA coefficient/status code consumes those compiled values directly.
+    BOOST_CHECK(hydcoeffs.find("hyd->SolverModel.LinkSetting[k]") !=
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("hyd->SolverModel.LinkDynamicLoss[k]") !=
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("hydflowtosolver(pr, hyd->LinkSetting[k])") ==
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("0.02517 * hyd->LinkSetting[k]") ==
+        std::string::npos);
+    BOOST_CHECK(hydstatus.find("hyd->SolverModel.LinkSetting[k]") !=
+        std::string::npos);
+    BOOST_CHECK(hydstatus.find("hyd->SolverModel.LinkMinorLoss[k]") !=
+        std::string::npos);
+    BOOST_CHECK(hydstatus.find("hydflowtosolver") == std::string::npos);
+    BOOST_CHECK(hydstatus.find("hydminorlosstosolver") == std::string::npos);
+}
+
+
+BOOST_AUTO_TEST_CASE(remaining_pump_curve_and_barrier_inputs_use_scaling_helpers)
 {
     const std::string hydsolver = read_source("src/hydsolver.c");
     const std::string hydcoeffs = read_source("src/hydcoeffs.c");
     const std::string hydstatus = read_source("src/hydstatus.c");
 
-    // Control grades remain dynamic dimensional inputs at this stage, while
-    // global flow tolerances have moved to the compiled solver model.
+    // Junction-control grades remain dynamic dimensional inputs at this stage.
     BOOST_CHECK(hydsolver.find("hydheadtosolver") != std::string::npos);
     BOOST_CHECK(hydsolver.find("hydflowtosolver") == std::string::npos);
 
-    // Static pipe/base-valve coefficients now come from SolverModel. Dynamic
-    // settings plus pumps, curves, emitters, and other not-yet-compiled inputs
-    // must still cross the solver boundary through explicit scaling helpers.
+    // Pump/GPV curves, emitters, barriers, and other not-yet-compiled inputs
+    // still cross the solver boundary through explicit scaling helpers.
     BOOST_CHECK(hydcoeffs.find("hydheadtosolver") != std::string::npos);
-    BOOST_CHECK(hydcoeffs.find("hydflowtosolver") != std::string::npos);
     BOOST_CHECK(hydcoeffs.find("hydresistancetosolver") != std::string::npos);
-    BOOST_CHECK(hydcoeffs.find("hydminorlosstosolver") != std::string::npos);
     BOOST_CHECK(hydcoeffs.find("hydconductancetosolver") == std::string::npos);
 
+    // Pump shutoff head remains the only dimensional-to-solver conversion in
+    // status logic; dynamic valve setting conversions have moved out.
     BOOST_CHECK(hydstatus.find("hydheadtosolver") != std::string::npos);
-    BOOST_CHECK(hydstatus.find("hydflowtosolver") != std::string::npos);
-    BOOST_CHECK(hydstatus.find("hydminorlosstosolver") != std::string::npos);
+    BOOST_CHECK(hydstatus.find("hydflowtosolver") == std::string::npos);
+    BOOST_CHECK(hydstatus.find("hydminorlosstosolver") == std::string::npos);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

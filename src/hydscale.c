@@ -60,11 +60,17 @@ int allochydraulicsolvermodel(Project *pr)
         (double *) calloc(net->Nlinks + 1, sizeof(double));
     model->LinkViscosityFlow =
         (double *) calloc(net->Nlinks + 1, sizeof(double));
+    model->LinkSetting =
+        (double *) calloc(net->Nlinks + 1, sizeof(double));
+    model->LinkDynamicLoss =
+        (double *) calloc(net->Nlinks + 1, sizeof(double));
 
     ERRCODE(MEMCHECK(model->NodeElevation));
     ERRCODE(MEMCHECK(model->LinkResistance));
     ERRCODE(MEMCHECK(model->LinkMinorLoss));
     ERRCODE(MEMCHECK(model->LinkViscosityFlow));
+    ERRCODE(MEMCHECK(model->LinkSetting));
+    ERRCODE(MEMCHECK(model->LinkDynamicLoss));
     return errcode;
 }
 
@@ -82,10 +88,14 @@ void freehydraulicsolvermodel(Project *pr)
     free(model->LinkResistance);
     free(model->LinkMinorLoss);
     free(model->LinkViscosityFlow);
+    free(model->LinkSetting);
+    free(model->LinkDynamicLoss);
     model->NodeElevation = NULL;
     model->LinkResistance = NULL;
     model->LinkMinorLoss = NULL;
     model->LinkViscosityFlow = NULL;
+    model->LinkSetting = NULL;
+    model->LinkDynamicLoss = NULL;
 }
 
 
@@ -131,9 +141,99 @@ void compilehydraulicsolvernode(Project *pr, int i)
     Network *net = &pr->network;
     ShydSolverModel *model = &pr->hydraul.SolverModel;
 
+    int k;
+
     if (model->NodeElevation == NULL) return;
     if (i < 1 || i > net->Nnodes) return;
     model->NodeElevation[i] = hydheadtosolver(pr, net->Node[i].El);
+
+    // PRV/PSV compiled settings are complete target grades so the GGA retains
+    // the legacy one-conversion arithmetic. Refresh any target that depends on
+    // this node when its elevation changes through the Toolkit.
+    if (model->LinkSetting == NULL) return;
+    for (k = 1; k <= net->Nlinks; k++)
+    {
+        Slink *link = &net->Link[k];
+        if ((link->Type == PRV && link->N2 == i) ||
+            (link->Type == PSV && link->N1 == i))
+        {
+            compilehydraulicsolversetting(pr, k);
+        }
+    }
+}
+
+
+void compilehydraulicsolversetting(Project *pr, int i)
+/*
+**----------------------------------------------------------------
+**  Purpose: compiles one link's dynamic setting into solver units
+**----------------------------------------------------------------
+**  LinkSetting remains dimensional for compatibility/reporting. This cache
+**  is refreshed at each mutation boundary so iterative hydraulic code never
+**  has to convert a dynamic setting repeatedly. TCV and PCV settings are
+**  dimensionless positions/coefficients; for those links LinkDynamicLoss
+**  stores the setting-dependent loss coefficient consumed by the GGA.
+*/
+{
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    ShydSolverModel *model = &hyd->SolverModel;
+    Slink *link;
+    double setting, km;
+
+    if (model->LinkSetting == NULL || model->LinkDynamicLoss == NULL) return;
+    if (i < 1 || i > net->Nlinks) return;
+
+    link = &net->Link[i];
+    setting = hyd->LinkSetting[i];
+    model->LinkSetting[i] = setting;
+    model->LinkDynamicLoss[i] =
+        (model->LinkMinorLoss != NULL) ? model->LinkMinorLoss[i] : 0.0;
+
+    // MISSING is a dimensional status sentinel, not a numerical setting.
+    if (setting == MISSING) return;
+
+    switch (link->Type)
+    {
+    case PRV:
+        // Preserve the legacy evaluation order exactly: compile the complete
+        // downstream target grade, not elevation and pressure separately.
+        model->LinkSetting[i] = hydheadtosolver(pr,
+            net->Node[link->N2].El + setting);
+        break;
+
+    case PSV:
+        // Preserve the legacy evaluation order exactly for the upstream grade.
+        model->LinkSetting[i] = hydheadtosolver(pr,
+            net->Node[link->N1].El + setting);
+        break;
+
+    case PBV:
+        model->LinkSetting[i] = hydheadtosolver(pr, setting);
+        break;
+
+    case FCV:
+        model->LinkSetting[i] = hydflowtosolver(pr, setting);
+        break;
+
+    case TCV:
+        // The TCV setting produces a dimensional minor-loss coefficient.
+        km = 0.02517 * setting /
+            (SQR(link->Diam) * SQR(link->Diam));
+        model->LinkDynamicLoss[i] = hydminorlosstosolver(pr, km);
+        break;
+
+    case PCV:
+        // setlinksetting()/resistcoeff() keep link->R synchronized with the
+        // position-dependent PCV loss curve. Compile that loss once here.
+        model->LinkDynamicLoss[i] = hydminorlosstosolver(pr, link->R);
+        break;
+
+    default:
+        // Pump speed, GPV curve index, and other dimensionless settings are
+        // already numerical quantities and remain unchanged.
+        break;
+    }
 }
 
 
@@ -166,6 +266,10 @@ void compilehydraulicsolverlink(Project *pr, int i)
         model->LinkResistance[i] =
             hydresistancetosolver(pr, link->R, exponent);
     }
+
+    // Diameter, base loss, and PCV resistance can affect the compiled dynamic
+    // setting, so refresh it whenever a link coefficient is recompiled.
+    compilehydraulicsolversetting(pr, i);
 }
 
 
@@ -184,7 +288,8 @@ void compilehydraulicsolvermodel(Project *pr)
     int i;
 
     if (model->NodeElevation == NULL || model->LinkResistance == NULL ||
-        model->LinkMinorLoss == NULL || model->LinkViscosityFlow == NULL)
+        model->LinkMinorLoss == NULL || model->LinkViscosityFlow == NULL ||
+        model->LinkSetting == NULL || model->LinkDynamicLoss == NULL)
     {
         return;
     }
@@ -193,7 +298,7 @@ void compilehydraulicsolvermodel(Project *pr)
 
     for (i = 1; i <= net->Nnodes; i++)
     {
-        compilehydraulicsolvernode(pr, i);
+        model->NodeElevation[i] = hydheadtosolver(pr, net->Node[i].El);
     }
 
     for (i = 1; i <= net->Nlinks; i++)

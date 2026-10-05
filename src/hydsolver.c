@@ -363,6 +363,11 @@ int  pswitch(Project *pr)
                 if (link->Type > PIPE)
                 {
                     hyd->LinkSetting[k] = net->Control[i].Setting;
+                    if (link->Type == PCV)
+                    {
+                        link->R = pcvlosscoeff(pr, k, hyd->LinkSetting[k]);
+                    }
+                    compilehydraulicsolversetting(pr, k);
                 }
                 if (rpt->Statflag == FULL)
                 {

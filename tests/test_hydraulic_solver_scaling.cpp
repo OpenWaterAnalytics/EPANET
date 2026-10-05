@@ -67,6 +67,8 @@ void check_solver_model_compilation(EN_Project ph)
     BOOST_REQUIRE(model.LinkResistance != NULL);
     BOOST_REQUIRE(model.LinkMinorLoss != NULL);
     BOOST_REQUIRE(model.LinkViscosityFlow != NULL);
+    BOOST_REQUIRE(model.LinkSetting != NULL);
+    BOOST_REQUIRE(model.LinkDynamicLoss != NULL);
 
     BOOST_CHECK_EQUAL(model.Htol, hydheadtosolver(ph, hyd.Htol));
     BOOST_CHECK_EQUAL(model.Qtol, hydflowtosolver(ph, hyd.Qtol));
@@ -119,6 +121,43 @@ void check_solver_model_compilation(EN_Project ph)
         {
             BOOST_CHECK_EQUAL(model.LinkResistance[i], 0.0);
         }
+
+        double expectedSetting = hyd.LinkSetting[i];
+        double expectedDynamicLoss = model.LinkMinorLoss[i];
+        if (expectedSetting != MISSING)
+        {
+            switch (link.Type)
+            {
+            case PRV:
+                expectedSetting = hydheadtosolver(ph,
+                    net.Node[link.N2].El + hyd.LinkSetting[i]);
+                break;
+            case PSV:
+                expectedSetting = hydheadtosolver(ph,
+                    net.Node[link.N1].El + hyd.LinkSetting[i]);
+                break;
+            case PBV:
+                expectedSetting = hydheadtosolver(ph, hyd.LinkSetting[i]);
+                break;
+            case FCV:
+                expectedSetting = hydflowtosolver(ph, hyd.LinkSetting[i]);
+                break;
+            case TCV:
+            {
+                const double km = 0.02517 * hyd.LinkSetting[i] /
+                    (SQR(link.Diam) * SQR(link.Diam));
+                expectedDynamicLoss = hydminorlosstosolver(ph, km);
+                break;
+            }
+            case PCV:
+                expectedDynamicLoss = hydminorlosstosolver(ph, link.R);
+                break;
+            default:
+                break;
+            }
+        }
+        BOOST_CHECK_EQUAL(model.LinkSetting[i], expectedSetting);
+        BOOST_CHECK_EQUAL(model.LinkDynamicLoss[i], expectedDynamicLoss);
     }
 }
 
@@ -699,6 +738,8 @@ BOOST_AUTO_TEST_CASE(test_solver_model_compiles_dimensional_inputs)
     BOOST_CHECK(ph->hydraul.SolverModel.LinkResistance == NULL);
     BOOST_CHECK(ph->hydraul.SolverModel.LinkMinorLoss == NULL);
     BOOST_CHECK(ph->hydraul.SolverModel.LinkViscosityFlow == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.LinkSetting == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.LinkDynamicLoss == NULL);
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
@@ -802,6 +843,141 @@ BOOST_AUTO_TEST_CASE(test_solver_model_tracks_consumed_toolkit_updates)
     BOOST_REQUIRE(error == 0);
     error = EN_deleteproject(ph);
     BOOST_REQUIRE(error == 0);
+}
+
+
+BOOST_AUTO_TEST_CASE(test_solver_model_tracks_dynamic_link_settings)
+{
+    // Pressure-control setting: compile the complete target grade and refresh
+    // it both when the setting changes and when its reference elevation moves.
+    {
+        EN_Project ph = NULL;
+        int error = EN_createproject(&ph);
+        BOOST_REQUIRE(error == 0);
+        error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+        BOOST_REQUIRE(error == 0);
+
+        int link = get_link_index(ph, "121");
+        double diameter = get_link_value(ph, link, EN_DIAMETER);
+        error = EN_setlinktype(ph, &link, EN_PRV, EN_UNCONDITIONAL);
+        BOOST_REQUIRE(error == 0);
+        error = EN_setlinkvalue(ph, link, EN_DIAMETER, diameter);
+        BOOST_REQUIRE(error == 0);
+        error = EN_setlinkvalue(ph, link, EN_INITSETTING, 100.0);
+        BOOST_REQUIRE(error == 0);
+        error = EN_openH(ph);
+        BOOST_REQUIRE(error == 0);
+        error = EN_initH(ph, EN_INITFLOW);
+        BOOST_REQUIRE(error == 0);
+
+        error = EN_setlinkvalue(ph, link, EN_SETTING, 90.0);
+        BOOST_REQUIRE(error == 0);
+        Slink& prv = ph->network.Link[link];
+        BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkSetting[link],
+            hydheadtosolver(ph,
+                ph->network.Node[prv.N2].El + ph->hydraul.LinkSetting[link]));
+
+        double elevation = get_node_value(ph, prv.N2, EN_ELEVATION);
+        error = EN_setnodevalue(ph, prv.N2, EN_ELEVATION, elevation + 3.0);
+        BOOST_REQUIRE(error == 0);
+        BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkSetting[link],
+            hydheadtosolver(ph,
+                ph->network.Node[prv.N2].El + ph->hydraul.LinkSetting[link]));
+
+        error = EN_setlinkvalue(ph, link, EN_STATUS, 1.0);
+        BOOST_REQUIRE(error == 0);
+        BOOST_CHECK_EQUAL(ph->hydraul.LinkSetting[link], MISSING);
+        BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkSetting[link], MISSING);
+
+        error = EN_closeH(ph);
+        BOOST_REQUIRE(error == 0);
+        EN_close(ph);
+        EN_deleteproject(ph);
+    }
+
+    // FCV settings are dimensional flows outside the solver and must be
+    // compiled exactly once when a Toolkit setting changes.
+    {
+        EN_Project ph = NULL;
+        int error = EN_createproject(&ph);
+        BOOST_REQUIRE(error == 0);
+        error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+        BOOST_REQUIRE(error == 0);
+
+        int link = get_link_index(ph, "121");
+        double diameter = get_link_value(ph, link, EN_DIAMETER);
+        error = EN_setlinktype(ph, &link, EN_FCV, EN_UNCONDITIONAL);
+        BOOST_REQUIRE(error == 0);
+        error = EN_setlinkvalue(ph, link, EN_DIAMETER, diameter);
+        BOOST_REQUIRE(error == 0);
+        error = EN_setlinkvalue(ph, link, EN_INITSETTING, 100.0);
+        BOOST_REQUIRE(error == 0);
+        error = EN_openH(ph);
+        BOOST_REQUIRE(error == 0);
+        error = EN_initH(ph, EN_INITFLOW);
+        BOOST_REQUIRE(error == 0);
+
+        error = EN_setlinkvalue(ph, link, EN_SETTING, 150.0);
+        BOOST_REQUIRE(error == 0);
+        BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkSetting[link],
+            hydflowtosolver(ph, ph->hydraul.LinkSetting[link]));
+
+        error = EN_closeH(ph);
+        BOOST_REQUIRE(error == 0);
+        EN_close(ph);
+        EN_deleteproject(ph);
+    }
+
+    // TCV/PCV settings are dimensionless, but their setting-dependent loss
+    // coefficients are compiled into solver units at the same mutation point.
+    const int valveTypes[] = {EN_TCV, EN_PCV};
+    for (int type : valveTypes)
+    {
+        EN_Project ph = NULL;
+        int error = EN_createproject(&ph);
+        BOOST_REQUIRE(error == 0);
+        error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+        BOOST_REQUIRE(error == 0);
+
+        int link = get_link_index(ph, "22");
+        error = EN_setlinktype(ph, &link, type, EN_UNCONDITIONAL);
+        BOOST_REQUIRE(error == 0);
+        error = EN_setlinkvalue(ph, link, EN_DIAMETER, 12.0);
+        BOOST_REQUIRE(error == 0);
+        error = EN_setlinkvalue(ph, link, EN_MINORLOSS, 0.19);
+        BOOST_REQUIRE(error == 0);
+        error = EN_setlinkvalue(ph, link, EN_INITSETTING, 35.0);
+        BOOST_REQUIRE(error == 0);
+        error = EN_openH(ph);
+        BOOST_REQUIRE(error == 0);
+        error = EN_initH(ph, EN_INITFLOW);
+        BOOST_REQUIRE(error == 0);
+
+        error = EN_setlinkvalue(ph, link, EN_SETTING, 45.0);
+        BOOST_REQUIRE(error == 0);
+        BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkSetting[link],
+            ph->hydraul.LinkSetting[link]);
+
+        double expectedLoss = 0.0;
+        if (type == EN_TCV)
+        {
+            Slink& tcv = ph->network.Link[link];
+            const double km = 0.02517 * ph->hydraul.LinkSetting[link] /
+                (SQR(tcv.Diam) * SQR(tcv.Diam));
+            expectedLoss = hydminorlosstosolver(ph, km);
+        }
+        else
+        {
+            expectedLoss = hydminorlosstosolver(ph, ph->network.Link[link].R);
+        }
+        BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkDynamicLoss[link],
+            expectedLoss);
+
+        error = EN_closeH(ph);
+        BOOST_REQUIRE(error == 0);
+        EN_close(ph);
+        EN_deleteproject(ph);
+    }
 }
 
 

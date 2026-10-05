@@ -66,7 +66,7 @@ int  valvestatus(Project *pr)
         link = &net->Link[k];
 
         // Ignore valve if its status is fixed to OPEN/CLOSED
-        if (hyd->LinkSetting[k] == MISSING) continue;
+        if (hyd->SolverModel.LinkSetting[k] == MISSING) continue;
 
         // Get start/end node indexes & save current status
         n1 = link->N1;
@@ -77,15 +77,13 @@ int  valvestatus(Project *pr)
         switch (link->Type)
         {
         case PRV:
-            hset = hydheadtosolver(pr,
-                net->Node[n2].El + hyd->LinkSetting[k]);
+            hset = hyd->SolverModel.LinkSetting[k];
             hyd->LinkStatus[k] = prvstatus(pr, k, status, hset,
                                      hyd->SolverState.NodeHead[n1],
                                      hyd->SolverState.NodeHead[n2]);
             break;
         case PSV:
-            hset = hydheadtosolver(pr,
-                net->Node[n1].El + hyd->LinkSetting[k]);
+            hset = hyd->SolverModel.LinkSetting[k];
             hyd->LinkStatus[k] = psvstatus(pr, k, status, hset,
                                      hyd->SolverState.NodeHead[n1],
                                      hyd->SolverState.NodeHead[n2]);
@@ -152,13 +150,13 @@ int  linkstatus(Project *pr)
                                           hyd->SolverState.LinkFlow[k]);
         }
         if (link->Type == PUMP && hyd->LinkStatus[k] >= OPEN &&
-            hyd->LinkSetting[k] > 0.0)
+            hyd->SolverModel.LinkSetting[k] > 0.0)
         {
             hyd->LinkStatus[k] = pumpstatus(pr, k, -dh);
         }
 
         // Check for status changes in non-fixed FCVs
-        if (link->Type == FCV && hyd->LinkSetting[k] != MISSING)
+        if (link->Type == FCV && hyd->SolverModel.LinkSetting[k] != MISSING)
         {
             hyd->LinkStatus[k] = fcvstatus(pr, k, status,
                                            hyd->SolverState.NodeHead[n1],
@@ -250,7 +248,7 @@ StatusType  pumpstatus(Project *pr, int k, double dh)
     {
         // Use speed-adjusted shut-off head for other pumps
         hmax = hydheadtosolver(pr,
-            SQR(hyd->LinkSetting[k]) * net->Pump[p].Hmax);
+            SQR(hyd->SolverModel.LinkSetting[k]) * net->Pump[p].Hmax);
     }
 
     // Check if current head gain exceeds pump's max. head
@@ -280,14 +278,12 @@ StatusType  prvstatus(Project *pr, int k, StatusType s, double hset,
     StatusType status;             // Valve's new status
     double  hml;                   // Head loss when fully opened
     double  htol, qtol;
-    Slink   *link;
 
     htol = hyd->SolverModel.Htol;
     qtol = hyd->SolverModel.Qtol;
-    link = &pr->network.Link[k];
 
-    // Head loss when fully open. Km is stored in dimensional model units.
-    hml = hydminorlosstosolver(pr, link->Km) *
+    // Head loss when fully open uses the compiled static minor-loss term.
+    hml = hyd->SolverModel.LinkMinorLoss[k] *
           SQR(hyd->SolverState.LinkFlow[k]);
 
     // Rules for updating valve's status from current value s
@@ -342,14 +338,12 @@ StatusType  psvstatus(Project *pr, int k, StatusType s, double hset,
     StatusType status;             // Valve's new status
     double  hml;                   // Head loss when fully opened
     double  htol, qtol;
-    Slink   *link;
 
     htol = hyd->SolverModel.Htol;
     qtol = hyd->SolverModel.Qtol;
-    link = &pr->network.Link[k];
 
-    // Head loss when fully open. Km is stored in dimensional model units.
-    hml = hydminorlosstosolver(pr, link->Km) *
+    // Head loss when fully open uses the compiled static minor-loss term.
+    hml = hyd->SolverModel.LinkMinorLoss[k] *
           SQR(hyd->SolverState.LinkFlow[k]);
 
     // Rules for updating valve's status from current value s
@@ -408,8 +402,8 @@ StatusType  fcvstatus(Project *pr, int k, StatusType s, double h1, double h2)
     StatusType status;            // New valve status
     double htol = hyd->SolverModel.Htol;
     double qtol = hyd->SolverModel.Qtol;
-    double qset = hydflowtosolver(pr, hyd->LinkSetting[k]);
-    double km = hydminorlosstosolver(pr, pr->network.Link[k].Km);
+    double qset = hyd->SolverModel.LinkSetting[k];
+    double km = hyd->SolverModel.LinkMinorLoss[k];
 
     status = s;
     if (h1 - h2 < -htol)

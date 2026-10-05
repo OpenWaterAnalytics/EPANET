@@ -483,6 +483,10 @@ void  setlinkstatus(Project *pr, int index, char value, StatusType *s, double *k
          if (t > PUMP && t != GPV) *k = MISSING;
          *s = CLOSED;
      }
+
+    // Keep the solver-ready dynamic setting synchronized with the
+    // dimensional compatibility state.
+    compilehydraulicsolversetting(pr, index);
 }
 
 
@@ -531,6 +535,10 @@ void  setlinksetting(Project *pr, int index, double value, StatusType *s,
         if (t == PCV) link->R = pcvlosscoeff(pr, index, value);
         *k = value;
     }
+
+    // Dynamic settings cross the dimensional -> solver boundary here rather
+    // than inside coefficient/status iteration loops.
+    compilehydraulicsolversetting(pr, index);
 }
 
 
@@ -689,6 +697,7 @@ int  controls(Project *pr)
                 hyd->LinkStatus[k] = s2;
                 hyd->LinkSetting[k] = k2;
                 if (link->Type == PCV) link->R = pcvlosscoeff(pr, k, k2);
+                compilehydraulicsolversetting(pr, k);
                 if (pr->report.Statflag) writecontrolaction(pr,k,i);
                 setsum++;
             }

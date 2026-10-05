@@ -764,6 +764,8 @@ typedef struct {
     *LinkResistance,       // Pipe resistance in solver head/flow units
     *LinkMinorLoss,        // Base link minor-loss coeffs. in solver units
     *LinkViscosityFlow,    // Viscosity * diameter in solver flow units
+    *LinkSetting,          // Dynamic link settings in solver coordinates
+    *LinkDynamicLoss,      // Setting-dependent TCV/PCV loss in solver units
     Htol,                  // Head tolerance in solver head units
     Qtol,                  // Flow tolerance in solver flow units
     RQtol,                 // Min. headloss gradient in solver units
