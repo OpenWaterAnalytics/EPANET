@@ -316,7 +316,7 @@ int  pswitch(Project *pr)
         n = net->Control[i].Node;
         if (n > 0 && n <= net->Njuncs)
         {
-            double htol = hydheadtosolver(pr, hyd->Htol);
+            double htol = hyd->SolverModel.Htol;
             double hgrade = hydheadtosolver(pr, net->Control[i].Grade);
 
             // Junction-control grades are dimensional model values, while
@@ -519,7 +519,7 @@ void newemitterflows(Project *pr, Hydbalance *hbal, double *qsum,
 
         // Find emitter flow change
         dh = hyd->SolverState.NodeHead[i] -
-             hydheadtosolver(pr, net->Node[i].El);
+             hyd->SolverModel.NodeElevation[i];
         dq = (hloss - dh) / hgrad;
         dq *= hyd->RelaxFactor;
         hyd->SolverState.EmitterFlow[i] -= dq;
@@ -604,8 +604,8 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
     
     // Get demand function parameters
     if (hyd->DemandModel == DDA) return;
-    dp = hydheadtosolver(pr, MAX((hyd->Preq - hyd->Pmin), MINPDIFF));
-    pmin = hydheadtosolver(pr, hyd->Pmin);
+    dp = hyd->SolverModel.PdaPressureRange;
+    pmin = hyd->SolverModel.Pmin;
     n = 1.0 / hyd->Pexp;
 
     // Examine each junction
@@ -617,7 +617,7 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
         // Find change in demand flow (see hydcoeffs.c)
         demandheadloss(pr, i, dp, n, &hloss, &hgrad);
         dh = hyd->SolverState.NodeHead[i] -
-             hydheadtosolver(pr, net->Node[i].El) - pmin;
+             hyd->SolverModel.NodeElevation[i] - pmin;
         dq = (hloss - dh) / hgrad;
         dq *= hyd->RelaxFactor;
 
@@ -705,10 +705,10 @@ int  hasconverged(Project *pr, double *relerr, Hydbalance *hbal)
     // Check that head loss error and flow change criteria are met
     if (hyd->HeadErrorLimit > 0.0 &&
         hbal->maxheaderror >
-            hydheadtosolver(pr, hyd->HeadErrorLimit)) return 0;
+            hyd->SolverModel.HeadErrorLimit) return 0;
     if (hyd->FlowChangeLimit > 0.0 &&
         hbal->maxflowchange >
-            hydflowtosolver(pr, hyd->FlowChangeLimit)) return 0;
+            hyd->SolverModel.FlowChangeLimit) return 0;
         
     // Check for node leakage convergence
     if (hyd->HasLeakage && !leakagehasconverged(pr)) return 0;
@@ -734,12 +734,12 @@ int pdaconverged(Project *pr)
     int i, converged = 1;
 
     double totalDemand = 0.0, totalReduction = 0.0;
-    double pmin = hydheadtosolver(pr, hyd->Pmin);
-    double preq = hydheadtosolver(pr, hyd->Preq);
+    double pmin = hyd->SolverModel.Pmin;
+    double preq = hyd->SolverModel.Preq;
     double dp = preq - pmin;
     // Preserve the legacy 0.0001 cfs PDA tolerance while expressing it in
     // solver flow units.
-    double qtol = hydflowtosolver(pr, 0.0001);
+    double qtol = hyd->SolverModel.LeakageFlowTolerance;
     double p, q, r;
 
     hyd->DeficientNodes = 0;
@@ -753,7 +753,7 @@ int pdaconverged(Project *pr)
  
        // Evaluate demand equation at current pressure solution
         p = hyd->SolverState.NodeHead[i] -
-            hydheadtosolver(pr, pr->network.Node[i].El);
+            hyd->SolverModel.NodeElevation[i];
         if (p <= pmin)
             q = 0.0;
         else if (p >= preq)

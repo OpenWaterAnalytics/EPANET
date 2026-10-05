@@ -89,29 +89,17 @@ void freehydraulicsolvermodel(Project *pr)
 }
 
 
-void compilehydraulicsolvermodel(Project *pr)
+void compilehydraulicsolverglobals(Project *pr)
 /*
 **----------------------------------------------------------------
-**  Purpose: compiles dimensional hydraulic model inputs into the
-**           numerical representation consumed by the solver
+**  Purpose: compiles global dimensional hydraulic inputs into solver units
 **----------------------------------------------------------------
-**  This is the dimensional -> numerical boundary for model data.
-**  The compiled values are intentionally not consumed by GGA yet; later
-**  migration steps can switch hot-path reads over without changing the
-**  conversion policy at the same time.
 */
 {
-    Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
     ShydSolverModel *model = &hyd->SolverModel;
-    int i;
-    double exponent;
 
-    if (model->NodeElevation == NULL || model->LinkResistance == NULL ||
-        model->LinkMinorLoss == NULL || model->LinkViscosityFlow == NULL)
-    {
-        return;
-    }
+    if (model->NodeElevation == NULL) return;
 
     model->Htol = hydheadtosolver(pr, hyd->Htol);
     model->Qtol = hydflowtosolver(pr, hyd->Qtol);
@@ -130,10 +118,51 @@ void compilehydraulicsolvermodel(Project *pr)
     model->BigGradient = hydresistancetosolver(pr, CBIG, 1.0);
     model->BigConductance = hydconductancetosolver(pr, CBIG);
     model->SmallConductance = hydconductancetosolver(pr, 1.0 / CBIG);
+}
+
+
+void compilehydraulicsolvernode(Project *pr, int i)
+/*
+**----------------------------------------------------------------
+**  Purpose: refreshes one node's compiled solver elevation
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+
+    if (model->NodeElevation == NULL) return;
+    if (i < 1 || i > net->Nnodes) return;
+    model->NodeElevation[i] = hydheadtosolver(pr, net->Node[i].El);
+}
+
+
+void compilehydraulicsolvermodel(Project *pr)
+/*
+**----------------------------------------------------------------
+**  Purpose: compiles dimensional hydraulic model inputs into the
+**           numerical representation consumed by the solver
+**----------------------------------------------------------------
+**  This is the dimensional -> numerical boundary for model data.
+*/
+{
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    ShydSolverModel *model = &hyd->SolverModel;
+    int i;
+    double exponent;
+
+    if (model->NodeElevation == NULL || model->LinkResistance == NULL ||
+        model->LinkMinorLoss == NULL || model->LinkViscosityFlow == NULL)
+    {
+        return;
+    }
+
+    compilehydraulicsolverglobals(pr);
 
     for (i = 1; i <= net->Nnodes; i++)
     {
-        model->NodeElevation[i] = hydheadtosolver(pr, net->Node[i].El);
+        compilehydraulicsolvernode(pr, i);
     }
 
     for (i = 1; i <= net->Nlinks; i++)

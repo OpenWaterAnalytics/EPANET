@@ -200,8 +200,8 @@ StatusType  cvstatus(Project *pr, StatusType s, double dh, double q)
 */
 {
     Hydraul *hyd = &pr->hydraul;
-    double htol = hydheadtosolver(pr, hyd->Htol);
-    double qtol = hydflowtosolver(pr, hyd->Qtol);
+    double htol = hyd->SolverModel.Htol;
+    double qtol = hyd->SolverModel.Qtol;
 
     // dh and q are solver quantities, so compare them against scaled
     // versions of EPANET's dimensional status tolerances.
@@ -238,12 +238,12 @@ StatusType  pumpstatus(Project *pr, int k, double dh)
     // Find maximum head (hmax) pump can deliver. Pump limits and Htol are
     // dimensional model values, while dh is already in solver head units.
     p = findpump(net, k);
-    htol = hydheadtosolver(pr, hyd->Htol);
+    htol = hyd->SolverModel.Htol;
     if (net->Pump[p].Ptype == CONST_HP)
     {
         // Use huge value for constant HP pump
-        hmax = hydheadtosolver(pr, BIG);
-        if (hyd->SolverState.LinkFlow[k] < hydflowtosolver(pr, TINY))
+        hmax = hyd->SolverModel.BigHead;
+        if (hyd->SolverState.LinkFlow[k] < hyd->SolverModel.TinyFlow)
             return TEMPCLOSED;
     }
     else
@@ -282,8 +282,8 @@ StatusType  prvstatus(Project *pr, int k, StatusType s, double hset,
     double  htol, qtol;
     Slink   *link;
 
-    htol = hydheadtosolver(pr, hyd->Htol);
-    qtol = hydflowtosolver(pr, hyd->Qtol);
+    htol = hyd->SolverModel.Htol;
+    qtol = hyd->SolverModel.Qtol;
     link = &pr->network.Link[k];
 
     // Head loss when fully open. Km is stored in dimensional model units.
@@ -344,8 +344,8 @@ StatusType  psvstatus(Project *pr, int k, StatusType s, double hset,
     double  htol, qtol;
     Slink   *link;
 
-    htol = hydheadtosolver(pr, hyd->Htol);
-    qtol = hydflowtosolver(pr, hyd->Qtol);
+    htol = hyd->SolverModel.Htol;
+    qtol = hyd->SolverModel.Qtol;
     link = &pr->network.Link[k];
 
     // Head loss when fully open. Km is stored in dimensional model units.
@@ -406,8 +406,8 @@ StatusType  fcvstatus(Project *pr, int k, StatusType s, double h1, double h2)
 {
     Hydraul *hyd = &pr->hydraul;
     StatusType status;            // New valve status
-    double htol = hydheadtosolver(pr, hyd->Htol);
-    double qtol = hydflowtosolver(pr, hyd->Qtol);
+    double htol = hyd->SolverModel.Htol;
+    double qtol = hyd->SolverModel.Qtol;
     double qset = hydflowtosolver(pr, hyd->LinkSetting[k]);
     double km = hydminorlosstosolver(pr, pr->network.Link[k].Km);
 

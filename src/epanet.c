@@ -1324,10 +1324,12 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
 
     case EN_HEADERROR:
         hyd->HeadErrorLimit = value / Ucf[HEAD];
+        compilehydraulicsolverglobals(p);
         break;
 
     case EN_FLOWCHANGE:
         hyd->FlowChangeLimit = value / Ucf[FLOW];
+        compilehydraulicsolverglobals(p);
         break;
 
     case EN_HEADLOSSFORM:
@@ -2778,6 +2780,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     default:
         return 251;
     }
+    compilehydraulicsolvernode(p, index);
     return 0;
 }
 
@@ -2870,6 +2873,7 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
 
     // Assign new elevation value to junction
     node->El = elev / p->Ucf[ELEV];
+    compilehydraulicsolvernode(p, index);
     return 0;
 }
 
@@ -2956,6 +2960,7 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
         Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
         Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
     }
+    compilehydraulicsolvernode(p, Tank[j].Node);
     return 0;
 }
 
@@ -3057,6 +3062,7 @@ int DLLEXPORT EN_setdemandmodel(EN_Project p, int model, double pmin,
     p->hydraul.Pmin = pmin / p->Ucf[PRESSURE];
     p->hydraul.Preq = preq / p->Ucf[PRESSURE];
     p->hydraul.Pexp = pexp;
+    compilehydraulicsolverglobals(p);
     return 0;
 }
 

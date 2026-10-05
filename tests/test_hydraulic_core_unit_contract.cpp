@@ -123,6 +123,33 @@ BOOST_AUTO_TEST_CASE(fixed_unit_constants_stay_at_model_compilation_boundary)
         "link->Km = 0.02517 * hyd->LinkSetting[k]") != std::string::npos);
 }
 
+BOOST_AUTO_TEST_CASE(global_and_node_inputs_use_compiled_solver_model)
+{
+    const std::string hydsolver = read_source("src/hydsolver.c");
+    const std::string hydcoeffs = read_source("src/hydcoeffs.c");
+    const std::string hydstatus = read_source("src/hydstatus.c");
+    const std::string leakage = read_source("src/leakage.c");
+
+    BOOST_CHECK(hydsolver.find("hyd->SolverModel.NodeElevation") !=
+        std::string::npos);
+    BOOST_CHECK(hydsolver.find("hydheadtosolver(pr, hyd->Htol)") ==
+        std::string::npos);
+    BOOST_CHECK(hydsolver.find("hydheadtosolver(pr, hyd->Pmin)") ==
+        std::string::npos);
+    BOOST_CHECK(hydsolver.find("hydflowtosolver(pr, hyd->FlowChangeLimit)") ==
+        std::string::npos);
+
+    BOOST_CHECK(hydcoeffs.find("hydresistancetosolver(pr, hyd->RQtol, 1.0)") ==
+        std::string::npos);
+    BOOST_CHECK(hydstatus.find("hydheadtosolver(pr, hyd->Htol)") ==
+        std::string::npos);
+    BOOST_CHECK(hydstatus.find("hydflowtosolver(pr, hyd->Qtol)") ==
+        std::string::npos);
+    BOOST_CHECK(leakage.find("hydheadtosolver(pr, net->Node[i].El)") ==
+        std::string::npos);
+}
+
+
 BOOST_AUTO_TEST_CASE(dimensions_enter_solver_through_scaling_helpers)
 {
     const std::string hydsolver = read_source("src/hydsolver.c");

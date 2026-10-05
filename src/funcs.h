@@ -182,6 +182,8 @@ void    inithydraulicscaling(Project *);
 void    sethydraulicsolverscale(Project *, double, double);
 int     allochydraulicsolvermodel(Project *);
 void    freehydraulicsolvermodel(Project *);
+void    compilehydraulicsolverglobals(Project *);
+void    compilehydraulicsolvernode(Project *, int);
 void    compilehydraulicsolvermodel(Project *);
 void    loadhydraulicsolverstate(Project *);
 void    savehydraulicsolverstate(Project *);

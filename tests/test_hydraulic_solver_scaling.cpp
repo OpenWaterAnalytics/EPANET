@@ -706,6 +706,57 @@ BOOST_AUTO_TEST_CASE(test_solver_model_compiles_dimensional_inputs)
     BOOST_REQUIRE(error == 0);
 }
 
+BOOST_AUTO_TEST_CASE(test_solver_model_tracks_consumed_toolkit_updates)
+{
+    EN_Project ph = NULL;
+    int error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, EXAMPLE_NET3, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_initH(ph, EN_INITFLOW);
+    BOOST_REQUIRE(error == 0);
+
+    // Node elevations are now consumed from SolverModel inside the GGA, so
+    // Toolkit edits must refresh the compiled value immediately.
+    double elevation = 0.0;
+    error = EN_getnodevalue(ph, 1, EN_ELEVATION, &elevation);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setnodevalue(ph, 1, EN_ELEVATION, elevation + 7.0);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.NodeElevation[1],
+        hydheadtosolver(ph, ph->network.Node[1].El));
+
+    // Convergence limits are also consumed from SolverModel.
+    error = EN_setoption(ph, EN_HEADERROR, 1.25);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setoption(ph, EN_FLOWCHANGE, 0.75);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.HeadErrorLimit,
+        hydheadtosolver(ph, ph->hydraul.HeadErrorLimit));
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.FlowChangeLimit,
+        hydflowtosolver(ph, ph->hydraul.FlowChangeLimit));
+
+    // PDA pressure parameters can be changed while hydraulics are open.
+    error = EN_setdemandmodel(ph, EN_PDA, 10.0, 30.0, 0.5);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.Pmin,
+        hydheadtosolver(ph, ph->hydraul.Pmin));
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.Preq,
+        hydheadtosolver(ph, ph->hydraul.Preq));
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.PdaPressureRange,
+        hydheadtosolver(ph, MAX((ph->hydraul.Preq - ph->hydraul.Pmin), MINPDIFF)));
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deleteproject(ph);
+    BOOST_REQUIRE(error == 0);
+}
+
+
 BOOST_AUTO_TEST_CASE(test_production_scale_is_model_based_and_unit_independent)
 {
     const SolverScale reference = get_production_scale(EN_CFS, "CFS");

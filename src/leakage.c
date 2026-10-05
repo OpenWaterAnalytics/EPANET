@@ -356,12 +356,12 @@ void leakagecoeffs(Project *pr)
         if (gfa > 0.0)
         {
             sm->Aii[row] += 1.0 / gfa;
-            sm->F[row] += (hfa + hydheadtosolver(pr, node->El)) / gfa;
+            sm->F[row] += (hfa + hyd->SolverModel.NodeElevation[i]) / gfa;
         }
         if (gva > 0.0)
         {
             sm->Aii[row] += 1.0 / gva;
-            sm->F[row] += (hva + hydheadtosolver(pr, node->El)) / gva;
+            sm->F[row] += (hva + hyd->SolverModel.NodeElevation[i]) / gva;
         }
 
         // Update node's flow excess (inflow - outflow)
@@ -392,7 +392,7 @@ double leakageflowchange(Project *pr, int i)
     
     // Pressure head using latest head solution
     h = hyd->SolverState.NodeHead[i] -
-        hydheadtosolver(pr, net->Node[i].El);
+        hyd->SolverModel.NodeElevation[i];
 
     // GGA flow update formula for fixed area leakage
     dqfa = 0.0;
@@ -431,7 +431,7 @@ int leakagehasconverged(Project *pr)
     
     int i;
     double h, qref, qtest;
-    double qtol = hydflowtosolver(pr, 0.0001); // Legacy 0.0001 cfs tolerance
+    double qtol = hyd->SolverModel.LeakageFlowTolerance; // Legacy 0.0001 cfs tolerance
 
     for (i = 1; i <= net->Njuncs; i++)
     {
@@ -440,7 +440,7 @@ int leakagehasconverged(Project *pr)
         
         // Evaluate node's pressure head
         h = hyd->SolverState.NodeHead[i] -
-        hydheadtosolver(pr, net->Node[i].El);
+        hyd->SolverModel.NodeElevation[i];
         
         // Directly compute a reference leakage at this pressure head
         qref = 0.0;
