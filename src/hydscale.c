@@ -755,7 +755,13 @@ void inithydraulicscaling(Project *pr)
         }
     }
     headScale = decadescale(headMagnitude);
-    (void)sethydraulicsolverscale(pr, headScale, flowScale);
+
+    // CI PROBE (do not merge): force the legacy Head = 1, Flow = 1 mapping to
+    // check whether the AppVeyor nrtest differences come only from the
+    // model-derived solver scale.
+    (void)headScale;
+    (void)flowScale;
+    (void)sethydraulicsolverscale(pr, 1.0, 1.0);
 }
 
 
