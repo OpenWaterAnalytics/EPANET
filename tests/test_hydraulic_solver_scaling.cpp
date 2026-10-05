@@ -57,6 +57,36 @@ void set_solver_scale(EN_Project ph, const SolverScale& scale)
     sethydraulicsolverscale(ph, scale.head, scale.flow);
 }
 
+void check_compiled_curve(EN_Project ph, int i)
+{
+    Network& net = ph->network;
+    ShydSolverModel& model = ph->hydraul.SolverModel;
+    Scurve& curve = net.Curve[i];
+    ShydSolverCurve& compiled = model.Curve[i];
+
+    BOOST_REQUIRE(model.Curve != NULL);
+    BOOST_REQUIRE(i <= model.CurveCapacity);
+    BOOST_CHECK_EQUAL(compiled.Npts, curve.Npts);
+    BOOST_CHECK(compiled.Capacity >= curve.Npts);
+
+    for (int j = 0; j < curve.Npts; ++j)
+    {
+        BOOST_CHECK_EQUAL(compiled.X[j],
+            hydflowtosolver(ph, curve.X[j] / ph->Ucf[FLOW]));
+    }
+    for (int j = 0; j < curve.Npts - 1; ++j)
+    {
+        double slope = (curve.Y[j + 1] - curve.Y[j]) /
+            (curve.X[j + 1] - curve.X[j]);
+        double intercept = curve.Y[j] - slope * curve.X[j];
+        intercept = intercept / ph->Ucf[HEAD];
+        slope = slope * ph->Ucf[FLOW] / ph->Ucf[HEAD];
+        BOOST_CHECK_EQUAL(compiled.H0[j], hydheadtosolver(ph, intercept));
+        BOOST_CHECK_EQUAL(compiled.R[j],
+            hydresistancetosolver(ph, slope, 1.0));
+    }
+}
+
 void check_solver_model_compilation(EN_Project ph)
 {
     Network& net = ph->network;
@@ -69,6 +99,12 @@ void check_solver_model_compilation(EN_Project ph)
     BOOST_REQUIRE(model.LinkViscosityFlow != NULL);
     BOOST_REQUIRE(model.LinkSetting != NULL);
     BOOST_REQUIRE(model.LinkDynamicLoss != NULL);
+    BOOST_REQUIRE(model.Curve != NULL);
+    BOOST_CHECK(model.CurveCapacity >= net.Ncurves);
+    BOOST_CHECK_EQUAL(model.CurveHeadScale, hyd.SolverScale.Head);
+    BOOST_CHECK_EQUAL(model.CurveFlowScale, hyd.SolverScale.Flow);
+    BOOST_CHECK_EQUAL(model.CurveHeadUcf, ph->Ucf[HEAD]);
+    BOOST_CHECK_EQUAL(model.CurveFlowUcf, ph->Ucf[FLOW]);
 
     BOOST_CHECK_EQUAL(model.Htol, hydheadtosolver(ph, hyd.Htol));
     BOOST_CHECK_EQUAL(model.Qtol, hydflowtosolver(ph, hyd.Qtol));
@@ -101,6 +137,11 @@ void check_solver_model_compilation(EN_Project ph)
     {
         BOOST_CHECK_EQUAL(model.NodeElevation[i],
             hydheadtosolver(ph, net.Node[i].El));
+    }
+
+    for (int i = 1; i <= net.Ncurves; ++i)
+    {
+        check_compiled_curve(ph, i);
     }
 
     for (int i = 1; i <= net.Nlinks; ++i)
@@ -562,6 +603,72 @@ void compare_special(const SpecialSnapshot& actual, const SpecialSnapshot& expec
     }
 }
 
+struct CurveSnapshot
+{
+    double pumpFlow;
+    double pumpDischargeHead;
+    double gpvFlow;
+    double gpvHeadloss;
+};
+
+CurveSnapshot solve_curve_case(const SolverScale& scale)
+{
+    CurveSnapshot result;
+
+    // Multi-segment custom pump curve.
+    EN_Project ph = NULL;
+    int error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, EXAMPLE_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+    error = EN_settimeparam(ph, EN_DURATION, 0);
+    BOOST_REQUIRE(error == 0);
+    double pumpX[] = {0.0, 1000.0, 2200.0, 4000.0};
+    double pumpY[] = {300.0, 270.0, 190.0, 70.0};
+    error = EN_setcurve(ph, 1, pumpX, pumpY, 4);
+    BOOST_REQUIRE(error == 0);
+    const int pump = get_link_index(ph, "9");
+    const int discharge = get_node_index(ph, "10");
+    solve_hydraulics_with_scale(ph, scale, EN_NOSAVE);
+    result.pumpFlow = get_link_value(ph, pump, EN_FLOW);
+    result.pumpDischargeHead = get_node_value(ph, discharge, EN_HEAD);
+    EN_close(ph);
+    EN_deleteproject(ph);
+
+    // General-purpose valve with a multi-segment headloss curve.
+    ph = NULL;
+    error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, EXAMPLE_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+    error = EN_settimeparam(ph, EN_DURATION, 0);
+    BOOST_REQUIRE(error == 0);
+    int gpv = get_link_index(ph, "22");
+    error = EN_setlinktype(ph, &gpv, EN_GPV, EN_UNCONDITIONAL);
+    BOOST_REQUIRE(error == 0);
+    error = EN_addcurve(ph, "solver-gpv-curve");
+    BOOST_REQUIRE(error == 0);
+    int curve = 0;
+    error = EN_getcurveindex(ph, "solver-gpv-curve", &curve);
+    BOOST_REQUIRE(error == 0);
+    double gpvX[] = {0.0, 200.0, 800.0, 2000.0};
+    double gpvY[] = {0.0, 2.0, 25.0, 120.0};
+    error = EN_setcurve(ph, curve, gpvX, gpvY, 4);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcurvetype(ph, curve, EN_HLOSS_CURVE);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setlinkvalue(ph, gpv, EN_GPV_CURVE, curve);
+    BOOST_REQUIRE(error == 0);
+    solve_hydraulics_with_scale(ph, scale, EN_NOSAVE);
+    result.gpvFlow = get_link_value(ph, gpv, EN_FLOW);
+    result.gpvHeadloss = get_link_value(ph, gpv, EN_HEADLOSS);
+    EN_close(ph);
+    EN_deleteproject(ph);
+
+    return result;
+}
+
+
 struct PrvSnapshot
 {
     double node31Head;
@@ -740,6 +847,10 @@ BOOST_AUTO_TEST_CASE(test_solver_model_compiles_dimensional_inputs)
     BOOST_CHECK(ph->hydraul.SolverModel.LinkViscosityFlow == NULL);
     BOOST_CHECK(ph->hydraul.SolverModel.LinkSetting == NULL);
     BOOST_CHECK(ph->hydraul.SolverModel.LinkDynamicLoss == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.Curve == NULL);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.CurveCapacity, 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.CurveHeadScale, 0.0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.CurveFlowScale, 0.0);
 
     error = EN_close(ph);
     BOOST_REQUIRE(error == 0);
@@ -981,6 +1092,55 @@ BOOST_AUTO_TEST_CASE(test_solver_model_tracks_dynamic_link_settings)
 }
 
 
+BOOST_AUTO_TEST_CASE(test_solver_model_tracks_live_curve_edits)
+{
+    EN_Project ph = NULL;
+    int error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, EXAMPLE_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+
+    // Make Net1's pump curve a genuine multi-segment custom curve before the
+    // hydraulic model is compiled.
+    double pumpX[] = {0.0, 1000.0, 2200.0, 4000.0};
+    double pumpY[] = {300.0, 270.0, 190.0, 70.0};
+    error = EN_setcurve(ph, 1, pumpX, pumpY, 4);
+    BOOST_REQUIRE(error == 0);
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_initH(ph, EN_INITFLOW);
+    BOOST_REQUIRE(error == 0);
+    check_compiled_curve(ph, 1);
+
+    const double oldSlope = ph->hydraul.SolverModel.Curve[1].R[0];
+    error = EN_setcurvevalue(ph, 1, 2, 1000.0, 250.0);
+    BOOST_REQUIRE(error == 0);
+    check_compiled_curve(ph, 1);
+    BOOST_CHECK(ph->hydraul.SolverModel.Curve[1].R[0] != oldSlope);
+
+    // Curves can be added while hydraulics are open. Setting their data must
+    // grow the solver cache and compile the new curve immediately.
+    error = EN_addcurve(ph, "live-gpv-curve");
+    BOOST_REQUIRE(error == 0);
+    int curve = 0;
+    error = EN_getcurveindex(ph, "live-gpv-curve", &curve);
+    BOOST_REQUIRE(error == 0);
+    double gpvX[] = {0.0, 200.0, 800.0, 2000.0};
+    double gpvY[] = {0.0, 2.0, 25.0, 120.0};
+    error = EN_setcurve(ph, curve, gpvX, gpvY, 4);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcurvetype(ph, curve, EN_HLOSS_CURVE);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(ph->hydraul.SolverModel.CurveCapacity >= curve);
+    check_compiled_curve(ph, curve);
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+    EN_close(ph);
+    EN_deleteproject(ph);
+}
+
+
 BOOST_AUTO_TEST_CASE(test_production_scale_is_model_based_and_unit_independent)
 {
     const SolverScale reference = get_production_scale(EN_CFS, "CFS");
@@ -1046,6 +1206,26 @@ BOOST_AUTO_TEST_CASE(test_nonlinear_features_are_invariant_to_solver_scaling)
         compare_special(solve_special_case(SCALES[i]), expected, SCALES[i]);
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_custom_pump_and_gpv_curves_are_invariant_to_solver_scaling)
+{
+    const CurveSnapshot expected = solve_curve_case(LEGACY_SCALE);
+    const std::size_t scaleCount = sizeof(SCALES) / sizeof(SCALES[0]);
+
+    for (std::size_t i = 0; i < scaleCount; ++i)
+    {
+        const CurveSnapshot actual = solve_curve_case(SCALES[i]);
+        check_near(actual.pumpFlow, expected.pumpFlow, SPECIAL_TOL,
+            SCALES[i], "custom-pump flow");
+        check_near(actual.pumpDischargeHead, expected.pumpDischargeHead,
+            SPECIAL_TOL, SCALES[i], "custom-pump discharge head");
+        check_near(actual.gpvFlow, expected.gpvFlow, SPECIAL_TOL,
+            SCALES[i], "GPV flow");
+        check_near(actual.gpvHeadloss, expected.gpvHeadloss, SPECIAL_TOL,
+            SCALES[i], "GPV headloss");
+    }
+}
+
 
 BOOST_AUTO_TEST_CASE(test_pressure_valve_is_invariant_to_solver_scaling)
 {

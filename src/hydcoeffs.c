@@ -62,7 +62,7 @@ static void    DWpipecoeff(Project *pr, int k);
 static double  frictionFactor(double q, double e, double s, double *dfdq);
 
 static void    pumpcoeff(Project *pr, int k);
-static void    curvecoeff(Project *pr, int i, double q, double *h0, double *r);
+static void    solvercurvecoeff(Project *pr, int i, double q, double *h0, double *r);
 
 static void    valvecoeff(Project *pr, int k);
 static void    valvecoeffwithloss(Project *pr, int k, double km);
@@ -874,19 +874,13 @@ void  pumpcoeff(Project *pr, int k)
     // (Other pump types have pre-determined coeffs.)
     if (pump->Ptype == CUSTOM)
     {
-        // Pump curves are stored in their original user units. curvecoeff()
-        // therefore expects dimensional internal flow and returns dimensional
-        // head/slope values. Convert only at the solver boundary.
-        curvecoeff(pr, pump->Hcurve,
-            hydflowfromsolver(pr, q) / setting, &h0, &r);
-
-        // Keep cached pump properties dimensional. The local h0/r values used
-        // below are then compiled into solver head and head/flow units.
-        pump->H0 = -h0;
-        pump->R = -r;
+        // Custom pump curves are compiled into solver flow/head coordinates.
+        // Pump head curves are gains, while the GGA stores pump headloss, so
+        // reverse the compiled segment signs here.
+        solvercurvecoeff(pr, pump->Hcurve, q / setting, &h0, &r);
+        h0 = -h0;
+        r = -r;
         pump->N = 1.0;
-        h0 = hydheadtosolver(pr, pump->H0);
-        r = hydresistancetosolver(pr, pump->R, 1.0);
 
         // Compute head loss and its gradient (with speed adjustment).
         hgrad = r * setting;
@@ -960,43 +954,37 @@ void  pumpcoeff(Project *pr, int k)
 }
 
 
-void  curvecoeff(Project *pr, int i, double q, double *h0, double *r)
+void  solvercurvecoeff(Project *pr, int i, double q, double *h0, double *r)
 /*
 **-------------------------------------------------------------------
 **   Input:   i   = curve index
-**            q   = flow rate
-**   Output:  *h0  = head at zero flow (y-intercept)
-**            *r  = dHead/dFlow (slope)
-**   Purpose: computes intercept and slope of head v. flow curve
-**            at current flow.
+**            q   = flow rate in solver units
+**   Output:  *h0 = head at zero flow in solver head units
+**            *r  = dHead/dFlow in solver units
+**   Purpose: selects a segment from a compiled solver-space curve
 **-------------------------------------------------------------------
 */
 {
-    int   k1, k2, npts;
-    double *x, *y;
-    Scurve *curve;
+    int k1, k2, npts;
+    ShydSolverCurve *curve = &pr->hydraul.SolverModel.Curve[i];
 
-    // Remember that curve is stored in untransformed units
-    q *= pr->Ucf[FLOW];
-    curve = &pr->network.Curve[i];
-    x = curve->X;                      // x = flow
-    y = curve->Y;                      // y = head
     npts = curve->Npts;
+    if (npts < 2)
+    {
+        *h0 = 0.0;
+        *r = 0.0;
+        return;
+    }
 
-    // Find linear segment of curve that brackets flow q
+    // Find linear segment of curve that brackets solver flow q.
     k2 = 0;
-    while (k2 < npts && x[k2] < q) k2++;
+    while (k2 < npts && curve->X[k2] < q) k2++;
     if (k2 == 0) k2++;
-    else if (k2 == npts)  k2--;
+    else if (k2 == npts) k2--;
     k1 = k2 - 1;
 
-    // Compute slope and intercept of this segment
-    *r = (y[k2] - y[k1]) / (x[k2] - x[k1]);
-    *h0 = y[k1] - (*r)*x[k1];
-
-    // Convert units
-    *h0 = (*h0) / pr->Ucf[HEAD];
-    *r = (*r) * pr->Ucf[FLOW] / pr->Ucf[HEAD];
+    *h0 = curve->H0[k1];
+    *r = curve->R[k1];
 }
 
 
@@ -1035,11 +1023,8 @@ void  gpvcoeff(Project *pr, int k)
         q = ABS(hyd->SolverState.LinkFlow[k]);
         q = MAX(q, qmin);
 
-        // GPV curves are stored in user units. Interpolate them with a
-        // dimensional flow, then compile head and slope into solver units.
-        curvecoeff(pr, i, hydflowfromsolver(pr, q), &h0, &r);
-        h0 = hydheadtosolver(pr, h0);
-        r = hydresistancetosolver(pr, r, 1.0);
+        // GPV flow/head curves are already compiled into solver coordinates.
+        solvercurvecoeff(pr, i, q, &h0, &r);
         rmin = hyd->SolverModel.TinyGradient;
         r = MAX(r, rmin);
 

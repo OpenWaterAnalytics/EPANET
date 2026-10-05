@@ -13,6 +13,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "types.h"
 #include "funcs.h"
@@ -64,6 +65,13 @@ int allochydraulicsolvermodel(Project *pr)
         (double *) calloc(net->Nlinks + 1, sizeof(double));
     model->LinkDynamicLoss =
         (double *) calloc(net->Nlinks + 1, sizeof(double));
+    model->Curve =
+        (ShydSolverCurve *) calloc(net->Ncurves + 1, sizeof(ShydSolverCurve));
+    model->CurveCapacity = net->Ncurves;
+    model->CurveHeadScale = 0.0;
+    model->CurveFlowScale = 0.0;
+    model->CurveHeadUcf = 0.0;
+    model->CurveFlowUcf = 0.0;
 
     ERRCODE(MEMCHECK(model->NodeElevation));
     ERRCODE(MEMCHECK(model->LinkResistance));
@@ -71,6 +79,7 @@ int allochydraulicsolvermodel(Project *pr)
     ERRCODE(MEMCHECK(model->LinkViscosityFlow));
     ERRCODE(MEMCHECK(model->LinkSetting));
     ERRCODE(MEMCHECK(model->LinkDynamicLoss));
+    ERRCODE(MEMCHECK(model->Curve));
     return errcode;
 }
 
@@ -83,7 +92,18 @@ void freehydraulicsolvermodel(Project *pr)
 */
 {
     ShydSolverModel *model = &pr->hydraul.SolverModel;
+    int i;
 
+    if (model->Curve != NULL)
+    {
+        for (i = 1; i <= model->CurveCapacity; i++)
+        {
+            free(model->Curve[i].X);
+            free(model->Curve[i].H0);
+            free(model->Curve[i].R);
+        }
+    }
+    free(model->Curve);
     free(model->NodeElevation);
     free(model->LinkResistance);
     free(model->LinkMinorLoss);
@@ -96,6 +116,12 @@ void freehydraulicsolvermodel(Project *pr)
     model->LinkViscosityFlow = NULL;
     model->LinkSetting = NULL;
     model->LinkDynamicLoss = NULL;
+    model->Curve = NULL;
+    model->CurveCapacity = 0;
+    model->CurveHeadScale = 0.0;
+    model->CurveFlowScale = 0.0;
+    model->CurveHeadUcf = 0.0;
+    model->CurveFlowUcf = 0.0;
 }
 
 
@@ -273,6 +299,105 @@ void compilehydraulicsolverlink(Project *pr, int i)
 }
 
 
+static int ensuresolvercurvecapacity(Project *pr, int capacity)
+/* Ensures SolverModel.Curve can address a network curve index. */
+{
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+    ShydSolverCurve *curves;
+    int oldCapacity;
+
+    if (capacity <= model->CurveCapacity) return 0;
+    oldCapacity = model->CurveCapacity;
+    curves = (ShydSolverCurve *) realloc(model->Curve,
+        (capacity + 1) * sizeof(ShydSolverCurve));
+    if (curves == NULL) return 101;
+    model->Curve = curves;
+    memset(&model->Curve[oldCapacity + 1], 0,
+        (capacity - oldCapacity) * sizeof(ShydSolverCurve));
+    model->CurveCapacity = capacity;
+    return 0;
+}
+
+
+int compilehydraulicsolvercurve(Project *pr, int i)
+/*
+**----------------------------------------------------------------
+**  Purpose: compiles one flow/head curve into solver coordinates
+**----------------------------------------------------------------
+**  X stores solver-flow breakpoints. H0/R store the piecewise-linear segment
+**  coefficients obtained with the same arithmetic used by the legacy
+**  curvecoeff() path, followed by the usual solver scaling transforms.
+*/
+{
+    Network *net = &pr->network;
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+    Scurve *curve;
+    ShydSolverCurve *compiled;
+    double *x, *h0, *r;
+    double slope, intercept;
+    int j, npts, errcode;
+
+    if (i < 1 || i > net->Ncurves) return 206;
+    if (model->Curve == NULL && model->CurveCapacity == 0) return 0;
+    errcode = ensuresolvercurvecapacity(pr, i);
+    if (errcode) return errcode;
+
+    curve = &net->Curve[i];
+    compiled = &model->Curve[i];
+    npts = curve->Npts;
+
+    // Curve edits are rare; hydraulic reinitialization is not. Grow storage
+    // only when a curve gains points and otherwise reuse the existing cache.
+    if (npts > compiled->Capacity)
+    {
+        x = (double *) calloc(npts, sizeof(double));
+        h0 = NULL;
+        r = NULL;
+        if (npts > 1)
+        {
+            h0 = (double *) calloc(npts - 1, sizeof(double));
+            r = (double *) calloc(npts - 1, sizeof(double));
+        }
+        if (x == NULL || (npts > 1 && (h0 == NULL || r == NULL)))
+        {
+            free(x);
+            free(h0);
+            free(r);
+            return 101;
+        }
+        free(compiled->X);
+        free(compiled->H0);
+        free(compiled->R);
+        compiled->X = x;
+        compiled->H0 = h0;
+        compiled->R = r;
+        compiled->Capacity = npts;
+    }
+
+    for (j = 0; j < npts; j++)
+    {
+        // Curves retain Toolkit/user flow units outside the solver.
+        compiled->X[j] = hydflowtosolver(pr,
+            curve->X[j] / pr->Ucf[FLOW]);
+    }
+    for (j = 0; j < npts - 1; j++)
+    {
+        // Preserve curvecoeff() arithmetic exactly before crossing the solver
+        // boundary so segment intercepts/slopes do not drift numerically.
+        slope = (curve->Y[j + 1] - curve->Y[j]) /
+            (curve->X[j + 1] - curve->X[j]);
+        intercept = curve->Y[j] - slope * curve->X[j];
+        intercept = intercept / pr->Ucf[HEAD];
+        slope = slope * pr->Ucf[FLOW] / pr->Ucf[HEAD];
+        compiled->H0[j] = hydheadtosolver(pr, intercept);
+        compiled->R[j] = hydresistancetosolver(pr, slope, 1.0);
+    }
+
+    compiled->Npts = npts;
+    return 0;
+}
+
+
 void compilehydraulicsolvermodel(Project *pr)
 /*
 **----------------------------------------------------------------
@@ -299,6 +424,24 @@ void compilehydraulicsolvermodel(Project *pr)
     for (i = 1; i <= net->Nnodes; i++)
     {
         model->NodeElevation[i] = hydheadtosolver(pr, net->Node[i].El);
+    }
+
+    // Curve source data is refreshed directly by Toolkit curve setters. The
+    // full curve cache only needs rebuilding here when its unit/scaling basis
+    // changes (including the initial compile after allocation).
+    if (model->CurveHeadScale != hyd->SolverScale.Head ||
+        model->CurveFlowScale != hyd->SolverScale.Flow ||
+        model->CurveHeadUcf != pr->Ucf[HEAD] ||
+        model->CurveFlowUcf != pr->Ucf[FLOW])
+    {
+        for (i = 1; i <= net->Ncurves; i++)
+        {
+            if (compilehydraulicsolvercurve(pr, i)) return;
+        }
+        model->CurveHeadScale = hyd->SolverScale.Head;
+        model->CurveFlowScale = hyd->SolverScale.Flow;
+        model->CurveHeadUcf = pr->Ucf[HEAD];
+        model->CurveFlowUcf = pr->Ucf[FLOW];
     }
 
     for (i = 1; i <= net->Nlinks; i++)

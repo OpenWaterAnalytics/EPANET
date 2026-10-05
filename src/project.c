@@ -326,6 +326,14 @@ void initpointers(Project *pr)
     pr->hydraul.SolverModel.LinkResistance = NULL;
     pr->hydraul.SolverModel.LinkMinorLoss = NULL;
     pr->hydraul.SolverModel.LinkViscosityFlow = NULL;
+    pr->hydraul.SolverModel.LinkSetting = NULL;
+    pr->hydraul.SolverModel.LinkDynamicLoss = NULL;
+    pr->hydraul.SolverModel.Curve = NULL;
+    pr->hydraul.SolverModel.CurveCapacity = 0;
+    pr->hydraul.SolverModel.CurveHeadScale = 0.0;
+    pr->hydraul.SolverModel.CurveFlowScale = 0.0;
+    pr->hydraul.SolverModel.CurveHeadUcf = 0.0;
+    pr->hydraul.SolverModel.CurveFlowUcf = 0.0;
     pr->hydraul.SolverState.NodeHead = NULL;
     pr->hydraul.SolverState.NodeDemand = NULL;
     pr->hydraul.SolverState.FullDemand = NULL;

@@ -223,18 +223,34 @@ BOOST_AUTO_TEST_CASE(dynamic_link_settings_use_compiled_solver_model)
 }
 
 
-BOOST_AUTO_TEST_CASE(remaining_pump_curve_and_barrier_inputs_use_scaling_helpers)
+BOOST_AUTO_TEST_CASE(pump_and_gpv_curves_use_compiled_solver_model)
 {
+    const std::string hydscale = read_source("src/hydscale.c");
     const std::string hydsolver = read_source("src/hydsolver.c");
     const std::string hydcoeffs = read_source("src/hydcoeffs.c");
     const std::string hydstatus = read_source("src/hydstatus.c");
 
-    // Junction-control grades remain dynamic dimensional inputs at this stage.
+    // Pump/GPV flow-head curves are compiled at the model boundary. Their
+    // flow breakpoints and segment intercept/slope coefficients are stored in
+    // SolverModel instead of converting flow back to curve units in the GGA.
+    BOOST_CHECK(hydscale.find("compilehydraulicsolvercurve") !=
+        std::string::npos);
+    BOOST_CHECK(hydscale.find("compiled->X[j] = hydflowtosolver") !=
+        std::string::npos);
+    BOOST_CHECK(hydscale.find("compiled->H0[j] = hydheadtosolver") !=
+        std::string::npos);
+    BOOST_CHECK(hydscale.find("compiled->R[j] = hydresistancetosolver") !=
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("solvercurvecoeff") != std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("static void    curvecoeff") ==
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("hydflowfromsolver(pr, q)") ==
+        std::string::npos);
+
+    // Junction-control grades, emitters, barriers, and non-custom pump
+    // coefficients still cross the solver boundary through explicit helpers.
     BOOST_CHECK(hydsolver.find("hydheadtosolver") != std::string::npos);
     BOOST_CHECK(hydsolver.find("hydflowtosolver") == std::string::npos);
-
-    // Pump/GPV curves, emitters, barriers, and other not-yet-compiled inputs
-    // still cross the solver boundary through explicit scaling helpers.
     BOOST_CHECK(hydcoeffs.find("hydheadtosolver") != std::string::npos);
     BOOST_CHECK(hydcoeffs.find("hydresistancetosolver") != std::string::npos);
     BOOST_CHECK(hydcoeffs.find("hydconductancetosolver") == std::string::npos);

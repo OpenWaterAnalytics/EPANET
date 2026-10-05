@@ -753,6 +753,21 @@ typedef struct {
 
 } ShydScale;
 
+// Compiled Hydraulic Solver Curve
+// Flow breakpoints plus piecewise-linear head intercepts/slopes, all in solver
+// coordinates. Segment coefficients retain the legacy curve arithmetic and are
+// only rebuilt when curve data or solver scaling changes.
+typedef struct {
+
+  int Npts,                  // Number of source curve points
+      Capacity;              // Number of points allocated in X/H0/R
+  double
+    *X,                      // Flow breakpoints in solver flow units
+    *H0,                     // Segment head intercepts in solver head units
+    *R;                      // Segment slopes in solver head/flow units
+
+} ShydSolverCurve;
+
 // Compiled Hydraulic Solver Model
 // Dimensional model inputs transformed once at the solver boundary. The GGA
 // will consume these values directly as subsequent migration steps move model
@@ -765,7 +780,16 @@ typedef struct {
     *LinkMinorLoss,        // Base link minor-loss coeffs. in solver units
     *LinkViscosityFlow,    // Viscosity * diameter in solver flow units
     *LinkSetting,          // Dynamic link settings in solver coordinates
-    *LinkDynamicLoss,      // Setting-dependent TCV/PCV loss in solver units
+    *LinkDynamicLoss;      // Setting-dependent TCV/PCV loss in solver units
+  ShydSolverCurve
+    *Curve;                 // Compiled curve data indexed by network curve
+  int
+    CurveCapacity;          // Highest curve index allocated in Curve[]
+  double
+    CurveHeadScale,        // Head scale used by compiled curves
+    CurveFlowScale,        // Flow scale used by compiled curves
+    CurveHeadUcf,          // Head unit factor used by compiled curves
+    CurveFlowUcf,          // Flow unit factor used by compiled curves
     Htol,                  // Head tolerance in solver head units
     Qtol,                  // Flow tolerance in solver flow units
     RQtol,                 // Min. headloss gradient in solver units

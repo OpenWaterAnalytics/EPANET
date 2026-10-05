@@ -1564,6 +1564,7 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
             net->Curve[i].Y[j] = net->Curve[i].Y[j] / yfactor;
         }
     }
+    if (p->hydraul.OpenHflag) compilehydraulicsolvermodel(p);
     return 0;
 }
 
@@ -4694,6 +4695,14 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
     if (PUMP != net->Link[linkIndex].Type) return 0;
     if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
 
+    // Compile a newly assigned curve if hydraulics are already open. This also
+    // grows the solver curve cache for curves added after EN_openH().
+    if (p->hydraul.OpenHflag && curveIndex > 0)
+    {
+        int errcode = compilehydraulicsolvercurve(p, curveIndex);
+        if (errcode) return errcode;
+    }
+
     // Assign the new curve to the pump
     pumpIndex = findpump(net, linkIndex);
     pump = &net->Pump[pumpIndex];
@@ -5102,6 +5111,7 @@ int DLLEXPORT EN_addcurve(EN_Project p, const char *id)
     // Update the number of curves
     net->Ncurves = n;
     p->parser.MaxCurves = n;
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvercurve(p, n);
     return 0;
 }
 
@@ -5243,6 +5253,7 @@ int DLLEXPORT EN_setcurvetype(EN_Project p, int index, int type)
     if (index < 1 || index > net->Ncurves) return 206;
     if (type < 0 || type > EN_VALVE_CURVE) return 251;
     net->Curve[index].Type = type;
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvercurve(p, index);
     return 0;
 }
 
@@ -5315,6 +5326,8 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
     // Insert new point into curve
     curve->X[n] = x;
     curve->Y[n] = y;
+    if (p->hydraul.OpenHflag)
+        return compilehydraulicsolvercurve(p, curveIndex);
     return 0;
 }
 
@@ -5387,6 +5400,7 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
         curve->X[j] = xValues[j];
         curve->Y[j] = yValues[j];
     }
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvercurve(p, index);
     return 0;
 }
 
