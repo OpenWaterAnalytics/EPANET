@@ -64,7 +64,6 @@ x64/
 build/
 [Bb]in/
 [Oo]bj/
-build-tests/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

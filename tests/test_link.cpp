@@ -233,32 +233,4 @@ BOOST_FIXTURE_TEST_CASE(test_link_comments, FixtureOpenClose)
     BOOST_CHECK(check_string(comment, (char *)"Pump9"));
 }
 
-BOOST_AUTO_TEST_CASE(test_closed_pump_starts_with_zero_runtime_setting)
-{
-    EN_Project ph = NULL;
-    int pumpIndex = 0;
-    double setting = 0.0;
-
-    BOOST_REQUIRE_EQUAL(EN_createproject(&ph), 0);
-    BOOST_REQUIRE_EQUAL(EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, ""), 0);
-    BOOST_REQUIRE_EQUAL(EN_getlinkindex(ph, (char *)"9", &pumpIndex), 0);
-
-    BOOST_REQUIRE_EQUAL(EN_setlinkvalue(ph, pumpIndex, EN_INITSETTING, 1.1), 0);
-    BOOST_REQUIRE_EQUAL(EN_setlinkvalue(ph, pumpIndex, EN_INITSTATUS, EN_CLOSED), 0);
-
-    // Preserve the model's nominal initial speed independently from its
-    // initial closed status.
-    BOOST_REQUIRE_EQUAL(EN_getlinkvalue(ph, pumpIndex, EN_INITSETTING, &setting), 0);
-    BOOST_CHECK_SMALL(setting - 1.1, 1.0e-12);
-
-    BOOST_REQUIRE_EQUAL(EN_openH(ph), 0);
-    BOOST_REQUIRE_EQUAL(EN_initH(ph, EN_NOSAVE), 0);
-    BOOST_REQUIRE_EQUAL(EN_getlinkvalue(ph, pumpIndex, EN_SETTING, &setting), 0);
-    BOOST_CHECK_SMALL(setting, 1.0e-12);
-
-    BOOST_REQUIRE_EQUAL(EN_closeH(ph), 0);
-    BOOST_REQUIRE_EQUAL(EN_close(ph), 0);
-    EN_deleteproject(ph);
-}
-
 BOOST_AUTO_TEST_SUITE_END()

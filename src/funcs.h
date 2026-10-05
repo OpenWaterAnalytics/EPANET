@@ -184,6 +184,7 @@ int     allochydraulicsolvermodel(Project *);
 void    freehydraulicsolvermodel(Project *);
 void    compilehydraulicsolverglobals(Project *);
 void    compilehydraulicsolvernode(Project *, int);
+void    compilehydraulicsolvernodeelevation(Project *, int);
 void    compilehydraulicsolverlink(Project *, int);
 void    compilehydraulicsolversetting(Project *, int);
 int     compilehydraulicsolvercontrol(Project *, int);

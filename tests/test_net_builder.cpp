@@ -22,7 +22,7 @@ Last Updated: 04/12/2019
 #include <stdlib.h>
 #endif
 
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 
 #include "epanet2_2.h"
 

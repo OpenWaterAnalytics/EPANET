@@ -749,7 +749,7 @@ int pdaconverged(Project *pr)
     double dp = preq - pmin;
     // Preserve the legacy 0.0001 cfs PDA tolerance while expressing it in
     // solver flow units.
-    double qtol = hyd->SolverModel.LeakageFlowTolerance;
+    double qtol = hyd->SolverModel.LegacyFlowTolerance;
     double p, q, r;
 
     hyd->DeficientNodes = 0;

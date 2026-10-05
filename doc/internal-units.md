@@ -30,9 +30,11 @@ Toolkit, reporting, energy, or water-quality interfaces. Those layers describe
 physical quantities and must remain unit-aware.
 
 The target is to introduce a clear boundary at which a dimensional hydraulic
-problem is compiled into a unit-independent numerical representation. The GGA
-and its component equations should then operate without depending on ft, cfs,
-or constants whose numerical value is tied to those units. Results are converted
+problem is compiled into solver coordinates. The GGA and its component
+equations operate on those scaled head/flow values instead of repeatedly
+crossing back into EPANET's dimensional state. For compatibility, several
+regularizers and convergence thresholds are still defined by their historical
+ft/cfs values and are transformed once at this boundary. Results are converted
 back to the physical EPANET representation before they are consumed by the
 public API, reporting, energy, and water-quality code.
 
@@ -225,7 +227,7 @@ Leakage has several especially important hidden assumptions:
 
 The public leakage definition may legitimately continue to refer to a leak area
 per 100 units of pipe length according to EPANET's API/file contract. The
-solver-side coefficient must nevertheless be compiled into unit-independent
+solver-side coefficient must nevertheless be compiled into solver-coordinate
 form.
 
 **Migration:** complete. Public leakage parameter interpretation remains

@@ -183,7 +183,7 @@ void compilehydraulicsolverglobals(Project *pr)
     // flow cutoff. Compile that cutoff so the branch is invariant to Q scale.
     model->RelativeErrorFlowCutoff = hydflowtosolver(pr, hyd->Hacc);
     model->TinyFlow = hydflowtosolver(pr, TINY);
-    model->LeakageFlowTolerance = hydflowtosolver(pr, 0.0001);
+    model->LegacyFlowTolerance = hydflowtosolver(pr, 0.0001);
     model->BigHead = hydheadtosolver(pr, BIG);
     model->TinyGradient = hydresistancetosolver(pr, TINY, 1.0);
     model->SmallGradient = hydresistancetosolver(pr, CSMALL, 1.0);
@@ -202,15 +202,13 @@ void compilehydraulicsolverglobals(Project *pr)
 void compilehydraulicsolvernode(Project *pr, int i)
 /*
 **----------------------------------------------------------------
-**  Purpose: refreshes one node's compiled solver elevation
+**  Purpose: refreshes one node's compiled solver coefficients
 **----------------------------------------------------------------
 */
 {
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
     ShydSolverModel *model = &hyd->SolverModel;
-
-    int k;
 
     if (model->NodeElevation == NULL ||
         model->NodeEmitterResistance == NULL ||
@@ -222,13 +220,30 @@ void compilehydraulicsolvernode(Project *pr, int i)
     // Preserve the legacy one-conversion arithmetic used by PDA assembly.
     model->NodePdaMinGrade[i] = hydheadtosolver(pr,
         net->Node[i].El + hyd->Pmin);
+}
+
+
+void compilehydraulicsolvernodeelevation(Project *pr, int i)
+/*
+**----------------------------------------------------------------
+**  Purpose: refreshes one node after its elevation changes, including
+**           PRV/PSV target grades that depend on that elevation
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+    int j, k;
+
+    compilehydraulicsolvernode(pr, i);
 
     // PRV/PSV compiled settings are complete target grades so the GGA retains
     // the legacy one-conversion arithmetic. Refresh any target that depends on
     // this node when its elevation changes through the Toolkit.
     if (model->LinkSetting == NULL) return;
-    for (k = 1; k <= net->Nlinks; k++)
+    for (j = 1; j <= net->Nvalves; j++)
     {
+        k = net->Valve[j].Link;
         Slink *link = &net->Link[k];
         if ((link->Type == PRV && link->N2 == i) ||
             (link->Type == PSV && link->N1 == i))
@@ -316,9 +331,27 @@ void compilehydraulicsolversetting(Project *pr, int i)
         model->LinkDynamicLoss[i] = hydminorlosstosolver(pr, link->R);
         break;
 
+    case GPV:
+        // GPV curve indices are dimensionless settings. Curves created through
+        // the Toolkit remain GENERIC unless a caller explicitly assigns a
+        // type, so compile by actual hydraulic use rather than Curve.Type.
+        if (setting > 0.0 && setting <= net->Ncurves)
+        {
+            int curve = (int)ROUND(setting);
+            if (curve > 0 && curve <= net->Ncurves && model->Curve != NULL &&
+                (curve > model->CurveCapacity || model->Curve[curve].Npts == 0))
+            {
+                // Whole-model compilation and Toolkit mutation paths propagate
+                // allocation errors. This fallback keeps dynamically refreshed
+                // GPV settings usable without making iterative call sites fail.
+                compilehydraulicsolvercurve(pr, curve);
+            }
+        }
+        break;
+
     default:
-        // Pump speed, GPV curve index, and other dimensionless settings are
-        // already numerical quantities and remain unchanged.
+        // Pump speed and other dimensionless settings are already numerical
+        // quantities and remain unchanged.
         break;
     }
 }
@@ -567,21 +600,43 @@ int compilehydraulicsolvermodel(Project *pr)
         model->CurveHeadUcf != pr->Ucf[HEAD] ||
         model->CurveFlowUcf != pr->Ucf[FLOW])
     {
+        // Start with no curve marked as solver-consumed. Hydraulic curves are
+        // identified below from the objects that actually reference them, not
+        // from Curve.Type (Toolkit-created curves can legitimately be GENERIC).
         for (i = 1; i <= net->Ncurves; i++)
         {
-            // Only custom-pump and GPV headloss curves are consumed by the
-            // hydraulic GGA. Leave other curve types uncompiled so volume,
-            // efficiency, valve-position, and generic data do not allocate
-            // unnecessary solver flow/head storage.
-            if (net->Curve[i].Type == PUMP_CURVE ||
-                net->Curve[i].Type == HLOSS_CURVE)
-            {
-                errcode = compilehydraulicsolvercurve(pr, i);
-                if (errcode) return errcode;
-            }
-            else if (model->Curve != NULL && i <= model->CurveCapacity)
+            if (model->Curve != NULL && i <= model->CurveCapacity)
             {
                 model->Curve[i].Npts = 0;
+            }
+        }
+
+        // Pump head curves are hydraulic flow/head relations regardless of
+        // the curve metadata assigned by the input parser or Toolkit caller.
+        for (i = 1; i <= net->Npumps; i++)
+        {
+            int curve = net->Pump[i].Hcurve;
+            if (curve > 0)
+            {
+                errcode = compilehydraulicsolvercurve(pr, curve);
+                if (errcode) return errcode;
+            }
+        }
+
+        // GPV curve indices are stored in the link setting/Kc. This is the
+        // authoritative reference for Toolkit-created GPVs as well as INP data.
+        for (i = 1; i <= net->Nvalves; i++)
+        {
+            int k = net->Valve[i].Link;
+            Slink *link = &net->Link[k];
+            if (link->Type == GPV)
+            {
+                int curve = (int)ROUND(link->Kc);
+                if (curve > 0 && curve <= net->Ncurves)
+                {
+                    errcode = compilehydraulicsolvercurve(pr, curve);
+                    if (errcode) return errcode;
+                }
             }
         }
         model->CurveHeadScale = hyd->SolverScale.Head;

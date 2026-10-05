@@ -10,8 +10,10 @@
  ******************************************************************************
 */
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <limits>
 #include <vector>
 
 #include <boost/test/unit_test.hpp>
@@ -58,6 +60,17 @@ void set_solver_scale(EN_Project ph, const SolverScale& scale)
     BOOST_REQUIRE(error == 0);
 }
 
+void check_fp_equivalent(double actual, double expected, const char* quantity)
+{
+    const double magnitude = std::max(1.0,
+        std::max(std::fabs(actual), std::fabs(expected)));
+    const double tolerance = 64.0 * std::numeric_limits<double>::epsilon() *
+        magnitude;
+    BOOST_CHECK_MESSAGE(std::fabs(actual - expected) <= tolerance,
+        quantity << " expected " << expected << ", got " << actual <<
+        " (tolerance " << tolerance << ")");
+}
+
 void check_compiled_curve(EN_Project ph, int i)
 {
     Network& net = ph->network;
@@ -72,8 +85,9 @@ void check_compiled_curve(EN_Project ph, int i)
 
     for (int j = 0; j < curve.Npts; ++j)
     {
-        BOOST_CHECK_EQUAL(compiled.X[j],
-            hydflowtosolver(ph, curve.X[j] / ph->Ucf[FLOW]));
+        check_fp_equivalent(compiled.X[j],
+            hydflowtosolver(ph, curve.X[j] / ph->Ucf[FLOW]),
+            "compiled curve flow breakpoint");
     }
     for (int j = 0; j < curve.Npts - 1; ++j)
     {
@@ -82,9 +96,11 @@ void check_compiled_curve(EN_Project ph, int i)
         double intercept = curve.Y[j] - slope * curve.X[j];
         intercept = intercept / ph->Ucf[HEAD];
         slope = slope * ph->Ucf[FLOW] / ph->Ucf[HEAD];
-        BOOST_CHECK_EQUAL(compiled.H0[j], hydheadtosolver(ph, intercept));
-        BOOST_CHECK_EQUAL(compiled.R[j],
-            hydresistancetosolver(ph, slope, 1.0));
+        check_fp_equivalent(compiled.H0[j], hydheadtosolver(ph, intercept),
+            "compiled curve intercept");
+        check_fp_equivalent(compiled.R[j],
+            hydresistancetosolver(ph, slope, 1.0),
+            "compiled curve slope");
     }
 }
 
@@ -129,7 +145,7 @@ void check_solver_model_compilation(EN_Project ph)
     BOOST_CHECK_EQUAL(model.RelativeErrorFlowCutoff,
         hydflowtosolver(ph, hyd.Hacc));
     BOOST_CHECK_EQUAL(model.TinyFlow, hydflowtosolver(ph, TINY));
-    BOOST_CHECK_EQUAL(model.LeakageFlowTolerance,
+    BOOST_CHECK_EQUAL(model.LegacyFlowTolerance,
         hydflowtosolver(ph, 0.0001));
     BOOST_CHECK_EQUAL(model.BigHead, hydheadtosolver(ph, BIG));
     BOOST_CHECK_EQUAL(model.TinyGradient,
@@ -782,8 +798,10 @@ CurveSnapshot solve_curve_case(const SolverScale& scale)
     double gpvY[] = {0.0, 2.0, 25.0, 120.0};
     error = EN_setcurve(ph, curve, gpvX, gpvY, 4);
     BOOST_REQUIRE(error == 0);
-    error = EN_setcurvetype(ph, curve, EN_HLOSS_CURVE);
+    int curveType = -1;
+    error = EN_getcurvetype(ph, curve, &curveType);
     BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE_EQUAL(curveType, EN_GENERIC_CURVE);
     error = EN_setlinkvalue(ph, gpv, EN_GPV_CURVE, curve);
     BOOST_REQUIRE(error == 0);
     solve_hydraulics_with_scale(ph, scale, EN_NOSAVE);
@@ -1605,6 +1623,8 @@ BOOST_AUTO_TEST_CASE(test_nonlinear_features_are_invariant_to_solver_scaling)
 BOOST_AUTO_TEST_CASE(test_custom_pump_and_gpv_curves_are_invariant_to_solver_scaling)
 {
     const CurveSnapshot expected = solve_curve_case(LEGACY_SCALE);
+    BOOST_CHECK_MESSAGE(expected.gpvHeadloss > 1.e-4,
+        "Toolkit-created generic GPV curve produced no head loss");
     const std::size_t scaleCount = sizeof(SCALES) / sizeof(SCALES[0]);
 
     for (std::size_t i = 0; i < scaleCount; ++i)

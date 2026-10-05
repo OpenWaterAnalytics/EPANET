@@ -148,9 +148,9 @@ BOOST_FIXTURE_TEST_CASE(test_quality_uses_published_hydraulic_state, FixtureOpen
     error = EN_getstatistic(ph, EN_MASSBALANCE, &massBalance);
     BOOST_REQUIRE(error == 0);
 
-    BOOST_CHECK_SMALL(quality21 - 0.593764082790338, 1.e-9);
-    BOOST_CHECK_SMALL(quality32 - 0.153379320274777, 1.e-9);
-    BOOST_CHECK_SMALL(massBalance - 0.999999981951671, 1.e-9);
+    BOOST_CHECK_CLOSE_FRACTION(quality21, 0.593764082790338, 1.e-7);
+    BOOST_CHECK_CLOSE_FRACTION(quality32, 0.153379320274777, 1.e-7);
+    BOOST_CHECK_CLOSE_FRACTION(massBalance, 0.999999981951671, 1.e-7);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

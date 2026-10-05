@@ -2512,6 +2512,8 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     double *Ucf = p->Ucf;
 
     int i, j, n;
+    int compileNode = 0;
+    int elevationChanged = 0;
     Psource source;
     double hTmp, ecfTmp;
 
@@ -2531,6 +2533,8 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
             Node[index].El += value;
             hyd->NodeHead[index] += value;
         }
+        compileNode = 1;
+        elevationChanged = 1;
         break;
 
     case EN_BASEDEMAND:
@@ -2562,6 +2566,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         }
         Node[index].Ke = value;
         if (hyd->EmitterFlow[index] == 0.0) hyd->EmitterFlow[index] = 1.0;
+        compileNode = 1;
         break;
 
     case EN_INITQUAL:
@@ -2609,6 +2614,8 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
             Tank[j].Hmax = Tank[j].H0;
             Node[index].El = Tank[j].H0;
             hyd->NodeHead[index] = Tank[j].H0;
+            compileNode = 1;
+            elevationChanged = 1;
         }
         else
         {
@@ -2782,7 +2789,8 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     default:
         return 251;
     }
-    compilehydraulicsolvernode(p, index);
+    if (elevationChanged) compilehydraulicsolvernodeelevation(p, index);
+    else if (compileNode) compilehydraulicsolvernode(p, index);
     return 0;
 }
 
@@ -2875,7 +2883,7 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
 
     // Assign new elevation value to junction
     node->El = elev / p->Ucf[ELEV];
-    compilehydraulicsolvernode(p, index);
+    compilehydraulicsolvernodeelevation(p, index);
     return 0;
 }
 
@@ -2962,7 +2970,7 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
         Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
         Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
     }
-    compilehydraulicsolvernode(p, Tank[j].Node);
+    compilehydraulicsolvernodeelevation(p, Tank[j].Node);
     return 0;
 }
 
@@ -4368,8 +4376,18 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         {
             curveIndex = ROUND(value);
             if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
+            if (hyd->OpenHflag && curveIndex > 0)
+            {
+                int errcode = compilehydraulicsolvercurve(p, curveIndex);
+                if (errcode) return errcode;
+            }
             Link[index].Kc = curveIndex;
             if (hyd->OpenHflag == FALSE) Link[index].InitSetting = curveIndex;
+            else
+            {
+                hyd->LinkSetting[index] = curveIndex;
+                compilehydraulicsolversetting(p, index);
+            }
         }
         break;
 

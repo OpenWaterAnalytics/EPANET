@@ -28,10 +28,7 @@ set(toolkit_test_srcs
      test_project.cpp
      test_hydraulics.cpp
      test_hydraulic_characterization.cpp
-     test_hydraulic_performance_guardrails.cpp
      test_hydraulic_unit_equivalence.cpp
-     test_hydraulic_solver_scaling.cpp
-     test_hydraulic_core_unit_contract.cpp
      test_quality.cpp
      test_report.cpp
      test_analysis.cpp
@@ -55,6 +52,38 @@ target_compile_definitions(test_toolkit PRIVATE EPANET_SOURCE_DIR="${CMAKE_SOURC
 add_test(NAME test_toolkit
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_toolkit
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
+
+
+# White-box hydraulic tests intentionally access internal solver structures and
+# functions. Link them to a test-only static copy of the core so Windows tests
+# do not depend on exporting private symbols from the epanet2 DLL.
+file(GLOB epanet_internal_test_srcs
+     ${CMAKE_SOURCE_DIR}/src/*.c
+     ${CMAKE_SOURCE_DIR}/src/util/*.c)
+add_library(epanet2_internal_test STATIC ${epanet_internal_test_srcs})
+target_include_directories(epanet2_internal_test PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_compile_definitions(epanet2_internal_test PRIVATE epanet_py_EXPORTS)
+
+add_custom_target(hydraulic_core_lint
+    COMMAND ${CMAKE_COMMAND}
+        -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/hydraulic_core_lint.cmake
+    VERBATIM)
+
+set(hydraulic_internal_test_srcs
+    test_toolkit.cpp
+    test_hydraulic_performance_guardrails.cpp
+    test_hydraulic_solver_scaling.cpp)
+add_executable(test_hydraulic_internal ${hydraulic_internal_test_srcs})
+target_link_libraries(test_hydraulic_internal ${Boost_LIBRARIES} epanet2_internal_test)
+target_compile_definitions(test_hydraulic_internal PRIVATE
+    EPANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    epanet_py_EXPORTS)
+add_dependencies(test_hydraulic_internal hydraulic_core_lint)
+add_test(NAME test_hydraulic_internal
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_hydraulic_internal
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
+set_tests_properties(test_toolkit test_hydraulic_internal PROPERTIES RUN_SERIAL TRUE)
 
 
 

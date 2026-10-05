@@ -34,7 +34,6 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 option(BUILD_TESTS "Build tests (requires Boost)" OFF)
-option(BUILD_BENCHMARKS "Build hydraulic performance benchmarks" OFF)
 #option(BUILD_PY_LIB "Build library for Python wrapper" OFF)
 option(BUILD_COVERAGE "Build library for coverage" OFF)
 
@@ -96,10 +95,6 @@ ELSE(TRUE)
 ENDIF(MSVC AND "${CMAKE_VS_PLATFORM_NAME}" MATCHES "(Win32)")
 
 target_include_directories(epanet2 PUBLIC ${PROJECT_SOURCE_DIR}/include)
-
-IF (BUILD_BENCHMARKS)
-    add_subdirectory(benchmarks)
-ENDIF (BUILD_BENCHMARKS)
 
 # Install the library to 'lib'
 install(TARGETS epanet2

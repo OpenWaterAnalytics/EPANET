@@ -427,7 +427,7 @@ int leakagehasconverged(Project *pr)
     
     int i;
     double h, qref, qtest;
-    double qtol = hyd->SolverModel.LeakageFlowTolerance; // Legacy 0.0001 cfs tolerance
+    double qtol = hyd->SolverModel.LegacyFlowTolerance; // Legacy 0.0001 cfs tolerance
 
     for (i = 1; i <= net->Njuncs; i++)
     {

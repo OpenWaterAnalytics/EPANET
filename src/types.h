@@ -808,7 +808,7 @@ typedef struct {
     HeadErrorLimit,        // Head-error limit in solver head units
     RelativeErrorFlowCutoff,// Legacy Hacc flow cutoff in solver flow units
     TinyFlow,              // Legacy TINY flow threshold in solver units
-    LeakageFlowTolerance,  // Legacy leakage convergence flow tolerance
+    LegacyFlowTolerance,  // Legacy 0.0001 cfs convergence tolerance
     BigHead,               // BIG head sentinel in solver head units
     TinyGradient,          // TINY linear resistance in solver units
     SmallGradient,         // CSMALL linear resistance in solver units

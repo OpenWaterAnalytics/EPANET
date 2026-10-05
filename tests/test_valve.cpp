@@ -75,4 +75,83 @@ BOOST_FIXTURE_TEST_CASE(test_PCV_valve, FixtureOpenClose)
     BOOST_REQUIRE(abs(v - 0.0255) < 0.001);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_GPV_accepts_toolkit_generic_curve, FixtureInitClose)
+{
+    int reservoir = 0;
+    int junction = 0;
+    int link = 0;
+    int curve = 0;
+    int replacementCurve = 0;
+    int curveType = -1;
+    long time = 0;
+    double flow = 0.0;
+    double headloss = 0.0;
+    double x[] = {0.0, 200.0, 400.0};
+    double y[] = {0.0, 20.0, 40.0};
+    double replacementY[] = {0.0, 40.0, 80.0};
+
+    error = EN_addnode(ph, "R1", EN_RESERVOIR, &reservoir);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setnodevalue(ph, reservoir, EN_ELEVATION, 100.0);
+    BOOST_REQUIRE(error == 0);
+    error = EN_addnode(ph, "J1", EN_JUNCTION, &junction);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setjuncdata(ph, junction, 0.0, 200.0, "");
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_addlink(ph, "V1", EN_GPV, "R1", "J1", &link);
+    BOOST_REQUIRE(error == 0);
+    error = EN_addcurve(ph, "GPV-CURVE");
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcurveindex(ph, "GPV-CURVE", &curve);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcurve(ph, curve, x, y, 3);
+    BOOST_REQUIRE(error == 0);
+    error = EN_addcurve(ph, "GPV-REPLACEMENT");
+    BOOST_REQUIRE(error == 0);
+    error = EN_getcurveindex(ph, "GPV-REPLACEMENT", &replacementCurve);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setcurve(ph, replacementCurve, x, replacementY, 3);
+    BOOST_REQUIRE(error == 0);
+
+    // EN_addcurve deliberately creates a generic curve. A GPV must compile
+    // the curve because it references it, not because parser metadata says it
+    // is a head-loss curve.
+    error = EN_getcurvetype(ph, curve, &curveType);
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE_EQUAL(curveType, EN_GENERIC_CURVE);
+    error = EN_setlinkvalue(ph, link, EN_GPV_CURVE, curve);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_settimeparam(ph, EN_DURATION, 0);
+    BOOST_REQUIRE(error == 0);
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_initH(ph, EN_INITFLOW);
+    BOOST_REQUIRE(error == 0);
+    error = EN_runH(ph, &time);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getlinkvalue(ph, link, EN_FLOW, &flow);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getlinkvalue(ph, link, EN_HEADLOSS, &headloss);
+    BOOST_REQUIRE(error == 0);
+
+    BOOST_CHECK_CLOSE_FRACTION(flow, 200.0, 1.e-6);
+    BOOST_CHECK_CLOSE_FRACTION(headloss, 20.0, 1.e-6);
+
+    // The replacement curve was not referenced when the full solver model was
+    // compiled. Assigning it while hydraulics are open must compile it on
+    // demand and update the active GPV setting.
+    error = EN_setlinkvalue(ph, link, EN_GPV_CURVE, replacementCurve);
+    BOOST_REQUIRE(error == 0);
+    error = EN_runH(ph, &time);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getlinkvalue(ph, link, EN_HEADLOSS, &headloss);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_CLOSE_FRACTION(headloss, 40.0, 1.e-6);
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
