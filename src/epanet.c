@@ -1300,6 +1300,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     case EN_ACCURACY:
         if (value < 1.e-8 || value > 1.e-1) return 213;
         hyd->Hacc = value;
+        compilehydraulicsolverglobals(p);
         break;
 
     case EN_TOLERANCE:

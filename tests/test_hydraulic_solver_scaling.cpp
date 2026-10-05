@@ -125,6 +125,8 @@ void check_solver_model_compilation(EN_Project ph)
         hydflowtosolver(ph, hyd.FlowChangeLimit));
     BOOST_CHECK_EQUAL(model.HeadErrorLimit,
         hydheadtosolver(ph, hyd.HeadErrorLimit));
+    BOOST_CHECK_EQUAL(model.RelativeErrorFlowCutoff,
+        hydflowtosolver(ph, hyd.Hacc));
     BOOST_CHECK_EQUAL(model.TinyFlow, hydflowtosolver(ph, TINY));
     BOOST_CHECK_EQUAL(model.LeakageFlowTolerance,
         hydflowtosolver(ph, 0.0001));
@@ -555,6 +557,61 @@ void compare_example_eps(const std::vector<CompatibilitySnapshot>& actual,
                 a.linkStatus[i]);
         }
     }
+}
+
+struct ConvergenceSnapshot
+{
+    int iterations;
+    double relativeError;
+    std::vector<double> nodeHead;
+    std::vector<double> linkFlow;
+};
+
+ConvergenceSnapshot solve_net1_convergence_case(double flowScale)
+{
+    EN_Project ph = NULL;
+    int error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+    error = EN_settimeparam(ph, EN_DURATION, 0);
+    BOOST_REQUIRE(error == 0);
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    // Isolate flow scaling: retain the model-derived head scale while forcing
+    // a flow scale large enough to cross the legacy low-flow Hacc branch.
+    const double headScale = ph->hydraul.SolverScale.Head;
+    sethydraulicsolverscale(ph, headScale, flowScale);
+    error = EN_initH(ph, EN_INITFLOW);
+    BOOST_REQUIRE(error == 0);
+
+    long time = 0;
+    error = EN_runH(ph, &time);
+    BOOST_REQUIRE(error == 0);
+
+    double value = 0.0;
+    error = EN_getstatistic(ph, EN_ITERATIONS, &value);
+    BOOST_REQUIRE(error == 0);
+
+    ConvergenceSnapshot result;
+    result.iterations = static_cast<int>(value);
+    error = EN_getstatistic(ph, EN_RELATIVEERROR, &result.relativeError);
+    BOOST_REQUIRE(error == 0);
+    result.nodeHead.resize(ph->network.Nnodes);
+    result.linkFlow.resize(ph->network.Nlinks);
+    for (int i = 1; i <= ph->network.Nnodes; ++i)
+        result.nodeHead[i - 1] = ph->hydraul.NodeHead[i];
+    for (int i = 1; i <= ph->network.Nlinks; ++i)
+        result.linkFlow[i - 1] = ph->hydraul.LinkFlow[i];
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deleteproject(ph);
+    BOOST_REQUIRE(error == 0);
+    return result;
 }
 
 struct SpecialSnapshot
@@ -1457,6 +1514,25 @@ BOOST_AUTO_TEST_CASE(test_net1_eps_is_invariant_to_solver_scaling)
     for (std::size_t i = 0; i < scaleCount; ++i)
     {
         compare_eps(solve_net1_eps(SCALES[i]), expected, SCALES[i]);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_low_flow_convergence_is_invariant_to_flow_scaling)
+{
+    const ConvergenceSnapshot expected = solve_net1_convergence_case(1.0);
+    const ConvergenceSnapshot actual = solve_net1_convergence_case(1.e6);
+
+    BOOST_CHECK_EQUAL(actual.iterations, expected.iterations);
+    BOOST_CHECK_SMALL(actual.relativeError - expected.relativeError, 1.e-12);
+    BOOST_REQUIRE_EQUAL(actual.nodeHead.size(), expected.nodeHead.size());
+    BOOST_REQUIRE_EQUAL(actual.linkFlow.size(), expected.linkFlow.size());
+    for (std::size_t i = 0; i < expected.nodeHead.size(); ++i)
+    {
+        BOOST_CHECK_SMALL(actual.nodeHead[i] - expected.nodeHead[i], HEAD_TOL);
+    }
+    for (std::size_t i = 0; i < expected.linkFlow.size(); ++i)
+    {
+        BOOST_CHECK_SMALL(actual.linkFlow[i] - expected.linkFlow[i], FLOW_TOL);
     }
 }
 

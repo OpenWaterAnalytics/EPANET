@@ -409,9 +409,14 @@ double newflows(Project *pr, Hydbalance *hbal)
     newdemandflows(pr, hbal, &qsum, &dqsum);
     if (hyd->HasLeakage) newleakageflows(pr, hbal, &qsum, &dqsum);
 
-    // Return ratio of total flow corrections to total flow
-    if (qsum > hyd->Hacc) return (dqsum / qsum);
-    else return dqsum;
+    // Preserve the legacy convergence metric independently of solver flow
+    // scaling. For normal system flows the metric is dimensionless. At very
+    // low total flow EPANET historically compares the absolute correction in
+    // dimensional internal flow units against Hacc.
+    if (qsum > hyd->SolverModel.RelativeErrorFlowCutoff)
+        return (dqsum / qsum);
+    else
+        return dqsum * hyd->SolverScale.Flow;
 }
 
 

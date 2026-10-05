@@ -805,6 +805,7 @@ typedef struct {
     PdaPressureRange,      // PDA pressure range in solver head units
     FlowChangeLimit,       // Absolute flow-change limit in solver flow units
     HeadErrorLimit,        // Head-error limit in solver head units
+    RelativeErrorFlowCutoff,// Legacy Hacc flow cutoff in solver flow units
     TinyFlow,              // Legacy TINY flow threshold in solver units
     LeakageFlowTolerance,  // Legacy leakage convergence flow tolerance
     BigHead,               // BIG head sentinel in solver head units

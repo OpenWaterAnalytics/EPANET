@@ -178,6 +178,10 @@ void compilehydraulicsolverglobals(Project *pr)
         MAX((hyd->Preq - hyd->Pmin), MINPDIFF));
     model->FlowChangeLimit = hydflowtosolver(pr, hyd->FlowChangeLimit);
     model->HeadErrorLimit = hydheadtosolver(pr, hyd->HeadErrorLimit);
+    // Hacc is dimensionless in the normal relative-error branch, but the
+    // legacy low-flow fallback also uses its numeric value as an internal
+    // flow cutoff. Compile that cutoff so the branch is invariant to Q scale.
+    model->RelativeErrorFlowCutoff = hydflowtosolver(pr, hyd->Hacc);
     model->TinyFlow = hydflowtosolver(pr, TINY);
     model->LeakageFlowTolerance = hydflowtosolver(pr, 0.0001);
     model->BigHead = hydheadtosolver(pr, BIG);
