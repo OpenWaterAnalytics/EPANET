@@ -208,6 +208,12 @@ int runqual(Project *pr, long *t)
     long hydstep = 0;       // Hydraulic time step
     int errcode = 0;
 
+    // Hydraulic results consumed below are dimensional physical values.
+    // hydsolve() publishes SolverState back to hyd->NodeHead/LinkFlow before
+    // water quality is advanced, and readhyd() restores the same dimensional
+    // representation when hydraulics are loaded from file.
+    // Do not read hyd->SolverState from the water-quality engine.
+
     // Update reported simulation time
     *t = time->Qtime;
 
@@ -675,6 +681,8 @@ int flowdirchanged(Project *pr)
     {
         // Determine sign (+1 or -1) of new flow rate
         olddir = qual->FlowDir[k];
+        // LinkFlow is the published dimensional hydraulic flow. Quality
+        // routing intentionally remains outside the solver scaling system.
         q = (hyd->LinkStatus[k] <= CLOSED) ? 0.0 : hyd->LinkFlow[k];
         newdir = SGN(q);
 

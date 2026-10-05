@@ -13,6 +13,10 @@
 #ifndef FUNCS_H
 #define FUNCS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // ------- PROJECT.C ------------
 
 void    initpointers(Project *);
@@ -172,8 +176,34 @@ void    getenergy(Project *, int, double *, double *);
 double  tankvolume(Project *, int, double);
 double  tankgrade(Project *, int, double);
 
+// ------- HYDSCALE.C ------------------
+
+void    inithydraulicscaling(Project *);
+int     sethydraulicsolverscale(Project *, double, double);
+int     allochydraulicsolvermodel(Project *);
+void    freehydraulicsolvermodel(Project *);
+void    compilehydraulicsolverglobals(Project *);
+void    compilehydraulicsolvernode(Project *, int);
+void    compilehydraulicsolvernodeelevation(Project *, int);
+void    compilehydraulicsolverlink(Project *, int);
+void    compilehydraulicsolversetting(Project *, int);
+int     compilehydraulicsolvercontrol(Project *, int);
+int     compilehydraulicsolvercurve(Project *, int);
+int     compilehydraulicsolvermodel(Project *);
+void    loadhydraulicsolverstate(Project *);
+void    savehydraulicsolverstate(Project *);
+double  hydheadtosolver(Project *, double);
+double  hydheadfromsolver(Project *, double);
+double  hydflowtosolver(Project *, double);
+double  hydflowfromsolver(Project *, double);
+double  hydresistancetosolver(Project *, double, double);
+double  hydconductancetosolver(Project *, double);
+double  hydminorlosstosolver(Project *, double);
+
 // ------- HYDCOEFFS.C -----------------
 
+extern const double CSMALL;
+extern const double CBIG;
 void    resistcoeff(Project *, int);
 void    headlosscoeffs(Project *);
 void    matrixcoeffs(Project *);
@@ -220,5 +250,9 @@ int     leakagehasconverged(Project *);
 void    startflowbalance(Project *);
 void    updateflowbalance(Project *, long);
 void    endflowbalance(Project *, long);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

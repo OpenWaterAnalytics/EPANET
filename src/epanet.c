@@ -1300,6 +1300,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     case EN_ACCURACY:
         if (value < 1.e-8 || value > 1.e-1) return 213;
         hyd->Hacc = value;
+        compilehydraulicsolverglobals(p);
         break;
 
     case EN_TOLERANCE:
@@ -1316,7 +1317,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
             if (j == 0 && Ke > 0.0) net->Node[i].Ke = ucf / pow(Ke, n);
         }
         hyd->Qexp = n;
-        break;
+        return compilehydraulicsolvermodel(p);
 
     case EN_DEMANDMULT:
         hyd->Dmult = value;
@@ -1324,10 +1325,12 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
 
     case EN_HEADERROR:
         hyd->HeadErrorLimit = value / Ucf[HEAD];
+        compilehydraulicsolverglobals(p);
         break;
 
     case EN_FLOWCHANGE:
         hyd->FlowChangeLimit = value / Ucf[FLOW];
+        compilehydraulicsolverglobals(p);
         break;
 
     case EN_HEADLOSSFORM:
@@ -1373,7 +1376,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     case EN_SP_VISCOS:
         if (value <= 0.0) return 213;
         hyd->Viscos = value * VISCOS;
-        break;
+        return compilehydraulicsolvermodel(p);
 
     case EN_CHECKFREQ:
         hyd->CheckFreq = (int)value;
@@ -1561,6 +1564,7 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
             net->Curve[i].Y[j] = net->Curve[i].Y[j] / yfactor;
         }
     }
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvermodel(p);
     return 0;
 }
 
@@ -2508,6 +2512,8 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     double *Ucf = p->Ucf;
 
     int i, j, n;
+    int compileNode = 0;
+    int elevationChanged = 0;
     Psource source;
     double hTmp, ecfTmp;
 
@@ -2527,6 +2533,8 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
             Node[index].El += value;
             hyd->NodeHead[index] += value;
         }
+        compileNode = 1;
+        elevationChanged = 1;
         break;
 
     case EN_BASEDEMAND:
@@ -2558,6 +2566,7 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
         }
         Node[index].Ke = value;
         if (hyd->EmitterFlow[index] == 0.0) hyd->EmitterFlow[index] = 1.0;
+        compileNode = 1;
         break;
 
     case EN_INITQUAL:
@@ -2605,6 +2614,8 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
             Tank[j].Hmax = Tank[j].H0;
             Node[index].El = Tank[j].H0;
             hyd->NodeHead[index] = Tank[j].H0;
+            compileNode = 1;
+            elevationChanged = 1;
         }
         else
         {
@@ -2778,6 +2789,8 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
     default:
         return 251;
     }
+    if (elevationChanged) compilehydraulicsolvernodeelevation(p, index);
+    else if (compileNode) compilehydraulicsolvernode(p, index);
     return 0;
 }
 
@@ -2870,6 +2883,7 @@ int DLLEXPORT EN_setjuncdata(EN_Project p, int index, double elev,
 
     // Assign new elevation value to junction
     node->El = elev / p->Ucf[ELEV];
+    compilehydraulicsolvernodeelevation(p, index);
     return 0;
 }
 
@@ -2956,6 +2970,7 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
         Tank[j].V0 = tankvolume(p, j, Tank[j].H0);
         Tank[j].Vmax = tankvolume(p, j, Tank[j].Hmax);
     }
+    compilehydraulicsolvernodeelevation(p, Tank[j].Node);
     return 0;
 }
 
@@ -3057,7 +3072,7 @@ int DLLEXPORT EN_setdemandmodel(EN_Project p, int model, double pmin,
     p->hydraul.Pmin = pmin / p->Ucf[PRESSURE];
     p->hydraul.Preq = preq / p->Ucf[PRESSURE];
     p->hydraul.Pexp = pexp;
-    return 0;
+    return compilehydraulicsolvermodel(p);
 }
 
 int  DLLEXPORT EN_adddemand(EN_Project p, int nodeIndex, double baseDemand,
@@ -4200,6 +4215,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             if (value < 0.0) return 211;
             Link[index].Km = 0.02517 * value / SQR(Link[index].Diam) /
                              SQR(Link[index].Diam);
+            compilehydraulicsolverlink(p, index);
         }
         break;
 
@@ -4306,6 +4322,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             net->Pump[pumpIndex].Ptype = CONST_HP;
             net->Pump[pumpIndex].Hcurve = 0;
             net->Link[index].Km = value;
+            compilehydraulicsolverlink(p, index);
         }
         break;
 
@@ -4359,8 +4376,18 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         {
             curveIndex = ROUND(value);
             if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
+            if (hyd->OpenHflag && curveIndex > 0)
+            {
+                int errcode = compilehydraulicsolvercurve(p, curveIndex);
+                if (errcode) return errcode;
+            }
             Link[index].Kc = curveIndex;
             if (hyd->OpenHflag == FALSE) Link[index].InitSetting = curveIndex;
+            else
+            {
+                hyd->LinkSetting[index] = curveIndex;
+                compilehydraulicsolversetting(p, index);
+            }
         }
         break;
 
@@ -4684,6 +4711,14 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
     if (linkIndex < 1 || linkIndex > net->Nlinks) return 204;
     if (PUMP != net->Link[linkIndex].Type) return 0;
     if (curveIndex < 0 || curveIndex > net->Ncurves) return 206;
+
+    // Compile a newly assigned curve if hydraulics are already open. This also
+    // grows the solver curve cache for curves added after EN_openH().
+    if (p->hydraul.OpenHflag && curveIndex > 0)
+    {
+        int errcode = compilehydraulicsolvercurve(p, curveIndex);
+        if (errcode) return errcode;
+    }
 
     // Assign the new curve to the pump
     pumpIndex = findpump(net, linkIndex);
@@ -5093,6 +5128,7 @@ int DLLEXPORT EN_addcurve(EN_Project p, const char *id)
     // Update the number of curves
     net->Ncurves = n;
     p->parser.MaxCurves = n;
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvercurve(p, n);
     return 0;
 }
 
@@ -5234,6 +5270,7 @@ int DLLEXPORT EN_setcurvetype(EN_Project p, int index, int type)
     if (index < 1 || index > net->Ncurves) return 206;
     if (type < 0 || type > EN_VALVE_CURVE) return 251;
     net->Curve[index].Type = type;
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvercurve(p, index);
     return 0;
 }
 
@@ -5306,6 +5343,8 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
     // Insert new point into curve
     curve->X[n] = x;
     curve->Y[n] = y;
+    if (p->hydraul.OpenHflag)
+        return compilehydraulicsolvercurve(p, curveIndex);
     return 0;
 }
 
@@ -5378,6 +5417,7 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
         curve->X[j] = xValues[j];
         curve->Y[j] = yValues[j];
     }
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvercurve(p, index);
     return 0;
 }
 
@@ -5431,6 +5471,7 @@ int DLLEXPORT EN_addcontrol(EN_Project p, int type, int linkIndex, double settin
 
     // Replace the control's index
     *index = n;
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvercontrol(p, n);
     return 0;
 }
 
@@ -5452,6 +5493,14 @@ int DLLEXPORT EN_deletecontrol(EN_Project p, int index)
         net->Control[i] = net->Control[i + 1];
     }
     net->Ncontrols--;
+    if (p->hydraul.OpenHflag)
+    {
+        for (i = 1; i <= net->Ncontrols; i++)
+        {
+            int errcode = compilehydraulicsolvercontrol(p, i);
+            if (errcode) return errcode;
+        }
+    }
     return 0;
 }
 
@@ -5577,6 +5626,7 @@ int DLLEXPORT EN_setcontrol(EN_Project p, int index, int type, int linkIndex,
     err = setcontrol(p, type, linkIndex, setting, nodeIndex, level, &ctrl);
     if (err > 0) return err;
     net->Control[index] = ctrl;
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvercontrol(p, index);
     return 0;
 }
 

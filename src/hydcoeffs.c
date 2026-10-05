@@ -19,6 +19,12 @@
 #include "types.h"
 #include "funcs.h"
 
+/*
+** Solver-unit contract: model coefficients may remain in EPANET's dimensional
+** internal basis, but every coefficient used by GGA assembly must be compiled
+** into solver units before it is combined with SolverState head or flow.
+*/
+
 // Constants used for computing Darcy-Weisbach friction factor
 const double A1 = 3.14159265358979323850e+03;   // 1000*PI
 const double A2 = 1.57079632679489661930e+03;   // 500*PI
@@ -30,7 +36,9 @@ const double AA = -1.5634601348517065795e+00;   // -2*.9*2/ln(10)
 const double AB = 3.28895476345399058690e-03;   // 5.74/(4000^.9)
 const double AC = -5.14214965799093883760e-03;  // AA*AB
 
-// Definitions of very small and very big coefficients
+// Legacy regularization magnitudes in EPANET's dimensional internal basis.
+// Solver-side uses must be mapped through the hydraulic scaling helpers; raw
+// uses below are limited to dimensional model storage or dimensionless guards.
 const double CSMALL = 1.e-6;
 const double CBIG   = 1.e8;
 
@@ -54,9 +62,10 @@ static void    DWpipecoeff(Project *pr, int k);
 static double  frictionFactor(double q, double e, double s, double *dfdq);
 
 static void    pumpcoeff(Project *pr, int k);
-static void    curvecoeff(Project *pr, int i, double q, double *h0, double *r);
+static void    solvercurvecoeff(Project *pr, int i, double q, double *h0, double *r);
 
 static void    valvecoeff(Project *pr, int k);
+static void    valvecoeffwithloss(Project *pr, int k, double km);
 static void    gpvcoeff(Project *pr, int k);
 static void    pbvcoeff(Project *pr, int k);
 static void    tcvcoeff(Project *pr, int k);
@@ -66,7 +75,7 @@ static void    psvcoeff(Project *pr, int k, int n1, int n2);
 static void    fcvcoeff(Project *pr, int k, int n1, int n2);
 
 
-void addlowerbarrier(double dq, double* hloss, double* hgrad)
+void addlowerbarrier(Project *pr, double dq, double* hloss, double* hgrad)
 /*
 **--------------------------------------------------------------------
 **  Input:   dq = difference between current flow and lower flow limit
@@ -77,13 +86,19 @@ void addlowerbarrier(double dq, double* hloss, double* hgrad)
 **--------------------------------------------------------------------
 */
 {
-    double a = 1.e9 * dq;
-    double b = sqrt(a*a + 1.e-6);
-    *hloss += (a - b) / 2.;
-    *hgrad += (1.e9 / 2.) * ( 1.0 - a / b);
+    // Barrier constants are compiled once into solver coordinates. Evaluate
+    // the regularization directly in solver units so no dimensional round-trip
+    // remains inside nonlinear coefficient assembly.
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+    double a = model->BarrierGradient * dq;
+    double e = model->BarrierSmoothingHead;
+    double b = sqrt(a*a + e*e);
+
+    *hloss += (a - b) / 2.0;
+    *hgrad += (model->BarrierGradient / 2.0) * (1.0 - a / b);
 }
 
-void addupperbarrier(double dq, double* hloss, double* hgrad)
+void addupperbarrier(Project *pr, double dq, double* hloss, double* hgrad)
 /*
 **--------------------------------------------------------------------
 **  Input:   dq = difference between current flow and upper flow limit
@@ -94,10 +109,13 @@ void addupperbarrier(double dq, double* hloss, double* hgrad)
 **--------------------------------------------------------------------
 */
 {
-    double a = 1.e9 * dq;
-    double b = sqrt(a*a + 1.e-6);
-    *hloss += (a + b) / 2.;
-    *hgrad += (1.e9 / 2.) * ( 1.0 + a / b);
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+    double a = model->BarrierGradient * dq;
+    double e = model->BarrierSmoothingHead;
+    double b = sqrt(a*a + e*e);
+
+    *hloss += (a + b) / 2.0;
+    *hgrad += (model->BarrierGradient / 2.0) * (1.0 + a / b);
 }
 
 
@@ -154,6 +172,10 @@ void  resistcoeff(Project *pr, int k)
         link->R = CSMALL;
         break;
     }
+
+    // Keep the compiled link coefficients synchronized when Toolkit edits
+    // cause a dimensional resistance to be recomputed while hydraulics are open.
+    compilehydraulicsolverlink(pr, k);
 }
 
 
@@ -277,7 +299,7 @@ void headlosscoeffs(Project *pr)
         case FCV:
         case PRV:
         case PSV:
-            if (hyd->LinkSetting[k] == MISSING) valvecoeff(pr, k);
+            if (hyd->SolverModel.LinkSetting[k] == MISSING) valvecoeff(pr, k);
             else hyd->P[k] = 0.0;
         }
     }
@@ -346,8 +368,8 @@ void  linkcoeffs(Project *pr)
 
         // Update nodal flow excess (Xflow)
         // (Flow out of node is (-), flow into node is (+))
-        hyd->Xflow[n1] -= hyd->LinkFlow[k];
-        hyd->Xflow[n2] += hyd->LinkFlow[k];
+        hyd->Xflow[n1] -= hyd->SolverState.LinkFlow[k];
+        hyd->Xflow[n2] += hyd->SolverState.LinkFlow[k];
 
         // Add to off-diagonal coeff. of linear system matrix
         sm->Aij[sm->Ndx[k]] -= hyd->P[k];
@@ -361,7 +383,7 @@ void  linkcoeffs(Project *pr)
         }
 
         // ... node n1 is a tank/reservoir
-        else sm->F[sm->Row[n2]] += (hyd->P[k] * hyd->NodeHead[n1]);
+        else sm->F[sm->Row[n2]] += (hyd->P[k] * hyd->SolverState.NodeHead[n1]);
 
         // Update linear system coeffs. associated with end node n2
         // ... node n2 is junction
@@ -372,7 +394,7 @@ void  linkcoeffs(Project *pr)
         }
 
         // ... node n2 is a tank/reservoir
-        else sm->F[sm->Row[n1]] += (hyd->P[k] * hyd->NodeHead[n2]);
+        else sm->F[sm->Row[n1]] += (hyd->P[k] * hyd->SolverState.NodeHead[n2]);
     }
 }
 
@@ -397,7 +419,7 @@ void  nodecoeffs(Project *pr)
     // flow excess & add flow excess to RHS array F
     for (i = 1; i <= net->Njuncs; i++)
     {
-        hyd->Xflow[i] -= hyd->DemandFlow[i];
+        hyd->Xflow[i] -= hyd->SolverState.DemandFlow[i];
         sm->F[sm->Row[i]] += hyd->Xflow[i];
     }
 }
@@ -429,7 +451,7 @@ void  valvecoeffs(Project *pr)
         k = valve->Link;
 
         // Coeffs. for fixed status valves have already been computed
-        if (hyd->LinkSetting[k] == MISSING) continue;
+        if (hyd->SolverModel.LinkSetting[k] == MISSING) continue;
 
         // Start & end nodes of valve's link
         link = &net->Link[k];
@@ -491,10 +513,10 @@ void  emittercoeffs(Project *pr)
 
         // Addition to matrix diagonal & r.h.s
         sm->Aii[row] += 1.0 / hgrad;
-        sm->F[row] += (hloss + node->El) / hgrad;
+        sm->F[row] += (hloss + hyd->SolverModel.NodeElevation[i]) / hgrad;
 
         // Update to node flow excess
-        hyd->Xflow[i] -= hyd->EmitterFlow[i];
+        hyd->Xflow[i] -= hyd->SolverState.EmitterFlow[i];
     }
 }
 
@@ -513,18 +535,21 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
 
     double  ke;
     double  q;
+    double  rqtol;
 
-    // Set adjusted emitter coeff.
-    ke = MAX(CSMALL, pr->network.Node[i].Ke);
+    // Emitter resistance is compiled with the node model and refreshed when
+    // emitter properties or the emitter exponent change.
+    ke = hyd->SolverModel.NodeEmitterResistance[i];
+    rqtol = hyd->SolverModel.RQtol;
 
     // Compute gradient of head loss through emitter
-    q = hyd->EmitterFlow[i];
+    q = hyd->SolverState.EmitterFlow[i];
     *hgrad = hyd->Qexp * ke * pow(fabs(q), hyd->Qexp - 1.0);
     
     // Use linear head loss function for small gradient
-    if (*hgrad < hyd->RQtol)
+    if (*hgrad < rqtol)
     {
-        *hgrad = hyd->RQtol / hyd->Qexp;
+        *hgrad = rqtol / hyd->Qexp;
         *hloss = (*hgrad) * q;
     }            
 
@@ -534,7 +559,7 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
     // Prevent negative flow if backflow not allowed
     if (hyd->EmitBackFlag == 0)
     {
-        addlowerbarrier(q, hloss, hgrad);
+        addlowerbarrier(pr, q, hloss, hgrad);
     }
 }
 
@@ -559,21 +584,21 @@ void  demandcoeffs(Project *pr)
     Smatrix *sm = &hyd->smatrix;
 
     int i, row;
-    double  dp,         // pressure range over which demand can vary (ft)
+    double  dp,         // solver pressure-head range over which demand can vary
             n,          // exponent in head loss v. demand function
-            hloss,      // head loss in supplying demand (ft)
-            hgrad;      // gradient of demand head loss (ft/cfs)
+            hloss,      // solver head loss in supplying demand
+            hgrad;      // solver head-loss gradient
             
     // Get demand function parameters
     if (hyd->DemandModel == DDA) return;
-    dp = hyd->Preq - hyd->Pmin;
+    dp = hyd->SolverModel.PdaPressureRange;
     n = 1.0 / hyd->Pexp;
 
     // Examine each junction node
     for (i = 1; i <= net->Njuncs; i++)
     {
         // Skip junctions with non-positive demands
-        if (hyd->FullDemand[i] <= 0.0) continue;
+        if (hyd->SolverState.FullDemand[i] <= 0.0) continue;
         
         // Find head loss for demand outflow at node's elevation
         demandheadloss(pr, i, dp, n, &hloss, &hgrad);
@@ -583,7 +608,8 @@ void  demandcoeffs(Project *pr)
         {
             row = sm->Row[i];
             sm->Aii[row] += 1.0 / hgrad;
-            sm->F[row] += (hloss + net->Node[i].El + hyd->Pmin) / hgrad;
+            sm->F[row] +=
+                (hloss + hyd->SolverModel.NodePdaMinGrade[i]) / hgrad;
         }
     }
 }
@@ -593,10 +619,10 @@ void demandheadloss(Project *pr, int i, double dp, double n,
 /*
 **--------------------------------------------------------------
 **   Input:   i  = junction index
-**            dp = pressure range for demand function (ft)
+**            dp = pressure range for demand function (solver head)
 **            n  = exponent in head v. demand function
-**   Output:  hloss = pressure dependent demand head loss (ft)
-**            hgrad = gradient of head loss (ft/cfs)
+**   Output:  hloss = pressure dependent demand head loss (solver head)
+**            hgrad = gradient of head loss (solver head / solver flow)
 **  Purpose:  computes head loss and its gradient for delivering
 **            a pressure dependent demand flow.
 **--------------------------------------------------------------
@@ -604,8 +630,8 @@ void demandheadloss(Project *pr, int i, double dp, double n,
 {
     Hydraul *hyd = &pr->hydraul;
    
-    double d = hyd->DemandFlow[i];
-    double dfull = hyd->FullDemand[i];
+    double d = hyd->SolverState.DemandFlow[i];
+    double dfull = hyd->SolverState.FullDemand[i];
     double r = d / dfull;
     
     // Evaluate inverted demand function
@@ -614,8 +640,8 @@ void demandheadloss(Project *pr, int i, double dp, double n,
     *hloss = (*hgrad) * d / n;
     
     // Add barrier functions
-    addlowerbarrier(d, hloss, hgrad);
-    addupperbarrier(d-dfull, hloss, hgrad);
+    addlowerbarrier(pr, d, hloss, hgrad);
+    addupperbarrier(pr, d-dfull, hloss, hgrad);
 }
 
 
@@ -637,13 +663,18 @@ void  pipecoeff(Project *pr, int k)
             hgrad,     // Head loss gradient
             ml,        // Minor loss coeff.
             q,         // Abs. value of flow
-            r;         // Resistance coeff.
+            r,         // Resistance coeff.
+            rqtol,     // Minimum headloss gradient
+            biggrad;   // Closed-link headloss gradient
+
+    rqtol = hyd->SolverModel.RQtol;
+    biggrad = hyd->SolverModel.BigGradient;
 
     // For closed pipe use headloss formula: hloss = CBIG*q
     if (hyd->LinkStatus[k] <= CLOSED)
     {
-        hyd->P[k] = 1.0 / CBIG;
-        hyd->Y[k] = hyd->LinkFlow[k];
+        hyd->P[k] = 1.0 / biggrad;
+        hyd->Y[k] = hyd->SolverState.LinkFlow[k];
         return;
     }
 
@@ -654,18 +685,20 @@ void  pipecoeff(Project *pr, int k)
         return;
     }
 
-    q = ABS(hyd->LinkFlow[k]);
-    ml = pr->network.Link[k].Km;
-    r = pr->network.Link[k].R;
+    q = ABS(hyd->SolverState.LinkFlow[k]);
+
+    // Static pipe coefficients are compiled once at the model boundary.
+    ml = hyd->SolverModel.LinkMinorLoss[k];
+    r = hyd->SolverModel.LinkResistance[k];
 
     // Friction head loss gradient
     hgrad = hyd->Hexp * r * pow(q, hyd->Hexp - 1.0);
     
     // Friction head loss:
     // ... use linear function for very small gradient
-    if (hgrad < hyd->RQtol)
+    if (hgrad < rqtol)
     {
-        hgrad = hyd->RQtol / hyd->Hexp;
+        hgrad = rqtol / hyd->Hexp;
         hloss = hgrad * q;
     }
     // ... otherwise use original formula
@@ -679,7 +712,7 @@ void  pipecoeff(Project *pr, int k)
     }
 
     // Adjust head loss sign for flow direction
-    hloss *= SGN(hyd->LinkFlow[k]);
+    hloss *= SGN(hyd->SolverState.LinkFlow[k]);
 
     // P and Y coeffs.
     hyd->P[k] = 1.0 / hgrad;
@@ -700,19 +733,21 @@ void DWpipecoeff(Project *pr, int k)
     Hydraul *hyd = &pr->hydraul;
     Slink   *link = &pr->network.Link[k];
 
-    double q = ABS(hyd->LinkFlow[k]);
-    double r = link->R;                         // Resistance coeff.
-    double ml = link->Km;                       // Minor loss coeff.
+    double q = ABS(hyd->SolverState.LinkFlow[k]);
+    double r = hyd->SolverModel.LinkResistance[k];
+    double ml = hyd->SolverModel.LinkMinorLoss[k];
     double e = link->Kc / link->Diam;           // Relative roughness
-    double s = hyd->Viscos * link->Diam;        // Viscosity / diameter
+    double s = hyd->SolverModel.LinkViscosityFlow[k];
     double hloss, hgrad, f, dfdq, r1;
 
-    // Compute head loss and its derivative
+    // Compute head loss and its derivative entirely in solver units.
+    // The quantity s has the same dimensions as flow, so scaling it with
+    // the solver flow scale preserves q/s and therefore Reynolds number.
     // ... use Hagen-Poiseuille formula for laminar flow (Re <= 2000)
     if (q <= A2 * s)
     {
         r = 16.0 * PI * s * r;
-        hloss = hyd->LinkFlow[k] * (r + ml * q);
+        hloss = hyd->SolverState.LinkFlow[k] * (r + ml * q);
         hgrad  = r + 2.0 * ml * q;
     }
 
@@ -722,7 +757,7 @@ void DWpipecoeff(Project *pr, int k)
         dfdq = 0.0;
         f = frictionFactor(q, e, s, &dfdq);
         r1 = f * r + ml;
-        hloss = r1 * q * hyd->LinkFlow[k];
+        hloss = r1 * q * hyd->SolverState.LinkFlow[k];
         hgrad = (2.0 * r1 * q) + (dfdq * r * q * q);
     }
 
@@ -735,9 +770,9 @@ void DWpipecoeff(Project *pr, int k)
 double frictionFactor(double q, double e, double s, double *dfdq)
 /*
 **--------------------------------------------------------------
-**   Input:   q = |pipe flow|
-**            e = pipe roughness  / diameter
-**            s = viscosity * pipe diameter
+**   Input:   q = |pipe flow| in solver units
+**            e = pipe roughness / diameter (dimensionless)
+**            s = viscosity * pipe diameter in solver flow units
 **   Output:  dfdq = derivative of friction factor w.r.t. flow
 **   Returns: pipe's friction factor
 **   Purpose: computes Darcy-Weisbach friction factor and its
@@ -800,28 +835,35 @@ void  pumpcoeff(Project *pr, int k)
            n,                // Flow exponent coeff.
            setting,          // Pump speed setting
            hloss,            // Head loss across pump
-           hgrad;            // Head loss gradient
+           hgrad,            // Head loss gradient
+           rqtol,            // Minimum headloss gradient
+           smallgrad,        // Low-resistance regularization
+           biggrad;          // High-resistance regularization
     Spump  *pump;
 
+    rqtol = hyd->SolverModel.RQtol;
+    smallgrad = hyd->SolverModel.SmallGradient;
+    biggrad = hyd->SolverModel.BigGradient;
+
     // Use high resistance pipe if pump closed or cannot deliver head
-    setting = hyd->LinkSetting[k];
+    setting = hyd->SolverModel.LinkSetting[k];
     if (hyd->LinkStatus[k] <= CLOSED || setting == 0.0)
     {
-        hyd->P[k] = 1.0 / CBIG;
-        hyd->Y[k] = hyd->LinkFlow[k];
+        hyd->P[k] = 1.0 / biggrad;
+        hyd->Y[k] = hyd->SolverState.LinkFlow[k];
         return;
     }
 
     // Obtain reference to pump object
-    q = ABS(hyd->LinkFlow[k]);
+    q = ABS(hyd->SolverState.LinkFlow[k]);
     p = findpump(&pr->network, k);
     pump = &pr->network.Pump[p];
 
     // If no pump curve treat pump as an open valve
     if (pump->Ptype == NOCURVE)
     {
-        hyd->P[k] = 1.0 / CSMALL;
-        hyd->Y[k] = hyd->LinkFlow[k];
+        hyd->P[k] = 1.0 / smallgrad;
+        hyd->Y[k] = hyd->SolverState.LinkFlow[k];
         return;
     }
 
@@ -829,27 +871,27 @@ void  pumpcoeff(Project *pr, int k)
     // (Other pump types have pre-determined coeffs.)
     if (pump->Ptype == CUSTOM)
     {
-        // Find intercept (h0) & slope (r) of pump curve
-        // line segment which contains speed-adjusted flow.
-        curvecoeff(pr, pump->Hcurve, q / setting, &h0, &r);
-
-        // Determine head loss coefficients (negative sign
-        // converts from pump curve's head gain to head loss)
-        pump->H0 = -h0;
-        pump->R = -r;
+        // Custom pump curves are compiled into solver flow/head coordinates.
+        // Pump head curves are gains, while the GGA stores pump headloss, so
+        // reverse the compiled segment signs here.
+        solvercurvecoeff(pr, pump->Hcurve, q / setting, &h0, &r);
+        h0 = -h0;
+        r = -r;
         pump->N = 1.0;
 
-        // Compute head loss and its gradient (with speed adjustment)
-        hgrad = pump->R * setting ;
-        hloss = pump->H0 * SQR(setting) + hgrad * hyd->LinkFlow[k];
+        // Compute head loss and its gradient (with speed adjustment).
+        hgrad = r * setting;
+        hloss = h0 * SQR(setting) + hgrad * hyd->SolverState.LinkFlow[k];
     }
     else
     {
-        // Adjust head loss coefficients for pump speed
-        h0 = SQR(setting) * pump->H0;
+        // Non-custom pump coefficients are compiled into solver coordinates;
+        // only the dimensionless speed-law adjustment remains per iteration.
+        h0 = SQR(setting) * hyd->SolverModel.LinkPumpH0[k];
         n = pump->N;
         if (ABS(n - 1.0) < TINY) n = 1.0;
-        r = pump->R * pow(setting, 2.0 - n);
+        r = hyd->SolverModel.LinkPumpResistance[k] *
+            pow(setting, 2.0 - n);
         
         // Constant HP pump
         if (pump->Ptype == CONST_HP)
@@ -858,25 +900,25 @@ void  pumpcoeff(Project *pr, int k)
             hgrad = -r / q / q;
             
             // ... treat as closed link if gradient too large
-            if (hgrad > CBIG)
+            if (hgrad > biggrad)
             {
-                hyd->P[k] = 1.0 / CBIG;
-                hyd->Y[k] = hyd->LinkFlow[k];
+                hyd->P[k] = 1.0 / biggrad;
+                hyd->Y[k] = hyd->SolverState.LinkFlow[k];
                 return;
             }
             
             // ... treat as open valve if gradient too small
-            else if (hgrad < CSMALL)
+            else if (hgrad < smallgrad)
             {
-                hyd->P[k] = 1.0 / CSMALL;
-                hyd->Y[k] = hyd->LinkFlow[k];
+                hyd->P[k] = 1.0 / smallgrad;
+                hyd->Y[k] = hyd->SolverState.LinkFlow[k];
                 return;
             }    
 
             // ... otherwise compute head loss from pump curve
             else
             {
-                hloss = r / hyd->LinkFlow[k];
+                hloss = r / hyd->SolverState.LinkFlow[k];
             }
         }            
 
@@ -887,19 +929,19 @@ void  pumpcoeff(Project *pr, int k)
             // ... compute pump curve's gradient
             hgrad = n * r * pow(q, n - 1.0);
             // ... use linear pump curve if gradient too small
-            if (hgrad < hyd->RQtol)
+            if (hgrad < rqtol)
             {
-                hgrad = hyd->RQtol;
-                hloss = h0 + hgrad * hyd->LinkFlow[k];
+                hgrad = rqtol;
+                hloss = h0 + hgrad * hyd->SolverState.LinkFlow[k];
             }
             // ... otherwise compute head loss from pump curve
-            else hloss = h0 + hgrad * hyd->LinkFlow[k] / n;
+            else hloss = h0 + hgrad * hyd->SolverState.LinkFlow[k] / n;
         }
         // ... pump curve is linear
         else
         {
             hgrad = r;
-            hloss = h0 + hgrad * hyd->LinkFlow[k];
+            hloss = h0 + hgrad * hyd->SolverState.LinkFlow[k];
         }
     }
 
@@ -909,43 +951,37 @@ void  pumpcoeff(Project *pr, int k)
 }
 
 
-void  curvecoeff(Project *pr, int i, double q, double *h0, double *r)
+void  solvercurvecoeff(Project *pr, int i, double q, double *h0, double *r)
 /*
 **-------------------------------------------------------------------
 **   Input:   i   = curve index
-**            q   = flow rate
-**   Output:  *h0  = head at zero flow (y-intercept)
-**            *r  = dHead/dFlow (slope)
-**   Purpose: computes intercept and slope of head v. flow curve
-**            at current flow.
+**            q   = flow rate in solver units
+**   Output:  *h0 = head at zero flow in solver head units
+**            *r  = dHead/dFlow in solver units
+**   Purpose: selects a segment from a compiled solver-space curve
 **-------------------------------------------------------------------
 */
 {
-    int   k1, k2, npts;
-    double *x, *y;
-    Scurve *curve;
+    int k1, k2, npts;
+    ShydSolverCurve *curve = &pr->hydraul.SolverModel.Curve[i];
 
-    // Remember that curve is stored in untransformed units
-    q *= pr->Ucf[FLOW];
-    curve = &pr->network.Curve[i];
-    x = curve->X;                      // x = flow
-    y = curve->Y;                      // y = head
     npts = curve->Npts;
+    if (npts < 2)
+    {
+        *h0 = 0.0;
+        *r = 0.0;
+        return;
+    }
 
-    // Find linear segment of curve that brackets flow q
+    // Find linear segment of curve that brackets solver flow q.
     k2 = 0;
-    while (k2 < npts && x[k2] < q) k2++;
+    while (k2 < npts && curve->X[k2] < q) k2++;
     if (k2 == 0) k2++;
-    else if (k2 == npts)  k2--;
+    else if (k2 == npts) k2--;
     k1 = k2 - 1;
 
-    // Compute slope and intercept of this segment
-    *r = (y[k2] - y[k1]) / (x[k2] - x[k1]);
-    *h0 = y[k1] - (*r)*x[k1];
-
-    // Convert units
-    *h0 = (*h0) / pr->Ucf[HEAD];
-    *r = (*r) * pr->Ucf[FLOW] / pr->Ucf[HEAD];
+    *h0 = curve->H0[k1];
+    *r = curve->R[k1];
 }
 
 
@@ -961,7 +997,9 @@ void  gpvcoeff(Project *pr, int k)
     int    i;
     double h0,        // Intercept of head loss curve segment
            r,         // Slope of head loss curve segment
-           q;         // Abs. value of flow
+           q,         // Abs. value of flow
+           qmin,      // Minimum dimensional flow mapped to solver units
+           rmin;      // Minimum dimensional curve slope in solver units
 
     Hydraul *hyd = &pr->hydraul;
 
@@ -974,19 +1012,22 @@ void  gpvcoeff(Project *pr, int k)
     else
     {
         // Index of valve's head loss curve
-        i = (int)ROUND(hyd->LinkSetting[k]);
+        i = (int)ROUND(hyd->SolverModel.LinkSetting[k]);
 
-        // Adjusted flow rate
-        q = ABS(hyd->LinkFlow[k]);
-        q = MAX(q, TINY);
+        // Adjusted flow rate. TINY historically means an internal cfs flow
+        // here, so preserve that physical threshold under solver scaling.
+        qmin = hyd->SolverModel.TinyFlow;
+        q = ABS(hyd->SolverState.LinkFlow[k]);
+        q = MAX(q, qmin);
 
-        // Intercept and slope of curve segment containing q
-        curvecoeff(pr, i, q, &h0, &r);
-        r = MAX(r, TINY);
+        // GPV flow/head curves are already compiled into solver coordinates.
+        solvercurvecoeff(pr, i, q, &h0, &r);
+        rmin = hyd->SolverModel.TinyGradient;
+        r = MAX(r, rmin);
 
         // Resulting P and Y coeffs.
         hyd->P[k] = 1.0 / r;
-        hyd->Y[k] = (h0 / r + q) * SGN(hyd->LinkFlow[k]);
+        hyd->Y[k] = (h0 / r + q) * SGN(hyd->SolverState.LinkFlow[k]);
     }
 }
 
@@ -1001,10 +1042,11 @@ void  pbvcoeff(Project *pr, int k)
 */
 {
     Hydraul *hyd = &pr->hydraul;
-    Slink *link = &pr->network.Link[k];
+    double hset, km, bigconductance;
 
     // If valve fixed OPEN or CLOSED then treat as a pipe
-    if (hyd->LinkSetting[k] == MISSING || hyd->LinkSetting[k] == 0.0)
+    if (hyd->SolverModel.LinkSetting[k] == MISSING ||
+        hyd->SolverModel.LinkSetting[k] == 0.0)
     {
         valvecoeff(pr, k);
     }
@@ -1012,16 +1054,24 @@ void  pbvcoeff(Project *pr, int k)
     // If valve is active
     else
     {
+        // PBV setting and base minor-loss coefficient are both compiled at
+        // their mutation/model boundaries.
+        hset = hyd->SolverModel.LinkSetting[k];
+        km = hyd->SolverModel.LinkMinorLoss[k];
+
         // Treat as a pipe if minor loss > valve setting
-        if (link->Km * SQR(hyd->LinkFlow[k]) > hyd->LinkSetting[k])
+        if (km * SQR(hyd->SolverState.LinkFlow[k]) > hset)
         {
             valvecoeff(pr, k);
         }
         // Otherwise force headloss across valve to be equal to setting
         else
         {
-            hyd->P[k] = CBIG;
-            hyd->Y[k] = hyd->LinkSetting[k] * CBIG;
+            // P is a flow/head conductance, so scale the legacy forcing
+            // coefficient as a conductance rather than as a resistance.
+            bigconductance = hyd->SolverModel.BigConductance;
+            hyd->P[k] = bigconductance;
+            hyd->Y[k] = hset * bigconductance;
         }
     }
 }
@@ -1036,24 +1086,17 @@ void  tcvcoeff(Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    double km;
     Hydraul *hyd = &pr->hydraul;
-    Slink *link = &pr->network.Link[k];
 
-    // Save original loss coeff. for open valve
-    km = link->Km;
-
-    // If valve not fixed OPEN or CLOSED, compute its loss coeff.
-    if (hyd->LinkSetting[k] != MISSING)
+    // Fixed-open/closed TCVs use the compiled base minor-loss coefficient.
+    if (hyd->SolverModel.LinkSetting[k] == MISSING)
     {
-        link->Km = 0.02517 * hyd->LinkSetting[k] / (SQR(link->Diam)*SQR(link->Diam));
+        valvecoeff(pr, k);
+        return;
     }
 
-    // Then apply usual valve formula
-    valvecoeff(pr, k);
-
-    // Restore original loss coeff.
-    link->Km = km;
+    // Throttled TCV loss is compiled once when its setting or diameter changes.
+    valvecoeffwithloss(pr, k, hyd->SolverModel.LinkDynamicLoss[k]);
 }
 
 
@@ -1066,24 +1109,17 @@ void  pcvcoeff(Project *pr, int k)
 **--------------------------------------------------------------
 */
 {
-    double km;
     Hydraul *hyd = &pr->hydraul;
-    Slink *link = &pr->network.Link[k];
 
-    // Save original loss coeff. for open valve
-    km = link->Km;
-
-    // If valve not fixed OPEN or CLOSED, compute its loss coeff.
-    if (hyd->LinkSetting[k] != MISSING)
+    // Fixed-open/closed PCVs use the compiled base minor-loss coefficient.
+    if (hyd->SolverModel.LinkSetting[k] == MISSING)
     {
-        link->Km = link->R;
+        valvecoeff(pr, k);
+        return;
     }
 
-    // Then apply usual valve formula
-    valvecoeff(pr, k);
-
-    // Restore original loss coeff.
-    link->Km = km;
+    // Position-dependent loss is compiled when the valve setting changes.
+    valvecoeffwithloss(pr, k, hyd->SolverModel.LinkDynamicLoss[k]);
 }
 
 
@@ -1103,12 +1139,12 @@ void  prvcoeff(Project *pr, int k, int n1, int n2)
     Smatrix *sm = &hyd->smatrix;
 
     int   i, j;                        // Rows of solution matrix
-    double hset;                       // Valve head setting
+    double hset,                       // Valve head setting
+           bigconductance;             // Head-forcing matrix conductance
 
     i = sm->Row[n1];                  // Matrix rows of nodes
     j = sm->Row[n2];
-    hset = pr->network.Node[n2].El +
-           hyd->LinkSetting[k];        // Valve setting
+    hset = hyd->SolverModel.LinkSetting[k]; // Compiled downstream target grade
 
     if (hyd->LinkStatus[k] == ACTIVE)
     {
@@ -1117,10 +1153,11 @@ void  prvcoeff(Project *pr, int k, int n1, int n2)
         // node equal to valve setting & force flow
         // to equal to flow excess at downstream node.
 
+        bigconductance = hyd->SolverModel.BigConductance;
         hyd->P[k] = 0.0;
-        hyd->Y[k] = hyd->LinkFlow[k] + hyd->Xflow[n2];   // Force flow balance
-        sm->F[j] += (hset * CBIG);                        // Force head = hset
-        sm->Aii[j] += CBIG;                               // at downstream node
+        hyd->Y[k] = hyd->SolverState.LinkFlow[k] + hyd->Xflow[n2];   // Force flow balance
+        sm->F[j] += (hset * bigconductance);              // Force head = hset
+        sm->Aii[j] += bigconductance;                     // at downstream node
         if (hyd->Xflow[n2] < 0.0)
         {
             sm->F[i] += hyd->Xflow[n2];
@@ -1135,8 +1172,8 @@ void  prvcoeff(Project *pr, int k, int n1, int n2)
     sm->Aij[sm->Ndx[k]] -= hyd->P[k];
     sm->Aii[i] += hyd->P[k];
     sm->Aii[j] += hyd->P[k];
-    sm->F[i] += (hyd->Y[k] - hyd->LinkFlow[k]);
-    sm->F[j] -= (hyd->Y[k] - hyd->LinkFlow[k]);
+    sm->F[i] += (hyd->Y[k] - hyd->SolverState.LinkFlow[k]);
+    sm->F[j] -= (hyd->Y[k] - hyd->SolverState.LinkFlow[k]);
 }
 
 
@@ -1156,12 +1193,13 @@ void  psvcoeff(Project *pr, int k, int n1, int n2)
     Smatrix *sm = &hyd->smatrix;
 
     int   i, j;                        // Rows of solution matrix
-    double hset;                       // Valve head setting
+    double hset,                       // Valve head setting
+           bigconductance,             // Head-forcing matrix conductance
+           smallconductance;           // Connectivity-preserving conductance
 
     i = sm->Row[n1];                   // Matrix rows of nodes
     j = sm->Row[n2];
-    hset = pr->network.Node[n1].El +
-           hyd->LinkSetting[k];        // Valve setting
+    hset = hyd->SolverModel.LinkSetting[k]; // Compiled upstream target grade
 
     if (hyd->LinkStatus[k] == ACTIVE)
     {
@@ -1169,16 +1207,18 @@ void  psvcoeff(Project *pr, int k, int n1, int n2)
         // node equal to valve setting & force flow
         // equal to flow excess at upstream node.
 
+        bigconductance = hyd->SolverModel.BigConductance;
+        smallconductance = hyd->SolverModel.SmallConductance;
         hyd->P[k] = 0.0;
-        hyd->Y[k] = hyd->LinkFlow[k] - hyd->Xflow[n1];   // Force flow balance
-        sm->F[i] += (hset * CBIG);                        // Force head = hset
-        sm->Aii[i] += CBIG;                               // at upstream node
+        hyd->Y[k] = hyd->SolverState.LinkFlow[k] - hyd->Xflow[n1];   // Force flow balance
+        sm->F[i] += (hset * bigconductance);              // Force head = hset
+        sm->Aii[i] += bigconductance;                     // at upstream node
         if (hyd->Xflow[n1] > 0.0)
         {
             sm->F[j] += hyd->Xflow[n1];
         }
-        sm->Aij[sm->Ndx[k]] -= 1.0 / CBIG;             // Preserve connectivity
-        sm->Aii[j] += 1.0 / CBIG;
+        sm->Aij[sm->Ndx[k]] -= smallconductance;       // Preserve connectivity
+        sm->Aii[j] += smallconductance;
         return;
     }
 
@@ -1189,8 +1229,8 @@ void  psvcoeff(Project *pr, int k, int n1, int n2)
     sm->Aij[sm->Ndx[k]] -= hyd->P[k];
     sm->Aii[i] += hyd->P[k];
     sm->Aii[j] += hyd->P[k];
-    sm->F[i] += (hyd->Y[k] - hyd->LinkFlow[k]);
-    sm->F[j] -= (hyd->Y[k] - hyd->LinkFlow[k]);
+    sm->F[i] += (hyd->Y[k] - hyd->SolverState.LinkFlow[k]);
+    sm->F[j] -= (hyd->Y[k] - hyd->SolverState.LinkFlow[k]);
 }
 
 
@@ -1210,9 +1250,10 @@ void  fcvcoeff(Project *pr, int k, int n1, int n2)
     Smatrix *sm = &hyd->smatrix;
 
     int   i, j;                   // Rows in solution matrix
-    double q;                     // Valve flow setting
+    double q,                      // Valve flow setting
+           smallconductance;       // Connectivity-preserving conductance
 
-    q = hyd->LinkSetting[k];
+    q = hyd->SolverModel.LinkSetting[k];
     i = sm->Row[n1];
     j = sm->Row[n2];
 
@@ -1224,10 +1265,11 @@ void  fcvcoeff(Project *pr, int k, int n1, int n2)
     {
         hyd->Xflow[n1] -= q;
         hyd->Xflow[n2] += q;
-        hyd->Y[k] = hyd->LinkFlow[k] - q;
+        hyd->Y[k] = hyd->SolverState.LinkFlow[k] - q;
         sm->F[i] -= q;
         sm->F[j] += q;
-        hyd->P[k] = 1.0 / CBIG;
+        smallconductance = hyd->SolverModel.SmallConductance;
+        hyd->P[k] = smallconductance;
         sm->Aij[sm->Ndx[k]] -= hyd->P[k];
         sm->Aii[i] += hyd->P[k];
         sm->Aii[j] += hyd->P[k];
@@ -1241,8 +1283,8 @@ void  fcvcoeff(Project *pr, int k, int n1, int n2)
         sm->Aij[sm->Ndx[k]] -= hyd->P[k];
         sm->Aii[i] += hyd->P[k];
         sm->Aii[j] += hyd->P[k];
-        sm->F[i] += (hyd->Y[k] - hyd->LinkFlow[k]);
-        sm->F[j] -= (hyd->Y[k] - hyd->LinkFlow[k]);
+        sm->F[i] += (hyd->Y[k] - hyd->SolverState.LinkFlow[k]);
+        sm->F[j] -= (hyd->Y[k] - hyd->SolverState.LinkFlow[k]);
     }
 }
 
@@ -1253,35 +1295,54 @@ void valvecoeff(Project *pr, int k)
 **   Input:   k    = link index
 **   Output:  none
 **   Purpose: computes solution matrix coeffs. for a completely
-**            open, closed, or throttled control valve.
+**            open or closed control valve using its compiled
+**            base minor-loss coefficient.
+**--------------------------------------------------------------
+*/
+{
+    valvecoeffwithloss(pr, k, pr->hydraul.SolverModel.LinkMinorLoss[k]);
+}
+
+
+static void valvecoeffwithloss(Project *pr, int k, double km)
+/*
+**--------------------------------------------------------------
+**   Input:   k  = link index
+**            km = quadratic minor-loss coefficient in solver units
+**   Output:  none
+**   Purpose: evaluates the generic valve headloss relation. Dynamic
+**            valve types can provide a setting-dependent loss without
+**            mutating the dimensional network model.
 **--------------------------------------------------------------
 */
 {
     Hydraul *hyd = &pr->hydraul;
-    Slink *link = &pr->network.Link[k];
 
-    double flow, q, hloss, hgrad;
+    double flow, q, hloss, hgrad, rqtol, smallgrad, biggrad;
 
-    flow = hyd->LinkFlow[k];
+    flow = hyd->SolverState.LinkFlow[k];
+    rqtol = hyd->SolverModel.RQtol;
+    smallgrad = hyd->SolverModel.SmallGradient;
+    biggrad = hyd->SolverModel.BigGradient;
 
     // Valve is closed. Use a very small matrix coeff.
     if (hyd->LinkStatus[k] <= CLOSED)
     {
-        hyd->P[k] = 1.0 / CBIG;
+        hyd->P[k] = 1.0 / biggrad;
         hyd->Y[k] = flow;
         return;
     }
 
     // Account for any minor headloss through the valve
-    if (link->Km > 0.0)
+    if (km > 0.0)
     {
         q = fabs(flow);
-        hgrad = 2.0 * link->Km * q;
+        hgrad = 2.0 * km * q;
         
         // Guard against too small a head loss gradient
-        if (hgrad < hyd->RQtol)
+        if (hgrad < rqtol)
         {
-            hgrad = hyd->RQtol / 2.0;
+            hgrad = rqtol / 2.0;
             hloss = flow * hgrad;
         }
         else hloss = flow * hgrad / 2.0;        
@@ -1295,7 +1356,7 @@ void valvecoeff(Project *pr, int k)
     // low resistance linear head loss relation
     else
     {
-        hyd->P[k] = 1.0 / CSMALL;
+        hyd->P[k] = 1.0 / smallgrad;
         hyd->Y[k] = flow;
     }
 }

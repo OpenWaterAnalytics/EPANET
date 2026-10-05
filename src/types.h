@@ -737,6 +737,105 @@ typedef struct {
 
 } Smatrix;
 
+// Hydraulic Solver Scaling
+// Maps solver values to EPANET's dimensional internal representation:
+//   H_internal = H_solver * Head
+//   Q_internal = Q_solver * Flow
+// Update Head/Flow through sethydraulicsolverscale() so cached powers stay valid.
+typedef struct {
+
+  double
+    Head,                  // Dimensional head per solver head unit
+    Flow,                  // Dimensional flow per solver flow unit
+    FlowPower1,            // Flow^1 used by linear resistance scaling
+    FlowPower2,            // Flow^2 used by quadratic resistance scaling
+    FlowPowerHexp;         // Flow^Hexp used by pipe resistance scaling
+
+} ShydScale;
+
+// Compiled Hydraulic Solver Curve
+// Flow breakpoints plus piecewise-linear head intercepts/slopes, all in solver
+// coordinates. Segment coefficients retain the legacy curve arithmetic and are
+// only rebuilt when curve data or solver scaling changes. Whole-model
+// compilation populates only pump head and GPV headloss curves.
+typedef struct {
+
+  int Npts,                  // Number of source curve points
+      Capacity;              // Number of points allocated in X/H0/R
+  double
+    *X,                      // Flow breakpoints in solver flow units
+    *H0,                     // Segment head intercepts in solver head units
+    *R;                      // Segment slopes in solver head/flow units
+
+} ShydSolverCurve;
+
+// Compiled Hydraulic Solver Model
+// Dimensional model inputs transformed at the solver boundary. The GGA consumes
+// these values directly; Toolkit/control mutations refresh the affected compiled
+// entries before they can be used by the numerical core.
+typedef struct {
+
+  double
+    *NodeElevation,        // Node elevations in solver head units
+    *NodeEmitterResistance,// Emitter headloss coeffs. in solver units
+    *NodePdaMinGrade,      // Elevation + Pmin in solver head units
+    *LinkResistance,       // Pipe resistance in solver head/flow units
+    *LinkMinorLoss,        // Base link minor-loss coeffs. in solver units
+    *LinkViscosityFlow,    // Viscosity * diameter in solver flow units
+    *LinkSetting,          // Dynamic link settings in solver coordinates
+    *LinkDynamicLoss,      // Setting-dependent TCV/PCV loss in solver units
+    *LinkPumpH0,           // Base pump shutoff-head coeff. in solver units
+    *LinkPumpResistance,   // Base pump flow coeff. in solver units
+    *LinkPumpMaxHead,      // Speed-adjusted pump max head in solver units
+    *ControlGrade;         // Simple-control trigger grades in solver units
+  ShydSolverCurve
+    *Curve;                 // Compiled curve data indexed by network curve
+  int
+    CurveCapacity,          // Highest curve index allocated in Curve[]
+    ControlCapacity;        // Highest control index allocated in ControlGrade[]
+  double
+    CurveHeadScale,        // Head scale used by compiled curves
+    CurveFlowScale,        // Flow scale used by compiled curves
+    CurveHeadUcf,          // Head unit factor used by compiled curves
+    CurveFlowUcf,          // Flow unit factor used by compiled curves
+    Htol,                  // Head tolerance in solver head units
+    Qtol,                  // Flow tolerance in solver flow units
+    RQtol,                 // Min. headloss gradient in solver units
+    Pmin,                  // Minimum demand pressure in solver head units
+    Preq,                  // Required demand pressure in solver head units
+    PdaPressureRange,      // PDA pressure range in solver head units
+    FlowChangeLimit,       // Absolute flow-change limit in solver flow units
+    HeadErrorLimit,        // Head-error limit in solver head units
+    RelativeErrorFlowCutoff,// Legacy Hacc flow cutoff in solver flow units
+    TinyFlow,              // Legacy TINY flow threshold in solver units
+    LegacyFlowTolerance,  // Legacy 0.0001 cfs convergence tolerance
+    BigHead,               // BIG head sentinel in solver head units
+    TinyGradient,          // TINY linear resistance in solver units
+    SmallGradient,         // CSMALL linear resistance in solver units
+    BigGradient,           // CBIG linear resistance in solver units
+    BigConductance,        // CBIG conductance in solver units
+    SmallConductance,      // 1/CBIG conductance in solver units
+    BarrierGradient,       // Smooth flow-barrier gradient scale in solver units
+    BarrierSmoothingHead;  // Smooth flow-barrier epsilon in solver head units
+
+} ShydSolverModel;
+
+// Hydraulic Solver State
+// State used only while the GGA is iterating. Values here are in solver
+// units; Hydraul.NodeHead/LinkFlow/etc. remain in dimensional EPANET units.
+typedef struct {
+
+  double
+    *NodeHead,             // Numerical solver heads
+    *NodeDemand,           // Numerical solver total node outflows
+    *FullDemand,           // Numerical solver required consumer demands
+    *DemandFlow,           // Numerical solver consumer demand flows
+    *EmitterFlow,          // Numerical solver emitter flows
+    *LeakageFlow,          // Numerical solver leakage flows
+    *LinkFlow;             // Numerical solver link flows
+
+} ShydSolverState;
+
 // Hydraulics Solver Wrapper
 typedef struct {
 
@@ -804,6 +903,15 @@ typedef struct {
 
   SflowBalance
     FlowBalance;           // Flow balance components
+
+  ShydScale
+    SolverScale;           // Numerical scaling for hydraulic solver
+
+  ShydSolverModel
+    SolverModel;           // Compiled numerical hydraulic model
+
+  ShydSolverState
+    SolverState;           // Numerical hydraulic state
 
   Smatrix smatrix;         // Sparse matrix storage
 

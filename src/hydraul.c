@@ -59,11 +59,16 @@ int  openhyd(Project *pr)
     errcode = validateproject(pr);
     if (errcode > 0) return errcode;
 
+    // Choose numerical head/flow scales from the validated physical model.
+    inithydraulicscaling(pr);
+
     // Allocate memory for sparse matrix structures (see SMATRIX.C)
     ERRCODE(createsparse(pr));
 
-    // Allocate memory for hydraulic variables
+    // Allocate memory for hydraulic variables and compiled solver model
     ERRCODE(allocmatrix(pr));
+    ERRCODE(allochydraulicsolvermodel(pr));
+    if (!errcode) ERRCODE(compilehydraulicsolvermodel(pr));
     
     // Check for unconnected nodes
     ERRCODE(unlinked(pr));
@@ -254,7 +259,9 @@ int  nexthyd(Project *pr, long *tstep)
     long  hydstep;         // Actual time step
     int   errcode = 0;     // Error code
 
-    // Compute current power and efficiency of all pumps
+    // Hydraulic solves publish dimensional head/flow results before nexthyd()
+    // is called. Energy calculations intentionally consume that physical state,
+    // never the numerically scaled SolverState.
     getallpumpsenergy(pr);
 
     // Save current results to hydraulics file and
@@ -309,6 +316,7 @@ void  closehyd(Project *pr)
 {
     freesparse(pr);
     freematrix(pr);
+    freehydraulicsolvermodel(pr);
     freeadjlists(&pr->network);
 }
 
@@ -331,11 +339,32 @@ int  allocmatrix(Project *pr)
     hyd->Y   = (double *) calloc(net->Nlinks+1,sizeof(double));
     hyd->Xflow = (double *) calloc(MAX((net->Nnodes+1), (net->Nlinks+1)),
                                    sizeof(double));
+    hyd->SolverState.NodeHead =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.NodeDemand =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.FullDemand =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.DemandFlow =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.EmitterFlow =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.LeakageFlow =
+        (double *) calloc(net->Nnodes+1, sizeof(double));
+    hyd->SolverState.LinkFlow =
+        (double *) calloc(net->Nlinks+1, sizeof(double));
     hyd->OldStatus = (StatusType *) calloc(net->Nlinks+net->Ntanks+1,
                                            sizeof(StatusType));
     ERRCODE(MEMCHECK(hyd->P));
     ERRCODE(MEMCHECK(hyd->Y));
     ERRCODE(MEMCHECK(hyd->Xflow));
+    ERRCODE(MEMCHECK(hyd->SolverState.NodeHead));
+    ERRCODE(MEMCHECK(hyd->SolverState.NodeDemand));
+    ERRCODE(MEMCHECK(hyd->SolverState.FullDemand));
+    ERRCODE(MEMCHECK(hyd->SolverState.DemandFlow));
+    ERRCODE(MEMCHECK(hyd->SolverState.EmitterFlow));
+    ERRCODE(MEMCHECK(hyd->SolverState.LeakageFlow));
+    ERRCODE(MEMCHECK(hyd->SolverState.LinkFlow));
     ERRCODE(MEMCHECK(hyd->OldStatus));
     return errcode;
 }
@@ -355,7 +384,21 @@ void  freematrix(Project *pr)
     free(hyd->P);
     free(hyd->Y);
     free(hyd->Xflow);
+    free(hyd->SolverState.NodeHead);
+    free(hyd->SolverState.NodeDemand);
+    free(hyd->SolverState.FullDemand);
+    free(hyd->SolverState.DemandFlow);
+    free(hyd->SolverState.EmitterFlow);
+    free(hyd->SolverState.LeakageFlow);
+    free(hyd->SolverState.LinkFlow);
     free(hyd->OldStatus);
+    hyd->SolverState.NodeHead = NULL;
+    hyd->SolverState.NodeDemand = NULL;
+    hyd->SolverState.FullDemand = NULL;
+    hyd->SolverState.DemandFlow = NULL;
+    hyd->SolverState.EmitterFlow = NULL;
+    hyd->SolverState.LeakageFlow = NULL;
+    hyd->SolverState.LinkFlow = NULL;
 }
 
 
@@ -430,6 +473,10 @@ void  setlinkstatus(Project *pr, int index, char value, StatusType *s, double *k
          if (t > PUMP && t != GPV) *k = MISSING;
          *s = CLOSED;
      }
+
+    // Keep the solver-ready dynamic setting synchronized with the
+    // dimensional compatibility state.
+    compilehydraulicsolversetting(pr, index);
 }
 
 
@@ -478,6 +525,10 @@ void  setlinksetting(Project *pr, int index, double value, StatusType *s,
         if (t == PCV) link->R = pcvlosscoeff(pr, index, value);
         *k = value;
     }
+
+    // Dynamic settings cross the dimensional -> solver boundary here rather
+    // than inside coefficient/status iteration loops.
+    compilehydraulicsolversetting(pr, index);
 }
 
 
@@ -636,6 +687,7 @@ int  controls(Project *pr)
                 hyd->LinkStatus[k] = s2;
                 hyd->LinkSetting[k] = k2;
                 if (link->Type == PCV) link->R = pcvlosscoeff(pr, k, k2);
+                compilehydraulicsolversetting(pr, k);
                 if (pr->report.Statflag) writecontrolaction(pr,k,i);
                 setsum++;
             }
@@ -699,7 +751,7 @@ int  tanktimestep(Project *pr, long *tstep)
     Hydraul *hyd = &pr->hydraul;
 
     int     i, n, tankIdx = 0;
-    double  h, q, v, xt;
+    double  tankHead, tankFlow, volume, fillTime;
     long    t;
     Stank   *tank;
 
@@ -710,21 +762,24 @@ int  tanktimestep(Project *pr, long *tstep)
         tank = &net->Tank[i];
         if (tank->A == 0.0) continue;
 
-        // Get current tank grade (h) & inflow (q)
+        // Tank/event simulation state is dimensional. hydsolve() publishes
+        // solver results back to these arrays before timestep() is called.
         n = tank->Node;
-        h = hyd->NodeHead[n];
-        q = hyd->NodeDemand[n];
-        if (ABS(q) <= QZERO) continue;
+        tankHead = hyd->NodeHead[n];
+        tankFlow = hyd->NodeDemand[n];
+        if (ABS(tankFlow) <= QZERO) continue;
 
-        // Find volume to fill/drain tank
-        if      (q > 0.0 && h < tank->Hmax) v = tank->Vmax - tank->V;
-        else if (q < 0.0 && h > tank->Hmin) v = tank->Vmin - tank->V;
+        // Find dimensional volume required to fill/drain the tank.
+        if (tankFlow > 0.0 && tankHead < tank->Hmax)
+            volume = tank->Vmax - tank->V;
+        else if (tankFlow < 0.0 && tankHead > tank->Hmin)
+            volume = tank->Vmin - tank->V;
         else continue;
 
-        // Find time to fill/drain tank
-        xt = v / q;
-        if (ABS(xt) > *tstep + 1) continue;
-        t = (long)ROUND(xt);
+        // volume / flow gives physical elapsed time (seconds).
+        fillTime = volume / tankFlow;
+        if (ABS(fillTime) > *tstep + 1) continue;
+        t = (long)ROUND(fillTime);
         if (t > 0 && t < *tstep)
         {
             *tstep = t;
@@ -749,7 +804,7 @@ int  controltimestep(Project *pr, long *tstep)
     Hydraul *hyd = &pr->hydraul;
 
     int    i, j, k, n, controlIndex = 0;
-    double h, q, v;
+    double tankHead, tankFlow, volume;
     long   t, t1, t2;
     Slink  *link;
     Scontrol *control;
@@ -769,18 +824,20 @@ int  controltimestep(Project *pr, long *tstep)
             // Skip node if not a tank or reservoir
             if ((j = n - net->Njuncs) <= 0) continue;
 
-            // Find current head and flow into tank
-            h = hyd->NodeHead[n];
-            q = hyd->NodeDemand[n];
-            if (ABS(q) <= QZERO) continue;
+            // Controls outside the GGA use dimensional tank head and inflow.
+            tankHead = hyd->NodeHead[n];
+            tankFlow = hyd->NodeDemand[n];
+            if (ABS(tankFlow) <= QZERO) continue;
 
-            // Find time to reach upper or lower control level
-           if ( (h < control->Grade && control->Type == HILEVEL && q > 0.0)
-           ||   (h > control->Grade && control->Type == LOWLEVEL && q < 0.0) )
-           {
-               v = tankvolume(pr, j, control->Grade) - net->Tank[j].V;
-               t = (long)ROUND(v/q);
-           }
+            // Find time to reach upper or lower control level.
+            if ((tankHead < control->Grade && control->Type == HILEVEL &&
+                 tankFlow > 0.0) ||
+                (tankHead > control->Grade && control->Type == LOWLEVEL &&
+                 tankFlow < 0.0))
+            {
+                volume = tankvolume(pr, j, control->Grade) - net->Tank[j].V;
+                t = (long)ROUND(volume / tankFlow);
+            }
         }
 
         // Control is based on elapsed time
@@ -983,10 +1040,10 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
 
     int    i,       // efficiency curve index
            j;       // pump index
-    double dh,      // head across pump (ft)
-           q,       // flow through pump (cfs)
-           e;       // pump efficiency
-    double q4eff;   // flow at nominal pump speed of 1.0
+    double headChange,    // dimensional head across link (ft)
+           flow,          // dimensional flow through link (cfs)
+           e;             // pump efficiency
+    double nominalFlow;    // dimensional flow at nominal pump speed of 1.0
     double speed;   // current speed setting
     Scurve *curve;
     Slink  *link = &net->Link[k];
@@ -999,9 +1056,11 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
         return;
     }
 
-    // Determine flow and head difference
-    q = ABS(hyd->LinkFlow[k]);
-    dh = ABS(hyd->NodeHead[link->N1] - hyd->NodeHead[link->N2]);
+    // Energy remains on EPANET's dimensional internal-unit contract. These
+    // values are populated from SolverState by savehydraulicsolverstate() at
+    // the end of hydsolve(). Do not read SolverState directly here.
+    flow = ABS(hyd->LinkFlow[k]);
+    headChange = ABS(hyd->NodeHead[link->N1] - hyd->NodeHead[link->N2]);
 
     // For pumps, find effic. at current flow
     if (link->Type == PUMP)
@@ -1011,9 +1070,9 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
         speed = hyd->LinkSetting[k];
         if ((i = net->Pump[j].Ecurve) > 0)
         {
-            q4eff = q / speed * pr->Ucf[FLOW];
+            nominalFlow = flow / speed * pr->Ucf[FLOW];
             curve = &net->Curve[i];
-            e = interp(curve->Npts,curve->X, curve->Y, q4eff);
+            e = interp(curve->Npts,curve->X, curve->Y, nominalFlow);
 
             // Sarbu and Borza pump speed adjustment
             e = 100.0 - ((100.0-e) * pow(1.0/speed, 0.1));
@@ -1025,7 +1084,9 @@ void  getenergy(Project *pr, int k, double *kw, double *eff)
     else e = 1.0;
 
     // Compute energy
-    *kw = dh * q * hyd->SpGrav / 8.814 / e * KWperHP;
+    // The 8.814 factor belongs to this dimensional energy calculation
+    // (ft, cfs, specific gravity); it is not part of the hydraulic solver.
+    *kw = headChange * flow * hyd->SpGrav / 8.814 / e * KWperHP;
     *eff = e;
 }
 
@@ -1065,18 +1126,19 @@ void  tanklevels(Project *pr, long tstep)
     Hydraul *hyd = &pr->hydraul;
 
     int    i, n;
-    double dv;
+    double volumeChange;
 
     for (i = 1; i <= net->Ntanks; i++)
     {
         Stank *tank = &net->Tank[i];
         if (tank->A == 0.0) continue;    // Skip reservoirs
 
-        // Update the tank's volume & water elevation
+        // Tank volume integration stays in dimensional simulation state:
+        // physical flow multiplied by seconds produces physical volume.
         n = tank->Node;
         if (ABS(hyd->NodeDemand[n]) <= QZERO) continue;
-        dv = hyd->NodeDemand[n] * tstep;
-        tank->V += dv;
+        volumeChange = hyd->NodeDemand[n] * tstep;
+        tank->V += volumeChange;
 
         // Check if tank full/empty within next second
         if (tank->V + hyd->NodeDemand[n] >= tank->Vmax)
