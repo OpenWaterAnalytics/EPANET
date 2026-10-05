@@ -141,6 +141,11 @@ BOOST_AUTO_TEST_CASE(global_and_node_inputs_use_compiled_solver_model)
 
     BOOST_CHECK(hydcoeffs.find("hydresistancetosolver(pr, hyd->RQtol, 1.0)") ==
         std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("hyd->SolverModel.BigConductance") !=
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("hyd->SolverModel.SmallConductance") !=
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("hydconductancetosolver") == std::string::npos);
     BOOST_CHECK(hydstatus.find("hydheadtosolver(pr, hyd->Htol)") ==
         std::string::npos);
     BOOST_CHECK(hydstatus.find("hydflowtosolver(pr, hyd->Qtol)") ==
@@ -150,20 +155,25 @@ BOOST_AUTO_TEST_CASE(global_and_node_inputs_use_compiled_solver_model)
 }
 
 
-BOOST_AUTO_TEST_CASE(dimensions_enter_solver_through_scaling_helpers)
+BOOST_AUTO_TEST_CASE(remaining_dynamic_and_link_inputs_use_scaling_helpers)
 {
     const std::string hydsolver = read_source("src/hydsolver.c");
     const std::string hydcoeffs = read_source("src/hydcoeffs.c");
     const std::string hydstatus = read_source("src/hydstatus.c");
 
+    // Control grades remain dynamic dimensional inputs at this stage, while
+    // global flow tolerances have moved to the compiled solver model.
     BOOST_CHECK(hydsolver.find("hydheadtosolver") != std::string::npos);
-    BOOST_CHECK(hydsolver.find("hydflowtosolver") != std::string::npos);
+    BOOST_CHECK(hydsolver.find("hydflowtosolver") == std::string::npos);
 
+    // Link coefficients/settings are intentionally left for the next
+    // compilation stages.  Their remaining dimensional inputs must still
+    // cross the solver boundary through the explicit scaling helpers.
     BOOST_CHECK(hydcoeffs.find("hydheadtosolver") != std::string::npos);
     BOOST_CHECK(hydcoeffs.find("hydflowtosolver") != std::string::npos);
     BOOST_CHECK(hydcoeffs.find("hydresistancetosolver") != std::string::npos);
-    BOOST_CHECK(hydcoeffs.find("hydconductancetosolver") != std::string::npos);
     BOOST_CHECK(hydcoeffs.find("hydminorlosstosolver") != std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("hydconductancetosolver") == std::string::npos);
 
     BOOST_CHECK(hydstatus.find("hydheadtosolver") != std::string::npos);
     BOOST_CHECK(hydstatus.find("hydflowtosolver") != std::string::npos);
