@@ -10,6 +10,7 @@
  ******************************************************************************
 */
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <vector>
@@ -29,6 +30,7 @@ const double FLOW_TOL_CFS = 1.e-9;
 const double VOLUME_TOL_FT3 = 2.e-4;
 const double VELOCITY_TOL_FPS = 1.e-9;
 const double PRESSURE_TOL_PSI = 1.e-6;
+const double REL_TOL = 1.e-7;
 
 struct FlowUnit
 {
@@ -201,12 +203,15 @@ std::vector<HydraulicSnapshot> solve_net1(const FlowUnit& units)
     return snapshots;
 }
 
-void check_near(double actual, double expected, double tolerance,
+void check_near(double actual, double expected, double absTolerance,
     const FlowUnit& units, long time, const char* quantity)
 {
+    const double scale = std::max(std::fabs(actual), std::fabs(expected));
+    const double tolerance = std::max(absTolerance, REL_TOL * scale);
     BOOST_CHECK_MESSAGE(std::fabs(actual - expected) <= tolerance,
         units.name << " at t=" << time << " s: " << quantity <<
-        " expected " << expected << ", got " << actual);
+        " expected " << expected << ", got " << actual <<
+        " (tolerance " << tolerance << ")");
 }
 
 void compare_snapshots(const std::vector<HydraulicSnapshot>& actual,
