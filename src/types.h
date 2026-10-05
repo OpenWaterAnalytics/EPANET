@@ -756,7 +756,8 @@ typedef struct {
 // Compiled Hydraulic Solver Curve
 // Flow breakpoints plus piecewise-linear head intercepts/slopes, all in solver
 // coordinates. Segment coefficients retain the legacy curve arithmetic and are
-// only rebuilt when curve data or solver scaling changes.
+// only rebuilt when curve data or solver scaling changes. Whole-model
+// compilation populates only pump head and GPV headloss curves.
 typedef struct {
 
   int Npts,                  // Number of source curve points

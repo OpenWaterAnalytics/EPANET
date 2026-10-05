@@ -54,7 +54,8 @@ void set_solver_scale(EN_Project ph, const SolverScale& scale)
 {
     // White-box test hook: SolverScale is intentionally internal and is not
     // part of the public Toolkit API.
-    sethydraulicsolverscale(ph, scale.head, scale.flow);
+    const int error = sethydraulicsolverscale(ph, scale.head, scale.flow);
+    BOOST_REQUIRE(error == 0);
 }
 
 void check_compiled_curve(EN_Project ph, int i)
@@ -164,7 +165,15 @@ void check_solver_model_compilation(EN_Project ph)
 
     for (int i = 1; i <= net.Ncurves; ++i)
     {
-        check_compiled_curve(ph, i);
+        if (net.Curve[i].Type == PUMP_CURVE ||
+            net.Curve[i].Type == HLOSS_CURVE)
+        {
+            check_compiled_curve(ph, i);
+        }
+        else
+        {
+            BOOST_CHECK_EQUAL(model.Curve[i].Npts, 0);
+        }
     }
 
     for (int i = 1; i <= net.Nlinks; ++i)
@@ -467,7 +476,8 @@ std::vector<CompatibilitySnapshot> solve_example_eps(
     BOOST_REQUIRE(error == 0);
     if (forceLegacyScale)
     {
-        sethydraulicsolverscale(ph, 1.0, 1.0);
+        error = sethydraulicsolverscale(ph, 1.0, 1.0);
+        BOOST_REQUIRE(error == 0);
     }
     error = EN_initH(ph, EN_NOSAVE);
     BOOST_REQUIRE(error == 0);
@@ -582,7 +592,8 @@ ConvergenceSnapshot solve_net1_convergence_case(double flowScale)
     // Isolate flow scaling: retain the model-derived head scale while forcing
     // a flow scale large enough to cross the legacy low-flow Hacc branch.
     const double headScale = ph->hydraul.SolverScale.Head;
-    sethydraulicsolverscale(ph, headScale, flowScale);
+    error = sethydraulicsolverscale(ph, headScale, flowScale);
+    BOOST_REQUIRE(error == 0);
     error = EN_initH(ph, EN_INITFLOW);
     BOOST_REQUIRE(error == 0);
 
@@ -1155,10 +1166,14 @@ BOOST_AUTO_TEST_CASE(test_solver_model_tracks_consumed_toolkit_updates)
     BOOST_REQUIRE(error == 0);
     error = EN_setoption(ph, EN_FLOWCHANGE, 0.75);
     BOOST_REQUIRE(error == 0);
+    error = EN_setoption(ph, EN_ACCURACY, 0.0005);
+    BOOST_REQUIRE(error == 0);
     BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.HeadErrorLimit,
         hydheadtosolver(ph, ph->hydraul.HeadErrorLimit));
     BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.FlowChangeLimit,
         hydflowtosolver(ph, ph->hydraul.FlowChangeLimit));
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.RelativeErrorFlowCutoff,
+        hydflowtosolver(ph, ph->hydraul.Hacc));
 
     // PDA pressure parameters can be changed while hydraulics are open.
     error = EN_setdemandmodel(ph, EN_PDA, 10.0, 30.0, 0.5);
@@ -1412,6 +1427,46 @@ BOOST_AUTO_TEST_CASE(test_solver_model_tracks_dynamic_link_settings)
     }
 }
 
+
+BOOST_AUTO_TEST_CASE(test_whole_model_compile_skips_nonhydraulic_curves)
+{
+    EN_Project ph = NULL;
+    int error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, EXAMPLE_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+
+    // A generic curve is not a GGA flow/head relation and should not receive
+    // solver-space segment storage during whole-model compilation.
+    error = EN_addcurve(ph, "non-hydraulic-curve");
+    BOOST_REQUIRE(error == 0);
+    int curve = 0;
+    error = EN_getcurveindex(ph, "non-hydraulic-curve", &curve);
+    BOOST_REQUIRE(error == 0);
+    double x[] = {0.0, 1.0, 2.0};
+    double y[] = {1.0, 2.0, 3.0};
+    error = EN_setcurve(ph, curve, x, y, 3);
+    BOOST_REQUIRE(error == 0);
+
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+    BOOST_REQUIRE(ph->hydraul.SolverModel.CurveCapacity >= curve);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.Curve[curve].Npts, 0);
+    BOOST_CHECK(ph->hydraul.SolverModel.Curve[curve].X == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.Curve[curve].H0 == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.Curve[curve].R == NULL);
+
+    // Changing the same curve to a GPV headloss curve while hydraulics are
+    // open compiles it immediately through the existing curve mutation path.
+    error = EN_setcurvetype(ph, curve, EN_HLOSS_CURVE);
+    BOOST_REQUIRE(error == 0);
+    check_compiled_curve(ph, curve);
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+    EN_close(ph);
+    EN_deleteproject(ph);
+}
 
 BOOST_AUTO_TEST_CASE(test_solver_model_tracks_live_curve_edits)
 {

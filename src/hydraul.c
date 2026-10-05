@@ -68,7 +68,7 @@ int  openhyd(Project *pr)
     // Allocate memory for hydraulic variables and compiled solver model
     ERRCODE(allocmatrix(pr));
     ERRCODE(allochydraulicsolvermodel(pr));
-    if (!errcode) compilehydraulicsolvermodel(pr);
+    if (!errcode) ERRCODE(compilehydraulicsolvermodel(pr));
     
     // Check for unconnected nodes
     ERRCODE(unlinked(pr));

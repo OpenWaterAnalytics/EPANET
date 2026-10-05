@@ -157,7 +157,10 @@ The pump coefficient path compiles dimensional pump properties to solver
 head/flow units at the GGA boundary. Custom pump and GPV curves are compiled
 into solver-space flow breakpoints plus piecewise head intercept/slope
 coefficients, so interpolation no longer round-trips through dimensional or
-user units during an iteration. Constant-power and power-function pump
+user units during an iteration. Whole-model compilation allocates these
+solver-space segments only for pump-head and GPV headloss curves; unrelated
+volume, efficiency, valve-position, and generic curves remain on the dimensional
+side of the boundary. Constant-power and power-function pump
 coefficients use the same generalized resistance scaling as other relations of
 the form `H = R * Q^n`. Pump maximum-head status checks use the compiled
 solver-head limit.
@@ -272,8 +275,13 @@ normalization:
 regularizers, then map them into solver head/flow, head/flow-gradient, or
 flow/head-conductance units according to how each one is used. Dimensionless
 uses (for example `TINY` when comparing a pump exponent to 1.0) remain
-unscaled. Raw `CSMALL`/`CBIG` values are still valid while constructing
-dimensional model-side resistance data; numerical GGA uses must be scaled.
+unscaled. The legacy relative-flow convergence metric has a special low-flow
+branch where the numeric `Hacc` value also acts as an internal-flow cutoff;
+that cutoff is compiled into solver flow units and the fallback correction is
+mapped back to dimensional flow before comparison, so changing `FlowScale`
+cannot change the stopping decision. Raw `CSMALL`/`CBIG` values are still valid
+while constructing dimensional model-side resistance data; numerical GGA uses
+must be scaled.
 
 ### 11. Solver matrix quantities
 

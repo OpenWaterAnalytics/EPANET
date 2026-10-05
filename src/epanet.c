@@ -1317,8 +1317,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
             if (j == 0 && Ke > 0.0) net->Node[i].Ke = ucf / pow(Ke, n);
         }
         hyd->Qexp = n;
-        compilehydraulicsolvermodel(p);
-        break;
+        return compilehydraulicsolvermodel(p);
 
     case EN_DEMANDMULT:
         hyd->Dmult = value;
@@ -1377,8 +1376,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     case EN_SP_VISCOS:
         if (value <= 0.0) return 213;
         hyd->Viscos = value * VISCOS;
-        compilehydraulicsolvermodel(p);
-        break;
+        return compilehydraulicsolvermodel(p);
 
     case EN_CHECKFREQ:
         hyd->CheckFreq = (int)value;
@@ -1566,7 +1564,7 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
             net->Curve[i].Y[j] = net->Curve[i].Y[j] / yfactor;
         }
     }
-    if (p->hydraul.OpenHflag) compilehydraulicsolvermodel(p);
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvermodel(p);
     return 0;
 }
 
@@ -3066,8 +3064,7 @@ int DLLEXPORT EN_setdemandmodel(EN_Project p, int model, double pmin,
     p->hydraul.Pmin = pmin / p->Ucf[PRESSURE];
     p->hydraul.Preq = preq / p->Ucf[PRESSURE];
     p->hydraul.Pexp = pexp;
-    compilehydraulicsolvermodel(p);
-    return 0;
+    return compilehydraulicsolvermodel(p);
 }
 
 int  DLLEXPORT EN_adddemand(EN_Project p, int nodeIndex, double baseDemand,

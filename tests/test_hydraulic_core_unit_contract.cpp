@@ -305,6 +305,11 @@ BOOST_AUTO_TEST_CASE(gga_hot_paths_are_solver_native)
     BOOST_CHECK(hydsolver.find("hydflowtosolver") == std::string::npos);
     BOOST_CHECK(hydsolver.find("SolverModel.ControlGrade") !=
         std::string::npos);
+    BOOST_CHECK(hydsolver.find("SolverModel.RelativeErrorFlowCutoff") !=
+        std::string::npos);
+    BOOST_CHECK(hydsolver.find("qsum > hyd->Hacc") == std::string::npos);
+    BOOST_CHECK(hydsolver.find("dqsum * hyd->SolverScale.Flow") !=
+        std::string::npos);
     BOOST_CHECK_EQUAL(count_occurrences(hydsolver, "hydheadfromsolver"), 2u);
     BOOST_CHECK_EQUAL(count_occurrences(hydsolver, "hydflowfromsolver"), 2u);
 
@@ -328,6 +333,7 @@ BOOST_AUTO_TEST_CASE(gga_hot_paths_are_solver_native)
     BOOST_CHECK(hydscale.find("LinkPumpMaxHead") != std::string::npos);
     BOOST_CHECK(hydscale.find("ControlGrade") != std::string::npos);
     BOOST_CHECK(hydscale.find("BarrierGradient") != std::string::npos);
+    BOOST_CHECK(hydscale.find("RelativeErrorFlowCutoff") != std::string::npos);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

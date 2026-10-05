@@ -179,7 +179,7 @@ double  tankgrade(Project *, int, double);
 // ------- HYDSCALE.C ------------------
 
 void    inithydraulicscaling(Project *);
-void    sethydraulicsolverscale(Project *, double, double);
+int     sethydraulicsolverscale(Project *, double, double);
 int     allochydraulicsolvermodel(Project *);
 void    freehydraulicsolvermodel(Project *);
 void    compilehydraulicsolverglobals(Project *);
@@ -188,7 +188,7 @@ void    compilehydraulicsolverlink(Project *, int);
 void    compilehydraulicsolversetting(Project *, int);
 int     compilehydraulicsolvercontrol(Project *, int);
 int     compilehydraulicsolvercurve(Project *, int);
-void    compilehydraulicsolvermodel(Project *);
+int     compilehydraulicsolvermodel(Project *);
 void    loadhydraulicsolverstate(Project *);
 void    savehydraulicsolverstate(Project *);
 double  hydheadtosolver(Project *, double);

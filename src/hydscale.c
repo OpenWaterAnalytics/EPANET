@@ -517,7 +517,7 @@ int compilehydraulicsolvercurve(Project *pr, int i)
 }
 
 
-void compilehydraulicsolvermodel(Project *pr)
+int compilehydraulicsolvermodel(Project *pr)
 /*
 **----------------------------------------------------------------
 **  Purpose: compiles dimensional hydraulic model inputs into the
@@ -529,7 +529,7 @@ void compilehydraulicsolvermodel(Project *pr)
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
     ShydSolverModel *model = &hyd->SolverModel;
-    int i;
+    int i, errcode;
 
     if (model->NodeElevation == NULL ||
         model->NodeEmitterResistance == NULL || model->NodePdaMinGrade == NULL ||
@@ -539,7 +539,7 @@ void compilehydraulicsolvermodel(Project *pr)
         model->LinkPumpResistance == NULL || model->LinkPumpMaxHead == NULL ||
         model->ControlGrade == NULL)
     {
-        return;
+        return 0;
     }
 
     compilehydraulicsolverglobals(pr);
@@ -555,7 +555,8 @@ void compilehydraulicsolvermodel(Project *pr)
 
     for (i = 1; i <= net->Ncontrols; i++)
     {
-        if (compilehydraulicsolvercontrol(pr, i)) return;
+        errcode = compilehydraulicsolvercontrol(pr, i);
+        if (errcode) return errcode;
     }
 
     // Curve source data is refreshed directly by Toolkit curve setters. The
@@ -568,7 +569,20 @@ void compilehydraulicsolvermodel(Project *pr)
     {
         for (i = 1; i <= net->Ncurves; i++)
         {
-            if (compilehydraulicsolvercurve(pr, i)) return;
+            // Only custom-pump and GPV headloss curves are consumed by the
+            // hydraulic GGA. Leave other curve types uncompiled so volume,
+            // efficiency, valve-position, and generic data do not allocate
+            // unnecessary solver flow/head storage.
+            if (net->Curve[i].Type == PUMP_CURVE ||
+                net->Curve[i].Type == HLOSS_CURVE)
+            {
+                errcode = compilehydraulicsolvercurve(pr, i);
+                if (errcode) return errcode;
+            }
+            else if (model->Curve != NULL && i <= model->CurveCapacity)
+            {
+                model->Curve[i].Npts = 0;
+            }
         }
         model->CurveHeadScale = hyd->SolverScale.Head;
         model->CurveFlowScale = hyd->SolverScale.Flow;
@@ -580,6 +594,7 @@ void compilehydraulicsolvermodel(Project *pr)
     {
         compilehydraulicsolverlink(pr, i);
     }
+    return 0;
 }
 
 
@@ -685,11 +700,11 @@ void inithydraulicscaling(Project *pr)
         }
     }
     headScale = decadescale(headMagnitude);
-    sethydraulicsolverscale(pr, headScale, flowScale);
+    (void)sethydraulicsolverscale(pr, headScale, flowScale);
 }
 
 
-void sethydraulicsolverscale(Project *pr, double headScale, double flowScale)
+int sethydraulicsolverscale(Project *pr, double headScale, double flowScale)
 /*
 **----------------------------------------------------------------
 **  Purpose: sets solver scales and caches their invariant transforms
@@ -717,8 +732,9 @@ void sethydraulicsolverscale(Project *pr, double headScale, double flowScale)
     // sync when tests or future callers deliberately replace the scale.
     if (hyd->SolverModel.NodeElevation != NULL)
     {
-        compilehydraulicsolvermodel(pr);
+        return compilehydraulicsolvermodel(pr);
     }
+    return 0;
 }
 
 

@@ -343,12 +343,9 @@ void leakagecoeffs(Project *pr)
            hva,    // head loss producing current variable area leakage
            gva;    // gradient of variable area head loss
     
-    Snode* node;
-    
     for (i = 1; i <= net->Njuncs; i++)
     {
         // Skip junctions that don't leak
-        node = &net->Node[i];
         if (!leakage_headloss(pr, i, &hfa, &gfa, &hva, &gva)) continue;
 
         // Addition to matrix diagonal & r.h.s
@@ -379,7 +376,6 @@ double leakageflowchange(Project *pr, int i)
 **--------------------------------------------------------------
 */
 {
-    Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
 
     double  hfa, gfa, hva, gva;  // same as defined in leakage_solvercoeffs()
