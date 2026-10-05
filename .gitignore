@@ -234,3 +234,5 @@ buildprod*/
 
 # git merge
 *.orig
+
+/build-tests/
