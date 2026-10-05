@@ -28,6 +28,7 @@ set(toolkit_test_srcs
      test_project.cpp
      test_hydraulics.cpp
      test_hydraulic_characterization.cpp
+     test_hydraulic_performance_guardrails.cpp
      test_hydraulic_unit_equivalence.cpp
      test_hydraulic_solver_scaling.cpp
      test_hydraulic_core_unit_contract.cpp
