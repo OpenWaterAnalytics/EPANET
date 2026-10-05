@@ -97,19 +97,22 @@ BOOST_AUTO_TEST_CASE(fixed_unit_constants_stay_at_model_compilation_boundary)
 {
     const std::string hydsolver = read_source("src/hydsolver.c");
     const std::string hydcoeffs = read_source("src/hydcoeffs.c");
+    const std::string hydscale = read_source("src/hydscale.c");
     const std::string hydstatus = read_source("src/hydstatus.c");
 
     check_no_solver_fixed_unit_constants("hydsolver.c", hydsolver);
     check_no_solver_fixed_unit_constants("hydstatus.c", hydstatus);
 
-    // hydcoeffs.c still constructs dimensional EPANET model coefficients before
-    // compiling them into solver units. Keep the known fixed-basis constants
-    // confined to these four model-side formulas.
+    // Fixed-basis constants may appear only while constructing dimensional
+    // model coefficients or compiling dimensional settings into solver units.
+    // Static pipe formulas remain in hydcoeffs.c; the dynamic TCV formula now
+    // belongs to the hydscale.c compilation boundary.
     BOOST_CHECK_EQUAL(count_occurrences(hydcoeffs, "4.727"), 1u);
     BOOST_CHECK_EQUAL(count_occurrences(hydcoeffs, "32.2"), 1u);
     BOOST_CHECK_EQUAL(count_occurrences(hydcoeffs, "1.49"), 1u);
-    BOOST_CHECK_EQUAL(count_occurrences(hydcoeffs, "0.02517"), 1u);
+    BOOST_CHECK_EQUAL(count_occurrences(hydcoeffs, "0.02517"), 0u);
     BOOST_CHECK_EQUAL(count_occurrences(hydcoeffs, "8.814"), 0u);
+    BOOST_CHECK_EQUAL(count_occurrences(hydscale, "0.02517"), 1u);
 
     BOOST_CHECK(hydcoeffs.find(
         "link->R = 4.727 * L / pow(e, hyd->Hexp) / pow(d, 4.871);") !=
@@ -119,8 +122,8 @@ BOOST_AUTO_TEST_CASE(fixed_unit_constants_stay_at_model_compilation_boundary)
         std::string::npos);
     BOOST_CHECK(hydcoeffs.find(
         "SQR(4.0 * e / (1.49 * PI * SQR(d)))") != std::string::npos);
-    BOOST_CHECK(hydcoeffs.find(
-        "km = 0.02517 * hyd->LinkSetting[k]") != std::string::npos);
+    BOOST_CHECK(hydscale.find(
+        "km = 0.02517 * setting /") != std::string::npos);
 }
 
 BOOST_AUTO_TEST_CASE(global_and_node_inputs_use_compiled_solver_model)
