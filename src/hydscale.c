@@ -724,34 +724,42 @@ void loadhydraulicsolverstate(Project *pr)
 **  Purpose: copies dimensional hydraulic state into solver state
 **----------------------------------------------------------------
 **  This is the dimensional -> numerical boundary for hydraulic state.
-**  It includes tank node head and net inflow (NodeDemand): tank/event logic
-**  keeps using the dimensional arrays while GGA uses SolverState. Keep unit
-**  conversion here rather than scattering it through either subsystem.
+**  Keep the dimensional division itself unchanged so solver trajectories are
+**  bit-for-bit stable, but do it directly in these bulk loops rather than
+**  making an out-of-line conversion-helper call for every array element.
+**
+**  NodeDemand is deliberately not loaded. GGA never consumes its incoming
+**  value: newflows() rebuilds fixed-grade-node inflows from link flows, and
+**  junction totals are assembled from demand/emitter/leakage flows after the
+**  solve. FullDemand/DemandFlow/EmitterFlow/LeakageFlow are only consumed at
+**  junctions, so fixed-grade-node entries do not cross this boundary either.
 */
 {
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
+    ShydSolverState *state = &hyd->SolverState;
+    const double headScale = hyd->SolverScale.Head;
+    const double flowScale = hyd->SolverScale.Flow;
     int i;
 
+    // Heads are required for every node, including reservoirs and tanks.
     for (i = 1; i <= net->Nnodes; i++)
     {
-        hyd->SolverState.NodeHead[i] =
-            hydheadtosolver(pr, hyd->NodeHead[i]);
-        hyd->SolverState.NodeDemand[i] =
-            hydflowtosolver(pr, hyd->NodeDemand[i]);
-        hyd->SolverState.FullDemand[i] =
-            hydflowtosolver(pr, hyd->FullDemand[i]);
-        hyd->SolverState.DemandFlow[i] =
-            hydflowtosolver(pr, hyd->DemandFlow[i]);
-        hyd->SolverState.EmitterFlow[i] =
-            hydflowtosolver(pr, hyd->EmitterFlow[i]);
-        hyd->SolverState.LeakageFlow[i] =
-            hydflowtosolver(pr, hyd->LeakageFlow[i]);
+        state->NodeHead[i] = hyd->NodeHead[i] / headScale;
     }
+
+    // Consumer/emitter/leakage state is only part of junction equations.
+    for (i = 1; i <= net->Njuncs; i++)
+    {
+        state->FullDemand[i] = hyd->FullDemand[i] / flowScale;
+        state->DemandFlow[i] = hyd->DemandFlow[i] / flowScale;
+        state->EmitterFlow[i] = hyd->EmitterFlow[i] / flowScale;
+        state->LeakageFlow[i] = hyd->LeakageFlow[i] / flowScale;
+    }
+
     for (i = 1; i <= net->Nlinks; i++)
     {
-        hyd->SolverState.LinkFlow[i] =
-            hydflowtosolver(pr, hyd->LinkFlow[i]);
+        state->LinkFlow[i] = hyd->LinkFlow[i] / flowScale;
     }
 }
 
@@ -764,32 +772,36 @@ void savehydraulicsolverstate(Project *pr)
 **  This is the numerical -> dimensional boundary after a hydraulic solve.
 **  Tank head and net inflow are published here before timestep, control, rule,
 **  energy, and quality calculations consume the dimensional hydraulic state.
+**  Direct multiplication keeps the exact arithmetic of hyd*fromsolver() while
+**  avoiding one function call per published value.
 */
 {
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
+    ShydSolverState *state = &hyd->SolverState;
+    const double headScale = hyd->SolverScale.Head;
+    const double flowScale = hyd->SolverScale.Flow;
     int i;
 
     for (i = 1; i <= net->Nnodes; i++)
     {
-        hyd->NodeHead[i] =
-            hydheadfromsolver(pr, hyd->SolverState.NodeHead[i]);
-        hyd->NodeDemand[i] =
-            hydflowfromsolver(pr, hyd->SolverState.NodeDemand[i]);
-        hyd->DemandFlow[i] =
-            hydflowfromsolver(pr, hyd->SolverState.DemandFlow[i]);
-        hyd->EmitterFlow[i] =
-            hydflowfromsolver(pr, hyd->SolverState.EmitterFlow[i]);
-        hyd->LeakageFlow[i] =
-            hydflowfromsolver(pr, hyd->SolverState.LeakageFlow[i]);
+        hyd->NodeHead[i] = state->NodeHead[i] * headScale;
+        hyd->NodeDemand[i] = state->NodeDemand[i] * flowScale;
     }
+
+    // These result arrays describe junction-side outflows only.
+    for (i = 1; i <= net->Njuncs; i++)
+    {
+        hyd->DemandFlow[i] = state->DemandFlow[i] * flowScale;
+        hyd->EmitterFlow[i] = state->EmitterFlow[i] * flowScale;
+        hyd->LeakageFlow[i] = state->LeakageFlow[i] * flowScale;
+    }
+
     for (i = 1; i <= net->Nlinks; i++)
     {
-        hyd->LinkFlow[i] =
-            hydflowfromsolver(pr, hyd->SolverState.LinkFlow[i]);
+        hyd->LinkFlow[i] = state->LinkFlow[i] * flowScale;
     }
 }
-
 
 double hydheadtosolver(Project *pr, double head)
 /*

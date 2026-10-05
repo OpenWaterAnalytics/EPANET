@@ -917,6 +917,138 @@ BOOST_AUTO_TEST_CASE(test_solver_model_compiles_dimensional_inputs)
     BOOST_REQUIRE(error == 0);
 }
 
+BOOST_AUTO_TEST_CASE(test_solver_state_boundary_copies_only_consumed_inputs)
+{
+    EN_Project ph = NULL;
+    int error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, EXAMPLE_NET1, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_initH(ph, EN_INITFLOW);
+    BOOST_REQUIRE(error == 0);
+
+    const SolverScale forced = {100.0, 10.0, "state-boundary"};
+    set_solver_scale(ph, forced);
+
+    Network& net = ph->network;
+    Hydraul& hyd = ph->hydraul;
+    ShydSolverState& state = hyd.SolverState;
+
+    // Seed dimensional input state and a distinct solver sentinel. NodeDemand
+    // is output-only for GGA: newflows() reconstructs fixed-grade inflows and
+    // junction totals are assembled after convergence, so it must not be
+    // copied into the solver at the entry boundary.
+    const double solverSentinel = -9876.5;
+    const double fixedDimensionalSentinel = 4321.25;
+    for (int i = 1; i <= net.Nnodes; ++i)
+    {
+        hyd.NodeHead[i] = 1000.0 + i;
+        hyd.NodeDemand[i] = 2000.0 + i;
+        hyd.FullDemand[i] = 3000.0 + i;
+        hyd.DemandFlow[i] = 4000.0 + i;
+        hyd.EmitterFlow[i] = 5000.0 + i;
+        hyd.LeakageFlow[i] = 6000.0 + i;
+
+        state.NodeHead[i] = solverSentinel;
+        state.NodeDemand[i] = solverSentinel;
+        state.FullDemand[i] = solverSentinel;
+        state.DemandFlow[i] = solverSentinel;
+        state.EmitterFlow[i] = solverSentinel;
+        state.LeakageFlow[i] = solverSentinel;
+    }
+    for (int i = 1; i <= net.Nlinks; ++i)
+    {
+        hyd.LinkFlow[i] = 7000.0 + i;
+        state.LinkFlow[i] = solverSentinel;
+    }
+
+    loadhydraulicsolverstate(ph);
+
+    for (int i = 1; i <= net.Nnodes; ++i)
+    {
+        BOOST_CHECK_EQUAL(state.NodeHead[i], hyd.NodeHead[i] / forced.head);
+        BOOST_CHECK_EQUAL(state.NodeDemand[i], solverSentinel);
+    }
+    for (int i = 1; i <= net.Njuncs; ++i)
+    {
+        BOOST_CHECK_EQUAL(state.FullDemand[i], hyd.FullDemand[i] / forced.flow);
+        BOOST_CHECK_EQUAL(state.DemandFlow[i], hyd.DemandFlow[i] / forced.flow);
+        BOOST_CHECK_EQUAL(state.EmitterFlow[i], hyd.EmitterFlow[i] / forced.flow);
+        BOOST_CHECK_EQUAL(state.LeakageFlow[i], hyd.LeakageFlow[i] / forced.flow);
+    }
+    for (int i = net.Njuncs + 1; i <= net.Nnodes; ++i)
+    {
+        BOOST_CHECK_EQUAL(state.FullDemand[i], solverSentinel);
+        BOOST_CHECK_EQUAL(state.DemandFlow[i], solverSentinel);
+        BOOST_CHECK_EQUAL(state.EmitterFlow[i], solverSentinel);
+        BOOST_CHECK_EQUAL(state.LeakageFlow[i], solverSentinel);
+    }
+    for (int i = 1; i <= net.Nlinks; ++i)
+    {
+        BOOST_CHECK_EQUAL(state.LinkFlow[i], hyd.LinkFlow[i] / forced.flow);
+    }
+
+    // Publishing is the inverse boundary. Node head/demand are externally
+    // visible for every node. Junction-side demand components are published
+    // only where those components are meaningful; fixed-grade entries remain
+    // untouched on the dimensional side.
+    for (int i = 1; i <= net.Nnodes; ++i)
+    {
+        state.NodeHead[i] = 10.0 + i;
+        state.NodeDemand[i] = 20.0 + i;
+        if (i <= net.Njuncs)
+        {
+            state.DemandFlow[i] = 30.0 + i;
+            state.EmitterFlow[i] = 40.0 + i;
+            state.LeakageFlow[i] = 50.0 + i;
+        }
+        else
+        {
+            hyd.DemandFlow[i] = fixedDimensionalSentinel;
+            hyd.EmitterFlow[i] = fixedDimensionalSentinel;
+            hyd.LeakageFlow[i] = fixedDimensionalSentinel;
+        }
+    }
+    for (int i = 1; i <= net.Nlinks; ++i)
+    {
+        state.LinkFlow[i] = 60.0 + i;
+    }
+
+    savehydraulicsolverstate(ph);
+
+    for (int i = 1; i <= net.Nnodes; ++i)
+    {
+        BOOST_CHECK_EQUAL(hyd.NodeHead[i], state.NodeHead[i] * forced.head);
+        BOOST_CHECK_EQUAL(hyd.NodeDemand[i], state.NodeDemand[i] * forced.flow);
+    }
+    for (int i = 1; i <= net.Njuncs; ++i)
+    {
+        BOOST_CHECK_EQUAL(hyd.DemandFlow[i], state.DemandFlow[i] * forced.flow);
+        BOOST_CHECK_EQUAL(hyd.EmitterFlow[i], state.EmitterFlow[i] * forced.flow);
+        BOOST_CHECK_EQUAL(hyd.LeakageFlow[i], state.LeakageFlow[i] * forced.flow);
+    }
+    for (int i = net.Njuncs + 1; i <= net.Nnodes; ++i)
+    {
+        BOOST_CHECK_EQUAL(hyd.DemandFlow[i], fixedDimensionalSentinel);
+        BOOST_CHECK_EQUAL(hyd.EmitterFlow[i], fixedDimensionalSentinel);
+        BOOST_CHECK_EQUAL(hyd.LeakageFlow[i], fixedDimensionalSentinel);
+    }
+    for (int i = 1; i <= net.Nlinks; ++i)
+    {
+        BOOST_CHECK_EQUAL(hyd.LinkFlow[i], state.LinkFlow[i] * forced.flow);
+    }
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deleteproject(ph);
+    BOOST_REQUIRE(error == 0);
+}
+
+
 BOOST_AUTO_TEST_CASE(test_solver_model_tracks_consumed_toolkit_updates)
 {
     EN_Project ph = NULL;
