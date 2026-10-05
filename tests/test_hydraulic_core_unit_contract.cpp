@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(fixed_unit_constants_stay_at_model_compilation_boundary)
     BOOST_CHECK(hydcoeffs.find(
         "SQR(4.0 * e / (1.49 * PI * SQR(d)))") != std::string::npos);
     BOOST_CHECK(hydcoeffs.find(
-        "link->Km = 0.02517 * hyd->LinkSetting[k]") != std::string::npos);
+        "km = 0.02517 * hyd->LinkSetting[k]") != std::string::npos);
 }
 
 BOOST_AUTO_TEST_CASE(global_and_node_inputs_use_compiled_solver_model)
@@ -155,6 +155,30 @@ BOOST_AUTO_TEST_CASE(global_and_node_inputs_use_compiled_solver_model)
 }
 
 
+BOOST_AUTO_TEST_CASE(static_link_coefficients_use_compiled_solver_model)
+{
+    const std::string hydcoeffs = read_source("src/hydcoeffs.c");
+
+    BOOST_CHECK(hydcoeffs.find(
+        "ml = hyd->SolverModel.LinkMinorLoss[k];") != std::string::npos);
+    BOOST_CHECK(hydcoeffs.find(
+        "r = hyd->SolverModel.LinkResistance[k];") != std::string::npos);
+    BOOST_CHECK(hydcoeffs.find(
+        "double s = hyd->SolverModel.LinkViscosityFlow[k];") !=
+        std::string::npos);
+
+    BOOST_CHECK(hydcoeffs.find(
+        "hydminorlosstosolver(pr, pr->network.Link[k].Km)") ==
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find(
+        "hydresistancetosolver(pr, pr->network.Link[k].R, hyd->Hexp)") ==
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find(
+        "hydflowtosolver(pr, hyd->Viscos * link->Diam)") ==
+        std::string::npos);
+}
+
+
 BOOST_AUTO_TEST_CASE(remaining_dynamic_and_link_inputs_use_scaling_helpers)
 {
     const std::string hydsolver = read_source("src/hydsolver.c");
@@ -166,9 +190,9 @@ BOOST_AUTO_TEST_CASE(remaining_dynamic_and_link_inputs_use_scaling_helpers)
     BOOST_CHECK(hydsolver.find("hydheadtosolver") != std::string::npos);
     BOOST_CHECK(hydsolver.find("hydflowtosolver") == std::string::npos);
 
-    // Link coefficients/settings are intentionally left for the next
-    // compilation stages.  Their remaining dimensional inputs must still
-    // cross the solver boundary through the explicit scaling helpers.
+    // Static pipe/base-valve coefficients now come from SolverModel. Dynamic
+    // settings plus pumps, curves, emitters, and other not-yet-compiled inputs
+    // must still cross the solver boundary through explicit scaling helpers.
     BOOST_CHECK(hydcoeffs.find("hydheadtosolver") != std::string::npos);
     BOOST_CHECK(hydcoeffs.find("hydflowtosolver") != std::string::npos);
     BOOST_CHECK(hydcoeffs.find("hydresistancetosolver") != std::string::npos);

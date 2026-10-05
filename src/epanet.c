@@ -1375,6 +1375,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     case EN_SP_VISCOS:
         if (value <= 0.0) return 213;
         hyd->Viscos = value * VISCOS;
+        compilehydraulicsolvermodel(p);
         break;
 
     case EN_CHECKFREQ:
@@ -4206,6 +4207,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             if (value < 0.0) return 211;
             Link[index].Km = 0.02517 * value / SQR(Link[index].Diam) /
                              SQR(Link[index].Diam);
+            compilehydraulicsolverlink(p, index);
         }
         break;
 
@@ -4312,6 +4314,7 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
             net->Pump[pumpIndex].Ptype = CONST_HP;
             net->Pump[pumpIndex].Hcurve = 0;
             net->Link[index].Km = value;
+            compilehydraulicsolverlink(p, index);
         }
         break;
 

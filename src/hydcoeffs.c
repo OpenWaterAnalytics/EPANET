@@ -65,6 +65,7 @@ static void    pumpcoeff(Project *pr, int k);
 static void    curvecoeff(Project *pr, int i, double q, double *h0, double *r);
 
 static void    valvecoeff(Project *pr, int k);
+static void    valvecoeffwithloss(Project *pr, int k, double km);
 static void    gpvcoeff(Project *pr, int k);
 static void    pbvcoeff(Project *pr, int k);
 static void    tcvcoeff(Project *pr, int k);
@@ -173,6 +174,10 @@ void  resistcoeff(Project *pr, int k)
         link->R = CSMALL;
         break;
     }
+
+    // Keep the compiled link coefficients synchronized when Toolkit edits
+    // cause a dimensional resistance to be recomputed while hydraulics are open.
+    compilehydraulicsolverlink(pr, k);
 }
 
 
@@ -685,10 +690,9 @@ void  pipecoeff(Project *pr, int k)
 
     q = ABS(hyd->SolverState.LinkFlow[k]);
 
-    // Link R and Km are stored in EPANET's dimensional internal units.
-    // Convert them once here so the headloss equation below is solver-only.
-    ml = hydminorlosstosolver(pr, pr->network.Link[k].Km);
-    r = hydresistancetosolver(pr, pr->network.Link[k].R, hyd->Hexp);
+    // Static pipe coefficients are compiled once at the model boundary.
+    ml = hyd->SolverModel.LinkMinorLoss[k];
+    r = hyd->SolverModel.LinkResistance[k];
 
     // Friction head loss gradient
     hgrad = hyd->Hexp * r * pow(q, hyd->Hexp - 1.0);
@@ -733,13 +737,10 @@ void DWpipecoeff(Project *pr, int k)
     Slink   *link = &pr->network.Link[k];
 
     double q = ABS(hyd->SolverState.LinkFlow[k]);
-    double r = hydresistancetosolver(pr, link->R, 2.0);
-    double ml = hydminorlosstosolver(pr, link->Km);
+    double r = hyd->SolverModel.LinkResistance[k];
+    double ml = hyd->SolverModel.LinkMinorLoss[k];
     double e = link->Kc / link->Diam;           // Relative roughness
-
-    // nu*D has the dimensions of flow. Scaling it exactly like Q preserves
-    // Q/(nu*D), and therefore Reynolds number, in solver units.
-    double s = hydflowtosolver(pr, hyd->Viscos * link->Diam);
+    double s = hyd->SolverModel.LinkViscosityFlow[k];
     double hloss, hgrad, f, dfdq, r1;
 
     // Compute head loss and its derivative entirely in solver units.
@@ -1059,7 +1060,6 @@ void  pbvcoeff(Project *pr, int k)
 */
 {
     Hydraul *hyd = &pr->hydraul;
-    Slink *link = &pr->network.Link[k];
     double hset, km, bigconductance;
 
     // If valve fixed OPEN or CLOSED then treat as a pipe
@@ -1071,10 +1071,10 @@ void  pbvcoeff(Project *pr, int k)
     // If valve is active
     else
     {
-        // PBV setting is a dimensional head loss while Km is a dimensional
-        // quadratic headloss coefficient. Compile both before comparing them.
+        // PBV setting remains dynamic; its static base minor-loss coefficient
+        // is already compiled into SolverModel.
         hset = hydheadtosolver(pr, hyd->LinkSetting[k]);
-        km = hydminorlosstosolver(pr, link->Km);
+        km = hyd->SolverModel.LinkMinorLoss[k];
 
         // Treat as a pipe if minor loss > valve setting
         if (km * SQR(hyd->SolverState.LinkFlow[k]) > hset)
@@ -1107,20 +1107,19 @@ void  tcvcoeff(Project *pr, int k)
     Hydraul *hyd = &pr->hydraul;
     Slink *link = &pr->network.Link[k];
 
-    // Save original loss coeff. for open valve
-    km = link->Km;
-
-    // If valve not fixed OPEN or CLOSED, compute its loss coeff.
-    if (hyd->LinkSetting[k] != MISSING)
+    // Fixed-open/closed TCVs use the compiled base minor-loss coefficient.
+    if (hyd->LinkSetting[k] == MISSING)
     {
-        link->Km = 0.02517 * hyd->LinkSetting[k] / (SQR(link->Diam)*SQR(link->Diam));
+        valvecoeff(pr, k);
+        return;
     }
 
-    // Then apply usual valve formula
-    valvecoeff(pr, k);
-
-    // Restore original loss coeff.
-    link->Km = km;
+    // A throttled TCV has a setting-dependent dimensional loss coefficient.
+    // Keep this dynamic conversion at the setting boundary for the later
+    // dynamic-link compilation stage rather than modifying the model's Km.
+    km = 0.02517 * hyd->LinkSetting[k] /
+        (SQR(link->Diam) * SQR(link->Diam));
+    valvecoeffwithloss(pr, k, hydminorlosstosolver(pr, km));
 }
 
 
@@ -1137,20 +1136,17 @@ void  pcvcoeff(Project *pr, int k)
     Hydraul *hyd = &pr->hydraul;
     Slink *link = &pr->network.Link[k];
 
-    // Save original loss coeff. for open valve
-    km = link->Km;
-
-    // If valve not fixed OPEN or CLOSED, compute its loss coeff.
-    if (hyd->LinkSetting[k] != MISSING)
+    // Fixed-open/closed PCVs use the compiled base minor-loss coefficient.
+    if (hyd->LinkSetting[k] == MISSING)
     {
-        link->Km = link->R;
+        valvecoeff(pr, k);
+        return;
     }
 
-    // Then apply usual valve formula
-    valvecoeff(pr, k);
-
-    // Restore original loss coeff.
-    link->Km = km;
+    // The positional setting changes link->R dynamically. Compile that
+    // setting-dependent loss only when this valve is evaluated.
+    km = hydminorlosstosolver(pr, link->R);
+    valvecoeffwithloss(pr, k, km);
 }
 
 
@@ -1328,17 +1324,32 @@ void valvecoeff(Project *pr, int k)
 **   Input:   k    = link index
 **   Output:  none
 **   Purpose: computes solution matrix coeffs. for a completely
-**            open, closed, or throttled control valve.
+**            open or closed control valve using its compiled
+**            base minor-loss coefficient.
+**--------------------------------------------------------------
+*/
+{
+    valvecoeffwithloss(pr, k, pr->hydraul.SolverModel.LinkMinorLoss[k]);
+}
+
+
+static void valvecoeffwithloss(Project *pr, int k, double km)
+/*
+**--------------------------------------------------------------
+**   Input:   k  = link index
+**            km = quadratic minor-loss coefficient in solver units
+**   Output:  none
+**   Purpose: evaluates the generic valve headloss relation. Dynamic
+**            valve types can provide a setting-dependent loss without
+**            mutating the dimensional network model.
 **--------------------------------------------------------------
 */
 {
     Hydraul *hyd = &pr->hydraul;
-    Slink *link = &pr->network.Link[k];
 
-    double flow, q, hloss, hgrad, km, rqtol, smallgrad, biggrad;
+    double flow, q, hloss, hgrad, rqtol, smallgrad, biggrad;
 
     flow = hyd->SolverState.LinkFlow[k];
-    km = hydminorlosstosolver(pr, link->Km);
     rqtol = hyd->SolverModel.RQtol;
     smallgrad = hyd->SolverModel.SmallGradient;
     biggrad = hyd->SolverModel.BigGradient;

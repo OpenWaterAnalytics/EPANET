@@ -137,6 +137,38 @@ void compilehydraulicsolvernode(Project *pr, int i)
 }
 
 
+void compilehydraulicsolverlink(Project *pr, int i)
+/*
+**----------------------------------------------------------------
+**  Purpose: refreshes one link's compiled solver coefficients
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    ShydSolverModel *model = &hyd->SolverModel;
+    Slink *link;
+    double exponent;
+
+    if (model->LinkResistance == NULL || model->LinkMinorLoss == NULL ||
+        model->LinkViscosityFlow == NULL) return;
+    if (i < 1 || i > net->Nlinks) return;
+
+    link = &net->Link[i];
+    model->LinkMinorLoss[i] = hydminorlosstosolver(pr, link->Km);
+    model->LinkViscosityFlow[i] =
+        hydflowtosolver(pr, hyd->Viscos * link->Diam);
+    model->LinkResistance[i] = 0.0;
+
+    if (link->Type == PIPE || link->Type == CVPIPE)
+    {
+        exponent = (hyd->Formflag == DW) ? 2.0 : hyd->Hexp;
+        model->LinkResistance[i] =
+            hydresistancetosolver(pr, link->R, exponent);
+    }
+}
+
+
 void compilehydraulicsolvermodel(Project *pr)
 /*
 **----------------------------------------------------------------
@@ -150,7 +182,6 @@ void compilehydraulicsolvermodel(Project *pr)
     Hydraul *hyd = &pr->hydraul;
     ShydSolverModel *model = &hyd->SolverModel;
     int i;
-    double exponent;
 
     if (model->NodeElevation == NULL || model->LinkResistance == NULL ||
         model->LinkMinorLoss == NULL || model->LinkViscosityFlow == NULL)
@@ -167,19 +198,7 @@ void compilehydraulicsolvermodel(Project *pr)
 
     for (i = 1; i <= net->Nlinks; i++)
     {
-        Slink *link = &net->Link[i];
-
-        model->LinkMinorLoss[i] = hydminorlosstosolver(pr, link->Km);
-        model->LinkViscosityFlow[i] =
-            hydflowtosolver(pr, hyd->Viscos * link->Diam);
-        model->LinkResistance[i] = 0.0;
-
-        if (link->Type == PIPE || link->Type == CVPIPE)
-        {
-            exponent = (hyd->Formflag == DW) ? 2.0 : hyd->Hexp;
-            model->LinkResistance[i] =
-                hydresistancetosolver(pr, link->R, exponent);
-        }
+        compilehydraulicsolverlink(pr, i);
     }
 }
 

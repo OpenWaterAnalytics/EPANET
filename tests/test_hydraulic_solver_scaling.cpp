@@ -748,6 +748,54 @@ BOOST_AUTO_TEST_CASE(test_solver_model_tracks_consumed_toolkit_updates)
     BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.PdaPressureRange,
         hydheadtosolver(ph, MAX((ph->hydraul.Preq - ph->hydraul.Pmin), MINPDIFF)));
 
+    // Static pipe coefficients are now consumed directly from SolverModel.
+    // Toolkit edits that change resistance, minor loss, diameter, or viscosity
+    // must refresh the compiled link immediately.
+    int pipe = 0;
+    for (int i = 1; i <= ph->network.Nlinks; ++i)
+    {
+        if (ph->network.Link[i].Type == PIPE ||
+            ph->network.Link[i].Type == CVPIPE)
+        {
+            pipe = i;
+            break;
+        }
+    }
+    BOOST_REQUIRE(pipe > 0);
+
+    double value = 0.0;
+    error = EN_getlinkvalue(ph, pipe, EN_LENGTH, &value);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setlinkvalue(ph, pipe, EN_LENGTH, value * 1.1);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkResistance[pipe],
+        hydresistancetosolver(ph, ph->network.Link[pipe].R,
+            ph->hydraul.Formflag == DW ? 2.0 : ph->hydraul.Hexp));
+
+    error = EN_getlinkvalue(ph, pipe, EN_MINORLOSS, &value);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setlinkvalue(ph, pipe, EN_MINORLOSS, value + 0.25);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkMinorLoss[pipe],
+        hydminorlosstosolver(ph, ph->network.Link[pipe].Km));
+
+    error = EN_getlinkvalue(ph, pipe, EN_DIAMETER, &value);
+    BOOST_REQUIRE(error == 0);
+    error = EN_setlinkvalue(ph, pipe, EN_DIAMETER, value * 1.05);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkResistance[pipe],
+        hydresistancetosolver(ph, ph->network.Link[pipe].R,
+            ph->hydraul.Formflag == DW ? 2.0 : ph->hydraul.Hexp));
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkMinorLoss[pipe],
+        hydminorlosstosolver(ph, ph->network.Link[pipe].Km));
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkViscosityFlow[pipe],
+        hydflowtosolver(ph, ph->hydraul.Viscos * ph->network.Link[pipe].Diam));
+
+    error = EN_setoption(ph, EN_SP_VISCOS, 1.2);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkViscosityFlow[pipe],
+        hydflowtosolver(ph, ph->hydraul.Viscos * ph->network.Link[pipe].Diam));
+
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
     error = EN_close(ph);
