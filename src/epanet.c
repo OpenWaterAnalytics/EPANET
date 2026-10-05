@@ -4681,7 +4681,7 @@ int DLLEXPORT EN_setheadcurveindex(EN_Project p, int linkIndex, int curveIndex)
 {
     Network *net = &p->network;
 
-    int pumpIndex, oldCurve, errcode = 0;;
+    int pumpIndex, oldCurve, errcode = 0;
     double oldKm;
     Spump *pump;
 
