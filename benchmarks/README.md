@@ -43,3 +43,23 @@ The CI guardrails intentionally allow iteration counts to decrease, but fail if
 Net1, Net2, Net3 or Grid20 require more iterations than this baseline or if
 their final hydraulic signatures change outside tight floating-point
 tolerances.
+
+## Comparing against `dev`
+
+For final branch characterization, compare Release builds from separate
+worktrees on the same machine. Run several interleaved samples; CPU affinity can
+be useful on noisy development machines. Do not turn the observed wall-clock
+ratio into a CTest threshold.
+
+A useful comparison records both timing and the deterministic columns in the
+CSV. Event counts, iteration counts, final time, convergence diagnostics, and
+head/flow signatures distinguish a real solver-behavior change from ordinary
+timing noise. The CI guardrail test remains the authority for deterministic
+behavior, while this benchmark is the authority for local performance
+characterization.
+
+When profiling the unit-independent branch, include `EN_initH()` separately
+from `EN_runH()`. Compiling `SolverModel` is initialization-boundary work, while
+`loadhydraulicsolverstate()` / `savehydraulicsolverstate()` are per-hydraulic-
+event boundary work. Keeping those categories separate avoids attributing model
+compilation overhead to the iterative GGA itself.

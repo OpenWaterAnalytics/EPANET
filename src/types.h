@@ -769,9 +769,9 @@ typedef struct {
 } ShydSolverCurve;
 
 // Compiled Hydraulic Solver Model
-// Dimensional model inputs transformed once at the solver boundary. The GGA
-// will consume these values directly as subsequent migration steps move model
-// reads out of its hot paths.
+// Dimensional model inputs transformed at the solver boundary. The GGA consumes
+// these values directly; Toolkit/control mutations refresh the affected compiled
+// entries before they can be used by the numerical core.
 typedef struct {
 
   double

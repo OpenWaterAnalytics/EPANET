@@ -368,9 +368,9 @@ void compilehydraulicsolverlink(Project *pr, int i)
         }
     }
 
-    // Diameter, base loss, pump limit, and PCV resistance can affect compiled
-    // setting, so refresh it whenever a link coefficient is recompiled.
-    compilehydraulicsolversetting(pr, i);
+    // Pipe settings are not consumed by the numerical solver. Pumps and valves
+    // do consume compiled settings, so refresh only those link types here.
+    if (link->Type > PIPE) compilehydraulicsolversetting(pr, i);
 }
 
 

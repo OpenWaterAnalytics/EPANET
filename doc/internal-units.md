@@ -153,13 +153,14 @@ converting solver flow back to EPANET's legacy cfs representation.
 - `getenergy()` uses ft and cfs head/flow and the corresponding `8.814` /
   horsepower conversion to compute kW.
 
-The pump coefficient path now converts dimensional pump properties to solver
-head/flow units at the GGA boundary. Custom curves are still interpolated in
-their original user units, but the resulting head/slope are compiled into
-solver units before use. Constant-power and power-function pump coefficients
-use the same generalized resistance scaling as other relations of the form
-`H = R * Q^n`. Pump maximum-head status checks are also converted to solver
-head units.
+The pump coefficient path compiles dimensional pump properties to solver
+head/flow units at the GGA boundary. Custom pump and GPV curves are compiled
+into solver-space flow breakpoints plus piecewise head intercept/slope
+coefficients, so interpolation no longer round-trips through dimensional or
+user units during an iteration. Constant-power and power-function pump
+coefficients use the same generalized resistance scaling as other relations of
+the form `H = R * Q^n`. Pump maximum-head status checks use the compiled
+solver-head limit.
 
 **Migration:** hydraulic pump equations and head/flow curves are complete. The
 legacy `8.814` factor remains only where constant pump power is converted into
@@ -178,10 +179,11 @@ neither use is part of the GGA.
   `NodeHead`, `LinkFlow`, valve settings, `Htol`, and `Qtol` in the current
   fixed basis.
 
-**Migration:** scale dimensional valve settings and status tolerances into the
-same solver representation as heads/flows. Status transitions are externally
-observable behavior and must remain covered by characterization/equivalence
-tests.
+**Migration:** complete. Dynamic valve settings are compiled when they change.
+PRV/PSV target grades, PBV head settings, FCV flow settings, TCV/PCV losses, GPV
+curves, minor-loss coefficients, and status tolerances are consumed in solver
+coordinates. Status transitions remain covered by characterization and
+scale-invariance tests.
 
 ### 7. Pressure-dependent demand and emitters
 
@@ -196,12 +198,11 @@ tests.
 - `hydsolver.c` documents PDA intermediate values (`dp`, `dq`, `hloss`,
   `hgrad`, `dh`) explicitly as ft/cfs quantities.
 
-**Migration:** emitter coefficients, PDA pressure ranges, node elevations, and
-the legacy PDA convergence tolerance are now compiled into solver units at the
-GGA boundary. The emitter/PDA flow barriers preserve their historical shape in
-EPANET's dimensional internal basis and scale their contributions back into
-solver units. Remaining hydraulic regularization constants are handled in the
-separate numerical-regularization migration step.
+**Migration:** complete. Emitter coefficients, PDA pressure ranges, node
+elevations, the legacy PDA convergence tolerance, and smooth barrier parameters
+are compiled into solver units at the GGA boundary. Emitter/PDA barrier
+evaluation itself is solver-native; no dimensional conversion occurs in the
+coefficient-assembly hot path.
 
 ### 8. Leakage model
 
@@ -224,9 +225,10 @@ per 100 units of pipe length according to EPANET's API/file contract. The
 solver-side coefficient must nevertheless be compiled into unit-independent
 form.
 
-**Migration:** isolate public leakage parameter interpretation from the
-inverted leakage equation used by the GGA, and scale leakage trial flows,
-coefficients, head loss, gradients, and convergence tests.
+**Migration:** complete. Public leakage parameter interpretation remains
+dimensional, while leakage equation coefficients, initial trial flows,
+convergence tolerance, and barrier parameters are compiled into solver units.
+The iterative leakage relation is solver-native.
 
 ### 9. Controls, rules, and tank state
 
@@ -326,34 +328,43 @@ solver must therefore publish dimensional results before quality advances.
 
 The hydraulic refactor leaves EPANET's model and public interfaces dimensional
 while giving the Global Gradient Algorithm an independent numerical head/flow
-representation. The contract is:
+representation. The final contract is:
 
 1. `Hydraul.NodeHead`, `Hydraul.LinkFlow`, demands, settings, tolerances, tank
-   state, and model coefficients remain in EPANET's dimensional internal basis.
-2. `Hydraul.SolverState` is the exclusive head/flow state used while the GGA is
-   iterating. `ShydScale` defines the mapping `H_internal = H_solver * Head` and
-   `Q_internal = Q_solver * Flow`.
-3. A dimensional quantity may participate in GGA arithmetic only after being
-   converted with the appropriate `hyd*tosolver()` helper. Head-loss resistance,
-   conductance, and minor-loss coefficients use their dedicated scaling helpers
-   because their dimensions differ from head and flow.
-4. `hydcoeffs.c` is intentionally also a physical-law compilation boundary.
-   Unit-specific constants such as the HW/DW/CM coefficients and the TCV loss
-   conversion may remain while constructing dimensional model-side coefficients;
-   those coefficients must be scaled before they are combined with `SolverState`.
-5. `savehydraulicsolverstate()` publishes dimensional hydraulic results before
-   tank/event logic, rules, energy, water quality, Toolkit getters, reporting, or
-   output code consumes them.
-6. The sparse matrix solver is numerical only. Its assembled quantities inherit
+   state, and physical model coefficients remain in EPANET's dimensional
+   internal basis for compatibility with the Toolkit, reporting, energy, water
+   quality, controls/rules, and event scheduling.
+2. `ShydScale` defines `H_internal = H_solver * Head` and
+   `Q_internal = Q_solver * Flow`. The scale is numerical conditioning state,
+   not a public-unit conversion.
+3. `Hydraul.SolverModel` is the compiled numerical model. Static coefficients,
+   node grades, regularization constants, curve segments, and dynamic link
+   settings are transformed at model/mutation boundaries and consumed directly
+   by the GGA.
+4. `Hydraul.SolverState` is the exclusive head/flow/demand state used while the
+   GGA is iterating. `loadhydraulicsolverstate()` imports only state the GGA
+   consumes; `savehydraulicsolverstate()` publishes the solved dimensional
+   state before non-solver subsystems run.
+5. `hydcoeffs.c` may construct dimensional physical-law coefficients using
+   legacy-basis constants such as the HW/DW/CM factors, but matrix/nonlinear
+   coefficient assembly must consume their compiled `SolverModel` forms. TCV
+   setting conversion belongs to the solver-model compilation boundary, not to
+   iterative coefficient assembly.
+6. Remaining `hyd*tosolver()` / `hyd*fromsolver()` calls are explicit boundary
+   work: model compilation, leakage initialization, tank-state crossings, and
+   publication of dimensional convergence diagnostics. They are not part of the
+   GGA coefficient/matrix hot path.
+7. The sparse matrix solver is numerical only. Its assembled quantities inherit
    solver head/flow scales, not EPANET's ft/cfs basis.
 
-Two complementary tests guard this contract.
-`test_hydraulic_solver_scaling` checks behavior under widely different solver
-scales. `test_hydraulic_core_unit_contract` statically checks that the three GGA
-core modules do not directly access dimensional hydraulic state and that known
-fixed-unit constants remain confined to the dimensional coefficient-compilation
-boundary. Both are part of `./test.sh hydraulic` and therefore run in CI wherever
-the hydraulic test command is used.
+The contract is guarded from both directions. `test_hydraulic_solver_scaling`
+checks production and forced solver scales, nonlinear components, live Toolkit
+updates, pump/GPV curves, pressure valves, energy, and quality consumers.
+`test_hydraulic_core_unit_contract` statically rejects dimensional state access,
+fixed-unit constants, and conversion-helper calls in the GGA hot paths.
+`test_hydraulic_performance_guardrails` freezes deterministic hydraulic
+signatures and iteration budgets for Net1, Net2, Net3, and Grid20. All are part
+of `test_toolkit`.
 
 ### Production scaling policy
 
@@ -383,17 +394,24 @@ The production policy is regression-tested against the former `Head = 1`,
 `Flow = 1` path on Net1, Net2, and Net3 over their full hydraulic event
 sequences. Event times and link statuses must match exactly; dimensional node
 heads, demands, and link flows must remain within tight floating-point
-tolerances. The test intentionally does not freeze iteration counts because
-solver scaling is allowed to change the numerical convergence path without
-changing the physical solution.
+tolerances. Separate cross-unit tests verify equivalent physical results for all
+supported public flow-unit systems.
 
-The separated solver state adds six `double` arrays per node (head, total node
-demand, full demand, delivered demand, emitter flow, and leakage flow) plus one
-`double` array per link for flow. This is 48 bytes per node and 8 bytes per link,
-excluding allocator overhead. Each hydraulic solve also performs one O(N + L)
-load and save across the dimensional/solver boundary. These costs are explicit
-tradeoffs for keeping the GGA numerical representation isolated from the public
-and simulation-state representation.
+`SolverState` adds six `double` arrays per node (head, total node demand, full
+demand, delivered demand, emitter flow, and leakage flow) plus one `double`
+array per link for flow. `SolverModel` adds compiled node/link arrays and
+solver-space curve data. The boundary load intentionally omits incoming
+`NodeDemand` and fixed-grade-node junction-only flow components because the GGA
+does not consume them; publication still restores the dimensional state needed
+by downstream EPANET subsystems.
+
+The opt-in `benchmark_hydraulics` target characterizes the remaining runtime
+cost without making wall-clock timing a CI gate. Profiling after the migration
+shows the dominant runtime remains sparse linear solution and GGA coefficient
+assembly. The explicit state load/save and model compilation are measurable but
+small boundary costs; avoiding them entirely would require a persistent
+solver-native simulation state and a much broader dirty-state protocol, which is
+intentionally outside this compatibility-focused refactor.
 
 ## Migration checklist
 
@@ -427,6 +445,8 @@ The implementation is complete only when all items below are satisfied.
       reintroducing fixed-unit assumptions into the numerical core.
 - [x] Enable model-derived production solver scaling instead of the legacy
       `Head = 1`, `Flow = 1` mapping.
+- [x] Add deterministic performance guardrails plus an opt-in wall-clock
+      benchmark and profile the final solver boundary costs against `dev`.
 
 ## Suggested migration order
 
