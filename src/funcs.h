@@ -180,6 +180,9 @@ double  tankgrade(Project *, int, double);
 
 void    inithydraulicscaling(Project *);
 void    sethydraulicsolverscale(Project *, double, double);
+int     allochydraulicsolvermodel(Project *);
+void    freehydraulicsolvermodel(Project *);
+void    compilehydraulicsolvermodel(Project *);
 void    loadhydraulicsolverstate(Project *);
 void    savehydraulicsolverstate(Project *);
 double  hydheadtosolver(Project *, double);
@@ -192,6 +195,8 @@ double  hydminorlosstosolver(Project *, double);
 
 // ------- HYDCOEFFS.C -----------------
 
+extern const double CSMALL;
+extern const double CBIG;
 void    resistcoeff(Project *, int);
 void    headlosscoeffs(Project *);
 void    matrixcoeffs(Project *);

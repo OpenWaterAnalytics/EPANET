@@ -753,6 +753,36 @@ typedef struct {
 
 } ShydScale;
 
+// Compiled Hydraulic Solver Model
+// Dimensional model inputs transformed once at the solver boundary. The GGA
+// will consume these values directly as subsequent migration steps move model
+// reads out of its hot paths.
+typedef struct {
+
+  double
+    *NodeElevation,        // Node elevations in solver head units
+    *LinkResistance,       // Pipe resistance in solver head/flow units
+    *LinkMinorLoss,        // Base link minor-loss coeffs. in solver units
+    *LinkViscosityFlow,    // Viscosity * diameter in solver flow units
+    Htol,                  // Head tolerance in solver head units
+    Qtol,                  // Flow tolerance in solver flow units
+    RQtol,                 // Min. headloss gradient in solver units
+    Pmin,                  // Minimum demand pressure in solver head units
+    Preq,                  // Required demand pressure in solver head units
+    PdaPressureRange,      // PDA pressure range in solver head units
+    FlowChangeLimit,       // Absolute flow-change limit in solver flow units
+    HeadErrorLimit,        // Head-error limit in solver head units
+    TinyFlow,              // Legacy TINY flow threshold in solver units
+    LeakageFlowTolerance,  // Legacy leakage convergence flow tolerance
+    BigHead,               // BIG head sentinel in solver head units
+    TinyGradient,          // TINY linear resistance in solver units
+    SmallGradient,         // CSMALL linear resistance in solver units
+    BigGradient,           // CBIG linear resistance in solver units
+    BigConductance,        // CBIG conductance in solver units
+    SmallConductance;      // 1/CBIG conductance in solver units
+
+} ShydSolverModel;
+
 // Hydraulic Solver State
 // State used only while the GGA is iterating. Values here are in solver
 // units; Hydraul.NodeHead/LinkFlow/etc. remain in dimensional EPANET units.
@@ -839,6 +869,9 @@ typedef struct {
 
   ShydScale
     SolverScale;           // Numerical scaling for hydraulic solver
+
+  ShydSolverModel
+    SolverModel;           // Compiled numerical hydraulic model
 
   ShydSolverState
     SolverState;           // Numerical hydraulic state

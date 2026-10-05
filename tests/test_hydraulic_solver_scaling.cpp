@@ -57,6 +57,71 @@ void set_solver_scale(EN_Project ph, const SolverScale& scale)
     sethydraulicsolverscale(ph, scale.head, scale.flow);
 }
 
+void check_solver_model_compilation(EN_Project ph)
+{
+    Network& net = ph->network;
+    Hydraul& hyd = ph->hydraul;
+    ShydSolverModel& model = hyd.SolverModel;
+
+    BOOST_REQUIRE(model.NodeElevation != NULL);
+    BOOST_REQUIRE(model.LinkResistance != NULL);
+    BOOST_REQUIRE(model.LinkMinorLoss != NULL);
+    BOOST_REQUIRE(model.LinkViscosityFlow != NULL);
+
+    BOOST_CHECK_EQUAL(model.Htol, hydheadtosolver(ph, hyd.Htol));
+    BOOST_CHECK_EQUAL(model.Qtol, hydflowtosolver(ph, hyd.Qtol));
+    BOOST_CHECK_EQUAL(model.RQtol,
+        hydresistancetosolver(ph, hyd.RQtol, 1.0));
+    BOOST_CHECK_EQUAL(model.Pmin, hydheadtosolver(ph, hyd.Pmin));
+    BOOST_CHECK_EQUAL(model.Preq, hydheadtosolver(ph, hyd.Preq));
+    BOOST_CHECK_EQUAL(model.PdaPressureRange, hydheadtosolver(ph,
+        MAX((hyd.Preq - hyd.Pmin), MINPDIFF)));
+    BOOST_CHECK_EQUAL(model.FlowChangeLimit,
+        hydflowtosolver(ph, hyd.FlowChangeLimit));
+    BOOST_CHECK_EQUAL(model.HeadErrorLimit,
+        hydheadtosolver(ph, hyd.HeadErrorLimit));
+    BOOST_CHECK_EQUAL(model.TinyFlow, hydflowtosolver(ph, TINY));
+    BOOST_CHECK_EQUAL(model.LeakageFlowTolerance,
+        hydflowtosolver(ph, 0.0001));
+    BOOST_CHECK_EQUAL(model.BigHead, hydheadtosolver(ph, BIG));
+    BOOST_CHECK_EQUAL(model.TinyGradient,
+        hydresistancetosolver(ph, TINY, 1.0));
+    BOOST_CHECK_EQUAL(model.SmallGradient,
+        hydresistancetosolver(ph, CSMALL, 1.0));
+    BOOST_CHECK_EQUAL(model.BigGradient,
+        hydresistancetosolver(ph, CBIG, 1.0));
+    BOOST_CHECK_EQUAL(model.BigConductance,
+        hydconductancetosolver(ph, CBIG));
+    BOOST_CHECK_EQUAL(model.SmallConductance,
+        hydconductancetosolver(ph, 1.0 / CBIG));
+
+    for (int i = 1; i <= net.Nnodes; ++i)
+    {
+        BOOST_CHECK_EQUAL(model.NodeElevation[i],
+            hydheadtosolver(ph, net.Node[i].El));
+    }
+
+    for (int i = 1; i <= net.Nlinks; ++i)
+    {
+        Slink& link = net.Link[i];
+        BOOST_CHECK_EQUAL(model.LinkMinorLoss[i],
+            hydminorlosstosolver(ph, link.Km));
+        BOOST_CHECK_EQUAL(model.LinkViscosityFlow[i],
+            hydflowtosolver(ph, hyd.Viscos * link.Diam));
+
+        if (link.Type == PIPE || link.Type == CVPIPE)
+        {
+            const double exponent = hyd.Formflag == DW ? 2.0 : hyd.Hexp;
+            BOOST_CHECK_EQUAL(model.LinkResistance[i],
+                hydresistancetosolver(ph, link.R, exponent));
+        }
+        else
+        {
+            BOOST_CHECK_EQUAL(model.LinkResistance[i], 0.0);
+        }
+    }
+}
+
 void solve_hydraulics_with_scale(EN_Project ph, const SolverScale& scale, int initFlag)
 {
     int error = EN_openH(ph);
@@ -599,6 +664,47 @@ const SolverScale LEGACY_SCALE = {1.0, 1.0, "legacy"};
 
 
 BOOST_AUTO_TEST_SUITE(test_hydraulic_solver_scaling)
+
+BOOST_AUTO_TEST_CASE(test_solver_model_compiles_dimensional_inputs)
+{
+    EN_Project ph = NULL;
+    int error = EN_createproject(&ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_open(ph, EXAMPLE_NET3, DATA_PATH_RPT, "");
+    BOOST_REQUIRE(error == 0);
+    error = EN_openH(ph);
+    BOOST_REQUIRE(error == 0);
+
+    // EN_openH compiles the validated model using the production scale.
+    check_solver_model_compilation(ph);
+
+    // Replacing the scale must refresh all scale-dependent compiled values.
+    const SolverScale forced = {10.0, 2.0, "compiled-model"};
+    set_solver_scale(ph, forced);
+    check_solver_model_compilation(ph);
+
+    // EN_initH computes dimensional link resistances and recompiles the model.
+    error = EN_initH(ph, EN_INITFLOW);
+    BOOST_REQUIRE(error == 0);
+    check_solver_model_compilation(ph);
+
+    // The scale setter also refreshes an already initialized compiled model.
+    const SolverScale forcedAfterInit = {0.1, 0.2, "compiled-model-after-init"};
+    set_solver_scale(ph, forcedAfterInit);
+    check_solver_model_compilation(ph);
+
+    error = EN_closeH(ph);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(ph->hydraul.SolverModel.NodeElevation == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.LinkResistance == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.LinkMinorLoss == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.LinkViscosityFlow == NULL);
+
+    error = EN_close(ph);
+    BOOST_REQUIRE(error == 0);
+    error = EN_deleteproject(ph);
+    BOOST_REQUIRE(error == 0);
+}
 
 BOOST_AUTO_TEST_CASE(test_production_scale_is_model_based_and_unit_independent)
 {

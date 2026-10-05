@@ -12,6 +12,7 @@
 */
 
 #include <math.h>
+#include <stdlib.h>
 
 #include "types.h"
 #include "funcs.h"
@@ -37,6 +38,120 @@ static double decadescale(double magnitude)
     scale = pow(10.0, floor(log10(magnitude)));
     if (!isfinite(scale) || scale <= 0.0) return 1.0;
     return scale;
+}
+
+
+int allochydraulicsolvermodel(Project *pr)
+/*
+**----------------------------------------------------------------
+**  Purpose: allocates storage for the compiled hydraulic model
+**----------------------------------------------------------------
+*/
+{
+    Network *net = &pr->network;
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+    int errcode = 0;
+
+    model->NodeElevation =
+        (double *) calloc(net->Nnodes + 1, sizeof(double));
+    model->LinkResistance =
+        (double *) calloc(net->Nlinks + 1, sizeof(double));
+    model->LinkMinorLoss =
+        (double *) calloc(net->Nlinks + 1, sizeof(double));
+    model->LinkViscosityFlow =
+        (double *) calloc(net->Nlinks + 1, sizeof(double));
+
+    ERRCODE(MEMCHECK(model->NodeElevation));
+    ERRCODE(MEMCHECK(model->LinkResistance));
+    ERRCODE(MEMCHECK(model->LinkMinorLoss));
+    ERRCODE(MEMCHECK(model->LinkViscosityFlow));
+    return errcode;
+}
+
+
+void freehydraulicsolvermodel(Project *pr)
+/*
+**----------------------------------------------------------------
+**  Purpose: frees storage for the compiled hydraulic model
+**----------------------------------------------------------------
+*/
+{
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+
+    free(model->NodeElevation);
+    free(model->LinkResistance);
+    free(model->LinkMinorLoss);
+    free(model->LinkViscosityFlow);
+    model->NodeElevation = NULL;
+    model->LinkResistance = NULL;
+    model->LinkMinorLoss = NULL;
+    model->LinkViscosityFlow = NULL;
+}
+
+
+void compilehydraulicsolvermodel(Project *pr)
+/*
+**----------------------------------------------------------------
+**  Purpose: compiles dimensional hydraulic model inputs into the
+**           numerical representation consumed by the solver
+**----------------------------------------------------------------
+**  This is the dimensional -> numerical boundary for model data.
+**  The compiled values are intentionally not consumed by GGA yet; later
+**  migration steps can switch hot-path reads over without changing the
+**  conversion policy at the same time.
+*/
+{
+    Network *net = &pr->network;
+    Hydraul *hyd = &pr->hydraul;
+    ShydSolverModel *model = &hyd->SolverModel;
+    int i;
+    double exponent;
+
+    if (model->NodeElevation == NULL || model->LinkResistance == NULL ||
+        model->LinkMinorLoss == NULL || model->LinkViscosityFlow == NULL)
+    {
+        return;
+    }
+
+    model->Htol = hydheadtosolver(pr, hyd->Htol);
+    model->Qtol = hydflowtosolver(pr, hyd->Qtol);
+    model->RQtol = hydresistancetosolver(pr, hyd->RQtol, 1.0);
+    model->Pmin = hydheadtosolver(pr, hyd->Pmin);
+    model->Preq = hydheadtosolver(pr, hyd->Preq);
+    model->PdaPressureRange = hydheadtosolver(pr,
+        MAX((hyd->Preq - hyd->Pmin), MINPDIFF));
+    model->FlowChangeLimit = hydflowtosolver(pr, hyd->FlowChangeLimit);
+    model->HeadErrorLimit = hydheadtosolver(pr, hyd->HeadErrorLimit);
+    model->TinyFlow = hydflowtosolver(pr, TINY);
+    model->LeakageFlowTolerance = hydflowtosolver(pr, 0.0001);
+    model->BigHead = hydheadtosolver(pr, BIG);
+    model->TinyGradient = hydresistancetosolver(pr, TINY, 1.0);
+    model->SmallGradient = hydresistancetosolver(pr, CSMALL, 1.0);
+    model->BigGradient = hydresistancetosolver(pr, CBIG, 1.0);
+    model->BigConductance = hydconductancetosolver(pr, CBIG);
+    model->SmallConductance = hydconductancetosolver(pr, 1.0 / CBIG);
+
+    for (i = 1; i <= net->Nnodes; i++)
+    {
+        model->NodeElevation[i] = hydheadtosolver(pr, net->Node[i].El);
+    }
+
+    for (i = 1; i <= net->Nlinks; i++)
+    {
+        Slink *link = &net->Link[i];
+
+        model->LinkMinorLoss[i] = hydminorlosstosolver(pr, link->Km);
+        model->LinkViscosityFlow[i] =
+            hydflowtosolver(pr, hyd->Viscos * link->Diam);
+        model->LinkResistance[i] = 0.0;
+
+        if (link->Type == PIPE || link->Type == CVPIPE)
+        {
+            exponent = (hyd->Formflag == DW) ? 2.0 : hyd->Hexp;
+            model->LinkResistance[i] =
+                hydresistancetosolver(pr, link->R, exponent);
+        }
+    }
 }
 
 
@@ -169,6 +284,13 @@ void sethydraulicsolverscale(Project *pr, double headScale, double flowScale)
     scale->FlowPower1 = pow(flowScale, 1.0);
     scale->FlowPower2 = pow(flowScale, 2.0);
     scale->FlowPowerHexp = pow(flowScale, exponent);
+
+    // SolverModel is another cache of scale-dependent values. Keep it in
+    // sync when tests or future callers deliberately replace the scale.
+    if (hyd->SolverModel.NodeElevation != NULL)
+    {
+        compilehydraulicsolvermodel(pr);
+    }
 }
 
 

@@ -65,8 +65,10 @@ int  openhyd(Project *pr)
     // Allocate memory for sparse matrix structures (see SMATRIX.C)
     ERRCODE(createsparse(pr));
 
-    // Allocate memory for hydraulic variables
+    // Allocate memory for hydraulic variables and compiled solver model
     ERRCODE(allocmatrix(pr));
+    ERRCODE(allochydraulicsolvermodel(pr));
+    if (!errcode) compilehydraulicsolvermodel(pr);
     
     // Check for unconnected nodes
     ERRCODE(unlinked(pr));
@@ -163,6 +165,10 @@ void inithyd(Project *pr, int initflag)
         // Save initial status
         hyd->OldStatus[i] = hyd->LinkStatus[i];
     }
+
+    // Refresh the compiled numerical model after link resistances and any
+    // dimensional properties changed since EN_openH have been initialized.
+    compilehydraulicsolvermodel(pr);
 
     // Initialize pump energy usage
     for (i = 1; i <= net->Npumps; i++)
@@ -320,6 +326,7 @@ void  closehyd(Project *pr)
 {
     freesparse(pr);
     freematrix(pr);
+    freehydraulicsolvermodel(pr);
     freeadjlists(&pr->network);
 }
 
