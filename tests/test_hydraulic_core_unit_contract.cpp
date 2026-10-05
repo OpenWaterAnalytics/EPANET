@@ -282,7 +282,9 @@ BOOST_AUTO_TEST_CASE(gga_hot_paths_are_solver_native)
         std::string::npos);
     BOOST_CHECK(hydcoeffs.find("SolverModel.LinkPumpResistance") !=
         std::string::npos);
-    BOOST_CHECK(hydcoeffs.find("SolverModel.BarrierGradient") !=
+    BOOST_CHECK(hydcoeffs.find("&pr->hydraul.SolverModel") !=
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("model->BarrierGradient") !=
         std::string::npos);
 
     // Status arithmetic is solver-native too. The only dimensional crossing
@@ -312,7 +314,9 @@ BOOST_AUTO_TEST_CASE(gga_hot_paths_are_solver_native)
     BOOST_CHECK(leakage.find("hydflowfromsolver") == std::string::npos);
     BOOST_CHECK_EQUAL(count_occurrences(leakage, "hydresistancetosolver"), 2u);
     BOOST_CHECK_EQUAL(count_occurrences(leakage, "hydflowtosolver"), 2u);
-    BOOST_CHECK(leakage.find("SolverModel.BarrierGradient") !=
+    BOOST_CHECK(leakage.find("&pr->hydraul.SolverModel") !=
+        std::string::npos);
+    BOOST_CHECK(leakage.find("model->BarrierGradient") !=
         std::string::npos);
 
     // All of the hot-path inputs above must be compiled at hydscale.c's model
