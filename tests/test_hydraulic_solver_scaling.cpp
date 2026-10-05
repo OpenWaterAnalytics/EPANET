@@ -215,9 +215,16 @@ void check_solver_model_compilation(EN_Project ph)
             BOOST_CHECK_EQUAL(model.LinkPumpMaxHead[i], 0.0);
         }
 
-        double expectedSetting = hyd.LinkSetting[i];
-        double expectedDynamicLoss = model.LinkMinorLoss[i];
-        if (expectedSetting != MISSING)
+        // Ordinary pipes do not consume numerical link settings or dynamic
+        // setting-dependent losses, so those compiled slots remain zero.
+        double expectedSetting = 0.0;
+        double expectedDynamicLoss = 0.0;
+        if (link.Type > PIPE)
+        {
+            expectedSetting = hyd.LinkSetting[i];
+            expectedDynamicLoss = model.LinkMinorLoss[i];
+        }
+        if (link.Type > PIPE && expectedSetting != MISSING)
         {
             switch (link.Type)
             {
