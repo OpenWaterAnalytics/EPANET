@@ -535,14 +535,12 @@ void add_lower_barrier(Project *pr, double q, double* hloss, double* hgrad)
 **--------------------------------------------------------------------
 */
 {
-    // Preserve the legacy barrier shape in dimensional internal units, then
-    // convert its head and gradient contributions into solver units.
-    double qdim = hydflowfromsolver(pr, q);
-    double a = 1.e9 * qdim;
-    double b = sqrt(a*a + 1.e-6);
-    double barrierHead = (a - b) / 2.;
-    double barrierGrad = (1.e9 / 2.) * (1.0 - a / b);
+    // Use the same compiled solver-space barrier as emitter/PDA flow limits.
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+    double a = model->BarrierGradient * q;
+    double e = model->BarrierSmoothingHead;
+    double b = sqrt(a*a + e*e);
 
-    *hloss += hydheadtosolver(pr, barrierHead);
-    *hgrad += hydresistancetosolver(pr, barrierGrad, 1.0);
+    *hloss += (a - b) / 2.0;
+    *hgrad += (model->BarrierGradient / 2.0) * (1.0 - a / b);
 }

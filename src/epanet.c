@@ -1316,6 +1316,7 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
             if (j == 0 && Ke > 0.0) net->Node[i].Ke = ucf / pow(Ke, n);
         }
         hyd->Qexp = n;
+        compilehydraulicsolvermodel(p);
         break;
 
     case EN_DEMANDMULT:
@@ -3064,7 +3065,7 @@ int DLLEXPORT EN_setdemandmodel(EN_Project p, int model, double pmin,
     p->hydraul.Pmin = pmin / p->Ucf[PRESSURE];
     p->hydraul.Preq = preq / p->Ucf[PRESSURE];
     p->hydraul.Pexp = pexp;
-    compilehydraulicsolverglobals(p);
+    compilehydraulicsolvermodel(p);
     return 0;
 }
 
@@ -5454,6 +5455,7 @@ int DLLEXPORT EN_addcontrol(EN_Project p, int type, int linkIndex, double settin
 
     // Replace the control's index
     *index = n;
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvercontrol(p, n);
     return 0;
 }
 
@@ -5475,6 +5477,14 @@ int DLLEXPORT EN_deletecontrol(EN_Project p, int index)
         net->Control[i] = net->Control[i + 1];
     }
     net->Ncontrols--;
+    if (p->hydraul.OpenHflag)
+    {
+        for (i = 1; i <= net->Ncontrols; i++)
+        {
+            int errcode = compilehydraulicsolvercontrol(p, i);
+            if (errcode) return errcode;
+        }
+    }
     return 0;
 }
 
@@ -5600,6 +5610,7 @@ int DLLEXPORT EN_setcontrol(EN_Project p, int index, int type, int linkIndex,
     err = setcontrol(p, type, linkIndex, setting, nodeIndex, level, &ctrl);
     if (err > 0) return err;
     net->Control[index] = ctrl;
+    if (p->hydraul.OpenHflag) return compilehydraulicsolvercontrol(p, index);
     return 0;
 }
 

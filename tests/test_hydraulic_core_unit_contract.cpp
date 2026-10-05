@@ -247,19 +247,83 @@ BOOST_AUTO_TEST_CASE(pump_and_gpv_curves_use_compiled_solver_model)
     BOOST_CHECK(hydcoeffs.find("hydflowfromsolver(pr, q)") ==
         std::string::npos);
 
-    // Junction-control grades, emitters, barriers, and non-custom pump
-    // coefficients still cross the solver boundary through explicit helpers.
-    BOOST_CHECK(hydsolver.find("hydheadtosolver") != std::string::npos);
-    BOOST_CHECK(hydsolver.find("hydflowtosolver") == std::string::npos);
-    BOOST_CHECK(hydcoeffs.find("hydheadtosolver") != std::string::npos);
-    BOOST_CHECK(hydcoeffs.find("hydresistancetosolver") != std::string::npos);
-    BOOST_CHECK(hydcoeffs.find("hydconductancetosolver") == std::string::npos);
+    // Curve interpolation itself is now solver-native. Other GGA hot paths
+    // are checked separately below.
+    BOOST_CHECK(hydcoeffs.find("hydflowfromsolver") == std::string::npos);
+}
 
-    // Pump shutoff head remains the only dimensional-to-solver conversion in
-    // status logic; dynamic valve setting conversions have moved out.
-    BOOST_CHECK(hydstatus.find("hydheadtosolver") != std::string::npos);
+
+BOOST_AUTO_TEST_CASE(gga_hot_paths_are_solver_native)
+{
+    const std::string hydscale = read_source("src/hydscale.c");
+    const std::string hydsolver = read_source("src/hydsolver.c");
+    const std::string hydcoeffs = read_source("src/hydcoeffs.c");
+    const std::string hydstatus = read_source("src/hydstatus.c");
+    const std::string leakage = read_source("src/leakage.c");
+
+    // Matrix/nonlinear coefficient assembly must not cross back into the
+    // dimensional model. Emitters, PDA reference grades, barriers, pumps,
+    // valves, and curves all consume precompiled SolverModel values.
+    const char* helpers[] = {
+        "hydheadtosolver", "hydflowtosolver", "hydresistancetosolver",
+        "hydconductancetosolver", "hydminorlosstosolver",
+        "hydheadfromsolver", "hydflowfromsolver"
+    };
+    for (const char* helper : helpers)
+    {
+        BOOST_CHECK_MESSAGE(hydcoeffs.find(helper) == std::string::npos,
+            "hydcoeffs.c still crosses the dimensional boundary through " << helper);
+    }
+    BOOST_CHECK(hydcoeffs.find("SolverModel.NodeEmitterResistance") !=
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("SolverModel.NodePdaMinGrade") !=
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("SolverModel.LinkPumpH0") !=
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("SolverModel.LinkPumpResistance") !=
+        std::string::npos);
+    BOOST_CHECK(hydcoeffs.find("SolverModel.BarrierGradient") !=
+        std::string::npos);
+
+    // Status arithmetic is solver-native too. The only dimensional crossing
+    // left here is tankstatus(), whose tank-volume simulation state remains on
+    // EPANET's dimensional compatibility side of the solver boundary.
+    BOOST_CHECK(hydstatus.find("hydheadtosolver") == std::string::npos);
     BOOST_CHECK(hydstatus.find("hydflowtosolver") == std::string::npos);
-    BOOST_CHECK(hydstatus.find("hydminorlosstosolver") == std::string::npos);
+    BOOST_CHECK(hydstatus.find("hydresistancetosolver") == std::string::npos);
+    BOOST_CHECK_EQUAL(count_occurrences(hydstatus, "hydflowfromsolver"), 2u);
+    BOOST_CHECK(hydstatus.find("tankstatus(pr, k, n1") != std::string::npos);
+    BOOST_CHECK(hydstatus.find("tankstatus(pr, k, n2") != std::string::npos);
+    BOOST_CHECK(hydstatus.find("SolverModel.LinkPumpMaxHead") !=
+        std::string::npos);
+
+    // hydsolver.c converts only when publishing diagnostics/report values.
+    // Simple-control trigger grades are compiled into SolverModel.
+    BOOST_CHECK(hydsolver.find("hydheadtosolver") == std::string::npos);
+    BOOST_CHECK(hydsolver.find("hydflowtosolver") == std::string::npos);
+    BOOST_CHECK(hydsolver.find("SolverModel.ControlGrade") !=
+        std::string::npos);
+    BOOST_CHECK_EQUAL(count_occurrences(hydsolver, "hydheadfromsolver"), 2u);
+    BOOST_CHECK_EQUAL(count_occurrences(hydsolver, "hydflowfromsolver"), 2u);
+
+    // Leakage coefficient conversion is initialization-boundary work. The
+    // iterative leakage barrier itself no longer converts solver flow/head.
+    BOOST_CHECK(leakage.find("hydheadtosolver") == std::string::npos);
+    BOOST_CHECK(leakage.find("hydflowfromsolver") == std::string::npos);
+    BOOST_CHECK_EQUAL(count_occurrences(leakage, "hydresistancetosolver"), 2u);
+    BOOST_CHECK_EQUAL(count_occurrences(leakage, "hydflowtosolver"), 2u);
+    BOOST_CHECK(leakage.find("SolverModel.BarrierGradient") !=
+        std::string::npos);
+
+    // All of the hot-path inputs above must be compiled at hydscale.c's model
+    // boundary rather than reconstructed ad hoc in solver code.
+    BOOST_CHECK(hydscale.find("NodeEmitterResistance") != std::string::npos);
+    BOOST_CHECK(hydscale.find("NodePdaMinGrade") != std::string::npos);
+    BOOST_CHECK(hydscale.find("LinkPumpH0") != std::string::npos);
+    BOOST_CHECK(hydscale.find("LinkPumpResistance") != std::string::npos);
+    BOOST_CHECK(hydscale.find("LinkPumpMaxHead") != std::string::npos);
+    BOOST_CHECK(hydscale.find("ControlGrade") != std::string::npos);
+    BOOST_CHECK(hydscale.find("BarrierGradient") != std::string::npos);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

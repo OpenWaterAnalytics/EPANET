@@ -94,13 +94,20 @@ void check_solver_model_compilation(EN_Project ph)
     ShydSolverModel& model = hyd.SolverModel;
 
     BOOST_REQUIRE(model.NodeElevation != NULL);
+    BOOST_REQUIRE(model.NodeEmitterResistance != NULL);
+    BOOST_REQUIRE(model.NodePdaMinGrade != NULL);
     BOOST_REQUIRE(model.LinkResistance != NULL);
     BOOST_REQUIRE(model.LinkMinorLoss != NULL);
     BOOST_REQUIRE(model.LinkViscosityFlow != NULL);
     BOOST_REQUIRE(model.LinkSetting != NULL);
     BOOST_REQUIRE(model.LinkDynamicLoss != NULL);
+    BOOST_REQUIRE(model.LinkPumpH0 != NULL);
+    BOOST_REQUIRE(model.LinkPumpResistance != NULL);
+    BOOST_REQUIRE(model.LinkPumpMaxHead != NULL);
+    BOOST_REQUIRE(model.ControlGrade != NULL);
     BOOST_REQUIRE(model.Curve != NULL);
     BOOST_CHECK(model.CurveCapacity >= net.Ncurves);
+    BOOST_CHECK(model.ControlCapacity >= net.Ncontrols);
     BOOST_CHECK_EQUAL(model.CurveHeadScale, hyd.SolverScale.Head);
     BOOST_CHECK_EQUAL(model.CurveFlowScale, hyd.SolverScale.Flow);
     BOOST_CHECK_EQUAL(model.CurveHeadUcf, ph->Ucf[HEAD]);
@@ -132,11 +139,25 @@ void check_solver_model_compilation(EN_Project ph)
         hydconductancetosolver(ph, CBIG));
     BOOST_CHECK_EQUAL(model.SmallConductance,
         hydconductancetosolver(ph, 1.0 / CBIG));
+    BOOST_CHECK_EQUAL(model.BarrierGradient,
+        hydresistancetosolver(ph, 1.e9, 1.0));
+    BOOST_CHECK_EQUAL(model.BarrierSmoothingHead,
+        hydheadtosolver(ph, 0.001));
 
     for (int i = 1; i <= net.Nnodes; ++i)
     {
         BOOST_CHECK_EQUAL(model.NodeElevation[i],
             hydheadtosolver(ph, net.Node[i].El));
+        BOOST_CHECK_EQUAL(model.NodeEmitterResistance[i],
+            hydresistancetosolver(ph, MAX(CSMALL, net.Node[i].Ke), hyd.Qexp));
+        BOOST_CHECK_EQUAL(model.NodePdaMinGrade[i],
+            hydheadtosolver(ph, net.Node[i].El + hyd.Pmin));
+    }
+
+    for (int i = 1; i <= net.Ncontrols; ++i)
+    {
+        BOOST_CHECK_EQUAL(model.ControlGrade[i],
+            hydheadtosolver(ph, net.Control[i].Grade));
     }
 
     for (int i = 1; i <= net.Ncurves; ++i)
@@ -161,6 +182,37 @@ void check_solver_model_compilation(EN_Project ph)
         else
         {
             BOOST_CHECK_EQUAL(model.LinkResistance[i], 0.0);
+        }
+
+        if (link.Type == PUMP)
+        {
+            const int p = findpump(&net, i);
+            Spump& pump = net.Pump[p];
+            if (pump.Ptype != CUSTOM && pump.Ptype != NOCURVE)
+            {
+                double exponent = pump.N;
+                if (ABS(exponent - 1.0) < TINY) exponent = 1.0;
+                BOOST_CHECK_EQUAL(model.LinkPumpH0[i],
+                    hydheadtosolver(ph, pump.H0));
+                BOOST_CHECK_EQUAL(model.LinkPumpResistance[i],
+                    hydresistancetosolver(ph, pump.R, exponent));
+            }
+            else
+            {
+                BOOST_CHECK_EQUAL(model.LinkPumpH0[i], 0.0);
+                BOOST_CHECK_EQUAL(model.LinkPumpResistance[i], 0.0);
+            }
+            if (pump.Ptype == CONST_HP)
+                BOOST_CHECK_EQUAL(model.LinkPumpMaxHead[i], model.BigHead);
+            else
+                BOOST_CHECK_EQUAL(model.LinkPumpMaxHead[i],
+                    hydheadtosolver(ph, SQR(hyd.LinkSetting[i]) * pump.Hmax));
+        }
+        else
+        {
+            BOOST_CHECK_EQUAL(model.LinkPumpH0[i], 0.0);
+            BOOST_CHECK_EQUAL(model.LinkPumpResistance[i], 0.0);
+            BOOST_CHECK_EQUAL(model.LinkPumpMaxHead[i], 0.0);
         }
 
         double expectedSetting = hyd.LinkSetting[i];
@@ -842,13 +894,20 @@ BOOST_AUTO_TEST_CASE(test_solver_model_compiles_dimensional_inputs)
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK(ph->hydraul.SolverModel.NodeElevation == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.NodeEmitterResistance == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.NodePdaMinGrade == NULL);
     BOOST_CHECK(ph->hydraul.SolverModel.LinkResistance == NULL);
     BOOST_CHECK(ph->hydraul.SolverModel.LinkMinorLoss == NULL);
     BOOST_CHECK(ph->hydraul.SolverModel.LinkViscosityFlow == NULL);
     BOOST_CHECK(ph->hydraul.SolverModel.LinkSetting == NULL);
     BOOST_CHECK(ph->hydraul.SolverModel.LinkDynamicLoss == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.LinkPumpH0 == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.LinkPumpResistance == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.LinkPumpMaxHead == NULL);
+    BOOST_CHECK(ph->hydraul.SolverModel.ControlGrade == NULL);
     BOOST_CHECK(ph->hydraul.SolverModel.Curve == NULL);
     BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.CurveCapacity, 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.ControlCapacity, 0);
     BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.CurveHeadScale, 0.0);
     BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.CurveFlowScale, 0.0);
 
@@ -879,6 +938,21 @@ BOOST_AUTO_TEST_CASE(test_solver_model_tracks_consumed_toolkit_updates)
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.NodeElevation[1],
         hydheadtosolver(ph, ph->network.Node[1].El));
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.NodePdaMinGrade[1],
+        hydheadtosolver(ph, ph->network.Node[1].El + ph->hydraul.Pmin));
+
+    // Emitter coefficients are consumed directly from SolverModel and must
+    // track both emitter-property and global emitter-exponent changes.
+    error = EN_setnodevalue(ph, 1, EN_EMITTER, 5.0);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.NodeEmitterResistance[1],
+        hydresistancetosolver(ph,
+            MAX(CSMALL, ph->network.Node[1].Ke), ph->hydraul.Qexp));
+    error = EN_setoption(ph, EN_EMITEXPON, 0.6);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.NodeEmitterResistance[1],
+        hydresistancetosolver(ph,
+            MAX(CSMALL, ph->network.Node[1].Ke), ph->hydraul.Qexp));
 
     // Convergence limits are also consumed from SolverModel.
     error = EN_setoption(ph, EN_HEADERROR, 1.25);
@@ -899,6 +973,8 @@ BOOST_AUTO_TEST_CASE(test_solver_model_tracks_consumed_toolkit_updates)
         hydheadtosolver(ph, ph->hydraul.Preq));
     BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.PdaPressureRange,
         hydheadtosolver(ph, MAX((ph->hydraul.Preq - ph->hydraul.Pmin), MINPDIFF)));
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.NodePdaMinGrade[1],
+        hydheadtosolver(ph, ph->network.Node[1].El + ph->hydraul.Pmin));
 
     // Static pipe coefficients are now consumed directly from SolverModel.
     // Toolkit edits that change resistance, minor loss, diameter, or viscosity
@@ -906,8 +982,7 @@ BOOST_AUTO_TEST_CASE(test_solver_model_tracks_consumed_toolkit_updates)
     int pipe = 0;
     for (int i = 1; i <= ph->network.Nlinks; ++i)
     {
-        if (ph->network.Link[i].Type == PIPE ||
-            ph->network.Link[i].Type == CVPIPE)
+        if (ph->network.Link[i].Type == PIPE)
         {
             pipe = i;
             break;
@@ -947,6 +1022,21 @@ BOOST_AUTO_TEST_CASE(test_solver_model_tracks_consumed_toolkit_updates)
     BOOST_REQUIRE(error == 0);
     BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkViscosityFlow[pipe],
         hydflowtosolver(ph, ph->hydraul.Viscos * ph->network.Link[pipe].Diam));
+
+    // Simple-control trigger grades are compiled too, including controls
+    // created or replaced while hydraulics are already open.
+    int control = 0;
+    error = EN_addcontrol(ph, EN_LOWLEVEL, pipe, 0.0, 1, elevation + 3.0,
+        &control);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK(ph->hydraul.SolverModel.ControlCapacity >= control);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.ControlGrade[control],
+        hydheadtosolver(ph, ph->network.Control[control].Grade));
+    error = EN_setcontrol(ph, control, EN_HILEVEL, pipe, 1.0, 1,
+        elevation + 5.0);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.ControlGrade[control],
+        hydheadtosolver(ph, ph->network.Control[control].Grade));
 
     error = EN_closeH(ph);
     BOOST_REQUIRE(error == 0);
@@ -1032,6 +1122,41 @@ BOOST_AUTO_TEST_CASE(test_solver_model_tracks_dynamic_link_settings)
         BOOST_REQUIRE(error == 0);
         BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkSetting[link],
             hydflowtosolver(ph, ph->hydraul.LinkSetting[link]));
+
+        error = EN_closeH(ph);
+        BOOST_REQUIRE(error == 0);
+        EN_close(ph);
+        EN_deleteproject(ph);
+    }
+
+    // Pump speed changes also refresh the precompiled speed-adjusted maximum
+    // head used by iterative status checks.
+    {
+        EN_Project ph = NULL;
+        int error = EN_createproject(&ph);
+        BOOST_REQUIRE(error == 0);
+        error = EN_open(ph, DATA_PATH_NET1, DATA_PATH_RPT, "");
+        BOOST_REQUIRE(error == 0);
+        error = EN_openH(ph);
+        BOOST_REQUIRE(error == 0);
+        error = EN_initH(ph, EN_INITFLOW);
+        BOOST_REQUIRE(error == 0);
+
+        int link = get_link_index(ph, "9");
+        error = EN_setlinkvalue(ph, link, EN_SETTING, 0.8);
+        BOOST_REQUIRE(error == 0);
+        int p = findpump(&ph->network, link);
+        if (ph->network.Pump[p].Ptype == CONST_HP)
+        {
+            BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkPumpMaxHead[link],
+                ph->hydraul.SolverModel.BigHead);
+        }
+        else
+        {
+            BOOST_CHECK_EQUAL(ph->hydraul.SolverModel.LinkPumpMaxHead[link],
+                hydheadtosolver(ph, SQR(ph->hydraul.LinkSetting[link]) *
+                    ph->network.Pump[p].Hmax));
+        }
 
         error = EN_closeH(ph);
         BOOST_REQUIRE(error == 0);

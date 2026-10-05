@@ -317,7 +317,7 @@ int  pswitch(Project *pr)
         if (n > 0 && n <= net->Njuncs)
         {
             double htol = hyd->SolverModel.Htol;
-            double hgrade = hydheadtosolver(pr, net->Control[i].Grade);
+            double hgrade = hyd->SolverModel.ControlGrade[i];
 
             // Junction-control grades are dimensional model values, while
             // NodeHead is numerical solver state. Compare in solver units.

@@ -776,15 +776,22 @@ typedef struct {
 
   double
     *NodeElevation,        // Node elevations in solver head units
+    *NodeEmitterResistance,// Emitter headloss coeffs. in solver units
+    *NodePdaMinGrade,      // Elevation + Pmin in solver head units
     *LinkResistance,       // Pipe resistance in solver head/flow units
     *LinkMinorLoss,        // Base link minor-loss coeffs. in solver units
     *LinkViscosityFlow,    // Viscosity * diameter in solver flow units
     *LinkSetting,          // Dynamic link settings in solver coordinates
-    *LinkDynamicLoss;      // Setting-dependent TCV/PCV loss in solver units
+    *LinkDynamicLoss,      // Setting-dependent TCV/PCV loss in solver units
+    *LinkPumpH0,           // Base pump shutoff-head coeff. in solver units
+    *LinkPumpResistance,   // Base pump flow coeff. in solver units
+    *LinkPumpMaxHead,      // Speed-adjusted pump max head in solver units
+    *ControlGrade;         // Simple-control trigger grades in solver units
   ShydSolverCurve
     *Curve;                 // Compiled curve data indexed by network curve
   int
-    CurveCapacity;          // Highest curve index allocated in Curve[]
+    CurveCapacity,          // Highest curve index allocated in Curve[]
+    ControlCapacity;        // Highest control index allocated in ControlGrade[]
   double
     CurveHeadScale,        // Head scale used by compiled curves
     CurveFlowScale,        // Flow scale used by compiled curves
@@ -805,7 +812,9 @@ typedef struct {
     SmallGradient,         // CSMALL linear resistance in solver units
     BigGradient,           // CBIG linear resistance in solver units
     BigConductance,        // CBIG conductance in solver units
-    SmallConductance;      // 1/CBIG conductance in solver units
+    SmallConductance,      // 1/CBIG conductance in solver units
+    BarrierGradient,       // Smooth flow-barrier gradient scale in solver units
+    BarrierSmoothingHead;  // Smooth flow-barrier epsilon in solver head units
 
 } ShydSolverModel;
 

@@ -234,7 +234,7 @@ StatusType  pumpstatus(Project *pr, int k, double dh)
     double hmax, htol;
 
     // Find maximum head (hmax) pump can deliver. Pump limits and Htol are
-    // dimensional model values, while dh is already in solver head units.
+    // precompiled in solver head units, matching dh directly.
     p = findpump(net, k);
     htol = hyd->SolverModel.Htol;
     if (net->Pump[p].Ptype == CONST_HP)
@@ -246,9 +246,8 @@ StatusType  pumpstatus(Project *pr, int k, double dh)
     }
     else
     {
-        // Use speed-adjusted shut-off head for other pumps
-        hmax = hydheadtosolver(pr,
-            SQR(hyd->SolverModel.LinkSetting[k]) * net->Pump[p].Hmax);
+        // Speed-adjusted pump limits are compiled when the pump setting changes.
+        hmax = hyd->SolverModel.LinkPumpMaxHead[k];
     }
 
     // Check if current head gain exceeds pump's max. head

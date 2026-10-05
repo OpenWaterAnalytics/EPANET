@@ -86,17 +86,16 @@ void addlowerbarrier(Project *pr, double dq, double* hloss, double* hgrad)
 **--------------------------------------------------------------------
 */
 {
-    // Preserve the legacy barrier shape in EPANET's dimensional internal
-    // basis, then map its head and gradient contributions into solver units.
-    // This keeps the regularization independent of the chosen solver scales.
-    double q = hydflowfromsolver(pr, dq);
-    double a = 1.e9 * q;
-    double b = sqrt(a*a + 1.e-6);
-    double barrierHead = (a - b) / 2.;
-    double barrierGrad = (1.e9 / 2.) * (1.0 - a / b);
+    // Barrier constants are compiled once into solver coordinates. Evaluate
+    // the regularization directly in solver units so no dimensional round-trip
+    // remains inside nonlinear coefficient assembly.
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+    double a = model->BarrierGradient * dq;
+    double e = model->BarrierSmoothingHead;
+    double b = sqrt(a*a + e*e);
 
-    *hloss += hydheadtosolver(pr, barrierHead);
-    *hgrad += hydresistancetosolver(pr, barrierGrad, 1.0);
+    *hloss += (a - b) / 2.0;
+    *hgrad += (model->BarrierGradient / 2.0) * (1.0 - a / b);
 }
 
 void addupperbarrier(Project *pr, double dq, double* hloss, double* hgrad)
@@ -110,14 +109,13 @@ void addupperbarrier(Project *pr, double dq, double* hloss, double* hgrad)
 **--------------------------------------------------------------------
 */
 {
-    double q = hydflowfromsolver(pr, dq);
-    double a = 1.e9 * q;
-    double b = sqrt(a*a + 1.e-6);
-    double barrierHead = (a + b) / 2.;
-    double barrierGrad = (1.e9 / 2.) * (1.0 + a / b);
+    ShydSolverModel *model = &pr->hydraul.SolverModel;
+    double a = model->BarrierGradient * dq;
+    double e = model->BarrierSmoothingHead;
+    double b = sqrt(a*a + e*e);
 
-    *hloss += hydheadtosolver(pr, barrierHead);
-    *hgrad += hydresistancetosolver(pr, barrierGrad, 1.0);
+    *hloss += (a + b) / 2.0;
+    *hgrad += (model->BarrierGradient / 2.0) * (1.0 + a / b);
 }
 
 
@@ -539,10 +537,9 @@ void emitterheadloss(Project *pr, int i, double *hloss, double *hgrad)
     double  q;
     double  rqtol;
 
-    // Node.Ke remains a dimensional model property for H = Ke * Q^Qexp.
-    // Compile it to solver units before evaluating the emitter relation.
-    ke = hydresistancetosolver(pr,
-        MAX(CSMALL, pr->network.Node[i].Ke), hyd->Qexp);
+    // Emitter resistance is compiled with the node model and refreshed when
+    // emitter properties or the emitter exponent change.
+    ke = hyd->SolverModel.NodeEmitterResistance[i];
     rqtol = hyd->SolverModel.RQtol;
 
     // Compute gradient of head loss through emitter
@@ -611,8 +608,8 @@ void  demandcoeffs(Project *pr)
         {
             row = sm->Row[i];
             sm->Aii[row] += 1.0 / hgrad;
-            sm->F[row] += (hloss + hydheadtosolver(pr,
-                net->Node[i].El + hyd->Pmin)) / hgrad;
+            sm->F[row] +=
+                (hloss + hyd->SolverModel.NodePdaMinGrade[i]) / hgrad;
         }
     }
 }
@@ -888,12 +885,12 @@ void  pumpcoeff(Project *pr, int k)
     }
     else
     {
-        // Pump H0/R remain dimensional model properties. Compile them to the
-        // numerical solver representation before applying the speed law.
-        h0 = SQR(setting) * hydheadtosolver(pr, pump->H0);
+        // Non-custom pump coefficients are compiled into solver coordinates;
+        // only the dimensionless speed-law adjustment remains per iteration.
+        h0 = SQR(setting) * hyd->SolverModel.LinkPumpH0[k];
         n = pump->N;
         if (ABS(n - 1.0) < TINY) n = 1.0;
-        r = hydresistancetosolver(pr, pump->R, n) *
+        r = hyd->SolverModel.LinkPumpResistance[k] *
             pow(setting, 2.0 - n);
         
         // Constant HP pump

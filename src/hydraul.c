@@ -166,10 +166,6 @@ void inithyd(Project *pr, int initflag)
         hyd->OldStatus[i] = hyd->LinkStatus[i];
     }
 
-    // Refresh the compiled numerical model after link resistances and any
-    // dimensional properties changed since EN_openH have been initialized.
-    compilehydraulicsolvermodel(pr);
-
     // Initialize pump energy usage
     for (i = 1; i <= net->Npumps; i++)
     {
