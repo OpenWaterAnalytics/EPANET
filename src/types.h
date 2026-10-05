@@ -741,11 +741,15 @@ typedef struct {
 // Maps solver values to EPANET's dimensional internal representation:
 //   H_internal = H_solver * Head
 //   Q_internal = Q_solver * Flow
+// Update Head/Flow through sethydraulicsolverscale() so cached powers stay valid.
 typedef struct {
 
   double
     Head,                  // Dimensional head per solver head unit
-    Flow;                  // Dimensional flow per solver flow unit
+    Flow,                  // Dimensional flow per solver flow unit
+    FlowPower1,            // Flow^1 used by linear resistance scaling
+    FlowPower2,            // Flow^2 used by quadratic resistance scaling
+    FlowPowerHexp;         // Flow^Hexp used by pipe resistance scaling
 
 } ShydScale;
 

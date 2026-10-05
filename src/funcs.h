@@ -175,6 +175,7 @@ double  tankgrade(Project *, int, double);
 // ------- HYDSCALE.C ------------------
 
 void    inithydraulicscaling(Project *);
+void    sethydraulicsolverscale(Project *, double, double);
 void    loadhydraulicsolverstate(Project *);
 void    savehydraulicsolverstate(Project *);
 double  hydheadtosolver(Project *, double);

@@ -18,6 +18,7 @@
 
 #include "test_toolkit.hpp"
 #include "../src/types.h"
+#include "../src/funcs.h"
 
 namespace
 {
@@ -53,8 +54,7 @@ void set_solver_scale(EN_Project ph, const SolverScale& scale)
 {
     // White-box test hook: SolverScale is intentionally internal and is not
     // part of the public Toolkit API.
-    ph->hydraul.SolverScale.Head = scale.head;
-    ph->hydraul.SolverScale.Flow = scale.flow;
+    sethydraulicsolverscale(ph, scale.head, scale.flow);
 }
 
 void solve_hydraulics_with_scale(EN_Project ph, const SolverScale& scale, int initFlag)
@@ -261,8 +261,7 @@ std::vector<CompatibilitySnapshot> solve_example_eps(
     BOOST_REQUIRE(error == 0);
     if (forceLegacyScale)
     {
-        ph->hydraul.SolverScale.Head = 1.0;
-        ph->hydraul.SolverScale.Flow = 1.0;
+        sethydraulicsolverscale(ph, 1.0, 1.0);
     }
     error = EN_initH(ph, EN_NOSAVE);
     BOOST_REQUIRE(error == 0);

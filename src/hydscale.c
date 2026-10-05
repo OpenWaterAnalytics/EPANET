@@ -60,10 +60,11 @@ void inithydraulicscaling(Project *pr)
 {
     Network *net = &pr->network;
     Hydraul *hyd = &pr->hydraul;
-    ShydScale *scale = &hyd->SolverScale;
     double headMagnitude = 0.0;
     double flowMagnitude = 0.0;
     double demandMagnitude = 0.0;
+    double headScale;
+    double flowScale;
     double typicalFlow;
     int i;
     Pdemand demand;
@@ -91,8 +92,8 @@ void inithydraulicscaling(Project *pr)
             includecharacteristic(net->Link[i].Kc, &flowMagnitude);
         }
     }
-    scale->Flow = decadescale(flowMagnitude);
-    typicalFlow = (flowMagnitude > 0.0) ? flowMagnitude : scale->Flow;
+    flowScale = decadescale(flowMagnitude);
+    typicalFlow = (flowMagnitude > 0.0) ? flowMagnitude : flowScale;
 
     // Absolute grades dominate the head unknowns solved by the GGA.
     for (i = 1; i <= net->Nnodes; i++)
@@ -140,7 +141,34 @@ void inithydraulicscaling(Project *pr)
             includecharacteristic(net->Control[i].Grade, &headMagnitude);
         }
     }
-    scale->Head = decadescale(headMagnitude);
+    headScale = decadescale(headMagnitude);
+    sethydraulicsolverscale(pr, headScale, flowScale);
+}
+
+
+void sethydraulicsolverscale(Project *pr, double headScale, double flowScale)
+/*
+**----------------------------------------------------------------
+**  Purpose: sets solver scales and caches their invariant transforms
+**----------------------------------------------------------------
+**  The cached powers are consumed inside hydraulic iteration loops. Keeping
+**  the common resistance powers here avoids repeated pow() calls while the
+**  original multiply/divide evaluation order remains unchanged.
+*/
+{
+    Hydraul *hyd = &pr->hydraul;
+    ShydScale *scale = &hyd->SolverScale;
+    double exponent = hyd->Hexp;
+
+    if (!isfinite(headScale) || headScale <= 0.0) headScale = 1.0;
+    if (!isfinite(flowScale) || flowScale <= 0.0) flowScale = 1.0;
+    if (!isfinite(exponent)) exponent = 0.0;
+
+    scale->Head = headScale;
+    scale->Flow = flowScale;
+    scale->FlowPower1 = pow(flowScale, 1.0);
+    scale->FlowPower2 = pow(flowScale, 2.0);
+    scale->FlowPowerHexp = pow(flowScale, exponent);
 }
 
 
@@ -274,8 +302,15 @@ double hydresistancetosolver(Project *pr, double resistance, double exponent)
 **  where Hs and Qs are the configured head and flow scales.
 */
 {
-    ShydScale *scale = &pr->hydraul.SolverScale;
+    Hydraul *hyd = &pr->hydraul;
+    ShydScale *scale = &hyd->SolverScale;
 
+    if (exponent == 1.0)
+        return resistance * scale->FlowPower1 / scale->Head;
+    if (exponent == 2.0)
+        return resistance * scale->FlowPower2 / scale->Head;
+    if (exponent == hyd->Hexp)
+        return resistance * scale->FlowPowerHexp / scale->Head;
     return resistance * pow(scale->Flow, exponent) / scale->Head;
 }
 
@@ -304,5 +339,7 @@ double hydminorlosstosolver(Project *pr, double resistance)
 **----------------------------------------------------------------
 */
 {
-    return hydresistancetosolver(pr, resistance, 2.0);
+    ShydScale *scale = &pr->hydraul.SolverScale;
+
+    return resistance * scale->FlowPower2 / scale->Head;
 }
