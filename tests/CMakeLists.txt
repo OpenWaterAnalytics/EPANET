@@ -60,6 +60,11 @@ add_test(NAME test_toolkit
 file(GLOB epanet_internal_test_srcs
      ${CMAKE_SOURCE_DIR}/src/*.c
      ${CMAKE_SOURCE_DIR}/src/util/*.c)
+# The white-box tests use the thread-safe EN_* API plus solver internals.
+# src/epanet2.c only provides the legacy DLL wrapper API and, on Win32,
+# carries __stdcall/import-export decorations that are inappropriate for this
+# test-only static library.
+list(REMOVE_ITEM epanet_internal_test_srcs ${CMAKE_SOURCE_DIR}/src/epanet2.c)
 add_library(epanet2_internal_test STATIC ${epanet_internal_test_srcs})
 target_include_directories(epanet2_internal_test PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(epanet2_internal_test PRIVATE epanet_py_EXPORTS)
