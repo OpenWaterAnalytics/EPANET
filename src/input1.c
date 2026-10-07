@@ -7,7 +7,7 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 01/28/2026
+Last Updated: 10/02/2026
 ******************************************************************************
 */
 
@@ -237,11 +237,12 @@ void adjustdata(Project *pr)
     if (time->Rstart > time->Dur) time->Rstart = 0;
 
     // If no quality timestep, then make it 1/10 of hydraulic timestep
-    if (time->Qstep == 0) time->Qstep = time->Hstep / 10;
+    // (at least 1 second)
+    if (time->Qstep == 0) time->Qstep = MAX(1, time->Hstep / 10);
 
     // If no rule time step then make it 1/10 of hydraulic time step
-    // but not greater than hydraulic time step
-    if (time->Rulestep == 0) time->Rulestep = time->Hstep / 10;
+    // (at least 1 second) but not greater than hydraulic time step
+    if (time->Rulestep == 0) time->Rulestep = MAX(1, time->Hstep / 10);
     time->Rulestep = MIN(time->Rulestep, time->Hstep);
 
     // Quality timestep cannot exceed hydraulic timestep
@@ -513,7 +514,7 @@ void convertunits(Project *pr)
     Parser   *parser = &pr->parser;
 
     int i, j, k;
-    double ucf, ecf;     // Unit conversion factor
+    double ecf;     // Unit conversion factor
     Pdemand demand; // Pointer to demand record
     Snode *node;
     Stank *tank;
@@ -545,12 +546,10 @@ void convertunits(Project *pr)
 
     // Convert emitter discharge coeffs. to head loss coeff.
     ecf = (parser->Unitsflag == US) ? (PSIperFT * hyd->SpGrav) : (MperFT);
-
-    ucf = pow(pr->Ucf[FLOW], hyd->Qexp) / ecf;
     for (i = 1; i <= net->Njuncs; i++)
     {
         node = &net->Node[i];
-        if (node->Ke > 0.0) node->Ke = ucf / pow(node->Ke, hyd->Qexp);
+        if (node->Ke > 0.0) node->Ke = pow(pr->Ucf[FLOW] / node->Ke, hyd->Qexp) / ecf;
     }
 
     // Initialize tank variables (convert tank levels to elevations)

@@ -8,7 +8,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 06/26/2024
+ Last Updated: 10/03/2026
  ******************************************************************************
 */
 
@@ -579,7 +579,7 @@ void newdemandflows(Project *pr, Hydbalance *hbal, double *qsum, double *dqsum)
     
     // Get demand function parameters
     if (hyd->DemandModel == DDA) return;
-    dp = MAX((hyd->Preq - hyd->Pmin), MINPDIFF);
+    dp = hyd->Preq - hyd->Pmin;
     n = 1.0 / hyd->Pexp;
 
     // Examine each junction

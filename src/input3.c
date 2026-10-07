@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 04/19/2025
+Last Updated: 10/03/2026
 ******************************************************************************
 */
 
@@ -645,7 +645,7 @@ int valvedata(Project *pr)
         {
             c = findcurve(net, parser->Tok[5]);
             if (c == 0) return setError(parser, 5, 206);
-            link->Kc = c;
+            net->Valve[net->Nvalves].Curve = c;
             net->Curve[c].Type = HLOSS_CURVE;
             link->InitStatus = OPEN;
         }
@@ -669,7 +669,7 @@ int valvedata(Project *pr)
         net->Valve[net->Nvalves].Curve = c;
         net->Curve[c].Type = VALVE_CURVE;
         if (link->Kc > 100.0) link->Kc = 100.0;
-    }
+    }            
     link->InitSetting = link->Kc;
     return 0;
 }
@@ -980,13 +980,11 @@ int controldata(Project *pr)
     {
         status = OPEN;
         if (linktype == PUMP) setting = 1.0;
-        if (linktype == GPV)  setting = net->Link[k].Kc;
     }
     else if (match(parser->Tok[2], w_CLOSED))
     {
         status = CLOSED;
         if (linktype == PUMP) setting = 0.0;
-        if (linktype == GPV)  setting = net->Link[k].Kc;
     }
     else if (linktype == GPV) return setError(parser, 1, 207);
     else if (!getfloat(parser->Tok[2], &setting)) return setError(parser, 2, 202);
@@ -2153,7 +2151,7 @@ int optionvalue(Project *pr, int n)
     }
     else if (match(tok0, w_PRESSURE))
     {
-        if (y < 0.0) return setError(parser, nvalue, 213);
+        if (y <= 0.0) return setError(parser, nvalue, 213);
         hyd->Pexp = y;
         return 0;
     }
