@@ -17,6 +17,7 @@
 #include <float.h>
 #include <math.h>
 #include <locale.h>
+#include <limits.h>
 
 #include "epanet2_2.h"
 #include "types.h"

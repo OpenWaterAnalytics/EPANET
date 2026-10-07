@@ -15,6 +15,7 @@
 #define TYPES_H
 
 #include <stdio.h>
+#include <limits.h>
 
 #include "hash.h"
 
