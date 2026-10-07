@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 02/11/2025
+ Last Updated: 10/05/2026
  ******************************************************************************
 */
 
@@ -702,6 +702,7 @@ void newrule(Project *pr)
     rule->ElseActions = NULL;
     rule->priority = 0.0;
     rule->isEnabled = TRUE;
+    rule->label[MAXID] = '\0';  // strncpy() above may not terminate it
     pr->rules.LastPremise = NULL;
     pr->rules.LastThenAction = NULL;
     pr->rules.LastElseAction = NULL;
@@ -833,6 +834,9 @@ int newpremise(Project *pr, int logop)
         if (v == r_FILLTIME || v == r_DRAINTIME) x = x * 3600.0;
     }
 
+    // Only a link has a status to compare with
+    if (s > IS_NUMBER && i != r_LINK) return 202;
+
     // Create new premise structure
     p = (Spremise *)malloc(sizeof(Spremise));
     if (p == NULL) return 101;
@@ -940,6 +944,7 @@ int newpriority(Project *pr)
     double x;
     char **Tok = pr->parser.Tok;
 
+    if (pr->parser.Ntokens < 2) return 201;
     if (!getfloat(Tok[1], &x)) return 202;
     net->Rule[net->Nrules].priority = x;
     return 0;
@@ -993,7 +998,8 @@ int checktime(Project *pr, Spremise *p)
     Rules *rules = &pr->rules;
 
     char flag;
-    long t1, t2, x;
+    long t1, t2;
+    double x;
 
     // Get start and end of rule evaluation time interval
     if (p->variable == r_TIME)
@@ -1008,8 +1014,9 @@ int checktime(Project *pr, Spremise *p)
     }
     else return (0);
 
-    // Test premise's time
-    x = (long)(p->value);
+    // Test premise's time (as a double: converting a very large time to
+    // long would be undefined)
+    x = p->value;
     switch (p->relop)
     {
       // For inequality, test against current time
@@ -1382,7 +1389,7 @@ void writepremise(Spremise *p, FILE *f, Network *net)
 {
     char s_obj[20];
     char s_id[MAXID + 1];
-    char s_value[20];
+    char s_value[MAXLINE+1]; // fits "%.4f" of any double
     int  subtype;
 
     // Get the type name & ID of object referred to in the premise
@@ -1436,7 +1443,7 @@ void writeaction(Saction *a, FILE *f, Network *net)
     char s_id[MAXID + 1];
     char s_obj[20];
     char s_var[20];
-    char s_value[20];
+    char s_value[MAXLINE + 1];  // fits "%.4f" of any double
     int subtype;
 
     subtype = net->Link[a->link].Type;
@@ -1489,10 +1496,16 @@ void gettimetxt(double secs, char *timetxt)
 //-----------------------------------------------------------------------------
 {
     int hours = 0, minutes = 0, seconds = 0;
-    hours = (int)secs / 3600;
-    if (hours > 24 * 7) sprintf(timetxt, "%.4f", secs / 3600.0);
+
+    // Times of 169 hours or more are written in decimal hours. Test the
+    // double, since (int)secs is undefined for 2^31 s or more.
+    if (secs < 0.0 || secs >= (24 * 7 + 1) * 3600.0)
+    {
+        sprintf(timetxt, "%.4f", secs / 3600.0);
+    }
     else
     {
+        hours = (int)secs / 3600;
         minutes = (int)((secs - 3600 * hours) / 60);
         seconds = (int)(secs - 3600 * hours - minutes * 60);
         sprintf(timetxt, "%d:%02d:%02d", hours, minutes, seconds);

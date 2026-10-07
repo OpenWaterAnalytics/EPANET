@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/02/2026
+ Last Updated: 10/05/2026
  ******************************************************************************
 */
 
@@ -203,6 +203,16 @@ int validatevalves(Project *pr)
         {
             sprintf(pr->Msg, "Error 206: %s for GPV %s",
                 geterrmsg(206, errmsg), link->ID);
+            writeline(pr, pr->Msg);
+            result = 0;
+        }
+
+        // Head loss is interpolated between curve points, so a GPV's
+        // curve needs at least 2 (validatecurves() reports 0 points)
+        else if (net->Curve[c].Npts == 1)
+        {
+            sprintf(pr->Msg, "Error 231: %s %s (a GPV curve needs 2 or more points)",
+                geterrmsg(231, errmsg), net->Curve[c].ID);
             writeline(pr, pr->Msg);
             result = 0;
         }

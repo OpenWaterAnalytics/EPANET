@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/02/2026
+ Last Updated: 10/05/2026
  ******************************************************************************
 */
 
@@ -311,7 +311,9 @@ void  closehyd(Project *pr)
 {
     freesparse(pr);
     freematrix(pr);
-    freeadjlists(&pr->network);
+
+    // Keep the adjacency lists if the quality solver is still using them
+    if (!pr->quality.OpenQflag) freeadjlists(&pr->network);
 }
 
 

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/02/2026
+ Last Updated: 10/05/2026
  ******************************************************************************
 */
 
@@ -359,6 +359,10 @@ int DLLEXPORT EN_close(EN_Project p)
 {
     // Free all project data
     freedata(p);
+
+    // Reset the counts and pointers to the freed data, so that a closed
+    // project looks the same as one that was never opened
+    initpointers(p);
 
     // Close output file
     closeoutfile(p);
@@ -757,11 +761,11 @@ int DLLEXPORT EN_initQ(EN_Project p, int saveFlag)
     if (!p->quality.OpenQflag) return 105;
     initqual(p);
     p->outfile.SaveQflag = FALSE;
-    p->outfile.Saveflag = FALSE;
+    p->outfile.OutSaveflag = FALSE;
     if (saveFlag)
     {
         errcode = openoutfile(p);
-        if (!errcode) p->outfile.Saveflag = TRUE;
+        if (!errcode) p->outfile.OutSaveflag = TRUE;
     }
     return errcode;
 }
@@ -800,7 +804,7 @@ int DLLEXPORT EN_nextQ(EN_Project p, long *tStep)
     *tStep = 0;
     if (!p->quality.OpenQflag) return 105;
     errcode = nextqual(p, tStep);
-    if (!errcode && p->outfile.Saveflag && *tStep == 0)
+    if (!errcode && p->outfile.OutSaveflag && *tStep == 0)
     {
         p->outfile.SaveQflag = TRUE;
     }
@@ -823,7 +827,7 @@ int DLLEXPORT EN_stepQ(EN_Project p, long *timeLeft)
     *timeLeft = 0;
     if (!p->quality.OpenQflag) return 105;
     errcode = stepqual(p, timeLeft);
-    if (!errcode && p->outfile.Saveflag && *timeLeft == 0)
+    if (!errcode && p->outfile.OutSaveflag && *timeLeft == 0)
     {
         p->outfile.SaveQflag = TRUE;
     }
@@ -1273,6 +1277,11 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
     double dcf, pcf, hcf, qcf;
 
     if (!p->Openflag) return 102;
+ 
+    // Options stored as integers must fit in an int (NaN fails this test)
+    if ((option == EN_TRIALS || option == EN_UNBALANCED ||
+         option == EN_CHECKFREQ || option == EN_MAXCHECK) &&
+        !(fabs(value) <= INT_MAX)) return 213;
 
     // The EN_UNBALANCED option can be < 0 indicating that the simulation
     // should be halted if no convergence is reached in EN_TRIALS. Other
@@ -1483,6 +1492,7 @@ int DLLEXPORT EN_setflowunits(EN_Project p, int units)
     double *Ucf = p->Ucf;
 
     if (!p->Openflag) return 102;
+    if (units < 0 || units > CMS) return 251;
 
     // Determine unit system based on flow units
     qfactor = Ucf[FLOW];
@@ -1654,7 +1664,11 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int param, long value)
     Times  *time = &p->times;
 
     if (!p->Openflag) return 102;
-    if (value < 0) return 213;
+
+    // Times must fit in half the range of a long, so that two of them
+    // can be added without overflow
+    if (value < 0 || value > LONG_MAX / 2) return 213;
+
     switch (param)
     {
     case EN_DURATION:
@@ -2024,7 +2038,8 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
     net->Nnodes++;
     p->parser.MaxNodes = net->Nnodes;
     strncpy(node->ID, id, MAXID);
-
+    node->ID[MAXID] = '\0';
+ 
     // set default values for new node
     node->Type = nodeType;
     node->El = 0;
@@ -2205,6 +2220,7 @@ int DLLEXPORT EN_setnodeid(EN_Project p, int index, const char *newid)
     Network *net = &p->network;
 
     // Check for valid arguments
+    if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Nnodes) return 203;
     if (!namevalid(newid)) return 252;
 
@@ -2214,6 +2230,7 @@ int DLLEXPORT EN_setnodeid(EN_Project p, int index, const char *newid)
     // Replace the existing node ID with the new value
     hashtable_delete(net->NodeHashTable, net->Node[index].ID);
     strncpy(net->Node[index].ID, newid, MAXID);
+    net->Node[index].ID[MAXID] = '\0';
     hashtable_insert(net->NodeHashTable, net->Node[index].ID, index);
     return 0;
 }
@@ -2806,7 +2823,7 @@ int DLLEXPORT EN_setnodevalues(EN_Project p, int property, double *values, int *
         errcode = EN_getnodevalue(p, i, property, &old[i - 1]);
         if (errcode != 0)
         {
-            *badIndex = i;
+            if (badIndex) *badIndex = i;
             j = i - 1;        // Need to restore values for nodes 1 to i-1
         }
         else
@@ -2814,7 +2831,7 @@ int DLLEXPORT EN_setnodevalues(EN_Project p, int property, double *values, int *
             errcode = EN_setnodevalue(p, i, property, values[i - 1]);
             if (errcode != 0)
             {
-                *badIndex = i;
+                if (badIndex) *badIndex = i;
                 j = i;        // Need to restore values for nodes 1 to i
             }
         }
@@ -3109,7 +3126,8 @@ int DLLEXPORT EN_deletedemand(EN_Project p, int nodeIndex, int demandIndex)
     // Check for valid arguments
     if (!p->Openflag) return 102;
     if (nodeIndex <= 0 || nodeIndex > p->network.Nnodes) return 203;
-
+    if (demandIndex <= 0) return 253;
+ 
     // Only junctions have demands
     if (nodeIndex <= p->network.Njuncs)
     {
@@ -3181,7 +3199,7 @@ int DLLEXPORT EN_getdemandindex(EN_Project p, int nodeIndex, const char *demandN
         n++;
         if (d->Name == NULL)
         {
-            if (nameEmpty) found = TRUE;;
+            if (nameEmpty) found = TRUE;
         }
         else if (strcmp(d->Name, demandName) == 0) found = TRUE;
         if (found) break;
@@ -3453,6 +3471,7 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     // Set properties for the new link
     link = &net->Link[n];
     strncpy(link->ID, id, MAXID);
+    link->ID[MAXID] = '\0';
 
     if (linkType <= PIPE) net->Npipes++;
     else if (linkType == PUMP)
@@ -3698,6 +3717,7 @@ int DLLEXPORT EN_setlinkid(EN_Project p, int index, const char *newid)
     Network *net = &p->network;
 
     // Check for valid arguments
+    if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Nlinks) return 204;
     if (!namevalid(newid)) return 252;
 
@@ -3707,6 +3727,7 @@ int DLLEXPORT EN_setlinkid(EN_Project p, int index, const char *newid)
     // Replace the existing link ID with the new value
     hashtable_delete(net->LinkHashTable, net->Link[index].ID);
     strncpy(net->Link[index].ID, newid, MAXID);
+    net->Link[index].ID[MAXID] = '\0';
     hashtable_insert(net->LinkHashTable, net->Link[index].ID, index);
     return 0;
 }
@@ -3834,14 +3855,15 @@ int DLLEXPORT EN_setlinknodes(EN_Project p, int index, int node1, int node2)
     int type, errcode;
 
     // Cannot modify network structure while solvers are active
+    if (!p->Openflag) return 102;
     if (p->hydraul.OpenHflag || p->quality.OpenQflag) return 262;
 
     // Check for valid link index
     if (index <= 0 || index > net->Nlinks) return 204;
 
     // Check that nodes exist
-    if (node1 < 0 || node1 > net->Nnodes) return 203;
-    if (node2 < 0 || node2 > net->Nnodes) return 203;
+    if (node1 <= 0 || node1 > net->Nnodes) return 203;
+    if (node2 <= 0 || node2 > net->Nnodes) return 203;
 
     // Check that nodes are not the same
     if (node1 == node2) return 222;
@@ -4364,6 +4386,8 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         {
             curveIndex = ROUND(value);
             if (curveIndex <= 0 || curveIndex > net->Ncurves) return 206;
+            // Curve must have at least 2 points as EN_openH requires
+            if (hyd->OpenHflag && net->Curve[curveIndex].Npts < 2) return 211;
             net->Valve[findvalve(&p->network, index)].Curve = curveIndex;
             net->Curve[curveIndex].Type = HLOSS_CURVE;
         }
@@ -4427,7 +4451,7 @@ int DLLEXPORT EN_setlinkvalues(EN_Project p, int property, double *values, int *
         errcode = EN_getlinkvalue(p, i, property, &old[i - 1]);
         if (errcode != 0)
         {
-            *badIndex = i;
+            if (badIndex) *badIndex = i;
             j = i - 1;        // Need to restore values for links 1 to i-1
         }
         else
@@ -4435,7 +4459,7 @@ int DLLEXPORT EN_setlinkvalues(EN_Project p, int property, double *values, int *
             errcode = EN_setlinkvalue(p, i, property, values[i - 1]);
             if (errcode != 0)
             {
-                *badIndex = i;
+                if (badIndex) *badIndex = i;
                 j = i;        // Need to restore values for links 1 to i
             }
         }
@@ -5309,13 +5333,17 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
     Network *net = &p->network;
     Scurve *curve;
     double x1 = -1.e37, x2 = 1.e37;
-    int n = pointIndex - 1;
-
+    int n;
+    
     // Check for valid input
     if (!p->Openflag) return 102;
     if (curveIndex <= 0 || curveIndex > net->Ncurves) return 206;
     curve = &net->Curve[curveIndex];
     if (pointIndex <= 0) return 251;
+
+    // A point index past the end of the curve adds a new last point
+    if (pointIndex > curve->Npts) pointIndex = curve->Npts + 1;
+    n = pointIndex - 1;
 
     // Check that new point maintains increasing x values
     if (n - 1 >= 0) x1 = curve->X[n-1];
@@ -5323,7 +5351,6 @@ int DLLEXPORT EN_setcurvevalue(EN_Project p, int curveIndex, int pointIndex,
     if (x <= x1 || x >= x2) return 230;
 
     // Expand curve if need be
-    if (pointIndex > curve->Npts) pointIndex = curve->Npts + 1;
     if (pointIndex >= curve->Capacity)
     {
         if (resizecurve(curve, curve->Capacity + 10) > 0) return 101;
@@ -5406,6 +5433,22 @@ int DLLEXPORT EN_setcurve(EN_Project p, int index, double *xValues,
     if (index <= 0 || index > net->Ncurves) return 206;
     if (xValues == NULL || yValues == NULL) return 206;
     if (nPoints <= 0) return 202;
+
+    // A GPV's head loss curve needs at least 2 points. EN_openH checks
+    // this, so refuse to break it while the solver is open.
+    if (nPoints < 2 && p->hydraul.OpenHflag)
+    {
+////        for (j = 1; j <= net->Nlinks; j++)
+////        {
+////            if (net->Link[j].Type == GPV && ROUND(net->Link[j].Kc) == index)
+////                return 202;
+////        }
+        for (j = 1; j <= net->Nvalves; j++)
+        {
+            if (net->Link[net->Valve[j].Link].Type == GPV && net->Valve[j].Curve == index)
+                return 202;
+        }
+    }
 
     // Check that x values are increasing
     for (j = 1; j < nPoints; j++) if (xValues[j-1] >= xValues[j]) return 230;
@@ -5510,6 +5553,7 @@ int DLLEXPORT EN_deletecontrol(EN_Project p, int index)
     Network *net = &p->network;
     int i;
 
+    if (!p->Openflag) return 102;
     if (index <= 0 || index > net->Ncontrols) return 241;
     for (i = index; i <= net->Ncontrols - 1; i++)
     {
@@ -5700,38 +5744,55 @@ int DLLEXPORT EN_addrule(EN_Project p, char *rule)
     Parser  *parser = &p->parser;
     Rules   *rules = &p->rules;
 
+    int  nrules;      // number of rules before this one is added
     char *line;
     char *nextline;
     char line2[MAXLINE+1];
+    
+    if (!p->Openflag) return 102;
 
     // Resize rules array
     net->Rule = (Srule *)realloc(net->Rule, (net->Nrules + 2)*sizeof(Srule));
     rules->Errcode = 0;
     rules->RuleState = 6;  // = r_PRIORITY
-
+    nrules = net->Nrules;
+    
     // Extract each line of the rule statement
     line = rule;
     while (line)
     {
         // Find where current line ends and next one begins
         nextline = strchr(line, '\n');
-        if (nextline) *nextline = '\0';
+        if (nextline == NULL) nextline = line + strlen(line);
+        
+        // The line and the newline added below must fit in line2
+        if (nextline - line >= MAXLINE)
+        {
+            rules->Errcode = 214;
+            break;
+        }
 
-        // Copy and tokenize the current line
-        strcpy(line2, line);
-        strcat(line2, "\n");  // Tokenizer won't work without this
+        // Copy the current line and a newline (the tokenizer needs it)
+        // into line2 and tokenize it; the caller's string is only read
+        sprintf(line2, "%.*s\n", (int)(nextline - line), line);
+ 
         parser->Ntokens = gettokens(line2, parser->Tok, MAXTOKS, parser->Comment);
 
         // Process the line to build up the rule's contents
         if (parser->Ntokens > 0 && *parser->Tok[0] != ';')
         {
+            // Only one rule can be added at a time
+            if (net->Nrules > nrules && match(parser->Tok[0], w_RULE))
+            {
+                rules->Errcode = 250;
+                break;
+            }
             ruledata(p);  // Nrules gets updated in ruledata()
             if (rules->Errcode) break;
         }
 
         // Extract next line from the rule statement
-        if (nextline) *nextline = '\n';
-        line = nextline ? (nextline + 1) : NULL;
+        line = *nextline ? (nextline + 1) : NULL;
     }
 
     // Delete new rule entry if there was an error
@@ -5751,6 +5812,7 @@ int DLLEXPORT EN_deleterule(EN_Project p, int index)
 **----------------------------------------------------------------
 */
 {
+    if (!p->Openflag) return 102;
     if (index < 1 || index > p->network.Nrules) return 257;
     deleterule(p, index);
     return 0;
@@ -5776,6 +5838,7 @@ int DLLEXPORT EN_getrule(EN_Project p, int index, int *nPremises,
     Spremise *premise;
     Saction *action;
 
+    if (!p->Openflag) return 102;
     if (index < 1 || index > net->Nrules) return 257;
     *priority = (double)p->network.Rule[index].priority;
 
@@ -5845,6 +5908,7 @@ int DLLEXPORT EN_getpremise(EN_Project p, int ruleIndex, int premiseIndex,
     Spremise *premises;
     Spremise *premise;
 
+    if (!p->Openflag) return 102;
     if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
     premises = p->network.Rule[ruleIndex].Premises;
@@ -5884,11 +5948,36 @@ int DLLEXPORT EN_setpremise(EN_Project p, int ruleIndex, int premiseIndex,
     Spremise *premises;
     Spremise *premise;
 
+    if (!p->Openflag) return 102;
     if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
     premises = p->network.Rule[ruleIndex].Premises;
     premise = getpremise(premises, premiseIndex);
     if (premise == NULL)  return 258;
+ 
+    // Check the codes, and that the object exists and has the variable
+    if (logop < 1 || logop > 3) return 251;
+    if (relop < EN_R_EQ || relop > EN_R_ABOVE) return 251;
+    if (status < 0 || status > EN_R_IS_ACTIVE) return 251;
+    if (status > 0 && object != EN_R_LINK) return 251;
+    switch (object)
+    {
+    case EN_R_NODE:
+        if (objIndex < 1 || objIndex > p->network.Nnodes) return 203;
+        if (variable < EN_R_DEMAND || variable > EN_R_DRAINTIME) return 251;
+        if (variable > EN_R_PRESSURE && variable < EN_R_FILLTIME) return 251;
+        break;
+    case EN_R_LINK:
+        if (objIndex < 1 || objIndex > p->network.Nlinks) return 204;
+        if (variable < EN_R_FLOW || variable > EN_R_SETTING) return 251;
+        break;
+    case EN_R_SYSTEM:
+        if (variable != EN_R_DEMAND && variable != EN_R_TIME &&
+            variable != EN_R_CLOCKTIME) return 251;
+        break;
+    default:
+        return 251;
+    }
 
     premise->logop = logop;
     premise->object = object;
@@ -5915,11 +6004,18 @@ int DLLEXPORT EN_setpremiseindex(EN_Project p, int ruleIndex, int premiseIndex,
     Spremise *premises;
     Spremise *premise;
 
+    if (!p->Openflag) return 102;
     if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
     premises = p->network.Rule[ruleIndex].Premises;
     premise = getpremise(premises, premiseIndex);
     if (premise == NULL)  return 258;
+ 
+    // Check that the object exists
+    if (premise->object == EN_R_NODE &&
+        (objIndex < 1 || objIndex > p->network.Nnodes)) return 203;
+    if (premise->object == EN_R_LINK &&
+        (objIndex < 1 || objIndex > p->network.Nlinks)) return 204;
 
     premise->index = objIndex;
     return 0;
@@ -5941,11 +6037,16 @@ int DLLEXPORT EN_setpremisestatus(EN_Project p, int ruleIndex, int premiseIndex,
     Spremise *premises;
     Spremise *premise;
 
+    if (!p->Openflag) return 102;
     if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
     premises = p->network.Rule[ruleIndex].Premises;
     premise = getpremise(premises, premiseIndex);
     if (premise == NULL) return 258;
+ 
+    // Only a link can be tested against a status
+    if (status < 0 || status > EN_R_IS_ACTIVE) return 251;
+    if (status > 0 && premise->object != EN_R_LINK) return 251;
 
     premise->status = status;
     return 0;
@@ -5966,6 +6067,7 @@ int DLLEXPORT EN_setpremisevalue(EN_Project p, int ruleIndex, int premiseIndex, 
     Spremise *premises;
     Spremise *premise;
 
+    if (!p->Openflag) return 102;
     if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
     premises = p->network.Rule[ruleIndex].Premises;
@@ -5992,6 +6094,7 @@ int DLLEXPORT EN_getthenaction(EN_Project p, int ruleIndex, int actionIndex,
     Saction *actions;
     Saction *action;
 
+    if (!p->Openflag) return 102;
     if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
     actions = p->network.Rule[ruleIndex].ThenActions;
@@ -6020,11 +6123,17 @@ int DLLEXPORT EN_setthenaction(EN_Project p, int ruleIndex, int actionIndex,
     Saction *actions;
     Saction *action;
 
+    if (!p->Openflag) return 102;
     if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
     actions = p->network.Rule[ruleIndex].ThenActions;
     action = getaction(actions, actionIndex);
     if (action == NULL) return 258;
+ 
+    // Check that the link exists, and the status if there is no setting
+    if (linkIndex < 1 || linkIndex > p->network.Nlinks) return 204;
+    if (setting == EN_MISSING &&
+        (status < EN_R_IS_OPEN || status > EN_R_IS_ACTIVE)) return 251;
 
     action->link = linkIndex;
     action->status = status;
@@ -6048,6 +6157,7 @@ int DLLEXPORT EN_getelseaction(EN_Project p, int ruleIndex, int actionIndex,
   Saction *actions;
   Saction *action;
 
+  if (!p->Openflag) return 102;
   if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
   actions = p->network.Rule[ruleIndex].ElseActions;
@@ -6076,11 +6186,17 @@ int DLLEXPORT EN_setelseaction(EN_Project p, int ruleIndex, int actionIndex,
   Saction *actions;
   Saction *action;
 
+  if (!p->Openflag) return 102;
   if (ruleIndex < 1 || ruleIndex > p->network.Nrules) return 257;
 
   actions = p->network.Rule[ruleIndex].ElseActions;
   action = getaction(actions, actionIndex);
   if (action == NULL) return 258;
+
+  // Check that the link exists, and the status if there is no setting
+  if (linkIndex < 1 || linkIndex > p->network.Nlinks) return 204;
+  if (setting == EN_MISSING &&
+      (status < EN_R_IS_OPEN || status > EN_R_IS_ACTIVE)) return 251;
 
   action->link = linkIndex;
   action->status = status;
@@ -6098,6 +6214,7 @@ int DLLEXPORT EN_setrulepriority(EN_Project p, int index, double priority)
 **-----------------------------------------------------------------------------
 */
 {
+    if (!p->Openflag) return 102;
     if (index <= 0 || index > p->network.Nrules)  return 257;
     p->network.Rule[index].priority = priority;
     return 0;

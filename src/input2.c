@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 05/11/2026
+Last Updated: 10/05/2026
 ******************************************************************************
 */
 
@@ -637,8 +637,9 @@ double hour(char *time, char *units)
     for (n = 0; n < 3; n++) y[n] = 0.0;
     n = 0;
     s = strtok(time, ":");
-    while (s != NULL && n <= 3)
+    while (s != NULL)
     {
+        if (n == 3) return -1.0;    // More than hh:mm:ss
         if (!getfloat(s, &y[n])) return -1.0;
         s = strtok(NULL, ":");
         n++;
@@ -755,16 +756,17 @@ void inperrmsg(Project *pr, int err, int sect, char *line)
     char tok[MAXMSG + 1];
 
     // Get token associated with input error
-    if (parser->ErrTok >= 0) strcpy(tok, parser->Tok[parser->ErrTok]);
+    // (cut short if needed: a token can be up to MAXLINE characters long)
+    if (parser->ErrTok >= 0) strncpy(tok, parser->Tok[parser->ErrTok], MAXMSG);
     else strcpy(tok, "");
 
     // write error message to report file
     if (err == 299)
-        sprintf(pr->Msg, "Error %d: %s %s: section contents ignored.",
+        snprintf(pr->Msg, sizeof(pr->Msg), "Error %d: %s %s: section contents ignored.",
             err, geterrmsg(err, errStr), tok);
     else        
-        sprintf(pr->Msg, "Error %d: %s %s in %s section:",
-            err, geterrmsg(err, errStr), tok, SectTxt[sect]);
+        snprintf(pr->Msg, sizeof(pr->Msg), "Error %d: %s %s in %s section:",
+             err, geterrmsg(err, errStr), tok, SectTxt[sect]);
     writeline(pr, pr->Msg);
 
     // Echo input line
