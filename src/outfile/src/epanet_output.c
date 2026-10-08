@@ -9,6 +9,7 @@
 //               06/17/2016
 //               08/05/2014
 //               05/21/2014
+//               10/07/2026
 //
 //   Author:     Michael E. Tryby
 //               US EPA - ORD/NRMRL
@@ -286,9 +287,11 @@ int EXPORT_OUT_API ENR_getUnits(ENR_Handle p_handle, ENR_Units code, int* unitFl
  **  Purpose: Returns pressure or flow unit flag
  **--------------pressure unit flags----------------------------------------
  **  0 = psi
- **  1 = meters
- **  2 = kPa
- **------------------flow unit flags----------------------------------------
+ **  1 = kPa
+ **  2 = meters
+ **  3 = bar
+ **  4 = feet
+  **------------------flow unit flags----------------------------------------
  **  0 = cubic feet/second
  **  1 = gallons/minute
  **  2 = million gallons/day
@@ -578,7 +581,7 @@ int EXPORT_OUT_API ENR_getNodeSeries(ENR_Handle p_handle, int nodeIndex, ENR_Nod
 
     if (p_data == NULL) return -1;
     else if (nodeIndex < 1 || nodeIndex > p_data->nodeCount) errorcode = 423;
-    else if (startPeriod < 0 || endPeriod >= p_data->nPeriods ||
+    else if (startPeriod < 0 || endPeriod > p_data->nPeriods ||
             endPeriod <= startPeriod) errorcode = 422;
     // Check memory for outValues
     else if MEMCHECK(temp = newFloatArray(length = endPeriod - startPeriod)) errorcode = 411;
@@ -614,7 +617,7 @@ int EXPORT_OUT_API ENR_getLinkSeries(ENR_Handle p_handle, int linkIndex, ENR_Lin
 
     if (p_data == NULL) return -1;
     else if (linkIndex < 1 || linkIndex > p_data->linkCount) errorcode = 423;
-    else if (startPeriod < 0 || endPeriod >= p_data->nPeriods ||
+    else if (startPeriod < 0 || endPeriod > p_data->nPeriods ||
             endPeriod <= startPeriod) errorcode = 422;
     // Check memory for outValues
     else if MEMCHECK(temp = newFloatArray(length = endPeriod - startPeriod)) errorcode = 411;
