@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/05/2026
+Last Updated: 10/07/2026
 ******************************************************************************
 */
 
@@ -353,7 +353,7 @@ int pipedata(Project *pr)
     // Check that end nodes exist
     if (net->Nlinks == parser->MaxLinks) return 200;
     n = parser->Ntokens;
-    if (n < 3) return setError(parser, -1, errcode);
+    if (n < 3) return setError(parser, -1, 201);
     if ((j1 = findnode(net, parser->Tok[1])) == 0) return setError(parser, 1, 203);
     if ((j2 = findnode(net, parser->Tok[2])) == 0) return setError(parser, 2, 203);
     if (j1 == j2) return setError(parser, 0, 222);
@@ -477,7 +477,7 @@ int pumpdata(Project *pr)
     if (net->Nlinks == parser->MaxLinks ||
         net->Npumps == parser->MaxPumps) return 200;
     n = parser->Ntokens;
-    if (n < 3) return setError(parser, -1, errcode);
+    if (n < 3) return setError(parser, -1, 201);
     if ((j1 = findnode(net, parser->Tok[1])) == 0) return setError(parser, 1, 203);
     if ((j2 = findnode(net, parser->Tok[2])) == 0) return setError(parser, 2, 203);
     if (j1 == j2) return setError(parser, 0, 222);
@@ -584,7 +584,7 @@ int valvedata(Project *pr)
     if (net->Nlinks == parser->MaxLinks ||
         net->Nvalves == parser->MaxValves) return 200;
     n = parser->Ntokens;
-    if (n < 5) return setError(parser, -1, errcode);
+    if (n < 5) return setError(parser, -1, 201);
     if ((j1 = findnode(net, parser->Tok[1])) == 0) return setError(parser, 1, 203);
     if ((j2 = findnode(net, parser->Tok[2])) == 0) return setError(parser, 2, 203);
     if (j1 == j2) return setError(parser, 0, 222);
@@ -600,7 +600,7 @@ int valvedata(Project *pr)
     else return setError(parser, 4, 213);
     
     // Check for illegal connections
-    if (valvecheck(pr, net->Nlinks, type, j1, j2))
+    if (valvecheck(pr, 0, type, j1, j2))
     {
         if      (j1 > net->Njuncs) return setError(parser, 1, 219);
         else if (j2 > net->Njuncs) return setError(parser, 2, 219);
@@ -1038,7 +1038,7 @@ int controldata(Project *pr)
     control->Type = ctltype;
     control->Status = status;
     control->Setting = setting;
-    control->Time = (long)(3600.0 * time);
+    control->Time = (long)(3600.0 * time + 0.5);
     if (ctltype == TIMEOFDAY) control->Time %= SECperDAY;
     control->Grade = level;
     control->isEnabled = isEnabled;
@@ -1838,7 +1838,7 @@ int timedata(Project *pr)
     // Reject a time that is negative, too large or not a number: its
     // number of seconds must fit in half the range of a long, so that
     // two times can be added without overflow
-    if (!(y >= 0.0 && y < LONG_MAX / 7200.0)) return setError(parser, n, 213);
+    if (!(y >= 0.0 && y < (double)LONG_MAX / 7200.0)) return setError(parser, n, 213);
     t = (long)(3600.0 * y + 0.5);
 
     /// Process the value assigned to the matched parameter
@@ -2177,7 +2177,11 @@ int optionvalue(Project *pr, int n)
     // Assign value to all other options
     if (match(tok0, w_VISCOSITY))     hyd->Viscos = y;
     else if (match(tok0, w_SPECGRAV)) hyd->SpGrav = y;
-    else if (match(tok0, w_TRIALS))   hyd->MaxIter = (int)y;
+    else if (match(tok0, w_TRIALS))
+    {
+        if (y < 1.0) return setError(parser, nvalue, 213);
+        hyd->MaxIter = (int)y;
+    }    
     else if (match(tok0, w_ACCURACY))
     {
         y = MAX(y, 1.e-5);
@@ -2191,8 +2195,16 @@ int optionvalue(Project *pr, int n)
         if (y >= 1.0) return 213;
         hyd->RQtol = y;
     }
-    else if (match(tok0, w_CHECKFREQ)) hyd->CheckFreq = (int)y;
-    else if (match(tok0, w_MAXCHECK))  hyd->MaxCheck = (int)y;
+    else if (match(tok0, w_CHECKFREQ))
+    {
+        if (y < 1.0) return setError(parser, nvalue, 213);
+        hyd->CheckFreq = (int)y;
+    }
+    else if (match(tok0, w_MAXCHECK))
+    {
+        if (y < 1.0) return setError(parser, nvalue, 213);
+        hyd->MaxCheck = (int)y;
+    }
     else if (match(tok0, w_EMITTER))   hyd->Qexp = 1.0 / y;
     else if (match(tok0, w_DEMAND))    hyd->Dmult = y;
     else return 201;

@@ -39,8 +39,10 @@ typedef enum {
 
 typedef enum {
 	ENR_PSI         = 0,
-	ENR_MTR         = 1,
-	ENR_KPA         = 2
+    ENR_KPA         = 1,
+    ENR_MTR         = 2,
+    ENR_BAR         = 3,
+    ENR_FEET        = 4
 } ENR_PressUnits;
 
 typedef enum {

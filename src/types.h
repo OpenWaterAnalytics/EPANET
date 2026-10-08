@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/05/2026
+ Last Updated: 10/07/2026
  ******************************************************************************
 */
 
@@ -42,7 +42,7 @@ typedef  int          INT4;
 #define   MAXMSG    255      // Max. # characters in message text
 #define   MAXLINE   1024     // Max. # characters read from input line
 #define   MAXFNAME  259      // Max. # characters in file name
-#define   MAXTOKS   40       // Max. items per line of input
+#define   MAXTOKS   (MAXLINE / 2 + 1) // Max. items per line of input
 #define   TRUE      1
 #define   FALSE     0
 #define   FULL      2

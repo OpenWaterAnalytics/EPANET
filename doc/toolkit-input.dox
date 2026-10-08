@@ -354,7 +354,7 @@ The \b HYDRAULICS option allows you to either <B>SAVE</B> the current hydraulics
 
 \b SPECIFIC GRAVITY is the ratio of the density of the fluid being modeled to that of water at 4 deg. C (unitless). The default value is 1.0.
 
-\b TRIALS are the maximum number of trials used to solve network hydraulics at each hydraulic time step of a simulation. The default is 40.
+\b TRIALS are the maximum number of trials used to solve network hydraulics at each hydraulic time step of a simulation. The default is 200.
 
 \b ACCURACY prescribes the convergence criterion that determines when a hydraulic solution has been reached. The trials end when the sum of all flow changes from the previous solution divided by the total flow in all links is less than this number. The default is 0.001.
 

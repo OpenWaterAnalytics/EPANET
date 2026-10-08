@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/02/2026
+Last Updated: 10/07/2026
 ******************************************************************************
 */
 
@@ -102,6 +102,20 @@ void saveauxdata(Project *pr, FILE *f)
     fclose(InFile);
     InFile = NULL;
 }
+ 
+static char *quotestr(const char *s, char *buf)
+/*
+------------------------------------------------------------
+  Returns s enclosed in double quotes (copied to buf) if it
+  contains a space or tab, so that it is read back as a
+  single token; otherwise returns s.
+------------------------------------------------------------
+*/
+{
+    if (strpbrk(s, " \t") == NULL) return (char *)s;
+    sprintf(buf, "\"%s\"", s);
+    return buf;
+}
 
 int saveinpfile(Project *pr, const char *fname)
 /*
@@ -121,6 +135,8 @@ int saveinpfile(Project *pr, const char *fname)
     int i, j, n;
     double d, kc, ke, km, ucf;
     char s[MAXLINE + 1], s1[MAXLINE + 1], s2[MAXLINE + 1];
+    char auxFname[MAXFNAME + 1];
+    FILE *aux;
     Pdemand demand;
     Psource source;
     FILE *f;
@@ -130,9 +146,23 @@ int saveinpfile(Project *pr, const char *fname)
     Spump *pump;
     Scontrol *control;
     Scurve *curve;
+ 
+    // Copy auxiliary data from the input file to a scratch file
+    // first, since fname may be the name of the input file
+    getTmpName(auxFname);
+    aux = fopen(auxFname, "w+t");
+    if (aux != NULL) saveauxdata(pr, aux);
 
     // Open the new text file
-    if ((f = fopen(fname, "wt")) == NULL) return 302;
+    if ((f = fopen(fname, "wt")) == NULL)
+    {
+        if (aux != NULL)
+        {
+            fclose(aux);
+            remove(auxFname);
+        }
+        return 302;
+    }
     
     // Set global decimal point character to dot (not thread safe)
     setlocale(LC_NUMERIC, "C");
@@ -218,7 +248,7 @@ int saveinpfile(Project *pr, const char *fname)
             if (hyd->Formflag == DW)  kc = kc * pr->Ucf[ELEV] * 1000.0;
             km = link->Km * SQR(d) * SQR(d) / 0.02517;
 
-            sprintf(s, " %-31s\t%-31s\t%-31s\t%-12.4f\t%-12.4f\t%-12.4f\t%-12.4f",
+            sprintf(s, " %-31s\t%-31s\t%-31s\t%-12.4f\t%-12.4f\t%-12.10g\t%-12.4f",
                     link->ID, net->Node[link->N1].ID, net->Node[link->N2].ID,
                     link->Len * pr->Ucf[LENGTH], d * pr->Ucf[DIAM], kc, km);
 
@@ -253,15 +283,8 @@ int saveinpfile(Project *pr, const char *fname)
             sprintf(s1, "\tHEAD %s", net->Curve[j].ID);
         }
 
-        // Old format used for pump curve
-        else
-        {
-            fprintf(f, "\n%s %12.4f %12.4f %12.4f          0.0 %12.4f", s,
-                   -pump->H0 * pr->Ucf[HEAD],
-                   (-pump->H0 - pump->R * pow(pump->Q0, pump->N)) * pr->Ucf[HEAD],
-                   pump->Q0 * pr->Ucf[FLOW], pump->Qmax * pr->Ucf[FLOW]);
-            continue;
-        }
+        // Pump has no curve or power assigned yet
+        else strcpy(s1, "");
         strcat(s, s1);
 
         // Optional speed pattern
@@ -315,17 +338,18 @@ int saveinpfile(Project *pr, const char *fname)
                 net->Node[link->N2].ID, d * pr->Ucf[DIAM],
                 LinkTxt[link->Type]);
 
-        // For GPV, setting = head curve index
+        // For GPV with head curve
         if (link->Type == GPV && (j = net->Valve[i].Curve) > 0)
         {
             sprintf(s1, "%-31s\t%-12.4f", net->Curve[j].ID, km);
         }
+        // GPV with no head curve assigned yet: leave out the setting
+        else if (link->Type == GPV) strcpy(s1, "");
         // For PCV add loss curve if present
         else if (link->Type == PCV && (j = net->Valve[i].Curve) > 0)
         {
-            sprintf(s1, "%-12.4f\t%-12.4f\t%-31s", kc, km, net->Curve[j].ID);
-        }
-        else sprintf(s1, "%-12.4f\t%-12.4f", kc, km);
+            sprintf(s1, "%-12.10g\t%-12.4f\t%-31s", kc, km, net->Curve[j].ID);        }
+        else sprintf(s1, "%-12.10g\t%-12.4f", kc, km);
         fprintf(f, "\n%s\t%s", s, s1);
         if (link->Comment) fprintf(f, "\t;%s", link->Comment);
     }
@@ -342,7 +366,10 @@ int saveinpfile(Project *pr, const char *fname)
         node = &net->Node[i];
         for (demand = node->D; demand != NULL; demand = demand->next)
         {
-            if (demand->Base == 0.0) continue;
+            // Skip a zero demand unless it has a name or a pattern
+            // (a placeholder category the user wants to keep)
+            if (demand->Base == 0.0 && demand->Pat == 0 &&
+                (demand->Name == NULL || demand->Name[0] == '\0')) continue;
             sprintf(s, " %-31s\t%-14.6f", node->ID, ucf * demand->Base);
             if ((j = demand->Pat) > 0) sprintf(s1, "%-31s", net->Pattern[j].ID);
             else strcpy(s1, " ");
@@ -394,18 +421,6 @@ int saveinpfile(Project *pr, const char *fname)
             {
                 fprintf(f, "\n %-31s\t%s", link->ID, StatTxt[CLOSED]);
             }
-
-            // Write pump speed here for pumps with old-style pump curve input
-            else if (link->Type == PUMP)
-            {
-                n = findpump(net, i);
-                pump = &net->Pump[n];
-                if (pump->Hcurve == 0 && pump->Ptype != CONST_HP &&
-                    link->InitSetting != 1.0)
-                {
-                    fprintf(f, "\n %-31s\t%-.4f", link->ID, link->InitSetting);
-                }
-            }
         }
 
         // Write fixed-status valves 
@@ -434,7 +449,7 @@ int saveinpfile(Project *pr, const char *fname)
         for (j = 0; j < net->Pattern[i].Length; j++)
         {
             if (j % 6 == 0) fprintf(f, "\n %-31s", net->Pattern[i].ID);
-            fprintf(f, "\t%-12.4f", net->Pattern[i].F[j]);
+            fprintf(f, "\t%-12.10g", net->Pattern[i].F[j]);
         }
     }
 
@@ -448,11 +463,11 @@ int saveinpfile(Project *pr, const char *fname)
         if (curve->Comment) fprintf(f, "\n;%s", curve->Comment);
         if (curve->Npts > 0)
         {
-            fprintf(f, "\n %-31s\t%-12.4f\t%-12.4f\t%s", curve->ID,
+            fprintf(f, "\n %-31s\t%-12.10g\t%-12.10g\t%s", curve->ID,
                 curve->X[0], curve->Y[0], CurveTypeTxt[curve->Type]);
             for (j = 1; j < curve->Npts; j++)
             {
-                fprintf(f, "\n %-31s\t%-12.4f\t%-12.4f", curve->ID,
+                fprintf(f, "\n %-31s\t%-12.10g\t%-12.10g", curve->ID,
                     curve->X[j], curve->Y[j]);
             }
         }
@@ -494,7 +509,7 @@ int saveinpfile(Project *pr, const char *fname)
               default:
                 break;
             }
-            sprintf(s, " LINK %s %.4f", link->ID, kc);
+            sprintf(s, " LINK %s %.10g", link->ID, kc);
         }
 
         switch (control->Type)
@@ -507,7 +522,7 @@ int saveinpfile(Project *pr, const char *fname)
             kc = control->Grade - node->El;
             if (n > net->Njuncs) kc *= pr->Ucf[HEAD];
             else kc *= pr->Ucf[PRESSURE];
-            fprintf(f, "\n%s IF NODE %s %s %.4f", s, node->ID,
+            fprintf(f, "\n%s IF NODE %s %s %.10g", s, node->ID,
                     ControlTxt[control->Type], kc);
             break;
 
@@ -693,10 +708,10 @@ int saveinpfile(Project *pr, const char *fname)
     switch (out->Hydflag)
     {
         case USE:
-          fprintf(f, "\n HYDRAULICS USE      %s", out->HydFname);
+          fprintf(f, "\n HYDRAULICS USE      %s", quotestr(out->HydFname, s1));
           break;
         case SAVE:
-          fprintf(f, "\n HYDRAULICS SAVE     %s", out->HydFname);
+          fprintf(f, "\n HYDRAULICS SAVE     %s", quotestr(out->HydFname, s1));
           break;
     }
     if (hyd->ExtraIter == -1)
@@ -712,7 +727,7 @@ int saveinpfile(Project *pr, const char *fname)
     {
         case CHEM:
           fprintf(f, "\n QUALITY             %s %s",
-                  qual->ChemName, qual->ChemUnits);
+                  quotestr(qual->ChemName, s1), quotestr(qual->ChemUnits, s2));
           break;
         case TRACE:
           fprintf(f, "\n QUALITY             TRACE %-31s",
@@ -728,26 +743,26 @@ int saveinpfile(Project *pr, const char *fname)
 
     if (hyd->DefPat > 0)
         fprintf(f, "\n PATTERN             %s", net->Pattern[hyd->DefPat].ID);
-    fprintf(f, "\n DEMAND MULTIPLIER   %-.4f", hyd->Dmult);
-    fprintf(f, "\n EMITTER EXPONENT    %-.4f", 1.0 / hyd->Qexp);
+    fprintf(f, "\n DEMAND MULTIPLIER   %-.10g", hyd->Dmult);
+    fprintf(f, "\n EMITTER EXPONENT    %-.10g", 1.0 / hyd->Qexp);
     fprintf(f, "\n BACKFLOW ALLOWED    %s", BackflowTxt[hyd->EmitBackFlag]);
     fprintf(f, "\n VISCOSITY           %-.6f", hyd->Viscos / VISCOS);
     fprintf(f, "\n DIFFUSIVITY         %-.6f", qual->Diffus / DIFFUS);
-    fprintf(f, "\n SPECIFIC GRAVITY    %-.6f", hyd->SpGrav);
+    fprintf(f, "\n SPECIFIC GRAVITY    %-.10g", hyd->SpGrav);
     fprintf(f, "\n TRIALS              %-d", hyd->MaxIter);
     fprintf(f, "\n ACCURACY            %-.8f", hyd->Hacc);
-    fprintf(f, "\n TOLERANCE           %-.8f", qual->Ctol * pr->Ucf[QUALITY]);
+    fprintf(f, "\n TOLERANCE           %-.10g", qual->Ctol * pr->Ucf[QUALITY]);
     fprintf(f, "\n CHECKFREQ           %-d", hyd->CheckFreq);
     fprintf(f, "\n MAXCHECK            %-d", hyd->MaxCheck);
-    fprintf(f, "\n DAMPLIMIT           %-.8f", hyd->DampLimit);
+    fprintf(f, "\n DAMPLIMIT           %-.10g", hyd->DampLimit);
     if (hyd->HeadErrorLimit > 0.0)
     {
-        fprintf(f, "\n HEADERROR           %-.8f",
+        fprintf(f, "\n HEADERROR           %-.10g",
                 hyd->HeadErrorLimit * pr->Ucf[HEAD]);
     }
     if (hyd->FlowChangeLimit > 0.0)
     {
-        fprintf(f, "\n FLOWCHANGE          %-.8f",
+        fprintf(f, "\n FLOWCHANGE          %-.10g",
                 hyd->FlowChangeLimit * pr->Ucf[FLOW]);
     }
     if (hyd->DemandModel == PDA)
@@ -755,7 +770,7 @@ int saveinpfile(Project *pr, const char *fname)
         fprintf(f, "\n DEMAND MODEL        PDA");
         fprintf(f, "\n MINIMUM PRESSURE    %-.4f", hyd->Pmin * pr->Ucf[PRESSURE]);
         fprintf(f, "\n REQUIRED PRESSURE   %-.4f", hyd->Preq * pr->Ucf[PRESSURE]);
-        fprintf(f, "\n PRESSURE EXPONENT   %-.4f", hyd->Pexp);
+        fprintf(f, "\n PRESSURE EXPONENT   %-.10g", hyd->Pexp);
     }
 
     // Write [REPORT] section
@@ -770,7 +785,7 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, "\n MESSAGES            %s", RptFlagTxt[rpt->Messageflag]);
     if (strlen(rpt->Rpt2Fname) > 0)
     {
-        fprintf(f, "\n FILE                %s", rpt->Rpt2Fname);
+        fprintf(f, "\n FILE                %s", quotestr(rpt->Rpt2Fname, s1));
     }
 
     // Node reporting
@@ -820,9 +835,12 @@ int saveinpfile(Project *pr, const char *fname)
     }
 
     // Field formatting options
-    for (i = 0; i < FRICTION; i++)
-    {
+    // (LINKQUAL is skipped: it has the same name as node QUALITY,
+    // which is the field the reader assigns that name to)
+    for (i = 0; i <= FRICTION; i++)
+     {
         SField *field = &rpt->Field[i];
+        if (i == LINKQUAL) continue;
         if (field->Enabled == TRUE)
         {
             fprintf(f, "\n %-20sPRECISION %d", field->Name, field->Precision);
@@ -846,13 +864,13 @@ int saveinpfile(Project *pr, const char *fname)
     {
         node = &net->Node[i];
         if (node->Tag == NULL || strlen(node->Tag) == 0) continue;
-        fprintf(f, "\n %-8s\t%-31s\t%s", "NODE", node->ID, node->Tag);
+        fprintf(f, "\n %-8s\t%-31s\t%s", "NODE", node->ID, quotestr(node->Tag, s1));
     }
     for (i = 1; i <= net->Nlinks; i++)
     {
         link = &net->Link[i];
         if (link->Tag == NULL || strlen(link->Tag) == 0) continue;
-        fprintf(f, "\n %-8s\t%-31s\t%s", "LINK", link->ID, link->Tag);
+        fprintf(f, "\n %-8s\t%-31s\t%s", "LINK", link->ID, quotestr(link->Tag, s1));
     }
     // Write [COORDINATES] section
     fprintf(f, "\n\n");
@@ -882,7 +900,14 @@ int saveinpfile(Project *pr, const char *fname)
 
     // Save auxiliary data to new input file
     fprintf(f, "\n");
-    saveauxdata(pr, f);
+    if (aux != NULL)
+    {
+        rewind(aux);
+        while (fgets(s, MAXLINE, aux) != NULL) fputs(s, f);
+        fclose(aux);
+        remove(auxFname);
+    }
+    else saveauxdata(pr, f);
 
     // Close the new input file
     fprintf(f, "\n%s\n", s_END);
