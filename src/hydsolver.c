@@ -8,7 +8,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/03/2026
+ Last Updated: 10/06/2026
  ******************************************************************************
 */
 
@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 
 #include "types.h"
 #include "funcs.h"
@@ -109,7 +110,7 @@ int  hydsolve(Project *pr, int *iter, double *relerr)
     // (ExtraIter used to increase trials in case of status cycling.)
     if (rpt->Statflag == FULL) writerelerr(pr, 0, 0);
     maxtrials = hyd->MaxIter;
-    if (hyd->ExtraIter > 0) maxtrials += hyd->ExtraIter;
+    if (hyd->ExtraIter > 0) maxtrials += MIN(hyd->ExtraIter, INT_MAX - maxtrials);
     *iter = 1;
     while (*iter <= maxtrials)
     {

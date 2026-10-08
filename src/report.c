@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/02/2026
+ Last Updated: 10/05/2026
  ******************************************************************************
 */
 
@@ -349,7 +349,7 @@ void writehydstat(Project *pr, int iter, double relerr)
   int i, n;
   double *NodeDemand;
   char s1[MAXLINE + 1];
-  char atime[13];
+  char atime[sizeof(rpt->Atime)];
   StatusType newstat;
   Stank *Tank = net->Tank;
   Slink *Link = net->Link;
@@ -641,8 +641,9 @@ int writeresults(Project *pr)
         }
     }
 
-    // Free output file
-    if (outFile != NULL)
+    // Close output file if it was opened here
+    // (the project's own OutFile is closed by closeoutfile)
+    if (outFile != NULL && outFile != out->OutFile)
     {
         fclose(outFile);
         outFile = NULL;
@@ -1529,7 +1530,7 @@ char *clocktime(char *atime, long seconds)
     h = seconds / 3600;
     m = seconds % 3600 / 60;
     s = seconds - 3600 * h - 60 * m;
-    sprintf(atime, "%01d:%02d:%02d", (int)h, (int)m, (int)s);
+    sprintf(atime, "%01ld:%02ld:%02ld", h, m, s);
     return atime;
 }
 

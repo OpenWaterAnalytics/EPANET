@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/11/2026
+ Last Updated: 10/05/2026
  ******************************************************************************
 */
 
@@ -15,6 +15,7 @@
 #define TYPES_H
 
 #include <stdio.h>
+#include <limits.h>
 
 #include "hash.h"
 
@@ -105,8 +106,11 @@ typedef  int          INT4;
 #define ABS(x)   (((x)<0) ? -(x) : (x))       // absolute value of x
 #define MIN(x,y) (((x)<=(y)) ? (x) : (y))     // minimum of x and y
 #define MAX(x,y) (((x)>=(y)) ? (x) : (y))     // maximum of x and y
-#define ROUND(x) (((x)>=0) ? (int)((x)+.5) : (int)((x)-.5))
-                                              // round-off of x
+#define ROUND(x) (((x)>=INT_MAX) ? INT_MAX : ((x)>=0) ? (int)((x)+.5) : \
+                  ((x)>INT_MIN) ? (int)((x)-.5) : INT_MIN)
+                                              // round-off of x (limited to
+                                              // INT_MIN..INT_MAX; NaN gives
+                                              // INT_MIN)
 #define MOD(x,y) ((x)%(y))                    // x modulus y
 #define SQR(x)   ((x)*(x))                    // x-squared
 #define SGN(x)   (((x)<0) ? (-1) : (1))       // sign of x
@@ -664,7 +668,8 @@ typedef struct {
     PageNum;               // Current page number
 
   char
-    Atime[13],             // Clock time (hrs:min:sec)
+    Atime[26],             // Clock time (hrs:min:sec), long enough
+                           // for any long number of seconds
     Rpt1Fname[MAXFNAME+1], // Primary report file name
     Rpt2Fname[MAXFNAME+1], // Secondary report file name
     DateStamp[26];         // Current date & time
@@ -688,7 +693,8 @@ typedef struct {
     Hydflag,               // Hydraulics flag
     SaveHflag,             // Hydraulic results saved flag
     SaveQflag,             // Quality results saved flag
-    Saveflag;              // General purpose save flag
+    Saveflag,              // Hydraulics file save flag
+    OutSaveflag;           // Output file save flag
 
   long
     HydOffset,             // Hydraulics file byte offset

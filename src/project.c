@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/03/2026
+ Last Updated: 10/05/2026
  ******************************************************************************
 */
 
@@ -1625,7 +1625,12 @@ char *xstrcpy(char **s1, const char *s2, const size_t n)
     if (n2 > n1) *s1 = realloc(*s1, (n2 + 1) * sizeof(char));
 
     // Copy the source string into the destination string
-    if (*s1) strncpy(*s1, s2, n2+1);
+    // (always null-terminated, even when s2 was truncated to n characters)
+    if (*s1)
+    {
+        memcpy(*s1, s2, n2);
+        (*s1)[n2] = '\0';
+    }
     return *s1;
 }
 

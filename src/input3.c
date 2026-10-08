@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/03/2026
+Last Updated: 10/05/2026
 ******************************************************************************
 */
 
@@ -15,6 +15,7 @@ Last Updated: 10/03/2026
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 
 #include "types.h"
 #include "funcs.h"
@@ -179,7 +180,7 @@ int tankdata(Project *pr)
 
     int errcode = 0;
     int errtok = -1;
-    double x = 0.0;;
+    double x = 0.0;
 
     // Add new tank to data base
     if (net->Ntanks == parser->MaxTanks ||
@@ -1749,6 +1750,10 @@ int reportdata(Project *pr)
         if (!getfloat(parser->Tok[2], &y)) return setError(parser, 2, 202);
         if (j == PREC)
         {
+            // Report tables print values into a 16-byte buffer,
+            // which holds at most 6 decimal places (see report.c)
+            y = MAX(y, 0.0);
+            y = MIN(y, 6.0);
             rpt->Field[i].Enabled = TRUE;
             rpt->Field[i].Precision = ROUND(y);
         }
@@ -1829,6 +1834,11 @@ int timedata(Project *pr)
             }
         }
     }
+    
+    // Reject a time that is negative, too large or not a number: its
+    // number of seconds must fit in half the range of a long, so that
+    // two times can be added without overflow
+    if (!(y >= 0.0 && y < LONG_MAX / 7200.0)) return setError(parser, n, 213);
     t = (long)(3600.0 * y + 0.5);
 
     /// Process the value assigned to the matched parameter
@@ -2158,6 +2168,11 @@ int optionvalue(Project *pr, int n)
 
     // All other options must be > 0
     if (y <= 0.0) return setError(parser, nvalue, 213);
+
+    // Options stored as integers must fit in an int (NaN fails this test)
+    if ((match(tok0, w_TRIALS) || match(tok0, w_CHECKFREQ) ||
+         match(tok0, w_MAXCHECK)) && !(y <= INT_MAX))
+        return setError(parser, nvalue, 213);
 
     // Assign value to all other options
     if (match(tok0, w_VISCOSITY))     hyd->Viscos = y;
