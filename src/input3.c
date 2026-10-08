@@ -1838,7 +1838,7 @@ int timedata(Project *pr)
     // Reject a time that is negative, too large or not a number: its
     // number of seconds must fit in half the range of a long, so that
     // two times can be added without overflow
-    if (!(y >= 0.0 && y < LONG_MAX / 7200.0)) return setError(parser, n, 213);
+    if (!(y >= 0.0 && y < (double)LONG_MAX / 7200.0)) return setError(parser, n, 213);
     t = (long)(3600.0 * y + 0.5);
 
     /// Process the value assigned to the matched parameter
