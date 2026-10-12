@@ -7,7 +7,7 @@ Description:  implements EPANET's water quality engine
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/05/2026
+Last Updated: 10/08/2026
 ******************************************************************************
 */
 
@@ -142,11 +142,12 @@ int initqual(Project *pr)
     }
     if (qual->Qualflag == NONE) return errcode;
 
-    // Initialize tank quality
-    for (i = 1; i <= net->Ntanks; i++)
-    {
+    // Initialize tank quality & volume
+     for (i = 1; i <= net->Ntanks; i++)
+     {
         net->Tank[i].C = qual->NodeQual[net->Tank[i].Node];
-    }
+        net->Tank[i].Vq = net->Tank[i].V0;
+     }
 
     // Initialize quality at trace node (if applicable)
     if (qual->Qualflag == TRACE) qual->NodeQual[qual->TraceNode] = 100.0;
@@ -488,6 +489,7 @@ double findsourcequal(Project *pr, int n, double volout, long tstep)
     // Return 0 if node is not a quality source or has no outflow
     source = net->Node[n].S;
     if (source == NULL)    return 0.0;
+    source->Smass = 0.0;
     if (source->C0 == 0.0) return 0.0;
     if (volout / tstep <= Q_STAGNANT) return 0.0;
 
@@ -530,11 +532,11 @@ double findsourcequal(Project *pr, int n, double volout, long tstep)
     // Source mass added over time step = source concen. * outflow volume
     massadded = c * volout;
 
-    // Update source's total mass added
-    source->Smass += massadded;
+    // Update source's mass inflow rate (mass/sec)
+    source->Smass = massadded / tstep;
 
     // Update Wsource
-    if (time->Htime >= time->Rstart)
+    if (time->Qtime >= time->Rstart)
     {
         qual->Wsource += massadded;
     }

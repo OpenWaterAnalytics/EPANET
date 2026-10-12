@@ -7,7 +7,7 @@ Description:  binary file read/write routines
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/02/2026
+Last Updated: 10/08/2026
 ******************************************************************************
 */
 
@@ -223,6 +223,7 @@ int savehyd(Project *pr, long *htime)
     //if (f_save(x, net->Nlinks, HydFile) < (unsigned)net->Nlinks) errcode = 308;
     free(x);
     fflush(HydFile);
+    if (ferror(HydFile)) errcode = 308;
     return errcode;
 }
 
@@ -245,6 +246,7 @@ int savehydstep(Project *pr, long *hydstep)
     if (fwrite(&t, sizeof(INT4), 1, out->HydFile) < 1) errcode = 308;
     if (t == 0) fputc(EOFMARK, out->HydFile);
     fflush(out->HydFile);
+    if (ferror(out->HydFile)) errcode = 308;
     return errcode;
 }
 
@@ -647,7 +649,9 @@ int savefinaloutput(Project *pr)
     FILE *outFile = out->OutFile;
 
     // Save time series statistic if computed
-    if (rpt->Tstatflag != SERIES && out->TmpOutFile != NULL)
+    // (there is none if no time period was reported)
+    if (rpt->Tstatflag != SERIES && out->TmpOutFile != NULL &&
+        rpt->Nperiods > 0)
     {
         x = (REAL4 *)calloc(MAX(net->Nnodes, net->Nlinks) + 1, sizeof(REAL4));
         if (x == NULL) return 101;
@@ -836,7 +840,8 @@ int savenetreacts(Project *pr, double wbulk, double wwall, double wtank, double 
     REAL4 w[4];
     FILE *outFile = out->OutFile;
 
-    if (time->Dur > 0) t = (double)time->Dur / 3600.;
+    // Rates are only accumulated over the reporting period
+    if (time->Dur > time->Rstart) t = (double)(time->Dur - time->Rstart) / 3600.;
     else t = 1.;
     w[0] = (REAL4)(wbulk / t);
     w[1] = (REAL4)(wwall / t);

@@ -7,7 +7,7 @@ Description:  computes water quality transport over a single time step
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 02/14/2025
+Last Updated: 10/10/2026
 ******************************************************************************
 */
 
@@ -583,7 +583,7 @@ void initsegs(Project *pr)
     {
         qual->FirstSeg[k] = NULL;
         qual->LastSeg[k] = NULL;
-        if (net->Link[k].Type == PIPE)
+        if (net->Link[k].Type <= PIPE)
         {
             v = LINKVOL(k);
             j = net->Link[k].N2;

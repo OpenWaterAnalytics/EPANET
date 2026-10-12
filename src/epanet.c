@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/05/2026
+ Last Updated: 10/08/2026
  ******************************************************************************
 */
 
@@ -50,10 +50,6 @@ int DLLEXPORT EN_createproject(EN_Project *p)
     getTmpName(project->TmpOutFname);
     getTmpName(project->TmpStatFname);
     *p = project;
-    
-    // Use system's decimal point (will be changed locally to dot
-    // when reading/writing EPANET input files)
-    setlocale(LC_NUMERIC, "");
     return 0;
 }
 
@@ -67,9 +63,11 @@ int DLLEXPORT EN_deleteproject(EN_Project p)
 */
 {
     if (p == NULL) return -1;
-    if (p->Openflag) {
-      EN_close(p);
-    }
+
+    // Close the project even if it is not open: a failed EN_open leaves
+    // the report file open and the network data allocated
+    EN_close(p);
+
     remove(p->TmpHydFname);
     remove(p->TmpOutFname);
     remove(p->TmpStatFname);
@@ -294,6 +292,7 @@ int  DLLEXPORT EN_settag(EN_Project p, int object, int index,
 {
     return settag(&p->network, object, index, tag);
 }
+
 int DLLEXPORT EN_getcount(EN_Project p, int object, int *count)
 /*----------------------------------------------------------------
 **  Input:   object = type of object to count (see EN_CountType)
@@ -566,11 +565,14 @@ int DLLEXPORT EN_runH(EN_Project p, long *currentTime)
 */
 {
     int errcode;
+    void *savedlocale;
 
     *currentTime = 0;
     if (!p->hydraul.OpenHflag) return 103;
+    savedlocale = setnumericlocale("");   // Report in the system's locale
     errcode = runhyd(p, currentTime);
     if (errcode) errmsg(p, errcode);
+    restorenumericlocale(savedlocale);
     return errcode;
 }
 
@@ -584,12 +586,15 @@ int DLLEXPORT EN_nextH(EN_Project p, long *tStep)
 */
 {
     int errcode;
+    void *savedlocale;
 
     *tStep = 0;
     if (!p->hydraul.OpenHflag) return 103;
+    savedlocale = setnumericlocale("");   // Report in the system's locale
     errcode = nexthyd(p, tStep);
     if (errcode) errmsg(p, errcode);
     else if (p->outfile.Saveflag && *tStep == 0) p->outfile.SaveHflag = TRUE;
+    restorenumericlocale(savedlocale);
     return errcode;
 }
 
@@ -912,14 +917,17 @@ int DLLEXPORT EN_report(EN_Project p)
 */
 {
     int errcode;
+    void *savedlocale;
 
     // Check if results have been saved to binary output file
     if (!p->outfile.SaveQflag) return 106;
     writewin(p->viewprog, FMT103);
 
-    // Write the formatted report
+    // Write the formatted report (in the system's locale)
+    savedlocale = setnumericlocale("");
     errcode = writereport(p);
     if (errcode) errmsg(p, errcode);
+    restorenumericlocale(savedlocale);
     return errcode;
 }
 
@@ -1372,17 +1380,15 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
 
     case EN_SP_GRAVITY:
         if (value <= 0.0) return 213;
-        if (p->parser.Pressflag == PSI || 
-            p->parser.Pressflag == KPA || 
-            p->parser.Pressflag == BAR)
-        {
-            Ucf[PRESSURE] *= (value / hyd->SpGrav);
-        }
+        ucf = hyd->SpGrav / value;
+        adjustpressuredata(p, ucf);
         hyd->SpGrav = value;
         break;
 
     case EN_SP_VISCOS:
-        if (value <= 0.0) return 213;
+        // An input file reads a VISCOSITY of 0.001 or less as an actual
+        // viscosity, so such relative values could not be saved
+        if (value <= 1.e-3) return 213;
         hyd->Viscos = value * VISCOS;
         break;
 
@@ -1399,6 +1405,9 @@ int DLLEXPORT EN_setoption(EN_Project p, int option, double value)
         break;
 
     case EN_SP_DIFFUS:
+        // An input file reads a DIFFUSIVITY of 0.0001 or less (other than 0)
+        // as an actual diffusivity, so such relative values could not be saved
+        if (value > 0.0 && value <= 1.e-4) return 213;
         qual->Diffus = value * DIFFUS;
         break;
 
@@ -1633,7 +1642,9 @@ int DLLEXPORT EN_gettimeparam(EN_Project p, int param, long *value)
         break;
     case EN_QTIME:
         *value = time->Qtime;
+        break;
     case EN_HALTFLAG:
+        *value = p->hydraul.Haltflag;
         break;
     case EN_NEXTEVENT:
         *value = time->Hstep; // find the lesser of the hydraulic time step length,
@@ -1708,7 +1719,7 @@ int DLLEXPORT EN_settimeparam(EN_Project p, int param, long value)
         break;
 
     case EN_REPORTSTART:
-        if (time->Rstart > time->Dur) return 213;
+        if (value > time->Dur) return 213;
         time->Rstart = value;
         break;
 
@@ -1976,6 +1987,10 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
             net->Node[i + 1] = net->Node[i];
         }
 
+        // adjust indices of tanks/reservoirs in Rule premises (see RULES.C)
+        // (before Njuncs is incremented, since it shifts indices > Njuncs)
+        adjusttankrules(p, 1);
+
         // set index of new Junction node
         net->Njuncs++;
         nIdx = net->Njuncs;
@@ -1988,6 +2003,8 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
         {
             net->Tank[i].Node += 1;
         }
+        // shift index of water quality trace node, if necessary
+        if (qual->TraceNode > net->Njuncs - 1) qual->TraceNode += 1;
         // shift indices of Links, if necessary
         for (i = 1; i <= net->Nlinks; i++)
         {
@@ -2000,8 +2017,6 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
             control = &net->Control[i];
             if (control->Node > net->Njuncs - 1) control->Node += 1;
         }
-        // adjust indices of tanks/reservoirs in Rule premises (see RULES.C)
-        adjusttankrules(p, 1);
     }
 
     // Actions taken when a new Tank/Reservoir is added
@@ -2054,9 +2069,33 @@ int DLLEXPORT EN_addnode(EN_Project p, const char *id, int nodeType, int *index)
     node->Comment = NULL;
     node->Tag = NULL;                     
 
+    // Move the results of the nodes above the new one up one place
+    // (with the nodes themselves) and clear the new node's results
+    for (i = net->Nnodes; i > nIdx; i--)
+    {
+        hyd->NodeHead[i] = hyd->NodeHead[i - 1];
+        hyd->NodeDemand[i] = hyd->NodeDemand[i - 1];
+        hyd->DemandFlow[i] = hyd->DemandFlow[i - 1];
+        hyd->FullDemand[i] = hyd->FullDemand[i - 1];
+        hyd->EmitterFlow[i] = hyd->EmitterFlow[i - 1];
+        hyd->LeakageFlow[i] = hyd->LeakageFlow[i - 1];
+        qual->NodeQual[i] = qual->NodeQual[i - 1];
+    }
+    hyd->NodeHead[nIdx] = 0.0;
+    hyd->NodeDemand[nIdx] = 0.0;
+    hyd->DemandFlow[nIdx] = 0.0;
+    hyd->FullDemand[nIdx] = 0.0;
+    hyd->EmitterFlow[nIdx] = 0.0;
+    hyd->LeakageFlow[nIdx] = 0.0;
+    qual->NodeQual[nIdx] = 0.0;
+
     // Insert new node into hash table
     hashtable_insert(net->NodeHashTable, node->ID, nIdx);
     *index = nIdx;
+
+    // Saved hydraulic and output results no longer match the network
+    p->outfile.SaveHflag = FALSE;
+    p->outfile.SaveQflag = FALSE;
     return 0;
 }
 
@@ -2075,6 +2114,8 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
 */
 {
     Network *net = &p->network;
+    Hydraul *hyd = &p->hydraul;
+    Quality *qual = &p->quality;
 
     int i, nodeType, tankindex;
     Snode *node;
@@ -2122,6 +2163,18 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
         hashtable_update(net->NodeHashTable, net->Node[i].ID, i);
     }
     if (index < p->quality.TraceNode) (p->quality.TraceNode)--;
+
+    // Move the results of the higher nodes down one place with the nodes
+    for (i = index; i <= net->Nnodes - 1; i++)
+    {
+        hyd->NodeHead[i] = hyd->NodeHead[i + 1];
+        hyd->NodeDemand[i] = hyd->NodeDemand[i + 1];
+        hyd->DemandFlow[i] = hyd->DemandFlow[i + 1];
+        hyd->FullDemand[i] = hyd->FullDemand[i + 1];
+        hyd->EmitterFlow[i] = hyd->EmitterFlow[i + 1];
+        hyd->LeakageFlow[i] = hyd->LeakageFlow[i + 1];
+        qual->NodeQual[i] = qual->NodeQual[i + 1];
+    }
 
     // If deleted node is a tank, remove it from the Tank array
     if (nodeType != EN_JUNCTION)
@@ -2173,6 +2226,10 @@ int DLLEXPORT EN_deletenode(EN_Project p, int index, int actionCode)
     if (nodeType == EN_JUNCTION) net->Njuncs--;
     else net->Ntanks--;
     net->Nnodes--;
+
+    // Saved hydraulic and output results no longer match the network
+    p->outfile.SaveHflag = FALSE;
+    p->outfile.SaveQflag = FALSE;
     return 0;
 }
 
@@ -2343,8 +2400,11 @@ int DLLEXPORT EN_getnodevalue(EN_Project p, int index, int property, double *val
         break;
 
     case EN_TANKLEVEL:
+        // Initial level of a tank, or head of a reservoir (what
+        // EN_setnodevalue assigns)
         if (index <= nJuncs) return 0;
-        v = (Tank[index - nJuncs].H0 - Node[index].El) * Ucf[ELEV];
+        if (Tank[index - nJuncs].A == 0.0) v = Tank[index - nJuncs].H0 * Ucf[ELEV];
+        else v = (Tank[index - nJuncs].H0 - Node[index].El) * Ucf[ELEV];
         break;
 
     case EN_INITVOLUME:
@@ -2573,7 +2633,10 @@ int DLLEXPORT EN_setnodevalue(EN_Project p, int index, int property, double valu
             value = pow((Ucf[FLOW] / value), hyd->Qexp) / ecfTmp;
         }
         Node[index].Ke = value;
-        if (hyd->EmitterFlow[index] == 0.0) hyd->EmitterFlow[index] = 1.0;
+        // A new emitter needs a starting flow if the solver is running
+        // (inithyd() gives every emitter one at the start of a run)
+        if (hyd->OpenHflag && hyd->EmitterFlow[index] == 0.0)
+            hyd->EmitterFlow[index] = 1.0;
         break;
 
     case EN_INITQUAL:
@@ -2819,15 +2882,28 @@ int DLLEXPORT EN_setnodevalues(EN_Project p, int property, double *values, int *
     old = (double *)malloc(n * sizeof(double));
     if (!old) return 101; /* insufficient memory available */
 
+    // Only values that change are assigned. This leaves alone the nodes
+    // that a property does not apply to (given the values that
+    // EN_getnodevalues returns for them) and avoids needless side effects.
     for (i = 1; i <= n; i++)
     {
         errcode = EN_getnodevalue(p, i, property, &old[i - 1]);
+
+        // A node without a quality source has no source value to save
+        // (error 240). Mark it as MISSING; it only gets a source if its
+        // new value is not 0.
+        if (errcode == 240)
+        {
+            errcode = 0;
+            old[i - 1] = MISSING;
+            if (values[i - 1] == 0.0) continue;
+        }
         if (errcode != 0)
         {
             if (badIndex) *badIndex = i;
             j = i - 1;        // Need to restore values for nodes 1 to i-1
         }
-        else
+        else if (values[i - 1] != old[i - 1])
         {
             errcode = EN_setnodevalue(p, i, property, values[i - 1]);
             if (errcode != 0)
@@ -2840,7 +2916,16 @@ int DLLEXPORT EN_setnodevalues(EN_Project p, int property, double *values, int *
         {
             for (k = 1; k <= j; k++)
             {
-                EN_setnodevalue(p, k, property, old[k - 1]);
+                if (old[k - 1] == MISSING)
+                {
+                    // Remove any source created by this call
+                    free(p->network.Node[k].S);
+                    p->network.Node[k].S = NULL;
+                }
+                else if (values[k - 1] != old[k - 1])
+                {
+                    EN_setnodevalue(p, k, property, old[k - 1]);
+                }
             }
             break;
         }
@@ -2956,6 +3041,7 @@ int DLLEXPORT EN_settankdata(EN_Project p, int index, double elev,
     net->Node[Tank[j].Node].El = elev / Ucf[ELEV];
     Tank[j].A = area / Ucf[ELEV] / Ucf[ELEV];
     Tank[j].H0 = (elev + initlvl) / Ucf[ELEV];
+    p->hydraul.NodeHead[index] = Tank[j].H0;   // head before a run
     Tank[j].Hmin = (elev + minlvl) / Ucf[ELEV];
     Tank[j].Hmax = (elev + maxlvl) / Ucf[ELEV];
     Tank[j].Vcurve = curveIndex;
@@ -3450,6 +3536,9 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     // Check that nodes are not the same
     if (n1 == n2) return 222;
 
+    // Check that nodes are not the same
+    if (n1 == n2) return 222;
+
     // Check that valve link has legal connections
     if (linkType > PUMP)
     {
@@ -3517,6 +3606,7 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
         link->Kc = 1.0; // Speed factor
         link->Km = 0.0; // Horsepower
         link->Len = 0.0;
+        link->Diam = 0.0;
     }
     else if (linkType <= PIPE)  // pipe or cvpipe
     {
@@ -3546,6 +3636,13 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
     link->LeakArea = 0;
     link->LeakExpan = 0;
     link->InitSetting = link->Kc;
+
+    // A new link has no results yet: no flow, and its initial status
+    // and setting
+    hyd->LinkFlow[n] = 0.0;
+    hyd->LinkStatus[n] = link->InitStatus;
+    hyd->LinkSetting[n] = link->InitSetting;
+
     link->R = 0;
     link->Rc = 0;
     link->Rpt = 0;
@@ -3556,6 +3653,10 @@ int DLLEXPORT EN_addlink(EN_Project p, const char *id, int linkType,
 
     hashtable_insert(net->LinkHashTable, link->ID, n);
     *index = n;
+
+    // Saved hydraulic and output results no longer match the network
+    p->outfile.SaveHflag = FALSE;
+    p->outfile.SaveQflag = FALSE;
     return 0;
 }
 
@@ -3573,6 +3674,7 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
 */
 {
     Network *net = &p->network;
+    Hydraul *hyd = &p->hydraul;
 
     int i;
     int pumpindex;
@@ -3614,6 +3716,14 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
         // ... update link's entry in the hash table
         hashtable_update(net->LinkHashTable, net->Link[i].ID, i);
     }
+ 
+    // Move the results of the higher links down one place with the links
+    for (i = index; i <= net->Nlinks - 1; i++)
+    {
+        hyd->LinkFlow[i] = hyd->LinkFlow[i + 1];
+        hyd->LinkSetting[i] = hyd->LinkSetting[i + 1];
+        hyd->LinkStatus[i] = hyd->LinkStatus[i + 1];
+    }
 
     // Adjust references to higher numbered links for pumps & valves
     for (i = 1; i <= net->Npumps; i++)
@@ -3625,8 +3735,9 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
         if (net->Valve[i].Link > index) net->Valve[i].Link -= 1;
     }
 
-    // Reduce the number of pipes count by one if it is a pipe.
-    if (linkType == PIPE)
+    // Reduce the number of pipes count by one if it is a pipe
+    // (with or without a check valve).
+    if (linkType <= PIPE)
     {
         net->Npipes--;
     }
@@ -3670,6 +3781,10 @@ int DLLEXPORT EN_deletelink(EN_Project p, int index, int actionCode)
 
     // Reduce link count by one
     net->Nlinks--;
+
+    // Saved hydraulic and output results no longer match the network
+    p->outfile.SaveHflag = FALSE;
+    p->outfile.SaveQflag = FALSE;
     return 0;
 }
 
@@ -3802,6 +3917,8 @@ int DLLEXPORT EN_setlinktype(EN_Project p, int *index, int linkType, int actionC
     {
         net->Link[i].Type = linkType;
         if (linkType == CVPIPE) net->Link[i].InitStatus = OPEN;
+        p->outfile.SaveHflag = FALSE;
+        p->outfile.SaveQflag = FALSE;
         return 0;
     }
 
@@ -3884,6 +4001,10 @@ int DLLEXPORT EN_setlinknodes(EN_Project p, int index, int node1, int node2)
     // Assign new end nodes to link
     net->Link[index].N1 = node1;
     net->Link[index].N2 = node2;
+
+    // Saved hydraulic and output results no longer match the network
+    p->outfile.SaveHflag = FALSE;
+    p->outfile.SaveQflag = FALSE;
     return 0;
 }
 
@@ -4235,8 +4356,9 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
         // Status 's' must be either EN_CLOSED (0) or EN_OPEN (1)
         // (to set the status of a valve to ACTIVE, assign a value to its
         // EN_INITSETTING or EN_SETTING property)
+        // (written so that NaN is refused too)
+        if (!(value >= 0.0 && value <= 1.0)) return 211;
         s = (char)ROUND(value);
-        if (s < 0 || s > 1) return 211;
 
         if (property == EN_INITSTATUS)
         {
@@ -4253,7 +4375,8 @@ int DLLEXPORT EN_setlinkvalue(EN_Project p, int index, int property, double valu
     case EN_SETTING:
         if (Link[index].Type == PIPE || Link[index].Type == CVPIPE)
         {
-            EN_setlinkvalue(p, index, EN_ROUGHNESS, value);
+            int errcode = EN_setlinkvalue(p, index, EN_ROUGHNESS, value);
+            if (errcode > 0) return errcode;
             if (property == EN_INITSETTING) Link[index].InitSetting = Link[index].Kc;
         }
         else
@@ -4447,6 +4570,7 @@ int DLLEXPORT EN_setlinkvalues(EN_Project p, int property, double *values, int *
     old = (double *)malloc(n * sizeof(double));
     if (!old) return 101; /* insufficient memory available */
 
+    // Only values that change are assigned
     for (i = 1; i <= n; i++)
     {
         errcode = EN_getlinkvalue(p, i, property, &old[i - 1]);
@@ -4455,7 +4579,7 @@ int DLLEXPORT EN_setlinkvalues(EN_Project p, int property, double *values, int *
             if (badIndex) *badIndex = i;
             j = i - 1;        // Need to restore values for links 1 to i-1
         }
-        else
+        else if (values[i - 1] != old[i - 1])
         {
             errcode = EN_setlinkvalue(p, i, property, values[i - 1]);
             if (errcode != 0)
@@ -4468,7 +4592,10 @@ int DLLEXPORT EN_setlinkvalues(EN_Project p, int property, double *values, int *
         {
             for (k = 1; k <= j; k++)
             {
-                EN_setlinkvalue(p, k, property, old[k - 1]);
+                if (values[k - 1] != old[k - 1])
+                {
+                    EN_setlinkvalue(p, k, property, old[k - 1]);
+                }
             }
             break;
         }
@@ -5782,6 +5909,13 @@ int DLLEXPORT EN_addrule(EN_Project p, char *rule)
         // Process the line to build up the rule's contents
         if (parser->Ntokens > 0 && *parser->Tok[0] != ';')
         {
+            // The first clause must start the new rule
+            if (net->Nrules == nrules && !match(parser->Tok[0], w_RULE))
+            {
+                rules->Errcode = 221;
+                break;
+            }
+
             // Only one rule can be added at a time
             if (net->Nrules > nrules && match(parser->Tok[0], w_RULE))
             {
@@ -5797,7 +5931,7 @@ int DLLEXPORT EN_addrule(EN_Project p, char *rule)
     }
 
     // Delete new rule entry if there was an error
-    if (rules->Errcode) deleterule(p, net->Nrules);
+    if (rules->Errcode && net->Nrules > nrules) deleterule(p, net->Nrules);
 
     // Re-assign error code 201 (syntax error) to 250 (invalid format)
     if (rules->Errcode == 201) rules->Errcode = 250;

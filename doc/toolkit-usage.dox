@@ -182,13 +182,15 @@ The @ref EN_getnodevalue and @ref EN_getlinkvalue functions can also be used to 
 |\b EN_DEMAND (total node outflow)    |\b EN_FLOW (flow rate)                     |
 |\b EN_HEAD (hydraulic head)          |\b EN_VELOCITY (flow velocity)             |
 |\b EN_PRESSURE (pressure)            |\b EN_HEADLOSS (head loss)                 |
-|\b EN_TANKLEVEL (tank water level)   |\b EN_STATUS (link status)                 |
-|\b EN_TANKVOLUME (tank water volume) |\b EN_SETTING (pump speed or valve setting)|
-|\b EN_QUALITY (water quality)        |\b EN_ENERGY (pump energy usage)           |
-|\b EN_SOURCEMASS (source mass inflow)|\b EN_LINKQUAL (water quality)             |
+|\b EN_TANKVOLUME (tank water volume) |\b EN_STATUS (link status)                 |
+|\b EN_QUALITY (water quality)        |\b EN_SETTING (pump speed or valve setting)|
+|\b EN_SOURCEMASS (source mass inflow)|\b EN_ENERGY (pump energy usage)           |
+|                                     |\b EN_LINKQUAL (water quality)             |
 |                                     |\b EN_PUMP_STATE (pump state)              |
 |                                     |\b EN_PUMP_EFFIC (pump efficiency)         |
 |                                     |\b EN_LINK_LEAKAGE (pipe leakage flow rate)|
+
+A tank's current water level is its \b EN_HEAD minus its \b EN_ELEVATION. \b EN_TANKLEVEL is the tank's initial water level, an input like its minimum and maximum levels.
 
 In addition, the following quantities related to a node's outflow can be retrieved:
 -# EN_FULLDEMAND (consumer demand requested)

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/07/2026
+ Last Updated: 10/10/2026
  ******************************************************************************
 */
 
@@ -447,6 +447,7 @@ typedef struct             // Tank Object
   double  Kb;              // bulk reaction coeff.
   double  V;               // tank volume
   double  C;               // concentration
+  double  Vq;              // volume tracked by water quality solver
   int     Pat;             // fixed grade time pattern
   int     Vcurve;          // volume v. elev. curve index
   MixType MixModel;        // type of mixing model

@@ -7,7 +7,7 @@ Description:  computes water quality reactions within pipes and tanks
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 12/16/2024
+Last Updated: 10/08/2026
 ******************************************************************************
 */
 
@@ -39,6 +39,7 @@ static void    tankmix1(Project *, int, double, double, double);
 static void    tankmix2(Project *, int, double, double, double);
 static void    tankmix3(Project *, int, double, double, double);
 static void    tankmix4(Project *, int, double, double, double);
+static double  tankoverflow(Stank *, double);
 
 
 char setreactflag(Project *pr)
@@ -134,7 +135,7 @@ void reactpipes(Project *pr, long dt)
     for (k = 1; k <= net->Nlinks; k++)
     {
         // Skip non-pipe links (pumps & valves)
-        if (net->Link[k].Type != PIPE) continue;
+        if (net->Link[k].Type > PIPE) continue;
         rsum = 0.0;
         vsum = 0.0;
 
@@ -301,7 +302,7 @@ double pipereact(Project *pr, int k, double c, double v, long dt)
     dcwall = rwall * (double)dt;
 
     // Update cumulative mass reacted
-    if (pr->times.Htime >= pr->times.Rstart)
+    if (pr->times.Qtime >= pr->times.Rstart)
     {
         qual->Wbulk += fabs(dcbulk) * v;
         qual->Wwall += fabs(dcwall) * v;
@@ -346,7 +347,7 @@ double tankreact(Project *pr, double c, double v, double kb, long dt)
 
         // Find concentration change & update quality
         dc = rbulk * (double)dt;
-        if (pr->times.Htime >= pr->times.Rstart)
+        if (pr->times.Qtime >= pr->times.Rstart)
         {
             qual->Wtank += fabs(dc) * v;
         }
@@ -396,7 +397,8 @@ double bulkrate(Project *pr, double c, double kb, double order)
         // Compute concentration potential
         if (order == 1.0) c = c1;
         else if (order == 2.0) c = c1 * c;
-        else c = c1 * pow(MAX(0.0, c), order - 1.0);
+        else if (c <= 0.0) c = 0.0;   // avoids pow(0, <0) = inf for order < 1
+        else c = c1 * pow(c, order - 1.0);
     }
 
     // Reaction rate = bulk coeff. * potential
@@ -615,7 +617,7 @@ void tankmix3(Project *pr, int i, double vin, double win, double vnet)
     Quality *qual = &pr->quality;
 
     int k;
-    double vout, vseg;
+    double vout, vseg, vover;
     double cin, vsum, wsum;
     Pseg seg;
     Stank *tank = &pr->network.Tank[i];
@@ -635,9 +637,9 @@ void tankmix3(Project *pr, int i, double vin, double win, double vnet)
         else addseg(pr, k, vin, cin);
     }
 
-    // Find volume leaving tank, adjusted so its volume doesn't exceed Vmax
-    vout = vin - vnet;
-    if (tank->V >= tank->Vmax && vnet > 0.0) vout = vin;
+    // Find volume leaving tank, including any overflow above Vmax
+    vover = tankoverflow(tank, vnet);
+    vout = vin - vnet + vover;
 
     // Withdraw outflow from first segment
     vsum = 0.0;
@@ -671,9 +673,8 @@ void tankmix3(Project *pr, int i, double vin, double win, double vnet)
     else                                tank->C = qual->FirstSeg[k]->c;
     
     // Account for mass lost in overflow from 1st segment
-    if (tank->V >= tank->Vmax && vnet > 0.0)
-        qual->MassBalance.outflow += vnet * tank->C;
-}
+    qual->MassBalance.outflow += vover * tank->C;
+} 
 
 
 void tankmix4(Project *pr, int i, double vin, double win, double vnet)
@@ -692,12 +693,15 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
     Quality *qual = &pr->quality;
 
     int k;
-    double cin, vsum, wsum, vseg;
+    double cin, vsum, wsum, vseg, vover;
     Pseg seg;
     Stank *tank = &pr->network.Tank[i];
 
     k = net->Nlinks + i;
     if (qual->LastSeg[k] == NULL || qual->FirstSeg[k] == NULL) return;
+
+    // Find any overflow above Vmax
+    vover = tankoverflow(tank, vnet);
 
     // Find inflow concentration
     if (vin > 0.0) cin = win / vin;
@@ -718,20 +722,20 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
         // Update reported tank quality
         tank->C = qual->LastSeg[k]->c;
         
-        // If tank full then remove vnet from leading segments
-        if (tank->V >= tank->Vmax)
+        // If tank overflows then remove overflow from leading segments
+        if (vover > 0.0)
         {
             wsum = 0.0;
-            while (vnet > 0.0)
+            while (vover > 0.0)
             {
                 seg = qual->FirstSeg[k];
                 if (seg == NULL)  break;
                 vseg = seg->v;               // Flow volume from leading seg
-                vseg = MIN(vseg, vnet);
-                if (seg == qual->LastSeg[k]) vseg = vnet;
+                vseg = MIN(vseg, vover);
+                if (seg == qual->LastSeg[k]) vseg = vover;
                 wsum += (seg->c) * vseg;
-                vnet -= vseg;               // Remaining flow volume
-                if (vnet >= 0.0 && vseg >= seg->v)  // Seg used up
+                vover -= vseg;              // Remaining flow volume
+                if (vover >= 0.0 && vseg >= seg->v)  // Seg used up
                 {
                     if (seg->prev)
                     {
@@ -797,4 +801,27 @@ void tankmix4(Project *pr, int i, double vin, double win, double vnet)
         // Reported tank quality is mixture of flow released and any inflow
         tank->C = (wsum + win) / (vsum + vin);
     }
+}
+
+
+double tankoverflow(Stank *tank, double vnet)
+/*
+**----------------------------------------------------------
+**   Input:   tank = a tank object
+**            vnet = inflow - outflow volume over the time step
+**   Output:  returns the volume that overflows the tank
+**   Purpose: updates the tank volume tracked by the quality
+**            solver and finds how much of the net inflow is
+**            lost to overflow (only for tanks that can overflow).
+**----------------------------------------------------------
+*/
+{
+    double vover = 0.0;
+
+    if (tank->CanOverflow && vnet > 0.0)
+    {
+        vover = MAX(0.0, tank->Vq + vnet - tank->Vmax);
+    }
+    tank->Vq += vnet - vover;
+    return vover;
 }

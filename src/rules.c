@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/07/2026
+ Last Updated: 10/08/2026
  ******************************************************************************
 */
 
@@ -134,6 +134,9 @@ void deleterule(Project *pr, int index)
 
     int i;
     Srule *lastRule;
+ 
+    // No rule to delete (e.g. an error before the first RULE clause)
+    if (index < 1 || index > net->Nrules) return;
 
     // Free memory allocated to rule's premises & actions
     clearrule(pr, index);
@@ -196,12 +199,13 @@ int ruledata(Project *pr)
         err;
     char **Tok = parser->Tok;  // Tokenized line of a rule statement
 
-    // Exit if current rule has an error
-    if (rules->RuleState == r_ERROR) return 0;
-
     // Find the key word that begins the rule statement
     err = 0;
     key = findmatch(Tok[0], Ruleword);
+
+    // Skip the rest of a rule that has an error, up to the next RULE clause
+    if (rules->RuleState == r_ERROR && key != r_RULE) return 0;
+
     switch (key)
     {
         case -1:
@@ -209,16 +213,15 @@ int ruledata(Project *pr)
           break;
 
         case r_RULE:
-          // Missing the rule label
-          if (parser->Ntokens != 2)
-          {
-              err = 201;
-              break;
-          }
+          // Start the new rule even if its label is bad, so that an
+          // error is charged to it and not to the previous rule
           net->Nrules++;
           newrule(pr);
           rules->RuleState = r_RULE;
           rules->Errcode = 0;
+
+          // Missing the rule label
+          if (parser->Ntokens != 2) err = 201;
           break;
 
         case r_IF:
@@ -697,7 +700,8 @@ void newrule(Project *pr)
     char **Tok = pr->parser.Tok;
     Srule *rule = &net->Rule[net->Nrules];
 
-    strncpy(rule->label, Tok[1], MAXID);
+    if (pr->parser.Ntokens > 1) strncpy(rule->label, Tok[1], MAXID);
+    else strcpy(rule->label, "");
     rule->Premises = NULL;
     rule->ThenActions = NULL;
     rule->ElseActions = NULL;
