@@ -69,18 +69,18 @@ typedef  int          INT4;
    Flow units conversion factors
 ----------------------------------------------
 */
-#define   GPMperCFS   448.831
-#define   AFDperCFS   1.9837
-#define   MGDperCFS   0.64632
-#define   IMGDperCFS  0.5382
-#define   LPSperCFS   28.317
-#define   LPMperCFS   1699.0
-#define   CMSperCFS   0.028317
-#define   CMHperCFS   101.94
-#define   CMDperCFS   2446.6
-#define   MLDperCFS   2.4466
-#define   M3perFT3    0.028317
-#define   LperFT3     28.317
+#define   GPMperCFS   448.8311688311688
+#define   AFDperCFS   1.9834710743801653
+#define   MGDperCFS   0.6463168831168831
+#define   IMGDperCFS  0.5381713836613002
+#define   LPSperCFS   28.316846592
+#define   LPMperCFS   1699.01079552
+#define   CMSperCFS   0.028316846592
+#define   CMHperCFS   101.9406477312
+#define   CMDperCFS   2446.5755455488
+#define   MLDperCFS   2.4465755455488
+#define   M3perFT3    0.028316846592
+#define   LperFT3     28.316846592
 #define   MperFT      0.3048
 #define   PSIperFT    0.4333
 #define   KPAperPSI   6.895

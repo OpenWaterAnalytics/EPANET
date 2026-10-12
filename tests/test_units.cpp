@@ -24,8 +24,8 @@ This is a test for the API functions that change the units of a project.
    Flow units conversion factors
 ----------------------------------------------
 */
-double  GPMperCFS =  448.831;
-double  LPSperCFS =  28.317;
+double  GPMperCFS =  448.8311688311688;
+double  LPSperCFS =  28.316846592;
 double  MperFT    =  0.3048;
 double  PSIperFT  =  0.4333;
 double  KPAperPSI =  6.895;
@@ -41,6 +41,28 @@ char unitrules[] = "RULE 1\n IF NODE 10 DEMAND > 10 \n"
 
 
 BOOST_AUTO_TEST_SUITE (test_units)
+
+BOOST_FIXTURE_TEST_CASE(test_flow_unit_conversion_precision, FixtureOpenClose)
+{
+    int nodeIndex;
+    double demand;
+
+    error = EN_getnodeindex(ph, (char *)"11", &nodeIndex);
+    BOOST_REQUIRE(error == 0);
+
+    // Net1 node 11 has a base demand of exactly 150 US gal/min.
+    error = EN_setflowunits(ph, EN_LPS);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getbasedemand(ph, nodeIndex, 1, &demand);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_SMALL(demand - 9.46352946, 1.e-12);
+
+    error = EN_setflowunits(ph, EN_CMH);
+    BOOST_REQUIRE(error == 0);
+    error = EN_getbasedemand(ph, nodeIndex, 1, &demand);
+    BOOST_REQUIRE(error == 0);
+    BOOST_CHECK_SMALL(demand - 34.068706056, 1.e-12);
+}
 
 BOOST_FIXTURE_TEST_CASE(test_pressure_units, FixtureInitClose)
 {
