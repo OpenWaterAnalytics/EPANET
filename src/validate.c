@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/05/2026
+ Last Updated: 10/08/2026
  ******************************************************************************
 */
 
@@ -475,10 +475,12 @@ void reindextanks(Project *pr)
                 control = &net->Control[j];
                 if (control->Node == n1) control->Node = n2;
             }
-            adjusttankrules(pr, -ndiff);
             if (qual->TraceNode == n1) qual->TraceNode = n2;
         }
-        
+
+        // Shift tank indexes in rule premises (all tanks at once)
+        adjusttankrules(pr, -ndiff);
+
         // Reallocate the Node array (shouldn't fail as new size < old size)
         parser->MaxJuncs = net->Njuncs;
         parser->MaxNodes = net->Njuncs + net->Ntanks;

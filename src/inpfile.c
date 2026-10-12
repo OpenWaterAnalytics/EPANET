@@ -7,7 +7,7 @@ Description:  saves network data to an EPANET formatted text file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/07/2026
+Last Updated: 10/10/2026
 ******************************************************************************
 */
 
@@ -140,6 +140,7 @@ int saveinpfile(Project *pr, const char *fname)
     Pdemand demand;
     Psource source;
     FILE *f;
+    void *savedlocale;
     Slink *link;
     Stank *tank;
     Snode *node;
@@ -164,8 +165,8 @@ int saveinpfile(Project *pr, const char *fname)
         return 302;
     }
     
-    // Set global decimal point character to dot (not thread safe)
-    setlocale(LC_NUMERIC, "C");
+    // Use a dot as the decimal point (in this thread only)
+    savedlocale = setnumericlocale("C");
 
     // Write [TITLE] section
     fprintf(f, s_TITLE);
@@ -913,8 +914,8 @@ int saveinpfile(Project *pr, const char *fname)
     fprintf(f, "\n%s\n", s_END);
     fclose(f);
     
-    // Reset global decimal point character to system value
-    setlocale(LC_NUMERIC, "");
+    // Give the thread back its previous locale
+    restorenumericlocale(savedlocale);
     
     return 0;
 }

@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/05/2026
+ Last Updated: 10/10/2026
  ******************************************************************************
 */
 
@@ -478,7 +478,12 @@ void writemassbalance(Project *pr)
     char s1[MAXMSG+1];
     char *units[] = {"", " (mg)", " (ug)", " (hrs)"};
     int  kunits = 0;
+    void *savedlocale;
 
+    // Write numbers in the system's locale (this is the only part of
+    // the report written during a water quality run)
+    savedlocale = setnumericlocale("");
+   
     if      (qual->Qualflag == TRACE) kunits = 1;
     else if (qual->Qualflag == AGE)   kunits = 3;
     else
@@ -507,6 +512,7 @@ void writemassbalance(Project *pr)
     writeline(pr, s1);                          
     snprintf(s1, MAXMSG, "================================\n");
     writeline(pr, s1);
+    restorenumericlocale(savedlocale);
 }
 
 void writeenergy(Project *pr)

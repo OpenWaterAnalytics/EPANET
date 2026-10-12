@@ -7,7 +7,7 @@ Description:  retrieves network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/02/2026
+Last Updated: 10/12/2026
 ******************************************************************************
 */
 
@@ -538,6 +538,9 @@ void convertunits(Project *pr)
         {
             demand->Base /= pr->Ucf[DEMAND];
         }
+
+        // The parser used NodeDemand as a marker; no demand is computed yet
+        hyd->NodeDemand[i] = 0.0;
     }
     
     // Convert PDA pressure limits
@@ -568,6 +571,7 @@ void convertunits(Project *pr)
         tank->Kb /= SECperDAY;
         tank->V = tank->V0;
         tank->C = node->C0;
+        hyd->NodeHead[i] = tank->H0;    // head before a run
     }
 
     // Convert hydraulic convergence criteria
@@ -631,6 +635,10 @@ void convertunits(Project *pr)
             }
         }
         link->InitSetting = link->Kc;
+
+        // Before a run a link's status and setting are its initial ones
+        hyd->LinkStatus[k] = link->InitStatus;
+        hyd->LinkSetting[k] = link->InitSetting;
     }
 
     // Convert units on control settings
@@ -669,3 +677,63 @@ void convertunits(Project *pr)
         }
     }
 }
+
+void adjustpressuredata(Project *p, double ucf)
+/*
+**--------------------------------------------------------------
+**  Input:   ucf = ratio of old to new specific gravity 
+**  Output:  none
+**  Purpose: adjusts pressure head data for changed sp. gravity.
+**--------------------------------------------------------------
+*/
+{
+    Network *net = &p->network;
+    Hydraul *hyd = &p->hydraul;
+
+    int i, j;
+
+    // Emitter coeffs. are per psi in US units
+    if (p->parser.Unitsflag == US)
+    {
+        for (i = 1; i <= net->Njuncs; i++) net->Node[i].Ke *= ucf;
+    }
+
+    // Values already entered in psi, kPa or bar keep those values
+    // (as in an input file), so the heads stored for them are scaled
+    // by the ratio of the old to the new specific gravity
+    if (p->parser.Pressflag == PSI || 
+        p->parser.Pressflag == KPA || 
+        p->parser.Pressflag == BAR)
+    {
+        p->Ucf[PRESSURE] /= ucf;
+        hyd->Pmin *= ucf;
+        hyd->Preq *= ucf;
+
+        // Pressure settings of PRVs, PSVs and PBVs
+        for (i = 1; i <= net->Nlinks; i++)
+        {
+             j = net->Link[i].Type;
+             if (j != PRV && j != PSV && j != PBV) continue;
+             if (net->Link[i].Kc != MISSING) net->Link[i].Kc *= ucf;
+             if (net->Link[i].InitSetting != MISSING)
+                 net->Link[i].InitSetting *= ucf;
+         }
+
+        // Simple controls on junction pressure or valve pressure setting
+        for (i = 1; i <= net->Ncontrols; i++)
+        {
+            j = net->Control[i].Node;
+            if ((net->Control[i].Type == LOWLEVEL ||
+                net->Control[i].Type == HILEVEL) && j > 0 && j <= net->Njuncs)
+            {
+                net->Control[i].Grade = net->Node[j].El +
+                    (net->Control[i].Grade - net->Node[j].El) * ucf;
+            }
+            j = net->Control[i].Link;
+            if (j <= 0 || net->Control[i].Setting == MISSING) continue;
+            j = net->Link[j].Type;
+            if (j == PRV || j == PSV || j == PBV)
+                net->Control[i].Setting *= ucf;
+        }
+    }
+}    

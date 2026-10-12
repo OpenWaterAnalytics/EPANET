@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/02/2026
+ Last Updated: 10/10/2026
  ******************************************************************************
 */
 #ifndef FUNCS_H
@@ -61,6 +61,8 @@ int     settag(Network *, int, int, const char *);
 
 int     namevalid(const char *);
 void    getTmpName(char *);
+void    *setnumericlocale(const char *);
+void    restorenumericlocale(void *);
 char    *xstrcpy(char **, const char *, const size_t n);
 int     strcomp(const char *, const char *);
 double  interp(int, double [], double [], double);
@@ -81,6 +83,7 @@ void    adjustdata(Project *);
 void    inittanks(Project *);
 void    initunits(Project *);
 void    convertunits(Project *);
+void    adjustpressuredata(Project *, double);
 
 //-------- INPUT2.C -----------------
 
