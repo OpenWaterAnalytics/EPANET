@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/05/2026
+ Last Updated: 10/07/2026
  ******************************************************************************
 */
 
@@ -204,7 +204,7 @@ int   runhyd(Project *pr, long *t)
 
     int   iter;          // Iteration count
     int   errcode;       // Error code
-    double relerr;       // Solution accuracy
+    double relerr = 0.0; // Solution accuracy
 
     // Re-initialize leakage coeffs. if parameters have changed
     if (hyd->LeakageChanged)

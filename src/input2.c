@@ -7,7 +7,7 @@ Description:  reads and interprets network data from an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/05/2026
+Last Updated: 10/07/2026
 ******************************************************************************
 */
 
@@ -40,6 +40,7 @@ static int  newline(Project *, int, char *);
 static int  addpattern(Network *, char *);
 static int  addcurve(Network *, char *);
 static void inperrmsg(Project *, int, int, char *);
+static int  skiprestofline(FILE *, char *);
 
 
 int netsize(Project *pr)
@@ -86,6 +87,9 @@ int netsize(Project *pr)
     if (parser->InFile == NULL) return 0;
     while (fgets(line, MAXLINE, parser->InFile) != NULL)
     {
+        // Skip the rest of a line too long for the buffer
+        skiprestofline(parser->InFile, line);
+
         // Skip blank lines & those beginning with a comment
         tok = strtok(line, SEPSTR);
         if (tok == NULL) continue;
@@ -160,8 +164,9 @@ int readdata(Project *pr)
 	char errmsg[MAXMSG + 1] = "";		 
     int  sect, newsect,      // Data sections
          errcode = 0,        // Error code
-         inperr, errsum;     // Error code & total error count
-
+         inperr, errsum,     // Error code & total error count
+         toolong;            // Line too long for the buffer
+ 
     // Allocate input buffer
     parser->X = (double *)calloc(MAXTOKS, sizeof(double));
     ERRCODE(MEMCHECK(parser->X));
@@ -193,6 +198,10 @@ int readdata(Project *pr)
     // Read each line from input file
     while (fgets(line, MAXLINE, parser->InFile) != NULL)
     {
+        // Skip the rest of a line too long for the buffer; this is an
+        // error unless only blanks or part of a comment were lost
+        toolong = skiprestofline(parser->InFile, line) && !strchr(line, ';');
+
         // Make copy of line and scan for tokens
         strcpy(wline, line);
         parser->Ntokens = gettokens(wline, parser->Tok, MAXTOKS, parser->Comment);
@@ -217,9 +226,10 @@ int readdata(Project *pr)
         parser->LineComment[0] = '\0';
 
         // Check if max. line length exceeded
-        if (strlen(line) >= MAXLINE)
+        if (toolong && sect >= 0)
         {
-            sprintf(pr->Msg, "%s section: %s", geterrmsg(214, errmsg), SectTxt[sect]);
+            sprintf(pr->Msg, "Error 214: %s in %s section:", geterrmsg(214, errmsg),
+                    SectTxt[sect]);
             writeline(pr, pr->Msg);
             writeline(pr, line);
             errsum++;
@@ -267,6 +277,31 @@ int readdata(Project *pr)
     // Free input buffer
     free(parser->X);
     return errcode;
+}
+
+int skiprestofline(FILE *f, char *line)
+/*
+**--------------------------------------------------------------
+**  Input:   f    = input file
+**           line = line read from f by fgets
+**  Output:  returns 1 if characters other than blanks were
+**           skipped, 0 if not
+**  Purpose: skips the rest of a line that was too long to fit
+**           in the line buffer
+**--------------------------------------------------------------
+*/
+{
+    int c, lost = 0;
+
+    // The whole line was read
+    if (strchr(line, '\n') != NULL) return 0;
+
+    // Otherwise read up to the end of the line
+    while ((c = fgetc(f)) != EOF && c != '\n')
+    {
+        if (c != ' ' && c != '\t' && c != '\r') lost = 1;
+    }
+    return lost;
 }
 
 int newline(Project *pr, int sect, char *line)
@@ -565,8 +600,9 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
     // clear comment
     comment[0] = '\0';
 
-    // Begin with no tokens
-    for (n=0; n<maxToks; n++) Tok[n] = NULL;
+    // Begin with no tokens (only the slots used by the previous
+    // line need clearing; the rest are still NULL)
+    for (n = 0; n < maxToks && Tok[n] != NULL; n++) Tok[n] = NULL;
     n = 0;
 
     // Truncate s at start of comment
@@ -608,7 +644,8 @@ int  gettokens(char *s, char** Tok, int maxToks, char *comment)
             {
                 s++;                           // Start token after quote
                 m = (int)strcspn(s,"\"\n\r");  // Find end quote (or EOL)
-            }
+                len = (int)strlen(s + m) - 1;  // Length after end quote
+             }
             s[m] = '\0';                 // Null-terminate the token
             Tok[n] = s;                  // Save pointer to token
             n++;                         // Update token count
@@ -719,7 +756,10 @@ int getfloat(char *s, double *y)
         freelocale(locale);
     }    
 
-    if (*endptr > 0) return 0;
+    // Reject an empty token, characters after the number, and the
+    // hexadecimal, infinity and NaN forms that strtod also accepts
+    if (endptr == s || *endptr != '\0') return 0;
+    if (strpbrk(s, "xX") != NULL || !isfinite(*y)) return 0;
     return 1;
 }
 

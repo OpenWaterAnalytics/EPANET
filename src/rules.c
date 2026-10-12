@@ -7,13 +7,14 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/05/2026
+ Last Updated: 10/07/2026
  ******************************************************************************
 */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "types.h"
 #include "funcs.h"
@@ -825,6 +826,7 @@ int newpremise(Project *pr, int logop)
         if (parser->Ntokens == 6) x = hour(Tok[4], Tok[5]) * 3600.;
         else                      x = hour(Tok[4], "") * 3600.;
         if (x < 0.0) return 202;
+        x = floor(x + 0.5);  // whole seconds, e.g. 8:00:01 is 28800.999...
     }
     else if ((k = findmatch(Tok[parser->Ntokens - 1], Value)) > IS_NUMBER) s = k;
     else
@@ -1421,10 +1423,14 @@ void writepremise(Spremise *p, FILE *f, Network *net)
         switch (p->variable)
         {
         case r_CLOCKTIME:
-        case r_DRAINTIME:
-        case r_FILLTIME:
         case r_TIME:
             gettimetxt(p->value, s_value);
+            break;
+
+        // Fill and drain times are read back as decimal hours
+        case r_DRAINTIME:
+        case r_FILLTIME:
+            sprintf(s_value, "%.4f", p->value / 3600.0);
             break;
         default: sprintf(s_value, "%.4f", p->value);
         }
