@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/07/2026
+ Last Updated: 10/09/2026
  ******************************************************************************
 */
 
@@ -268,8 +268,8 @@ int  nexthyd(Project *pr, long *tstep)
     *tstep = 0;
     hydstep = 0;
     if (time->Htime < time->Dur) hydstep = timestep(pr);
-    if (pr->outfile.Saveflag) errcode = savehydstep(pr,&hydstep);
-
+    if (pr->outfile.Saveflag) ERRCODE(savehydstep(pr,&hydstep));
+ 
     // Accumulate pumping energy
     if (time->Dur == 0) addenergy(pr,0);
     else if (time->Htime < time->Dur) addenergy(pr,hydstep);
@@ -784,6 +784,10 @@ int  controltimestep(Project *pr, long *tstep)
         {
             continue;
         }
+
+        // Skip a control de-activated by setting its link to 0
+        if (control->Link <= 0) continue;
+
         // Control depends on a tank level
         if ( (n = control->Node) > 0)
         {

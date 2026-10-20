@@ -7,7 +7,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/11/2026
+ Last Updated: 10/10/2026
  ******************************************************************************
 */
 
@@ -33,10 +33,6 @@ void createtmpfiles()
     getTmpName(_defaultProject->TmpHydFname);
     getTmpName(_defaultProject->TmpOutFname);
     getTmpName(_defaultProject->TmpStatFname);
-    
-    // Use system's decimal point (will be changed locally to dot
-    // when reading/writing EPANET input files)
-    setlocale(LC_NUMERIC, "");
 }
 
 void removetmpfiles()

@@ -11,7 +11,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 05/11/2026
+ Last Updated: 10/08/2026
  ******************************************************************************
  */
 
@@ -219,9 +219,6 @@ typedef struct Project *EN_Project;
   @param ph an EPANET project handle.
   @param filename the name of the file to create.
   @return an error code
-  
-  This function is not thread safe. Do not call it for multiple projects
-  being analyzed in separate threads simultaneously.
   */
   int DLLEXPORT EN_saveinpfile(EN_Project ph, const char *filename);
 
@@ -315,6 +312,10 @@ typedef struct Project *EN_Project;
 
   Be sure to call ::EN_initH prior to running a hydraulic analysis using a
   ::EN_runH - ::EN_nextH loop.
+
+  Until ::EN_runH computes the first solution, the flows returned by
+  ::EN_getlinkvalue and ::EN_getnodevalue (such as `EN_FLOW` and
+  `EN_EMITTERFLOW`) are the solver's starting values, not results.
 
   Choose to save hydraulics results if you will be:
   - making a subsequent water quality run,
@@ -996,6 +997,14 @@ typedef struct Project *EN_Project;
   @return an error code.
 
   These properties have units that depend on the units used for flow rate (see @ref Units).
+
+  If `diam` is 0 and no volume curve is supplied, the tank's area becomes 0 and the node
+  is converted to a reservoir with a fixed head of `elev` + `initlvl`, as for a tank with
+  zero diameter in an input file. This is kept for backward compatibility. It cannot be
+  undone: ::EN_getnodetype then returns `EN_RESERVOIR`, and this function and
+  ::EN_setnodevalue for the tank's diameter, minimum and maximum levels, minimum volume
+  and volume curve return error 263 for the node. To change only a tank's diameter, use
+  ::EN_setnodevalue with `EN_TANKDIAM`, which rejects 0 with error 209.
   */
   int  DLLEXPORT EN_settankdata(EN_Project ph, int index, double elev, double initlvl,
                  double minlvl, double maxlvl, double diam, double minvol, const char *volcurve);

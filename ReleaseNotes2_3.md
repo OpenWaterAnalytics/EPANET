@@ -154,3 +154,4 @@ This document describes the changes and updates that have been made in version 2
 - Insures that a dot decimal point is used when reading/writing EPANET files regardless of what the system locale uses.
 - Improves the code that prevents empty tanks from draining and full tanks from filling.
 - Checks that the start and end node arguments passed into `EN_addlink` are not the same.
+- Addresses 109 bugs identified in a code review of the EPANET engine carried out with the help of Claude (Anthropic's AI model), as described in issue #942.  The most serious of these were 29 that changed simulation results without any error or warning and 31 that could cause a crash or invalid memory access. Each fix was individually reviewed before being merged.

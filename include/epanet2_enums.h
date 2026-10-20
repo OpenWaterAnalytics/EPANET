@@ -9,7 +9,7 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 04/23/2025
+ Last Updated: 10/09/2026
  ******************************************************************************
 */
 
@@ -42,7 +42,7 @@ typedef enum {
   EN_SOURCEQUAL   = 5, //!< Quality source strength
   EN_SOURCEPAT    = 6, //!< Quality source pattern index
   EN_SOURCETYPE   = 7, //!< Quality source type (see @ref EN_SourceType)
-  EN_TANKLEVEL    = 8, //!< Current computed tank water level (read only)
+  EN_TANKLEVEL    = 8, //!< Tank initial water level (reservoir head)
   EN_DEMAND       = 9, //!< Current computed demand (read only)
   EN_HEAD         = 10, //!< Current computed hydraulic head (read only)
   EN_PRESSURE     = 11, //!< Current computed pressure (read only)

@@ -7,14 +7,19 @@
  Authors:      see AUTHORS
  Copyright:    see AUTHORS
  License:      see LICENSE
- Last Updated: 10/05/2026
+ Last Updated: 10/09/2026
  ******************************************************************************
 */
 
 #include <stdlib.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h> 
+#include <locale.h>
+#ifdef __APPLE__
+  #include <xlocale.h>
+#endif
 
 //*** For the Windows SDK _tempnam function ***//
 #ifdef _WIN32
@@ -92,8 +97,13 @@ int openproject(Project *pr, const char *inpFile, const char *rptFile,
             }
         }            
 
-        // Write input summary to report file
-        if (pr->report.Summaryflag) writesummary(pr);
+        // Write input summary to report file (in the system's locale)
+        if (pr->report.Summaryflag)
+        {
+            void *savedlocale = setnumericlocale("");
+            writesummary(pr);
+            restorenumericlocale(savedlocale);
+        }
         pr->Openflag = TRUE;
     }
     errmsg(pr, errcode);
@@ -1375,8 +1385,12 @@ int setcontrol(EN_Project p, int type, int linkIndex, double setting,
     }
     else if (type == TIMER || type == TIMEOFDAY)
     {
-        t = (long)level;
-        if (t < 0) return 202;
+        // Time in seconds must be a number from 0 up to half the range
+        // of a long, so that times can be added without overflow (NaN
+        // fails this test)
+        if (!(level >= 0.0 && level < (double)LONG_MAX / 2.0)) return 202;
+        t = (long)(level + 0.5);
+        if (type == TIMEOFDAY) t %= SECperDAY;
     }
     
     // Assign values to control struct
@@ -1587,6 +1601,82 @@ void getTmpName(char *fname)
     else fclose(f);
     remove(fname);
 #endif
+}
+
+// Calling thread's locale saved by setnumericlocale()
+typedef struct
+{
+#ifdef _WIN32
+    int      mode;       // previous per-thread locale setting
+    char    *name;       // previous numeric locale name
+#else
+    locale_t prev;       // previous locale of the thread
+    locale_t loc;        // locale set by setnumericlocale()
+#endif
+} Slocale;
+
+void *setnumericlocale(const char *name)
+//----------------------------------------------------------------
+//  Input:   name = locale for numbers: "C" for a dot as the decimal
+//                  point, "" for the system's locale
+//  Output:  returns the thread's previous locale, to be passed to
+//           restorenumericlocale(), or NULL if nothing was changed
+//  Purpose: changes the locale used for numbers by printf and strtod
+//           in the calling thread only. setlocale() would change it
+//           for the whole program, including the host application.
+//----------------------------------------------------------------
+{
+    Slocale *saved = (Slocale *)malloc(sizeof(Slocale));
+    if (saved == NULL) return NULL;
+
+#ifdef _WIN32
+    // Give the thread its own copy of the locale, then change that
+    saved->mode = _configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
+    if (saved->mode != -1)
+    {
+        char *prev = setlocale(LC_NUMERIC, NULL);
+        saved->name = prev ? _strdup(prev) : NULL;
+        if (saved->name && setlocale(LC_NUMERIC, name)) return saved;
+        free(saved->name);
+        _configthreadlocale(saved->mode);
+    }
+#else
+    // Copy the thread's current locale with its numeric part replaced
+    locale_t base = duplocale(uselocale((locale_t)0));
+    if (base != (locale_t)0)
+    {
+        saved->loc = newlocale(LC_NUMERIC_MASK, name, base);
+        if (saved->loc != (locale_t)0)
+        {
+            saved->prev = uselocale(saved->loc);
+            return saved;
+        }
+        freelocale(base);
+    }
+#endif
+    free(saved);
+    return NULL;
+}
+
+void restorenumericlocale(void *savedlocale)
+//----------------------------------------------------------------
+//  Input:   savedlocale = value returned by setnumericlocale()
+//  Output:  none
+//  Purpose: gives the calling thread back its previous locale
+//----------------------------------------------------------------
+{
+    Slocale *saved = (Slocale *)savedlocale;
+    if (saved == NULL) return;
+
+#ifdef _WIN32
+    setlocale(LC_NUMERIC, saved->name);
+    free(saved->name);
+    _configthreadlocale(saved->mode);
+#else
+    uselocale(saved->prev);
+    freelocale(saved->loc);
+#endif
+    free(saved);
 }
 
 char *xstrcpy(char **s1, const char *s2, const size_t n)

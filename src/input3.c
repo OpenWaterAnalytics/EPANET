@@ -7,7 +7,7 @@ Description:  parses network data from a line of an EPANET input file
 Authors:      see AUTHORS
 Copyright:    see AUTHORS
 License:      see LICENSE
-Last Updated: 10/07/2026
+Last Updated: 10/08/2026
 ******************************************************************************
 */
 
@@ -2098,11 +2098,11 @@ int optionvalue(Project *pr, int n)
 
     // Check for valid numerical input
     if (!getfloat(parser->Tok[nvalue], &y)) return setError(parser, nvalue, 202);
+    if (y < 0.0) return setError(parser, nvalue, 213);
 
     // Quality tolerance option (which can be 0)
     if (match(tok0, w_TOLERANCE))
     {
-        if (y < 0.0) return setError(parser, nvalue, 213);
         qual->Ctol = y;
         return 0;
     }
@@ -2110,12 +2110,25 @@ int optionvalue(Project *pr, int n)
     // Diffusivity
     if (match(tok0, w_DIFFUSIVITY))
     {
-        if (y < 0.0) return setError(parser, nvalue, 213);
         qual->Diffus = y;
         return 0;
     }
+    
+    // Frequency of status checking by hydraulic solver
+    else if (match(tok0, w_CHECKFREQ))
+    {
+        hyd->CheckFreq = (int)y;
+        return 0;
+    }
+    
+    // Maximum trials to continue status checking
+    else if (match(tok0, w_MAXCHECK))
+    {
+        hyd->MaxCheck = (int)y;
+        return 0;
+    }
 
-    // Hydraulic damping limit option */
+    // Hydraulic damping limit option
     if (match(tok0, w_DAMPLIMIT))
     {
         hyd->DampLimit = y;
@@ -2125,7 +2138,6 @@ int optionvalue(Project *pr, int n)
     // Flow change limit
     else if (match(tok0, w_FLOWCHANGE))
     {
-          if (y < 0.0) return setError(parser, nvalue, 213);
           hyd->FlowChangeLimit = y;
           return 0;
     }
@@ -2133,7 +2145,6 @@ int optionvalue(Project *pr, int n)
     // Head loss error limit
     else if (match(tok0, w_HEADERROR))
     {
-        if (y < 0.0) return setError(parser, nvalue, 213);
         hyd->HeadErrorLimit = y;
         return 0;
     }
@@ -2141,7 +2152,6 @@ int optionvalue(Project *pr, int n)
     // Pressure dependent demand parameters
     else if (match(tok0, w_MINIMUM))
     {
-        if (y < 0.0) return setError(parser, nvalue, 213);
         // Required pressure still at default value
         if (hyd->Preq == MINPDIFF)
             hyd->Preq = y + MINPDIFF;
@@ -2153,12 +2163,12 @@ int optionvalue(Project *pr, int n)
     }
     else if (match(tok0, w_REQUIRED))
     {
-        if (y < 0.0) return setError(parser, nvalue, 213);
         if (y - hyd->Pmin < MINPDIFF)
             return setError(parser, nvalue, 208);
         hyd->Preq = y;
         return 0;
     }
+    // Pressure exponent in pressure dependent demand equation
     else if (match(tok0, w_PRESSURE))
     {
         if (y <= 0.0) return setError(parser, nvalue, 213);
@@ -2194,16 +2204,6 @@ int optionvalue(Project *pr, int n)
     {
         if (y >= 1.0) return 213;
         hyd->RQtol = y;
-    }
-    else if (match(tok0, w_CHECKFREQ))
-    {
-        if (y < 1.0) return setError(parser, nvalue, 213);
-        hyd->CheckFreq = (int)y;
-    }
-    else if (match(tok0, w_MAXCHECK))
-    {
-        if (y < 1.0) return setError(parser, nvalue, 213);
-        hyd->MaxCheck = (int)y;
     }
     else if (match(tok0, w_EMITTER))   hyd->Qexp = 1.0 / y;
     else if (match(tok0, w_DEMAND))    hyd->Dmult = y;
