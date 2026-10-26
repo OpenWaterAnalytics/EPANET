@@ -1923,6 +1923,7 @@ int DLLEXPORT EN_setqualtype(EN_Project p, int qualType, const char *chemName,
     Ucf[LINKQUAL] = ccf;
     Ucf[REACTRATE] = ccf;
     qual->Ctol /= Ucf[QUALITY];
+    qual->Climit /= Ucf[QUALITY];
     return 0;
 }
 
