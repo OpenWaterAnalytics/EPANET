@@ -422,7 +422,7 @@ typedef struct             // Link Object
   double   Kw;             // wall react. coef.
   double   R;              // flow resistance
   double   Rc;             // reaction coeff.
-  double   LeakArea;       // leak area (sq mm per 100 pipe length units
+  double   LeakArea;       // leak area (sq mm per 100 pipe length units)
   double   LeakExpan;      // leak expansion (sq mm per unit of head)
   LinkType Type;           // link type
   StatusType InitStatus;   // initial status
