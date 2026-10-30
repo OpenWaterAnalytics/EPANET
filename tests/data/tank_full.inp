@@ -1,0 +1,29 @@
+[TITLE]
+Reservoir fills a tank that cannot overflow (issue #936)
+
+[JUNCTIONS]
+;ID   Elev   Demand
+ J    30     0
+
+[RESERVOIRS]
+;ID   Head
+ R    60
+
+[TANKS]
+;ID   Elev   InitLvl   MinLvl   MaxLvl   Diam   MinVol
+ T    38     5.25      2        7        20     0
+
+[PIPES]
+;ID   Node1  Node2  Length  Diam  Roughness  MLoss  Status
+ P1   R      J      10      300   1.2        0      Open
+ P    J      T      500     300   1.2        0      Open
+
+[TIMES]
+ Duration            8:00
+ Hydraulic Timestep  1:00
+
+[OPTIONS]
+ Units    LPS
+ Headloss D-W
+
+[END]

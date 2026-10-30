@@ -1,0 +1,24 @@
+[TITLE]
+Tank drains to a fixed demand until empty (issue #936)
+
+[JUNCTIONS]
+;ID   Elev   Demand
+ J    0      50
+
+[TANKS]
+;ID   Elev   InitLvl   MinLvl   MaxLvl   Diam   MinVol
+ T    38     5.25      2        7        20     0
+
+[PIPES]
+;ID   Node1  Node2  Length  Diam  Roughness  MLoss  Status
+ P    T      J      500     300   1.2        0      Open
+
+[TIMES]
+ Duration            24:00
+ Hydraulic Timestep  1:00
+
+[OPTIONS]
+ Units    LPS
+ Headloss D-W
+
+[END]
